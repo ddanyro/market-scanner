@@ -866,19 +866,20 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 <thead>
                     <tr>
                         <th>Simbol</th>
-                        <th># Acțiuni</th>
-                        <th>Preț Cump</th>
-                        <th>Val Actuală</th>
+                        <th>Acțiuni</th>
+                        <th>Preț Mediu</th>
+                        <th>Preț Curent</th>
                         <th>Grafic</th>
                         <th>Target</th>
                         <th>% Mid</th>
+                        <th>Trail %</th>
                         <th># Stop</th>
                         <th>Suggested Stop</th>
                         <th>Investiție</th>
                         <th>Valoare</th>
-                        <th># Câștig</th>
-                        <th>Câștig %</th>
-                        <th>Câștig Max</th>
+                        <th>Profit</th>
+                        <th>% Profit</th>
+                        <th>Max Profit</th>
                         <th>Status</th>
                         <th>Trend</th>
                     </tr>
@@ -917,6 +918,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <td><canvas id="{sparkline_id}" class="sparkline-container"></canvas></td>
                         <td>{target_display}</td>
                         <td class="{'positive' if pct_to_target > 0 else 'negative' if row['Target'] else ''}">{pct_display}</td>
+                        <td>{row['Trail_Pct']:.1f}%</td>
                         <td>{f"€{row['Trail_Stop']:.2f}" if row['Trail_Stop'] > 0 else "-"}</td>
                         <td>€{row['Suggested_Stop']:.2f}</td>
                         <td>€{row['Investment']:,.2f}</td>
