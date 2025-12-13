@@ -75,7 +75,7 @@
     <div class="header-bar">
         <div class="hamburger" onclick="toggleMenu()">☰</div>
         <div class="app-title">Market Scanner</div>
-        <div style="font-size: 0.8rem; color: #888;">Generated: 2025-12-13 10:31:16</div>
+        <div style="font-size: 0.8rem; color: #888;">Generated: 2025-12-13 10:36:21</div>
         
         <div id="navMenu" class="menu-dropdown">
             <div class="menu-item" onclick="switchTab('portfolio')">💼 Portofoliu Activ</div>
@@ -565,6 +565,7 @@
                             <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">VIX1D</th>
                             <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">VIX9D</th>
                             <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">VXN</th>
+                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">LTV</th>
                             <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">SKEW</th>
                             <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">MOVE</th>
                             <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">Crypto Fear</th>
@@ -579,6 +580,7 @@
                             <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">12 normal 30</th>
                             <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">12 normal 18</th>
                             <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">15 normal 25</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">perfect 10</th>
                             <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">150 tensiune 165</th>
                             <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">perfect 80</th>
                             <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">0-24 extreme fear</th>
@@ -595,6 +597,7 @@
                             <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_VIX1D" style="width: 100%; height: 100%;"></canvas></td>
                             <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_VIX9D" style="width: 100%; height: 100%;"></canvas></td>
                             <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_VXN" style="width: 100%; height: 100%;"></canvas></td>
+                            <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_LTV" style="width: 100%; height: 100%;"></canvas></td>
                             <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_SKEW" style="width: 100%; height: 100%;"></canvas></td>
                             <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_MOVE" style="width: 100%; height: 100%;"></canvas></td>
                             <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_Crypto Fear" style="width: 100%; height: 100%;"></canvas></td>
@@ -609,6 +612,7 @@
                             <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">12.42</td>
                             <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">13.48</td>
                             <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">20.62</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #4caf50;">9.97</td>
                             <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #ff9800;">153.59</td>
                             <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #4caf50;">69.25</td>
                             <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">23</td>
@@ -623,6 +627,7 @@
                             <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 1.72</td>
                             <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 1.02</td>
                             <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 2.22</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #888;"> 0.00</td>
                             <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 5.27</td>
                             <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.01</td>
                             <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↓ 6.00</td>
@@ -688,6 +693,18 @@
                 <tbody>
     
                     <tr>
+                        <td><strong>AMD</strong></td>
+                        <td>$210.78</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                        <td>56</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td>9.10</td>
+                        <td>$192.59</td>
+                        <td>$230.12</td>
+                        <td>$155.95</td>
+                    </tr>
+        
+                    <tr>
                         <td><strong>GOOGL</strong></td>
                         <td>$309.29</td>
                         <td class="trend-Strong-Bullish">Strong Bullish</td>
@@ -712,15 +729,15 @@
                     </tr>
         
                     <tr>
-                        <td><strong>COIN</strong></td>
-                        <td>$267.46</td>
-                        <td class="trend-Strong-Bearish">Strong Bearish</td>
-                        <td>65</td>
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td>13.95</td>
-                        <td>$239.57</td>
-                        <td>$309.25</td>
-                        <td>$283.32</td>
+                        <td><strong>PLTR</strong></td>
+                        <td>$183.57</td>
+                        <td class="trend-Strong-Bullish">Strong Bullish</td>
+                        <td>86</td>
+                        <td class="rsi-Overbought">Overbought</td>
+                        <td>6.55</td>
+                        <td>$170.48</td>
+                        <td>$179.46</td>
+                        <td>$144.41</td>
                     </tr>
         
                     <tr>
@@ -736,27 +753,15 @@
                     </tr>
         
                     <tr>
-                        <td><strong>AMD</strong></td>
-                        <td>$210.78</td>
-                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                        <td>56</td>
+                        <td><strong>COIN</strong></td>
+                        <td>$267.46</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                        <td>65</td>
                         <td class="rsi-Neutral">Neutral</td>
-                        <td>9.10</td>
-                        <td>$192.59</td>
-                        <td>$230.12</td>
-                        <td>$155.95</td>
-                    </tr>
-        
-                    <tr>
-                        <td><strong>PLTR</strong></td>
-                        <td>$183.57</td>
-                        <td class="trend-Strong-Bullish">Strong Bullish</td>
-                        <td>86</td>
-                        <td class="rsi-Overbought">Overbought</td>
-                        <td>6.55</td>
-                        <td>$170.48</td>
-                        <td>$179.46</td>
-                        <td>$144.41</td>
+                        <td>13.95</td>
+                        <td>$239.57</td>
+                        <td>$309.25</td>
+                        <td>$283.32</td>
                     </tr>
         
                 </tbody>
@@ -850,6 +855,8 @@
                 'spark_ind_VIX9D': [14.71, 14.97, 17.75, 15.87, 18.12, 17.31, 16.04, 15.18, 15.37, 19.17, 18.61, 22.33, 25.18, 23.1, 26.35, 21.51, 18.55, 15.39, 13.33, 13.61, 16.55, 15.42, 14.46, 14.3, 13.9, 16.29, 16.3, 14.68, 12.46, 13.48],
             
                 'spark_ind_VXN': [21.99, 21.73, 23.3, 22.6, 24.64, 24.58, 22.62, 22.67, 23.06, 25.88, 26.15, 28.16, 30.51, 29.3, 32.72, 28.95, 25.57, 23.67, 22.26, 21.17, 22.06, 21.28, 20.65, 20.19, 19.62, 20.75, 20.76, 19.67, 18.4, 20.62],
+            
+                'spark_ind_LTV': [9.97, 9.97, 9.97, 9.97, 9.97, 9.97, 9.97, 9.97, 9.97, 9.97],
             
                 'spark_ind_SKEW': [142.78, 141.99, 144.01, 143.64, 143.54, 141.27, 142.94, 143.45, 138.57, 142.49, 137.93, 140.9, 142.98, 143.05, 144.96, 148.34, 148.6, 151.68, 145.04, 143.0, 144.86, 144.94, 149.23, 148.91, 148.83, 150.63, 150.32, 147.55, 148.32, 153.59],
             

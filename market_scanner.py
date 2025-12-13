@@ -154,14 +154,22 @@ def get_market_indicators():
             # Luăm 35 zile ca să fim siguri că avem 30 de puncte valide
             hist = data.history(period="35d")
             
-            if not hist.empty and len(hist) >= 2:
+            if not hist.empty:
                 current = hist['Close'].iloc[-1]
-                previous = hist['Close'].iloc[-2]
-                change = current - previous
+                
+                if len(hist) >= 2:
+                    previous = hist['Close'].iloc[-2]
+                    change = current - previous
+                else:
+                    change = 0.0
                 
                 # Sparkline data (ultimele 30 zile)
                 sparkline_data = hist['Close'].tail(30).tolist()
                 sparkline_data = [round(float(x), 2) for x in sparkline_data if not pd.isna(x)]
+                # Dacă avem prea puține date pentru sparkline, completăm (opțional) sau lăsăm așa
+                if len(sparkline_data) < 2:
+                     # Putem repeta valoarea pentru a avea o linie dreaptă
+                     sparkline_data = [round(float(current), 2)] * 10 
                 
                 # Multi-level thresholds pentru interpretare dinamică
                 # Similar cu formula Google Sheets: IFS(value<low1, "perfect", value<low2, "normal", etc)
