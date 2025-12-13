@@ -1194,8 +1194,31 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         </div>
         
         <div id="watchlist" class="tab-content">
+            
+            <!-- Filters -->
+            <div class="filters-container" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; background: #2d2d2d; padding: 15px; border-radius: 8px; border: 1px solid #444;">
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 0.8rem; margin-bottom: 5px; color: #aaa;">Consensus</label>
+                    <select id="filter-consensus" style="padding: 5px; background: #444; color: #fff; border: none; border-radius: 4px;">
+                        <option value="">All</option>
+                        <option value="Strong Buy">Strong Buy</option>
+                        <option value="Buy">Buy</option>
+                        <option value="Hold">Hold</option>
+                        <option value="Sell">Sell</option>
+                    </select>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 0.8rem; margin-bottom: 5px; color: #aaa;">Min Analysts</label>
+                    <input type="number" id="filter-analysts" placeholder="0" style="padding: 5px; background: #444; color: #fff; border: none; border-radius: 4px; width: 100px;">
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 0.8rem; margin-bottom: 5px; color: #aaa;">Min Target %</label>
+                    <input type="number" id="filter-target-pct" placeholder="0" step="any" style="padding: 5px; background: #444; color: #fff; border: none; border-radius: 4px; width: 100px;">
+                </div>
+            </div>
+
             <div class="table-container">
-            <table>
+            <table id="watchlist-table">
                 <thead>
                     <tr>
                         <th>Ticker</th>
@@ -1284,12 +1307,40 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
         <script>
             $(document).ready(function() {
-                $('table').DataTable({
+                var table = $('table').DataTable({
                     paging: false,
                     ordering: true,
                     info: false,
                     searching: true,
-                    order: [] // Disable initial sort if preferred
+                    order: [] 
+                });
+                
+                // Custom filtering function
+                $.fn.dataTable.ext.search.push(
+                    function(settings, data, dataIndex) {
+                        if (settings.nTable.id !== 'watchlist-table') return true;
+
+                        var consensus = $('#filter-consensus').val();
+                        var minAnalysts = parseFloat($('#filter-analysts').val());
+                        var minTarget = parseFloat($('#filter-target-pct').val());
+
+                        // Indices: 3: To Target %, 4: Consensus, 5: Analysts
+                        var rowTargetPct = parseFloat(data[3].replace('%', '')) || -9999;
+                        var rowConsensus = data[4] || "";
+                        var rowAnalysts = parseFloat(data[5]) || 0;
+
+                        if (consensus && !rowConsensus.includes(consensus)) return false;
+                        if (!isNaN(minAnalysts) && rowAnalysts < minAnalysts) return false;
+                        if (!isNaN(minTarget) && rowTargetPct < minTarget) return false;
+
+                        return true;
+                    }
+                );
+
+                // Bind inputs
+                $('#filter-consensus, #filter-analysts, #filter-target-pct').on('change keyup', function() {
+                    var table = $('#watchlist-table').DataTable();
+                    table.draw();
                 });
             });
 
