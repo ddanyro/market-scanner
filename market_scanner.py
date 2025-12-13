@@ -565,7 +565,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         </div>
     </div>
         
-        <div id="portfolio" class="tab-content active">
+        <div id="portfolio" class="tab-content">
             <div class="summary">
                 <div class="summary-card">
                     <h3>Total Investment</h3>
@@ -659,7 +659,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         </div>
         
         <!-- TAB MARKET (NOU) -->
-        <div id="market" class="tab-content">
+        <div id="market" class="tab-content active">
             <h3 style="color: #4dabf7; margin-bottom: 20px; text-align: center;">📊 Indicatori de Piață</h3>
             <div style="background-color: #2d2d2d; padding: 20px; border-radius: 10px; overflow-x: auto;">
                 <table style="width: 100%; background-color: transparent; box-shadow: none;">
