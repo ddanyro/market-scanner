@@ -311,24 +311,79 @@ def get_scalar(series_val, default=0.0):
     except:
         return default
 
-def process_portfolio_ticker(row, vix_value):
-    """Procesează un ticker din portofoliu cu date de ownership."""
+def get_exchange_rates():
+    """Descarcă ratele de schimb pentru conversia la EUR."""
+    rates = {'EUR': 1.0, 'USD': 0.95, 'RON': 0.20, 'GBP': 1.15}
+    try:
+        # Download exchange rates relative to EUR (EURXYZ=X)
+        # EURRON=X -> 1 EUR = x RON
+        # EURUSD=X -> 1 EUR = x USD
+        # EURGBP=X -> 1 EUR = x GBP
+        tickers = "EURRON=X EURUSD=X EURGBP=X"
+        data = yf.download(tickers, period="5d", progress=False)
+        
+        if not data.empty:
+            # Handle MultiIndex columns if present
+            if isinstance(data.columns, pd.MultiIndex):
+                # We want 'Close' prices
+                df = data['Close']
+            else:
+                df = data
+
+            last = df.iloc[-1]
+            
+            # 1 EUR = val RON => 1 RON = 1/val EUR
+            if 'EURRON=X' in last and not pd.isna(last['EURRON=X']):
+                 val = float(last['EURRON=X'])
+                 if val > 0: rates['RON'] = 1.0 / val
+            
+            if 'EURUSD=X' in last and not pd.isna(last['EURUSD=X']):
+                 val = float(last['EURUSD=X'])
+                 if val > 0: rates['USD'] = 1.0 / val
+            
+            if 'EURGBP=X' in last and not pd.isna(last['EURGBP=X']):
+                 val = float(last['EURGBP=X'])
+                 if val > 0: rates['GBP'] = 1.0 / val
+            
+            print(f"Rates: 1 RON={rates['RON']:.3f}€, 1 USD={rates['USD']:.3f}€")
+    except Exception as e:
+        print(f"Eroare curs valutar: {e}. Folosim fallback.")
+    return rates
+
+def process_portfolio_ticker(row, vix_value, rates):
+    """Procesează un ticker din portofoliu cu date de ownership (Conversie EUR)."""
     try:
         ticker = row.get('symbol', 'UNKNOWN').upper()
         shares = float(row.get('shares', 0))
-        buy_price = float(row.get('buy_price', 0))
+        buy_price_native = float(row.get('buy_price', 0))
         # Default trail_pct to 15 if missing
         trail_pct = float(row.get('trail_pct', 15))
         
         print(f"Procesare: {ticker}")
         
-        # Ia target-ul DOAR de pe Finviz
-        target = get_finviz_target(ticker)
+        # Detect Currency
+        currency = 'USD' # Default
+        if '.RO' in ticker: currency = 'RON'
+        elif '.PA' in ticker or '.DE' in ticker or '.AS' in ticker: currency = 'EUR'
+        elif '.L' in ticker: currency = 'GBP'
         
-        if target:
-            print(f"  → Target Finviz: ${target:.2f}")
+        rate = rates.get(currency, rates['USD'])
+        if currency == 'EUR': rate = 1.0
+        
+        # Convert Buy Price to EUR
+        buy_price = buy_price_native * rate
+        
+        # Ia target-ul DOAR de pe Finviz (USD usually)
+        target_usd = get_finviz_target(ticker)
+        target = None
+        if target_usd:
+            # Finviz e mereu USD? Nu neapărat. Dar pt US stocks da.
+            # Dacă e stoc european, Finviz poate lipsi sau e în moneda locală?
+            # Presupunem că Finviz dă în aceeași monedă ca ticker-ul (dacă îl găsește).
+            target = target_usd * rate
+            print(f"  → Target Finviz: €{target:.2f} (calc)")
         else:
-            print(f"  → Target: N/A (nu există pe Finviz)")
+            print(f"  → Target: N/A")
         
         time.sleep(2)
         
@@ -351,23 +406,28 @@ def process_portfolio_ticker(row, vix_value):
         
         last_row = df.iloc[-1]
         
-        current_price = get_scalar(last_row['Close'])
-        last_atr = get_scalar(last_row['ATR'])
+        current_price_native = get_scalar(last_row['Close'])
+        current_price = current_price_native * rate # EUR
+        
+        # Convert ATR for stops
+        last_atr_native = get_scalar(last_row['ATR'])
+        if pd.isna(last_atr_native): last_atr_native = 0.0
+        last_atr = last_atr_native * rate # EUR
+        
         last_rsi = get_scalar(last_row['RSI'])
-        sma_50 = get_scalar(last_row['SMA_50'])
-        sma_200 = get_scalar(last_row['SMA_200'])
+        sma_50 = get_scalar(last_row['SMA_50']) * rate
+        sma_200 = get_scalar(last_row['SMA_200']) * rate
         
-        if pd.isna(last_atr): last_atr = 0.0
-        
-        # Extrage ultimele 30 zile pentru sparkline
+        # Extrage ultimele 30 zile pentru sparkline (conversie si aici? nu, trendul e la fel, dar valorile difera)
+        # Sparkline e doar vizual, nu contează scara, dar hai să convertim pt consistență dacă afișăm tooltip
         sparkline_data = df['Close'].tail(30).tolist()
-        sparkline_data = [round(float(x), 2) for x in sparkline_data if not pd.isna(x)]
+        sparkline_data = [round(float(x) * rate, 2) for x in sparkline_data if not pd.isna(x)]
         
-        # Calcule pentru portofoliu
+        # Calcule pentru portofoliu (Toate în EUR)
         current_value = current_price * shares
         investment = buy_price * shares
         profit = current_value - investment
-        profit_pct = ((current_price - buy_price) / buy_price) * 100
+        profit_pct = ((current_price - buy_price) / buy_price) * 100 if buy_price != 0 else 0
         
         # Stop loss bazat pe trailing %
         trail_stop_price = current_price * (1 - trail_pct / 100)
@@ -431,13 +491,22 @@ def process_portfolio_ticker(row, vix_value):
         return result
         
     except Exception as e:
-        print(f"Eroare procesare {row['symbol']}: {e}")
+        print(f"Eroare procesare {row.get('symbol', '?')}: {e}")
         return None
 
-def process_watchlist_ticker(ticker, vix_value):
+def process_watchlist_ticker(ticker, vix_value, rates):
     """Procesează un ticker din watchlist (fără date de ownership)."""
     try:
         time.sleep(2)
+        
+        # Detect Currency
+        currency = 'USD'
+        if '.RO' in ticker: currency = 'RON'
+        elif '.PA' in ticker or '.DE' in ticker or '.AS' in ticker: currency = 'EUR'
+        elif '.L' in ticker: currency = 'GBP'
+        
+        rate = rates.get(currency, rates['USD'])
+        if currency == 'EUR': rate = 1.0
         
         df = yf.download(ticker, period="1y", progress=False)
         
@@ -458,13 +527,13 @@ def process_watchlist_ticker(ticker, vix_value):
         
         last_row = df.iloc[-1]
         
-        last_close = get_scalar(last_row['Close'])
-        last_atr = get_scalar(last_row['ATR'])
-        last_rsi = get_scalar(last_row['RSI'])
-        sma_50 = get_scalar(last_row['SMA_50'])
-        sma_200 = get_scalar(last_row['SMA_200'])
-        
+        last_close = get_scalar(last_row['Close']) * rate
+        last_atr = get_scalar(last_row['ATR']) * rate
         if pd.isna(last_atr): last_atr = 0.0
+        
+        last_rsi = get_scalar(last_row['RSI'])
+        sma_50 = get_scalar(last_row['SMA_50']) * rate
+        sma_200 = get_scalar(last_row['SMA_200']) * rate
         
         stop_loss_dist = 2 * last_atr
         suggested_stop = last_close - stop_loss_dist
@@ -706,9 +775,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         
         if row['Target'] and pd.notna(row['Target']):
             pct_to_target = ((row['Target'] - row['Current_Price']) / row['Current_Price']) * 100
-            target_display = f"${row['Target']:.2f}"
+            target_display = f"€{row['Target']:.2f}"
             pct_display = f"{pct_to_target:.1f}%"
-            max_profit_display = f"${row['Max_Profit']:,.2f}" if row['Max_Profit'] and pd.notna(row['Max_Profit']) else "N/A"
+            max_profit_display = f"€{row['Max_Profit']:,.2f}" if row['Max_Profit'] and pd.notna(row['Max_Profit']) else "N/A"
         else:
             target_display = "N/A"
             pct_display = "N/A"
@@ -721,17 +790,17 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     <tr>
                         <td><strong>{row['Symbol']}</strong></td>
                         <td>{row['Shares']}</td>
-                        <td>${row['Buy_Price']:.2f}</td>
-                        <td>${row['Current_Price']:.2f}</td>
+                        <td>€{row['Buy_Price']:.2f}</td>
+                        <td>€{row['Current_Price']:.2f}</td>
                         <td><canvas id="{sparkline_id}" class="sparkline-container"></canvas></td>
                         <td>{target_display}</td>
                         <td class="{'positive' if pct_to_target > 0 else 'negative' if row['Target'] else ''}">{pct_display}</td>
                         <td>{row['Trail_Pct']:.0f}%</td>
-                        <td>${row['Trail_Stop']:.2f}</td>
-                        <td>${row['Suggested_Stop']:.2f}</td>
-                        <td>${row['Investment']:,.2f}</td>
-                        <td>${row['Current_Value']:,.2f}</td>
-                        <td class="{profit_cls}">${row['Profit']:,.2f}</td>
+                        <td>€{row['Trail_Stop']:.2f}</td>
+                        <td>€{row['Suggested_Stop']:.2f}</td>
+                        <td>€{row['Investment']:,.2f}</td>
+                        <td>€{row['Current_Value']:,.2f}</td>
+                        <td class="{profit_cls}">€{row['Profit']:,.2f}</td>
                         <td class="{profit_cls}">{row['Profit_Pct']:.2f}%</td>
                         <td>{max_profit_display}</td>
                         <td class="rsi-{status_cls}">{row['Status']}</td>
@@ -890,14 +959,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         html_head += f"""
                     <tr>
                         <td><strong>{row['Ticker']}</strong></td>
-                        <td>${row['Price']:.2f}</td>
+                        <td>€{row['Price']:.2f}</td>
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
                         <td>{row['RSI']:.0f}</td>
                         <td class="rsi-{rsi_cls}">{row['RSI_Status']}</td>
                         <td>{row['ATR_14']:.2f}</td>
-                        <td>${row['Stop_Loss']:.2f}</td>
-                        <td>${row['SMA_50']:.2f}</td>
-                        <td>${row['SMA_200']:.2f}</td>
+                        <td>€{row['Stop_Loss']:.2f}</td>
+                        <td>€{row['SMA_50']:.2f}</td>
+                        <td>€{row['SMA_200']:.2f}</td>
                     </tr>
         """
         
@@ -1043,6 +1112,10 @@ def main():
     except Exception as e:
         print(f"Sincronizare IBKR a eșuat sau nu este disponibilă: {e}")
     
+    # 1.5 Preluare Curs Valutar
+    print("\n=== Preluare Curs Valutar ===")
+    rates = get_exchange_rates()
+
     # 1. Obținem indicatorii de piață
     print("\n=== Preluare Indicatori de Piață ===")
     market_indicators = get_market_indicators()
@@ -1063,7 +1136,7 @@ def main():
         print(f"\n=== Procesare Portfolio ({len(portfolio_data)} poziții) ===")
         for _, row in portfolio_data.iterrows():
             print(f"Procesare: {row['symbol']}")
-            data = process_portfolio_ticker(row, vix_val)
+            data = process_portfolio_ticker(row, vix_val, rates)
             if data:
                 portfolio_results.append(data)
     
@@ -1075,7 +1148,7 @@ def main():
         print(f"\n=== Procesare Watchlist ({len(watchlist_tickers)} tickere) ===")
         for ticker in watchlist_tickers:
             print(f"Procesare: {ticker}")
-            data = process_watchlist_ticker(ticker, vix_val)
+            data = process_watchlist_ticker(ticker, vix_val, rates)
             if data:
                 watchlist_results.append(data)
     
