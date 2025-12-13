@@ -761,18 +761,30 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     vix_cls = vix_val if vix_val != 'N/A' else 'Normal'
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Calculăm statistici
+    # Calculăm totalurile pentru sumar
     total_investment = portfolio_df['Investment'].sum() if not portfolio_df.empty else 0
     total_value = portfolio_df['Current_Value'].sum() if not portfolio_df.empty else 0
     total_profit = portfolio_df['Profit'].sum() if not portfolio_df.empty else 0
-    total_profit_pct = ((total_value - total_investment) / total_investment * 100) if total_investment > 0 else 0
     
-    # Calculăm câștigul maxim potențial (suma Max_Profit unde există Target)
-    if not portfolio_df.empty and 'Max_Profit' in portfolio_df.columns:
-        # Înlocuim None/NaN cu 0 pentru sumă
-        total_max_profit = portfolio_df['Max_Profit'].fillna(0).sum()
-    else:
-        total_max_profit = 0
+    # Recalculăm Max Profit și P/L la Stop iterând
+    total_max_profit = 0
+    total_pl_at_stop = 0
+    
+    if not portfolio_df.empty:
+        for _, row in portfolio_df.iterrows():
+            # Max Profit
+            if row['Target'] and pd.notna(row['Target']):
+                 mp = (row['Target'] - row['Buy_Price']) * row['Shares']
+                 total_max_profit += mp
+            
+            # P/L la Stop
+            if row['Trail_Stop'] and pd.notna(row['Trail_Stop']) and row['Trail_Stop'] > 0:
+                 # Trail_Stop e deja convertit în EUR în dataframe? Verificăm process_portfolio_ticker.
+                 # Da, e convertit.
+                 pls = (row['Trail_Stop'] - row['Buy_Price']) * row['Shares']
+                 total_pl_at_stop += pls
+
+    total_profit_pct = ((total_value - total_investment) / total_investment * 100) if total_investment > 0 else 0
 
     # Citire parolă
     password = "1234"
@@ -850,21 +862,26 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <h3>Total Investment</h3>
                         <div class="value">€{total_investment:,.2f}</div>
                     </div>
-                <div class="summary-card">
-                    <h3>Current Value</h3>
-                    <div class="value">€{total_value:,.2f}</div>
-                </div>
-                <div class="summary-card">
-                    <h3>Total P/L</h3>
-                    <div class="value {'positive' if total_profit >= 0 else 'negative'}">€{total_profit:,.2f}</div>
-                </div>
-                <div class="summary-card">
-                    <h3>ROI</h3>
-                    <div class="value {'positive' if total_profit_pct >= 0 else 'negative'}">{total_profit_pct:.2f}%</div>
-                </div>
-                <div class="summary-card">
-                    <h3>Max Potential Profit</h3>
-                    <div class="value {'positive' if total_max_profit > 0 else ''}" style="color: #4dabf7;">€{total_max_profit:,.2f}</div>
+                    <div class="summary-card">
+                        <h3>Current Value</h3>
+                        <div class="value">€{total_value:,.2f}</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Total Profit</h3>
+                        <div class="value {'positive' if total_profit >= 0 else 'negative'}">€{total_profit:,.2f}</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>ROI</h3>
+                        <div class="value {'positive' if total_profit_pct >= 0 else 'negative'}">{total_profit_pct:.2f}%</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Max Potential Profit</h3>
+                        <div class="value {'positive' if total_max_profit > 0 else ''}" style="color: #4dabf7;">€{total_max_profit:,.2f}</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Total P/L la Stop</h3>
+                        <div class="value {'positive' if total_pl_at_stop >= 0 else 'negative'}">€{total_pl_at_stop:,.2f}</div>
+                    </div>
                 </div>
             </div>
             
