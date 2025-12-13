@@ -13,6 +13,17 @@ Această metodă permite preluarea portofoliului direct din serverele IBKR (Clou
    - Setează perioada de valabilitate la maxim (1 an).
 7. Apasă **Save**.
 
+### ⚠️ NU GĂSEȘTI MENIUL?
+Interfața IBKR se schimbă frecvent. Încearcă această cale alternativă:
+1. Mergi la meniul **Performance & Reports** > **Flex Queries**.
+2. În pagina Flex Queries, uită-te în partea dreaptă, lângă titlu sau butoane, după o iconiță mică de **Rotiță (Configurare)** ⚙️.
+3. Acolo ar trebui să fie setarea pentru "Flex Web Service".
+4. Dacă tot nu apare, asigură-te că nu ești pe un cont "Lite" (care are acces limitat la API-uri avansate).
+
+**Notă despre "Linked Accounts" (Yahoo Finance):**
+Yahoo Finance folosește parteneriate bancare (agregatoare precum Yodlee) pentru a se conecta prin OAuth la contul tău. Această metodă este disponibilă doar instituțiilor financiare mari.
+Pentru utilizatorii individuali și developeri, **Flex Web Service** este singura metodă oficială oferită de IBKR pentru a prelua datele automat fără software instalat.
+
 ## 🟢 Pasul 2: Creare Flex Query (Raportul de Poziții)
 1. Din meniul principal, mergi la **Performance & Reports** > **Flex Queries**.
 2. Apasă pe iconița **+** (Create a new Flex Query).
