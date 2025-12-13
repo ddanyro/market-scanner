@@ -139,7 +139,7 @@ def get_market_indicators():
         'VIX1D': (12, 30),
         'VIX9D': (12, 18),
         'VXN': (15, 25),
-        'LTV': (10, 13),        # Russell 2000 Vol
+        'LTV': (10, 13),        # CBOE Left Tail Volatility
         'SKEW': (135, 150),  # SKEW normal între 135-150
         'MOVE': (80, 120),
         'GVZ': (17, 22),
