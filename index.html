@@ -75,10 +75,11 @@
     <div class="header-bar">
         <div class="hamburger" onclick="toggleMenu()">☰</div>
         <div class="app-title">Market Scanner</div>
-        <div style="font-size: 0.8rem; color: #888;">Generated: 2025-12-13 10:08:20</div>
+        <div style="font-size: 0.8rem; color: #888;">Generated: 2025-12-13 10:13:37</div>
         
         <div id="navMenu" class="menu-dropdown">
-            <div class="menu-item" onclick="switchTab('portfolio')">� Portofoliu Activ</div>
+            <div class="menu-item" onclick="switchTab('portfolio')">💼 Portofoliu Activ</div>
+            <div class="menu-item" onclick="switchTab('market')">📊 Market Overview</div>
             <div class="menu-item" onclick="switchTab('watchlist')">👀 Watchlist</div>
         </div>
     </div>
@@ -101,87 +102,6 @@
                     <h3>ROI</h3>
                     <div class="value positive">3.20%</div>
                 </div>
-            </div>
-            
-            <!-- Market Indicators -->
-            <div style="margin-bottom: 30px; background-color: #2d2d2d; padding: 20px; border-radius: 10px;">
-                <h3 style="color: #4dabf7; margin-bottom: 15px; text-align: center;">📊 Indicatori de Piață</h3>
-                <table style="width: 100%; background-color: transparent; box-shadow: none;">
-                    <thead>
-                        <tr style="border-bottom: 2px solid #444;">
-    
-                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">VIX3M</th>
-                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">VIX</th>
-                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">VIX1D</th>
-                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">VIX9D</th>
-                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">VXN</th>
-                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">SKEW</th>
-                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">MOVE</th>
-                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">Crypto Fear</th>
-                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">GVZ</th>
-                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">OVX</th>
-                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">SPX</th>
-                        </tr>
-                        <tr style="border-bottom: 1px solid #444;">
-    
-                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">14 normal 20</th>
-                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">15 normal 20</th>
-                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">12 normal 30</th>
-                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">12 normal 18</th>
-                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">15 normal 25</th>
-                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">150 tensiune 165</th>
-                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">perfect 80</th>
-                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">0-24 extreme fear</th>
-                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">17 normal 22</th>
-                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">25 normal 35</th>
-                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-    
-                            <td style="text-align: center; padding: 5px; height: 40px;"><canvas id="spark_ind_VIX3M" style="width: 100%; height: 100%;"></canvas></td>
-                            <td style="text-align: center; padding: 5px; height: 40px;"><canvas id="spark_ind_VIX" style="width: 100%; height: 100%;"></canvas></td>
-                            <td style="text-align: center; padding: 5px; height: 40px;"><canvas id="spark_ind_VIX1D" style="width: 100%; height: 100%;"></canvas></td>
-                            <td style="text-align: center; padding: 5px; height: 40px;"><canvas id="spark_ind_VIX9D" style="width: 100%; height: 100%;"></canvas></td>
-                            <td style="text-align: center; padding: 5px; height: 40px;"><canvas id="spark_ind_VXN" style="width: 100%; height: 100%;"></canvas></td>
-                            <td style="text-align: center; padding: 5px; height: 40px;"><canvas id="spark_ind_SKEW" style="width: 100%; height: 100%;"></canvas></td>
-                            <td style="text-align: center; padding: 5px; height: 40px;"><canvas id="spark_ind_MOVE" style="width: 100%; height: 100%;"></canvas></td>
-                            <td style="text-align: center; padding: 5px; height: 40px;"><canvas id="spark_ind_Crypto Fear" style="width: 100%; height: 100%;"></canvas></td>
-                            <td style="text-align: center; padding: 5px; height: 40px;"><canvas id="spark_ind_GVZ" style="width: 100%; height: 100%;"></canvas></td>
-                            <td style="text-align: center; padding: 5px; height: 40px;"><canvas id="spark_ind_OVX" style="width: 100%; height: 100%;"></canvas></td>
-                            <td style="text-align: center; padding: 5px; height: 40px;"><canvas id="spark_ind_SPX" style="width: 100%; height: 100%;"></canvas></td>
-                        </tr>
-                        <tr>
-    
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">19.25</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">15.74</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">12.42</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">13.48</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">20.62</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #ff9800;">153.59</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #4caf50;">69.25</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">23</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">21.46</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">29.93</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">6827.41</td>
-                        </tr>
-                        <tr>
-    
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.20</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.89</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 1.72</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 1.02</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 2.22</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 5.27</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.01</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↓ 6.00</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.49</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #4caf50;">↓ 1.95</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↓ 73.59</td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
             
             <table>
@@ -632,6 +552,89 @@
             </table>
         </div>
         
+        <!-- TAB MARKET (NOU) -->
+        <div id="market" class="tab-content">
+            <h3 style="color: #4dabf7; margin-bottom: 20px; text-align: center;">📊 Indicatori de Piață</h3>
+            <div style="background-color: #2d2d2d; padding: 20px; border-radius: 10px; overflow-x: auto;">
+                <table style="width: 100%; background-color: transparent; box-shadow: none;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #444;">
+    
+                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">VIX3M</th>
+                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">VIX</th>
+                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">VIX1D</th>
+                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">VIX9D</th>
+                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">VXN</th>
+                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">SKEW</th>
+                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">MOVE</th>
+                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">Crypto Fear</th>
+                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">GVZ</th>
+                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">OVX</th>
+                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">SPX</th>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #444;">
+    
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">14 normal 20</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">15 normal 20</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">12 normal 30</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">12 normal 18</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">15 normal 25</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">150 tensiune 165</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">perfect 80</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">0-24 extreme fear</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">17 normal 22</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">25 normal 35</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+    
+                            <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_VIX3M" style="width: 100%; height: 100%;"></canvas></td>
+                            <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_VIX" style="width: 100%; height: 100%;"></canvas></td>
+                            <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_VIX1D" style="width: 100%; height: 100%;"></canvas></td>
+                            <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_VIX9D" style="width: 100%; height: 100%;"></canvas></td>
+                            <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_VXN" style="width: 100%; height: 100%;"></canvas></td>
+                            <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_SKEW" style="width: 100%; height: 100%;"></canvas></td>
+                            <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_MOVE" style="width: 100%; height: 100%;"></canvas></td>
+                            <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_Crypto Fear" style="width: 100%; height: 100%;"></canvas></td>
+                            <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_GVZ" style="width: 100%; height: 100%;"></canvas></td>
+                            <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_OVX" style="width: 100%; height: 100%;"></canvas></td>
+                            <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="spark_ind_SPX" style="width: 100%; height: 100%;"></canvas></td>
+                        </tr>
+                        <tr>
+    
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">19.25</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">15.74</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">12.42</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">13.48</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">20.62</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #ff9800;">153.59</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #4caf50;">69.25</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">23</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">21.46</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">29.93</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">6827.41</td>
+                        </tr>
+                        <tr>
+    
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.20</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.89</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 1.72</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 1.02</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 2.22</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 5.27</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.01</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↓ 6.00</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.49</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #4caf50;">↓ 1.95</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↓ 73.59</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
         <div id="watchlist" class="tab-content">
             <table>
                 <thead>
@@ -650,39 +653,15 @@
                 <tbody>
     
                     <tr>
-                        <td><strong>PLTR</strong></td>
-                        <td>$183.57</td>
-                        <td class="trend-Strong-Bullish">Strong Bullish</td>
-                        <td>86</td>
-                        <td class="rsi-Overbought">Overbought</td>
-                        <td>6.55</td>
-                        <td>$170.48</td>
-                        <td>$179.46</td>
-                        <td>$144.41</td>
-                    </tr>
-        
-                    <tr>
-                        <td><strong>TSLA</strong></td>
-                        <td>$458.96</td>
-                        <td class="trend-Strong-Bullish">Strong Bullish</td>
-                        <td>81</td>
-                        <td class="rsi-Overbought">Overbought</td>
-                        <td>14.45</td>
-                        <td>$430.06</td>
-                        <td>$435.58</td>
-                        <td>$346.08</td>
-                    </tr>
-        
-                    <tr>
-                        <td><strong>INTC</strong></td>
-                        <td>$37.81</td>
-                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                        <td>59</td>
+                        <td><strong>COIN</strong></td>
+                        <td>$267.46</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                        <td>65</td>
                         <td class="rsi-Neutral">Neutral</td>
-                        <td>2.16</td>
-                        <td>$33.49</td>
-                        <td>$38.07</td>
-                        <td>$26.57</td>
+                        <td>13.95</td>
+                        <td>$239.57</td>
+                        <td>$309.25</td>
+                        <td>$283.32</td>
                     </tr>
         
                     <tr>
@@ -698,15 +677,39 @@
                     </tr>
         
                     <tr>
-                        <td><strong>COIN</strong></td>
-                        <td>$267.46</td>
-                        <td class="trend-Strong-Bearish">Strong Bearish</td>
-                        <td>65</td>
+                        <td><strong>INTC</strong></td>
+                        <td>$37.81</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                        <td>59</td>
                         <td class="rsi-Neutral">Neutral</td>
-                        <td>13.95</td>
-                        <td>$239.57</td>
-                        <td>$309.25</td>
-                        <td>$283.32</td>
+                        <td>2.16</td>
+                        <td>$33.49</td>
+                        <td>$38.07</td>
+                        <td>$26.57</td>
+                    </tr>
+        
+                    <tr>
+                        <td><strong>TSLA</strong></td>
+                        <td>$458.96</td>
+                        <td class="trend-Strong-Bullish">Strong Bullish</td>
+                        <td>81</td>
+                        <td class="rsi-Overbought">Overbought</td>
+                        <td>14.45</td>
+                        <td>$430.06</td>
+                        <td>$435.58</td>
+                        <td>$346.08</td>
+                    </tr>
+        
+                    <tr>
+                        <td><strong>PLTR</strong></td>
+                        <td>$183.57</td>
+                        <td class="trend-Strong-Bullish">Strong Bullish</td>
+                        <td>86</td>
+                        <td class="rsi-Overbought">Overbought</td>
+                        <td>6.55</td>
+                        <td>$170.48</td>
+                        <td>$179.46</td>
+                        <td>$144.41</td>
                     </tr>
         
                     <tr>

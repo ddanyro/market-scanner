@@ -559,7 +559,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         <div style="font-size: 0.8rem; color: #888;">Generated: {timestamp}</div>
         
         <div id="navMenu" class="menu-dropdown">
-            <div class="menu-item" onclick="switchTab('portfolio')">� Portofoliu Activ</div>
+            <div class="menu-item" onclick="switchTab('portfolio')">💼 Portofoliu Activ</div>
+            <div class="menu-item" onclick="switchTab('market')">📊 Market Overview</div>
             <div class="menu-item" onclick="switchTab('watchlist')">👀 Watchlist</div>
         </div>
     </div>
@@ -582,118 +583,6 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     <h3>ROI</h3>
                     <div class="value {'positive' if total_profit_pct >= 0 else 'negative'}">{total_profit_pct:.2f}%</div>
                 </div>
-            </div>
-            
-            <!-- Market Indicators -->
-            <div style="margin-bottom: 30px; background-color: #2d2d2d; padding: 20px; border-radius: 10px;">
-                <h3 style="color: #4dabf7; margin-bottom: 15px; text-align: center;">📊 Indicatori de Piață</h3>
-                <table style="width: 100%; background-color: transparent; box-shadow: none;">
-                    <thead>
-                        <tr style="border-bottom: 2px solid #444;">
-    """
-    
-    # Ordinea indicatorilor (ca în imagine)
-    indicator_order = ['VIX3M', 'VIX', 'VIX1D', 'VIX9D', 'VXN', 'LTV', 'SKEW', 'MOVE', 'Crypto Fear', 'GVZ', 'OVX', 'SPX']
-    
-    # Header row cu numele indicatorilor
-    for name in indicator_order:
-        if name in market_indicators:
-            html_head += f"""
-                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">{name}</th>"""
-    
-    html_head += """
-                        </tr>
-                        <tr style="border-bottom: 1px solid #444;">
-    """
-    
-    # Sub-header cu descrierile (thresholds)
-    for name in indicator_order:
-        if name in market_indicators:
-            desc = market_indicators[name].get('description', '')
-            html_head += f"""
-                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">{desc}</th>"""
-    
-    html_head += """
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-    """
-    
-    # Sparklines pentru indicatori
-    for idx, name in enumerate(indicator_order):
-        if name in market_indicators:
-            spark_id = f"spark_ind_{name}"
-            html_head += f"""
-                            <td style="text-align: center; padding: 5px; height: 40px;"><canvas id="{spark_id}" style="width: 100%; height: 100%;"></canvas></td>"""
-    
-    html_head += """
-                        </tr>
-                        <tr>
-    """
-    
-    # Valorile curente
-    for name in indicator_order:
-        if name in market_indicators:
-            value = market_indicators[name].get('value', 'N/A')
-            status = market_indicators[name].get('status', 'Normal')
-            
-            # Colorare bazată pe status (4 nivele)
-            if status == 'Perfect':
-                color = '#4caf50'  # Verde pentru perfect (volatilitate foarte mică)
-            elif status == 'Normal':
-                color = '#e0e0e0'  # Alb pentru normal
-            elif status == 'Tension':
-                color = '#ff9800'  # Portocaliu pentru tensiune
-            elif status == 'Panic':
-                color = '#f44336'  # Roșu pentru panică
-            else:
-                color = '#e0e0e0'  # Default alb
-            
-            html_head += f"""
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: {color};">{value}</td>"""
-    
-    html_head += """
-                        </tr>
-                        <tr>
-    """
-    
-    # Schimbările (change from previous day)
-    for name in indicator_order:
-        if name in market_indicators:
-            change = market_indicators[name].get('change', 0)
-            
-            # Colorare inversă pentru volatilitate (creștere = rău, scădere = bine)
-            # DAR pentru SPX este invers (creștere = bine, scădere = rău)
-            if name == 'SPX':
-                if change > 0:
-                    change_color = '#4caf50'  # Verde pentru creștere SPX
-                    arrow = '↑'
-                elif change < 0:
-                    change_color = '#f44336'  # Roșu pentru scădere SPX
-                    arrow = '↓'
-                else:
-                    change_color = '#888'
-                    arrow = ''
-            else:
-                # Pentru indici de volatilitate (VIX, etc.)
-                if change > 0:
-                    change_color = '#f44336'  # Roșu pentru creștere volatilitate
-                    arrow = '↑'
-                elif change < 0:
-                    change_color = '#4caf50'  # Verde pentru scădere volatilitate
-                    arrow = '↓'
-                else:
-                    change_color = '#888'
-                    arrow = ''
-            
-            html_head += f"""
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: {change_color};">{arrow} {abs(change):.2f}</td>"""
-    
-    html_head += """
-                        </tr>
-                    </tbody>
-                </table>
             </div>
             
             <table>
@@ -725,11 +614,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     chart_id = 0
     for _, row in portfolio_df.iterrows():
         trend_cls = row['Trend'].replace(' ', '-')
-        rsi_cls = row['RSI_Status']  # Pentru colorare
-        status_cls = row['Status']  # Pentru colorare Status (Overbought/Neutral/Oversold)
+        rsi_cls = row['RSI_Status']
+        status_cls = row['Status']
         profit_cls = 'positive' if row['Profit'] >= 0 else 'negative'
         
-        # Calculăm % către target doar dacă există target
         if row['Target'] and pd.notna(row['Target']):
             pct_to_target = ((row['Target'] - row['Current_Price']) / row['Current_Price']) * 100
             target_display = f"${row['Target']:.2f}"
@@ -768,6 +656,119 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     html_head += """
                 </tbody>
             </table>
+        </div>
+        
+        <!-- TAB MARKET (NOU) -->
+        <div id="market" class="tab-content">
+            <h3 style="color: #4dabf7; margin-bottom: 20px; text-align: center;">📊 Indicatori de Piață</h3>
+            <div style="background-color: #2d2d2d; padding: 20px; border-radius: 10px; overflow-x: auto;">
+                <table style="width: 100%; background-color: transparent; box-shadow: none;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #444;">
+    """
+    
+    # Ordinea indicatorilor
+    indicator_order = ['VIX3M', 'VIX', 'VIX1D', 'VIX9D', 'VXN', 'LTV', 'SKEW', 'MOVE', 'Crypto Fear', 'GVZ', 'OVX', 'SPX']
+    
+    # Header row
+    for name in indicator_order:
+        if name in market_indicators:
+            html_head += f"""
+                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">{name}</th>"""
+    
+    html_head += """
+                        </tr>
+                        <tr style="border-bottom: 1px solid #444;">
+    """
+    
+    # Sub-header descrieri
+    for name in indicator_order:
+        if name in market_indicators:
+            desc = market_indicators[name].get('description', '')
+            html_head += f"""
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">{desc}</th>"""
+    
+    html_head += """
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+    """
+    
+    # Sparklines
+    for idx, name in enumerate(indicator_order):
+        if name in market_indicators:
+            spark_id = f"spark_ind_{name}"
+            html_head += f"""
+                            <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="{spark_id}" style="width: 100%; height: 100%;"></canvas></td>"""
+    
+    html_head += """
+                        </tr>
+                        <tr>
+    """
+    
+    # Valorile curente
+    for name in indicator_order:
+        if name in market_indicators:
+            value = market_indicators[name].get('value', 'N/A')
+            status = market_indicators[name].get('status', 'Normal')
+            
+            # Colorare bazată pe status (4 nivele)
+            if status == 'Perfect':
+                color = '#4caf50'
+            elif status == 'Normal':
+                color = '#e0e0e0'
+            elif status == 'Tension':
+                color = '#ff9800'
+            elif status == 'Panic':
+                color = '#f44336'
+            else:
+                color = '#e0e0e0'
+            
+            html_head += f"""
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: {color};">{value}</td>"""
+    
+    html_head += """
+                        </tr>
+                        <tr>
+    """
+    
+    # Schimbările
+    for name in indicator_order:
+        if name in market_indicators:
+            change = market_indicators[name].get('change', 0)
+            
+            # Colorare inversă (stock logic vs volatility logic)
+            if name == 'SPX' or name == 'Crypto Fear':
+                if change > 0:
+                    change_color = '#4caf50'
+                    arrow = '↑'
+                elif change < 0:
+                    change_color = '#f44336'
+                    arrow = '↓'
+                else:
+                    change_color = '#888'
+                    arrow = ''
+            else:
+                # Volatility logic (Up = Bad)
+                if change > 0:
+                    change_color = '#f44336'
+                    arrow = '↑'
+                elif change < 0:
+                    change_color = '#4caf50'
+                    arrow = '↓'
+                else:
+                    change_color = '#888'
+                    arrow = ''
+            
+            html_head += f"""
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: {change_color};">{arrow} {abs(change):.2f}</td>"""
+    
+    html_head += """
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
         
         <div id="watchlist" class="tab-content">
