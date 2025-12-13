@@ -390,8 +390,45 @@ def process_portfolio_ticker(row, vix_value, rates):
         df = yf.download(ticker, period="1y", progress=False)
         
         if df.empty:
-            print(f"Nu există date pentru {ticker}")
-            return None
+            print(f"  ⚠️ Nu există date Yahoo Finance pentru {ticker} - folosim date parțiale din IBKR")
+            # Returnăm date parțiale bazate pe informațiile din IBKR
+            current_price = buy_price  # Fallback: presupunem că prețul curent = buy price
+            investment = buy_price * shares
+            current_value = current_price * shares
+            profit = 0.0
+            profit_pct = 0.0
+            
+            # Profit maxim (dacă ar atinge target)
+            if target:
+                max_profit = (target - buy_price) * shares
+                target_display = round(target, 2)
+            else:
+                max_profit = None
+                target_display = None
+            
+            result = {
+                'Symbol': ticker,
+                'Shares': int(shares),
+                'Current_Price': round(current_price, 2),
+                'Buy_Price': round(buy_price, 2),
+                'Target': target_display,
+                'Trail_Stop': round(buy_price * 0.85, 2),  # Default 15% trailing
+                'Suggested_Stop': round(buy_price * 0.90, 2),  # Conservative
+                'Trail_Pct': trail_pct,
+                'Investment': round(investment, 2),
+                'Current_Value': round(current_value, 2),
+                'Profit': round(profit, 2),
+                'Profit_Pct': round(profit_pct, 2),
+                'Max_Profit': round(max_profit, 2) if max_profit else None,
+                'Status': 'N/A',
+                'RSI': 0,
+                'RSI_Status': 'N/A',
+                'Trend': 'No Data',
+                'VIX_Tag': 'Normal',
+                'Sparkline': [],
+                'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            }
+            return result
         
         if isinstance(df.columns, pd.MultiIndex):
             try:
@@ -435,13 +472,47 @@ def process_portfolio_ticker(row, vix_value, rates):
         # Suggested Stop bazat pe ATR (2x ATR sub preț curent)
         suggested_stop_atr = current_price - (2 * last_atr)
         
-        # Profit maxim (dacă ar atinge target)
+        # Target Price: Finviz (prioritate) sau Estimare Tehnică
         if target:
+            # Avem target de la Finviz
             max_profit = (target - buy_price) * shares
             target_display = round(target, 2)
+            target_source = "Finviz"
         else:
-            max_profit = None
-            target_display = None
+            # Estimare tehnică când nu avem target Finviz
+            technical_target = None
+            
+            # Metodă 1: 52-week high (rezistență majoră)
+            high_52w = df['High'].tail(252).max() * rate  # ~252 zile = 1 an trading
+            
+            # Metodă 2: ATR-based target (doar dacă trendul e bullish)
+            atr_target = None
+            if current_price > sma_200:  # Trend bullish
+                atr_target = current_price + (3 * last_atr)  # Optimist: +3 ATR
+            
+            # Alegem cel mai bun target tehnic
+            if atr_target and high_52w:
+                # Dacă avem ambele, luăm maximul (mai optimist)
+                technical_target = max(atr_target, high_52w)
+                target_source = "Technical (ATR+52W)"
+            elif high_52w:
+                technical_target = high_52w
+                target_source = "Technical (52W High)"
+            elif atr_target:
+                technical_target = atr_target
+                target_source = "Technical (ATR)"
+            
+            # Validare: target-ul trebuie să fie > current price
+            if technical_target and technical_target > current_price:
+                target = technical_target
+                max_profit = (target - buy_price) * shares
+                target_display = round(target, 2)
+                print(f"  → Target {target_source}: €{target_display:.2f}")
+            else:
+                # Nu putem estima un target valid
+                max_profit = None
+                target_display = None
+                target_source = "N/A"
         
         # VIX Interpretation
         vix_regime = "Normal"
@@ -790,6 +861,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             pct_display = f"{pct_to_target:.1f}%"
             max_profit_display = f"€{row['Max_Profit']:,.2f}" if row['Max_Profit'] and pd.notna(row['Max_Profit']) else "N/A"
         else:
+            pct_to_target = 0  # Initialize to avoid UnboundLocalError
             target_display = "N/A"
             pct_display = "N/A"
             max_profit_display = "N/A"
