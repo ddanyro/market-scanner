@@ -886,6 +886,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Valoare</th>
                         <th>Profit</th>
                         <th>% Profit</th>
+                        <th>P/L la Stop</th>
                         <th>Max Profit</th>
                         <th>Status</th>
                         <th>Trend</th>
@@ -915,6 +916,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         
         sparkline_id = f"spark_{chart_id}"
         chart_id += 1
+        
+        # P/L la Stop Calc
+        pl_at_stop_display = "-"
+        pl_at_stop_class = ""
+        if row['Trail_Stop'] and pd.notna(row['Trail_Stop']) and row['Trail_Stop'] > 0:
+            pl_at_stop = (row['Trail_Stop'] - row['Buy_Price']) * row['Shares']
+            pl_at_stop_display = f"€{pl_at_stop:,.2f}"
+            pl_at_stop_class = "positive" if pl_at_stop > 0 else "negative"
         
         # Prepare values for inputs (handle N/A or strings)
         target_val = row['Target'] if row['Target'] and pd.notna(row['Target']) else ""
@@ -949,6 +958,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <td>€{row['Current_Value']:,.2f}</td>
                         <td class="{profit_cls}">€{row['Profit']:,.2f}</td>
                         <td class="{profit_cls}">{row['Profit_Pct']:.2f}%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="{pl_at_stop_class}">{pl_at_stop_display}</td>
                         
                         <!-- MAX PROFIT (Recalculated via JS) -->
                         <td id="cell-{row['Symbol']}-maxprofit">{max_profit_display}</td>
