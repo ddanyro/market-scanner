@@ -883,7 +883,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <div class="value {'positive' if total_pl_at_stop >= 0 else 'negative'}">€{total_pl_at_stop:,.2f}</div>
                     </div>
                 </div>
-            </div>
+            
             
             <div class="table-container">
             <table>
