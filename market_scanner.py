@@ -771,8 +771,12 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     </tbody>
                 </table>
             </div>
-            
-            {generate_market_analysis(market_indicators)}
+    """
+    
+    # Adăugăm analiza AI (concatenare directă pentru a evita problemele cu acoladele din f-string)
+    html_head += generate_market_analysis(market_indicators)
+    
+    html_head += """
         </div>
         
         <div id="watchlist" class="tab-content">
