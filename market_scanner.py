@@ -722,9 +722,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); background-color: #2d2d2d; }
-        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #444; font-size: 0.85rem; }
-        th { background-color: #333; color: #fff; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; position: sticky; top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 0; box-shadow: none; background-color: #2d2d2d; }
+        .table-container { width: 100%; overflow-x: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.3); border-radius: 8px; margin-top: 20px; }
+        
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #444; font-size: 0.85rem; white-space: nowrap; vertical-align: middle; }
+        th { background-color: #333; color: #fff; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; position: sticky; top: 0; z-index: 5; }
         tr:hover { background-color: #3a3a3a; }
         
         .positive { color: #4caf50; font-weight: bold; }
@@ -737,6 +739,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         
         .rsi-Overbought { color: #ff9800; font-weight: bold; }
         .rsi-Oversold { color: #2196f3; font-weight: bold; }
+
+        .edit-input { width: 80px; text-align: right; }
+        input[data-field="trail_pct"] { width: 45px !important; }
         
         .vix-Ridicat { color: #ff9800; }
         .vix-Extrem { color: #f44336; font-weight: bold; }
@@ -934,6 +939,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 </div>
             </div>
             
+            <div class="table-container">
             <table>
                 <thead>
                     <tr>
@@ -1027,6 +1033,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     html_head += """
                 </tbody>
             </table>
+            </div> <!-- End table-container -->
         </div> <!-- End portfolio-data -->
         </div> <!-- End portfolio Tab -->
         
@@ -1150,6 +1157,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         </div>
         
         <div id="watchlist" class="tab-content">
+            <div class="table-container">
             <table>
                 <thead>
                     <tr>
@@ -1189,6 +1197,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     html_footer = """
                 </tbody>
             </table>
+            </div>
         </div>
         
         <div class="footer">
