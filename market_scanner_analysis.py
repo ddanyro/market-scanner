@@ -11,12 +11,13 @@ def get_economic_events():
         all_events = []
         seen_events = set()
         
-        # Iterăm pentru săptămâna curentă și următoare (Yahoo afișează weekly view based on day param)
         today = datetime.date.today()
-        dates_to_check = [today, today + datetime.timedelta(days=7)]
         
-        for d in dates_to_check:
-            url = f"https://finance.yahoo.com/calendar/economic?day={d}"
+        # Scanăm până la 6 săptămâni în avans până găsim ceva
+        for w in range(6):
+            target_date = today + datetime.timedelta(weeks=w)
+            url = f"https://finance.yahoo.com/calendar/economic?day={target_date}"
+            
             try:
                 r = requests.get(url, headers=headers, timeout=5)
                 if r.status_code != 200: continue
@@ -30,30 +31,34 @@ def get_economic_events():
                 if 'Country' in df.columns:
                     us_df = df[df['Country'].astype(str).str.contains('US', case=False, na=False)]
                 else:
-                    continue # Fără coloană țară nu putem filtra
+                    continue 
                 
-                # Colectare evenimente
-                # Keywords extinse
+                # Colectare
                 keywords = ['Fed', 'FOMC', 'CPI', 'GDP', 'Nonfarm', 'Unemployment', 'PPI', 'Rate', 'Retail', 'Sentiment', 'Confidence', 'Manufacturing', 'Services', 'Home', 'Job']
                 
                 for idx, row in us_df.iterrows():
                     evt = str(row['Event'])
-                    # Filtrare opțională: Doar cele relevante (conțin keywords) SAU toate dacă sunt puține
-                    is_major = any(k.lower() in evt.lower() for k in keywords)
+                    # Acceptăm mai multe evenimente dacă lista e goală
+                    is_major = any(k.lower() in evt.lower() for k in keywords) or (len(all_events) == 0 and w > 0)
                     
                     if is_major:
                         evt_time = str(row['Event Time'])
-                        unique_id = f"{evt}_{evt_time}"
+                        unique_id = f"{evt}_{evt_time}_{w}"
                         
                         if unique_id not in seen_events:
                             seen_events.add(unique_id)
-                            all_events.append(f"{evt} ({evt_time})")
-                            
+                            # Adăugăm info despre săptămână
+                            date_info = f"Săpt. {target_date.strftime('%d %b')}"
+                            all_events.append(f"{evt} ({date_info})")
+            
+                if len(all_events) >= 6:
+                    break
+                    
             except Exception as e:
                 print(f"Sub-request error: {e}")
                 continue
         
-        return all_events[:8] # Returnăm primele 8
+        return all_events[:8]
     except Exception as e:
         print(f"Calendar error: {e}")
         return []
