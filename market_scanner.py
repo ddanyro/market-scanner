@@ -646,6 +646,19 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         sma_50 = get_scalar(last_row['SMA_50']) * rate
         sma_200 = get_scalar(last_row['SMA_200']) * rate
         
+        # Preluare Target din Finviz
+        target_val = None
+        try:
+            target_usd = get_finviz_target(ticker)
+            if target_usd:
+                target_val = target_usd * rate
+            else:
+                # Fallback: estimate from info if possible, but scraping logic is main.
+                # yf info logic is slow, better skip if scraping fails.
+                pass
+        except Exception:
+            pass
+
         stop_loss_dist = 2 * last_atr
         suggested_stop = last_close - stop_loss_dist
         
@@ -672,6 +685,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         result = {
             'Ticker': ticker,
             'Price': round(last_close, 2),
+            'Target': round(target_val, 2) if target_val else None,
             'Trend': trend,
             'RSI': round(last_rsi, 2),
             'RSI_Status': rsi_status,
