@@ -4,313 +4,785 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="refresh" content="300"> <!-- Refresh automat la 5 minute -->
+        <meta http-equiv="refresh" content="300">
         <title>Market Scanner Dashboard</title>
         
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1e1e1e; color: #e0e0e0; padding: 20px; }
-        h1 { text-align: center; color: #4dabf7; }
-        .meta { text-align: center; margin-bottom: 20px; color: #888; }
+        h1 { text-align: center; color: #4dabf7; margin-bottom: 10px; }
+        .meta { text-align: center; margin-bottom: 30px; color: #888; font-size: 0.9rem; }
+        
+        /* Tabs */
+        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .tab-button { padding: 12px 30px; background-color: #333; border: none; color: #ccc; cursor: pointer; border-radius: 5px; transition: all 0.3s; font-size: 1rem; }
+        .tab-button:hover { background-color: #444; }
+        .tab-button.active { background-color: #4dabf7; color: #fff; font-weight: bold; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); background-color: #2d2d2d; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #444; }
-        th { background-color: #333; color: #fff; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #444; font-size: 0.85rem; }
+        th { background-color: #333; color: #fff; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; position: sticky; top: 0; }
         tr:hover { background-color: #3a3a3a; }
         
-        /* Trend Colors */
+        .positive { color: #4caf50; font-weight: bold; }
+        .negative { color: #f44336; font-weight: bold; }
+        
         .trend-Strong-Bullish { color: #4caf50; font-weight: bold; }
         .trend-Bullish-Pullback { color: #81c784; }
         .trend-Strong-Bearish { color: #f44336; font-weight: bold; }
         .trend-Bearish-Rally { color: #e57373; }
         
-        /* RSI Colors */
         .rsi-Overbought { color: #ff9800; font-weight: bold; }
         .rsi-Oversold { color: #2196f3; font-weight: bold; }
         
-        /* VIX Tag */
         .vix-Ridicat { color: #ff9800; }
-        .vix-Extrem { color: #f44336; font-weight: bold; animation: pulse 2s infinite; }
-        
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .vix-Extrem { color: #f44336; font-weight: bold; }
         
         .footer { margin-top: 40px; text-align: center; font-size: 0.8rem; color: #666; }
+        
+        .summary { display: flex; justify-content: space-around; margin-bottom: 30px; flex-wrap: wrap; }
+        .summary-card { background-color: #2d2d2d; padding: 20px; border-radius: 10px; min-width: 200px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin: 5px; }
+        .summary-card h3 { color: #888; font-size: 0.9rem; margin-bottom: 10px; }
+        .summary-card .value { font-size: 1.8rem; font-weight: bold; }
+        
+        .sparkline-container { width: 80px; height: 30px; }
     </style>
     
-        <!-- DataTables CSS for sorting -->
-        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
-        <style>
-             /* Override DataTables standard colors for dark mode */
-             .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_processing, .dataTables_wrapper .dataTables_paginate {
-                color: #ccc !important;
-             }
-             table.dataTable tbody tr { background-color: transparent; }
-        </style>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     </head>
     <body>
-        <h1>Market Scanner Dashboard</h1>
-        <div class="meta">Generated: 2025-12-12 15:41:28 | VIX Status: <span class="vix-Normal">Normal</span></div>
+        <h1>📈 Market Scanner Dashboard</h1>
+        <div class="meta">Generated: 2025-12-12 22:00:19 | VIX: <span class="vix-Normal">Normal</span></div>
         
-        <table id="scannerTable">
-            <thead>
-                <tr>
-                    <th>Ticker</th>
-                    <th>Price</th>
-                    <th>Trend</th>
-                    <th>RSI</th>
-                    <th>RSI Status</th>
-                    <th>ATR (14)</th>
-                    <th>Stop Loss</th>
-                    <th>VIX Tag</th>
-                </tr>
-            </thead>
-            <tbody>
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab(event, 'portfolio')">📊 Portfolio</button>
+            <button class="tab-button" onclick="openTab(event, 'watchlist')">👀 Watchlist</button>
+        </div>
+        
+        <div id="portfolio" class="tab-content active">
+            <div class="summary">
+                <div class="summary-card">
+                    <h3>Total Investment</h3>
+                    <div class="value">$113,978.18</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Current Value</h3>
+                    <div class="value">$119,297.62</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Total P/L</h3>
+                    <div class="value positive">$5,319.44</div>
+                </div>
+                <div class="summary-card">
+                    <h3>ROI</h3>
+                    <div class="value positive">4.67%</div>
+                </div>
+            </div>
+            
+            <!-- Market Indicators -->
+            <div style="margin-bottom: 30px; background-color: #2d2d2d; padding: 20px; border-radius: 10px;">
+                <h3 style="color: #4dabf7; margin-bottom: 15px; text-align: center;">📊 Indicatori de Piață</h3>
+                <table style="width: 100%; background-color: transparent; box-shadow: none;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #444;">
     
-                <tr>
-                    <td><strong>AMZN</strong></td>
-                    <td>230.28</td>
-                    <td class="trend-Strong-Bullish">Strong Bullish</td>
-                    <td>69.87</td>
-                    <td class="rsi-Neutral">Neutral</td>
-                    <td>4.69</td>
-                    <td>220.91</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">VIX3M</th>
+                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">VIX</th>
+                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">VIX1D</th>
+                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">VIX9D</th>
+                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">VXN</th>
+                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">SKEW</th>
+                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">MOVE</th>
+                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">Crypto Fear</th>
+                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">GVZ</th>
+                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">OVX</th>
+                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">SPX</th>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #444;">
+    
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">14 normal 20</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">15 normal 20</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">12 normal 30</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">12 normal 18</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">15 normal 25</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">135 normal 150</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">perfect 80</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">25-49 fear</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">17 normal 22</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">25 normal 35</th>
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+    
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">19.7</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">16.41</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">12.16</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">14.62</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">20.98</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">148.32</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #4caf50;">69.24</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">29</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">21.33</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">31.18</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">6838.35</td>
+                        </tr>
+                        <tr>
+    
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.65</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 1.56</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 1.46</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 2.16</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 2.58</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.77</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.62</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #888;"> 0.00</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.36</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #4caf50;">↓ 0.70</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #4caf50;">↓ 62.65</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Simbol</th>
+                        <th># Acțiuni</th>
+                        <th>Preț Cump</th>
+                        <th>Val Actuală</th>
+                        <th>Grafic</th>
+                        <th>Target</th>
+                        <th>% Mid</th>
+                        <th>Trail %</th>
+                        <th># Stop</th>
+                        <th>Suggested Stop</th>
+                        <th>Investiție</th>
+                        <th>Valoare</th>
+                        <th># Câștig</th>
+                        <th>Câștig %</th>
+                        <th>Câștig Max</th>
+                        <th>Status</th>
+                        <th>Trend</th>
+                    </tr>
+                </thead>
+                <tbody>
+    
+                    <tr>
+                        <td><strong>AMPX</strong></td>
+                        <td>500</td>
+                        <td>$10.89</td>
+                        <td>$11.35</td>
+                        <td><canvas id="spark_0" class="sparkline-container"></canvas></td>
+                        <td>$17.17</td>
+                        <td class="positive">51.3%</td>
+                        <td>33%</td>
+                        <td>$7.60</td>
+                        <td>$9.74</td>
+                        <td>$5,445.00</td>
+                        <td>$5,675.05</td>
+                        <td class="positive">$230.05</td>
+                        <td class="positive">4.22%</td>
+                        <td>$3,140.00</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>DNN</strong></td>
-                    <td>2.76</td>
-                    <td class="trend-Strong-Bullish">Strong Bullish</td>
-                    <td>73.4</td>
-                    <td class="rsi-Overbought">Overbought</td>
-                    <td>0.13</td>
-                    <td>2.5</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>AMZN</strong></td>
+                        <td>22</td>
+                        <td>$230.09</td>
+                        <td>$226.48</td>
+                        <td><canvas id="spark_1" class="sparkline-container"></canvas></td>
+                        <td>$297.39</td>
+                        <td class="positive">31.3%</td>
+                        <td>8%</td>
+                        <td>$208.14</td>
+                        <td>$217.37</td>
+                        <td>$5,061.98</td>
+                        <td>$4,982.56</td>
+                        <td class="negative">$-79.42</td>
+                        <td class="negative">-1.57%</td>
+                        <td>$1,480.60</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>LNG</strong></td>
-                    <td>191.6</td>
-                    <td class="trend-Strong-Bearish">Strong Bearish</td>
-                    <td>21.22</td>
-                    <td class="rsi-Oversold">Oversold</td>
-                    <td>4.62</td>
-                    <td>182.37</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>APLD</strong></td>
+                        <td>220</td>
+                        <td>$24.56</td>
+                        <td>$29.35</td>
+                        <td><canvas id="spark_2" class="sparkline-container"></canvas></td>
+                        <td>$42.90</td>
+                        <td class="positive">46.2%</td>
+                        <td>34%</td>
+                        <td>$19.22</td>
+                        <td>$24.36</td>
+                        <td>$5,403.20</td>
+                        <td>$6,457.00</td>
+                        <td class="positive">$1,053.80</td>
+                        <td class="positive">19.50%</td>
+                        <td>$4,034.80</td>
+                        <td class="rsi-Overbought">Overbought</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>QBTS</strong></td>
-                    <td>27.98</td>
-                    <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    <td>70.4</td>
-                    <td class="rsi-Overbought">Overbought</td>
-                    <td>2.14</td>
-                    <td>23.7</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>DNN</strong></td>
+                        <td>2000</td>
+                        <td>$2.84</td>
+                        <td>$2.62</td>
+                        <td><canvas id="spark_3" class="sparkline-container"></canvas></td>
+                        <td>$3.53</td>
+                        <td class="positive">34.7%</td>
+                        <td>17%</td>
+                        <td>$2.17</td>
+                        <td>$2.34</td>
+                        <td>$5,680.00</td>
+                        <td>$5,230.00</td>
+                        <td class="negative">$-450.00</td>
+                        <td class="negative">-7.92%</td>
+                        <td>$1,380.00</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>UUUU</strong></td>
-                    <td>15.82</td>
-                    <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    <td>67.8</td>
-                    <td class="rsi-Neutral">Neutral</td>
-                    <td>1.04</td>
-                    <td>13.74</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>DVLT</strong></td>
+                        <td>2700</td>
+                        <td>$1.89</td>
+                        <td>$1.43</td>
+                        <td><canvas id="spark_4" class="sparkline-container"></canvas></td>
+                        <td>$3.00</td>
+                        <td class="positive">109.8%</td>
+                        <td>30%</td>
+                        <td>$1.00</td>
+                        <td>$1.03</td>
+                        <td>$5,103.00</td>
+                        <td>$3,861.00</td>
+                        <td class="negative">$-1,242.00</td>
+                        <td class="negative">-24.34%</td>
+                        <td>$2,997.00</td>
+                        <td class="rsi-Oversold">Oversold</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>MSFT</strong></td>
-                    <td>483.47</td>
-                    <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    <td>53.16</td>
-                    <td class="rsi-Neutral">Neutral</td>
-                    <td>9.34</td>
-                    <td>464.78</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>FCX</strong></td>
+                        <td>150</td>
+                        <td>$45.50</td>
+                        <td>$47.59</td>
+                        <td><canvas id="spark_5" class="sparkline-container"></canvas></td>
+                        <td>$49.92</td>
+                        <td class="positive">4.9%</td>
+                        <td>15%</td>
+                        <td>$40.45</td>
+                        <td>$44.78</td>
+                        <td>$6,825.00</td>
+                        <td>$7,138.50</td>
+                        <td class="positive">$313.50</td>
+                        <td class="positive">4.59%</td>
+                        <td>$663.00</td>
+                        <td class="rsi-Overbought">Overbought</td>
+                        <td class="trend-Strong-Bullish">Strong Bullish</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>FCX</strong></td>
-                    <td>48.11</td>
-                    <td class="trend-Strong-Bullish">Strong Bullish</td>
-                    <td>94.73</td>
-                    <td class="rsi-Overbought">Overbought</td>
-                    <td>1.35</td>
-                    <td>45.41</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>LNG</strong></td>
+                        <td>50</td>
+                        <td>$185.00</td>
+                        <td>$190.60</td>
+                        <td><canvas id="spark_6" class="sparkline-container"></canvas></td>
+                        <td>$271.79</td>
+                        <td class="positive">42.6%</td>
+                        <td>12%</td>
+                        <td>$167.73</td>
+                        <td>$181.54</td>
+                        <td>$9,250.00</td>
+                        <td>$9,530.00</td>
+                        <td class="positive">$280.00</td>
+                        <td class="positive">3.03%</td>
+                        <td>$4,339.50</td>
+                        <td class="rsi-Oversold">Oversold</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>MSTR</strong></td>
-                    <td>183.3</td>
-                    <td class="trend-Strong-Bearish">Strong Bearish</td>
-                    <td>54.12</td>
-                    <td class="rsi-Neutral">Neutral</td>
-                    <td>12.99</td>
-                    <td>157.33</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>MARA</strong></td>
+                        <td>300</td>
+                        <td>$12.50</td>
+                        <td>$11.60</td>
+                        <td><canvas id="spark_7" class="sparkline-container"></canvas></td>
+                        <td>$22.91</td>
+                        <td class="positive">97.5%</td>
+                        <td>25%</td>
+                        <td>$8.70</td>
+                        <td>$9.99</td>
+                        <td>$3,750.00</td>
+                        <td>$3,481.50</td>
+                        <td class="negative">$-268.50</td>
+                        <td class="negative">-7.16%</td>
+                        <td>$3,123.00</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>NVDA</strong></td>
-                    <td>180.93</td>
-                    <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    <td>50.43</td>
-                    <td class="rsi-Neutral">Neutral</td>
-                    <td>5.96</td>
-                    <td>169.0</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>MELI</strong></td>
+                        <td>5</td>
+                        <td>$2100.00</td>
+                        <td>$2028.14</td>
+                        <td><canvas id="spark_8" class="sparkline-container"></canvas></td>
+                        <td>$2865.50</td>
+                        <td class="positive">41.3%</td>
+                        <td>10%</td>
+                        <td>$1825.33</td>
+                        <td>$1890.07</td>
+                        <td>$10,500.00</td>
+                        <td>$10,140.71</td>
+                        <td class="negative">$-359.29</td>
+                        <td class="negative">-3.42%</td>
+                        <td>$3,827.50</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>DVLT</strong></td>
-                    <td>1.44</td>
-                    <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    <td>42.5</td>
-                    <td class="rsi-Neutral">Neutral</td>
-                    <td>0.25</td>
-                    <td>0.93</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>META</strong></td>
+                        <td>10</td>
+                        <td>$650.00</td>
+                        <td>$645.78</td>
+                        <td><canvas id="spark_9" class="sparkline-container"></canvas></td>
+                        <td>$837.64</td>
+                        <td class="positive">29.7%</td>
+                        <td>8%</td>
+                        <td>$594.11</td>
+                        <td>$606.62</td>
+                        <td>$6,500.00</td>
+                        <td>$6,457.75</td>
+                        <td class="negative">$-42.25</td>
+                        <td class="negative">-0.65%</td>
+                        <td>$1,876.40</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>TSM</strong></td>
-                    <td>304.85</td>
-                    <td class="trend-Strong-Bullish">Strong Bullish</td>
-                    <td>75.76</td>
-                    <td class="rsi-Overbought">Overbought</td>
-                    <td>8.69</td>
-                    <td>287.48</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>MSFT</strong></td>
+                        <td>25</td>
+                        <td>$480.00</td>
+                        <td>$478.53</td>
+                        <td><canvas id="spark_10" class="sparkline-container"></canvas></td>
+                        <td>$631.29</td>
+                        <td class="positive">31.9%</td>
+                        <td>10%</td>
+                        <td>$430.68</td>
+                        <td>$460.35</td>
+                        <td>$12,000.00</td>
+                        <td>$11,963.25</td>
+                        <td class="negative">$-36.75</td>
+                        <td class="negative">-0.31%</td>
+                        <td>$3,782.25</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>MARA</strong></td>
-                    <td>11.84</td>
-                    <td class="trend-Strong-Bearish">Strong Bearish</td>
-                    <td>66.0</td>
-                    <td class="rsi-Neutral">Neutral</td>
-                    <td>0.8</td>
-                    <td>10.24</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>MSTR</strong></td>
+                        <td>15</td>
+                        <td>$250.00</td>
+                        <td>$180.60</td>
+                        <td><canvas id="spark_11" class="sparkline-container"></canvas></td>
+                        <td>$497.71</td>
+                        <td class="positive">175.6%</td>
+                        <td>20%</td>
+                        <td>$144.48</td>
+                        <td>$155.59</td>
+                        <td>$3,750.00</td>
+                        <td>$2,709.00</td>
+                        <td class="negative">$-1,041.00</td>
+                        <td class="negative">-27.76%</td>
+                        <td>$3,715.65</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>SXRZ.DE</strong></td>
-                    <td>281.0</td>
-                    <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    <td>57.01</td>
-                    <td class="rsi-Neutral">Neutral</td>
-                    <td>3.12</td>
-                    <td>274.76</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>NVDA</strong></td>
+                        <td>30</td>
+                        <td>$180.00</td>
+                        <td>$177.65</td>
+                        <td><canvas id="spark_12" class="sparkline-container"></canvas></td>
+                        <td>$256.95</td>
+                        <td class="positive">44.6%</td>
+                        <td>12%</td>
+                        <td>$156.33</td>
+                        <td>$166.30</td>
+                        <td>$5,400.00</td>
+                        <td>$5,329.50</td>
+                        <td class="negative">$-70.50</td>
+                        <td class="negative">-1.31%</td>
+                        <td>$2,308.50</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>URG</strong></td>
-                    <td>1.25</td>
-                    <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    <td>56.6</td>
-                    <td class="rsi-Neutral">Neutral</td>
-                    <td>0.08</td>
-                    <td>1.09</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>ORCL</strong></td>
+                        <td>40</td>
+                        <td>$195.00</td>
+                        <td>$193.56</td>
+                        <td><canvas id="spark_13" class="sparkline-container"></canvas></td>
+                        <td>$299.66</td>
+                        <td class="positive">54.8%</td>
+                        <td>15%</td>
+                        <td>$164.53</td>
+                        <td>$171.55</td>
+                        <td>$7,800.00</td>
+                        <td>$7,742.40</td>
+                        <td class="negative">$-57.60</td>
+                        <td class="negative">-0.74%</td>
+                        <td>$4,186.40</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>TE</strong></td>
-                    <td>5.87</td>
-                    <td class="trend-Strong-Bullish">Strong Bullish</td>
-                    <td>79.66</td>
-                    <td class="rsi-Overbought">Overbought</td>
-                    <td>0.67</td>
-                    <td>4.52</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>QBTS</strong></td>
+                        <td>100</td>
+                        <td>$20.00</td>
+                        <td>$27.22</td>
+                        <td><canvas id="spark_14" class="sparkline-container"></canvas></td>
+                        <td>$39.58</td>
+                        <td class="positive">45.4%</td>
+                        <td>30%</td>
+                        <td>$19.05</td>
+                        <td>$22.84</td>
+                        <td>$2,000.00</td>
+                        <td>$2,722.00</td>
+                        <td class="positive">$722.00</td>
+                        <td class="positive">36.10%</td>
+                        <td>$1,958.00</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>META</strong></td>
-                    <td>652.71</td>
-                    <td class="trend-Strong-Bearish">Strong Bearish</td>
-                    <td>71.99</td>
-                    <td class="rsi-Overbought">Overbought</td>
-                    <td>15.57</td>
-                    <td>621.57</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>SMR</strong></td>
+                        <td>200</td>
+                        <td>$8.00</td>
+                        <td>$19.33</td>
+                        <td><canvas id="spark_15" class="sparkline-container"></canvas></td>
+                        <td>$36.58</td>
+                        <td class="positive">89.2%</td>
+                        <td>20%</td>
+                        <td>$15.46</td>
+                        <td>$15.51</td>
+                        <td>$1,600.00</td>
+                        <td>$3,866.00</td>
+                        <td class="positive">$2,266.00</td>
+                        <td class="positive">141.62%</td>
+                        <td>$5,716.00</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>MELI</strong></td>
-                    <td>2019.81</td>
-                    <td class="trend-Strong-Bearish">Strong Bearish</td>
-                    <td>60.73</td>
-                    <td class="rsi-Neutral">Neutral</td>
-                    <td>70.57</td>
-                    <td>1878.67</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>SXRZ.DE</strong></td>
+                        <td>20</td>
+                        <td>$275.00</td>
+                        <td>$276.80</td>
+                        <td><canvas id="spark_16" class="sparkline-container"></canvas></td>
+                        <td>N/A</td>
+                        <td class="positive">N/A</td>
+                        <td>10%</td>
+                        <td>$249.12</td>
+                        <td>$270.02</td>
+                        <td>$5,500.00</td>
+                        <td>$5,536.00</td>
+                        <td class="positive">$36.00</td>
+                        <td class="positive">0.65%</td>
+                        <td>N/A</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>SMR</strong></td>
-                    <td>21.22</td>
-                    <td class="trend-Strong-Bearish">Strong Bearish</td>
-                    <td>58.76</td>
-                    <td class="rsi-Neutral">Neutral</td>
-                    <td>1.86</td>
-                    <td>17.49</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>TE</strong></td>
+                        <td>80</td>
+                        <td>$12.00</td>
+                        <td>$5.45</td>
+                        <td><canvas id="spark_17" class="sparkline-container"></canvas></td>
+                        <td>$7.30</td>
+                        <td class="positive">33.9%</td>
+                        <td>18%</td>
+                        <td>$4.47</td>
+                        <td>$4.02</td>
+                        <td>$960.00</td>
+                        <td>$436.40</td>
+                        <td class="negative">$-523.60</td>
+                        <td class="negative">-54.54%</td>
+                        <td>$-376.00</td>
+                        <td class="rsi-Overbought">Overbought</td>
+                        <td class="trend-Strong-Bullish">Strong Bullish</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>ORCL</strong></td>
-                    <td>198.85</td>
-                    <td class="trend-Strong-Bearish">Strong Bearish</td>
-                    <td>42.09</td>
-                    <td class="rsi-Neutral">Neutral</td>
-                    <td>11.31</td>
-                    <td>176.23</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>TSM</strong></td>
+                        <td>25</td>
+                        <td>$210.00</td>
+                        <td>$294.36</td>
+                        <td><canvas id="spark_18" class="sparkline-container"></canvas></td>
+                        <td>N/A</td>
+                        <td class="positive">N/A</td>
+                        <td>12%</td>
+                        <td>$259.04</td>
+                        <td>$276.92</td>
+                        <td>$5,250.00</td>
+                        <td>$7,359.00</td>
+                        <td class="positive">$2,109.00</td>
+                        <td class="positive">40.17%</td>
+                        <td>N/A</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Strong-Bullish">Strong Bullish</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>APLD</strong></td>
-                    <td>30.76</td>
-                    <td class="trend-Strong-Bullish">Strong Bullish</td>
-                    <td>82.63</td>
-                    <td class="rsi-Overbought">Overbought</td>
-                    <td>2.44</td>
-                    <td>25.88</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>URG</strong></td>
+                        <td>1000</td>
+                        <td>$1.20</td>
+                        <td>$1.25</td>
+                        <td><canvas id="spark_19" class="sparkline-container"></canvas></td>
+                        <td>$2.21</td>
+                        <td class="positive">76.8%</td>
+                        <td>25%</td>
+                        <td>$0.94</td>
+                        <td>$1.09</td>
+                        <td>$1,200.00</td>
+                        <td>$1,255.00</td>
+                        <td class="positive">$55.00</td>
+                        <td class="positive">4.58%</td>
+                        <td>$1,010.00</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
         
-                <tr>
-                    <td><strong>AMPX</strong></td>
-                    <td>11.44</td>
-                    <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    <td>60.48</td>
-                    <td class="rsi-Neutral">Neutral</td>
-                    <td>0.83</td>
-                    <td>9.77</td>
-                    <td class="vix-Normal">Normal</td>
-                </tr>
+                    <tr>
+                        <td><strong>UUUU</strong></td>
+                        <td>500</td>
+                        <td>$10.00</td>
+                        <td>$14.85</td>
+                        <td><canvas id="spark_20" class="sparkline-container"></canvas></td>
+                        <td>$22.23</td>
+                        <td class="positive">49.7%</td>
+                        <td>22%</td>
+                        <td>$11.58</td>
+                        <td>$12.67</td>
+                        <td>$5,000.00</td>
+                        <td>$7,425.00</td>
+                        <td class="positive">$2,425.00</td>
+                        <td class="positive">48.50%</td>
+                        <td>$6,115.00</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
         
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
+        
+        <div id="watchlist" class="tab-content">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ticker</th>
+                        <th>Price</th>
+                        <th>Trend</th>
+                        <th>RSI</th>
+                        <th>Status</th>
+                        <th>ATR</th>
+                        <th>Suggested Stop</th>
+                        <th>SMA 50</th>
+                        <th>SMA 200</th>
+                    </tr>
+                </thead>
+                <tbody>
+    
+                    <tr>
+                        <td><strong>GOOGL</strong></td>
+                        <td>$309.68</td>
+                        <td class="trend-Strong-Bullish">Strong Bullish</td>
+                        <td>58</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td>8.89</td>
+                        <td>$291.90</td>
+                        <td>$281.50</td>
+                        <td>$208.55</td>
+                    </tr>
+        
+                    <tr>
+                        <td><strong>COIN</strong></td>
+                        <td>$270.61</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                        <td>67</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td>13.95</td>
+                        <td>$242.72</td>
+                        <td>$309.32</td>
+                        <td>$283.33</td>
+                    </tr>
+        
+                    <tr>
+                        <td><strong>AMD</strong></td>
+                        <td>$212.21</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                        <td>57</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td>9.10</td>
+                        <td>$194.02</td>
+                        <td>$230.15</td>
+                        <td>$155.96</td>
+                    </tr>
+        
+                    <tr>
+                        <td><strong>PLTR</strong></td>
+                        <td>$183.80</td>
+                        <td class="trend-Strong-Bullish">Strong Bullish</td>
+                        <td>87</td>
+                        <td class="rsi-Overbought">Overbought</td>
+                        <td>6.55</td>
+                        <td>$170.71</td>
+                        <td>$179.46</td>
+                        <td>$144.41</td>
+                    </tr>
+        
+                    <tr>
+                        <td><strong>INTC</strong></td>
+                        <td>$38.08</td>
+                        <td class="trend-Strong-Bullish">Strong Bullish</td>
+                        <td>60</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td>2.14</td>
+                        <td>$33.81</td>
+                        <td>$38.07</td>
+                        <td>$26.58</td>
+                    </tr>
+        
+                </tbody>
+            </table>
+        </div>
         
         <div class="footer">
             Auto-generated by Antigravity Market Scanner
         </div>
 
-        <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
         <script>
-            $(document).ready( function () {
-                $('#scannerTable').DataTable({
-                    "paging": false,
-                    "order": [[ 2, "desc" ]] // Sort by Trend initially
+            function openTab(evt, tabName) {
+                var i, tabcontent, tablinks;
+                tabcontent = document.getElementsByClassName("tab-content");
+                for (i = 0; i < tabcontent.length; i++) {
+                    tabcontent[i].className = tabcontent[i].className.replace(" active", "");
+                }
+                tablinks = document.getElementsByClassName("tab-button");
+                for (i = 0; i < tablinks.length; i++) {
+                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+                }
+                document.getElementById(tabName).className += " active";
+                evt.currentTarget.className += " active";
+            }
+            
+            // Sparkline charts data
+            const sparklineData = {
+    
+                'spark_0': [14.09, 13.56, 12.1, 13.04, 11.26, 12.73, 13.59, 12.92, 12.37, 11.72, 11.29, 10.43, 10.67, 10.81, 10.3, 10.11, 10.8, 10.73, 10.81, 11.32, 10.61, 10.86, 11.52, 12.22, 12.18, 11.8, 11.7, 11.04, 11.44, 11.35],
+        
+                'spark_1': [244.22, 254.0, 249.32, 250.2, 243.04, 244.41, 248.4, 249.1, 244.2, 237.58, 234.69, 232.87, 222.55, 222.69, 217.14, 220.69, 226.28, 229.67, 229.16, 233.22, 233.88, 234.42, 232.38, 229.11, 229.53, 226.89, 227.92, 231.78, 230.28, 226.48],
+        
+                'spark_2': [34.66, 32.87, 31.06, 33.09, 31.08, 30.98, 31.44, 28.57, 26.41, 23.06, 23.65, 22.93, 22.84, 23.09, 21.37, 21.09, 23.79, 23.74, 24.94, 27.1, 28.21, 28.05, 29.36, 31.14, 31.22, 32.11, 32.77, 30.99, 30.76, 29.35],
+        
+                'spark_3': [3.17, 2.92, 2.74, 2.67, 2.56, 2.55, 2.64, 2.59, 2.59, 2.49, 2.48, 2.39, 2.38, 2.43, 2.32, 2.27, 2.32, 2.47, 2.56, 2.56, 2.52, 2.59, 2.7, 2.84, 2.74, 2.73, 2.74, 2.69, 2.76, 2.62],
+        
+                'spark_4': [2.03, 1.84, 1.78, 1.6, 1.36, 1.69, 1.63, 1.44, 1.63, 1.54, 1.83, 1.87, 1.75, 1.6, 1.74, 2.55, 2.42, 2.21, 2.13, 2.03, 1.89, 1.88, 1.83, 1.86, 1.7, 1.56, 1.57, 1.45, 1.44, 1.43],
+        
+                'spark_5': [41.7, 41.18, 39.42, 40.21, 38.65, 39.81, 40.95, 41.07, 41.81, 40.54, 40.16, 39.0, 40.0, 41.25, 39.63, 39.87, 40.79, 41.07, 42.15, 42.98, 43.07, 42.97, 44.53, 44.61, 45.2, 45.0, 44.8, 46.45, 48.11, 47.59],
+        
+                'spark_6': [211.43, 209.05, 206.2, 205.08, 207.47, 207.9, 211.55, 212.0, 213.55, 213.3, 215.19, 215.21, 212.46, 209.62, 208.17, 205.5, 204.58, 204.91, 205.79, 208.46, 210.69, 209.28, 208.46, 207.9, 205.69, 200.8, 198.72, 192.91, 191.6, 190.6],
+        
+                'spark_7': [18.27, 17.81, 16.62, 17.13, 15.96, 15.87, 15.58, 14.63, 14.41, 12.78, 11.99, 11.51, 11.88, 11.1, 10.24, 10.07, 11.21, 11.17, 11.11, 11.81, 11.52, 11.91, 12.47, 12.44, 11.74, 12.05, 12.25, 11.92, 11.84, 11.6],
+        
+                'spark_8': [2327.26, 2316.4, 2305.69, 2301.88, 2128.33, 2108.6, 2092.04, 2099.57, 2103.91, 2031.05, 2048.89, 2057.72, 2058.81, 2077.18, 1899.75, 1951.78, 2008.92, 2055.0, 2033.32, 2071.78, 2064.55, 2115.91, 2119.83, 2139.56, 2066.42, 2088.36, 2074.48, 1970.73, 2019.81, 2028.14],
+        
+                'spark_9': [648.35, 637.71, 627.32, 635.95, 618.94, 621.71, 631.76, 627.08, 609.01, 609.89, 609.46, 602.01, 597.69, 590.32, 589.15, 594.25, 613.05, 636.22, 633.61, 647.95, 640.87, 647.1, 639.6, 661.53, 673.42, 666.8, 656.96, 650.13, 652.71, 645.78],
+        
+                'spark_10': [516.84, 516.06, 513.37, 506.21, 496.17, 495.89, 505.05, 507.73, 510.19, 502.35, 509.23, 506.54, 492.87, 486.21, 478.43, 472.12, 474.0, 476.99, 485.5, 492.01, 486.74, 490.0, 477.73, 480.84, 483.16, 491.02, 492.02, 478.56, 483.47, 478.53],
+        
+                'spark_11': [269.51, 264.67, 246.99, 255.0, 237.2, 241.93, 238.88, 231.35, 224.61, 208.54, 199.75, 195.42, 206.8, 186.5, 177.13, 170.5, 179.04, 172.19, 175.64, 177.18, 171.42, 181.33, 188.39, 186.01, 178.99, 183.69, 188.99, 184.64, 183.3, 180.6],
+        
+                'spark_12': [202.48, 206.87, 198.68, 195.2, 188.07, 188.14, 199.04, 193.15, 193.79, 186.85, 190.16, 186.59, 181.35, 186.51, 180.63, 178.87, 182.54, 177.81, 180.25, 176.99, 179.91, 181.45, 179.58, 183.38, 182.41, 185.55, 184.97, 183.78, 180.93, 177.65],
+        
+                'spark_13': [262.61, 257.85, 248.17, 250.31, 243.8, 239.26, 240.83, 236.15, 226.99, 217.57, 222.85, 219.86, 220.49, 225.53, 210.69, 198.76, 200.28, 197.03, 204.96, 201.95, 200.94, 201.1, 207.73, 214.33, 217.58, 220.54, 221.53, 223.01, 198.85, 193.56],
+        
+                'spark_14': [37.06, 33.09, 29.74, 31.02, 28.39, 29.5, 29.37, 28.99, 26.4, 23.39, 23.61, 22.83, 22.93, 23.44, 20.51, 20.41, 23.11, 22.59, 22.41, 22.67, 21.42, 22.5, 25.08, 28.73, 27.0, 28.44, 28.33, 26.8, 27.98, 27.22],
+        
+                'spark_15': [44.87, 40.83, 35.63, 37.91, 32.46, 30.34, 28.43, 26.74, 25.96, 23.15, 22.45, 21.06, 21.54, 21.13, 18.7, 18.6, 19.94, 18.73, 19.04, 20.0, 18.08, 18.91, 20.14, 22.85, 21.39, 21.56, 21.32, 20.32, 21.22, 19.33],
+        
+                'spark_16': [299.55, 296.1, 293.45, 287.85, 285.05, 289.75, 289.9, 290.45, 284.6, 286.45, 283.5, 275.6, 276.2, 277.3, 273.4, 277.1, 274.45, 279.85, 280.45, 281.35, 278.7, 277.35, 278.95, 284.25, 284.2, 281.75, 283.8, 282.0, 281.55, 276.8],
+        
+                'spark_17': [3.72, 3.42, 3.68, 4.09, 3.68, 3.81, 4.5, 4.41, 3.85, 3.49, 3.36, 3.18, 3.06, 2.89, 2.72, 2.72, 3.14, 3.29, 3.84, 4.12, 4.47, 4.74, 4.52, 5.11, 5.83, 6.02, 6.73, 6.15, 5.87, 5.45],
+        
+                'spark_18': [299.62, 304.04, 293.26, 292.85, 288.46, 285.73, 294.48, 290.39, 289.84, 281.44, 284.05, 281.25, 277.16, 281.61, 276.75, 274.32, 283.87, 283.91, 289.18, 290.73, 286.91, 291.3, 294.65, 292.14, 293.93, 301.06, 302.59, 309.31, 304.85, 294.36],
+        
+                'spark_19': [1.72, 1.61, 1.44, 1.37, 1.27, 1.24, 1.31, 1.3, 1.31, 1.21, 1.19, 1.14, 1.2, 1.27, 1.18, 1.17, 1.27, 1.25, 1.27, 1.31, 1.3, 1.33, 1.4, 1.44, 1.38, 1.37, 1.36, 1.36, 1.25, 1.25],
+        
+                'spark_20': [20.51, 17.8, 17.01, 16.21, 15.12, 15.65, 16.49, 15.68, 15.82, 15.48, 15.55, 14.96, 15.05, 15.49, 13.21, 12.78, 13.97, 14.5, 14.36, 14.4, 14.07, 15.05, 15.1, 16.32, 15.61, 15.49, 15.4, 14.86, 15.82, 14.85],
+        
+            };
+            
+            // Create sparkline charts
+            window.addEventListener('load', function() {
+                Object.keys(sparklineData).forEach(function(sparkId) {
+                    const ctx = document.getElementById(sparkId);
+                    if (!ctx) return;
+                    
+                    const data = sparklineData[sparkId];
+                    const color = data[data.length - 1] >= data[0] ? '#4caf50' : '#f44336';
+                    
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: Array(data.length).fill(''),
+                            datasets: [{
+                                data: data,
+                                borderColor: color,
+                                borderWidth: 1.5,
+                                fill: false,
+                                pointRadius: 0,
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { enabled: false }
+                            },
+                            scales: {
+                                x: { display: false },
+                                y: { display: false }
+                            }
+                        }
+                    });
                 });
-            } );
+            });
         </script>
     </body>
     </html>

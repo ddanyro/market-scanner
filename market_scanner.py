@@ -4,17 +4,66 @@ import numpy as np
 import datetime
 import os
 import time
+import csv
+import requests
+from bs4 import BeautifulSoup
 
-def load_tickers(filename='tickers.txt'):
-    """Încarcă lista de tickere dintr-un fișier text."""
+def get_finviz_target(ticker):
+    """Preia price target-ul de pe Finviz prin scraping direct."""
+    try:
+        # Elimină sufixe pentru tickere europene (de ex: .DE)
+        clean_ticker = ticker.split('.')[0]
+        
+        url = f"https://finviz.com/quote.ashx?t={clean_ticker}"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+        }
+        
+        response = requests.get(url, headers=headers, timeout=10)
+        if response.status_code != 200:
+            return None
+            
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Găsim tabelul cu datele fundamentale
+        # Target Price este într-un td cu textul "Target Price" urmat de valoare
+        rows = soup.find_all('tr', class_='table-dark-row')
+        
+        for row in rows:
+            cells = row.find_all('td')
+            for i, cell in enumerate(cells):
+                if 'Target Price' in cell.get_text():
+                    # Următorul cell conține valoarea
+                    if i + 1 < len(cells):
+                        target_text = cells[i + 1].get_text().strip()
+                        if target_text and target_text != '-':
+                            # Curăță și convertește
+                            target = float(target_text.replace('$', '').replace(',', ''))
+                            return target
+        
+        return None
+    except Exception as e:
+        print(f"  ⚠ Eroare Finviz pentru {ticker}: {str(e)[:50]}")
+        return None
+
+def load_portfolio(filename='portfolio.csv'):
+    """Încarcă portofoliul din CSV."""
     if not os.path.exists(filename):
-        print(f"Fișierul {filename} nu a fost găsit. Se folosește o listă default.")
-        return ['SPY', 'QQQ', 'AAPL', 'NVDA']
+        print(f"Fișierul {filename} nu a fost găsit.")
+        return pd.DataFrame()
+    
+    df = pd.read_csv(filename)
+    return df
+
+def load_watchlist(filename='watchlist.txt'):
+    """Încarcă lista de tickere de urmărit."""
+    if not os.path.exists(filename):
+        print(f"Fișierul {filename} nu a fost găsit.")
+        return []
     
     with open(filename, 'r') as f:
-        # Curăță spațiile și liniile goale
         tickers = [line.strip().upper() for line in f if line.strip()]
-    return list(set(tickers)) # Elimină duplicatele
+    return list(set(tickers))
 
 def calculate_atr(df, period=14):
     """Calculează Average True Range (ATR)."""
@@ -53,7 +102,6 @@ def get_vix_data():
     """Descarcă datele pentru VIX (volatilitate)."""
     try:
         vix = yf.Ticker("^VIX")
-        # Luăm ultimele date
         hist = vix.history(period="5d")
         if hist.empty:
             return None
@@ -63,45 +111,191 @@ def get_vix_data():
         print(f"Eroare la preluarea VIX: {e}")
         return None
 
-def process_ticker(ticker, vix_value):
-    """Procesează un singur ticker și returnează datele."""
+def get_market_indicators():
+    """Preia indicatori de volatilitate și sentiment de piață."""
+    indicators = {}
+    
+    # Lista de indicatori cu ticker-ele lor Yahoo Finance și thresholds
+    tickers_map = {
+        'VIX3M': '^VIX3M',      # VIX pe 3 luni
+        'VIX': '^VIX',          # VIX standard
+        'VIX1D': '^VIX1D',      # VIX 1 zi (dacă există)
+        'VIX9D': '^VIX9D',      # VIX 9 zile
+        'VXN': '^VXN',          # Nasdaq VIX
+        'LTV': '^LTV',          # CBOE 3-Month Implied Correlation
+        'SKEW': '^SKEW',        # CBOE SKEW
+        'MOVE': '^MOVE',        # MOVE Index (bond volatility)
+        'GVZ': '^GVZ',          # Gold Volatility
+        'OVX': '^OVX',          # Oil Volatility
+        'SPX': '^GSPC',         # S&P 500
+    }
+    
+    # Thresholds pentru fiecare indicator (normal range)
+    thresholds = {
+        'VIX3M': (14, 20),
+        'VIX': (15, 20),
+        'VIX1D': (12, 30),
+        'VIX9D': (12, 18),
+        'VXN': (15, 25),
+        'LTV': (10, 13),        # Russell 2000 Vol
+        'SKEW': (135, 150),  # SKEW normal între 135-150
+        'MOVE': (80, 120),
+        'GVZ': (17, 22),
+        'OVX': (25, 35),
+        'SPX': (None, None),  # Nu are threshold
+    }
+    
+    for name, ticker in tickers_map.items():
+        try:
+            time.sleep(0.5)  # Rate limiting
+            data = yf.Ticker(ticker)
+            hist = data.history(period="5d")
+            
+            if not hist.empty and len(hist) >= 2:
+                current = hist['Close'].iloc[-1]
+                previous = hist['Close'].iloc[-2]
+                change = current - previous
+                
+                # Multi-level thresholds pentru interpretare dinamică
+                # Similar cu formula Google Sheets: IFS(value<low1, "perfect", value<low2, "normal", etc)
+                threshold_levels = {
+                    'VIX3M': [(14, 'perfect 14'), (20, '14 normal 20'), (30, '20 tensiune 30'), (999, '30 panica')],
+                    'VIX': [(15, 'perfect 15'), (20, '15 normal 20'), (30, '20 tensiune 30'), (999, '30 panica')],
+                    'VIX1D': [(12, 'perfect 12'), (30, '12 normal 30'), (50, '30 tensiune 50'), (999, '50 panica')],
+                    'VIX9D': [(12, 'perfect 12'), (18, '12 normal 18'), (25, '18 tensiune 25'), (999, '25 panica')],
+                    'VXN': [(15, 'perfect 15'), (25, '15 normal 25'), (35, '25 tensiune 35'), (999, '35 panica')],
+                    'LTV': [(10, 'perfect 10'), (13, '10 normal 13'), (20, '13 tensiune 20'), (999, '20 panica')],
+                    'SKEW': [(135, 'low 135'), (150, '135 normal 150'), (165, '150 tensiune 165'), (999, '165 panica')],
+                    'MOVE': [(80, 'perfect 80'), (120, '80 normal 120'), (150, '120 tensiune 150'), (999, '150 panica')],
+                    'GVZ': [(17, 'perfect 17'), (22, '17 normal 22'), (30, '22 tensiune 30'), (999, '30 panica')],
+                    'OVX': [(25, 'perfect 25'), (35, '25 normal 35'), (50, '35 tensiune 50'), (999, '50 panica')],
+                }
+                
+                # Determinăm descrierea și status-ul bazat pe nivelurile multiple
+                if name in threshold_levels:
+                    levels = threshold_levels[name]
+                    description = levels[-1][1]  # Default la ultima (panica)
+                    status = "Panic"
+                    
+                    for threshold, desc in levels:
+                        if current < threshold:
+                            description = desc
+                            # Determinăm status-ul
+                            if 'perfect' in desc.lower():
+                                status = "Perfect"
+                            elif 'normal' in desc.lower():
+                                status = "Normal"
+                            elif 'tensiune' in desc.lower():
+                                status = "Tension"
+                            else:
+                                status = "Panic"
+                            break
+                else:
+                    status = "Normal"
+                    description = ""
+                
+                indicators[name] = {
+                    'value': round(current, 2),
+                    'change': round(change, 2),
+                    'status': status,
+                    'description': description
+                }
+            else:
+                print(f"  ⚠ {name}: Date insuficiente")
+        except Exception as e:
+            print(f"  ⚠ Eroare {name}: {str(e)[:40]}")
+    
+    # Crypto Fear & Greed Index (via alternative.me API)
     try:
-        time.sleep(2) # Delay mai mare (2 secunde) pentru a evita erorile de DNS/rețea
+        response = requests.get('https://api.alternative.me/fng/', timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            if 'data' in data and len(data['data']) > 0:
+                current_data = data['data'][0]
+                value = int(current_data['value'])
+                classification = current_data['value_classification']  # Extreme Fear, Fear, Neutral, Greed, Extreme Greed
+                
+                # Determinăm status și description
+                if value < 25:
+                    status = 'Extreme Fear'
+                    description = '0-24 extreme fear'
+                elif value < 50:
+                    status = 'Fear'
+                    description = '25-49 fear'
+                elif value < 75:
+                    status = 'Greed'
+                    description = '50-74 greed'
+                else:
+                    status = 'Extreme Greed'
+                    description = '75-100 extreme greed'
+                
+                # Change (diferența față de ziua precedentă)
+                if len(data['data']) > 1:
+                    prev_value = int(data['data'][1]['value'])
+                    change = value - prev_value
+                else:
+                    change = 0
+                
+                indicators['Crypto Fear'] = {
+                    'value': value,
+                    'change': change,
+                    'status': status,
+                    'description': description
+                }
+    except Exception as e:
+        print(f"  ⚠ Eroare Crypto Fear: {str(e)[:40]}")
+    
+    return indicators
+
+def get_scalar(series_val, default=0.0):
+    """Helper pentru extragerea valorilor scalare."""
+    try:
+        if hasattr(series_val, 'item'):
+            return series_val.item()
+        return float(series_val)
+    except:
+        return default
+
+def process_portfolio_ticker(row, vix_value):
+    """Procesează un ticker din portofoliu cu date de ownership."""
+    try:
+        ticker = row['symbol'].upper()
+        shares = float(row['shares'])
+        buy_price = float(row['buy_price'])
+        trail_pct = float(row['trail_pct'])
         
-        # Descarcă date pentru ultimul an (necesar pentru SMA 200)
-        # Nu folosim session custom
+        print(f"Procesare: {ticker}")
+        
+        # Ia target-ul DOAR de pe Finviz
+        target = get_finviz_target(ticker)
+        
+        if target:
+            print(f"  → Target Finviz: ${target:.2f}")
+        else:
+            print(f"  → Target: N/A (nu există pe Finviz)")
+        
+        time.sleep(2)
+        
         df = yf.download(ticker, period="1y", progress=False)
         
         if df.empty:
             print(f"Nu există date pentru {ticker}")
             return None
         
-        # Corecție pentru MultiIndex columns dacă există
         if isinstance(df.columns, pd.MultiIndex):
             try:
                 df.columns = df.columns.droplevel(1)
             except:
                 pass
-            
-        # Calcule indicatori
+        
         df['ATR'] = calculate_atr(df)
         df['RSI'] = calculate_rsi(df)
         df['SMA_50'] = calculate_sma(df, 50)
         df['SMA_200'] = calculate_sma(df, 200)
         
-        # Preluăm ultimele valori
         last_row = df.iloc[-1]
         
-        # Helper pt scalari
-        def get_scalar(series_val, default=0.0):
-            try:
-                if hasattr(series_val, 'item'):
-                    return series_val.item()
-                return float(series_val)
-            except:
-                return default
-
-        last_close = get_scalar(last_row['Close'])
+        current_price = get_scalar(last_row['Close'])
         last_atr = get_scalar(last_row['ATR'])
         last_rsi = get_scalar(last_row['RSI'])
         sma_50 = get_scalar(last_row['SMA_50'])
@@ -109,11 +303,29 @@ def process_ticker(ticker, vix_value):
         
         if pd.isna(last_atr): last_atr = 0.0
         
-        # --- Interpretări ---
+        # Extrage ultimele 30 zile pentru sparkline
+        sparkline_data = df['Close'].tail(30).tolist()
+        sparkline_data = [round(float(x), 2) for x in sparkline_data if not pd.isna(x)]
         
-        # Stop Loss sugerat
-        stop_loss_dist = 2 * last_atr
-        suggested_stop = last_close - stop_loss_dist
+        # Calcule pentru portofoliu
+        current_value = current_price * shares
+        investment = buy_price * shares
+        profit = current_value - investment
+        profit_pct = ((current_price - buy_price) / buy_price) * 100
+        
+        # Stop loss bazat pe trailing %
+        trail_stop_price = current_price * (1 - trail_pct / 100)
+        
+        # Suggested Stop bazat pe ATR (2x ATR sub preț curent)
+        suggested_stop_atr = current_price - (2 * last_atr)
+        
+        # Profit maxim (dacă ar atinge target)
+        if target:
+            max_profit = (target - buy_price) * shares
+            target_display = round(target, 2)
+        else:
+            max_profit = None
+            target_display = None
         
         # VIX Interpretation
         vix_regime = "Normal"
@@ -125,7 +337,90 @@ def process_ticker(ticker, vix_value):
         if last_rsi > 70: rsi_status = "Overbought"
         elif last_rsi < 30: rsi_status = "Oversold"
         
-        # Trend Interpretation (SMA Strategy)
+        # Trend Interpretation
+        trend = "Neutral"
+        if current_price > sma_200:
+            if current_price > sma_50:
+                trend = "Strong Bullish"
+            else:
+                trend = "Bullish Pullback"
+        elif current_price < sma_200:
+            if current_price < sma_50:
+                trend = "Strong Bearish"
+            else:
+                trend = "Bearish Rally"
+
+        result = {
+            'Symbol': ticker,
+            'Shares': int(shares),
+            'Current_Price': round(current_price, 2),
+            'Buy_Price': round(buy_price, 2),
+            'Target': target_display,  # None dacă nu există
+            'Trail_Stop': round(trail_stop_price, 2),
+            'Suggested_Stop': round(suggested_stop_atr, 2),
+            'Trail_Pct': trail_pct,
+            'Investment': round(investment, 2),
+            'Current_Value': round(current_value, 2),
+            'Profit': round(profit, 2),
+            'Profit_Pct': round(profit_pct, 2),
+            'Max_Profit': round(max_profit, 2) if max_profit else None,
+            'Status': rsi_status,  # RSI Status (Overbought/Oversold/Neutral)
+            'RSI': round(last_rsi, 2),  # Păstrat pentru Watchlist
+            'RSI_Status': rsi_status,
+            'Trend': trend,
+            'VIX_Tag': vix_regime,
+            'Sparkline': sparkline_data,
+            'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        }
+        return result
+        
+    except Exception as e:
+        print(f"Eroare procesare {row['symbol']}: {e}")
+        return None
+
+def process_watchlist_ticker(ticker, vix_value):
+    """Procesează un ticker din watchlist (fără date de ownership)."""
+    try:
+        time.sleep(2)
+        
+        df = yf.download(ticker, period="1y", progress=False)
+        
+        if df.empty:
+            print(f"Nu există date pentru {ticker}")
+            return None
+        
+        if isinstance(df.columns, pd.MultiIndex):
+            try:
+                df.columns = df.columns.droplevel(1)
+            except:
+                pass
+            
+        df['ATR'] = calculate_atr(df)
+        df['RSI'] = calculate_rsi(df)
+        df['SMA_50'] = calculate_sma(df, 50)
+        df['SMA_200'] = calculate_sma(df, 200)
+        
+        last_row = df.iloc[-1]
+        
+        last_close = get_scalar(last_row['Close'])
+        last_atr = get_scalar(last_row['ATR'])
+        last_rsi = get_scalar(last_row['RSI'])
+        sma_50 = get_scalar(last_row['SMA_50'])
+        sma_200 = get_scalar(last_row['SMA_200'])
+        
+        if pd.isna(last_atr): last_atr = 0.0
+        
+        stop_loss_dist = 2 * last_atr
+        suggested_stop = last_close - stop_loss_dist
+        
+        vix_regime = "Normal"
+        if vix_value and vix_value > 20: vix_regime = "Ridicat"
+        if vix_value and vix_value > 30: vix_regime = "Extrem"
+
+        rsi_status = "Neutral"
+        if last_rsi > 70: rsi_status = "Overbought"
+        elif last_rsi < 30: rsi_status = "Oversold"
+        
         trend = "Neutral"
         if last_close > sma_200:
             if last_close > sma_50:
@@ -157,45 +452,66 @@ def process_ticker(ticker, vix_value):
         print(f"Eroare procesare {ticker}: {e}")
         return None
 
-def generate_html_report(df, filename="dashboard.html"):
-    """Generează un raport HTML stilizat."""
+def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filename="dashboard.html"):
+    """Generează dashboard HTML cu 2 tab-uri și indicatori de piață."""
     
-    # CSS separat (nu este f-string) pentru a evita conflictele cu acoladele
     css = """
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1e1e1e; color: #e0e0e0; padding: 20px; }
-        h1 { text-align: center; color: #4dabf7; }
-        .meta { text-align: center; margin-bottom: 20px; color: #888; }
+        h1 { text-align: center; color: #4dabf7; margin-bottom: 10px; }
+        .meta { text-align: center; margin-bottom: 30px; color: #888; font-size: 0.9rem; }
+        
+        /* Tabs */
+        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .tab-button { padding: 12px 30px; background-color: #333; border: none; color: #ccc; cursor: pointer; border-radius: 5px; transition: all 0.3s; font-size: 1rem; }
+        .tab-button:hover { background-color: #444; }
+        .tab-button.active { background-color: #4dabf7; color: #fff; font-weight: bold; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); background-color: #2d2d2d; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #444; }
-        th { background-color: #333; color: #fff; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #444; font-size: 0.85rem; }
+        th { background-color: #333; color: #fff; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; position: sticky; top: 0; }
         tr:hover { background-color: #3a3a3a; }
         
-        /* Trend Colors */
+        .positive { color: #4caf50; font-weight: bold; }
+        .negative { color: #f44336; font-weight: bold; }
+        
         .trend-Strong-Bullish { color: #4caf50; font-weight: bold; }
         .trend-Bullish-Pullback { color: #81c784; }
         .trend-Strong-Bearish { color: #f44336; font-weight: bold; }
         .trend-Bearish-Rally { color: #e57373; }
         
-        /* RSI Colors */
         .rsi-Overbought { color: #ff9800; font-weight: bold; }
         .rsi-Oversold { color: #2196f3; font-weight: bold; }
         
-        /* VIX Tag */
         .vix-Ridicat { color: #ff9800; }
-        .vix-Extrem { color: #f44336; font-weight: bold; animation: pulse 2s infinite; }
-        
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .vix-Extrem { color: #f44336; font-weight: bold; }
         
         .footer { margin-top: 40px; text-align: center; font-size: 0.8rem; color: #666; }
+        
+        .summary { display: flex; justify-content: space-around; margin-bottom: 30px; flex-wrap: wrap; }
+        .summary-card { background-color: #2d2d2d; padding: 20px; border-radius: 10px; min-width: 200px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin: 5px; }
+        .summary-card h3 { color: #888; font-size: 0.9rem; margin-bottom: 10px; }
+        .summary-card .value { font-size: 1.8rem; font-weight: bold; }
+        
+        .sparkline-container { width: 80px; height: 30px; }
     </style>
     """
     
-    # Construim HTML-ul
-    # Folosim f-string doar acolo unde avem variabile
-    vix_val = df.iloc[0]['VIX_Tag'] if not df.empty else 'N/A'
-    vix_cls = vix_val if not df.empty else 'Normal'
+    vix_val = portfolio_df.iloc[0]['VIX_Tag'] if not portfolio_df.empty else watchlist_df.iloc[0]['VIX_Tag'] if not watchlist_df.empty else 'N/A'
+    vix_cls = vix_val if vix_val != 'N/A' else 'Normal'
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Calculăm statistici pentru portfolio
+    total_investment = portfolio_df['Investment'].sum() if not portfolio_df.empty else 0
+    total_value = portfolio_df['Current_Value'].sum() if not portfolio_df.empty else 0
+    total_profit = portfolio_df['Profit'].sum() if not portfolio_df.empty else 0
+    total_profit_pct = ((total_value - total_investment) / total_investment * 100) if total_investment > 0 else 0
 
     html_head = f"""
     <!DOCTYPE html>
@@ -203,129 +519,389 @@ def generate_html_report(df, filename="dashboard.html"):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="refresh" content="300"> <!-- Refresh automat la 5 minute -->
+        <meta http-equiv="refresh" content="300">
         <title>Market Scanner Dashboard</title>
         {css}
-        <!-- DataTables CSS for sorting -->
-        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
-        <style>
-             /* Override DataTables standard colors for dark mode */
-             .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_processing, .dataTables_wrapper .dataTables_paginate {{
-                color: #ccc !important;
-             }}
-             table.dataTable tbody tr {{ background-color: transparent; }}
-        </style>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     </head>
     <body>
-        <h1>Market Scanner Dashboard</h1>
-        <div class="meta">Generated: {timestamp} | VIX Status: <span class="vix-{vix_cls}">{vix_val}</span></div>
+        <h1>📈 Market Scanner Dashboard</h1>
+        <div class="meta">Generated: {timestamp} | VIX: <span class="vix-{vix_cls}">{vix_val}</span></div>
         
-        <table id="scannerTable">
-            <thead>
-                <tr>
-                    <th>Ticker</th>
-                    <th>Price</th>
-                    <th>Trend</th>
-                    <th>RSI</th>
-                    <th>RSI Status</th>
-                    <th>ATR (14)</th>
-                    <th>Stop Loss</th>
-                    <th>VIX Tag</th>
-                </tr>
-            </thead>
-            <tbody>
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab(event, 'portfolio')">📊 Portfolio</button>
+            <button class="tab-button" onclick="openTab(event, 'watchlist')">👀 Watchlist</button>
+        </div>
+        
+        <div id="portfolio" class="tab-content active">
+            <div class="summary">
+                <div class="summary-card">
+                    <h3>Total Investment</h3>
+                    <div class="value">${total_investment:,.2f}</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Current Value</h3>
+                    <div class="value">${total_value:,.2f}</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Total P/L</h3>
+                    <div class="value {'positive' if total_profit >= 0 else 'negative'}">${total_profit:,.2f}</div>
+                </div>
+                <div class="summary-card">
+                    <h3>ROI</h3>
+                    <div class="value {'positive' if total_profit_pct >= 0 else 'negative'}">{total_profit_pct:.2f}%</div>
+                </div>
+            </div>
+            
+            <!-- Market Indicators -->
+            <div style="margin-bottom: 30px; background-color: #2d2d2d; padding: 20px; border-radius: 10px;">
+                <h3 style="color: #4dabf7; margin-bottom: 15px; text-align: center;">📊 Indicatori de Piață</h3>
+                <table style="width: 100%; background-color: transparent; box-shadow: none;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #444;">
     """
     
-    html_rows = ""
-    for _, row in df.iterrows():
+    # Ordinea indicatorilor (ca în imagine)
+    indicator_order = ['VIX3M', 'VIX', 'VIX1D', 'VIX9D', 'VXN', 'LTV', 'SKEW', 'MOVE', 'Crypto Fear', 'GVZ', 'OVX', 'SPX']
+    
+    # Header row cu numele indicatorilor
+    for name in indicator_order:
+        if name in market_indicators:
+            html_head += f"""
+                            <th style="text-align: center; padding: 8px; font-size: 0.75rem;">{name}</th>"""
+    
+    html_head += """
+                        </tr>
+                        <tr style="border-bottom: 1px solid #444;">
+    """
+    
+    # Sub-header cu descrierile (thresholds)
+    for name in indicator_order:
+        if name in market_indicators:
+            desc = market_indicators[name].get('description', '')
+            html_head += f"""
+                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">{desc}</th>"""
+    
+    html_head += """
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+    """
+    
+    # Valorile curente
+    for name in indicator_order:
+        if name in market_indicators:
+            value = market_indicators[name].get('value', 'N/A')
+            status = market_indicators[name].get('status', 'Normal')
+            
+            # Colorare bazată pe status (4 nivele)
+            if status == 'Perfect':
+                color = '#4caf50'  # Verde pentru perfect (volatilitate foarte mică)
+            elif status == 'Normal':
+                color = '#e0e0e0'  # Alb pentru normal
+            elif status == 'Tension':
+                color = '#ff9800'  # Portocaliu pentru tensiune
+            elif status == 'Panic':
+                color = '#f44336'  # Roșu pentru panică
+            else:
+                color = '#e0e0e0'  # Default alb
+            
+            html_head += f"""
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: {color};">{value}</td>"""
+    
+    html_head += """
+                        </tr>
+                        <tr>
+    """
+    
+    # Schimbările (change from previous day)
+    for name in indicator_order:
+        if name in market_indicators:
+            change = market_indicators[name].get('change', 0)
+            
+            # Colorare inversă pentru volatilitate (creștere = rău, scădere = bine)
+            if change > 0:
+                change_color = '#f44336'  # Roșu pentru creștere volatilitate
+                arrow = '↑'
+            elif change < 0:
+                change_color = '#4caf50'  # Verde pentru scădere volatilitate
+                arrow = '↓'
+            else:
+                change_color = '#888'
+                arrow = ''
+            
+            html_head += f"""
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: {change_color};">{arrow} {abs(change):.2f}</td>"""
+    
+    html_head += """
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Simbol</th>
+                        <th># Acțiuni</th>
+                        <th>Preț Cump</th>
+                        <th>Val Actuală</th>
+                        <th>Grafic</th>
+                        <th>Target</th>
+                        <th>% Mid</th>
+                        <th>Trail %</th>
+                        <th># Stop</th>
+                        <th>Suggested Stop</th>
+                        <th>Investiție</th>
+                        <th>Valoare</th>
+                        <th># Câștig</th>
+                        <th>Câștig %</th>
+                        <th>Câștig Max</th>
+                        <th>Status</th>
+                        <th>Trend</th>
+                    </tr>
+                </thead>
+                <tbody>
+    """
+    
+    # Portfolio rows
+    chart_id = 0
+    for _, row in portfolio_df.iterrows():
+        trend_cls = row['Trend'].replace(' ', '-')
+        rsi_cls = row['RSI_Status']  # Pentru colorare
+        status_cls = row['Status']  # Pentru colorare Status (Overbought/Neutral/Oversold)
+        profit_cls = 'positive' if row['Profit'] >= 0 else 'negative'
+        
+        # Calculăm % către target doar dacă există target
+        if row['Target'] and pd.notna(row['Target']):
+            pct_to_target = ((row['Target'] - row['Current_Price']) / row['Current_Price']) * 100
+            target_display = f"${row['Target']:.2f}"
+            pct_display = f"{pct_to_target:.1f}%"
+            max_profit_display = f"${row['Max_Profit']:,.2f}" if row['Max_Profit'] and pd.notna(row['Max_Profit']) else "N/A"
+        else:
+            target_display = "N/A"
+            pct_display = "N/A"
+            max_profit_display = "N/A"
+        
+        sparkline_id = f"spark_{chart_id}"
+        chart_id += 1
+        
+        html_head += f"""
+                    <tr>
+                        <td><strong>{row['Symbol']}</strong></td>
+                        <td>{row['Shares']}</td>
+                        <td>${row['Buy_Price']:.2f}</td>
+                        <td>${row['Current_Price']:.2f}</td>
+                        <td><canvas id="{sparkline_id}" class="sparkline-container"></canvas></td>
+                        <td>{target_display}</td>
+                        <td class="{'positive' if pct_to_target > 0 else 'negative' if row['Target'] else ''}">{pct_display}</td>
+                        <td>{row['Trail_Pct']:.0f}%</td>
+                        <td>${row['Trail_Stop']:.2f}</td>
+                        <td>${row['Suggested_Stop']:.2f}</td>
+                        <td>${row['Investment']:,.2f}</td>
+                        <td>${row['Current_Value']:,.2f}</td>
+                        <td class="{profit_cls}">${row['Profit']:,.2f}</td>
+                        <td class="{profit_cls}">{row['Profit_Pct']:.2f}%</td>
+                        <td>{max_profit_display}</td>
+                        <td class="rsi-{status_cls}">{row['Status']}</td>
+                        <td class="trend-{trend_cls}">{row['Trend']}</td>
+                    </tr>
+        """
+        
+    html_head += """
+                </tbody>
+            </table>
+        </div>
+        
+        <div id="watchlist" class="tab-content">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ticker</th>
+                        <th>Price</th>
+                        <th>Trend</th>
+                        <th>RSI</th>
+                        <th>Status</th>
+                        <th>ATR</th>
+                        <th>Suggested Stop</th>
+                        <th>SMA 50</th>
+                        <th>SMA 200</th>
+                    </tr>
+                </thead>
+                <tbody>
+    """
+    
+    # Watchlist rows
+    for _, row in watchlist_df.iterrows():
         trend_cls = row['Trend'].replace(' ', '-')
         rsi_cls = row['RSI_Status']
-        vix_c = row['VIX_Tag']
         
-        html_rows += f"""
-                <tr>
-                    <td><strong>{row['Ticker']}</strong></td>
-                    <td>{row['Price']}</td>
-                    <td class="trend-{trend_cls}">{row['Trend']}</td>
-                    <td>{row['RSI']}</td>
-                    <td class="rsi-{rsi_cls}">{row['RSI_Status']}</td>
-                    <td>{row['ATR_14']}</td>
-                    <td>{row['Stop_Loss']}</td>
-                    <td class="vix-{vix_c}">{row['VIX_Tag']}</td>
-                </tr>
+        html_head += f"""
+                    <tr>
+                        <td><strong>{row['Ticker']}</strong></td>
+                        <td>${row['Price']:.2f}</td>
+                        <td class="trend-{trend_cls}">{row['Trend']}</td>
+                        <td>{row['RSI']:.0f}</td>
+                        <td class="rsi-{rsi_cls}">{row['RSI_Status']}</td>
+                        <td>{row['ATR_14']:.2f}</td>
+                        <td>${row['Stop_Loss']:.2f}</td>
+                        <td>${row['SMA_50']:.2f}</td>
+                        <td>${row['SMA_200']:.2f}</td>
+                    </tr>
         """
         
     html_footer = """
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
         
         <div class="footer">
             Auto-generated by Antigravity Market Scanner
         </div>
 
-        <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
         <script>
-            $(document).ready( function () {
-                $('#scannerTable').DataTable({
-                    "paging": false,
-                    "order": [[ 2, "desc" ]] // Sort by Trend initially
+            function openTab(evt, tabName) {
+                var i, tabcontent, tablinks;
+                tabcontent = document.getElementsByClassName("tab-content");
+                for (i = 0; i < tabcontent.length; i++) {
+                    tabcontent[i].className = tabcontent[i].className.replace(" active", "");
+                }
+                tablinks = document.getElementsByClassName("tab-button");
+                for (i = 0; i < tablinks.length; i++) {
+                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+                }
+                document.getElementById(tabName).className += " active";
+                evt.currentTarget.className += " active";
+            }
+            
+            // Sparkline charts data
+            const sparklineData = {
+    """
+    
+    # Adăugăm datele pentru sparklines
+    for idx, row in portfolio_df.iterrows():
+        sparkline_id = f"spark_{idx}"
+        sparkline_values = row['Sparkline']
+        html_footer += f"""
+                '{sparkline_id}': {sparkline_values},
+        """
+    
+    html_footer += """
+            };
+            
+            // Create sparkline charts
+            window.addEventListener('load', function() {
+                Object.keys(sparklineData).forEach(function(sparkId) {
+                    const ctx = document.getElementById(sparkId);
+                    if (!ctx) return;
+                    
+                    const data = sparklineData[sparkId];
+                    const color = data[data.length - 1] >= data[0] ? '#4caf50' : '#f44336';
+                    
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: Array(data.length).fill(''),
+                            datasets: [{
+                                data: data,
+                                borderColor: color,
+                                borderWidth: 1.5,
+                                fill: false,
+                                pointRadius: 0,
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { enabled: false }
+                            },
+                            scales: {
+                                x: { display: false },
+                                y: { display: false }
+                            }
+                        }
+                    });
                 });
-            } );
+            });
         </script>
     </body>
     </html>
     """
     
-    full_html = html_head + html_rows + html_footer
+    full_html = html_head + html_footer
     
     with open(filename, 'w') as f:
         f.write(full_html)
-    print(f"Raport HTML generat: {os.path.abspath(filename)}")
+    print(f"Dashboard HTML generat: {os.path.abspath(filename)}")
 
 def main():
-    print("=== Market Scanner (Standard) ===")
-    tickers = load_tickers()
-    print(f"Se analizează {len(tickers)} tickere...")
+    print("=== Market Scanner (Portfolio + Watchlist) ===")
     
-    # 1. Obținem VIX global
+    # 1. Obținem indicatorii de piață
+    print("\n=== Preluare Indicatori de Piață ===")
+    market_indicators = get_market_indicators()
+    
+    # 2. Obținem VIX global
     vix_val = get_vix_data()
     if vix_val:
-        print(f"Valoarea curentă VIX: {vix_val:.2f}")
+        print(f"VIX curent: {vix_val:.2f}")
     else:
-        print("Atentie: Nu s-a putut prelua VIX.")
+        print("Atenție: VIX indisponibil")
+        vix_val = None
     
-    results = []
+    # 3. Procesăm Portfolio
+    portfolio_data = load_portfolio()
+    portfolio_results = []
     
-    # 2. Iterăm prin tickere
-    for t in tickers:
-        print(f"Procesare: {t}")
-        data = process_ticker(t, vix_val)
-        if data:
-            results.append(data)
-            
-    # 3. Salvare rezultate
-    if results:
-        df_results = pd.DataFrame(results)
+    if not portfolio_data.empty:
+        print(f"\n=== Procesare Portfolio ({len(portfolio_data)} poziții) ===")
+        for _, row in portfolio_data.iterrows():
+            print(f"Procesare: {row['symbol']}")
+            data = process_portfolio_ticker(row, vix_val)
+            if data:
+                portfolio_results.append(data)
+    
+    # 4. Procesăm Watchlist
+    watchlist_tickers = load_watchlist()
+    watchlist_results = []
+    
+    if watchlist_tickers:
+        print(f"\n=== Procesare Watchlist ({len(watchlist_tickers)} tickere) ===")
+        for ticker in watchlist_tickers:
+            print(f"Procesare: {ticker}")
+            data = process_watchlist_ticker(ticker, vix_val)
+            if data:
+                watchlist_results.append(data)
+    
+    # 5. Generăm rapoartele
+    if portfolio_results or watchlist_results:
+        portfolio_df = pd.DataFrame(portfolio_results) if portfolio_results else pd.DataFrame()
+        watchlist_df = pd.DataFrame(watchlist_results) if watchlist_results else pd.DataFrame()
         
-        # Ordonare coloane logică
-        cols = ['Ticker', 'Price', 'Trend', 'RSI', 'RSI_Status', 
-                'ATR_14', 'Stop_Loss', 'SMA_50', 'SMA_200', 'VIX_Tag', 'Date']
+        # Salvăm CSV-urile
+        if not portfolio_df.empty:
+            portfolio_df.to_csv('portfolio_analysis.csv', index=False)
+            print(f"\nPortfolio salvat în 'portfolio_analysis.csv'")
         
-        final_cols = [c for c in cols if c in df_results.columns]
-        df_results = df_results[final_cols]
+        if not watchlist_df.empty:
+            watchlist_df.to_csv('watchlist_analysis.csv', index=False)
+            print(f"Watchlist salvat în 'watchlist_analysis.csv'")
         
-        # Export CSV
-        output_file = 'scan_results.csv'
-        df_results.to_csv(output_file, index=False)
-        print(f"\nSucces! Rezultatele au fost salvate în '{output_file}'")
+        # Generăm HTML
+        generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, "dashboard.html")
         
-        # Export HTML
-        generate_html_report(df_results, "dashboard.html")
+        # Previzualizare
+        if not portfolio_df.empty:
+            print("\n=== Portfolio Preview ===")
+            print(portfolio_df[['Symbol', 'Shares', 'Current_Price', 'Profit', 'Profit_Pct']].head())
         
-        # Afișare preview
-        print("\nPreview:")
-        print(df_results.head())
+        if not watchlist_df.empty:
+            print("\n=== Watchlist Preview ===")
+            print(watchlist_df[['Ticker', 'Price', 'Trend', 'RSI']].head())
     else:
         print("Nu s-au generat rezultate.")
 
