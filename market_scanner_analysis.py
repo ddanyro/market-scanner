@@ -4,44 +4,56 @@ from io import StringIO
 import datetime
 
 def get_economic_events():
-    """Scrapes Yahoo Finance for upcoming US economic events."""
+    """Scrapes Yahoo Finance for upcoming US economic events (Current & Next Week)."""
     try:
-        # Yahoo Calendar permite vizualizarea săptămânii curente sau specifice.
-        # Vom încerca să luăm săptămâna curentă.
-        today = datetime.date.today()
-        # Calculăm start și end de săptămână
-        start_week = today - datetime.timedelta(days=today.weekday())
-        end_week = start_week + datetime.timedelta(days=12) # 2 weeks coverage
-        
-        url = f"https://finance.yahoo.com/calendar/economic?from={start_week}&to={end_week}"
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
         
-        r = requests.get(url, headers=headers, timeout=5)
-        if r.status_code != 200: return []
+        all_events = []
+        seen_events = set()
         
-        dfs = pd.read_html(StringIO(r.text))
-        if not dfs: return []
+        # Iterăm pentru săptămâna curentă și următoare (Yahoo afișează weekly view based on day param)
+        today = datetime.date.today()
+        dates_to_check = [today, today + datetime.timedelta(days=7)]
         
-        df = dfs[0]
+        for d in dates_to_check:
+            url = f"https://finance.yahoo.com/calendar/economic?day={d}"
+            try:
+                r = requests.get(url, headers=headers, timeout=5)
+                if r.status_code != 200: continue
+                
+                dfs = pd.read_html(StringIO(r.text))
+                if not dfs: continue
+                
+                df = dfs[0]
+                
+                # Filtrare SUA
+                if 'Country' in df.columns:
+                    us_df = df[df['Country'].astype(str).str.contains('US', case=False, na=False)]
+                else:
+                    continue # Fără coloană țară nu putem filtra
+                
+                # Colectare evenimente
+                # Keywords extinse
+                keywords = ['Fed', 'FOMC', 'CPI', 'GDP', 'Nonfarm', 'Unemployment', 'PPI', 'Rate', 'Retail', 'Sentiment', 'Confidence', 'Manufacturing', 'Services', 'Home', 'Job']
+                
+                for idx, row in us_df.iterrows():
+                    evt = str(row['Event'])
+                    # Filtrare opțională: Doar cele relevante (conțin keywords) SAU toate dacă sunt puține
+                    is_major = any(k.lower() in evt.lower() for k in keywords)
+                    
+                    if is_major:
+                        evt_time = str(row['Event Time'])
+                        unique_id = f"{evt}_{evt_time}"
+                        
+                        if unique_id not in seen_events:
+                            seen_events.add(unique_id)
+                            all_events.append(f"{evt} ({evt_time})")
+                            
+            except Exception as e:
+                print(f"Sub-request error: {e}")
+                continue
         
-        # Filtrare SUA (Cod 'US' sau 'United States')
-        if 'Country' in df.columns:
-            us_df = df[df['Country'].astype(str).str.contains('US', case=False, na=False)]
-        else:
-            us_df = df
-            
-        # Filtrare evenimente majore
-        keywords = ['Fed', 'FOMC', 'CPI', 'GDP', 'Nonfarm', 'Unemployment', 'PPI', 'Rate Decision', 'Retail Sales', 'Consumer Confidence']
-        major = us_df[us_df['Event'].astype(str).str.contains('|'.join(keywords), case=False, na=False)]
-        
-        events = []
-        for idx, row in major.head(6).iterrows():
-            evt = row['Event']
-            time = row['Event Time']
-            impact = "High" # Presupunem High pentru keywords alese
-            events.append(f"{evt} @ {time}")
-            
-        return events
+        return all_events[:8] # Returnăm primele 8
     except Exception as e:
         print(f"Calendar error: {e}")
         return []
