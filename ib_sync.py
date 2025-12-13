@@ -232,7 +232,17 @@ def sync_ibkr():
                 
                 if existing_cols:
                     old_subset = old_df[existing_cols]
-                    merged_df = pd.merge(new_df, old_subset, on='Symbol', how='left')
+                    # Folosim suffixes pentru a identifica conflictele
+                    merged_df = pd.merge(new_df, old_subset, on='Symbol', how='left', suffixes=('', '_old'))
+                    
+                    # Pentru fiecare coloană manuală, dacă există versiunea veche, o restaurăm (prioritate manual)
+                    for col in existing_cols:
+                        old_col_name = col + '_old'
+                        if col in merged_df.columns and old_col_name in merged_df.columns:
+                            # Preferăm valoarea veche (din CSV-ul persistent)
+                            merged_df[col] = merged_df[old_col_name].combine_first(merged_df[col])
+                            merged_df.drop(columns=[old_col_name], inplace=True)
+                    
                     if 'Trail_Pct' in merged_df.columns:
                         merged_df['Trail_Pct'] = merged_df['Trail_Pct'].fillna(15)
                     new_df = merged_df
