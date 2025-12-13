@@ -386,11 +386,35 @@ def process_portfolio_ticker(row, vix_value, rates):
             print(f"  → Target: N/A")
         
         time.sleep(2)
-        
         df = yf.download(ticker, period="1y", progress=False)
         
+        # Retry with European suffixes if base ticker fails (common for IBKR ETFs like SXRZ)
         if df.empty:
-            print(f"  ⚠️ Nu există date Yahoo Finance pentru {ticker} - folosim date parțiale din IBKR")
+            suffixes = ['.DE', '.PA', '.L', '.AS', '.MI', '.MC']
+            print(f"  ⚠️ Ticker {ticker} not found. Trying suffixes...")
+            for s in suffixes:
+                alt_ticker = f"{ticker}{s}"
+                print(f"    Trying {alt_ticker}...")
+                time.sleep(1)
+                df_alt = yf.download(alt_ticker, period="1y", progress=False)
+                if not df_alt.empty:
+                    print(f"    ✅ Found data for {alt_ticker}!")
+                    df = df_alt
+                    # Update currency based on new suffix
+                    if '.DE' in s or '.PA' in s or '.AS' in s or '.MI' in s or '.MC' in s:
+                        currency = 'EUR'
+                    elif '.L' in s:
+                        currency = 'GBP'
+                    
+                    # Update rate
+                    rate = rates.get(currency, rates['USD'])
+                    if currency == 'EUR': rate = 1.0
+                    
+                    # Also re-check Finviz target with new ticker? No, Finviz uses US tickers mostly.
+                    break
+        
+        if df.empty:
+            print(f"  ⚠️ Nu există date Yahoo Finance pentru {ticker} (nici cu sufixe) - folosim date parțiale din IBKR")
             # Returnăm date parțiale bazate pe informațiile din IBKR
             current_price = buy_price  # Fallback: presupunem că prețul curent = buy price
             investment = buy_price * shares
@@ -398,15 +422,15 @@ def process_portfolio_ticker(row, vix_value, rates):
             profit = 0.0
             profit_pct = 0.0
             
-            # Target estimativ (dacă nu avem de la Finviz)
-            if not target:
-                # Estimare conservatoare: +15% față de buy price
-                target = buy_price * 1.15
-                print(f"  → Target Estimativ: €{target:.2f} (+15%)")
-            
-            # Calculăm profit maxim
-            max_profit = (target - buy_price) * shares
-            target_display = round(target, 2)
+            # Target și profit maxim
+            if target:
+                # Avem target de la Finviz
+                max_profit = (target - buy_price) * shares
+                target_display = round(target, 2)
+            else:
+                # Fără date Yahoo și fără target Finviz -> Nu estimăm
+                max_profit = None
+                target_display = None
             
             result = {
                 'Symbol': ticker,
