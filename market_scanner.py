@@ -682,10 +682,16 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             else:
                 trend = "Bearish Rally"
 
+        if target_val and last_close > 0:
+            pct_to_target = ((target_val - last_close) / last_close) * 100
+        else:
+            pct_to_target = None
+
         result = {
             'Ticker': ticker,
             'Price': round(last_close, 2),
             'Target': round(target_val, 2) if target_val else None,
+            'Pct_To_Target': round(pct_to_target, 2) if pct_to_target is not None else None,
             'Trend': trend,
             'RSI': round(last_rsi, 2),
             'RSI_Status': rsi_status,
@@ -816,7 +822,47 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="refresh" content="300">
         <title>Market Scanner Dashboard</title>
+        
+        <!-- DataTables & jQuery -->
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+        <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        
         {css}
+        <style>
+            /* DataTables Dark Mode Overrides */
+            .dataTables_wrapper .dataTables_length, 
+            .dataTables_wrapper .dataTables_filter, 
+            .dataTables_wrapper .dataTables_info, 
+            .dataTables_wrapper .dataTables_paginate {{
+                color: #e0e0e0 !important;
+                margin-bottom: 15px;
+            }}
+            .dataTables_wrapper .dataTables_filter input {{
+                background-color: #2d2d2d;
+                color: #fff;
+                border: 1px solid #444;
+                padding: 5px;
+                border-radius: 4px;
+            }}
+            table.dataTable tbody tr {{
+                background-color: #2d2d2d;
+                color: #e0e0e0;
+            }}
+            table.dataTable tbody tr.even {{
+                background-color: #2d2d2d;
+            }}
+            table.dataTable.hover tbody tr:hover, table.dataTable.display tbody tr:hover {{
+                background-color: #3a3a3a !important;
+            }}
+            table.dataTable thead th, table.dataTable tfoot th {{
+                border-bottom: 1px solid #555;
+            }}
+            table.dataTable.no-footer {{
+                border-bottom: 1px solid #444;
+            }}
+            /* Hide sorting icons if they clash or let them be */
+        </style>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
         <script>
             const APP_PASS = "{password}";
@@ -1135,6 +1181,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Ticker</th>
                         <th>Price</th>
                         <th>Target</th>
+                        <th>To Target %</th>
                         <th>Trend</th>
                         <th>RSI</th>
                         <th>Status</th>
@@ -1165,11 +1212,20 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
              else:
                  target_display = str(target_val)
         
+        # Pct Target Logic
+        pct_target_val = row.get('Pct_To_Target')
+        pct_display = "-"
+        pct_class = ""
+        if pct_target_val is not None:
+             pct_display = f"{pct_target_val:.2f}%"
+             pct_class = "positive" if pct_target_val > 0 else "negative"
+
         html_head += f"""
                     <tr>
                         <td><strong>{row['Ticker']}</strong></td>
                         <td>€{row['Price']:.2f}</td>
                         <td>{target_display}</td>
+                        <td class="{pct_class}">{pct_display}</td>
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
                         <td>{row['RSI']:.0f}</td>
                         <td class="rsi-{rsi_cls}">{row['RSI_Status']}</td>
@@ -1192,6 +1248,16 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     </div> <!-- END dashboard-content -->
 
         <script>
+            $(document).ready(function() {
+                $('table').DataTable({
+                    paging: false,
+                    ordering: true,
+                    info: false,
+                    searching: true,
+                    order: [] // Disable initial sort if preferred
+                });
+            });
+
             function toggleMenu() {
                 document.getElementById('navMenu').classList.toggle('show');
             }
