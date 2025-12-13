@@ -302,6 +302,59 @@ def get_market_indicators():
     
     return indicators
 
+def get_macro_explanations():
+    """Generează secțiunea de explicații pentru indicatori macroeconomici."""
+    return """
+    <div class="macro-explainer" style="background: #222; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #444; color: #e0e0e0;">
+        <h3 style="color: #4db6ac; border-bottom: 1px solid #555; padding-bottom: 10px; margin-top: 0;">📚 Glosar: Indicatori Macroeconomici Cheie & Impact</h3>
+        <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 20px;">Ghid pentru înțelegerea evenimentelor din Calendarul Economic.</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            
+            <!-- Building Permits -->
+            <div class="macro-card" style="background: #2d2d2d; padding: 15px; border-radius: 6px; border: 1px solid #333;">
+                <h4 style="color: #ffb74d; margin-top: 0;">🏗️ Building Permits (Autorizații Construcție)</h4>
+                <p style="font-size: 0.9rem;"><strong>Ce este:</strong> Un indicator "leading" (anticipativ) care arată cererea viitoare în sectorul imobiliar.</p>
+                <p style="font-size: 0.9rem; margin-bottom: 0;"><strong>Impact Piață:</strong> 
+                   <br><span style="color: #4caf50;">Cifre Mari:</span> Economie robustă, încredere consumatori.
+                   <br><span style="color: #f44336;">Cifre Mici:</span> Semnal de recesiune (construcțiile sunt primele afectate de dobânzi mari).
+                </p>
+            </div>
+
+            <!-- CPI -->
+            <div class="macro-card" style="background: #2d2d2d; padding: 15px; border-radius: 6px; border: 1px solid #333;">
+                <h4 style="color: #ef5350; margin-top: 0;">🔥 CPI (Consumer Price Index)</h4>
+                <p style="font-size: 0.9rem;"><strong>Ce este:</strong> Măsura principală a inflației (coșul de cumpărături). Cel mai urmărit indicator de către Fed.</p>
+                <p style="font-size: 0.9rem; margin-bottom: 0;"><strong>Impact Piață:</strong> 
+                   <br><span style="color: #f44336;">Peste Așteptări:</span> Fed crește dobânzile -> Acțiunile (Tech) scad, USD crește.
+                   <br><span style="color: #4caf50;">Sub Așteptări:</span> Fed poate tăia dobânzile -> Raliu pe burse.
+                </p>
+            </div>
+
+            <!-- NFP -->
+            <div class="macro-card" style="background: #2d2d2d; padding: 15px; border-radius: 6px; border: 1px solid #333;">
+                <h4 style="color: #64b5f6; margin-top: 0;">👥 NFP (Non-Farm Payrolls)</h4>
+                <p style="font-size: 0.9rem;"><strong>Ce este:</strong> Numărul de joburi noi create în SUA (lunar). Arată sănătatea motorului economic.</p>
+                <p style="font-size: 0.9rem; margin-bottom: 0;"><strong>Impact Piață:</strong> 
+                   <br><span style="color: #4caf50;">Joburi Multe:</span> Economie puternică (dar risc de inflație).
+                   <br><span style="color: #f44336;">Joburi Puține:</span> Risc de recesiune -> Fed trebuie să taie dobânzile.
+                </p>
+            </div>
+            
+             <!-- FOMC -->
+            <div class="macro-card" style="background: #2d2d2d; padding: 15px; border-radius: 6px; border: 1px solid #333;">
+                <h4 style="color: #ba68c8; margin-top: 0;">🏛️ FOMC (Ședința Fed)</h4>
+                <p style="font-size: 0.9rem;"><strong>Ce este:</strong> Decizia privind dobânda de referință. "Costul banilor".</p>
+                <p style="font-size: 0.9rem; margin-bottom: 0;"><strong>Impact Piață:</strong> 
+                   <br>Dobânzi Mari = Lichiditate scăzută = Acțiuni jos.
+                   <br>Pivot (Tăiere) = Lichiditate = Acțiuni sus (Moon).
+                </p>
+            </div>
+
+        </div>
+    </div>
+    """
+
 def get_scalar(series_val, default=0.0):
     """Helper pentru extragerea valorilor scalare."""
     try:
@@ -1187,8 +1240,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             </div>
     """
     
-    # Adăugăm analiza AI
-    html_head += generate_market_analysis(market_indicators)
+    # Adăugăm Explicații Macro
+    html_head += get_macro_explanations()
+    
+    # Adăugăm analiza AI (sau funcția rule-based dacă există)
+    # html_head += generate_market_analysis(market_indicators) if 'generate_market_analysis' in globals() else ""
     
     html_head += """
         </div>
