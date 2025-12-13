@@ -576,11 +576,19 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     vix_cls = vix_val if vix_val != 'N/A' else 'Normal'
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Calculăm statistici pentru portfolio
+    # Calculăm statistici
     total_investment = portfolio_df['Investment'].sum() if not portfolio_df.empty else 0
     total_value = portfolio_df['Current_Value'].sum() if not portfolio_df.empty else 0
     total_profit = portfolio_df['Profit'].sum() if not portfolio_df.empty else 0
     total_profit_pct = ((total_value - total_investment) / total_investment * 100) if total_investment > 0 else 0
+
+    # Citire parolă
+    password = "1234"
+    if os.path.exists("password.txt"):
+        try:
+            with open("password.txt", "r") as f:
+                password = f.read().strip()
+        except: pass
 
     html_head = f"""
     <!DOCTYPE html>
@@ -591,11 +599,79 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         <meta http-equiv="refresh" content="300">
         <title>Market Scanner Dashboard</title>
         {css}
+        <style>
+            #login-overlay {{
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: #1e1e1e; z-index: 9999; display: flex;
+                justify-content: center; align-items: center; flex-direction: column;
+            }}
+            #dashboard-content {{ display: none; }}
+            .login-box {{
+                background: #2d2d2d; padding: 40px; border-radius: 12px;
+                box-shadow: 0 15px 35px rgba(0,0,0,0.7); text-align: center; border: 1px solid #444;
+            }}
+            .login-input {{
+                padding: 12px; border-radius: 6px; border: 1px solid #555;
+                background: #333; color: white; font-size: 1.5rem; margin-bottom: 20px;
+                width: 180px; text-align: center; letter-spacing: 8px; outline: none; transition: border 0.3s;
+            }}
+            .login-input:focus {{ border-color: #4dabf7; }}
+            .btn-unlock {{
+                padding: 12px 30px; background: #4dabf7; color: white; border: none; 
+                border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: bold;
+                transition: background 0.2s;
+            }}
+            .btn-unlock:hover {{ background: #3b8dbf; }}
+        </style>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <script>
+            const APP_PASS = "{password}";
+            
+            function checkLogin() {{
+                const input = document.getElementById('pass-input').value;
+                if (input === APP_PASS) {{
+                    authenticate();
+                }} else {{
+                    const el = document.getElementById('pass-input');
+                    el.style.borderColor = '#f44336';
+                    el.classList.add('shake');
+                    setTimeout(() => el.style.borderColor = '#555', 1000);
+                }}
+            }}
+            
+            function authenticate() {{
+                document.getElementById('login-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 300);
+                document.getElementById('dashboard-content').style.display = 'block';
+                // Salvăm în session storage pentru a cere parola la fiecare redeschidere de browser, sau local pt persistent
+                sessionStorage.setItem('auth_token', APP_PASS); 
+            }}
+            
+            window.onload = function() {{
+                // Auto-login dacă e deja autentificat în sesiune
+                const saved = sessionStorage.getItem('auth_token');
+                if (saved === APP_PASS) {{
+                    document.getElementById('login-overlay').style.display = 'none';
+                    document.getElementById('dashboard-content').style.display = 'block';
+                }} else {{
+                    document.getElementById('pass-input').focus();
+                }}
+            }}
+        </script>
     </head>
     <body>
-    <!-- Content removed (redundant title) -->
+    
+    <div id="login-overlay">
+        <div class="login-box">
+            <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
+            <h2 style="color: #e0e0e0; margin-bottom: 20px; font-weight: normal;">Acces Restricționat</h2>
+            <input type="password" id="pass-input" class="login-input" placeholder="PIN" onkeyup="if(event.key==='Enter') checkLogin()">
+            <br>
+            <button class="btn-unlock" onclick="checkLogin()">Unlock</button>
+        </div>
+    </div>
         
+    <div id="dashboard-content">
     <!-- Header cu Hamburger -->
     <div class="header-bar">
         <div class="hamburger" onclick="toggleMenu()">☰</div>
@@ -866,6 +942,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         <div class="footer">
             Auto-generated by Antigravity Market Scanner
         </div>
+    </div> <!-- END dashboard-content -->
 
         <script>
             function toggleMenu() {
