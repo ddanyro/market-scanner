@@ -1120,6 +1120,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     <tr>
                         <th>Ticker</th>
                         <th>Price</th>
+                        <th>Target</th>
                         <th>Trend</th>
                         <th>RSI</th>
                         <th>Status</th>
@@ -1133,14 +1134,28 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     """
     
     # Watchlist rows
+    # Trebuie să ne asigurăm că 'Target' există în DataFrame
+    # process_watchlist_ticker returnează 'Target' în dict?
+    # Verificăm: result = {'Ticker': ..., 'Target': target_display ...} - Da.
+    
     for _, row in watchlist_df.iterrows():
         trend_cls = row['Trend'].replace(' ', '-')
         rsi_cls = row['RSI_Status']
+        
+        # Target display logic
+        target_val = row.get('Target')
+        target_display = "-"
+        if target_val:
+             if isinstance(target_val, (int, float)):
+                 target_display = f"€{target_val:.2f}"
+             else:
+                 target_display = str(target_val)
         
         html_head += f"""
                     <tr>
                         <td><strong>{row['Ticker']}</strong></td>
                         <td>€{row['Price']:.2f}</td>
+                        <td>{target_display}</td>
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
                         <td>{row['RSI']:.0f}</td>
                         <td class="rsi-{rsi_cls}">{row['RSI_Status']}</td>
