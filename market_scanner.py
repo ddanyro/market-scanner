@@ -849,32 +849,18 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
             function recalculateRow(symbol) {{
                 // Get inputs
-                const targetInput = document.querySelector(`input[data-symbol="${{symbol}}"][data-field="target"]`);
                 const trailStopInput = document.querySelector(`input[data-symbol="${{symbol}}"][data-field="trail_stop"]`);
                 
-                // Get static values from row attributes (need to add these to TR)
+                // No recalculation needed for Target/Max Profit as Target is static.
+                // We just keep the input value visually updated via 'handleInput'.
+                
+                // Optional: visual feedback when Trail Stop is close to price?
                 const tr = document.getElementById(`row-${{symbol}}`);
                 const currentPrice = parseFloat(tr.dataset.price);
-                const buyPrice = parseFloat(tr.dataset.buy);
-                const shares = parseFloat(tr.dataset.shares);
                 
-                // 1. Recalculate To Target & Max Profit
-                const targetVal = parseFloat(targetInput.value);
-                const toTargetCell = document.getElementById(`cell-${{symbol}}-totarget`);
-                const maxProfitCell = document.getElementById(`cell-${{symbol}}-maxprofit`);
-                
-                if (!isNaN(targetVal) && targetVal > 0) {{
-                    const pctToTarget = ((targetVal - currentPrice) / currentPrice) * 100;
-                    toTargetCell.textContent = pctToTarget.toFixed(1) + "%";
-                    toTargetCell.className = pctToTarget > 0 ? "positive" : "negative";
-                    
-                    const maxProfit = (targetVal - buyPrice) * shares;
-                    maxProfitCell.textContent = "€" + maxProfit.toLocaleString('en-US', {{minimumFractionDigits: 2, maximumFractionDigits: 2}});
-                    // maxProfitCell.className = maxProfit > 0 ? "positive" : "negative";
-                }} else {{
-                    toTargetCell.textContent = "N/A";
-                    toTargetCell.className = "";
-                    maxProfitCell.textContent = "N/A";
+                if(trailStopInput) {{
+                   const val = parseFloat(trailStopInput.value);
+                   // Logic for styling trail stop input could go here
                 }}
             }}
             // ==============================

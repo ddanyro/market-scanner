@@ -129,32 +129,18 @@
 
             function recalculateRow(symbol) {
                 // Get inputs
-                const targetInput = document.querySelector(`input[data-symbol="${symbol}"][data-field="target"]`);
                 const trailStopInput = document.querySelector(`input[data-symbol="${symbol}"][data-field="trail_stop"]`);
                 
-                // Get static values from row attributes (need to add these to TR)
+                // No recalculation needed for Target/Max Profit as Target is static.
+                // We just keep the input value visually updated via 'handleInput'.
+                
+                // Optional: visual feedback when Trail Stop is close to price?
                 const tr = document.getElementById(`row-${symbol}`);
                 const currentPrice = parseFloat(tr.dataset.price);
-                const buyPrice = parseFloat(tr.dataset.buy);
-                const shares = parseFloat(tr.dataset.shares);
                 
-                // 1. Recalculate To Target & Max Profit
-                const targetVal = parseFloat(targetInput.value);
-                const toTargetCell = document.getElementById(`cell-${symbol}-totarget`);
-                const maxProfitCell = document.getElementById(`cell-${symbol}-maxprofit`);
-                
-                if (!isNaN(targetVal) && targetVal > 0) {
-                    const pctToTarget = ((targetVal - currentPrice) / currentPrice) * 100;
-                    toTargetCell.textContent = pctToTarget.toFixed(1) + "%";
-                    toTargetCell.className = pctToTarget > 0 ? "positive" : "negative";
-                    
-                    const maxProfit = (targetVal - buyPrice) * shares;
-                    maxProfitCell.textContent = "€" + maxProfit.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    // maxProfitCell.className = maxProfit > 0 ? "positive" : "negative";
-                } else {
-                    toTargetCell.textContent = "N/A";
-                    toTargetCell.className = "";
-                    maxProfitCell.textContent = "N/A";
+                if(trailStopInput) {
+                   const val = parseFloat(trailStopInput.value);
+                   // Logic for styling trail stop input could go here
                 }
             }
             // ==============================
@@ -184,7 +170,7 @@
     <div class="header-bar">
     <div class="hamburger" onclick="toggleMenu()">☰</div>
         <div class="app-title">Market Scanner</div>
-        <div style="font-size: 0.8rem; color: #888;">Generated: 2025-12-13 17:31:16</div>
+        <div style="font-size: 0.8rem; color: #888;">Generated: 2025-12-13 17:33:19</div>
         
         <div id="navMenu" class="menu-dropdown">
             <div class="menu-item" onclick="switchTab('portfolio')">💼 Portofoliu Activ</div>
@@ -259,10 +245,10 @@
                         <td>€276.80</td>
                         <td><canvas id="spark_0" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="SXRZ" data-field="target" value="301.25" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€301.25</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-SXRZ-totarget" class="positive">8.8%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -291,10 +277,10 @@
                         <td>€10.36</td>
                         <td><canvas id="spark_1" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="AMPX" data-field="target" value="16.31" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€16.31</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-AMPX-totarget" class="positive">57.4%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -323,10 +309,10 @@
                         <td>€214.88</td>
                         <td><canvas id="spark_2" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="AMZN" data-field="target" value="282.52" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€282.52</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-AMZN-totarget" class="positive">31.5%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -355,10 +341,10 @@
                         <td>€26.47</td>
                         <td><canvas id="spark_3" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="APLD" data-field="target" value="40.75" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€40.75</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-APLD-totarget" class="positive">53.9%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -387,10 +373,10 @@
                         <td>€2.48</td>
                         <td><canvas id="spark_4" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="DNN" data-field="target" value="3.35" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€3.35</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-DNN-totarget" class="positive">35.1%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -419,10 +405,10 @@
                         <td>€1.31</td>
                         <td><canvas id="spark_5" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="DVLT" data-field="target" value="2.85" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€2.85</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-DVLT-totarget" class="positive">117.6%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -451,10 +437,10 @@
                         <td>€45.01</td>
                         <td><canvas id="spark_6" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="FCX" data-field="target" value="47.42" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€47.42</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-FCX-totarget" class="positive">5.4%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -483,10 +469,10 @@
                         <td>€179.89</td>
                         <td><canvas id="spark_7" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="LNG" data-field="target" value="258.20" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€258.20</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-LNG-totarget" class="positive">43.5%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -515,10 +501,10 @@
                         <td>€10.94</td>
                         <td><canvas id="spark_8" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="MARA" data-field="target" value="21.76" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€21.76</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-MARA-totarget" class="positive">98.9%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -547,10 +533,10 @@
                         <td>€1915.10</td>
                         <td><canvas id="spark_9" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="MELI" data-field="target" value="2722.22" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€2722.22</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-MELI-totarget" class="positive">42.1%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -579,10 +565,10 @@
                         <td>€612.02</td>
                         <td><canvas id="spark_10" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="META" data-field="target" value="795.76" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€795.76</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-META-totarget" class="positive">30.0%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -611,10 +597,10 @@
                         <td>€454.60</td>
                         <td><canvas id="spark_11" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="MSFT" data-field="target" value="599.73" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€599.73</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-MSFT-totarget" class="positive">31.9%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -643,10 +629,10 @@
                         <td>€167.63</td>
                         <td><canvas id="spark_12" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="MSTR" data-field="target" value="472.82" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€472.82</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-MSTR-totarget" class="positive">182.1%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -675,10 +661,10 @@
                         <td>€166.27</td>
                         <td><canvas id="spark_13" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="NVDA" data-field="target" value="244.10" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€244.10</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-NVDA-totarget" class="positive">46.8%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -707,10 +693,10 @@
                         <td>€180.47</td>
                         <td><canvas id="spark_14" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="ORCL" data-field="target" value="284.68" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€284.68</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-ORCL-totarget" class="positive">57.7%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -739,10 +725,10 @@
                         <td>€24.80</td>
                         <td><canvas id="spark_15" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="QBTS" data-field="target" value="37.60" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€37.60</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-QBTS-totarget" class="positive">51.6%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -771,10 +757,10 @@
                         <td>€17.42</td>
                         <td><canvas id="spark_16" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="SMR" data-field="target" value="34.75" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€34.75</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-SMR-totarget" class="positive">99.5%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -803,10 +789,10 @@
                         <td>€5.08</td>
                         <td><canvas id="spark_17" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="TE" data-field="target" value="6.93" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€6.93</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-TE-totarget" class="positive">36.4%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -835,10 +821,10 @@
                         <td>€277.44</td>
                         <td><canvas id="spark_18" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="TSM" data-field="target" value="339.74" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€339.74</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-TSM-totarget" class="positive">22.5%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -867,10 +853,10 @@
                         <td>€1.22</td>
                         <td><canvas id="spark_19" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="URG" data-field="target" value="2.10" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€2.10</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-URG-totarget" class="positive">72.1%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -899,10 +885,10 @@
                         <td>€13.84</td>
                         <td><canvas id="spark_20" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="UUUU" data-field="target" value="21.12" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€21.12</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-UUUU-totarget" class="positive">52.6%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -931,10 +917,10 @@
                         <td>€8.00</td>
                         <td><canvas id="spark_21" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="TVBETETF.RO" data-field="target" value="8.35" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€8.35</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-TVBETETF.RO-totarget" class="positive">4.4%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -963,10 +949,10 @@
                         <td>€1454.40</td>
                         <td><canvas id="spark_22" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET INPUT -->
-                        <td><input type="number" step="0.01" class="edit-input" data-symbol="LQQ.PA" data-field="target" value="1612.20" onchange="handleInput(this)"></td>
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€1612.20</td>
                         
-                        <!-- To Target (Recalculated via JS) -->
+                        <!-- To Target (Recalculated via JS based on static target) -->
                         <td id="cell-LQQ.PA-totarget" class="positive">10.8%</td>
                         
                         <!-- TRAIL PCT INPUT (Visual/Store Only) -->
@@ -1193,15 +1179,15 @@
                 <tbody>
     
                     <tr>
-                        <td><strong>GOOGL</strong></td>
-                        <td>€293.83</td>
+                        <td><strong>PLTR</strong></td>
+                        <td>€174.39</td>
                         <td class="trend-Strong-Bullish">Strong Bullish</td>
-                        <td>57</td>
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td>8.45</td>
-                        <td>€276.93</td>
-                        <td>€267.42</td>
-                        <td>€198.12</td>
+                        <td>86</td>
+                        <td class="rsi-Overbought">Overbought</td>
+                        <td>6.22</td>
+                        <td>€161.96</td>
+                        <td>€170.49</td>
+                        <td>€137.19</td>
                     </tr>
         
                     <tr>
@@ -1217,15 +1203,15 @@
                     </tr>
         
                     <tr>
-                        <td><strong>AMD</strong></td>
-                        <td>€200.24</td>
-                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                        <td>56</td>
+                        <td><strong>GOOGL</strong></td>
+                        <td>€293.83</td>
+                        <td class="trend-Strong-Bullish">Strong Bullish</td>
+                        <td>57</td>
                         <td class="rsi-Neutral">Neutral</td>
-                        <td>8.64</td>
-                        <td>€182.96</td>
-                        <td>€218.62</td>
-                        <td>€148.15</td>
+                        <td>8.45</td>
+                        <td>€276.93</td>
+                        <td>€267.42</td>
+                        <td>€198.12</td>
                     </tr>
         
                     <tr>
@@ -1241,6 +1227,18 @@
                     </tr>
         
                     <tr>
+                        <td><strong>AMD</strong></td>
+                        <td>€200.24</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                        <td>56</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td>8.64</td>
+                        <td>€182.96</td>
+                        <td>€218.62</td>
+                        <td>€148.15</td>
+                    </tr>
+        
+                    <tr>
                         <td><strong>TSLA</strong></td>
                         <td>€436.01</td>
                         <td class="trend-Strong-Bullish">Strong Bullish</td>
@@ -1250,18 +1248,6 @@
                         <td>€408.56</td>
                         <td>€413.80</td>
                         <td>€328.78</td>
-                    </tr>
-        
-                    <tr>
-                        <td><strong>PLTR</strong></td>
-                        <td>€174.39</td>
-                        <td class="trend-Strong-Bullish">Strong Bullish</td>
-                        <td>86</td>
-                        <td class="rsi-Overbought">Overbought</td>
-                        <td>6.22</td>
-                        <td>€161.96</td>
-                        <td>€170.49</td>
-                        <td>€137.19</td>
                     </tr>
         
                 </tbody>
