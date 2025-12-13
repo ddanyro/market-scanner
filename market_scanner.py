@@ -452,7 +452,7 @@ def process_watchlist_ticker(ticker, vix_value):
         print(f"Eroare procesare {ticker}: {e}")
         return None
 
-def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filename="dashboard.html"):
+def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filename="index.html"):
     """Generează dashboard HTML cu 2 tab-uri și indicatori de piață."""
     
     css = """
@@ -892,7 +892,7 @@ def main():
             print(f"Watchlist salvat în 'watchlist_analysis.csv'")
         
         # Generăm HTML
-        generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, "dashboard.html")
+        generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, "index.html")
         
         # Previzualizare
         if not portfolio_df.empty:
