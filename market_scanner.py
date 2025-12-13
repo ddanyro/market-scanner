@@ -149,12 +149,17 @@ def get_market_indicators():
         try:
             time.sleep(0.5)  # Rate limiting
             data = yf.Ticker(ticker)
-            hist = data.history(period="5d")
+            # Luăm 35 zile ca să fim siguri că avem 30 de puncte valide
+            hist = data.history(period="35d")
             
             if not hist.empty and len(hist) >= 2:
                 current = hist['Close'].iloc[-1]
                 previous = hist['Close'].iloc[-2]
                 change = current - previous
+                
+                # Sparkline data (ultimele 30 zile)
+                sparkline_data = hist['Close'].tail(30).tolist()
+                sparkline_data = [round(float(x), 2) for x in sparkline_data if not pd.isna(x)]
                 
                 # Multi-level thresholds pentru interpretare dinamică
                 # Similar cu formula Google Sheets: IFS(value<low1, "perfect", value<low2, "normal", etc)
@@ -198,7 +203,8 @@ def get_market_indicators():
                     'value': round(current, 2),
                     'change': round(change, 2),
                     'status': status,
-                    'description': description
+                    'description': description,
+                    'sparkline': sparkline_data
                 }
             else:
                 print(f"  ⚠ {name}: Date insuficiente")
@@ -207,7 +213,8 @@ def get_market_indicators():
     
     # Crypto Fear & Greed Index (via alternative.me API)
     try:
-        response = requests.get('https://api.alternative.me/fng/', timeout=5)
+        # Cerem ultimele 35 de zile pentru istoric
+        response = requests.get('https://api.alternative.me/fng/?limit=35', timeout=5)
         if response.status_code == 200:
             data = response.json()
             if 'data' in data and len(data['data']) > 0:
@@ -236,11 +243,16 @@ def get_market_indicators():
                 else:
                     change = 0
                 
+                # Sparkline data (ultimele 30 zile, inversat pentru cronologie vechi->nou)
+                sparkline_raw = data['data'][:30]
+                sparkline_data = [int(item['value']) for item in sparkline_raw][::-1]
+                
                 indicators['Crypto Fear'] = {
                     'value': value,
                     'change': change,
                     'status': status,
-                    'description': description
+                    'description': description,
+                    'sparkline': sparkline_data
                 }
     except Exception as e:
         print(f"  ⚠ Eroare Crypto Fear: {str(e)[:40]}")
@@ -463,13 +475,26 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         .meta { text-align: center; margin-bottom: 30px; color: #888; font-size: 0.9rem; }
         
         /* Tabs */
-        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
-        .tab-button { padding: 12px 30px; background-color: #333; border: none; color: #ccc; cursor: pointer; border-radius: 5px; transition: all 0.3s; font-size: 1rem; }
-        .tab-button:hover { background-color: #444; }
-        .tab-button.active { background-color: #4dabf7; color: #fff; font-weight: bold; }
+        /* Header & Menu */
+        .header-bar { display: flex; align-items: center; background-color: #2d2d2d; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; position: relative; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .hamburger { font-size: 24px; cursor: pointer; color: #4dabf7; margin-right: 20px; user-select: none; padding: 5px; }
+        .app-title { font-size: 1.5rem; font-weight: bold; color: #e0e0e0; flex-grow: 1; }
+        
+        .menu-dropdown { 
+            position: absolute; top: 70px; left: 20px; background-color: #333; border-radius: 8px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6); display: none; z-index: 1000; min-width: 220px; overflow: hidden; border: 1px solid #444;
+        }
+        .menu-dropdown.show { display: block; animation: slideDown 0.2s ease-out; }
+        
+        .menu-item { padding: 15px 20px; cursor: pointer; color: #e0e0e0; border-bottom: 1px solid #444; transition: background 0.2s; font-size: 1rem; display: flex; align-items: center; gap: 10px; }
+        .menu-item:hover { background-color: #4dabf7; color: white; }
+        .menu-item:last-child { border-bottom: none; }
         
         .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
@@ -525,13 +550,19 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     </head>
     <body>
-        <h1>📈 Market Scanner Dashboard</h1>
-        <div class="meta">Generated: {timestamp} | VIX: <span class="vix-{vix_cls}">{vix_val}</span></div>
+    <!-- Content removed (redundant title) -->
         
-        <div class="tabs">
-            <button class="tab-button active" onclick="openTab(event, 'portfolio')">📊 Portfolio</button>
-            <button class="tab-button" onclick="openTab(event, 'watchlist')">👀 Watchlist</button>
+    <!-- Header cu Hamburger -->
+    <div class="header-bar">
+        <div class="hamburger" onclick="toggleMenu()">☰</div>
+        <div class="app-title">Market Scanner</div>
+        <div style="font-size: 0.8rem; color: #888;">Generated: {timestamp}</div>
+        
+        <div id="navMenu" class="menu-dropdown">
+            <div class="menu-item" onclick="switchTab('portfolio')">� Portofoliu Activ</div>
+            <div class="menu-item" onclick="switchTab('watchlist')">👀 Watchlist</div>
         </div>
+    </div>
         
         <div id="portfolio" class="tab-content active">
             <div class="summary">
@@ -589,6 +620,18 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <tr>
     """
     
+    # Sparklines pentru indicatori
+    for idx, name in enumerate(indicator_order):
+        if name in market_indicators:
+            spark_id = f"spark_ind_{name}"
+            html_head += f"""
+                            <td style="text-align: center; padding: 5px; height: 40px;"><canvas id="{spark_id}" style="width: 100%; height: 100%;"></canvas></td>"""
+    
+    html_head += """
+                        </tr>
+                        <tr>
+    """
+    
     # Valorile curente
     for name in indicator_order:
         if name in market_indicators:
@@ -621,15 +664,28 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             change = market_indicators[name].get('change', 0)
             
             # Colorare inversă pentru volatilitate (creștere = rău, scădere = bine)
-            if change > 0:
-                change_color = '#f44336'  # Roșu pentru creștere volatilitate
-                arrow = '↑'
-            elif change < 0:
-                change_color = '#4caf50'  # Verde pentru scădere volatilitate
-                arrow = '↓'
+            # DAR pentru SPX este invers (creștere = bine, scădere = rău)
+            if name == 'SPX':
+                if change > 0:
+                    change_color = '#4caf50'  # Verde pentru creștere SPX
+                    arrow = '↑'
+                elif change < 0:
+                    change_color = '#f44336'  # Roșu pentru scădere SPX
+                    arrow = '↓'
+                else:
+                    change_color = '#888'
+                    arrow = ''
             else:
-                change_color = '#888'
-                arrow = ''
+                # Pentru indici de volatilitate (VIX, etc.)
+                if change > 0:
+                    change_color = '#f44336'  # Roșu pentru creștere volatilitate
+                    arrow = '↑'
+                elif change < 0:
+                    change_color = '#4caf50'  # Verde pentru scădere volatilitate
+                    arrow = '↓'
+                else:
+                    change_color = '#888'
+                    arrow = ''
             
             html_head += f"""
                             <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: {change_color};">{arrow} {abs(change):.2f}</td>"""
@@ -761,31 +817,54 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         </div>
 
         <script>
-            function openTab(evt, tabName) {
-                var i, tabcontent, tablinks;
-                tabcontent = document.getElementsByClassName("tab-content");
-                for (i = 0; i < tabcontent.length; i++) {
-                    tabcontent[i].className = tabcontent[i].className.replace(" active", "");
+            function toggleMenu() {
+                document.getElementById('navMenu').classList.toggle('show');
+            }
+            
+            // Close menu when clicking outside
+            window.onclick = function(event) {
+                if (!event.target.matches('.hamburger')) {
+                    var dropdowns = document.getElementsByClassName("menu-dropdown");
+                    for (var i = 0; i < dropdowns.length; i++) {
+                        var openDropdown = dropdowns[i];
+                        if (openDropdown.classList.contains('show')) {
+                            openDropdown.classList.remove('show');
+                        }
+                    }
                 }
-                tablinks = document.getElementsByClassName("tab-button");
-                for (i = 0; i < tablinks.length; i++) {
-                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+
+            function switchTab(tabId) {
+                // Hide all contents
+                var contents = document.getElementsByClassName('tab-content');
+                for (var i = 0; i < contents.length; i++) {
+                    contents[i].classList.remove('active');
                 }
-                document.getElementById(tabName).className += " active";
-                evt.currentTarget.className += " active";
+                
+                // Show selected
+                document.getElementById(tabId).classList.add('active');
             }
             
             // Sparkline charts data
             const sparklineData = {
     """
     
-    # Adăugăm datele pentru sparklines
+    # Adăugăm datele pentru sparklines PORTFOLIO
     for idx, row in portfolio_df.iterrows():
         sparkline_id = f"spark_{idx}"
         sparkline_values = row['Sparkline']
         html_footer += f"""
                 '{sparkline_id}': {sparkline_values},
         """
+        
+    # Adăugăm datele pentru sparklines INDICATORI
+    for name in market_indicators:
+        if 'sparkline' in market_indicators[name]:
+            spark_id = f"spark_ind_{name}"
+            spark_values = market_indicators[name]['sparkline']
+            html_footer += f"""
+                '{spark_id}': {spark_values},
+            """
     
     html_footer += """
             };
@@ -797,7 +876,27 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     if (!ctx) return;
                     
                     const data = sparklineData[sparkId];
-                    const color = data[data.length - 1] >= data[0] ? '#4caf50' : '#f44336';
+                    
+                    // Logică colorare:
+                    // Default (Stocks, SPX, Crypto): Up = Green, Down = Red
+                    // Inversed (VIX, etc): Up = Red (Bad), Down = Green (Good)
+                    
+                    let isInversed = false;
+                    if (sparkId.startsWith('spark_ind_')) {
+                         // Dacă e indicator si NU e SPX si NU e Crypto Fear -> Inversed
+                         if (!sparkId.includes('SPX') && !sparkId.includes('Crypto Fear')) {
+                             isInversed = true;
+                         }
+                    }
+                    
+                    const isUp = data[data.length - 1] >= data[0];
+                    let color;
+                    
+                    if (isInversed) {
+                        color = isUp ? '#f44336' : '#4caf50';
+                    } else {
+                        color = isUp ? '#4caf50' : '#f44336';
+                    }
                     
                     new Chart(ctx, {
                         type: 'line',
