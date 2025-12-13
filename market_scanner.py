@@ -55,6 +55,8 @@ def load_portfolio(filename='portfolio.csv'):
         return pd.DataFrame()
     
     df = pd.read_csv(filename)
+    # Normalizează coloanele (lowercase) pentru a evita KeyErrors
+    df.columns = [c.strip().lower() for c in df.columns]
     return df
 
 def load_watchlist(filename='watchlist.txt'):
@@ -312,10 +314,11 @@ def get_scalar(series_val, default=0.0):
 def process_portfolio_ticker(row, vix_value):
     """Procesează un ticker din portofoliu cu date de ownership."""
     try:
-        ticker = row['symbol'].upper()
-        shares = float(row['shares'])
-        buy_price = float(row['buy_price'])
-        trail_pct = float(row['trail_pct'])
+        ticker = row.get('symbol', 'UNKNOWN').upper()
+        shares = float(row.get('shares', 0))
+        buy_price = float(row.get('buy_price', 0))
+        # Default trail_pct to 15 if missing
+        trail_pct = float(row.get('trail_pct', 15))
         
         print(f"Procesare: {ticker}")
         
