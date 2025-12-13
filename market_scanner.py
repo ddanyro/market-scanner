@@ -808,9 +808,95 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 }}
             }}
             
-            // Check immediately on load if we are on portfolio tab (re-render case) or simple check
-            window.addEventListener('load', checkPortfolioAuth);
+            // === INPLACE EDITING LOGIC ===
+            
+            // Load saved values on startup
+            window.addEventListener('load', function() {{
+                checkPortfolioAuth();
+                loadStoredValues();
+            }});
+
+            function loadStoredValues() {{
+                const inputs = document.querySelectorAll('input[data-symbol]');
+                inputs.forEach(input => {{
+                    const symbol = input.dataset.symbol;
+                    const field = input.dataset.field;
+                    // Note: symbol needs to be escaped if containing special chars? Usually ticker is fine.
+                    // But in f-string context, `pf_${{symbol}}_${{field}}` is tricky if symbol is JS var.
+                    // Here symbol is JS variable.
+                    const key = `pf_${{symbol}}_${{field}}`; 
+                    const stored = localStorage.getItem(key);
+                    
+                    if (stored !== null) {{
+                        input.value = stored;
+                        // Trigger recalculation
+                        recalculateRow(symbol);
+                    }}
+                }});
+            }}
+
+            function handleInput(input) {{
+                const symbol = input.dataset.symbol;
+                const field = input.dataset.field;
+                const val = input.value;
+                
+                // Save to localStorage
+                localStorage.setItem(`pf_${{symbol}}_${{field}}`, val);
+                
+                // Recalculate UI
+                recalculateRow(symbol);
+            }}
+
+            function recalculateRow(symbol) {{
+                // Get inputs
+                const targetInput = document.querySelector(`input[data-symbol="${{symbol}}"][data-field="target"]`);
+                const trailStopInput = document.querySelector(`input[data-symbol="${{symbol}}"][data-field="trail_stop"]`);
+                
+                // Get static values from row attributes (need to add these to TR)
+                const tr = document.getElementById(`row-${{symbol}}`);
+                const currentPrice = parseFloat(tr.dataset.price);
+                const buyPrice = parseFloat(tr.dataset.buy);
+                const shares = parseFloat(tr.dataset.shares);
+                
+                // 1. Recalculate To Target & Max Profit
+                const targetVal = parseFloat(targetInput.value);
+                const toTargetCell = document.getElementById(`cell-${{symbol}}-totarget`);
+                const maxProfitCell = document.getElementById(`cell-${{symbol}}-maxprofit`);
+                
+                if (!isNaN(targetVal) && targetVal > 0) {{
+                    const pctToTarget = ((targetVal - currentPrice) / currentPrice) * 100;
+                    toTargetCell.textContent = pctToTarget.toFixed(1) + "%";
+                    toTargetCell.className = pctToTarget > 0 ? "positive" : "negative";
+                    
+                    const maxProfit = (targetVal - buyPrice) * shares;
+                    maxProfitCell.textContent = "€" + maxProfit.toLocaleString('en-US', {{minimumFractionDigits: 2, maximumFractionDigits: 2}});
+                    // maxProfitCell.className = maxProfit > 0 ? "positive" : "negative";
+                }} else {{
+                    toTargetCell.textContent = "N/A";
+                    toTargetCell.className = "";
+                    maxProfitCell.textContent = "N/A";
+                }}
+            }}
+            // ==============================
         </script>
+        <style>
+             /* Input styling for inplace edit */
+             .edit-input {{
+                 width: 80px;
+                 padding: 4px;
+                 border: 1px solid #444;
+                 border-radius: 4px;
+                 background: #2a2a2a;
+                 color: #e0e0e0;
+                 text-align: right;
+                 font-family: inherit;
+             }}
+             .edit-input:focus {{
+                 outline: none;
+                 border-color: #4dabf7;
+                 background: #333;
+             }}
+        </style>
     </head>
     <body>
     
@@ -909,23 +995,44 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         sparkline_id = f"spark_{chart_id}"
         chart_id += 1
         
+        # Prepare values for inputs (handle N/A or strings)
+        target_val = row['Target'] if row['Target'] and pd.notna(row['Target']) else ""
+        if isinstance(target_val, (int, float)): target_val = f"{target_val:.2f}"
+        
+        trail_pct_val = row['Trail_Pct'] if pd.notna(row['Trail_Pct']) else 0
+        
+        trail_stop_val = row['Trail_Stop'] if row['Trail_Stop'] and pd.notna(row['Trail_Stop']) and row['Trail_Stop'] > 0 else ""
+        if isinstance(trail_stop_val, (int, float)): trail_stop_val = f"{trail_stop_val:.2f}"
+
         html_head += f"""
-                    <tr>
+                    <tr id="row-{row['Symbol']}" data-price="{row['Current_Price']}" data-buy="{row['Buy_Price']}" data-shares="{row['Shares']}">
                         <td><strong>{row['Symbol']}</strong></td>
                         <td>{row['Shares']}</td>
                         <td>€{row['Buy_Price']:.2f}</td>
                         <td>€{row['Current_Price']:.2f}</td>
                         <td><canvas id="{sparkline_id}" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
                         <td>{target_display}</td>
-                        <td class="{'positive' if pct_to_target > 0 else 'negative' if row['Target'] else ''}">{pct_display}</td>
-                        <td>{row['Trail_Pct']:.1f}%</td>
-                        <td>{f"€{row['Trail_Stop']:.2f}" if row['Trail_Stop'] > 0 else "-"}</td>
+                        
+                        <!-- To Target (Recalculated via JS based on static target) -->
+                        <td id="cell-{row['Symbol']}-totarget" class="{'positive' if pct_to_target > 0 else 'negative' if row['Target'] else ''}">{pct_display}</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="{row['Symbol']}" data-field="trail_pct" value="{trail_pct_val:.0f}" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="{row['Symbol']}" data-field="trail_stop" value="{trail_stop_val}" onchange="handleInput(this)"></td>
+                        
                         <td>€{row['Suggested_Stop']:.2f}</td>
                         <td>€{row['Investment']:,.2f}</td>
                         <td>€{row['Current_Value']:,.2f}</td>
                         <td class="{profit_cls}">€{row['Profit']:,.2f}</td>
                         <td class="{profit_cls}">{row['Profit_Pct']:.2f}%</td>
-                        <td>{max_profit_display}</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-{row['Symbol']}-maxprofit">{max_profit_display}</td>
+                        
                         <td class="rsi-{status_cls}">{row['Status']}</td>
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
                     </tr>

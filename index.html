@@ -88,9 +88,95 @@
                 }
             }
             
-            // Check immediately on load if we are on portfolio tab (re-render case) or simple check
-            window.addEventListener('load', checkPortfolioAuth);
+            // === INPLACE EDITING LOGIC ===
+            
+            // Load saved values on startup
+            window.addEventListener('load', function() {
+                checkPortfolioAuth();
+                loadStoredValues();
+            });
+
+            function loadStoredValues() {
+                const inputs = document.querySelectorAll('input[data-symbol]');
+                inputs.forEach(input => {
+                    const symbol = input.dataset.symbol;
+                    const field = input.dataset.field;
+                    // Note: symbol needs to be escaped if containing special chars? Usually ticker is fine.
+                    // But in f-string context, `pf_${symbol}_${field}` is tricky if symbol is JS var.
+                    // Here symbol is JS variable.
+                    const key = `pf_${symbol}_${field}`; 
+                    const stored = localStorage.getItem(key);
+                    
+                    if (stored !== null) {
+                        input.value = stored;
+                        // Trigger recalculation
+                        recalculateRow(symbol);
+                    }
+                });
+            }
+
+            function handleInput(input) {
+                const symbol = input.dataset.symbol;
+                const field = input.dataset.field;
+                const val = input.value;
+                
+                // Save to localStorage
+                localStorage.setItem(`pf_${symbol}_${field}`, val);
+                
+                // Recalculate UI
+                recalculateRow(symbol);
+            }
+
+            function recalculateRow(symbol) {
+                // Get inputs
+                const targetInput = document.querySelector(`input[data-symbol="${symbol}"][data-field="target"]`);
+                const trailStopInput = document.querySelector(`input[data-symbol="${symbol}"][data-field="trail_stop"]`);
+                
+                // Get static values from row attributes (need to add these to TR)
+                const tr = document.getElementById(`row-${symbol}`);
+                const currentPrice = parseFloat(tr.dataset.price);
+                const buyPrice = parseFloat(tr.dataset.buy);
+                const shares = parseFloat(tr.dataset.shares);
+                
+                // 1. Recalculate To Target & Max Profit
+                const targetVal = parseFloat(targetInput.value);
+                const toTargetCell = document.getElementById(`cell-${symbol}-totarget`);
+                const maxProfitCell = document.getElementById(`cell-${symbol}-maxprofit`);
+                
+                if (!isNaN(targetVal) && targetVal > 0) {
+                    const pctToTarget = ((targetVal - currentPrice) / currentPrice) * 100;
+                    toTargetCell.textContent = pctToTarget.toFixed(1) + "%";
+                    toTargetCell.className = pctToTarget > 0 ? "positive" : "negative";
+                    
+                    const maxProfit = (targetVal - buyPrice) * shares;
+                    maxProfitCell.textContent = "€" + maxProfit.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    // maxProfitCell.className = maxProfit > 0 ? "positive" : "negative";
+                } else {
+                    toTargetCell.textContent = "N/A";
+                    toTargetCell.className = "";
+                    maxProfitCell.textContent = "N/A";
+                }
+            }
+            // ==============================
         </script>
+        <style>
+             /* Input styling for inplace edit */
+             .edit-input {
+                 width: 80px;
+                 padding: 4px;
+                 border: 1px solid #444;
+                 border-radius: 4px;
+                 background: #2a2a2a;
+                 color: #e0e0e0;
+                 text-align: right;
+                 font-family: inherit;
+             }
+             .edit-input:focus {
+                 outline: none;
+                 border-color: #4dabf7;
+                 background: #333;
+             }
+        </style>
     </head>
     <body>
     
@@ -98,7 +184,7 @@
     <div class="header-bar">
     <div class="hamburger" onclick="toggleMenu()">☰</div>
         <div class="app-title">Market Scanner</div>
-        <div style="font-size: 0.8rem; color: #888;">Generated: 2025-12-13 13:41:12</div>
+        <div style="font-size: 0.8rem; color: #888;">Generated: 2025-12-13 17:31:16</div>
         
         <div id="navMenu" class="menu-dropdown">
             <div class="menu-item" onclick="switchTab('portfolio')">💼 Portofoliu Activ</div>
@@ -166,462 +252,738 @@
                 </thead>
                 <tbody>
     
-                    <tr>
+                    <tr id="row-SXRZ" data-price="276.8" data-buy="265.48" data-shares="20">
                         <td><strong>SXRZ</strong></td>
                         <td>20</td>
                         <td>€265.48</td>
                         <td>€276.80</td>
                         <td><canvas id="spark_0" class="sparkline-container"></canvas></td>
-                        <td>€301.25</td>
-                        <td class="positive">8.8%</td>
-                        <td>15.0%</td>
-                        <td>€235.28</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="SXRZ" data-field="target" value="301.25" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-SXRZ-totarget" class="positive">8.8%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="SXRZ" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="SXRZ" data-field="trail_stop" value="235.28" onchange="handleInput(this)"></td>
+                        
                         <td>€270.02</td>
                         <td>€5,309.55</td>
                         <td>€5,536.00</td>
                         <td class="positive">€226.45</td>
                         <td class="positive">4.26%</td>
-                        <td>€715.45</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-SXRZ-maxprofit">€715.45</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-AMPX" data-price="10.36" data-buy="10.34" data-shares="500">
                         <td><strong>AMPX</strong></td>
                         <td>500</td>
                         <td>€10.34</td>
                         <td>€10.36</td>
                         <td><canvas id="spark_1" class="sparkline-container"></canvas></td>
-                        <td>€16.31</td>
-                        <td class="positive">57.4%</td>
-                        <td>15.0%</td>
-                        <td>€8.81</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="AMPX" data-field="target" value="16.31" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-AMPX-totarget" class="positive">57.4%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="AMPX" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="AMPX" data-field="trail_stop" value="8.81" onchange="handleInput(this)"></td>
+                        
                         <td>€8.82</td>
                         <td>€5,170.39</td>
                         <td>€5,182.25</td>
                         <td class="positive">€11.86</td>
                         <td class="positive">0.23%</td>
-                        <td>€2,985.36</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-AMPX-maxprofit">€2,985.36</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-AMZN" data-price="214.88" data-buy="218.63" data-shares="22">
                         <td><strong>AMZN</strong></td>
                         <td>22</td>
                         <td>€218.63</td>
                         <td>€214.88</td>
                         <td><canvas id="spark_2" class="sparkline-container"></canvas></td>
-                        <td>€282.52</td>
-                        <td class="positive">31.5%</td>
-                        <td>15.0%</td>
-                        <td>€182.65</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="AMZN" data-field="target" value="282.52" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-AMZN-totarget" class="positive">31.5%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="AMZN" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="AMZN" data-field="trail_stop" value="182.65" onchange="handleInput(this)"></td>
+                        
                         <td>€206.23</td>
                         <td>€4,809.83</td>
                         <td>€4,727.37</td>
                         <td class="negative">€-82.46</td>
                         <td class="negative">-1.71%</td>
-                        <td>€1,405.62</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-AMZN-maxprofit">€1,405.62</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-APLD" data-price="26.47" data-buy="23.33" data-shares="220">
                         <td><strong>APLD</strong></td>
                         <td>220</td>
                         <td>€23.33</td>
                         <td>€26.47</td>
                         <td><canvas id="spark_3" class="sparkline-container"></canvas></td>
-                        <td>€40.75</td>
-                        <td class="positive">53.9%</td>
-                        <td>15.0%</td>
-                        <td>€22.50</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="APLD" data-field="target" value="40.75" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-APLD-totarget" class="positive">53.9%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="APLD" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="APLD" data-field="trail_stop" value="22.50" onchange="handleInput(this)"></td>
+                        
                         <td>€21.63</td>
                         <td>€5,133.67</td>
                         <td>€5,822.74</td>
                         <td class="positive">€689.07</td>
                         <td class="positive">13.42%</td>
-                        <td>€3,832.43</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-APLD-maxprofit">€3,832.43</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-DNN" data-price="2.48" data-buy="2.7" data-shares="2000">
                         <td><strong>DNN</strong></td>
                         <td>2000</td>
                         <td>€2.70</td>
                         <td>€2.48</td>
                         <td><canvas id="spark_4" class="sparkline-container"></canvas></td>
-                        <td>€3.35</td>
-                        <td class="positive">35.1%</td>
-                        <td>15.0%</td>
-                        <td>€2.11</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="DNN" data-field="target" value="3.35" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-DNN-totarget" class="positive">35.1%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="DNN" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="DNN" data-field="trail_stop" value="2.11" onchange="handleInput(this)"></td>
+                        
                         <td>€2.22</td>
                         <td>€5,405.50</td>
                         <td>€4,959.00</td>
                         <td class="negative">€-446.50</td>
                         <td class="negative">-8.26%</td>
-                        <td>€1,301.50</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-DNN-maxprofit">€1,301.50</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-DVLT" data-price="1.31" data-buy="1.8" data-shares="2700">
                         <td><strong>DVLT</strong></td>
                         <td>2700</td>
                         <td>€1.80</td>
                         <td>€1.31</td>
                         <td><canvas id="spark_5" class="sparkline-container"></canvas></td>
-                        <td>€2.85</td>
-                        <td class="positive">117.6%</td>
-                        <td>15.0%</td>
-                        <td>€1.11</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="DVLT" data-field="target" value="2.85" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-DVLT-totarget" class="positive">117.6%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="DVLT" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="DVLT" data-field="trail_stop" value="1.11" onchange="handleInput(this)"></td>
+                        
                         <td>€0.93</td>
                         <td>€4,860.68</td>
                         <td>€3,539.70</td>
                         <td class="negative">€-1,320.98</td>
                         <td class="negative">-27.18%</td>
-                        <td>€2,834.32</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-DVLT-maxprofit">€2,834.32</td>
+                        
                         <td class="rsi-Oversold">Oversold</td>
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-FCX" data-price="45.01" data-buy="39.82" data-shares="100">
                         <td><strong>FCX</strong></td>
                         <td>100</td>
                         <td>€39.82</td>
                         <td>€45.01</td>
                         <td><canvas id="spark_6" class="sparkline-container"></canvas></td>
-                        <td>€47.42</td>
-                        <td class="positive">5.4%</td>
-                        <td>15.0%</td>
-                        <td>€38.26</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="FCX" data-field="target" value="47.42" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-FCX-totarget" class="positive">5.4%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="FCX" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="FCX" data-field="trail_stop" value="38.26" onchange="handleInput(this)"></td>
+                        
                         <td>€42.34</td>
                         <td>€3,982.40</td>
                         <td>€4,501.10</td>
                         <td class="positive">€518.70</td>
                         <td class="positive">13.02%</td>
-                        <td>€760.00</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-FCX-maxprofit">€760.00</td>
+                        
                         <td class="rsi-Overbought">Overbought</td>
                         <td class="trend-Strong-Bullish">Strong Bullish</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-LNG" data-price="179.89" data-buy="183.64" data-shares="25">
                         <td><strong>LNG</strong></td>
                         <td>25</td>
                         <td>€183.64</td>
                         <td>€179.89</td>
                         <td><canvas id="spark_7" class="sparkline-container"></canvas></td>
-                        <td>€258.20</td>
-                        <td class="positive">43.5%</td>
-                        <td>15.0%</td>
-                        <td>€152.91</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="LNG" data-field="target" value="258.20" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-LNG-totarget" class="positive">43.5%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="LNG" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="LNG" data-field="trail_stop" value="152.91" onchange="handleInput(this)"></td>
+                        
                         <td>€171.16</td>
                         <td>€4,591.11</td>
                         <td>€4,497.30</td>
                         <td class="negative">€-93.81</td>
                         <td class="negative">-2.04%</td>
-                        <td>€1,863.90</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-LNG-maxprofit">€1,863.90</td>
+                        
                         <td class="rsi-Oversold">Oversold</td>
                         <td class="trend-Strong-Bearish">Strong Bearish</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-MARA" data-price="10.94" data-buy="11.76" data-shares="500">
                         <td><strong>MARA</strong></td>
                         <td>500</td>
                         <td>€11.76</td>
                         <td>€10.94</td>
                         <td><canvas id="spark_8" class="sparkline-container"></canvas></td>
-                        <td>€21.76</td>
-                        <td class="positive">98.9%</td>
-                        <td>15.0%</td>
-                        <td>€9.30</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="MARA" data-field="target" value="21.76" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-MARA-totarget" class="positive">98.9%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="MARA" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="MARA" data-field="trail_stop" value="9.30" onchange="handleInput(this)"></td>
+                        
                         <td>€9.41</td>
                         <td>€5,878.12</td>
                         <td>€5,472.00</td>
                         <td class="negative">€-406.12</td>
                         <td class="negative">-6.91%</td>
-                        <td>€5,004.12</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-MARA-maxprofit">€5,004.12</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Strong-Bearish">Strong Bearish</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-MELI" data-price="1915.1" data-buy="2033.47" data-shares="2">
                         <td><strong>MELI</strong></td>
                         <td>2</td>
                         <td>€2033.47</td>
                         <td>€1915.10</td>
                         <td><canvas id="spark_9" class="sparkline-container"></canvas></td>
-                        <td>€2722.22</td>
-                        <td class="positive">42.1%</td>
-                        <td>15.0%</td>
-                        <td>€1627.83</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="MELI" data-field="target" value="2722.22" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-MELI-totarget" class="positive">42.1%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="MELI" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="MELI" data-field="trail_stop" value="1627.83" onchange="handleInput(this)"></td>
+                        
                         <td>€1783.93</td>
                         <td>€4,066.95</td>
                         <td>€3,830.19</td>
                         <td class="negative">€-236.76</td>
                         <td class="negative">-5.82%</td>
-                        <td>€1,377.50</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-MELI-maxprofit">€1,377.50</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Strong-Bearish">Strong Bearish</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-META" data-price="612.02" data-buy="631.39" data-shares="8">
                         <td><strong>META</strong></td>
                         <td>8</td>
                         <td>€631.39</td>
                         <td>€612.02</td>
                         <td><canvas id="spark_10" class="sparkline-container"></canvas></td>
-                        <td>€795.76</td>
-                        <td class="positive">30.0%</td>
-                        <td>15.0%</td>
-                        <td>€520.22</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="META" data-field="target" value="795.76" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-META-totarget" class="positive">30.0%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="META" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="META" data-field="trail_stop" value="520.22" onchange="handleInput(this)"></td>
+                        
                         <td>€574.82</td>
                         <td>€5,051.15</td>
                         <td>€4,896.15</td>
                         <td class="negative">€-155.00</td>
                         <td class="negative">-3.07%</td>
-                        <td>€1,314.91</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-META-maxprofit">€1,314.91</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Strong-Bearish">Strong Bearish</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-MSFT" data-price="454.6" data-buy="458.73" data-shares="11">
                         <td><strong>MSFT</strong></td>
                         <td>11</td>
                         <td>€458.73</td>
                         <td>€454.60</td>
                         <td><canvas id="spark_11" class="sparkline-container"></canvas></td>
-                        <td>€599.73</td>
-                        <td class="positive">31.9%</td>
-                        <td>15.0%</td>
-                        <td>€386.41</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="MSFT" data-field="target" value="599.73" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-MSFT-totarget" class="positive">31.9%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="MSFT" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="MSFT" data-field="trail_stop" value="386.41" onchange="handleInput(this)"></td>
+                        
                         <td>€437.33</td>
                         <td>€5,046.00</td>
                         <td>€5,000.64</td>
                         <td class="negative">€-45.36</td>
                         <td class="negative">-0.90%</td>
-                        <td>€1,550.98</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-MSFT-maxprofit">€1,550.98</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-MSTR" data-price="167.63" data-buy="177.16" data-shares="27">
                         <td><strong>MSTR</strong></td>
                         <td>27</td>
                         <td>€177.16</td>
                         <td>€167.63</td>
                         <td><canvas id="spark_12" class="sparkline-container"></canvas></td>
-                        <td>€472.82</td>
-                        <td class="positive">182.1%</td>
-                        <td>15.0%</td>
-                        <td>€142.48</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="MSTR" data-field="target" value="472.82" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-MSTR-totarget" class="positive">182.1%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="MSTR" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="MSTR" data-field="trail_stop" value="142.48" onchange="handleInput(this)"></td>
+                        
                         <td>€143.75</td>
                         <td>€4,783.39</td>
                         <td>€4,525.94</td>
                         <td class="negative">€-257.45</td>
                         <td class="negative">-5.38%</td>
-                        <td>€7,982.87</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-MSTR-maxprofit">€7,982.87</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Strong-Bearish">Strong Bearish</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-NVDA" data-price="166.27" data-buy="175.57" data-shares="30">
                         <td><strong>NVDA</strong></td>
                         <td>30</td>
                         <td>€175.57</td>
                         <td>€166.27</td>
                         <td><canvas id="spark_13" class="sparkline-container"></canvas></td>
-                        <td>€244.10</td>
-                        <td class="positive">46.8%</td>
-                        <td>15.0%</td>
-                        <td>€141.33</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="NVDA" data-field="target" value="244.10" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-NVDA-totarget" class="positive">46.8%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="NVDA" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="NVDA" data-field="trail_stop" value="141.33" onchange="handleInput(this)"></td>
+                        
                         <td>€155.40</td>
                         <td>€5,267.18</td>
                         <td>€4,988.07</td>
                         <td class="negative">€-279.11</td>
                         <td class="negative">-5.30%</td>
-                        <td>€2,055.90</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-NVDA-maxprofit">€2,055.90</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-ORCL" data-price="180.47" data-buy="196.03" data-shares="25">
                         <td><strong>ORCL</strong></td>
                         <td>25</td>
                         <td>€196.03</td>
                         <td>€180.47</td>
                         <td><canvas id="spark_14" class="sparkline-container"></canvas></td>
-                        <td>€284.68</td>
-                        <td class="positive">57.7%</td>
-                        <td>15.0%</td>
-                        <td>€153.40</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="ORCL" data-field="target" value="284.68" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-ORCL-totarget" class="positive">57.7%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="ORCL" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="ORCL" data-field="trail_stop" value="153.40" onchange="handleInput(this)"></td>
+                        
                         <td>€159.57</td>
                         <td>€4,900.69</td>
                         <td>€4,511.79</td>
                         <td class="negative">€-388.91</td>
                         <td class="negative">-7.94%</td>
-                        <td>€2,216.23</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-ORCL-maxprofit">€2,216.23</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Strong-Bearish">Strong Bearish</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-QBTS" data-price="24.8" data-buy="23.72" data-shares="210">
                         <td><strong>QBTS</strong></td>
                         <td>210</td>
                         <td>€23.72</td>
                         <td>€24.80</td>
                         <td><canvas id="spark_15" class="sparkline-container"></canvas></td>
-                        <td>€37.60</td>
-                        <td class="positive">51.6%</td>
-                        <td>15.0%</td>
-                        <td>€21.08</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="QBTS" data-field="target" value="37.60" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-QBTS-totarget" class="positive">51.6%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="QBTS" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="QBTS" data-field="trail_stop" value="21.08" onchange="handleInput(this)"></td>
+                        
                         <td>€20.64</td>
                         <td>€4,982.09</td>
                         <td>€5,206.95</td>
                         <td class="positive">€224.86</td>
                         <td class="positive">4.51%</td>
-                        <td>€2,914.12</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-QBTS-maxprofit">€2,914.12</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-SMR" data-price="17.42" data-buy="21.76" data-shares="220">
                         <td><strong>SMR</strong></td>
                         <td>220</td>
                         <td>€21.76</td>
                         <td>€17.42</td>
                         <td><canvas id="spark_16" class="sparkline-container"></canvas></td>
-                        <td>€34.75</td>
-                        <td class="positive">99.5%</td>
-                        <td>15.0%</td>
-                        <td>€14.81</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="SMR" data-field="target" value="34.75" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-SMR-totarget" class="positive">99.5%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="SMR" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="SMR" data-field="trail_stop" value="14.81" onchange="handleInput(this)"></td>
+                        
                         <td>€13.77</td>
                         <td>€4,787.15</td>
                         <td>€3,833.06</td>
                         <td class="negative">€-954.08</td>
                         <td class="negative">-19.93%</td>
-                        <td>€2,858.07</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-SMR-maxprofit">€2,858.07</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Strong-Bearish">Strong Bearish</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-TE" data-price="5.08" data-buy="4.81" data-shares="1000">
                         <td><strong>TE</strong></td>
                         <td>1000</td>
                         <td>€4.81</td>
                         <td>€5.08</td>
                         <td><canvas id="spark_17" class="sparkline-container"></canvas></td>
-                        <td>€6.93</td>
-                        <td class="positive">36.4%</td>
-                        <td>15.0%</td>
-                        <td>€4.32</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="TE" data-field="target" value="6.93" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-TE-totarget" class="positive">36.4%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="TE" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="TE" data-field="trail_stop" value="4.32" onchange="handleInput(this)"></td>
+                        
                         <td>€3.72</td>
                         <td>€4,811.75</td>
                         <td>€5,082.50</td>
                         <td class="positive">€270.75</td>
                         <td class="positive">5.63%</td>
-                        <td>€2,123.25</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-TE-maxprofit">€2,123.25</td>
+                        
                         <td class="rsi-Overbought">Overbought</td>
                         <td class="trend-Strong-Bullish">Strong Bullish</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-TSM" data-price="277.44" data-buy="287.58" data-shares="50">
                         <td><strong>TSM</strong></td>
                         <td>50</td>
                         <td>€287.58</td>
                         <td>€277.44</td>
                         <td><canvas id="spark_18" class="sparkline-container"></canvas></td>
-                        <td>€339.74</td>
-                        <td class="positive">22.5%</td>
-                        <td>15.0%</td>
-                        <td>€235.82</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="TSM" data-field="target" value="339.74" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-TSM-totarget" class="positive">22.5%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="TSM" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="TSM" data-field="trail_stop" value="235.82" onchange="handleInput(this)"></td>
+                        
                         <td>€260.66</td>
                         <td>€14,379.20</td>
                         <td>€13,871.90</td>
                         <td class="negative">€-507.30</td>
                         <td class="negative">-3.53%</td>
-                        <td>€2,607.75</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-TSM-maxprofit">€2,607.75</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-URG" data-price="1.22" data-buy="1.37" data-shares="3500">
                         <td><strong>URG</strong></td>
                         <td>3500</td>
                         <td>€1.37</td>
                         <td>€1.22</td>
                         <td><canvas id="spark_19" class="sparkline-container"></canvas></td>
-                        <td>€2.10</td>
-                        <td class="positive">72.1%</td>
-                        <td>15.0%</td>
-                        <td>€1.03</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="URG" data-field="target" value="2.10" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-URG-totarget" class="positive">72.1%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="URG" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="URG" data-field="trail_stop" value="1.03" onchange="handleInput(this)"></td>
+                        
                         <td>€1.06</td>
                         <td>€4,804.62</td>
                         <td>€4,256.00</td>
                         <td class="negative">€-548.63</td>
                         <td class="negative">-11.42%</td>
-                        <td>€2,543.62</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-URG-maxprofit">€2,543.62</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-UUUU" data-price="13.84" data-buy="15.77" data-shares="300">
                         <td><strong>UUUU</strong></td>
                         <td>300</td>
                         <td>€15.77</td>
                         <td>€13.84</td>
                         <td><canvas id="spark_20" class="sparkline-container"></canvas></td>
-                        <td>€21.12</td>
-                        <td class="positive">52.6%</td>
-                        <td>15.0%</td>
-                        <td>€11.77</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="UUUU" data-field="target" value="21.12" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-UUUU-totarget" class="positive">52.6%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="UUUU" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="UUUU" data-field="trail_stop" value="11.77" onchange="handleInput(this)"></td>
+                        
                         <td>€11.77</td>
                         <td>€4,732.43</td>
                         <td>€4,152.45</td>
                         <td class="negative">€-579.98</td>
                         <td class="negative">-12.26%</td>
-                        <td>€1,603.13</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-UUUU-maxprofit">€1,603.13</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-TVBETETF.RO" data-price="8.0" data-buy="5.19" data-shares="1851">
                         <td><strong>TVBETETF.RO</strong></td>
                         <td>1851</td>
                         <td>€5.19</td>
                         <td>€8.00</td>
                         <td><canvas id="spark_21" class="sparkline-container"></canvas></td>
-                        <td>€8.35</td>
-                        <td class="positive">4.4%</td>
-                        <td>15.0%</td>
-                        <td>€6.80</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="TVBETETF.RO" data-field="target" value="8.35" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-TVBETETF.RO-totarget" class="positive">4.4%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="TVBETETF.RO" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="TVBETETF.RO" data-field="trail_stop" value="6.80" onchange="handleInput(this)"></td>
+                        
                         <td>€7.77</td>
                         <td>€9,615.06</td>
                         <td>€14,809.85</td>
                         <td class="positive">€5,194.79</td>
                         <td class="positive">54.03%</td>
-                        <td>€5,846.48</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-TVBETETF.RO-maxprofit">€5,846.48</td>
+                        
                         <td class="rsi-Overbought">Overbought</td>
                         <td class="trend-Strong-Bullish">Strong Bullish</td>
                     </tr>
         
-                    <tr>
+                    <tr id="row-LQQ.PA" data-price="1454.4" data-buy="1487.57" data-shares="12">
                         <td><strong>LQQ.PA</strong></td>
                         <td>12</td>
                         <td>€1487.57</td>
                         <td>€1454.40</td>
                         <td><canvas id="spark_22" class="sparkline-container"></canvas></td>
-                        <td>€1612.20</td>
-                        <td class="positive">10.8%</td>
-                        <td>15.0%</td>
-                        <td>€1236.24</td>
+                        
+                        <!-- TARGET INPUT -->
+                        <td><input type="number" step="0.01" class="edit-input" data-symbol="LQQ.PA" data-field="target" value="1612.20" onchange="handleInput(this)"></td>
+                        
+                        <!-- To Target (Recalculated via JS) -->
+                        <td id="cell-LQQ.PA-totarget" class="positive">10.8%</td>
+                        
+                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
+                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="LQQ.PA" data-field="trail_pct" value="15" onchange="handleInput(this)">%</td>
+                        
+                        <!-- TRAIL STOP INPUT -->
+                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="LQQ.PA" data-field="trail_stop" value="1236.24" onchange="handleInput(this)"></td>
+                        
                         <td>€1390.34</td>
                         <td>€17,850.83</td>
                         <td>€17,452.80</td>
                         <td class="negative">€-398.03</td>
                         <td class="negative">-2.23%</td>
-                        <td>€1,495.57</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-LQQ.PA-maxprofit">€1,495.57</td>
+                        
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
                     </tr>
@@ -843,18 +1205,6 @@
                     </tr>
         
                     <tr>
-                        <td><strong>INTC</strong></td>
-                        <td>€35.92</td>
-                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                        <td>59</td>
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td>2.05</td>
-                        <td>€31.81</td>
-                        <td>€36.16</td>
-                        <td>€25.25</td>
-                    </tr>
-        
-                    <tr>
                         <td><strong>COIN</strong></td>
                         <td>€254.09</td>
                         <td class="trend-Strong-Bearish">Strong Bearish</td>
@@ -864,6 +1214,30 @@
                         <td>€227.59</td>
                         <td>€293.79</td>
                         <td>€269.15</td>
+                    </tr>
+        
+                    <tr>
+                        <td><strong>AMD</strong></td>
+                        <td>€200.24</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                        <td>56</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td>8.64</td>
+                        <td>€182.96</td>
+                        <td>€218.62</td>
+                        <td>€148.15</td>
+                    </tr>
+        
+                    <tr>
+                        <td><strong>INTC</strong></td>
+                        <td>€35.92</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                        <td>59</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td>2.05</td>
+                        <td>€31.81</td>
+                        <td>€36.16</td>
+                        <td>€25.25</td>
                     </tr>
         
                     <tr>
@@ -888,18 +1262,6 @@
                         <td>€161.96</td>
                         <td>€170.49</td>
                         <td>€137.19</td>
-                    </tr>
-        
-                    <tr>
-                        <td><strong>AMD</strong></td>
-                        <td>€200.24</td>
-                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                        <td>56</td>
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td>8.64</td>
-                        <td>€182.96</td>
-                        <td>€218.62</td>
-                        <td>€148.15</td>
                     </tr>
         
                 </tbody>
