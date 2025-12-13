@@ -650,6 +650,13 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     total_value = portfolio_df['Current_Value'].sum() if not portfolio_df.empty else 0
     total_profit = portfolio_df['Profit'].sum() if not portfolio_df.empty else 0
     total_profit_pct = ((total_value - total_investment) / total_investment * 100) if total_investment > 0 else 0
+    
+    # Calculăm câștigul maxim potențial (suma Max_Profit unde există Target)
+    if not portfolio_df.empty and 'Max_Profit' in portfolio_df.columns:
+        # Înlocuim None/NaN cu 0 pentru sumă
+        total_max_profit = portfolio_df['Max_Profit'].fillna(0).sum()
+    else:
+        total_max_profit = 0
 
     # Citire parolă
     password = "1234"
@@ -737,6 +744,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 <div class="summary-card">
                     <h3>ROI</h3>
                     <div class="value {'positive' if total_profit_pct >= 0 else 'negative'}">{total_profit_pct:.2f}%</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Max Potential Profit</h3>
+                    <div class="value {'positive' if total_max_profit > 0 else ''}" style="color: #4dabf7;">€{total_max_profit:,.2f}</div>
                 </div>
             </div>
             
