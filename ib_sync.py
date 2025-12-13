@@ -95,6 +95,33 @@ def sync_ibkr():
         # IBKR Flex XML Structure:
         # <FlexQueryResponse> -> <FlexStatements> -> <FlexStatement> -> <OpenPositions> -> <OpenPosition ... />
         
+        # Parse Active Orders (pentru Trail Stop)
+        orders_map = {}
+        # Căutăm recursiv orice tag Order (necesită ca utilizatorul să includă 'Orders' în Flex Query)
+        for order in root.iter('Order'):
+            try:
+                sym = order.get('symbol')
+                if not sym: continue
+                if ' ' in sym: sym = sym.replace(' ', '.')
+                
+                # Check for Trail
+                order_type = order.get('orderType', '').upper()
+                if 'TRAIL' in order_type:
+                    # Trailing Percent
+                    trail_pct = float(order.get('trailingPercent', 0))
+                    
+                    # Stop Price (Trigger)
+                    # Flex attributes: 'auxPrice' (trail amount), 'stopPrice' (current trigger)
+                    stop_price = float(order.get('stopPrice', 0))
+                    
+                    # Dacă avem procent, salvăm
+                    if trail_pct > 0:
+                        orders_map[sym] = {'trail_pct': trail_pct, 'trail_stop': stop_price}
+                        print(f"  → Găsit Ordin TRAIL pentru {sym}: {trail_pct}% (Stop: {stop_price})")
+            except Exception as e:
+                # print(f"Err parse order: {e}") 
+                pass
+
         positions = []
         # Căutăm recursiv orice tag OpenPosition
         for pos in root.iter('OpenPosition'):
@@ -131,6 +158,9 @@ def sync_ibkr():
                 if invest != 0:
                     calc_profit_pct = (unreal_pnl / invest) * 100
                 
+                # Verificăm dacă avem date de Trail din Orders
+                trail_data = orders_map.get(sym, {})
+                
                 item = {
                     'Symbol': sym,
                     'Shares': qty,
@@ -139,7 +169,9 @@ def sync_ibkr():
                     'Current_Value': mkt_val,
                     'Profit': unreal_pnl,
                     'Profit_Pct': calc_profit_pct,
-                    'Investment': invest
+                    'Investment': invest,
+                    'Trail_Pct': trail_data.get('trail_pct', 0),
+                    'Trail_Stop_IBKR': trail_data.get('trail_stop', 0) # Salvăm explicit ca IBKR Stop
                 }
                 positions.append(item)
             except ValueError:
@@ -173,7 +205,9 @@ def sync_ibkr():
                              'Current_Value': 0.0,
                              'Profit': 0.0,
                              'Profit_Pct': 0.0,
-                             'Investment': qty * bp
+                             'Investment': qty * bp,
+                             'Trail_Pct': float(row.get('Trail_Pct', 0)),
+                             'Trail_Stop_IBKR': 0 # Manual nu are IBKR Stop
                          }
                          positions.append(item)
                      except: pass
@@ -193,7 +227,7 @@ def sync_ibkr():
              try:
                 print("Îmbinare cu preferințele locale...")
                 old_df = pd.read_csv(PORTFOLIO_FILE)
-                manual_cols = ['Symbol', 'Target', 'Trail_Pct', 'Trail_Stop', 'Suggested_Stop', 'Max_Profit']
+                manual_cols = ['Symbol', 'Target', 'Max_Profit'] # Păstrăm doar ce nu calculăm/citim live
                 existing_cols = [c for c in manual_cols if c in old_df.columns]
                 
                 if existing_cols:

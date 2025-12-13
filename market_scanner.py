@@ -493,7 +493,19 @@ def process_portfolio_ticker(row, vix_value, rates):
         profit_pct = ((current_price - buy_price) / buy_price) * 100 if buy_price != 0 else 0
         
         # Stop loss bazat pe trailing %
-        trail_stop_price = current_price * (1 - trail_pct / 100)
+        if trail_pct > 0:
+            trail_stop_price = current_price * (1 - trail_pct / 100)
+            # Dacă avem Trail Stop explicit din IBKR (și e valid, nu 0)
+            ibkr_stop = float(row.get('Trail_Stop_IBKR', 0))
+            if ibkr_stop > 0:
+                # Folosim valoarea exactă din IBKR dacă e disponibilă
+                # Atenție: trebuie convertită la EUR dacă e în USD?
+                # De obicei IBKR dă în moneda ordinului.
+                # Dacă e diferită de moneda afișării (EUR), trebuie convertit.
+                # Presupunem că IBKR dă în moneda ticker-ului, deci aplicăm rata.
+                trail_stop_price = ibkr_stop * rate
+        else:
+            trail_stop_price = 0 # Disabled/N/A
         
         # Suggested Stop bazat pe ATR (2x ATR sub preț curent)
         suggested_stop_atr = current_price - (2 * last_atr)
@@ -904,8 +916,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <td><canvas id="{sparkline_id}" class="sparkline-container"></canvas></td>
                         <td>{target_display}</td>
                         <td class="{'positive' if pct_to_target > 0 else 'negative' if row['Target'] else ''}">{pct_display}</td>
-                        <td>{row['Trail_Pct']:.0f}%</td>
-                        <td>€{row['Trail_Stop']:.2f}</td>
+                        <td>{row['Trail_Pct']:.1f}%</td>
+                        <td>{f"€{row['Trail_Stop']:.2f}" if row['Trail_Stop'] > 0 else "-"}</td>
                         <td>€{row['Suggested_Stop']:.2f}</td>
                         <td>€{row['Investment']:,.2f}</td>
                         <td>€{row['Current_Value']:,.2f}</td>
