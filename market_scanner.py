@@ -398,13 +398,15 @@ def process_portfolio_ticker(row, vix_value, rates):
             profit = 0.0
             profit_pct = 0.0
             
-            # Profit maxim (dacă ar atinge target)
-            if target:
-                max_profit = (target - buy_price) * shares
-                target_display = round(target, 2)
-            else:
-                max_profit = None
-                target_display = None
+            # Target estimativ (dacă nu avem de la Finviz)
+            if not target:
+                # Estimare conservatoare: +15% față de buy price
+                target = buy_price * 1.15
+                print(f"  → Target Estimativ: €{target:.2f} (+15%)")
+            
+            # Calculăm profit maxim
+            max_profit = (target - buy_price) * shares
+            target_display = round(target, 2)
             
             result = {
                 'Symbol': ticker,
