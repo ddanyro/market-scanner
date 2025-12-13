@@ -724,15 +724,15 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 <div class="summary">
                     <div class="summary-card">
                         <h3>Total Investment</h3>
-                        <div class="value">${total_investment:,.2f}</div>
+                        <div class="value">€{total_investment:,.2f}</div>
                     </div>
                 <div class="summary-card">
                     <h3>Current Value</h3>
-                    <div class="value">${total_value:,.2f}</div>
+                    <div class="value">€{total_value:,.2f}</div>
                 </div>
                 <div class="summary-card">
                     <h3>Total P/L</h3>
-                    <div class="value {'positive' if total_profit >= 0 else 'negative'}">${total_profit:,.2f}</div>
+                    <div class="value {'positive' if total_profit >= 0 else 'negative'}">€{total_profit:,.2f}</div>
                 </div>
                 <div class="summary-card">
                     <h3>ROI</h3>
