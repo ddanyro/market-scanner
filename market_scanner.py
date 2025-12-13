@@ -874,7 +874,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     <tr>
                         <th>Simbol</th>
                         <th>Acțiuni</th>
-                        <th>Preț Mediu</th>
+                        <th>Preț Cumpărare</th>
                         <th>Preț Curent</th>
                         <th>Grafic</th>
                         <th>Target</th>
