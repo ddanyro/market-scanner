@@ -985,8 +985,16 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         f.write(full_html)
     print(f"Dashboard HTML generat: {os.path.abspath(filename)}")
 
+import ib_sync  # Modul sincronizare IBKR
+
 def main():
-    print("=== Market Scanner (Portfolio + Watchlist) ===")
+    print("=== Market Scanner (Portfolio + Watchlist) ===\n")
+    
+    # 0. Sincronizare IBKR (Opțional, doar local)
+    try:
+        ib_sync.sync_ibkr()
+    except Exception as e:
+        print(f"Sincronizare IBKR a eșuat sau nu este disponibilă: {e}")
     
     # 1. Obținem indicatorii de piață
     print("\n=== Preluare Indicatori de Piață ===")
