@@ -813,81 +813,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 }}
             }}
             
-            // === INPLACE EDITING LOGIC ===
-            
-            // Load saved values on startup
-            window.addEventListener('load', function() {{
-                checkPortfolioAuth();
-                loadStoredValues();
-            }});
-
-            function loadStoredValues() {{
-                const inputs = document.querySelectorAll('input[data-symbol]');
-                inputs.forEach(input => {{
-                    const symbol = input.dataset.symbol;
-                    const field = input.dataset.field;
-                    // Note: symbol needs to be escaped if containing special chars? Usually ticker is fine.
-                    // But in f-string context, `pf_${{symbol}}_${{field}}` is tricky if symbol is JS var.
-                    // Here symbol is JS variable.
-                    const key = `pf_${{symbol}}_${{field}}`; 
-                    const stored = localStorage.getItem(key);
-                    
-                    if (stored !== null) {{
-                        input.value = stored;
-                        // Trigger recalculation
-                        recalculateRow(symbol);
-                    }}
-                }});
-            }}
-
-            function handleInput(input) {{
-                const symbol = input.dataset.symbol;
-                const field = input.dataset.field;
-                const val = input.value;
-                
-                // Save to localStorage
-                localStorage.setItem(`pf_${{symbol}}_${{field}}`, val);
-                
-                // Recalculate UI
-                recalculateRow(symbol);
-            }}
-
-            function recalculateRow(symbol) {{
-                // Get inputs
-                const trailStopInput = document.querySelector(`input[data-symbol="${{symbol}}"][data-field="trail_stop"]`);
-                
-                // No recalculation needed for Target/Max Profit as Target is static.
-                // We just keep the input value visually updated via 'handleInput'.
-                
-                // Optional: visual feedback when Trail Stop is close to price?
-                const tr = document.getElementById(`row-${{symbol}}`);
-                const currentPrice = parseFloat(tr.dataset.price);
-                
-                if(trailStopInput) {{
-                   const val = parseFloat(trailStopInput.value);
-                   // Logic for styling trail stop input could go here
-                }}
-            }}
-            // ==============================
+            // Inplace editing removed as per user request
+            // Just portfolio check
+            window.addEventListener('load', checkPortfolioAuth);
         </script>
-        <style>
-             /* Input styling for inplace edit */
-             .edit-input {{
-                 width: 80px;
-                 padding: 4px;
-                 border: 1px solid #444;
-                 border-radius: 4px;
-                 background: #2a2a2a;
-                 color: #e0e0e0;
-                 text-align: right;
-                 font-family: inherit;
-             }}
-             .edit-input:focus {{
-                 outline: none;
-                 border-color: #4dabf7;
-                 background: #333;
-             }}
-        </style>
     </head>
     <body>
     
@@ -1007,14 +936,13 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <!-- TARGET (Static/Auto) -->
                         <td>{target_display}</td>
                         
-                        <!-- To Target (Recalculated via JS based on static target) -->
-                        <td id="cell-{row['Symbol']}-totarget" class="{'positive' if pct_to_target > 0 else 'negative' if row['Target'] else ''}">{pct_display}</td>
+                        <td class="{'positive' if pct_to_target > 0 else 'negative' if row['Target'] else ''}">{pct_display}</td>
                         
-                        <!-- TRAIL PCT INPUT (Visual/Store Only) -->
-                        <td><input type="number" step="1" class="edit-input" style="width: 50px;" data-symbol="{row['Symbol']}" data-field="trail_pct" value="{trail_pct_val:.0f}" onchange="handleInput(this)">%</td>
+                        <!-- Trail % (Static) -->
+                        <td>{trail_pct_val:.1f}%</td>
                         
-                        <!-- TRAIL STOP INPUT -->
-                        <td>€<input type="number" step="0.01" class="edit-input" data-symbol="{row['Symbol']}" data-field="trail_stop" value="{trail_stop_val}" onchange="handleInput(this)"></td>
+                        <!-- Trail Stop (Static) -->
+                        <td>{f"€{trail_stop_val}" if isinstance(trail_stop_val, (int, float)) or (isinstance(trail_stop_val, str) and trail_stop_val) else "-"}</td>
                         
                         <td>€{row['Suggested_Stop']:.2f}</td>
                         <td>€{row['Investment']:,.2f}</td>
