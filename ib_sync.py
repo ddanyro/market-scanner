@@ -145,11 +145,46 @@ def sync_ibkr():
             except ValueError:
                 continue
             
+        # === Integrare Portofoliu Manual (Tradeville/Altele) ===
+        MANUAL_FILE = 'tradeville_portfolio.csv'
+        if os.path.exists(MANUAL_FILE):
+             print(f"Adăugare poziții manuale din {MANUAL_FILE}...")
+             try:
+                 man_df = pd.read_csv(MANUAL_FILE)
+                 for _, row in man_df.iterrows():
+                     sym = str(row.get('Symbol', '')).strip()
+                     if not sym or sym.lower() == 'nan': continue
+                     
+                     try:
+                         qty = float(row.get('Shares', 0))
+                         bp = float(row.get('Buy_Price', 0))
+                         
+                         # Verificăm dacă simbolul există deja (din IBKR) pt a nu duplica
+                         exists = any(p['Symbol'] == sym for p in positions)
+                         if exists:
+                             print(f"  Info: Simbolul {sym} există deja în IBKR, se ignoră cel manual.")
+                             continue
+                         
+                         item = {
+                             'Symbol': sym,
+                             'Shares': qty,
+                             'Buy_Price': bp,
+                             'Current_Price': 0.0,
+                             'Current_Value': 0.0,
+                             'Profit': 0.0,
+                             'Profit_Pct': 0.0,
+                             'Investment': qty * bp
+                         }
+                         positions.append(item)
+                     except: pass
+             except Exception as e:
+                 print(f"Eroare încărcare manual portfolio: {e}")
+
         if not positions:
-            print("Raportul Flex este valid dar nu conține poziții 'OpenPosition'. Verifică configurația Query-ului.")
-            return False
+            print("Nicio poziție găsită (nici în IBKR, nici manual).")
+            # return False # Nu returnam False, poate e doar un portofoliu gol temporar
             
-        print(f"Descărcat {len(positions)} poziții din IBKR Cloud.")
+        print(f"Total poziții pentru analiză: {len(positions)}")
         
         # Creare DataFrame și Merge
         new_df = pd.DataFrame(positions)
