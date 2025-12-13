@@ -687,11 +687,31 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         else:
             pct_to_target = None
 
+        # Fetch detailed info from Yahoo
+        consensus = "-"
+        analysts_count = 0
+        industry = "-"
+        
+        try:
+           # Folosim yf.Ticker pentru info detaliat
+           yt = yf.Ticker(ticker)
+           info = yt.info
+           consensus = info.get('recommendationKey', '-').replace('_', ' ').title() # ex: Strong Buy
+           analysts_count = info.get('numberOfAnalystOpinions', 0)
+           industry = info.get('industry', '-')
+           # Scurtăm industria dacă e prea lungă
+           if len(industry) > 20: industry = industry[:17] + "..."
+        except:
+           pass
+
         result = {
             'Ticker': ticker,
             'Price': round(last_close, 2),
             'Target': round(target_val, 2) if target_val else None,
             'Pct_To_Target': round(pct_to_target, 2) if pct_to_target is not None else None,
+            'Consensus': consensus,
+            'Analysts': analysts_count,
+            'Industry': industry,
             'Trend': trend,
             'RSI': round(last_rsi, 2),
             'RSI_Status': rsi_status,
@@ -1182,6 +1202,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Price</th>
                         <th>Target</th>
                         <th>To Target %</th>
+                        <th>Consensus</th>
+                        <th>Analysts</th>
+                        <th>Industry</th>
                         <th>Trend</th>
                         <th>RSI</th>
                         <th>Status</th>
@@ -1220,12 +1243,24 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
              pct_display = f"{pct_target_val:.2f}%"
              pct_class = "positive" if pct_target_val > 0 else "negative"
 
+        # Consensus color
+        cons = row.get('Consensus', '-')
+        cons_style = ""
+        if 'Buy' in cons: cons_style = 'color: #4caf50; font-weight: bold;'
+        elif 'Sell' in cons: cons_style = 'color: #f44336; font-weight: bold;'
+        
+        analysts = row.get('Analysts', 0)
+        industry = row.get('Industry', '-')
+
         html_head += f"""
                     <tr>
                         <td><strong>{row['Ticker']}</strong></td>
                         <td>€{row['Price']:.2f}</td>
                         <td>{target_display}</td>
                         <td class="{pct_class}">{pct_display}</td>
+                        <td style="{cons_style}">{cons}</td>
+                        <td>{analysts}</td>
+                        <td style="font-size: 0.8rem; color: #aaa;">{industry}</td>
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
                         <td>{row['RSI']:.0f}</td>
                         <td class="rsi-{rsi_cls}">{row['RSI_Status']}</td>
