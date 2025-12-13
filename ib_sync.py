@@ -227,7 +227,7 @@ def sync_ibkr():
              try:
                 print("Îmbinare cu preferințele locale...")
                 old_df = pd.read_csv(PORTFOLIO_FILE)
-                manual_cols = ['Symbol', 'Target', 'Max_Profit', 'Trail_Pct'] # Trail_Pct manual persistă dacă nu e în Flex
+                manual_cols = ['Symbol', 'Target', 'Max_Profit', 'Trail_Pct', 'Trail_Stop'] # Toate manualele persistă
                 existing_cols = [c for c in manual_cols if c in old_df.columns]
                 
                 if existing_cols:
