@@ -113,9 +113,31 @@ def get_vix_data():
         print(f"Eroare la preluarea VIX: {e}")
         return None
 
+import json
+
+HISTORY_FILE = "market_history.json"
+
+def load_market_history():
+    if os.path.exists(HISTORY_FILE):
+        try:
+            with open(HISTORY_FILE, 'r') as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+def save_market_history(history):
+    try:
+        with open(HISTORY_FILE, 'w') as f:
+            json.dump(history, f, indent=2)
+    except Exception as e:
+        print(f"Eroare salvare istoric: {e}")
+
 def get_market_indicators():
-    """Preia indicatori de volatilitate și sentiment de piață."""
+    """Preia indicatori volum și sentiment, cu persistență locală."""
     indicators = {}
+    history_db = load_market_history()
+    today_str = datetime.datetime.now().strftime('%Y-%m-%d')
     
     # Lista de indicatori cu ticker-ele lor Yahoo Finance și thresholds
     tickers_map = {
@@ -124,7 +146,7 @@ def get_market_indicators():
         'VIX1D': '^VIX1D',      # VIX 1 zi (dacă există)
         'VIX9D': '^VIX9D',      # VIX 9 zile
         'VXN': '^VXN',          # Nasdaq VIX
-        'LTV': '^LTV',          # CBOE 3-Month Implied Correlation
+        'LTV': '^LTV',          # CBOE Left Tail Volatility
         'SKEW': '^SKEW',        # CBOE SKEW
         'MOVE': '^MOVE',        # MOVE Index (bond volatility)
         'GVZ': '^GVZ',          # Gold Volatility
@@ -132,78 +154,83 @@ def get_market_indicators():
         'SPX': '^GSPC',         # S&P 500
     }
     
-    # Thresholds pentru fiecare indicator (normal range)
+    # Thresholds (aceleași ca înainte, le păstrăm)
     thresholds = {
-        'VIX3M': (14, 20),
-        'VIX': (15, 20),
-        'VIX1D': (12, 30),
-        'VIX9D': (12, 18),
-        'VXN': (15, 25),
-        'LTV': (10, 13),        # CBOE Left Tail Volatility
-        'SKEW': (135, 150),  # SKEW normal între 135-150
-        'MOVE': (80, 120),
-        'GVZ': (17, 22),
-        'OVX': (25, 35),
-        'SPX': (None, None),  # Nu are threshold
+        'VIX3M': (14, 20), 'VIX': (15, 20), 'VIX1D': (12, 30), 'VIX9D': (12, 18), 'VXN': (15, 25),
+        'LTV': (10, 13), 'SKEW': (135, 150), 'MOVE': (80, 120), 'GVZ': (17, 22), 'OVX': (25, 35),
+        'SPX': (None, None)
+    }
+    
+    # Definițiile nivelelor (copiate din codul existent pentru consistență)
+    threshold_levels = {
+        'VIX3M': [(14, 'perfect 14'), (20, '14 normal 20'), (30, '20 tensiune 30'), (999, '30 panica')],
+        'VIX': [(15, 'perfect 15'), (20, '15 normal 20'), (30, '20 tensiune 30'), (999, '30 panica')],
+        'VIX1D': [(12, 'perfect 12'), (30, '12 normal 30'), (50, '30 tensiune 50'), (999, '50 panica')],
+        'VIX9D': [(12, 'perfect 12'), (18, '12 normal 18'), (25, '18 tensiune 25'), (999, '25 panica')],
+        'VXN': [(15, 'perfect 15'), (25, '15 normal 25'), (35, '25 tensiune 35'), (999, '35 panica')],
+        'LTV': [(10, 'perfect 10'), (13, '10 normal 13'), (20, '13 tensiune 20'), (999, '20 panica')],
+        'SKEW': [(135, 'low 135'), (150, '135 normal 150'), (165, '150 tensiune 165'), (999, '165 panica')],
+        'MOVE': [(80, 'perfect 80'), (120, '80 normal 120'), (150, '120 tensiune 150'), (999, '150 panica')],
+        'GVZ': [(17, 'perfect 17'), (22, '17 normal 22'), (30, '22 tensiune 30'), (999, '30 panica')],
+        'OVX': [(25, 'perfect 25'), (35, '25 normal 35'), (50, '35 tensiune 50'), (999, '50 panica')],
     }
     
     for name, ticker in tickers_map.items():
         try:
-            time.sleep(0.5)  # Rate limiting
+            time.sleep(0.5)
             data = yf.Ticker(ticker)
-            # Luăm 35 zile ca să fim siguri că avem 30 de puncte valide
+            # Încercăm să luăm istoric scurt pentru update, sau lung dacă nu avem local
             hist = data.history(period="35d")
             
+            current_val = None
+            
+            # 1. Update Persistent History
             if not hist.empty:
-                current = hist['Close'].iloc[-1]
+                # Iterăm prin ultimele zile și le adăugăm în DB
+                # Yahoo returnează index datetime, convertim la string YYYY-MM-DD
+                for date_idx, row in hist.iterrows():
+                    d_str = date_idx.strftime('%Y-%m-%d')
+                    val = float(row['Close'])
+                    if not pd.isna(val):
+                        # Init list if needed
+                        if name not in history_db: history_db[name] = []
+                        
+                        # Check exist
+                        existing = next((x for x in history_db[name] if x['date'] == d_str), None)
+                        if existing:
+                            existing['value'] = val
+                        else:
+                            history_db[name].append({'date': d_str, 'value': val})
                 
-                if len(hist) >= 2:
-                    previous = hist['Close'].iloc[-2]
-                    change = current - previous
+                # Sort și Trim (ultimele 60 zile)
+                if name in history_db:
+                    history_db[name].sort(key=lambda x: x['date'])
+                    history_db[name] = history_db[name][-60:]
+            
+            # 2. Folosim datele din History DB pentru afișare
+            if name in history_db and history_db[name]:
+                data_points = [x['value'] for x in history_db[name]]
+                current = data_points[-1]
+                
+                if len(data_points) >= 2:
+                    change = current - data_points[-2]
                 else:
                     change = 0.0
                 
-                # Sparkline data (ultimele 30 zile)
-                sparkline_data = hist['Close'].tail(30).tolist()
-                sparkline_data = [round(float(x), 2) for x in sparkline_data if not pd.isna(x)]
-                # Dacă avem prea puține date pentru sparkline, completăm (opțional) sau lăsăm așa
-                if len(sparkline_data) < 2:
-                     # Putem repeta valoarea pentru a avea o linie dreaptă
-                     sparkline_data = [round(float(current), 2)] * 10 
+                sparkline_data = data_points[-30:] # Last 30 points
                 
-                # Multi-level thresholds pentru interpretare dinamică
-                # Similar cu formula Google Sheets: IFS(value<low1, "perfect", value<low2, "normal", etc)
-                threshold_levels = {
-                    'VIX3M': [(14, 'perfect 14'), (20, '14 normal 20'), (30, '20 tensiune 30'), (999, '30 panica')],
-                    'VIX': [(15, 'perfect 15'), (20, '15 normal 20'), (30, '20 tensiune 30'), (999, '30 panica')],
-                    'VIX1D': [(12, 'perfect 12'), (30, '12 normal 30'), (50, '30 tensiune 50'), (999, '50 panica')],
-                    'VIX9D': [(12, 'perfect 12'), (18, '12 normal 18'), (25, '18 tensiune 25'), (999, '25 panica')],
-                    'VXN': [(15, 'perfect 15'), (25, '15 normal 25'), (35, '25 tensiune 35'), (999, '35 panica')],
-                    'LTV': [(10, 'perfect 10'), (13, '10 normal 13'), (20, '13 tensiune 20'), (999, '20 panica')],
-                    'SKEW': [(135, 'low 135'), (150, '135 normal 150'), (165, '150 tensiune 165'), (999, '165 panica')],
-                    'MOVE': [(80, 'perfect 80'), (120, '80 normal 120'), (150, '120 tensiune 150'), (999, '150 panica')],
-                    'GVZ': [(17, 'perfect 17'), (22, '17 normal 22'), (30, '22 tensiune 30'), (999, '30 panica')],
-                    'OVX': [(25, 'perfect 25'), (35, '25 normal 35'), (50, '35 tensiune 50'), (999, '50 panica')],
-                }
-                
-                # Determinăm descrierea și status-ul bazat pe nivelurile multiple
+                # Logică Status/Descriere
                 if name in threshold_levels:
                     levels = threshold_levels[name]
-                    description = levels[-1][1]  # Default la ultima (panica)
+                    description = levels[-1][1]
                     status = "Panic"
-                    
                     for threshold, desc in levels:
                         if current < threshold:
                             description = desc
-                            # Determinăm status-ul
-                            if 'perfect' in desc.lower():
-                                status = "Perfect"
-                            elif 'normal' in desc.lower():
-                                status = "Normal"
-                            elif 'tensiune' in desc.lower():
-                                status = "Tension"
-                            else:
-                                status = "Panic"
+                            if 'perfect' in desc.lower(): status = "Perfect"
+                            elif 'normal' in desc.lower(): status = "Normal"
+                            elif 'tensiune' in desc.lower(): status = "Tension"
+                            else: status = "Panic"
                             break
                 else:
                     status = "Normal"
@@ -217,11 +244,15 @@ def get_market_indicators():
                     'sparkline': sparkline_data
                 }
             else:
-                print(f"  ⚠ {name}: Date insuficiente")
+                print(f"  ⚠ {name}: Nu există date (nici Yahoo, nici Local)")
+                
         except Exception as e:
             print(f"  ⚠ Eroare {name}: {str(e)[:40]}")
     
-    # Crypto Fear & Greed Index (via alternative.me API)
+    # Salvarea istoricului actualizat
+    save_market_history(history_db)
+    
+    # Crypto Fear & Greed Index (separat, dar îl putem adăuga și pe el în DB dacă vrem, momentan e ok așa)
     try:
         # Cerem ultimele 35 de zile pentru istoric
         response = requests.get('https://api.alternative.me/fng/?limit=35', timeout=5)
