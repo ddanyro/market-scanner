@@ -3,6 +3,30 @@ import pandas as pd
 from io import StringIO
 import datetime
 
+# Dicționar de interpretare a evenimentelor
+EVENT_DESCRIPTIONS = {
+    'CPI': 'Măsoară inflația la consumator. 🔴 Dacă e mare = Scădere Burse (Frică de dobânzi). 🟢 Dacă scade = Creștere Burse.',
+    'PPI': 'Inflația la producător. Semnal timpuriu pentru CPI.',
+    'Fed': 'Intervenție a Băncii Centrale. Impact critic asupra trendului. Urmăriți tonul (Hawkish/Dovish).',
+    'FOMC': 'Decizia de dobândă. Sursă majoră de volatilitate. Dobânzi sus = Rău pentru Tech/Growth.',
+    'GDP': 'Produsul Intern Brut. Arată sănătatea economiei SUA.',
+    'Nonfarm': 'NFP (Joburi). 🟢 Peste așteptări = Economie puternică (dar risc inflație). 🔴 Sub așteptări = Risc recesiune.',
+    'Unemployment': 'Rata șomajului. Indicator invers al sănătății economice.',
+    'Retail': 'Vânzările Retail. Măsoară apetitul consumatorului american (motorul economiei).',
+    'Confidence': 'Încrederea consumatorului. Sentiment investitorilor.',
+    'Claims': 'Cererile de șomaj săptămânale. Date high-frequency despre piața muncii.',
+    'Services': 'Indicator ISM/PMI Servicii. Sectorul dominant al economiei.',
+    'Manufacturing': 'Indicator ISM/PMI Producție. Indică expansiunea sau contracția industrială.',
+    'Home': 'Date imobiliare. Sensibile la dobânzi.',
+    'Inventories': 'Stocurile de petrol/bunuri. Relevante pt sectoare specifice.'
+}
+
+def get_event_impact(event_name):
+    for key, desc in EVENT_DESCRIPTIONS.items():
+        if key.lower() in event_name.lower():
+            return desc
+    return "Indicator economic. Poate genera volatilitate intraday."
+
 def get_economic_events():
     """Scrapes Yahoo Finance for upcoming US economic events (Current & Next Week)."""
     try:
@@ -34,7 +58,7 @@ def get_economic_events():
                     continue 
                 
                 # Colectare
-                keywords = ['Fed', 'FOMC', 'CPI', 'GDP', 'Nonfarm', 'Unemployment', 'PPI', 'Rate', 'Retail', 'Sentiment', 'Confidence', 'Manufacturing', 'Services', 'Home', 'Job']
+                keywords = ['Fed', 'FOMC', 'CPI', 'GDP', 'Nonfarm', 'Unemployment', 'PPI', 'Rate', 'Retail', 'Sentiment', 'Confidence', 'Manufacturing', 'Services', 'Home', 'Job', 'Permits', 'Inventories']
                 
                 for idx, row in us_df.iterrows():
                     evt = str(row['Event'])
@@ -47,9 +71,16 @@ def get_economic_events():
                         
                         if unique_id not in seen_events:
                             seen_events.add(unique_id)
-                            # Adăugăm info despre săptămână
-                            date_info = f"Săpt. {target_date.strftime('%d %b')}"
-                            all_events.append(f"{evt} ({date_info})")
+                            # Data info
+                            date_str = target_date.strftime('%d %b')
+                            
+                            # Adăugăm obiect complet
+                            all_events.append({
+                                'name': evt,
+                                'time': evt_time,
+                                'week': f"Săpt. {date_str}",
+                                'desc': get_event_impact(evt)
+                            })
             
                 if len(all_events) >= 6:
                     break
@@ -116,7 +147,7 @@ def generate_market_analysis(indicators):
             outlook = "Bearish"
             prob_up = 40
             prob_down = 60
-            conclusion = "Piață sub presiune. Posibilă oportunitate pentru investitori pe termen lung, dar riscant pe termen scurt."
+            conclusion = "Piață sub presiune. Posibilă oportunitate pentru investitori pe termen lung."
             color = "#f44336"
         else:
             outlook = "Neutral"
@@ -125,17 +156,30 @@ def generate_market_analysis(indicators):
             conclusion = "Piață incertă. Se recomandă prudență."
             color = "#e0e0e0"
 
-        # Evenimente Economice
+        # Evenimente Economice - Formatare HTML Avansată
         events_list = get_economic_events()
         events_html = ""
         if events_list:
-            events_html = "<div style='margin-top: 15px; border-top: 1px solid #444; padding-top: 10px;'>"
-            events_html += "<strong style='color: #4dabf7; font-size: 0.9rem;'>⚠️ Evenimente Majore Următoare (SUA):</strong>"
-            events_html += "<ul style='margin-top: 5px; padding-left: 20px; color: #ccc; font-size: 0.85rem;'>"
+            events_html = "<div style='margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;'>"
+            events_html += "<strong style='color: #4dabf7; font-size: 0.95rem; display: block; margin-bottom: 10px;'>⚠️ Evenimente Majore Următoare:</strong>"
+            events_html += "<ul style='margin: 0; padding-left: 20px; color: #ccc; font-size: 0.9rem; list-style-type: none;'>"
+            
             for ev in events_list:
-                # Traduceri sumare
-                ev_ro = ev.replace('Fed', 'Fed').replace('CPI', 'Inflația CPI').replace('GDP', 'PIB').replace('Unemployment', 'Șomaj').replace('Confidence', 'Încredere').replace('Sales', 'Vânzări')
-                events_html += f"<li>{ev_ro}</li>"
+                name = ev['name']
+                # Traduceri cheie pt display
+                name_ro = name.replace('Fed', 'Fed').replace('CPI', 'Inflația CPI').replace('GDP', 'PIB').replace('Unemployment', 'Șomaj')
+                
+                events_html += f"""
+                <li style="margin-bottom: 10px; padding-left: 10px; border-left: 3px solid #666;">
+                    <div>
+                        <strong style="color: #fff;">{name_ro}</strong> 
+                        <span style="color: #888; font-size: 0.8rem;">({ev['week']})</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: #aaa; margin-top: 2px;">
+                        {ev['desc']}
+                    </div>
+                </li>
+                """
             events_html += "</ul></div>"
 
         # Formatare HTML Final
