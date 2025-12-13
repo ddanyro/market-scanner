@@ -1243,8 +1243,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     # Adăugăm Explicații Macro
     html_head += get_macro_explanations()
     
-    # Adăugăm analiza AI (sau funcția rule-based dacă există)
-    # html_head += generate_market_analysis(market_indicators) if 'generate_market_analysis' in globals() else ""
+    # Adăugăm analiza AI
+    html_head += generate_market_analysis(market_indicators)
     
     html_head += """
         </div>

@@ -5,20 +5,21 @@ import datetime
 
 # Dicționar de interpretare a evenimentelor
 EVENT_DESCRIPTIONS = {
-    'CPI': 'Măsoară inflația la consumator. 🔴 Dacă e mare = Scădere Burse (Frică de dobânzi). 🟢 Dacă scade = Creștere Burse.',
-    'PPI': 'Inflația la producător. Semnal timpuriu pentru CPI.',
-    'Fed': 'Intervenție a Băncii Centrale. Impact critic asupra trendului. Urmăriți tonul (Hawkish/Dovish).',
-    'FOMC': 'Decizia de dobândă. Sursă majoră de volatilitate. Dobânzi sus = Rău pentru Tech/Growth.',
-    'GDP': 'Produsul Intern Brut. Arată sănătatea economiei SUA.',
-    'Nonfarm': 'NFP (Joburi). 🟢 Peste așteptări = Economie puternică (dar risc inflație). 🔴 Sub așteptări = Risc recesiune.',
-    'Unemployment': 'Rata șomajului. Indicator invers al sănătății economice.',
-    'Retail': 'Vânzările Retail. Măsoară apetitul consumatorului american (motorul economiei).',
-    'Confidence': 'Încrederea consumatorului. Sentiment investitorilor.',
-    'Claims': 'Cererile de șomaj săptămânale. Date high-frequency despre piața muncii.',
-    'Services': 'Indicator ISM/PMI Servicii. Sectorul dominant al economiei.',
-    'Manufacturing': 'Indicator ISM/PMI Producție. Indică expansiunea sau contracția industrială.',
-    'Home': 'Date imobiliare. Sensibile la dobânzi.',
-    'Inventories': 'Stocurile de petrol/bunuri. Relevante pt sectoare specifice.'
+    'CPI': '🔥 Măsoară inflația la consumator. 🔴 Peste așteptări = Frică de dobânzi (Acțiuni Jos). 🟢 Sub așteptări = Speranță de tăiere (Raliu).',
+    'PPI': '🏭 Inflația la producător. Semnal timpuriu pentru CPI. Trend crescător = Presiune inflaționistă.',
+    'Fed': '🏦 Intervenție a Băncii Centrale. Urmăriți tonul: "Hawkish" (Rău pt burse) vs "Dovish" (Bun pt burse).',
+    'FOMC': '🏛️ Decizia de dobândă. Eveniment critic. Dobânzi Sus = Rău pentru Tech/Growth.',
+    'GDP': '📈 Produsul Intern Brut. Arată sănătatea economiei. Scădere (negativ) = Recesiune.',
+    'Nonfarm': '👥 NFP (Joburi). 🟢 Peste așteptări = Economie puternică (USD Sus, Gold Jos). 🔴 Sub așteptări = Risc recesiune.',
+    'Unemployment': '📉 Rata șomajului. Creșterea șomajului este semnalul final de recesiune.',
+    'Retail': '🛒 Vânzările Retail. Consumul reprezintă 70% din PIB-ul SUA. Scădere = Pericol economic.',
+    'Confidence': '🧠 Încrederea consumatorului. Optimismul duce la cheltuieli viitoare.',
+    'Claims': '🙏 Cererile de șomaj săptămânale. Indicator "high-frequency" pentru piața muncii.',
+    'Services': '🏨 ISM/PMI Servicii. Sectorul dominant. Sub 50 = Contracție economică.',
+    'Manufacturing': '🏭 ISM/PMI Producție. Indică expansiunea sau contracția industrială.',
+    'Home': '🏠 Vânzări Case. Foarte sensibile la dobânzi hipotecare mari.',
+    'Permits': '🏗️ Building Permits (Autorizații). Indicator anticipativ major. Scădere = Constructorii prevăd cerere slabă.',
+    'Inventories': '🛢️ Stocuri Petrol/Bunuri. Impact specific pe sectoare (Energy/Retail).'
 }
 
 def get_event_impact(event_name):
