@@ -812,8 +812,32 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             </div>
     """
     
-    # Adăugăm analiza AI (concatenare directă pentru a evita problemele cu acoladele din f-string)
+    # Adăugăm analiza AI
     html_head += generate_market_analysis(market_indicators)
+    
+    # Adăugăm Calendar Economic (TradingView Widget)
+    html_head += """
+    <div style="margin-top: 30px;">
+        <h3 style="color: #4dabf7; margin-bottom: 15px; text-align: center;">📅 Calendar Economic (Evenimente Majore)</h3>
+        <!-- TradingView Widget BEGIN -->
+        <div class="tradingview-widget-container" style="border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+          <div class="tradingview-widget-container__widget"></div>
+          <div class="tradingview-widget-copyright"><a href="https://ro.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Urmariți calendarul economic</span></a> pe TradingView</div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
+          {
+          "colorTheme": "dark",
+          "isTransparent": false,
+          "width": "100%",
+          "height": "600",
+          "locale": "ro",
+          "importanceFilter": "-1,0,1",
+          "currencyFilter": "USD,EUR,GBP"
+        }
+          </script>
+        </div>
+        <!-- TradingView Widget END -->
+    </div>
+    """
     
     html_head += """
         </div>
