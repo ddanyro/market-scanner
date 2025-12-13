@@ -599,82 +599,37 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         <meta http-equiv="refresh" content="300">
         <title>Market Scanner Dashboard</title>
         {css}
-        <style>
-            #login-overlay {{
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: #1e1e1e; z-index: 9999; display: flex;
-                justify-content: center; align-items: center; flex-direction: column;
-            }}
-            #dashboard-content {{ display: none; }}
-            .login-box {{
-                background: #2d2d2d; padding: 40px; border-radius: 12px;
-                box-shadow: 0 15px 35px rgba(0,0,0,0.7); text-align: center; border: 1px solid #444;
-            }}
-            .login-input {{
-                padding: 12px; border-radius: 6px; border: 1px solid #555;
-                background: #333; color: white; font-size: 1.5rem; margin-bottom: 20px;
-                width: 180px; text-align: center; letter-spacing: 8px; outline: none; transition: border 0.3s;
-            }}
-            .login-input:focus {{ border-color: #4dabf7; }}
-            .btn-unlock {{
-                padding: 12px 30px; background: #4dabf7; color: white; border: none; 
-                border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: bold;
-                transition: background 0.2s;
-            }}
-            .btn-unlock:hover {{ background: #3b8dbf; }}
-        </style>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
         <script>
             const APP_PASS = "{password}";
             
-            function checkLogin() {{
-                const input = document.getElementById('pass-input').value;
+            function unlockPortfolio() {{
+                const input = document.getElementById('pf-pass').value;
                 if (input === APP_PASS) {{
-                    authenticate();
+                    document.getElementById('portfolio-lock').style.display = 'none';
+                    document.getElementById('portfolio-data').style.display = 'block';
+                    sessionStorage.setItem('pf_auth', 'true');
                 }} else {{
-                    const el = document.getElementById('pass-input');
-                    el.style.borderColor = '#f44336';
-                    el.classList.add('shake');
-                    setTimeout(() => el.style.borderColor = '#555', 1000);
+                    alert('PIN Incorect');
                 }}
             }}
             
-            function authenticate() {{
-                document.getElementById('login-overlay').style.opacity = '0';
-                setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 300);
-                document.getElementById('dashboard-content').style.display = 'block';
-                // Salvăm în session storage pentru a cere parola la fiecare redeschidere de browser, sau local pt persistent
-                sessionStorage.setItem('auth_token', APP_PASS); 
-            }}
-            
-            window.onload = function() {{
-                // Auto-login dacă e deja autentificat în sesiune
-                const saved = sessionStorage.getItem('auth_token');
-                if (saved === APP_PASS) {{
-                    document.getElementById('login-overlay').style.display = 'none';
-                    document.getElementById('dashboard-content').style.display = 'block';
-                }} else {{
-                    document.getElementById('pass-input').focus();
+            function checkPortfolioAuth() {{
+                if (sessionStorage.getItem('pf_auth') === 'true') {{
+                    document.getElementById('portfolio-lock').style.display = 'none';
+                    document.getElementById('portfolio-data').style.display = 'block';
                 }}
             }}
+            
+            // Check immediately on load if we are on portfolio tab (re-render case) or simple check
+            window.addEventListener('load', checkPortfolioAuth);
         </script>
     </head>
     <body>
     
-    <div id="login-overlay">
-        <div class="login-box">
-            <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
-            <h2 style="color: #e0e0e0; margin-bottom: 20px; font-weight: normal;">Acces Restricționat</h2>
-            <input type="password" id="pass-input" class="login-input" placeholder="PIN" onkeyup="if(event.key==='Enter') checkLogin()">
-            <br>
-            <button class="btn-unlock" onclick="checkLogin()">Unlock</button>
-        </div>
-    </div>
-        
-    <div id="dashboard-content">
     <!-- Header cu Hamburger -->
     <div class="header-bar">
-        <div class="hamburger" onclick="toggleMenu()">☰</div>
+    <div class="hamburger" onclick="toggleMenu()">☰</div>
         <div class="app-title">Market Scanner</div>
         <div style="font-size: 0.8rem; color: #888;">Generated: {timestamp}</div>
         
@@ -686,11 +641,22 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     </div>
         
         <div id="portfolio" class="tab-content">
-            <div class="summary">
-                <div class="summary-card">
-                    <h3>Total Investment</h3>
-                    <div class="value">${total_investment:,.2f}</div>
-                </div>
+            
+            <!-- LOCK SCREEN Local -->
+            <div id="portfolio-lock" style="text-align: center; padding: 60px; background: #252526; border-radius: 10px; margin-top: 20px;">
+                <div style="font-size: 3rem; margin-bottom: 20px;">🔒</div>
+                <h3 style="color: #e0e0e0; margin-bottom: 20px;">Secțiune Protejată</h3>
+                <input type="password" id="pf-pass" style="padding: 10px; font-size: 1.2rem; text-align: center; width: 150px; border-radius: 5px; border: 1px solid #555; background: #333; color: white; letter-spacing: 5px;" placeholder="PIN" onkeyup="if(event.key==='Enter') unlockPortfolio()">
+                <button onclick="unlockPortfolio()" style="padding: 10px 20px; font-size: 1.2rem; background: #4dabf7; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">Unlock</button>
+            </div>
+            
+            <!-- ACTUAL DATA (Hidden) -->
+            <div id="portfolio-data" style="display: none;">
+                <div class="summary">
+                    <div class="summary-card">
+                        <h3>Total Investment</h3>
+                        <div class="value">${total_investment:,.2f}</div>
+                    </div>
                 <div class="summary-card">
                     <h3>Current Value</h3>
                     <div class="value">${total_value:,.2f}</div>
@@ -776,7 +742,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     html_head += """
                 </tbody>
             </table>
-        </div>
+        </div> <!-- End portfolio-data -->
+        </div> <!-- End portfolio Tab -->
         
         <!-- TAB MARKET (NOU) -->
         <div id="market" class="tab-content active">
