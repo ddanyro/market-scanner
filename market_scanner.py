@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import datetime
 import os
+import sys
+from market_scanner_analysis import generate_market_analysis  # Import modul analiză
 import time
 import csv
 import requests
@@ -769,6 +771,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     </tbody>
                 </table>
             </div>
+            
+            {generate_market_analysis(market_indicators)}
         </div>
         
         <div id="watchlist" class="tab-content">

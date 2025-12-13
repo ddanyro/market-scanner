@@ -75,7 +75,7 @@
     <div class="header-bar">
         <div class="hamburger" onclick="toggleMenu()">☰</div>
         <div class="app-title">Market Scanner</div>
-        <div style="font-size: 0.8rem; color: #888;">Generated: 2025-12-13 10:16:00</div>
+        <div style="font-size: 0.8rem; color: #888;">Generated: 2025-12-13 10:23:42</div>
         
         <div id="navMenu" class="menu-dropdown">
             <div class="menu-item" onclick="switchTab('portfolio')">💼 Portofoliu Activ</div>
@@ -633,6 +633,8 @@
                     </tbody>
                 </table>
             </div>
+            
+            {generate_market_analysis(market_indicators)}
         </div>
         
         <div id="watchlist" class="tab-content">
@@ -665,6 +667,18 @@
                     </tr>
         
                     <tr>
+                        <td><strong>TSLA</strong></td>
+                        <td>$458.96</td>
+                        <td class="trend-Strong-Bullish">Strong Bullish</td>
+                        <td>81</td>
+                        <td class="rsi-Overbought">Overbought</td>
+                        <td>14.45</td>
+                        <td>$430.06</td>
+                        <td>$435.58</td>
+                        <td>$346.08</td>
+                    </tr>
+        
+                    <tr>
                         <td><strong>PLTR</strong></td>
                         <td>$183.57</td>
                         <td class="trend-Strong-Bullish">Strong Bullish</td>
@@ -674,18 +688,6 @@
                         <td>$170.48</td>
                         <td>$179.46</td>
                         <td>$144.41</td>
-                    </tr>
-        
-                    <tr>
-                        <td><strong>AMD</strong></td>
-                        <td>$210.78</td>
-                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                        <td>56</td>
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td>9.10</td>
-                        <td>$192.59</td>
-                        <td>$230.12</td>
-                        <td>$155.95</td>
                     </tr>
         
                     <tr>
@@ -701,6 +703,18 @@
                     </tr>
         
                     <tr>
+                        <td><strong>AMD</strong></td>
+                        <td>$210.78</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                        <td>56</td>
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td>9.10</td>
+                        <td>$192.59</td>
+                        <td>$230.12</td>
+                        <td>$155.95</td>
+                    </tr>
+        
+                    <tr>
                         <td><strong>COIN</strong></td>
                         <td>$267.46</td>
                         <td class="trend-Strong-Bearish">Strong Bearish</td>
@@ -710,18 +724,6 @@
                         <td>$239.57</td>
                         <td>$309.25</td>
                         <td>$283.32</td>
-                    </tr>
-        
-                    <tr>
-                        <td><strong>TSLA</strong></td>
-                        <td>$458.96</td>
-                        <td class="trend-Strong-Bullish">Strong Bullish</td>
-                        <td>81</td>
-                        <td class="rsi-Overbought">Overbought</td>
-                        <td>14.45</td>
-                        <td>$430.06</td>
-                        <td>$435.58</td>
-                        <td>$346.08</td>
                     </tr>
         
                 </tbody>
