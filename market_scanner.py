@@ -497,24 +497,9 @@ def process_portfolio_ticker(row, vix_value, rates):
         trail_stop_ibkr = float(row.get('trail_stop_ibkr', 0))
         
         if trail_stop_manual > 0:
-            # Avem stop manual setat în CSV
-            # LOGICĂ SPECIALĂ: SXRZ user input este în USD, dar tickerul e EUR (SXRZ.DE)
-            if ticker == 'SXRZ':
-               # Folosim rata USD->EUR (pe care o avem în `rates['USD']`? Nu direct, avem rate de la EUR la X)
-               # rates['USD'] este EURUSD (1.05). Deci 1 EUR = 1.05 USD.
-               # Invers: 1 USD = 1/rates['USD'] EUR.
-               # Avem rate calculate în get_exchange_rates(). `rates` primit aici e conversia Ticker->EUR.
-               # Pentru SXRZ.DE, rate e 1.0.
-               # Noi vrem conversia USD -> EUR.
-               # Putem aproxima sau folosi cursul global dacă îl pasăm.
-               # Dar `process_portfolio_ticker` primește doar `rate` (Ticker->EUR).
-               # Soluție rapidă: Hardcoded aprox 0.95 sau dedus.
-               # Mai bine: presupunem că utilizatorul vrea conversie USD->EUR.
-               # 1 USD ~ 0.95 EUR.
-               trail_stop_price = trail_stop_manual * 0.95 
-            else:
-               # Convertim la EUR folosind rata ticker-ului
-               trail_stop_price = trail_stop_manual * rate
+            # Avem stop manual setat în CSV (deja în moneda potrivită sau EUR dacă userul a pus direct)
+            # Dacă tickerul e EUR (SXRZ.DE), rate e 1. Deci input 252.1 devine 252.1.
+            trail_stop_price = trail_stop_manual * rate
         elif trail_stop_ibkr > 0:
             # Avem stop din IBKR Orders (dacă ar merge Flex)
             trail_stop_price = trail_stop_ibkr * rate

@@ -4,9 +4,9 @@ import os
 
 PORTFOLIO_FILE = '/Users/danieldragomir/antigravity/portfolio.csv'
 
-# Update just SXRZ with the precise USD value
+# Update just SXRZ with the precise EUR value
 updates = {
-    'SXRZ': {'pct': 12.00, 'stop': 296.1005}
+    'SXRZ': {'pct': 12.00, 'stop': 252.10}
 }
 
 if os.path.exists(PORTFOLIO_FILE):
