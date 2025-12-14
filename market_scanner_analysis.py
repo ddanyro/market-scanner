@@ -185,20 +185,35 @@ def generate_market_analysis(indicators):
                 Fără liste cu puncte. Doar narațiune fluidă. Folosește taguri <b> pentru concepte cheie.
                 """
                 
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-                payload = {
-                    "contents": [{"parts": [{"text": prompt}]}]
-                }
+                # List of models to try in order
+                models_to_try = [
+                    "gemini-1.5-flash",
+                    "gemini-1.5-flash-latest",
+                    "gemini-1.5-pro-latest", 
+                    "gemini-1.0-pro",
+                    "gemini-pro"
+                ]
                 
-                resp = requests.post(url, json=payload, timeout=15)
+                success = False
+                for model_name in models_to_try:
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+                    payload = {
+                        "contents": [{"parts": [{"text": prompt}]}]
+                    }
+                    try:
+                        resp = requests.post(url, json=payload, timeout=10)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            text = data.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '')
+                            if text:
+                                ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px;'><strong>🤖 Analiză AI ({model_name}):</strong><br>{text}</div>"
+                                success = True
+                                break
+                    except:
+                        continue
                 
-                if resp.status_code == 200:
-                    data = resp.json()
-                    text = data.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '')
-                    if text:
-                        ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px;'><strong>🤖 Analiză AI (Gemini Flash):</strong><br>{text}</div>"
-                else:
-                    ai_summary_html = f"<div style='color:orange'>Eroare API Gemini: {resp.status_code}</div>"
+                if not success:
+                    ai_summary_html = f"<div style='color:orange'>Niciun model Gemini disponbil (toate au eșuat). Verificați cheia API.</div>"
             else:
                  ai_summary_html = "<div style='color:orange'>Lipsă cheie Gemini (gemini_key.txt).</div>"
 
