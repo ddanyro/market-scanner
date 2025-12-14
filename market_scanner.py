@@ -4,11 +4,28 @@ import numpy as np
 import datetime
 import os
 import sys
+import argparse
+import json
 from market_scanner_analysis import generate_market_analysis  # Import modul analiză
 import time
 import csv
 import requests
 from bs4 import BeautifulSoup
+
+STATE_FILE = "dashboard_state.json"
+
+def load_state():
+    if os.path.exists(STATE_FILE):
+        try:
+            with open(STATE_FILE, 'r') as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+def save_state(state):
+    with open(STATE_FILE, 'w') as f:
+        json.dump(state, f, indent=2)
 
 def get_finviz_target(ticker):
     """Preia price target-ul de pe Finviz prin scraping direct."""
@@ -1522,82 +1539,100 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
 import ib_sync  # Modul sincronizare IBKR
 
-def main():
-    print("=== Market Scanner (Portfolio + Watchlist) ===\n")
+def update_portfolio_data(state, rates, vix_val):
+    """Actualizează datele de portofoliu și le salvează în state."""
+    print("\n=== Actualizare Portofoliu ===")
     
-    # 0. Sincronizare IBKR (Opțional, doar local)
+    # 0. Sincronizare IBKR
     try:
         ib_sync.sync_ibkr()
     except Exception as e:
         print(f"Sincronizare IBKR a eșuat sau nu este disponibilă: {e}")
-    
-    # 1.5 Preluare Curs Valutar
-    print("\n=== Preluare Curs Valutar ===")
-    rates = get_exchange_rates()
-
-    # 1. Obținem indicatorii de piață
-    print("\n=== Preluare Indicatori de Piață ===")
-    market_indicators = get_market_indicators()
-    
-    # 2. Obținem VIX global
-    vix_val = get_vix_data()
-    if vix_val:
-        print(f"VIX curent: {vix_val:.2f}")
-    else:
-        print("Atenție: VIX indisponibil")
-        vix_val = None
-    
-    # 3. Procesăm Portfolio
+        
     portfolio_data = load_portfolio()
     portfolio_results = []
     
     if not portfolio_data.empty:
-        print(f"\n=== Procesare Portfolio ({len(portfolio_data)} poziții) ===")
+        print(f"Procesare {len(portfolio_data)} poziții...")
         for _, row in portfolio_data.iterrows():
-            print(f"Procesare: {row['symbol']}")
+            print(f"  > {row['symbol']}")
             data = process_portfolio_ticker(row, vix_val, rates)
             if data:
                 portfolio_results.append(data)
     
-    # 4. Procesăm Watchlist
+    state['portfolio'] = portfolio_results
+    return state
+
+def update_watchlist_data(state, rates, vix_val):
+    """Actualizează datele din watchlist și le salvează în state."""
+    print("\n=== Actualizare Watchlist ===")
     watchlist_tickers = load_watchlist()
     watchlist_results = []
     
     if watchlist_tickers:
-        print(f"\n=== Procesare Watchlist ({len(watchlist_tickers)} tickere) ===")
+        print(f"Procesare {len(watchlist_tickers)} tickere...")
         for ticker in watchlist_tickers:
-            print(f"Procesare: {ticker}")
+            print(f"  > {ticker}")
             data = process_watchlist_ticker(ticker, vix_val, rates)
             if data:
                 watchlist_results.append(data)
     
-    # 5. Generăm rapoartele
-    if portfolio_results or watchlist_results:
-        portfolio_df = pd.DataFrame(portfolio_results) if portfolio_results else pd.DataFrame()
-        watchlist_df = pd.DataFrame(watchlist_results) if watchlist_results else pd.DataFrame()
+    state['watchlist'] = watchlist_results
+    return state
+
+def main():
+    parser = argparse.ArgumentParser(description="Antigravity Market Scanner")
+    parser.add_argument('--mode', choices=['all', 'portfolio', 'watchlist', 'html-only'], default='all', 
+                        help="Mod de rulare: 'all' (tot), 'portfolio' (doar portofoliu), 'watchlist' (doar watchlist), 'html-only' (regenerează HTML din cache)")
+    args = parser.parse_args()
+    
+    print(f"=== Rulează Market Scanner [Mod: {args.mode}] ===\n")
+    
+    # 1. Încărcăm starea anterioară
+    state = load_state()
+    
+    # 2. Actualizăm datele globale (Rates, Indicators, VIX) DOAR dacă nu suntem în html-only
+    # Le salvăm și pe ele în state pentru consistență
+    rates = state.get('rates', {'EUR': 1.0, 'USD': 0.95, 'RON': 0.20, 'GBP': 1.15})
+    market_indicators = state.get('market_indicators', {})
+    vix_val = state.get('vix_val', None)
+    
+    if args.mode != 'html-only':
+        print("=== Actualizare Date Globale ===")
+        rates = get_exchange_rates()
+        state['rates'] = rates
         
-        # Salvăm CSV-urile
-        if not portfolio_df.empty:
-            portfolio_df.to_csv('portfolio_analysis.csv', index=False)
-            print(f"\nPortfolio salvat în 'portfolio_analysis.csv'")
+        market_indicators = get_market_indicators()
+        state['market_indicators'] = market_indicators
         
-        if not watchlist_df.empty:
-            watchlist_df.to_csv('watchlist_analysis.csv', index=False)
-            print(f"Watchlist salvat în 'watchlist_analysis.csv'")
+        vix_val = get_vix_data()
+        if vix_val:
+            state['vix_val'] = vix_val
+            print(f"VIX: {vix_val:.2f}")
+        else:
+            print("VIX indisponibil, folosim valoarea anterioară.")
+    
+    # 3. Actualizări Secționale
+    if args.mode in ['all', 'portfolio']:
+        state = update_portfolio_data(state, rates, vix_val)
         
-        # Generăm HTML
-        generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, "index.html")
+    if args.mode in ['all', 'watchlist']:
+        state = update_watchlist_data(state, rates, vix_val)
         
-        # Previzualizare
-        if not portfolio_df.empty:
-            print("\n=== Portfolio Preview ===")
-            print(portfolio_df[['Symbol', 'Shares', 'Current_Price', 'Profit', 'Profit_Pct']].head())
-        
-        if not watchlist_df.empty:
-            print("\n=== Watchlist Preview ===")
-            print(watchlist_df[['Ticker', 'Price', 'Trend', 'RSI']].head())
-    else:
-        print("Nu s-au generat rezultate.")
+    # 4. Salvare Stare
+    save_state(state)
+    print("\nStarea dashboard-ului a fost salvată.")
+    
+    # 5. Generare HTML din State
+    # Convertim listele de dict-uri înapoi în DataFrame pentru funcția existentă
+    portfolio_df = pd.DataFrame(state.get('portfolio', []))
+    watchlist_df = pd.DataFrame(state.get('watchlist', []))
+    
+    # Verificăm indicatorii (s-ar putea să fie None în state inițial)
+    indicators_data = state.get('market_indicators', {})
+    
+    print("\n=== Generare Dashboard HTML ===")
+    generate_html_dashboard(portfolio_df, watchlist_df, indicators_data, "index.html")
 
 if __name__ == "__main__":
     main()
