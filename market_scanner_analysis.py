@@ -95,51 +95,185 @@ def get_economic_events():
         print(f"Calendar error: {e}")
         return []
 
+import os
 import xml.etree.ElementTree as ET
 
 def get_market_news():
-    """Fetch Top Market News from Yahoo RSS."""
+    """Fetch Top Market News from Yahoo RSS and return detailed list."""
     try:
         url = "https://finance.yahoo.com/news/rssindex"
         headers = {'User-Agent': 'Mozilla/5.0'}
         resp = requests.get(url, headers=headers, timeout=5)
-        if resp.status_code != 200: return ""
+        if resp.status_code != 200: return []
         
         root = ET.fromstring(resp.content)
-        
-        news_html = "<div style='margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;'>"
-        news_html += "<strong style='color: #4dabf7; font-size: 0.95rem; display: block; margin-bottom: 10px;'>📰 Market News Overview</strong>"
-        news_html += "<ul style='margin: 0; padding-left: 20px; color: #ccc; font-size: 0.9rem; list-style-type: none;'>"
-        
+        items = []
         count = 0
         for item in root.findall('./channel/item'):
             title = item.find('title').text
             link = item.find('link').text
-            news_html += f"""
-            <li style="margin-bottom: 8px;">
-                <span style="color: #666;">➤</span> 
-                <a href='{link}' target='_blank' style='color: #e0e0e0; text-decoration: none; transition: color 0.2s;'>{title}</a>
-            </li>
-            """
+            desc = item.find('description').text if item.find('description') is not None else ""
+            # Clean HTML from desc if needed, but basic is mostly clean text
+            items.append({'title': title, 'link': link, 'desc': desc})
             count += 1
-            if count >= 4: break
-            
-        news_html += "</ul></div>"
-        return news_html
+            if count >= 6: break
+        return items
     except Exception as e:
-        return ""
+        print(f"News Error: {e}")
+        return []
 
 def generate_market_analysis(indicators):
-    """Generează o analiză narativă bazată pe indicatorii de piață (AI Simulated)."""
+    """Generează o analiză de piață Hibridă (Rule-based + AI News Summary + Calendar)."""
     try:
-        # Extragem valorile cheie (cu fallback la 0 sau medii)
+        # 1. Extragere Valori
         def get_val(name):
-            try:
-                return float(indicators.get(name, {}).get('value', 0))
-            except:
-                return 0
+            try: return float(indicators.get(name, {}).get('value', 0))
+            except: return 0
 
         vix = get_val('VIX')
+        
+        # 2. Rule-Based Analysis (Probabilități)
+        vix_text = ""
+        sentiment_score = 50 
+        if vix < 14:
+            vix_text = "VIX extrem de redus. Complacere."
+            sentiment_score += 10
+        elif vix < 20:
+            vix_text = "Volatilitate normală."
+            sentiment_score += 5
+        elif vix < 30:
+            vix_text = "Tensiune ridicată."
+            sentiment_score -= 15
+        else:
+            vix_text = "Panică (VIX > 30)."
+            sentiment_score -= 30
+
+        if sentiment_score >= 60:
+            conclusion = "Bullish (Cumpărare)"
+            prob_up = 65; prob_down = 35; color = "#4caf50"
+        elif sentiment_score <= 30:
+            conclusion = "Bearish (Vânzare)"
+            prob_up = 40; prob_down = 60; color = "#f44336"
+        else:
+            conclusion = "Neutral (Hold)"
+            prob_up = 50; prob_down = 50; color = "#e0e0e0"
+
+        # 3. News Summary (AI sau Fallback)
+        news_items = get_market_news()
+        news_html = "<div style='margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;'>"
+        news_html += "<strong style='color: #4dabf7; font-size: 0.95rem; display: block; margin-bottom: 10px;'>📰 Market News Overview</strong>"
+        
+        ai_summary_html = ""
+        # Încercăm AI Summary
+        try:
+            import google.generativeai as genai
+            api_key = os.environ.get("GOOGLE_API_KEY")
+            if not api_key and os.path.exists("gemini_key.txt"):
+                 with open("gemini_key.txt", "r") as f: api_key = f.read().strip()
+            
+            if api_key:
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel('gemini-1.5-flash')
+                news_text = "\n".join([f"- {n['title']}: {n['desc']}" for n in news_items])
+                prompt = f"""
+                Ești un analist financiar senior. Scrie un "Market Overview" concis (1-2 paragrafe), în limba română, care sintetizează starea pieței bazându-te pe aceste știri recente și pe VIX ({vix}):
+                {news_text}
+                Fără liste cu puncte. Doar narațiune fluidă. Folosește taguri <b> pentru concepte cheie.
+                """
+                resp = model.generate_content(prompt)
+                if resp.text:
+                    ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px;'>{resp.text}</div>"
+        except Exception as e:
+            print(f"AI Error: {e}")
+
+        if ai_summary_html:
+            news_html += ai_summary_html
+            # Afișăm și link-uri mici dedesubt
+            news_html += "<div style='font-size: 0.8rem; color: #888; margin-top: 10px;'>Surse: "
+            for n in news_items[:3]:
+                 news_html += f"<a href='{n['link']}' target='_blank' style='color: #aaa; text-decoration: none; margin-right: 10px;'>{n['title'][:20]}...</a>"
+            news_html += "</div>"
+        elif news_items:
+            # Fallback la lista detaliată
+            news_html += "<ul style='margin: 0; padding-left: 20px; color: #ccc; font-size: 0.9rem; list-style-type: none;'>"
+            for item in news_items:
+                news_html += f"""
+                <li style="margin-bottom: 12px;">
+                    <a href='{item['link']}' target='_blank' style='color: #e0e0e0; font-weight: bold; text-decoration: none;'>{item['title']}</a>
+                    <div style="color: #aaa; font-size: 0.85rem; margin-top: 3px;">{item['desc'][:150]}...</div>
+                </li>
+                """
+            news_html += "</ul>"
+        else:
+            news_html += "<div style='color: #aaa;'>Nu au fost preluate știri.</div>"
+            
+        news_html += "</div>"
+
+        # 4. Calendar (Fix Disappearing)
+        events_list = get_economic_events()
+        events_html = "<div style='margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;'>"
+        events_html += "<strong style='color: #ffb74d; font-size: 0.95rem; display: block; margin-bottom: 10px;'>⚠️ Evenimente Majore Următoare:</strong>"
+        
+        if events_list:
+            events_html += "<ul style='margin: 0; padding-left: 20px; color: #ccc; font-size: 0.9rem; list-style-type: none;'>"
+            for ev in events_list:
+                name = ev['name']
+                name_ro = name.replace('Fed', 'Fed').replace('CPI', 'Inflația CPI').replace('GDP', 'PIB').replace('Unemployment', 'Șomaj')
+                desc = get_event_impact(name)
+                
+                events_html += f"""
+                <li style="margin-bottom: 10px; padding-left: 10px; border-left: 3px solid #666;">
+                    <div>
+                        <strong style="color: #fff;">{name_ro}</strong> 
+                        <span style="color: #888; font-size: 0.8rem;">({ev['week']})</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: #aaa; margin-top: 2px;">{desc}</div>
+                </li>
+                """
+            events_html += "</ul>"
+        else:
+            events_html += "<div style='color: #888; font-style: italic;'>Niciun eveniment major detectat pentru perioada următoare.</div>"
+        
+        events_html += "</div>"
+
+        # Formatare HTML Final 
+        html = f"""
+        <div style="margin-top: 25px; background-color: #252526; border-radius: 8px; border: 1px solid #3e3e42; overflow: hidden;">
+            <div style="background-color: #333; padding: 10px 15px; border-bottom: 1px solid #3e3e42; display: flex; align-items: center;">
+                <span style="font-size: 1.2rem; margin-right: 10px;">🤖</span>
+                <h3 style="margin: 0; font-size: 1rem; color: #e0e0e0;">Analiză de Piață & Calendar</h3>
+            </div>
+            <div style="padding: 20px;">
+                
+                <!-- Probabilități Section -->
+                <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 15px;">
+                    <div style="flex: 1; min-width: 200px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px;">
+                        <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">Probabilități Direcție Piață</div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;">
+                            <span style="color: #4caf50;">Creștere: <strong>{prob_up}%</strong></span>
+                            <span style="color: #f44336;">Scădere: <strong>{prob_down}%</strong></span>
+                        </div>
+                        <div style="width: 100%; height: 4px; background: #555; margin-top: 5px; border-radius: 2px; overflow: hidden; display: flex;">
+                            <div style="width: {prob_up}%; background: #4caf50; height: 100%;"></div>
+                            <div style="width: {prob_down}%; background: #f44336; height: 100%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="flex: 1; padding: 5px;">
+                        <span style="font-weight: bold; color: #888; font-size: 0.9rem;">Concluzie: </span>
+                        <span style="font-size: 1.1rem; font-weight: bold; color: {color};">{conclusion}</span>
+                        <div style="font-size: 0.8rem; color: #aaa; margin-top: 5px;">{vix_text}</div>
+                    </div>
+                </div>
+
+                {news_html}
+                {events_html}
+            </div>
+        </div>
+        """
+        return html
+    except Exception as e:
+        return f"<div style='color: red;'>Eroare generare analiză: {e}</div>"
         skew = get_val('SKEW')
         move = get_val('MOVE')
         fear = get_val('Crypto Fear')
