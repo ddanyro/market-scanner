@@ -77,20 +77,62 @@ def sync_ibkr():
         print(f"Eroare conexiune API: {e}")
         return False
         
-    # Wait for report generation
-    time.sleep(4)
+    # Wait initially
+    time.sleep(5)
     
-    # URL 2: Download
+    # URL 2: Download with Retry Loop
     dl_url = f"{base_dl_url}?q={ref_code}&t={token}&v=3"
     
-    try:
-        r = requests.get(dl_url, headers=headers, timeout=30)
-        
+    max_retries = 20
+    retry_delay = 5
+    
+    root = None
+    
+    for attempt in range(max_retries):
         try:
-            root = ET.fromstring(r.content)
-        except ET.ParseError:
-            print("Eroare parse XML raport final.")
-            return False
+            r = requests.get(dl_url, headers=headers, timeout=30)
+            try:
+                root = ET.fromstring(r.content)
+            except ET.ParseError:
+                print("Eroare parse XML raport (retry)...")
+                time.sleep(retry_delay)
+                continue
+                
+            # Verificare Status descărcare
+            # Unele răspunsuri au Status ca atribut, altele ca element
+            status_attr = root.get('status') 
+            err_code_elem = root.find('ErrorCode')
+            
+            if status_attr == 'Success':
+                print(f"Raport descărcat cu succes (Attempt {attempt+1}).")
+                break
+            
+            # Verificăm erori specifice de "Not Ready"
+            err_code = err_code_elem.text if err_code_elem is not None else ""
+            err_msg_elem = root.find('ErrorMessage')
+            err_msg = err_msg_elem.text if err_msg_elem is not None else "Unknown"
+            
+            if err_code in ['1003', '1018', '1019', '1022']:
+                print(f"  ... Raport în procesare ({err_msg} - {err_code}). Așteptăm {retry_delay}s...")
+                time.sleep(retry_delay)
+                retry_delay = min(retry_delay + 2, 20) # Backoff
+            else:
+                # Eroare reală
+                print(f"Eroare descărcare IBKR: {err_msg} (Code: {err_code})")
+                
+                # Uneori IBKR returnează Success dar XML-ul e dubios? Nu, ne bazăm pe status.
+                # Dacă nu avem status Success și nici cod de wait, e fail.
+                # Dar uneori XML-ul valid nu are status='Success' explicit? 
+                # FlexStatementResponse are mereu status.
+                return False
+                
+        except Exception as e:
+            print(f"Eroare request download: {e}. Retry...")
+            time.sleep(retry_delay)
+            
+    if root is None or root.get('status') != 'Success':
+        print("Timeout așteptare raport IBKR.")
+        return False
             
         # IBKR Flex XML Structure:
         # <FlexQueryResponse> -> <FlexStatements> -> <FlexStatement> -> <OpenPositions> -> <OpenPosition ... />
