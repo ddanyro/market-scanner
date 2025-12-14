@@ -134,6 +134,7 @@ def sync_ibkr():
         print("Timeout așteptare raport IBKR.")
         return False
             
+    try:
         # IBKR Flex XML Structure:
         # <FlexQueryResponse> -> <FlexStatements> -> <FlexStatement> -> <OpenPositions> -> <OpenPosition ... />
         
