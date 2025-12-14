@@ -187,6 +187,9 @@ def generate_market_analysis(indicators):
                 
                 # List of models to try in order
                 models_to_try = [
+                    "gemini-2.0-flash",
+                    "gemini-2.0-flash-lite",
+                    "gemini-flash-latest",
                     "gemini-1.5-flash",
                     "gemini-1.5-flash-latest",
                     "gemini-1.5-pro-latest", 
