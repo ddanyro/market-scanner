@@ -174,17 +174,28 @@ def generate_market_analysis(indicators):
             if api_key:
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel('gemini-1.5-flash')
-                news_text = "\n".join([f"- {n['title']}: {n['desc']}" for n in news_items])
+                
+                # Check desc text valid
+                news_text_list = []
+                for n in news_items:
+                    d = n['desc'].strip() if n['desc'] else ""
+                    news_text_list.append(f"- {n['title']}: {d}")
+                
+                news_text = "\n".join(news_text_list)
+                
                 prompt = f"""
                 Ești un analist financiar senior. Scrie un "Market Overview" concis (1-2 paragrafe), în limba română, care sintetizează starea pieței bazându-te pe aceste știri recente și pe VIX ({vix}):
                 {news_text}
                 Fără liste cu puncte. Doar narațiune fluidă. Folosește taguri <b> pentru concepte cheie.
                 """
                 resp = model.generate_content(prompt)
-                if resp.text:
+                if resp and resp.text:
                     ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px;'>{resp.text}</div>"
+            else:
+                 ai_summary_html = "<div style='color:orange'>Lipsă cheie Gemini (gemini_key.txt).</div>"
+
         except Exception as e:
-            print(f"AI Error: {e}")
+            ai_summary_html = f"<div style='color: red; padding: 10px; border: 1px solid red;'>Eroare Generare AI: {e}</div>"
 
         if ai_summary_html:
             news_html += ai_summary_html
