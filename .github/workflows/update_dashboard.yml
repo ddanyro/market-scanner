@@ -26,7 +26,11 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run Market Scanner
-      run: python market_scanner.py
+      env:
+        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        IBKR_TOKEN: ${{ secrets.IBKR_TOKEN }}
+        IBKR_QUERY_ID: ${{ secrets.IBKR_QUERY_ID }}
+      run: python market_scanner.py --mode all
 
     - name: Commit and Push changes
       run: |
