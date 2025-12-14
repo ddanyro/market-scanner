@@ -93,7 +93,13 @@ def get_economic_events():
         return all_events[:8]
     except Exception as e:
         print(f"Calendar error: {e}")
-        return []
+        # Fallback Mock Calendar (dacă Yahoo eșuează)
+        return [
+            {'name': 'Building Permits', 'week': 'Săpt. Curentă', 'desc': 'Mock Data'},
+            {'name': 'CPI Index', 'week': 'Săpt. Viitoare', 'desc': 'Mock Data'},
+            {'name': 'Fed Interest Rate Decision', 'week': 'Următoarea Ședință', 'desc': 'Mock Data'},
+            {'name': 'Nonfarm Payrolls', 'week': 'Luna Viitoare', 'desc': 'Mock Data'}
+        ]
 
 import os
 import xml.etree.ElementTree as ET
@@ -113,7 +119,6 @@ def get_market_news():
             title = item.find('title').text
             link = item.find('link').text
             desc = item.find('description').text if item.find('description') is not None else ""
-            # Clean HTML from desc if needed, but basic is mostly clean text
             items.append({'title': title, 'link': link, 'desc': desc})
             count += 1
             if count >= 6: break
@@ -173,7 +178,7 @@ def generate_market_analysis(indicators):
             
             if api_key:
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-1.5-flash')
+                model = genai.GenerativeModel('gemini-pro')
                 
                 # Check desc text valid
                 news_text_list = []
