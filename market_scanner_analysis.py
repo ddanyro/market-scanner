@@ -95,6 +95,40 @@ def get_economic_events():
         print(f"Calendar error: {e}")
         return []
 
+import xml.etree.ElementTree as ET
+
+def get_market_news():
+    """Fetch Top Market News from Yahoo RSS."""
+    try:
+        url = "https://finance.yahoo.com/news/rssindex"
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        resp = requests.get(url, headers=headers, timeout=5)
+        if resp.status_code != 200: return ""
+        
+        root = ET.fromstring(resp.content)
+        
+        news_html = "<div style='margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;'>"
+        news_html += "<strong style='color: #4dabf7; font-size: 0.95rem; display: block; margin-bottom: 10px;'>📰 Market News Overview</strong>"
+        news_html += "<ul style='margin: 0; padding-left: 20px; color: #ccc; font-size: 0.9rem; list-style-type: none;'>"
+        
+        count = 0
+        for item in root.findall('./channel/item'):
+            title = item.find('title').text
+            link = item.find('link').text
+            news_html += f"""
+            <li style="margin-bottom: 8px;">
+                <span style="color: #666;">➤</span> 
+                <a href='{link}' target='_blank' style='color: #e0e0e0; text-decoration: none; transition: color 0.2s;'>{title}</a>
+            </li>
+            """
+            count += 1
+            if count >= 4: break
+            
+        news_html += "</ul></div>"
+        return news_html
+    except Exception as e:
+        return ""
+
 def generate_market_analysis(indicators):
     """Generează o analiză narativă bazată pe indicatorii de piață (AI Simulated)."""
     try:
@@ -110,6 +144,7 @@ def generate_market_analysis(indicators):
         move = get_val('MOVE')
         fear = get_val('Crypto Fear')
         
+        # Logica de interpretare
         # Logica de interpretare
         vix_text = ""
         sentiment_score = 50 
@@ -128,16 +163,7 @@ def generate_market_analysis(indicators):
             vix_text = "Piața este în stare de panică (VIX > 30)."
             sentiment_score -= 30
 
-        # 2. Analiza SKEW
-        if skew > 145:
-            skew_text = "SKEW ridicat indică frică de 'Black Swan'."
-            sentiment_score -= 10
-        elif skew < 115:
-            skew_text = "Protecția la risc este ieftină."
-        else:
-            skew_text = "Percepția riscului este moderată."
-
-        # Construire Concluzie și Șanse
+        # Building Conclusions
         if sentiment_score >= 60:
             outlook = "Bullish"
             prob_up = 65
@@ -157,18 +183,20 @@ def generate_market_analysis(indicators):
             conclusion = "Piață incertă. Se recomandă prudență."
             color = "#e0e0e0"
 
-        # Evenimente Economice - Formatare HTML Avansată
+        # Evenimente Economice - Calendar
         events_list = get_economic_events()
         events_html = ""
         if events_list:
             events_html = "<div style='margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;'>"
-            events_html += "<strong style='color: #4dabf7; font-size: 0.95rem; display: block; margin-bottom: 10px;'>⚠️ Evenimente Majore Următoare:</strong>"
+            events_html += "<strong style='color: #ffb74d; font-size: 0.95rem; display: block; margin-bottom: 10px;'>⚠️ Evenimente Majore Următoare:</strong>"
             events_html += "<ul style='margin: 0; padding-left: 20px; color: #ccc; font-size: 0.9rem; list-style-type: none;'>"
             
             for ev in events_list:
                 name = ev['name']
-                # Traduceri cheie pt display
                 name_ro = name.replace('Fed', 'Fed').replace('CPI', 'Inflația CPI').replace('GDP', 'PIB').replace('Unemployment', 'Șomaj')
+                
+                # Check for detailed description match
+                desc = get_event_impact(name)
                 
                 events_html += f"""
                 <li style="margin-bottom: 10px; padding-left: 10px; border-left: 3px solid #666;">
@@ -177,13 +205,18 @@ def generate_market_analysis(indicators):
                         <span style="color: #888; font-size: 0.8rem;">({ev['week']})</span>
                     </div>
                     <div style="font-size: 0.85rem; color: #aaa; margin-top: 2px;">
-                        {ev['desc']}
+                        {desc}
                     </div>
                 </li>
                 """
             events_html += "</ul></div>"
 
+        # News Section
+        news_section = get_market_news()
+
         # Formatare HTML Final
+        # Ordine: Analiză (Probabilități) -> News -> Calendar
+        
         html = f"""
         <div style="margin-top: 25px; background-color: #252526; border-radius: 8px; border: 1px solid #3e3e42; overflow: hidden;">
             <div style="background-color: #333; padding: 10px 15px; border-bottom: 1px solid #3e3e42; display: flex; align-items: center;">
@@ -191,13 +224,11 @@ def generate_market_analysis(indicators):
                 <h3 style="margin: 0; font-size: 1rem; color: #e0e0e0;">Analiză de Piață & Calendar</h3>
             </div>
             <div style="padding: 20px;">
-                <p style="margin-bottom: 15px; color: #cccccc; line-height: 1.6; font-size: 0.9rem;">
-                    <strong>Sinteză:</strong> {vix_text} {skew_text}
-                </p>
                 
+                <!-- Probabilități Section -->
                 <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 15px;">
                     <div style="flex: 1; min-width: 200px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px;">
-                        <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">Probabilități</div>
+                        <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">Probabilități Direcție Piață</div>
                         <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;">
                             <span style="color: #4caf50;">Creștere: <strong>{prob_up}%</strong></span>
                             <span style="color: #f44336;">Scădere: <strong>{prob_down}%</strong></span>
@@ -209,11 +240,17 @@ def generate_market_analysis(indicators):
                     </div>
                 </div>
 
-                <div style="border-top: 1px solid #444; padding-top: 10px;">
+                <div style="border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 10px;">
                     <span style="font-weight: bold; color: #888; font-size: 0.9rem;">Concluzie: </span>
                     <span style="font-size: 1rem; font-weight: bold; color: {color};">{conclusion}</span>
+                    <br>
+                    <span style="font-size: 0.9rem; color: #aaa;">{vix_text}</span>
                 </div>
                 
+                <!-- News -->
+                {news_section}
+                
+                <!-- Calendar (deasupra glosarului, in bloc separat) -->
                 {events_html}
             </div>
         </div>

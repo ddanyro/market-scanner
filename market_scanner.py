@@ -1019,10 +1019,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             
             
             <div class="table-container">
-            <table>
+            <table id="portfolio-table">
                 <thead>
                     <tr>
-                        <th>Simbol</th>
+                        <th style="width: 80px;">Simbol</th>
                         <th>Acțiuni</th>
                         <th>Preț Cumpărare</th>
                         <th>Preț Curent</th>
@@ -1240,11 +1240,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             </div>
     """
     
-    # Adăugăm Explicații Macro
-    html_head += get_macro_explanations()
-    
-    # Adăugăm analiza AI
+    # Adăugăm analiza AI (News + Calendar)
     html_head += generate_market_analysis(market_indicators)
+
+    # Adăugăm Explicații Macro (Glosar) - ULTIMUL
+    html_head += get_macro_explanations()
     
     html_head += """
         </div>
@@ -1363,7 +1363,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
         <script>
             $(document).ready(function() {
-                var table = $('table').DataTable({
+                var table = $('#portfolio-table, #watchlist-table').DataTable({
                     paging: false,
                     ordering: true,
                     info: false,
