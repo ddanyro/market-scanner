@@ -14,7 +14,7 @@ Pentru ca Market Scanner să se actualizeze singur în fiecare oră (inclusiv AI
 Apasă pe butonul verde **New repository secret** și adaugă următoarele 3 secrete (numele trebuie să fie exact):
 
 1. **Nume:** `GOOGLE_API_KEY`
-   **Valoare:** Cheia ta Gemini (`AIzaSyBVcvEkLS9CqPDlJIEpmz4Mr4yblfodC34`)
+   **Valoare:** (Introdu aici cheia ta Gemini API nouă - cea anterioară a fost expusă și trebuie revocată!)
 
 2. **Nume:** `IBKR_TOKEN`
    **Valoare:** Token-ul lung generat din IBKR Portal (dacă îl ai).
