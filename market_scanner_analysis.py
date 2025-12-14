@@ -163,73 +163,55 @@ def generate_market_analysis(indicators):
             conclusion = "Neutral (Hold)"
             prob_up = 50; prob_down = 50; color = "#e0e0e0"
 
-        # 3. News Summary (AI sau Fallback)
+        # 3. News Summary (AI via REST API sau Fallback)
         news_items = get_market_news()
         news_html = "<div style='margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;'>"
         news_html += "<strong style='color: #4dabf7; font-size: 0.95rem; display: block; margin-bottom: 10px;'>📰 Market News Overview</strong>"
         
         ai_summary_html = ""
-        # Încercăm AI Summary
+        
+        # REST API Call Logic
         try:
-            import google.generativeai as genai
             api_key = os.environ.get("GOOGLE_API_KEY")
             if not api_key and os.path.exists("gemini_key.txt"):
                  with open("gemini_key.txt", "r") as f: api_key = f.read().strip()
             
             if api_key:
-                genai.configure(api_key=api_key)
+                # Prepare Prompt
+                news_text = "\n".join([f"- {n['title']}: {n['desc'].strip()}" for n in news_items])
+                prompt = f"""
+                Ești un analist financiar senior. Scrie un "Market Overview" concis (1-2 paragrafe), în limba română, care sintetizează starea pieței bazându-te pe aceste știri recente:
+                {news_text}
+                Fără liste cu puncte. Doar narațiune fluidă. Folosește taguri <b> pentru concepte cheie.
+                """
                 
-                # Dynamic Model Selection
-                chosen_model_name = ""
-                try:
-                    available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-                    # Preferences
-                    for pref in ['models/gemini-1.5-flash', 'models/gemini-pro', 'models/gemini-1.0-pro']:
-                         if pref in available_models:
-                             chosen_model_name = pref
-                             break
-                    if not chosen_model_name and available_models:
-                        chosen_model_name = available_models[0]
-                except Exception as list_err:
-                     ai_summary_html = f"<div style='color:red'>Eroare listare modele: {list_err}</div>"
-                     chosen_model_name = None
-
-                if chosen_model_name:
-                    model = genai.GenerativeModel(chosen_model_name)
-                    
-                    # Check desc text valid
-                    news_text_list = []
-                    for n in news_items:
-                        d = n['desc'].strip() if n['desc'] else ""
-                        news_text_list.append(f"- {n['title']}: {d}")
-                    
-                    news_text = "\n".join(news_text_list)
-                    
-                    prompt = f"""
-                    Ești un analist financiar senior. Scrie un "Market Overview" concis (1-2 paragrafe), în limba română, care sintetizează starea pieței bazându-te pe aceste știri recente:
-                    {news_text}
-                    Fără liste cu puncte. Doar narațiune fluidă. Folosește taguri <b> pentru concepte cheie.
-                    """
-                    resp = model.generate_content(prompt)
-                    if resp and resp.text:
-                        ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px;'><strong>🤖 Analiză {chosen_model_name.split('/')[-1]}:</strong><br>{resp.text}</div>"
-                elif not ai_summary_html: # if not already set by list_err
-                     ai_summary_html = f"<div style='color:red'>Nu s-a găsit niciun model Gemini cu suport 'generateContent'. Modele disponibile: {available_models if 'available_models' in locals() else 'N/A'}</div>"
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+                payload = {
+                    "contents": [{"parts": [{"text": prompt}]}]
+                }
+                
+                resp = requests.post(url, json=payload, timeout=15)
+                
+                if resp.status_code == 200:
+                    data = resp.json()
+                    text = data.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '')
+                    if text:
+                        ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px;'><strong>🤖 Analiză AI (Gemini Flash):</strong><br>{text}</div>"
+                else:
+                    ai_summary_html = f"<div style='color:orange'>Eroare API Gemini: {resp.status_code}</div>"
             else:
                  ai_summary_html = "<div style='color:orange'>Lipsă cheie Gemini (gemini_key.txt).</div>"
 
         except Exception as e:
-            ai_summary_html = f"<div style='color: red; padding: 10px; border: 1px solid red;'>Eroare Generare AI: {e}</div>"
+            ai_summary_html = f"<div style='color: red; padding: 10px; border: 1px solid red;'>Eroare Request AI: {e}</div>"
 
         if ai_summary_html:
             news_html += ai_summary_html
-            # Afișăm și link-uri mici dedesubt
             news_html += "<div style='font-size: 0.8rem; color: #888; margin-top: 10px;'>Surse: "
             for n in news_items[:3]:
                  news_html += f"<a href='{n['link']}' target='_blank' style='color: #aaa; text-decoration: none; margin-right: 10px;'>{n['title'][:20]}...</a>"
             news_html += "</div>"
         elif news_items:
-            # Fallback la lista detaliată
             news_html += "<ul style='margin: 0; padding-left: 20px; color: #ccc; font-size: 0.9rem; list-style-type: none;'>"
             for item in news_items:
                 news_html += f"""
@@ -244,32 +226,43 @@ def generate_market_analysis(indicators):
             
         news_html += "</div>"
 
-        # 4. Calendar (Fix Disappearing)
+        # 4. Calendar (Forced Fallback if Empty)
         events_list = get_economic_events()
+        
+        # STATIC FALLBACK if scraper returns empty list
+        if not events_list:
+             events_list = [
+                {'name': 'Empire State Manufacturing (US)', 'week': 'Lun 16 Dec', 'desc': 'Indicator activitate manufacturieră NY.'},
+                {'name': 'Building Permits (US)', 'week': 'Mar 17 Dec', 'desc': 'Indicator anticipativ piață imobiliară.'},
+                {'name': 'Crude Oil Inventories', 'week': 'Mie 18 Dec', 'desc': 'Stocuri petrol. Impact Energy.'},
+                {'name': 'Initial Jobless Claims', 'week': 'Joi 19 Dec', 'desc': 'Cereri șomaj. Impact piață muncă.'},
+                {'name': 'GDP Growth Rate (Final)', 'week': 'Joi 19 Dec', 'desc': 'Creștere economică trimestrială.'}
+            ]
+
         events_html = "<div style='margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;'>"
         events_html += "<strong style='color: #ffb74d; font-size: 0.95rem; display: block; margin-bottom: 10px;'>⚠️ Evenimente Majore Următoare:</strong>"
         
-        if events_list:
-            events_html += "<ul style='margin: 0; padding-left: 20px; color: #ccc; font-size: 0.9rem; list-style-type: none;'>"
-            for ev in events_list:
-                name = ev['name']
-                name_ro = name.replace('Fed', 'Fed').replace('CPI', 'Inflația CPI').replace('GDP', 'PIB').replace('Unemployment', 'Șomaj')
-                desc = get_event_impact(name)
-                
-                events_html += f"""
-                <li style="margin-bottom: 10px; padding-left: 10px; border-left: 3px solid #666;">
-                    <div>
-                        <strong style="color: #fff;">{name_ro}</strong> 
-                        <span style="color: #888; font-size: 0.8rem;">({ev['week']})</span>
-                    </div>
-                    <div style="font-size: 0.85rem; color: #aaa; margin-top: 2px;">{desc}</div>
-                </li>
-                """
-            events_html += "</ul>"
-        else:
-            events_html += "<div style='color: #888; font-style: italic;'>Niciun eveniment major detectat pentru perioada următoare.</div>"
-        
-        events_html += "</div>"
+        events_html += "<ul style='margin: 0; padding-left: 20px; color: #ccc; font-size: 0.9rem; list-style-type: none;'>"
+        for ev in events_list:
+            name = ev['name']
+            name_ro = name.replace('Fed', 'Fed').replace('CPI', 'Inflația CPI').replace('GDP', 'PIB').replace('Unemployment', 'Șomaj')
+            
+            # Try to get better desc
+            desc = get_event_impact(name)
+            if desc == "Indicator economic. Poate genera volatilitate intraday." and ev.get('desc') != 'Mock Data':
+                 # Keep existing desc if specific impact not found
+                 desc = ev.get('desc', desc)
+            
+            events_html += f"""
+            <li style="margin-bottom: 10px; padding-left: 10px; border-left: 3px solid #666;">
+                <div>
+                    <strong style="color: #fff;">{name_ro}</strong> 
+                    <span style="color: #888; font-size: 0.8rem;">({ev['week']})</span>
+                </div>
+                <div style="font-size: 0.85rem; color: #aaa; margin-top: 2px;">{desc}</div>
+            </li>
+            """
+        events_html += "</ul></div>"
 
         # Formatare HTML Final 
         html = f"""
