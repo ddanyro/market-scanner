@@ -178,24 +178,43 @@ def generate_market_analysis(indicators):
             
             if api_key:
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-pro')
                 
-                # Check desc text valid
-                news_text_list = []
-                for n in news_items:
-                    d = n['desc'].strip() if n['desc'] else ""
-                    news_text_list.append(f"- {n['title']}: {d}")
-                
-                news_text = "\n".join(news_text_list)
-                
-                prompt = f"""
-                Ești un analist financiar senior. Scrie un "Market Overview" concis (1-2 paragrafe), în limba română, care sintetizează starea pieței bazându-te pe aceste știri recente și pe VIX ({vix}):
-                {news_text}
-                Fără liste cu puncte. Doar narațiune fluidă. Folosește taguri <b> pentru concepte cheie.
-                """
-                resp = model.generate_content(prompt)
-                if resp and resp.text:
-                    ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px;'>{resp.text}</div>"
+                # Dynamic Model Selection
+                chosen_model_name = ""
+                try:
+                    available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+                    # Preferences
+                    for pref in ['models/gemini-1.5-flash', 'models/gemini-pro', 'models/gemini-1.0-pro']:
+                         if pref in available_models:
+                             chosen_model_name = pref
+                             break
+                    if not chosen_model_name and available_models:
+                        chosen_model_name = available_models[0]
+                except Exception as list_err:
+                     ai_summary_html = f"<div style='color:red'>Eroare listare modele: {list_err}</div>"
+                     chosen_model_name = None
+
+                if chosen_model_name:
+                    model = genai.GenerativeModel(chosen_model_name)
+                    
+                    # Check desc text valid
+                    news_text_list = []
+                    for n in news_items:
+                        d = n['desc'].strip() if n['desc'] else ""
+                        news_text_list.append(f"- {n['title']}: {d}")
+                    
+                    news_text = "\n".join(news_text_list)
+                    
+                    prompt = f"""
+                    Ești un analist financiar senior. Scrie un "Market Overview" concis (1-2 paragrafe), în limba română, care sintetizează starea pieței bazându-te pe aceste știri recente:
+                    {news_text}
+                    Fără liste cu puncte. Doar narațiune fluidă. Folosește taguri <b> pentru concepte cheie.
+                    """
+                    resp = model.generate_content(prompt)
+                    if resp and resp.text:
+                        ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px;'><strong>🤖 Analiză {chosen_model_name.split('/')[-1]}:</strong><br>{resp.text}</div>"
+                elif not ai_summary_html: # if not already set by list_err
+                     ai_summary_html = f"<div style='color:red'>Nu s-a găsit niciun model Gemini cu suport 'generateContent'. Modele disponibile: {available_models if 'available_models' in locals() else 'N/A'}</div>"
             else:
                  ai_summary_html = "<div style='color:orange'>Lipsă cheie Gemini (gemini_key.txt).</div>"
 
