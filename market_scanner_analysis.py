@@ -214,9 +214,13 @@ def generate_market_analysis(indicators):
                                 ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px;'><strong>🤖 Analiză AI ({model_name}):</strong><br>{text}</div>"
                                 success = True
                                 break
-                    except:
+                        elif resp.status_code == 429:
+                            ai_summary_html = f"<div style='color:orange; font-size: 0.9rem; padding: 10px; border: 1px solid orange;'><strong>⚠️ Limită AI Atinsă (Eroare 429):</strong> Cota gratuită Gemini a fost epuizată. Așteptați resetarea cotei.</div>"
+                            success = True # Stop trying other models
+                            break
+                    except Exception as e:
+                        print(f"  [DEBUG] Model {model_name} error: {e}")
                         continue
-                
                 if not success:
                     ai_summary_html = f"<div style='color:orange'>Niciun model Gemini disponbil (toate au eșuat). Verificați cheia API.</div>"
             else:
