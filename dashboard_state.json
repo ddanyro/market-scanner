@@ -3,12 +3,12 @@
     "EUR": 1.0,
     "USD": 0.8498999808715443,
     "RON": 0.19640307793855585,
-    "GBP": 1.1385372349882912
+    "GBP": 1.1384464575716844
   },
   "market_indicators": {
     "VIX3M": {
-      "value": 19.92,
-      "change": 0.67,
+      "value": 19.82,
+      "change": 0.57,
       "status": "Normal",
       "description": "14 normal 20",
       "sparkline": [
@@ -41,12 +41,12 @@
         19.350000381469727,
         19.049999237060547,
         19.25,
-        19.920000076293945
+        19.81999969482422
       ]
     },
     "VIX": {
-      "value": 16.88,
-      "change": 1.14,
+      "value": 16.74,
+      "change": 1.0,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,12 +79,12 @@
         15.770000457763672,
         14.850000381469727,
         15.739999771118164,
-        16.8799991607666
+        16.739999771118164
       ]
     },
     "VIX1D": {
-      "value": 11.31,
-      "change": -1.11,
+      "value": 11.03,
+      "change": -1.39,
       "status": "Perfect",
       "description": "perfect 12",
       "sparkline": [
@@ -117,12 +117,12 @@
         11.6899995803833,
         10.699999809265137,
         12.420000076293945,
-        11.3100004196167
+        11.029999732971191
       ]
     },
     "VIX9D": {
-      "value": 15.2,
-      "change": 1.72,
+      "value": 15.0,
+      "change": 1.52,
       "status": "Normal",
       "description": "12 normal 18",
       "sparkline": [
@@ -155,12 +155,12 @@
         14.680000305175781,
         12.460000038146973,
         13.479999542236328,
-        15.199999809265137
+        15.0
       ]
     },
     "VXN": {
-      "value": 21.36,
-      "change": 0.74,
+      "value": 21.18,
+      "change": 0.56,
       "status": "Normal",
       "description": "15 normal 25",
       "sparkline": [
@@ -193,17 +193,17 @@
         19.670000076293945,
         18.399999618530273,
         20.6200008392334,
-        21.360000610351562
+        21.18000030517578
       ]
     },
     "LTV": {
-      "value": 10.86,
-      "change": 0.89,
+      "value": 10.75,
+      "change": 0.78,
       "status": "Normal",
       "description": "10 normal 13",
       "sparkline": [
         9.970000267028809,
-        10.859999656677246
+        10.75
       ]
     },
     "SKEW": {
@@ -321,8 +321,8 @@
       ]
     },
     "OVX": {
-      "value": 32.08,
-      "change": 2.15,
+      "value": 32.12,
+      "change": 2.19,
       "status": "Tension",
       "description": "25 teama 35",
       "sparkline": [
@@ -355,12 +355,12 @@
         30.780000686645508,
         31.8799991607666,
         29.93000030517578,
-        32.08000183105469
+        32.119998931884766
       ]
     },
     "SPX": {
-      "value": 6834.33,
-      "change": 6.92,
+      "value": 6835.88,
+      "change": 8.47,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -393,7 +393,7 @@
         6886.68017578125,
         6901.0,
         6827.41015625,
-        6834.330078125
+        6835.8798828125
       ]
     },
     "Crypto Fear": {
@@ -435,7 +435,7 @@
       ]
     }
   },
-  "vix_val": 16.8799991607666,
+  "vix_val": 16.799999237060547,
   "watchlist": [
     {
       "Ticker": "NFE",
@@ -1120,7 +1120,7 @@
         276.8,
         278.85
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "AMPX",
@@ -1132,12 +1132,12 @@
       "Suggested_Stop": 7.29,
       "Trail_Pct": 33.0,
       "Investment": 4625.59,
-      "Current_Value": 4379.11,
-      "Profit": -246.48,
-      "Profit_Pct": -5.33,
+      "Current_Value": 4378.34,
+      "Profit": -247.25,
+      "Profit_Pct": -5.35,
       "Max_Profit": 2670.8,
       "Status": "Neutral",
-      "RSI": 51.53,
+      "RSI": 51.51,
       "RSI_Status": "Neutral",
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Normal",
@@ -1173,24 +1173,24 @@
         9.72,
         8.76
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "AMZN",
       "Shares": 22,
-      "Current_Price": 190.63,
+      "Current_Price": 190.56,
       "Buy_Price": 195.59,
       "Target": 252.75,
       "Trail_Stop": 181.52,
-      "Suggested_Stop": 182.62,
+      "Suggested_Stop": 182.55,
       "Trail_Pct": 8.1,
       "Investment": 4303.03,
-      "Current_Value": 4193.92,
-      "Profit": -109.11,
-      "Profit_Pct": -2.54,
+      "Current_Value": 4192.42,
+      "Profit": -110.61,
+      "Profit_Pct": -2.57,
       "Max_Profit": 1257.51,
       "Status": "Neutral",
-      "RSI": 55.09,
+      "RSI": 54.96,
       "RSI_Status": "Neutral",
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Normal",
@@ -1224,26 +1224,26 @@
         193.71,
         196.99,
         195.71,
-        190.63
+        190.56
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "APLD",
       "Shares": 220,
-      "Current_Price": 21.28,
+      "Current_Price": 21.32,
       "Buy_Price": 20.88,
       "Target": 36.46,
       "Trail_Stop": 19.4,
-      "Suggested_Stop": 16.58,
+      "Suggested_Stop": 16.62,
       "Trail_Pct": 34.5,
       "Investment": 4592.74,
-      "Current_Value": 4681.93,
-      "Profit": 89.18,
-      "Profit_Pct": 1.94,
+      "Current_Value": 4689.41,
+      "Profit": 96.66,
+      "Profit_Pct": 2.1,
       "Max_Profit": 3428.61,
       "Status": "Neutral",
-      "RSI": 59.96,
+      "RSI": 60.08,
       "RSI_Status": "Neutral",
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Normal",
@@ -1277,9 +1277,9 @@
         27.85,
         26.34,
         26.14,
-        21.28
+        21.32
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "DNN",
@@ -1332,7 +1332,7 @@
         2.35,
         2.21
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "DVLT",
@@ -1344,12 +1344,12 @@
       "Suggested_Stop": 0.79,
       "Trail_Pct": 30.0,
       "Investment": 4348.51,
-      "Current_Value": 3063.46,
-      "Profit": -1285.05,
-      "Profit_Pct": -29.55,
+      "Current_Value": 3040.52,
+      "Profit": -1308.0,
+      "Profit_Pct": -30.08,
       "Max_Profit": 2535.68,
       "Status": "Oversold",
-      "RSI": 3.09,
+      "RSI": 3.07,
       "RSI_Status": "Oversold",
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Normal",
@@ -1385,24 +1385,24 @@
         1.22,
         1.13
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "FCX",
       "Shares": 100,
-      "Current_Price": 40.72,
+      "Current_Price": 40.7,
       "Buy_Price": 35.63,
       "Target": 42.77,
       "Trail_Stop": 37.18,
-      "Suggested_Stop": 38.44,
+      "Suggested_Stop": 38.41,
       "Trail_Pct": 10.7,
       "Investment": 3562.78,
-      "Current_Value": 4071.87,
-      "Profit": 509.09,
-      "Profit_Pct": 14.29,
+      "Current_Value": 4069.75,
+      "Profit": 506.96,
+      "Profit_Pct": 14.23,
       "Max_Profit": 713.91,
       "Status": "Overbought",
-      "RSI": 92.58,
+      "RSI": 92.34,
       "RSI_Status": "Overbought",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
@@ -1436,26 +1436,26 @@
         38.08,
         39.48,
         40.89,
-        40.72
+        40.7
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "LNG",
       "Shares": 25,
-      "Current_Price": 160.26,
+      "Current_Price": 160.07,
       "Buy_Price": 164.29,
       "Target": 230.99,
       "Trail_Stop": 151.78,
-      "Suggested_Stop": 152.41,
+      "Suggested_Stop": 152.22,
       "Trail_Pct": 7.6,
       "Investment": 4107.35,
-      "Current_Value": 4006.43,
-      "Profit": -100.93,
-      "Profit_Pct": -2.46,
+      "Current_Value": 4001.75,
+      "Profit": -105.6,
+      "Profit_Pct": -2.57,
       "Max_Profit": 1667.5,
       "Status": "Oversold",
-      "RSI": 20.95,
+      "RSI": 20.8,
       "RSI_Status": "Oversold",
       "Trend": "Strong Bearish",
       "VIX_Tag": "Normal",
@@ -1489,26 +1489,26 @@
         168.89,
         163.95,
         162.84,
-        160.26
+        160.07
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "MARA",
       "Shares": 500,
-      "Current_Price": 9.3,
+      "Current_Price": 9.33,
       "Buy_Price": 10.52,
       "Target": 19.47,
       "Trail_Stop": 7.97,
-      "Suggested_Stop": 7.88,
+      "Suggested_Stop": 7.91,
       "Trail_Pct": 27.0,
       "Investment": 5258.76,
-      "Current_Value": 4650.61,
-      "Profit": -608.15,
-      "Profit_Pct": -11.56,
+      "Current_Value": 4663.83,
+      "Profit": -594.93,
+      "Profit_Pct": -11.31,
       "Max_Profit": 4476.85,
       "Status": "Neutral",
-      "RSI": 57.63,
+      "RSI": 57.95,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bearish",
       "VIX_Tag": "Normal",
@@ -1542,26 +1542,26 @@
         10.41,
         10.13,
         10.06,
-        9.3
+        9.33
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "MELI",
       "Shares": 2,
-      "Current_Price": 1699.21,
+      "Current_Price": 1698.37,
       "Buy_Price": 1819.21,
       "Target": 2424.76,
       "Trail_Stop": 1611.82,
-      "Suggested_Stop": 1581.18,
+      "Suggested_Stop": 1580.35,
       "Trail_Pct": 11.4,
       "Investment": 3638.42,
-      "Current_Value": 3398.41,
-      "Profit": -240.01,
-      "Profit_Pct": -6.6,
+      "Current_Value": 3396.74,
+      "Profit": -241.68,
+      "Profit_Pct": -6.64,
       "Max_Profit": 1211.11,
       "Status": "Neutral",
-      "RSI": 54.5,
+      "RSI": 54.4,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bearish",
       "VIX_Tag": "Normal",
@@ -1595,26 +1595,26 @@
         1763.1,
         1674.92,
         1716.64,
-        1699.21
+        1698.37
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "META",
       "Shares": 8,
-      "Current_Price": 551.7,
+      "Current_Price": 551.73,
       "Buy_Price": 564.86,
       "Target": 711.91,
       "Trail_Stop": 526.81,
-      "Suggested_Stop": 525.5,
+      "Suggested_Stop": 525.54,
       "Trail_Pct": 8.4,
       "Investment": 4518.92,
-      "Current_Value": 4413.56,
-      "Profit": -105.35,
+      "Current_Value": 4413.84,
+      "Profit": -105.08,
       "Profit_Pct": -2.33,
       "Max_Profit": 1176.36,
       "Status": "Neutral",
-      "RSI": 69.19,
+      "RSI": 69.21,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bearish",
       "VIX_Tag": "Normal",
@@ -1648,9 +1648,9 @@
         558.35,
         552.55,
         554.74,
-        551.7
+        551.73
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "MSFT",
@@ -1659,15 +1659,15 @@
       "Buy_Price": 410.39,
       "Target": 535.72,
       "Trail_Stop": 391.21,
-      "Suggested_Stop": 387.88,
+      "Suggested_Stop": 387.89,
       "Trail_Pct": 6.5,
       "Investment": 4514.31,
-      "Current_Value": 4441.8,
-      "Profit": -72.51,
+      "Current_Value": 4441.85,
+      "Profit": -72.46,
       "Profit_Pct": -1.61,
       "Max_Profit": 1378.58,
       "Status": "Neutral",
-      "RSI": 51.83,
+      "RSI": 51.84,
       "RSI_Status": "Neutral",
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Normal",
@@ -1703,24 +1703,24 @@
         410.9,
         403.8
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "MSTR",
       "Shares": 27,
-      "Current_Price": 141.8,
+      "Current_Price": 141.9,
       "Buy_Price": 158.5,
       "Target": 423.0,
       "Trail_Stop": 124.77,
-      "Suggested_Stop": 119.16,
+      "Suggested_Stop": 119.26,
       "Trail_Pct": 26.0,
       "Investment": 4279.37,
-      "Current_Value": 3828.54,
-      "Profit": -450.84,
-      "Profit_Pct": -10.54,
+      "Current_Value": 3831.25,
+      "Profit": -448.12,
+      "Profit_Pct": -10.47,
       "Max_Profit": 7141.73,
       "Status": "Neutral",
-      "RSI": 47.84,
+      "RSI": 47.91,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bearish",
       "VIX_Tag": "Normal",
@@ -1754,26 +1754,26 @@
         160.62,
         156.93,
         155.79,
-        141.8
+        141.9
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "NVDA",
       "Shares": 30,
-      "Current_Price": 151.22,
+      "Current_Price": 151.24,
       "Buy_Price": 157.07,
       "Target": 218.38,
       "Trail_Stop": 140.61,
-      "Suggested_Stop": 141.78,
+      "Suggested_Stop": 141.8,
       "Trail_Pct": 12.0,
       "Investment": 4712.19,
-      "Current_Value": 4536.57,
-      "Profit": -175.62,
-      "Profit_Pct": -3.73,
+      "Current_Value": 4537.19,
+      "Profit": -174.99,
+      "Profit_Pct": -3.71,
       "Max_Profit": 1839.27,
       "Status": "Neutral",
-      "RSI": 48.69,
+      "RSI": 48.72,
       "RSI_Status": "Neutral",
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Normal",
@@ -1807,26 +1807,26 @@
         157.21,
         156.19,
         153.77,
-        151.22
+        151.24
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "ORCL",
       "Shares": 25,
-      "Current_Price": 156.65,
+      "Current_Price": 156.72,
       "Buy_Price": 175.37,
       "Target": 254.12,
       "Trail_Stop": 157.02,
-      "Suggested_Stop": 137.39,
+      "Suggested_Stop": 137.46,
       "Trail_Pct": 18.0,
       "Investment": 4384.32,
-      "Current_Value": 3916.13,
-      "Profit": -468.19,
-      "Profit_Pct": -10.68,
+      "Current_Value": 3917.93,
+      "Profit": -466.38,
+      "Profit_Pct": -10.64,
       "Max_Profit": 1968.69,
       "Status": "Neutral",
-      "RSI": 40.68,
+      "RSI": 40.72,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bearish",
       "VIX_Tag": "Normal",
@@ -1860,26 +1860,26 @@
         188.28,
         189.54,
         169.0,
-        156.65
+        156.72
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "QBTS",
       "Shares": 210,
-      "Current_Price": 20.79,
+      "Current_Price": 20.84,
       "Buy_Price": 21.22,
       "Target": 33.64,
       "Trail_Stop": 16.83,
-      "Suggested_Stop": 16.95,
+      "Suggested_Stop": 17.0,
       "Trail_Pct": 32.0,
       "Investment": 4457.14,
-      "Current_Value": 4366.49,
-      "Profit": -90.65,
-      "Profit_Pct": -2.03,
+      "Current_Value": 4376.31,
+      "Profit": -80.83,
+      "Profit_Pct": -1.81,
       "Max_Profit": 2607.06,
       "Status": "Neutral",
-      "RSI": 59.33,
+      "RSI": 59.48,
       "RSI_Status": "Neutral",
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Normal",
@@ -1913,26 +1913,26 @@
         24.08,
         22.78,
         23.78,
-        20.79
+        20.84
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "SMR",
       "Shares": 220,
-      "Current_Price": 15.36,
+      "Current_Price": 15.38,
       "Buy_Price": 19.47,
       "Target": 31.09,
       "Trail_Stop": 12.29,
-      "Suggested_Stop": 12.02,
+      "Suggested_Stop": 12.04,
       "Trail_Pct": 37.0,
       "Investment": 4282.73,
-      "Current_Value": 3379.63,
-      "Profit": -903.1,
-      "Profit_Pct": -21.09,
+      "Current_Value": 3384.68,
+      "Profit": -898.06,
+      "Profit_Pct": -20.97,
       "Max_Profit": 2556.92,
       "Status": "Neutral",
-      "RSI": 48.49,
+      "RSI": 48.57,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bearish",
       "VIX_Tag": "Normal",
@@ -1966,26 +1966,26 @@
         18.12,
         17.27,
         18.03,
-        15.36
+        15.38
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "TE",
       "Shares": 1000,
-      "Current_Price": 4.29,
+      "Current_Price": 4.31,
       "Buy_Price": 4.3,
       "Target": 6.2,
       "Trail_Stop": 3.1,
-      "Suggested_Stop": 3.04,
+      "Suggested_Stop": 3.06,
       "Trail_Pct": 48.1,
       "Investment": 4304.74,
-      "Current_Value": 4288.26,
-      "Profit": -16.49,
-      "Profit_Pct": -0.38,
+      "Current_Value": 4308.99,
+      "Profit": 4.25,
+      "Profit_Pct": 0.1,
       "Max_Profit": 1899.53,
       "Status": "Neutral",
-      "RSI": 68.96,
+      "RSI": 69.23,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
@@ -2019,26 +2019,26 @@
         5.72,
         5.23,
         4.99,
-        4.29
+        4.31
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "TSM",
       "Shares": 50,
-      "Current_Price": 248.78,
+      "Current_Price": 248.8,
       "Buy_Price": 257.28,
       "Target": 303.94,
       "Trail_Stop": 240.16,
-      "Suggested_Stop": 233.57,
+      "Suggested_Stop": 233.59,
       "Trail_Pct": 10.0,
       "Investment": 12864.09,
-      "Current_Value": 12439.14,
-      "Profit": -424.95,
+      "Current_Value": 12440.2,
+      "Profit": -423.89,
       "Profit_Pct": -3.3,
       "Max_Profit": 2332.97,
       "Status": "Neutral",
-      "RSI": 64.32,
+      "RSI": 64.35,
       "RSI_Status": "Neutral",
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Normal",
@@ -2072,9 +2072,9 @@
         257.17,
         262.88,
         259.09,
-        248.78
+        248.8
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "URG",
@@ -2086,12 +2086,12 @@
       "Suggested_Stop": 1.02,
       "Trail_Pct": 30.0,
       "Investment": 4298.37,
-      "Current_Value": 4119.89,
-      "Profit": -178.48,
-      "Profit_Pct": -4.15,
+      "Current_Value": 4122.86,
+      "Profit": -175.5,
+      "Profit_Pct": -4.08,
       "Max_Profit": 2275.61,
       "Status": "Neutral",
-      "RSI": 66.41,
+      "RSI": 66.46,
       "RSI_Status": "Neutral",
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Normal",
@@ -2127,24 +2127,24 @@
         1.06,
         1.18
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "UUUU",
       "Shares": 300,
-      "Current_Price": 12.29,
+      "Current_Price": 12.27,
       "Buy_Price": 14.11,
       "Target": 18.89,
       "Trail_Stop": 10.17,
-      "Suggested_Stop": 10.47,
+      "Suggested_Stop": 10.45,
       "Trail_Pct": 28.0,
       "Investment": 4233.78,
-      "Current_Value": 3688.01,
-      "Profit": -545.76,
-      "Profit_Pct": -12.89,
+      "Current_Value": 3681.95,
+      "Profit": -551.83,
+      "Profit_Pct": -13.03,
       "Max_Profit": 1434.21,
       "Status": "Neutral",
-      "RSI": 60.2,
+      "RSI": 60.03,
       "RSI_Status": "Neutral",
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Normal",
@@ -2178,9 +2178,9 @@
         13.09,
         12.63,
         13.45,
-        12.29
+        12.27
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "TVBETETF.RO",
@@ -2233,7 +2233,7 @@
         7.86,
         7.91
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     },
     {
       "Symbol": "LQQ.PA",
@@ -2286,7 +2286,7 @@
         1454.4,
         1449.4
       ],
-      "Date": "2025-12-15 18:20"
+      "Date": "2025-12-15 18:21"
     }
   ]
 }
