@@ -28,7 +28,8 @@ jobs:
     - name: Run Market Scanner
       env:
         TZ: 'Europe/Bucharest'
-        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }} # Optional/Deprecated
         IBKR_TOKEN: ${{ secrets.IBKR_TOKEN }}
         IBKR_QUERY_ID: ${{ secrets.IBKR_QUERY_ID }}
       run: python market_scanner.py --mode all
@@ -37,6 +38,6 @@ jobs:
       run: |
         git config --global user.name 'GitHub Action'
         git config --global user.email 'action@github.com'
-        git add index.html portfolio_analysis.csv watchlist_analysis.csv
+        git add index.html portfolio_analysis.csv watchlist_analysis.csv dashboard_state.json market_history.json
         git commit -m "Auto-update Dashboard [skip ci]" || echo "No changes to commit"
         git push

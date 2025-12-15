@@ -5,14 +5,19 @@ import sys
 # Încercăm să importăm ib_insync, dacă nu există, ieșim silențios (e opțional)
 try:
     from ib_insync import IB, Stock, Forex, Crypto
+    HAS_IB_INSYNC = True
 except ImportError:
-    print("Modulul 'ib_insync' nu este instalat. Pentru a extrage ordine din TWS, rulează: pip install ib_insync")
-    sys.exit(0)
+    print("Modulul 'ib_insync' nu este instalat. TWS Sync indisponibil.")
+    HAS_IB_INSYNC = False
 
 def fetch_active_orders(output_file='tws_orders.csv'):
     """
     Se conectează la TWS local (Port 7497 sau 4001 Gateway) și extrage ordinele active (Stop, Trail).
     """
+    if not HAS_IB_INSYNC:
+        print("Eroare: ib_insync lipsă.")
+        return False
+
     print("\n=== Conectare TWS pentru Ordine Active ===")
     ib = IB()
     
