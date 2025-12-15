@@ -1598,6 +1598,32 @@ def main():
              try:
                  import ib_tws_sync
                  ib_tws_sync.fetch_active_orders()
+                 
+                 # Apply TWS Orders to Local CSV immediately
+                 if os.path.exists('tws_orders.csv') and os.path.exists('portfolio.csv'):
+                     print("Applying TWS Orders to portfolio.csv...")
+                     p_df = pd.read_csv('portfolio.csv')
+                     t_df = pd.read_csv('tws_orders.csv')
+                     
+                     changed = False
+                     for _, row in t_df.iterrows():
+                         sym = str(row.get('Symbol', ''))
+                         stop = float(row.get('Calculated_Stop', 0))
+                         pct = float(row.get('Trail_Pct', 0))
+                         
+                         mask = p_df['Symbol'] == sym
+                         if mask.any():
+                             if stop > 0:
+                                 p_df.loc[mask, 'Trail_Stop'] = stop # Update direct Trail_Stop
+                                 changed = True
+                             if pct > 0:
+                                 p_df.loc[mask, 'Trail_Pct'] = pct
+                                 changed = True
+                     
+                     if changed:
+                         p_df.to_csv('portfolio.csv', index=False)
+                         print("Portfolio CSV updated with live orders.")
+                         
              except ImportError:
                  print("Cannot import ib_tws_sync. Skipping TWS sync.")
              except Exception as e:
