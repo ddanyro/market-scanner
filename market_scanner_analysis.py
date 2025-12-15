@@ -180,9 +180,11 @@ def generate_market_analysis(indicators):
                 # Prepare Prompt
                 news_text = "\n".join([f"- {n['title']}: {n['desc'].strip()}" for n in news_items])
                 prompt = f"""
-                Ești un analist financiar senior. Scrie un "Market Overview" concis (1-2 paragrafe), în limba română, care sintetizează starea pieței bazându-te pe aceste știri recente:
+                Ești un ghid financiar prietenos pentru investitori începători. 
+                Scrie un "Market Overview" scurt (1-2 paragrafe) în limba română, care explică simplu ce se întâmplă azi în piață, bazându-te pe știrile de mai jos:
                 {news_text}
-                Fără liste cu puncte. Doar narațiune fluidă. Folosește taguri <b> pentru concepte cheie.
+                Evită termenii tehnici complicați. Explică impactul pe înțelesul tuturor.
+                Folosește taguri <b> pentru a evidenția ideile principale.
                 """
                 
                 # List of models to try in order
