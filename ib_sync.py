@@ -100,6 +100,11 @@ def sync_ibkr():
                 
             # Verificare Status descărcare
             # Unele răspunsuri au Status ca atribut, altele ca element
+            # Dacă root tag este FlexQueryResponse, înseamnă că am primit raportul
+            if root.tag == 'FlexQueryResponse':
+                 print(f"Raport descărcat cu succes (FlexQueryResponse received).")
+                 break
+                 
             status_attr = root.get('status') 
             err_code_elem = root.find('ErrorCode')
             
@@ -130,7 +135,8 @@ def sync_ibkr():
             print(f"Eroare request download: {e}. Retry...")
             time.sleep(retry_delay)
             
-    if root is None or root.get('status') != 'Success':
+            
+    if root is None or (root.get('status') != 'Success' and root.tag != 'FlexQueryResponse'):
         print("Timeout așteptare raport IBKR.")
         return False
             
