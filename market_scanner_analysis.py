@@ -127,36 +127,7 @@ def get_market_news():
         print(f"News Error: {e}")
         return []
 
-def generate_market_analysis(indicators):
-    """Generează o analiză de piață Hibridă (Rule-based + AI News Summary + Calendar)."""
-    try:
-        # 1. Extragere Valori
-        def get_val(name):
-            try: return float(indicators.get(name, {}).get('value', 0))
-            except: return 0
 
-        vix = get_val('VIX')
-        
-        # 2. Rule-Based Analysis (Probabilități)
-        vix_text = ""
-        sentiment_score = 50 
-        if vix < 14:
-            vix_text = "VIX extrem de redus. Complacere."
-            sentiment_score += 10
-        elif vix < 20:
-            vix_text = "Volatilitate normală."
-            sentiment_score += 5
-        elif vix < 30:
-            vix_text = "Tensiune ridicată."
-            sentiment_score -= 15
-        else:
-            vix_text = "Panică (VIX > 30)."
-            sentiment_score -= 30
-
-        if sentiment_score >= 60:
-            conclusion = "Bullish (Cumpărare)"
-            prob_up = 65; prob_down = 35; color = "#4caf50"
-        elif sentiment_score <= 30:
 def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=None):
     """
     Generează secțiunea de știri și analiză AI.
