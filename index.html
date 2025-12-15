@@ -144,7 +144,7 @@
     <div class="header-bar">
     <div class="hamburger" onclick="toggleMenu()">☰</div>
         <div class="app-title">Market Scanner</div>
-        <div style="font-size: 0.8rem; color: #888;">Generated: 2025-12-15 18:29:01</div>
+        <div style="font-size: 0.8rem; color: #888;">Generated: 2025-12-15 18:29:32</div>
         
         <div id="navMenu" class="menu-dropdown">
             <div class="menu-item" onclick="switchTab('portfolio')">💼 Portofoliu Activ</div>
@@ -168,27 +168,27 @@
                 <div class="summary">
                     <div class="summary-card">
                         <h3>Total Investment</h3>
-                        <div class="value">€128,191.85</div>
+                        <div class="value">€119,456.96</div>
                     </div>
                     <div class="summary-card">
                         <h3>Current Value</h3>
-                        <div class="value">€128,126.65</div>
+                        <div class="value">€121,081.93</div>
                     </div>
                     <div class="summary-card">
                         <h3>Total Profit</h3>
-                        <div class="value negative">€-65.19</div>
+                        <div class="value positive">€1,624.98</div>
                     </div>
                     <div class="summary-card">
                         <h3>ROI</h3>
-                        <div class="value negative">-0.05%</div>
+                        <div class="value positive">1.36%</div>
                     </div>
                     <div class="summary-card">
                         <h3>Max Potential Profit</h3>
-                        <div class="value positive" style="color: #4dabf7;">€54,333.96</div>
+                        <div class="value positive" style="color: #4dabf7;">€49,826.71</div>
                     </div>
                     <div class="summary-card">
                         <h3>Total P/L la Stop</h3>
-                        <div class="value negative">€-10,001.60</div>
+                        <div class="value negative">€-8,246.85</div>
                     </div>
                 </div>
             
@@ -222,12 +222,114 @@
                 </thead>
                 <tbody>
     
+                    <tr id="row-MSTR" data-price="141.81" data-buy="158.53" data-shares="27">
+                        <td><strong>MSTR</strong></td>
+                        <td>27</td>
+                        <td>€158.53</td>
+                        <td>€141.81</td>
+                        <td><canvas id="spark_0" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€423.10</td>
+                        
+                        <td class="positive">198.4%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>26.0%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€124.79</td>
+                        
+                        <td>€119.16</td>
+                        <td>€4,280.38</td>
+                        <td>€3,828.74</td>
+                        <td class="negative">€-451.64</td>
+                        <td class="negative">-10.55%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="negative">€-910.98</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-MSTR-maxprofit">€7,143.41</td>
+                        
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                    </tr>
+        
+                    <tr id="row-SMR" data-price="15.49" data-buy="19.47" data-shares="220">
+                        <td><strong>SMR</strong></td>
+                        <td>220</td>
+                        <td>€19.47</td>
+                        <td>€15.49</td>
+                        <td><canvas id="spark_1" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€31.10</td>
+                        
+                        <td class="positive">100.8%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>37.0%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€12.29</td>
+                        
+                        <td>€12.14</td>
+                        <td>€4,283.74</td>
+                        <td>€3,407.54</td>
+                        <td class="negative">€-876.20</td>
+                        <td class="negative">-20.45%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="negative">€-1,579.60</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-SMR-maxprofit">€2,557.53</td>
+                        
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                    </tr>
+        
+                    <tr id="row-FCX" data-price="40.69" data-buy="35.64" data-shares="100">
+                        <td><strong>FCX</strong></td>
+                        <td>100</td>
+                        <td>€35.64</td>
+                        <td>€40.69</td>
+                        <td><canvas id="spark_2" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€42.78</td>
+                        
+                        <td class="positive">5.1%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>10.7%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€37.19</td>
+                        
+                        <td>€38.40</td>
+                        <td>€3,563.62</td>
+                        <td>€4,068.57</td>
+                        <td class="positive">€504.95</td>
+                        <td class="positive">14.17%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="positive">€155.00</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-FCX-maxprofit">€714.08</td>
+                        
+                        <td class="rsi-Overbought">Overbought</td>
+                        <td class="trend-Strong-Bullish">Strong Bullish</td>
+                    </tr>
+        
                     <tr id="row-SXRZ" data-price="278.85" data-buy="237.56" data-shares="20">
                         <td><strong>SXRZ</strong></td>
                         <td>20</td>
                         <td>€237.56</td>
                         <td>€278.85</td>
-                        <td><canvas id="spark_0" class="sparkline-container"></canvas></td>
+                        <td><canvas id="spark_3" class="sparkline-container"></canvas></td>
                         
                         <!-- TARGET (Static/Auto) -->
                         <td>€301.25</td>
@@ -251,108 +353,6 @@
                         
                         <!-- MAX PROFIT (Recalculated via JS) -->
                         <td id="cell-SXRZ-maxprofit">€1,273.79</td>
-                        
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    </tr>
-        
-                    <tr id="row-AMPX" data-price="8.79" data-buy="9.25" data-shares="500">
-                        <td><strong>AMPX</strong></td>
-                        <td>500</td>
-                        <td>€9.25</td>
-                        <td>€8.79</td>
-                        <td><canvas id="spark_1" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€14.60</td>
-                        
-                        <td class="positive">66.1%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>33.0%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€7.15</td>
-                        
-                        <td>€7.32</td>
-                        <td>€4,626.68</td>
-                        <td>€4,395.02</td>
-                        <td class="negative">€-231.66</td>
-                        <td class="negative">-5.01%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-1,050.00</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-AMPX-maxprofit">€2,671.43</td>
-                        
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    </tr>
-        
-                    <tr id="row-AMZN" data-price="190.61" data-buy="195.64" data-shares="22">
-                        <td><strong>AMZN</strong></td>
-                        <td>22</td>
-                        <td>€195.64</td>
-                        <td>€190.61</td>
-                        <td><canvas id="spark_2" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€252.81</td>
-                        
-                        <td class="positive">32.6%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>8.1%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€181.56</td>
-                        
-                        <td>€182.60</td>
-                        <td>€4,304.04</td>
-                        <td>€4,193.52</td>
-                        <td class="negative">€-110.52</td>
-                        <td class="negative">-2.57%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-309.76</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-AMZN-maxprofit">€1,257.81</td>
-                        
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    </tr>
-        
-                    <tr id="row-APLD" data-price="21.3" data-buy="20.88" data-shares="220">
-                        <td><strong>APLD</strong></td>
-                        <td>220</td>
-                        <td>€20.88</td>
-                        <td>€21.30</td>
-                        <td><canvas id="spark_3" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€36.47</td>
-                        
-                        <td class="positive">71.2%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>34.5%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€19.41</td>
-                        
-                        <td>€16.60</td>
-                        <td>€4,593.83</td>
-                        <td>€4,686.77</td>
-                        <td class="positive">€92.95</td>
-                        <td class="positive">2.02%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-323.40</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-APLD-maxprofit">€3,429.42</td>
                         
                         <td class="rsi-Neutral">Neutral</td>
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
@@ -392,522 +392,12 @@
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
                     </tr>
         
-                    <tr id="row-DVLT" data-price="1.13" data-buy="1.61" data-shares="2700">
-                        <td><strong>DVLT</strong></td>
-                        <td>2700</td>
-                        <td>€1.61</td>
-                        <td>€1.13</td>
-                        <td><canvas id="spark_5" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€2.55</td>
-                        
-                        <td class="positive">125.7%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>30.0%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€1.13</td>
-                        
-                        <td>€0.79</td>
-                        <td>€4,349.54</td>
-                        <td>€3,052.71</td>
-                        <td class="negative">€-1,296.83</td>
-                        <td class="negative">-29.82%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-1,296.00</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-DVLT-maxprofit">€2,536.27</td>
-                        
-                        <td class="rsi-Oversold">Oversold</td>
-                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    </tr>
-        
-                    <tr id="row-FCX" data-price="40.66" data-buy="35.64" data-shares="100">
-                        <td><strong>FCX</strong></td>
-                        <td>100</td>
-                        <td>€35.64</td>
-                        <td>€40.66</td>
-                        <td><canvas id="spark_6" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€42.78</td>
-                        
-                        <td class="positive">5.2%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>10.7%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€37.19</td>
-                        
-                        <td>€38.38</td>
-                        <td>€3,563.62</td>
-                        <td>€4,066.45</td>
-                        <td class="positive">€502.83</td>
-                        <td class="positive">14.11%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="positive">€155.00</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-FCX-maxprofit">€714.08</td>
-                        
-                        <td class="rsi-Overbought">Overbought</td>
-                        <td class="trend-Strong-Bullish">Strong Bullish</td>
-                    </tr>
-        
-                    <tr id="row-LNG" data-price="160.23" data-buy="164.33" data-shares="25">
-                        <td><strong>LNG</strong></td>
-                        <td>25</td>
-                        <td>€164.33</td>
-                        <td>€160.23</td>
-                        <td><canvas id="spark_7" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€231.05</td>
-                        
-                        <td class="positive">44.2%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>7.6%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€151.81</td>
-                        
-                        <td>€152.38</td>
-                        <td>€4,108.32</td>
-                        <td>€4,005.67</td>
-                        <td class="negative">€-102.65</td>
-                        <td class="negative">-2.50%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-313.00</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-LNG-maxprofit">€1,667.90</td>
-                        
-                        <td class="rsi-Oversold">Oversold</td>
-                        <td class="trend-Strong-Bearish">Strong Bearish</td>
-                    </tr>
-        
-                    <tr id="row-MARA" data-price="9.34" data-buy="10.52" data-shares="500">
-                        <td><strong>MARA</strong></td>
-                        <td>500</td>
-                        <td>€10.52</td>
-                        <td>€9.34</td>
-                        <td><canvas id="spark_8" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€19.48</td>
-                        
-                        <td class="positive">108.6%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>27.0%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€7.97</td>
-                        
-                        <td>€7.92</td>
-                        <td>€5,259.99</td>
-                        <td>€4,669.17</td>
-                        <td class="negative">€-590.82</td>
-                        <td class="negative">-11.23%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-1,275.00</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-MARA-maxprofit">€4,477.90</td>
-                        
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td class="trend-Strong-Bearish">Strong Bearish</td>
-                    </tr>
-        
-                    <tr id="row-MELI" data-price="1703.46" data-buy="1819.64" data-shares="2">
-                        <td><strong>MELI</strong></td>
-                        <td>2</td>
-                        <td>€1819.64</td>
-                        <td>€1703.46</td>
-                        <td><canvas id="spark_9" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€2425.34</td>
-                        
-                        <td class="positive">42.4%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>11.4%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€1612.20</td>
-                        
-                        <td>€1585.40</td>
-                        <td>€3,639.28</td>
-                        <td>€3,406.91</td>
-                        <td class="negative">€-232.37</td>
-                        <td class="negative">-6.38%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-414.88</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-MELI-maxprofit">€1,211.39</td>
-                        
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td class="trend-Strong-Bearish">Strong Bearish</td>
-                    </tr>
-        
-                    <tr id="row-META" data-price="552.85" data-buy="565.0" data-shares="8">
-                        <td><strong>META</strong></td>
-                        <td>8</td>
-                        <td>€565.00</td>
-                        <td>€552.85</td>
-                        <td><canvas id="spark_10" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€712.08</td>
-                        
-                        <td class="positive">28.8%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>8.4%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€526.93</td>
-                        
-                        <td>€526.65</td>
-                        <td>€4,519.98</td>
-                        <td>€4,422.80</td>
-                        <td class="negative">€-97.18</td>
-                        <td class="negative">-2.15%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-304.56</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-META-maxprofit">€1,176.64</td>
-                        
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td class="trend-Strong-Bearish">Strong Bearish</td>
-                    </tr>
-        
-                    <tr id="row-MSFT" data-price="404.04" data-buy="410.49" data-shares="11">
-                        <td><strong>MSFT</strong></td>
-                        <td>11</td>
-                        <td>€410.49</td>
-                        <td>€404.04</td>
-                        <td><canvas id="spark_11" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€535.84</td>
-                        
-                        <td class="positive">32.6%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>6.5%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€391.30</td>
-                        
-                        <td>€388.11</td>
-                        <td>€4,515.37</td>
-                        <td>€4,444.39</td>
-                        <td class="negative">€-70.98</td>
-                        <td class="negative">-1.57%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-211.09</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-MSFT-maxprofit">€1,378.90</td>
-                        
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    </tr>
-        
-                    <tr id="row-MSTR" data-price="141.85" data-buy="158.53" data-shares="27">
-                        <td><strong>MSTR</strong></td>
-                        <td>27</td>
-                        <td>€158.53</td>
-                        <td>€141.85</td>
-                        <td><canvas id="spark_12" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€423.10</td>
-                        
-                        <td class="positive">198.3%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>26.0%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€124.79</td>
-                        
-                        <td>€119.21</td>
-                        <td>€4,280.38</td>
-                        <td>€3,830.00</td>
-                        <td class="negative">€-450.38</td>
-                        <td class="negative">-10.52%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-910.98</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-MSTR-maxprofit">€7,143.41</td>
-                        
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td class="trend-Strong-Bearish">Strong Bearish</td>
-                    </tr>
-        
-                    <tr id="row-NVDA" data-price="151.64" data-buy="157.11" data-shares="30">
-                        <td><strong>NVDA</strong></td>
-                        <td>30</td>
-                        <td>€157.11</td>
-                        <td>€151.64</td>
-                        <td><canvas id="spark_13" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€218.43</td>
-                        
-                        <td class="positive">44.0%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>12.0%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€140.64</td>
-                        
-                        <td>€142.19</td>
-                        <td>€4,713.29</td>
-                        <td>€4,549.10</td>
-                        <td class="negative">€-164.20</td>
-                        <td class="negative">-3.48%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-494.10</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-NVDA-maxprofit">€1,839.70</td>
-                        
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    </tr>
-        
-                    <tr id="row-ORCL" data-price="157.3" data-buy="175.41" data-shares="25">
-                        <td><strong>ORCL</strong></td>
-                        <td>25</td>
-                        <td>€175.41</td>
-                        <td>€157.30</td>
-                        <td><canvas id="spark_14" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€254.18</td>
-                        
-                        <td class="positive">61.6%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>18.0%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€157.06</td>
-                        
-                        <td>€138.03</td>
-                        <td>€4,385.35</td>
-                        <td>€3,932.46</td>
-                        <td class="negative">€-452.89</td>
-                        <td class="negative">-10.33%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-458.75</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-ORCL-maxprofit">€1,969.15</td>
-                        
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td class="trend-Strong-Bearish">Strong Bearish</td>
-                    </tr>
-        
-                    <tr id="row-QBTS" data-price="20.86" data-buy="21.23" data-shares="210">
-                        <td><strong>QBTS</strong></td>
-                        <td>210</td>
-                        <td>€21.23</td>
-                        <td>€20.86</td>
-                        <td><canvas id="spark_15" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€33.65</td>
-                        
-                        <td class="positive">61.3%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>32.0%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€16.83</td>
-                        
-                        <td>€17.01</td>
-                        <td>€4,458.19</td>
-                        <td>€4,380.01</td>
-                        <td class="negative">€-78.18</td>
-                        <td class="negative">-1.75%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-924.00</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-QBTS-maxprofit">€2,607.67</td>
-                        
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    </tr>
-        
-                    <tr id="row-SMR" data-price="15.48" data-buy="19.47" data-shares="220">
-                        <td><strong>SMR</strong></td>
-                        <td>220</td>
-                        <td>€19.47</td>
-                        <td>€15.48</td>
-                        <td><canvas id="spark_16" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€31.10</td>
-                        
-                        <td class="positive">100.9%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>37.0%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€12.29</td>
-                        
-                        <td>€12.13</td>
-                        <td>€4,283.74</td>
-                        <td>€3,404.74</td>
-                        <td class="negative">€-879.00</td>
-                        <td class="negative">-20.52%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-1,579.60</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-SMR-maxprofit">€2,557.53</td>
-                        
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td class="trend-Strong-Bearish">Strong Bearish</td>
-                    </tr>
-        
-                    <tr id="row-TE" data-price="4.36" data-buy="4.31" data-shares="1000">
-                        <td><strong>TE</strong></td>
-                        <td>1000</td>
-                        <td>€4.31</td>
-                        <td>€4.36</td>
-                        <td><canvas id="spark_17" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€6.21</td>
-                        
-                        <td class="positive">42.4%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>48.1%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€3.10</td>
-                        
-                        <td>€3.12</td>
-                        <td>€4,305.76</td>
-                        <td>€4,361.18</td>
-                        <td class="positive">€55.43</td>
-                        <td class="positive">1.29%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-1,210.00</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-TE-maxprofit">€1,899.97</td>
-                        
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td class="trend-Strong-Bullish">Strong Bullish</td>
-                    </tr>
-        
-                    <tr id="row-TSM" data-price="249.06" data-buy="257.34" data-shares="50">
-                        <td><strong>TSM</strong></td>
-                        <td>50</td>
-                        <td>€257.34</td>
-                        <td>€249.06</td>
-                        <td><canvas id="spark_18" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€304.01</td>
-                        
-                        <td class="positive">22.1%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>10.0%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€240.22</td>
-                        
-                        <td>€233.84</td>
-                        <td>€12,867.11</td>
-                        <td>€12,453.11</td>
-                        <td class="negative">€-414.00</td>
-                        <td class="negative">-3.22%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-856.00</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-TSM-maxprofit">€2,333.52</td>
-                        
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td class="trend-Strong-Bullish">Strong Bullish</td>
-                    </tr>
-        
-                    <tr id="row-URG" data-price="1.19" data-buy="1.23" data-shares="3500">
-                        <td><strong>URG</strong></td>
-                        <td>3500</td>
-                        <td>€1.23</td>
-                        <td>€1.19</td>
-                        <td><canvas id="spark_19" class="sparkline-container"></canvas></td>
-                        
-                        <!-- TARGET (Static/Auto) -->
-                        <td>€1.88</td>
-                        
-                        <td class="positive">58.0%</td>
-                        
-                        <!-- Trail % (Static) -->
-                        <td>30.0%</td>
-                        
-                        <!-- Trail Stop (Static) -->
-                        <td>€0.88</td>
-                        
-                        <td>€1.03</td>
-                        <td>€4,299.38</td>
-                        <td>€4,150.61</td>
-                        <td class="negative">€-148.77</td>
-                        <td class="negative">-3.46%</td>
-                        
-                        <!-- P/L la Stop -->
-                        <td class="negative">€-1,225.00</td>
-                        
-                        <!-- MAX PROFIT (Recalculated via JS) -->
-                        <td id="cell-URG-maxprofit">€2,276.14</td>
-                        
-                        <td class="rsi-Neutral">Neutral</td>
-                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
-                    </tr>
-        
                     <tr id="row-UUUU" data-price="12.31" data-buy="14.12" data-shares="300">
                         <td><strong>UUUU</strong></td>
                         <td>300</td>
                         <td>€14.12</td>
                         <td>€12.31</td>
-                        <td><canvas id="spark_20" class="sparkline-container"></canvas></td>
+                        <td><canvas id="spark_5" class="sparkline-container"></canvas></td>
                         
                         <!-- TARGET (Static/Auto) -->
                         <td>€18.90</td>
@@ -936,12 +426,454 @@
                         <td class="trend-Bullish-Pullback">Bullish Pullback</td>
                     </tr>
         
+                    <tr id="row-URG" data-price="1.19" data-buy="1.23" data-shares="3500">
+                        <td><strong>URG</strong></td>
+                        <td>3500</td>
+                        <td>€1.23</td>
+                        <td>€1.19</td>
+                        <td><canvas id="spark_6" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€1.88</td>
+                        
+                        <td class="positive">58.0%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>30.0%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€0.88</td>
+                        
+                        <td>€1.03</td>
+                        <td>€4,299.38</td>
+                        <td>€4,150.61</td>
+                        <td class="negative">€-148.77</td>
+                        <td class="negative">-3.46%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="negative">€-1,225.00</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-URG-maxprofit">€2,276.14</td>
+                        
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
+        
+                    <tr id="row-META" data-price="552.82" data-buy="565.0" data-shares="8">
+                        <td><strong>META</strong></td>
+                        <td>8</td>
+                        <td>€565.00</td>
+                        <td>€552.82</td>
+                        <td><canvas id="spark_7" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€712.08</td>
+                        
+                        <td class="positive">28.8%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>8.4%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€526.93</td>
+                        
+                        <td>€526.62</td>
+                        <td>€4,519.98</td>
+                        <td>€4,422.56</td>
+                        <td class="negative">€-97.42</td>
+                        <td class="negative">-2.16%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="negative">€-304.56</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-META-maxprofit">€1,176.64</td>
+                        
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                    </tr>
+        
+                    <tr id="row-TE" data-price="4.36" data-buy="4.31" data-shares="1000">
+                        <td><strong>TE</strong></td>
+                        <td>1000</td>
+                        <td>€4.31</td>
+                        <td>€4.36</td>
+                        <td><canvas id="spark_8" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€6.21</td>
+                        
+                        <td class="positive">42.4%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>48.1%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€3.10</td>
+                        
+                        <td>€3.11</td>
+                        <td>€4,305.76</td>
+                        <td>€4,356.76</td>
+                        <td class="positive">€51.01</td>
+                        <td class="positive">1.18%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="negative">€-1,210.00</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-TE-maxprofit">€1,899.97</td>
+                        
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Strong-Bullish">Strong Bullish</td>
+                    </tr>
+        
+                    <tr id="row-NVDA" data-price="151.58" data-buy="157.11" data-shares="30">
+                        <td><strong>NVDA</strong></td>
+                        <td>30</td>
+                        <td>€157.11</td>
+                        <td>€151.58</td>
+                        <td><canvas id="spark_9" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€218.43</td>
+                        
+                        <td class="positive">44.1%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>12.0%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€140.64</td>
+                        
+                        <td>€142.14</td>
+                        <td>€4,713.29</td>
+                        <td>€4,547.44</td>
+                        <td class="negative">€-165.85</td>
+                        <td class="negative">-3.52%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="negative">€-494.10</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-NVDA-maxprofit">€1,839.70</td>
+                        
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
+        
+                    <tr id="row-LNG" data-price="160.35" data-buy="164.33" data-shares="25">
+                        <td><strong>LNG</strong></td>
+                        <td>25</td>
+                        <td>€164.33</td>
+                        <td>€160.35</td>
+                        <td><canvas id="spark_10" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€231.05</td>
+                        
+                        <td class="positive">44.1%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>7.6%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€151.81</td>
+                        
+                        <td>€152.50</td>
+                        <td>€4,108.32</td>
+                        <td>€4,008.65</td>
+                        <td class="negative">€-99.67</td>
+                        <td class="negative">-2.43%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="negative">€-313.00</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-LNG-maxprofit">€1,667.90</td>
+                        
+                        <td class="rsi-Oversold">Oversold</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                    </tr>
+        
+                    <tr id="row-TSM" data-price="249.06" data-buy="257.34" data-shares="50">
+                        <td><strong>TSM</strong></td>
+                        <td>50</td>
+                        <td>€257.34</td>
+                        <td>€249.06</td>
+                        <td><canvas id="spark_11" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€304.01</td>
+                        
+                        <td class="positive">22.1%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>10.0%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€240.22</td>
+                        
+                        <td>€233.84</td>
+                        <td>€12,867.11</td>
+                        <td>€12,453.11</td>
+                        <td class="negative">€-414.00</td>
+                        <td class="negative">-3.22%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="negative">€-856.00</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-TSM-maxprofit">€2,333.52</td>
+                        
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Strong-Bullish">Strong Bullish</td>
+                    </tr>
+        
+                    <tr id="row-AMPX" data-price="8.76" data-buy="9.25" data-shares="500">
+                        <td><strong>AMPX</strong></td>
+                        <td>500</td>
+                        <td>€9.25</td>
+                        <td>€8.76</td>
+                        <td><canvas id="spark_12" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€14.60</td>
+                        
+                        <td class="positive">66.7%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>33.0%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€7.15</td>
+                        
+                        <td>€7.30</td>
+                        <td>€4,626.68</td>
+                        <td>€4,382.27</td>
+                        <td class="negative">€-244.41</td>
+                        <td class="negative">-5.28%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="negative">€-1,050.00</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-AMPX-maxprofit">€2,671.43</td>
+                        
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
+        
+                    <tr id="row-MARA" data-price="9.32" data-buy="10.52" data-shares="500">
+                        <td><strong>MARA</strong></td>
+                        <td>500</td>
+                        <td>€10.52</td>
+                        <td>€9.32</td>
+                        <td><canvas id="spark_13" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€19.48</td>
+                        
+                        <td class="positive">109.0%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>27.0%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€7.97</td>
+                        
+                        <td>€7.90</td>
+                        <td>€5,259.99</td>
+                        <td>€4,660.67</td>
+                        <td class="negative">€-599.32</td>
+                        <td class="negative">-11.39%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="negative">€-1,275.00</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-MARA-maxprofit">€4,477.90</td>
+                        
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                    </tr>
+        
+                    <tr id="row-APLD" data-price="21.22" data-buy="20.88" data-shares="220">
+                        <td><strong>APLD</strong></td>
+                        <td>220</td>
+                        <td>€20.88</td>
+                        <td>€21.22</td>
+                        <td><canvas id="spark_14" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€36.47</td>
+                        
+                        <td class="positive">71.9%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>34.5%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€19.41</td>
+                        
+                        <td>€16.52</td>
+                        <td>€4,593.83</td>
+                        <td>€4,668.07</td>
+                        <td class="positive">€74.24</td>
+                        <td class="positive">1.62%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="negative">€-323.40</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-APLD-maxprofit">€3,429.42</td>
+                        
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
+        
+                    <tr id="row-MSFT" data-price="404.21" data-buy="410.49" data-shares="11">
+                        <td><strong>MSFT</strong></td>
+                        <td>11</td>
+                        <td>€410.49</td>
+                        <td>€404.21</td>
+                        <td><canvas id="spark_15" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€535.84</td>
+                        
+                        <td class="positive">32.6%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>6.5%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€391.30</td>
+                        
+                        <td>€388.28</td>
+                        <td>€4,515.37</td>
+                        <td>€4,446.26</td>
+                        <td class="negative">€-69.11</td>
+                        <td class="negative">-1.53%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="negative">€-211.09</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-MSFT-maxprofit">€1,378.90</td>
+                        
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
+        
+                    <tr id="row-AMZN" data-price="190.73" data-buy="195.64" data-shares="22">
+                        <td><strong>AMZN</strong></td>
+                        <td>22</td>
+                        <td>€195.64</td>
+                        <td>€190.73</td>
+                        <td><canvas id="spark_16" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€252.81</td>
+                        
+                        <td class="positive">32.5%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>8.1%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€181.56</td>
+                        
+                        <td>€182.72</td>
+                        <td>€4,304.04</td>
+                        <td>€4,196.15</td>
+                        <td class="negative">€-107.89</td>
+                        <td class="negative">-2.51%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="negative">€-309.76</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-AMZN-maxprofit">€1,257.81</td>
+                        
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
+        
+                    <tr id="row-QBTS" data-price="20.75" data-buy="21.23" data-shares="210">
+                        <td><strong>QBTS</strong></td>
+                        <td>210</td>
+                        <td>€21.23</td>
+                        <td>€20.75</td>
+                        <td><canvas id="spark_17" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€33.65</td>
+                        
+                        <td class="positive">62.2%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>32.0%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€16.83</td>
+                        
+                        <td>€16.91</td>
+                        <td>€4,458.19</td>
+                        <td>€4,357.34</td>
+                        <td class="negative">€-100.85</td>
+                        <td class="negative">-2.26%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="negative">€-924.00</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-QBTS-maxprofit">€2,607.67</td>
+                        
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Bullish-Pullback">Bullish Pullback</td>
+                    </tr>
+        
+                    <tr id="row-MELI" data-price="1702.58" data-buy="1819.64" data-shares="2">
+                        <td><strong>MELI</strong></td>
+                        <td>2</td>
+                        <td>€1819.64</td>
+                        <td>€1702.58</td>
+                        <td><canvas id="spark_18" class="sparkline-container"></canvas></td>
+                        
+                        <!-- TARGET (Static/Auto) -->
+                        <td>€2425.34</td>
+                        
+                        <td class="positive">42.5%</td>
+                        
+                        <!-- Trail % (Static) -->
+                        <td>11.4%</td>
+                        
+                        <!-- Trail Stop (Static) -->
+                        <td>€1612.20</td>
+                        
+                        <td>€1584.53</td>
+                        <td>€3,639.28</td>
+                        <td>€3,405.16</td>
+                        <td class="negative">€-234.12</td>
+                        <td class="negative">-6.43%</td>
+                        
+                        <!-- P/L la Stop -->
+                        <td class="negative">€-414.88</td>
+                        
+                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <td id="cell-MELI-maxprofit">€1,211.39</td>
+                        
+                        <td class="rsi-Neutral">Neutral</td>
+                        <td class="trend-Strong-Bearish">Strong Bearish</td>
+                    </tr>
+        
                     <tr id="row-TVBETETF.RO" data-price="7.91" data-buy="5.1" data-shares="1851">
                         <td><strong>TVBETETF.RO</strong></td>
                         <td>1851</td>
                         <td>€5.10</td>
                         <td>€7.91</td>
-                        <td><canvas id="spark_21" class="sparkline-container"></canvas></td>
+                        <td><canvas id="spark_19" class="sparkline-container"></canvas></td>
                         
                         <!-- TARGET (Static/Auto) -->
                         <td>€8.23</td>
@@ -975,7 +907,7 @@
                         <td>12</td>
                         <td>€1487.57</td>
                         <td>€1448.40</td>
-                        <td><canvas id="spark_22" class="sparkline-container"></canvas></td>
+                        <td><canvas id="spark_20" class="sparkline-container"></canvas></td>
                         
                         <!-- TARGET (Static/Auto) -->
                         <td>€1612.20</td>
@@ -1066,32 +998,32 @@
                         <tr>
     
                             <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">19.85</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">16.76</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #4caf50;">11.11</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">16.77</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #4caf50;">11.09</td>
                             <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">14.98</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">21.18</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">21.2</td>
                             <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">10.79</td>
                             <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #f44336;">153.59</td>
                             <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #4caf50;">69.25</td>
                             <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #f44336;">16</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #ff9800;">21.85</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #ff9800;">32.08</td>
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">6836.3</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #ff9800;">21.81</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #ff9800;">32.1</td>
+                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: #e0e0e0;">6837.59</td>
                         </tr>
                         <tr>
     
                             <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.60</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 1.02</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #4caf50;">↓ 1.31</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 1.03</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #4caf50;">↓ 1.33</td>
                             <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 1.50</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.56</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.58</td>
                             <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.82</td>
                             <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 5.27</td>
                             <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.01</td>
                             <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↓ 5.00</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.39</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 2.15</td>
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #4caf50;">↑ 8.89</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 0.35</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #f44336;">↑ 2.17</td>
+                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: #4caf50;">↑ 10.18</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1125,7 +1057,7 @@
                     </div>
                 </div>
 
-                <div style='margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;'><strong style='color: #4dabf7; font-size: 0.95rem; display: block; margin-bottom: 10px;'>📰 Market News Overview</strong><div style='color:orange; font-size: 0.9rem; padding: 10px; border: 1px solid orange;'><strong>⚠️ Limită AI Atinsă (Eroare 429):</strong> Cota gratuită Gemini a fost epuizată. Așteptați resetarea cotei.</div><div style='font-size: 0.8rem; color: #888; margin-top: 10px;'>Surse: <a href='https://finance.yahoo.com/news/5-revealing-questions-for-openai-cfo-161409294.html' target='_blank' style='color: #aaa; text-decoration: none; margin-right: 10px;'>5 revealing question...</a><a href='https://finance.yahoo.com/news/warren-buffett-america-doesn-t-161100663.html' target='_blank' style='color: #aaa; text-decoration: none; margin-right: 10px;'>Warren Buffett: Amer...</a><a href='https://www.investors.com/market-trend/stock-market-today/dow-jones-sp500-nasdaq-nvidia-nvda-stock-tesla-tsla-stock-buy-point/?src=A00220&yptr=yahoo' target='_blank' style='color: #aaa; text-decoration: none; margin-right: 10px;'>Stock Market Today: ...</a></div></div>
+                <div style='margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;'><strong style='color: #4dabf7; font-size: 0.95rem; display: block; margin-bottom: 10px;'>📰 Market News Overview</strong><div style='color:orange; font-size: 0.9rem; padding: 10px; border: 1px solid orange;'><strong>⚠️ Limită AI Atinsă (Eroare 429):</strong> Cota gratuită Gemini a fost epuizată. Așteptați resetarea cotei.</div><div style='font-size: 0.8rem; color: #888; margin-top: 10px;'>Surse: <a href='https://finance.yahoo.com/news/bitcoin-mining-stock-prices-tumble-162139164.html' target='_blank' style='color: #aaa; text-decoration: none; margin-right: 10px;'>Bitcoin mining stock...</a><a href='https://finance.yahoo.com/news/5-revealing-questions-for-openai-cfo-161409294.html' target='_blank' style='color: #aaa; text-decoration: none; margin-right: 10px;'>5 revealing question...</a><a href='https://finance.yahoo.com/news/warren-buffett-america-doesn-t-161100663.html' target='_blank' style='color: #aaa; text-decoration: none; margin-right: 10px;'>Warren Buffett: Amer...</a></div></div>
                 <div style='margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;'><strong style='color: #ffb74d; font-size: 0.95rem; display: block; margin-bottom: 10px;'>⚠️ Evenimente Majore Următoare:</strong><ul style='margin: 0; padding-left: 20px; color: #ccc; font-size: 0.9rem; list-style-type: none;'>
             <li style="margin-bottom: 10px; padding-left: 10px; border-left: 3px solid #666;">
                 <div>
@@ -1942,61 +1874,57 @@
             // Sparkline charts data
             const sparklineData = {
     
-                'spark_0': [296.1, 293.45, 287.85, 285.05, 289.75, 289.9, 290.45, 284.6, 286.45, 283.5, 275.6, 276.2, 277.3, 273.4, 277.1, 274.45, 279.85, 280.45, 281.35, 278.7, 277.35, 278.95, 284.25, 284.2, 281.75, 283.8, 282.0, 281.55, 276.8, 278.85],
+                'spark_0': [229.11, 225.0, 209.97, 216.78, 201.64, 205.66, 203.07, 196.67, 190.94, 177.28, 169.81, 166.13, 175.8, 158.54, 150.58, 144.94, 152.2, 146.38, 149.31, 150.62, 145.72, 154.15, 160.15, 158.13, 152.16, 156.15, 160.66, 156.96, 155.82, 141.81],
         
-                'spark_1': [11.98, 11.53, 10.29, 11.09, 9.57, 10.82, 11.55, 10.98, 10.52, 9.96, 9.6, 8.87, 9.07, 9.19, 8.76, 8.59, 9.18, 9.12, 9.19, 9.62, 9.02, 9.23, 9.79, 10.39, 10.35, 10.03, 9.95, 9.39, 9.73, 8.79],
+                'spark_1': [38.14, 34.71, 30.29, 32.23, 27.59, 25.79, 24.17, 22.73, 22.07, 19.68, 19.08, 17.9, 18.31, 17.96, 15.9, 15.81, 16.95, 15.92, 16.19, 17.0, 15.37, 16.08, 17.12, 19.42, 18.18, 18.33, 18.12, 17.27, 18.04, 15.49],
         
-                'spark_2': [207.61, 215.93, 211.95, 212.7, 206.61, 207.77, 211.16, 211.76, 207.59, 201.97, 199.51, 197.96, 189.19, 189.31, 184.59, 187.61, 192.36, 195.24, 194.81, 198.26, 198.82, 199.28, 197.55, 194.77, 195.12, 192.88, 193.75, 197.04, 195.76, 190.61],
+                'spark_2': [35.45, 35.01, 33.51, 34.18, 32.86, 33.84, 34.81, 34.91, 35.54, 34.46, 34.14, 33.15, 34.0, 35.07, 33.69, 33.89, 34.68, 34.91, 35.83, 36.54, 36.61, 36.53, 37.85, 37.92, 38.42, 38.25, 38.08, 39.49, 40.9, 40.69],
         
-                'spark_3': [29.46, 27.94, 26.4, 28.13, 26.42, 26.34, 26.73, 24.29, 22.45, 19.6, 20.1, 19.5, 19.42, 19.63, 18.17, 17.93, 20.22, 20.18, 21.2, 23.04, 23.98, 23.85, 24.96, 26.47, 26.54, 27.3, 27.86, 26.34, 26.15, 21.3],
+                'spark_3': [296.1, 293.45, 287.85, 285.05, 289.75, 289.9, 290.45, 284.6, 286.45, 283.5, 275.6, 276.2, 277.3, 273.4, 277.1, 274.45, 279.85, 280.45, 281.35, 278.7, 277.35, 278.95, 284.25, 284.2, 281.75, 283.8, 282.0, 281.55, 276.8, 278.85],
         
                 'spark_4': [2.69, 2.48, 2.33, 2.27, 2.18, 2.17, 2.24, 2.2, 2.2, 2.12, 2.11, 2.03, 2.02, 2.07, 1.97, 1.93, 1.97, 2.1, 2.18, 2.18, 2.14, 2.2, 2.3, 2.41, 2.33, 2.32, 2.33, 2.29, 2.35, 2.21],
         
-                'spark_5': [1.73, 1.56, 1.51, 1.36, 1.16, 1.44, 1.39, 1.22, 1.39, 1.31, 1.56, 1.59, 1.49, 1.36, 1.48, 2.17, 2.06, 1.88, 1.81, 1.73, 1.61, 1.6, 1.56, 1.58, 1.45, 1.33, 1.33, 1.23, 1.22, 1.13],
+                'spark_5': [17.44, 15.13, 14.46, 13.78, 12.85, 13.3, 14.02, 13.33, 13.45, 13.16, 13.22, 12.72, 12.79, 13.17, 11.23, 10.86, 11.88, 12.33, 12.21, 12.24, 11.96, 12.79, 12.84, 13.87, 13.27, 13.17, 13.09, 12.63, 13.45, 12.31],
         
-                'spark_6': [35.45, 35.01, 33.51, 34.18, 32.86, 33.84, 34.81, 34.91, 35.54, 34.46, 34.14, 33.15, 34.0, 35.07, 33.69, 33.89, 34.68, 34.91, 35.83, 36.54, 36.61, 36.53, 37.85, 37.92, 38.42, 38.25, 38.08, 39.49, 40.9, 40.66],
+                'spark_6': [1.46, 1.37, 1.22, 1.16, 1.08, 1.05, 1.11, 1.11, 1.11, 1.03, 1.01, 0.97, 1.02, 1.08, 1.0, 0.99, 1.08, 1.06, 1.08, 1.11, 1.11, 1.13, 1.19, 1.22, 1.17, 1.16, 1.16, 1.16, 1.06, 1.19],
         
-                'spark_7': [179.74, 177.71, 175.29, 174.34, 176.37, 176.74, 179.84, 180.22, 181.54, 181.33, 182.93, 182.95, 180.61, 178.2, 176.97, 174.7, 173.91, 174.19, 174.94, 177.21, 179.11, 177.91, 177.21, 176.74, 174.86, 170.7, 168.93, 163.99, 162.88, 160.23],
+                'spark_7': [551.16, 542.12, 533.28, 540.62, 526.16, 528.52, 537.06, 533.08, 517.72, 518.47, 518.1, 511.77, 508.1, 501.83, 500.84, 505.17, 521.15, 540.85, 538.63, 550.82, 544.8, 550.1, 543.72, 562.37, 572.47, 566.85, 558.48, 552.68, 554.87, 552.82],
         
-                'spark_8': [15.53, 15.14, 14.13, 14.56, 13.57, 13.49, 13.24, 12.44, 12.25, 10.86, 10.19, 9.78, 10.1, 9.44, 8.71, 8.56, 9.53, 9.5, 9.44, 10.04, 9.79, 10.12, 10.6, 10.58, 9.98, 10.24, 10.41, 10.13, 10.07, 9.34],
+                'spark_8': [3.16, 2.91, 3.13, 3.48, 3.13, 3.24, 3.83, 3.75, 3.27, 2.97, 2.86, 2.7, 2.6, 2.46, 2.31, 2.31, 2.67, 2.8, 3.26, 3.5, 3.8, 4.03, 3.84, 4.34, 4.96, 5.12, 5.72, 5.23, 4.99, 4.36],
         
-                'spark_9': [1978.4, 1969.17, 1960.07, 1956.83, 1809.29, 1792.52, 1778.44, 1784.84, 1788.53, 1726.6, 1741.76, 1749.27, 1750.19, 1765.81, 1614.98, 1659.21, 1707.78, 1746.96, 1728.53, 1761.22, 1755.07, 1798.73, 1802.07, 1818.84, 1756.66, 1775.31, 1763.52, 1675.32, 1717.04, 1703.46],
+                'spark_9': [172.13, 175.86, 168.9, 165.94, 159.88, 159.94, 169.2, 164.2, 164.74, 158.84, 161.65, 158.62, 154.17, 158.55, 153.55, 152.06, 155.18, 151.16, 153.23, 150.46, 152.94, 154.25, 152.66, 155.89, 155.07, 157.74, 157.24, 156.23, 153.81, 151.58],
         
-                'spark_10': [551.16, 542.12, 533.28, 540.62, 526.16, 528.52, 537.06, 533.08, 517.72, 518.47, 518.1, 511.77, 508.1, 501.83, 500.84, 505.17, 521.15, 540.85, 538.63, 550.82, 544.8, 550.1, 543.72, 562.37, 572.47, 566.85, 558.48, 552.68, 554.87, 552.85],
+                'spark_10': [179.74, 177.71, 175.29, 174.34, 176.37, 176.74, 179.84, 180.22, 181.54, 181.33, 182.93, 182.95, 180.61, 178.2, 176.97, 174.7, 173.91, 174.19, 174.94, 177.21, 179.11, 177.91, 177.21, 176.74, 174.86, 170.7, 168.93, 163.99, 162.88, 160.35],
         
-                'spark_11': [439.37, 438.71, 436.42, 430.33, 421.8, 421.56, 429.35, 431.62, 433.71, 427.05, 432.89, 430.61, 418.99, 413.33, 406.71, 401.35, 402.95, 405.49, 412.72, 418.26, 413.78, 416.55, 406.12, 408.76, 410.73, 417.42, 418.27, 406.82, 411.0, 404.04],
+                'spark_11': [254.71, 258.46, 249.3, 248.95, 245.22, 242.9, 250.33, 246.86, 246.39, 239.25, 241.47, 239.09, 235.62, 239.4, 235.27, 233.2, 241.32, 241.35, 245.83, 247.15, 243.9, 247.64, 250.49, 248.35, 249.87, 255.93, 257.23, 262.94, 259.15, 249.06],
         
-                'spark_12': [229.11, 225.0, 209.97, 216.78, 201.64, 205.66, 203.07, 196.67, 190.94, 177.28, 169.81, 166.13, 175.8, 158.54, 150.58, 144.94, 152.2, 146.38, 149.31, 150.62, 145.72, 154.15, 160.15, 158.13, 152.16, 156.15, 160.66, 156.96, 155.82, 141.85],
+                'spark_12': [11.98, 11.53, 10.29, 11.09, 9.57, 10.82, 11.55, 10.98, 10.52, 9.96, 9.6, 8.87, 9.07, 9.19, 8.76, 8.59, 9.18, 9.12, 9.19, 9.62, 9.02, 9.23, 9.79, 10.39, 10.35, 10.03, 9.95, 9.39, 9.73, 8.76],
         
-                'spark_13': [172.13, 175.86, 168.9, 165.94, 159.88, 159.94, 169.2, 164.2, 164.74, 158.84, 161.65, 158.62, 154.17, 158.55, 153.55, 152.06, 155.18, 151.16, 153.23, 150.46, 152.94, 154.25, 152.66, 155.89, 155.07, 157.74, 157.24, 156.23, 153.81, 151.64],
+                'spark_13': [15.53, 15.14, 14.13, 14.56, 13.57, 13.49, 13.24, 12.44, 12.25, 10.86, 10.19, 9.78, 10.1, 9.44, 8.71, 8.56, 9.53, 9.5, 9.44, 10.04, 9.79, 10.12, 10.6, 10.58, 9.98, 10.24, 10.41, 10.13, 10.07, 9.32],
         
-                'spark_14': [223.24, 219.2, 210.97, 212.79, 207.25, 203.39, 204.73, 200.75, 192.96, 184.96, 189.44, 186.9, 187.44, 191.72, 179.11, 168.97, 170.26, 167.5, 174.24, 171.68, 170.82, 170.96, 176.59, 182.2, 184.96, 187.48, 188.32, 189.58, 169.04, 157.3],
+                'spark_14': [29.46, 27.94, 26.4, 28.13, 26.42, 26.34, 26.73, 24.29, 22.45, 19.6, 20.1, 19.5, 19.42, 19.63, 18.17, 17.93, 20.22, 20.18, 21.2, 23.04, 23.98, 23.85, 24.96, 26.47, 26.54, 27.3, 27.86, 26.34, 26.15, 21.22],
         
-                'spark_15': [31.5, 28.13, 25.28, 26.37, 24.13, 25.08, 24.97, 24.64, 22.44, 19.88, 20.07, 19.41, 19.49, 19.93, 17.44, 17.35, 19.65, 19.2, 19.05, 19.27, 18.21, 19.13, 21.32, 24.42, 22.95, 24.18, 24.08, 22.78, 23.79, 20.86],
+                'spark_15': [439.37, 438.71, 436.42, 430.33, 421.8, 421.56, 429.35, 431.62, 433.71, 427.05, 432.89, 430.61, 418.99, 413.33, 406.71, 401.35, 402.95, 405.49, 412.72, 418.26, 413.78, 416.55, 406.12, 408.76, 410.73, 417.42, 418.27, 406.82, 411.0, 404.21],
         
-                'spark_16': [38.14, 34.71, 30.29, 32.23, 27.59, 25.79, 24.17, 22.73, 22.07, 19.68, 19.08, 17.9, 18.31, 17.96, 15.9, 15.81, 16.95, 15.92, 16.19, 17.0, 15.37, 16.08, 17.12, 19.42, 18.18, 18.33, 18.12, 17.27, 18.04, 15.48],
+                'spark_16': [207.61, 215.93, 211.95, 212.7, 206.61, 207.77, 211.16, 211.76, 207.59, 201.97, 199.51, 197.96, 189.19, 189.31, 184.59, 187.61, 192.36, 195.24, 194.81, 198.26, 198.82, 199.28, 197.55, 194.77, 195.12, 192.88, 193.75, 197.04, 195.76, 190.73],
         
-                'spark_17': [3.16, 2.91, 3.13, 3.48, 3.13, 3.24, 3.83, 3.75, 3.27, 2.97, 2.86, 2.7, 2.6, 2.46, 2.31, 2.31, 2.67, 2.8, 3.26, 3.5, 3.8, 4.03, 3.84, 4.34, 4.96, 5.12, 5.72, 5.23, 4.99, 4.36],
+                'spark_17': [31.5, 28.13, 25.28, 26.37, 24.13, 25.08, 24.97, 24.64, 22.44, 19.88, 20.07, 19.41, 19.49, 19.93, 17.44, 17.35, 19.65, 19.2, 19.05, 19.27, 18.21, 19.13, 21.32, 24.42, 22.95, 24.18, 24.08, 22.78, 23.79, 20.75],
         
-                'spark_18': [254.71, 258.46, 249.3, 248.95, 245.22, 242.9, 250.33, 246.86, 246.39, 239.25, 241.47, 239.09, 235.62, 239.4, 235.27, 233.2, 241.32, 241.35, 245.83, 247.15, 243.9, 247.64, 250.49, 248.35, 249.87, 255.93, 257.23, 262.94, 259.15, 249.06],
+                'spark_18': [1978.4, 1969.17, 1960.07, 1956.83, 1809.29, 1792.52, 1778.44, 1784.84, 1788.53, 1726.6, 1741.76, 1749.27, 1750.19, 1765.81, 1614.98, 1659.21, 1707.78, 1746.96, 1728.53, 1761.22, 1755.07, 1798.73, 1802.07, 1818.84, 1756.66, 1775.31, 1763.52, 1675.32, 1717.04, 1702.58],
         
-                'spark_19': [1.46, 1.37, 1.22, 1.16, 1.08, 1.05, 1.11, 1.11, 1.11, 1.03, 1.01, 0.97, 1.02, 1.08, 1.0, 0.99, 1.08, 1.06, 1.08, 1.11, 1.11, 1.13, 1.19, 1.22, 1.17, 1.16, 1.16, 1.16, 1.06, 1.19],
+                'spark_19': [7.37, 7.37, 7.38, 7.46, 7.44, 7.49, 7.55, 7.6, 7.64, 7.63, 7.68, 7.66, 7.62, 7.53, 7.38, 7.48, 7.52, 7.45, 7.46, 7.45, 7.52, 7.63, 7.67, 7.72, 7.78, 7.84, 7.89, 7.86, 7.86, 7.91],
         
-                'spark_20': [17.44, 15.13, 14.46, 13.78, 12.85, 13.3, 14.02, 13.33, 13.45, 13.16, 13.22, 12.72, 12.79, 13.17, 11.23, 10.86, 11.88, 12.33, 12.21, 12.24, 11.96, 12.79, 12.84, 13.87, 13.27, 13.17, 13.09, 12.63, 13.45, 12.31],
-        
-                'spark_21': [7.37, 7.37, 7.38, 7.46, 7.44, 7.49, 7.55, 7.6, 7.64, 7.63, 7.68, 7.66, 7.62, 7.53, 7.38, 7.48, 7.52, 7.45, 7.46, 7.45, 7.52, 7.63, 7.67, 7.72, 7.78, 7.84, 7.89, 7.86, 7.86, 7.91],
-        
-                'spark_22': [1553.8, 1553.2, 1491.4, 1429.4, 1512.8, 1513.0, 1519.2, 1473.2, 1472.2, 1457.6, 1410.8, 1418.2, 1440.0, 1364.4, 1439.4, 1438.4, 1488.0, 1483.8, 1497.4, 1494.0, 1501.2, 1513.4, 1512.2, 1526.4, 1522.4, 1528.8, 1521.0, 1490.0, 1454.4, 1448.4],
+                'spark_20': [1553.8, 1553.2, 1491.4, 1429.4, 1512.8, 1513.0, 1519.2, 1473.2, 1472.2, 1457.6, 1410.8, 1418.2, 1440.0, 1364.4, 1439.4, 1438.4, 1488.0, 1483.8, 1497.4, 1494.0, 1501.2, 1513.4, 1512.2, 1526.4, 1522.4, 1528.8, 1521.0, 1490.0, 1454.4, 1448.4],
         
                 'spark_ind_VIX3M': [20.3799991607666, 21.290000915527344, 20.600000381469727, 21.350000381469727, 21.190000534057617, 20.239999771118164, 20.190000534057617, 20.34000015258789, 21.850000381469727, 21.579999923706055, 23.18000030517578, 24.540000915527344, 23.989999771118164, 25.760000228881836, 23.959999084472656, 21.850000381469727, 20.729999542236328, 20.020000457763672, 19.639999389648438, 20.219999313354492, 19.84000015258789, 19.709999084472656, 19.489999771118164, 19.270000457763672, 19.90999984741211, 20.079999923706055, 19.350000381469727, 19.049999237060547, 19.25, 19.850000381469727],
             
-                'spark_ind_VIX': [17.170000076293945, 19.0, 18.010000228881836, 19.5, 19.079999923706055, 17.600000381469727, 17.280000686645508, 17.510000228881836, 20.0, 19.829999923706055, 22.3799991607666, 24.690000534057617, 23.65999984741211, 26.420000076293945, 23.43000030517578, 20.520000457763672, 18.559999465942383, 17.190000534057617, 16.350000381469727, 17.239999771118164, 16.59000015258789, 16.079999923706055, 15.779999732971191, 15.40999984741211, 16.65999984741211, 16.93000030517578, 15.770000457763672, 14.850000381469727, 15.739999771118164, 16.760000228881836],
+                'spark_ind_VIX': [17.170000076293945, 19.0, 18.010000228881836, 19.5, 19.079999923706055, 17.600000381469727, 17.280000686645508, 17.510000228881836, 20.0, 19.829999923706055, 22.3799991607666, 24.690000534057617, 23.65999984741211, 26.420000076293945, 23.43000030517578, 20.520000457763672, 18.559999465942383, 17.190000534057617, 16.350000381469727, 17.239999771118164, 16.59000015258789, 16.079999923706055, 15.779999732971191, 15.40999984741211, 16.65999984741211, 16.93000030517578, 15.770000457763672, 14.850000381469727, 15.739999771118164, 16.770000457763672],
             
-                'spark_ind_VIX1D': [10.0, 15.229999542236328, 13.069999694824219, 15.949999809265137, 16.780000686645508, 11.210000038146973, 10.760000228881836, 12.0600004196167, 17.049999237060547, 18.5, 19.399999618530273, 20.920000076293945, 26.899999618530273, 29.170000076293945, 23.31999969482422, 14.289999961853027, 11.739999771118164, 14.720000267028809, 11.079999923706055, 11.739999771118164, 10.479999542236328, 9.84000015258789, 10.34000015258789, 9.920000076293945, 9.390000343322754, 13.699999809265137, 11.6899995803833, 10.699999809265137, 12.420000076293945, 11.109999656677246],
+                'spark_ind_VIX1D': [10.0, 15.229999542236328, 13.069999694824219, 15.949999809265137, 16.780000686645508, 11.210000038146973, 10.760000228881836, 12.0600004196167, 17.049999237060547, 18.5, 19.399999618530273, 20.920000076293945, 26.899999618530273, 29.170000076293945, 23.31999969482422, 14.289999961853027, 11.739999771118164, 14.720000267028809, 11.079999923706055, 11.739999771118164, 10.479999542236328, 9.84000015258789, 10.34000015258789, 9.920000076293945, 9.390000343322754, 13.699999809265137, 11.6899995803833, 10.699999809265137, 12.420000076293945, 11.09000015258789],
             
                 'spark_ind_VIX9D': [14.970000267028809, 17.75, 15.869999885559082, 18.1200008392334, 17.309999465942383, 16.040000915527344, 15.180000305175781, 15.369999885559082, 19.170000076293945, 18.610000610351562, 22.329999923706055, 25.18000030517578, 23.100000381469727, 26.350000381469727, 21.510000228881836, 18.549999237060547, 15.390000343322754, 13.329999923706055, 13.609999656677246, 16.549999237060547, 15.420000076293945, 14.460000038146973, 14.300000190734863, 13.899999618530273, 16.290000915527344, 16.299999237060547, 14.680000305175781, 12.460000038146973, 13.479999542236328, 14.979999542236328],
             
-                'spark_ind_VXN': [21.729999542236328, 23.299999237060547, 22.600000381469727, 24.639999389648438, 24.579999923706055, 22.6200008392334, 22.670000076293945, 23.059999465942383, 25.8799991607666, 26.149999618530273, 28.15999984741211, 30.510000228881836, 29.299999237060547, 32.720001220703125, 28.950000762939453, 25.56999969482422, 23.670000076293945, 22.260000228881836, 21.170000076293945, 22.059999465942383, 21.280000686645508, 20.649999618530273, 20.190000534057617, 19.6200008392334, 20.75, 20.760000228881836, 19.670000076293945, 18.399999618530273, 20.6200008392334, 21.18000030517578],
+                'spark_ind_VXN': [21.729999542236328, 23.299999237060547, 22.600000381469727, 24.639999389648438, 24.579999923706055, 22.6200008392334, 22.670000076293945, 23.059999465942383, 25.8799991607666, 26.149999618530273, 28.15999984741211, 30.510000228881836, 29.299999237060547, 32.720001220703125, 28.950000762939453, 25.56999969482422, 23.670000076293945, 22.260000228881836, 21.170000076293945, 22.059999465942383, 21.280000686645508, 20.649999618530273, 20.190000534057617, 19.6200008392334, 20.75, 20.760000228881836, 19.670000076293945, 18.399999618530273, 20.6200008392334, 21.200000762939453],
             
                 'spark_ind_LTV': [9.970000267028809, 10.789999961853027],
             
@@ -2004,11 +1932,11 @@
             
                 'spark_ind_MOVE': [66.87999725341797, 66.61000061035156, 67.2300033569336, 68.0199966430664, 72.41999816894531, 72.44000244140625, 74.41000366210938, 78.86000061035156, 81.12000274658203, 79.0999984741211, 79.70999908447266, 82.58000183105469, 83.18000030517578, 84.31999969482422, 77.80999755859375, 78.80999755859375, 76.81999969482422, 72.81999969482422, 71.9000015258789, 68.94999694824219, 71.3499984741211, 69.91000366210938, 66.45999908447266, 65.69000244140625, 67.27999877929688, 72.30000305175781, 75.37999725341797, 68.62000274658203, 69.23999786376953, 69.2479019165039],
             
-                'spark_ind_GVZ': [21.3799991607666, 21.43000030517578, 20.149999618530273, 20.1299991607666, 20.360000610351562, 23.34000015258789, 23.329999923706055, 25.81999969482422, 24.81999969482422, 24.1299991607666, 24.06999969482422, 23.899999618530273, 23.889999389648438, 22.93000030517578, 21.93000030517578, 22.549999237060547, 22.399999618530273, 21.950000762939453, 22.8700008392334, 23.34000015258789, 22.489999771118164, 21.959999084472656, 20.56999969482422, 19.920000076293945, 19.579999923706055, 20.350000381469727, 20.200000762939453, 20.969999313354492, 21.459999084472656, 21.850000381469727],
+                'spark_ind_GVZ': [21.3799991607666, 21.43000030517578, 20.149999618530273, 20.1299991607666, 20.360000610351562, 23.34000015258789, 23.329999923706055, 25.81999969482422, 24.81999969482422, 24.1299991607666, 24.06999969482422, 23.899999618530273, 23.889999389648438, 22.93000030517578, 21.93000030517578, 22.549999237060547, 22.399999618530273, 21.950000762939453, 22.8700008392334, 23.34000015258789, 22.489999771118164, 21.959999084472656, 20.56999969482422, 19.920000076293945, 19.579999923706055, 20.350000381469727, 20.200000762939453, 20.969999313354492, 21.459999084472656, 21.809999465942383],
             
-                'spark_ind_OVX': [34.310001373291016, 34.27000045776367, 33.689998626708984, 33.7599983215332, 33.33000183105469, 32.119998931884766, 32.02000045776367, 33.0, 32.630001068115234, 33.119998931884766, 32.380001068115234, 33.33000183105469, 34.119998931884766, 36.380001068115234, 35.970001220703125, 36.29999923706055, 37.56999969482422, 35.70000076293945, 35.95000076293945, 35.81999969482422, 35.88999938964844, 33.720001220703125, 33.29999923706055, 32.060001373291016, 33.029998779296875, 30.81999969482422, 30.780000686645508, 31.8799991607666, 29.93000030517578, 32.08000183105469],
+                'spark_ind_OVX': [34.310001373291016, 34.27000045776367, 33.689998626708984, 33.7599983215332, 33.33000183105469, 32.119998931884766, 32.02000045776367, 33.0, 32.630001068115234, 33.119998931884766, 32.380001068115234, 33.33000183105469, 34.119998931884766, 36.380001068115234, 35.970001220703125, 36.29999923706055, 37.56999969482422, 35.70000076293945, 35.95000076293945, 35.81999969482422, 35.88999938964844, 33.720001220703125, 33.29999923706055, 32.060001373291016, 33.029998779296875, 30.81999969482422, 30.780000686645508, 31.8799991607666, 29.93000030517578, 32.099998474121094],
             
-                'spark_ind_SPX': [6851.97021484375, 6771.5498046875, 6796.2900390625, 6720.31982421875, 6728.7998046875, 6832.43017578125, 6846.60986328125, 6850.919921875, 6737.490234375, 6734.10986328125, 6672.41015625, 6617.31982421875, 6642.16015625, 6538.759765625, 6602.990234375, 6705.1201171875, 6765.8798828125, 6812.60986328125, 6849.08984375, 6812.6298828125, 6829.3701171875, 6849.72021484375, 6857.1201171875, 6870.39990234375, 6846.509765625, 6840.509765625, 6886.68017578125, 6901.0, 6827.41015625, 6836.2998046875],
+                'spark_ind_SPX': [6851.97021484375, 6771.5498046875, 6796.2900390625, 6720.31982421875, 6728.7998046875, 6832.43017578125, 6846.60986328125, 6850.919921875, 6737.490234375, 6734.10986328125, 6672.41015625, 6617.31982421875, 6642.16015625, 6538.759765625, 6602.990234375, 6705.1201171875, 6765.8798828125, 6812.60986328125, 6849.08984375, 6812.6298828125, 6829.3701171875, 6849.72021484375, 6857.1201171875, 6870.39990234375, 6846.509765625, 6840.509765625, 6886.68017578125, 6901.0, 6827.41015625, 6837.58984375],
             
                 'spark_ind_Crypto Fear': [10, 14, 11, 15, 11, 14, 11, 13, 19, 20, 15, 22, 25, 28, 28, 24, 23, 28, 26, 28, 23, 20, 20, 22, 26, 29, 29, 23, 21, 16],
             
