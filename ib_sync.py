@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 import os
 import time
+from datetime import datetime
 
 PORTFOLIO_FILE = 'portfolio.csv'
 CONFIG_FILE = 'ibkr_config.txt'
@@ -171,9 +172,59 @@ def sync_ibkr():
                 # print(f"Err parse order: {e}") 
                 pass
 
+                # print(f"Err parse order: {e}") 
+                pass
+
         positions = []
-        # Căutăm recursiv orice tag OpenPosition
+        
+        # Check Flex Date vs Today for Fallback
+        use_tws_backup = False
+        today_str = datetime.now().strftime('%Y%m%d')
+        flex_date_str = None
+        
+        stm = root.find('.//FlexStatement')
+        if stm is not None:
+             flex_date_str = stm.get('toDate')
+             
+        if flex_date_str and flex_date_str < today_str:
+             print(f"Avertisment: Date Flex vechi ({flex_date_str} vs {today_str}).")
+             if os.path.exists('tws_positions.csv'):
+                  mt = os.path.getmtime('tws_positions.csv')
+                  # Dacă fișierul TWS e de azi (mai recent de miezul nopții sau macar last hour)
+                  # Considerăm de azi
+                  if datetime.fromtimestamp(mt).strftime('%Y%m%d') == today_str:
+                       print("  -> Folosim date LIVE din TWS (tws_positions.csv) ca backup.")
+                       use_tws_backup = True
+                  else:
+                       print("  -> Backup TWS e vechi. Folosim Flex (chiar dacă e vechi).")
+             else:
+                  print("  -> Lipsă backup TWS. Folosim Flex.")
+        
+        if use_tws_backup:
+             try:
+                 tdf = pd.read_csv('tws_positions.csv')
+                 for _, r in tdf.iterrows():
+                      invest = float(r['Shares']) * float(r['Buy_Price'])
+                      positions.append({
+                          'Symbol': str(r['Symbol']),
+                          'Shares': float(r['Shares']),
+                          'Buy_Price': float(r['Buy_Price']),
+                          'Current_Price': float(r['Buy_Price']), # Placeholder, update later
+                          'Current_Value': invest,
+                          'Profit': 0,
+                          'Profit_Pct': 0,
+                          'Investment': invest,
+                          'Trail_Pct': 0,
+                          'Trail_Stop_IBKR': 0
+                      })
+             except Exception as ex:
+                 print(f"Eroare citire TWS Backup: {ex}. Revert to Flex.")
+                 use_tws_backup = False
+
+        
+        # Căutăm recursiv orice tag OpenPosition (Logica Standard)
         for pos in root.iter('OpenPosition'):
+            if use_tws_backup: break # Skip Flex parsing if TWS backup is used
             # Citim atributele. Numele atributelor depind de config-ul query-ului, 
             # dar de obicei sunt 'symbol', 'position', 'markPrice', 'costBasisPrice' (sau 'avgPrice')
             

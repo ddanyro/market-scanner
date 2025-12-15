@@ -99,6 +99,34 @@ def fetch_active_orders(output_file='tws_orders.csv'):
             print(f"Salvat tws_orders.csv cu {len(orders_data)} înregistrări.")
         else:
             print("Niciun ordin relevant găsit.")
+            
+        # === Extragere Poziții (Portofoliu Backup) ===
+        # Folosim asta dacă Flex Query dă date vechi (T-1)
+        positions = ib.positions()
+        print(f"Găsite {len(positions)} poziții deschise în TWS.")
+        
+        pos_data = []
+        for p in positions:
+            if p.position == 0: continue
+            
+            c = p.contract
+            # Convert Symbol (ex: BRK B -> BRK.B)
+            sym = c.symbol.replace(' ', '.')
+            
+            pos_data.append({
+                'Symbol': sym,
+                'Shares': p.position,
+                'Buy_Price': p.avgCost,
+                'Currency': c.currency
+            })
+            print(f"  -> Pos: {sym} x {p.position}")
+            
+        if pos_data:
+            pdf = pd.DataFrame(pos_data)
+            pdf.to_csv('tws_positions.csv', index=False)
+            print(f"Salvat tws_positions.csv cu {len(pos_data)} poziții.")
+        else:
+            print("Nicio poziție deschisă găsită.")
 
     except Exception as e:
         print(f"Eroare extragere ordine TWS: {e}")
