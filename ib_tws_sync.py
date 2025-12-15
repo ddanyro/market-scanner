@@ -51,6 +51,8 @@ def fetch_active_orders(output_file='tws_orders.csv'):
         
         print(f"Găsite {len(open_trades)} ordine active în TWS.")
         
+        orders_data = [] # Initialize list
+        
         for t in open_trades:
             contract = t.contract
             order = t.order
