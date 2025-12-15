@@ -190,8 +190,8 @@ def get_market_indicators():
         'LTV': [(10, 'perfect 10'), (13, '10 normal 13'), (999, '13 panica')],
         'SKEW': [(100, 'perfect 100'), (120, '100 precaut/vix/ltv 120'), (135, '120 usor ridicat/vix/ltv 135'), (150, '135 teama 150'), (999, '150 panica')],
         'MOVE': [(80, 'perfect 80'), (120, '80 moderat 120'), (150, '120 teama 150'), (999, '150 panica')],
-        'GVZ': [(17, 'perfect 17'), (22, '17 normal 22'), (30, '22 tensiune 30'), (999, '30 panica')],
-        'OVX': [(25, 'perfect 25'), (35, '25 normal 35'), (50, '35 tensiune 50'), (999, '50 panica')],
+        'GVZ': [(17, 'perfect 22'), (22, '17 teama 22'), (999, '22 panica')],
+        'OVX': [(25, 'perfect 25'), (35, '25 teama 35'), (999, '35 panica')],
     }
     
     for name, ticker in tickers_map.items():
@@ -284,18 +284,19 @@ def get_market_indicators():
                 classification = current_data['value_classification']  # Extreme Fear, Fear, Neutral, Greed, Extreme Greed
                 
                 # Determinăm status și description
-                if value < 25:
-                    status = 'Extreme Fear'
-                    description = '0-24 extreme fear'
-                elif value < 50:
-                    status = 'Fear'
-                    description = '25-49 fear'
-                elif value < 75:
-                    status = 'Greed'
-                    description = '50-74 greed'
+                # Determinăm status și description (User Formula)
+                if value < 24:
+                    status = 'Panic'
+                    description = 'panica 24'
+                elif value < 49:
+                    status = 'Tension'
+                    description = '24 frica 49'
+                elif value < 74:
+                    status = 'Normal'
+                    description = '49 lacomie 74'
                 else:
-                    status = 'Extreme Greed'
-                    description = '75-100 extreme greed'
+                    status = 'Perfect'
+                    description = '74 lacomie extrema'
                 
                 # Change (diferența față de ziua precedentă)
                 if len(data['data']) > 1:
