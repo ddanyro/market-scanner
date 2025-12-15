@@ -1582,14 +1582,32 @@ def update_watchlist_data(state, rates, vix_val):
 
 def main():
     parser = argparse.ArgumentParser(description="Antigravity Market Scanner")
-    parser.add_argument('--mode', choices=['all', 'portfolio', 'watchlist', 'html-only'], default='all', 
-                        help="Mod de rulare: 'all' (tot), 'portfolio' (doar portofoliu), 'watchlist' (doar watchlist), 'html-only' (regenerează HTML din cache)")
+    parser.add_argument('--mode', choices=['all', 'portfolio', 'watchlist', 'html-only'], default='all', help='Select update mode')
+    parser.add_argument('--tws', action='store_true', help='Try fetching active orders from local TWS (requires ib_insync)')
     args = parser.parse_args()
     
     print(f"=== Rulează Market Scanner [Mod: {args.mode}] ===\n")
     
     # 1. Încărcăm starea anterioară
     state = load_state()
+
+    # 1. Update Portfolio Data
+    if args.mode in ['all', 'portfolio']:
+        # Optional TWS Sync
+        if args.tws:
+             try:
+                 import ib_tws_sync
+                 ib_tws_sync.fetch_active_orders()
+             except ImportError:
+                 print("Cannot import ib_tws_sync. Skipping TWS sync.")
+             except Exception as e:
+                 print(f"TWS Sync Error: {e}")
+
+        # IBKR Flex / Manual Sync
+        if not ib_sync.sync_ibkr(): # Dacă sync eșuează, folosim datele vechi + prices
+             print("Sync IBKR eșuat sau config lipsă. Se folosesc datele locale existente pentru cantități.")
+        
+        # Procesare Portfolio Tickers (Price update) = load_state()
     
     # 2. Actualizăm datele globale (Rates, Indicators, VIX) DOAR dacă nu suntem în html-only
     # Le salvăm și pe ele în state pentru consistență

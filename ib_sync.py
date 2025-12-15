@@ -263,8 +263,36 @@ def sync_ibkr():
             
         print(f"Total poziții pentru analiză: {len(positions)}")
         
-        # Creare DataFrame și Merge
+        # Creare DataFrame
         new_df = pd.DataFrame(positions)
+        
+        # === Integrare TWS Orders (Live Stops) ===
+        TWS_ORDERS_FILE = 'tws_orders.csv'
+        if os.path.exists(TWS_ORDERS_FILE):
+            print(f"Integrare date ordine live din {TWS_ORDERS_FILE}...")
+            try:
+                tws_df = pd.read_csv(TWS_ORDERS_FILE)
+                # Mapăm Symbol -> Stop/Trail
+                # Presupunem că un simbol are un singur ordin active de tip Sell (Stop). Luăm primul găsit.
+                
+                for _, row in tws_df.iterrows():
+                    t_sym = str(row.get('Symbol', ''))
+                    t_stop = float(row.get('Calculated_Stop', 0))
+                    t_pct = float(row.get('Trail_Pct', 0))
+                    
+                    # Căutăm în new_df și updatăm
+                    mask = new_df['Symbol'] == t_sym
+                    if mask.any():
+                        if t_stop > 0:
+                            new_df.loc[mask, 'Trail_Stop_IBKR'] = t_stop
+                            # Putem actualiza si 'Trail_Stop' generic daca vrem sa suprascriem manualul? 
+                            # Mai bine lasam Trail_Stop_IBKR separat si il decidem la afisare sau merge.
+                        if t_pct > 0:
+                            new_df.loc[mask, 'Trail_Pct'] = t_pct
+            except Exception as e:
+                print(f"Eroare procesare TWS Orders: {e}")
+                
+        # Merge cu preferințele locale (CSV vechi)
         
         if os.path.exists(PORTFOLIO_FILE):
              try:
