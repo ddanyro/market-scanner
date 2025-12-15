@@ -189,7 +189,7 @@ def get_market_indicators():
         'VXN': [(15, 'perfect 15'), (25, '15 normal 25'), (35, '25 teama 35'), (999, '35 panica')],
         'LTV': [(10, 'perfect 10'), (13, '10 normal 13'), (999, '13 panica')],
         'SKEW': [(100, 'perfect 100'), (120, '100 precaut/vix/ltv 120'), (135, '120 usor ridicat/vix/ltv 135'), (150, '135 teama 150'), (999, '150 panica')],
-        'MOVE': [(80, 'perfect 80'), (120, '80 normal 120'), (150, '120 tensiune 150'), (999, '150 panica')],
+        'MOVE': [(80, 'perfect 80'), (120, '80 moderat 120'), (150, '120 teama 150'), (999, '150 panica')],
         'GVZ': [(17, 'perfect 17'), (22, '17 normal 22'), (30, '22 tensiune 30'), (999, '30 panica')],
         'OVX': [(25, 'perfect 25'), (35, '25 normal 35'), (50, '35 tensiune 50'), (999, '50 panica')],
     }
@@ -247,7 +247,7 @@ def get_market_indicators():
                         if current < threshold:
                             description = desc
                             if 'perfect' in desc.lower(): status = "Perfect"
-                            elif 'normal' in desc.lower() or 'precaut' in desc.lower() or 'ridicat' in desc.lower(): status = "Normal"
+                            elif 'normal' in desc.lower() or 'precaut' in desc.lower() or 'ridicat' in desc.lower() or 'moderat' in desc.lower(): status = "Normal"
                             elif 'tensiune' in desc.lower() or 'teama' in desc.lower(): status = "Tension"
                             else: status = "Panic"
                                 
