@@ -871,11 +871,19 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     vix_cls = vix_val if vix_val != 'N/A' else 'Normal'
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    # Calcul Timestamp IBKR File
+    pf_file = "portfolio.csv"
+    if os.path.exists(pf_file):
+        mt = os.path.getmtime(pf_file)
+        ibkr_last_update = datetime.datetime.fromtimestamp(mt).strftime('%Y-%m-%d %H:%M:%S')
+    else:
+        ibkr_last_update = "N/A"
+
     # Calculăm totalurile pentru sumar
     total_investment = portfolio_df['Investment'].sum() if not portfolio_df.empty else 0
     total_value = portfolio_df['Current_Value'].sum() if not portfolio_df.empty else 0
     total_profit = portfolio_df['Profit'].sum() if not portfolio_df.empty else 0
-    
+
     # Recalculăm Max Profit și P/L la Stop iterând
     total_max_profit = 0
     total_pl_at_stop = 0
@@ -1034,6 +1042,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     </div>
                 </div>
             
+            <div style="text-align: right; color: #888; font-size: 0.8rem; margin-bottom: 10px; padding-right: 10px;">
+                📅 Last IBKR/Data Update: <strong>{ibkr_last_update}</strong>
+            </div>
             
             <div class="table-container">
             <table id="portfolio-table">
