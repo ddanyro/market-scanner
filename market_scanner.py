@@ -800,7 +800,8 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         print(f"Eroare procesare {ticker}: {e}")
         return None
 
-def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filename="index.html"):
+def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filename="index.html", full_state=None):
+    if full_state is None: full_state = {}
     """Generează dashboard HTML cu 2 tab-uri și indicatori de piață."""
     
     css = """
@@ -1271,15 +1272,17 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     """
     
     # Adăugăm analiza AI (News + Calendar)
+    # Adăugăm analiza AI (News + Calendar)
     # Load existing AI summary from state (if any)
-    cached_ai = dashboard_state.get('last_ai_summary', None)
+    cached_ai = full_state.get('last_ai_summary', None)
     
     # Generare analiză piață (returnează HTML + Raw Text)
     market_analysis_html, new_ai_text = generate_market_analysis(market_indicators, cached_ai)
     
     # Save new AI text to state if successfully generated
     if new_ai_text:
-         dashboard_state['last_ai_summary'] = new_ai_text
+         full_state['last_ai_summary'] = new_ai_text
+         print("  -> Rezumat AI salvat în cache (state).")
          print("  -> Rezumat AI salvat în cache (dashboard_state).")
     
     html_head += market_analysis_html
@@ -1700,7 +1703,7 @@ def main():
     indicators_data = state.get('market_indicators', {})
     
     print("\n=== Generare Dashboard HTML ===")
-    generate_html_dashboard(portfolio_df, watchlist_df, indicators_data, "index.html")
+    generate_html_dashboard(portfolio_df, watchlist_df, indicators_data, "index.html", state)
 
 if __name__ == "__main__":
     main()
