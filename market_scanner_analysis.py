@@ -169,65 +169,66 @@ def generate_market_analysis(indicators):
         news_html += "<strong style='color: #4dabf7; font-size: 0.95rem; display: block; margin-bottom: 10px;'>📰 Market News Overview</strong>"
         
         ai_summary_html = ""
+        openai_key = ""
         
-        # REST API Call Logic
-        try:
-            api_key = os.environ.get("GOOGLE_API_KEY")
-            if not api_key and os.path.exists("gemini_key.txt"):
-                 with open("gemini_key.txt", "r") as f: api_key = f.read().strip()
+        # Load Key
+        if os.path.exists("openai_key.txt"):
+            try:
+                with open("openai_key.txt", "r") as f:
+                    openai_key = f.read().strip()
+            except: pass
             
-            if api_key:
-                # Prepare Prompt
-                news_text = "\n".join([f"- {n['title']}: {n['desc'].strip()}" for n in news_items])
-                prompt = f"""
-                Ești un ghid financiar prietenos pentru investitori începători. 
-                Scrie un "Market Overview" scurt (1-2 paragrafe) în limba română, care explică simplu ce se întâmplă azi în piață, bazându-te pe știrile de mai jos:
-                {news_text}
-                Evită termenii tehnici complicați. Explică impactul pe înțelesul tuturor.
-                Folosește taguri <b> pentru a evidenția ideile principale.
-                """
+        if not openai_key:
+            openai_key = os.environ.get("OPENAI_API_KEY", "")
+            
+        if openai_key and news_items:
+            try:
+                print("Generare rezumat AI (OpenAI)...")
                 
-                # List of models to try in order
-                models_to_try = [
-                    "gemini-2.0-flash",
-                    "gemini-2.0-flash-lite",
-                    "gemini-flash-latest",
-                    "gemini-1.5-flash",
-                    "gemini-1.5-flash-latest",
-                    "gemini-1.5-pro-latest", 
-                    "gemini-1.0-pro",
-                    "gemini-pro"
-                ]
+                # Construct Prompt
+                news_text = "\n".join([f"- {item['title']}: {item['desc']}" for item in news_items[:10]])
                 
-                success = False
-                for model_name in models_to_try:
-                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-                    payload = {
-                        "contents": [{"parts": [{"text": prompt}]}]
-                    }
-                    try:
-                        resp = requests.post(url, json=payload, timeout=10)
-                        if resp.status_code == 200:
-                            data = resp.json()
-                            text = data.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '')
-                            if text:
-                                ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px;'><strong>🤖 Analiză AI ({model_name}):</strong><br>{text}</div>"
-                                success = True
-                                break
-                        elif resp.status_code == 429:
-                            ai_summary_html = f"<div style='color:orange; font-size: 0.9rem; padding: 10px; border: 1px solid orange;'><strong>⚠️ Limită AI Atinsă (Eroare 429):</strong> Cota gratuită Gemini a fost epuizată. Așteptați resetarea cotei.</div>"
-                            success = True # Stop trying other models
-                            break
-                    except Exception as e:
-                        print(f"  [DEBUG] Model {model_name} error: {e}")
-                        continue
-                if not success:
-                    ai_summary_html = f"<div style='color:orange'>Niciun model Gemini disponbil (toate au eșuat). Verificați cheia API.</div>"
-            else:
-                 ai_summary_html = "<div style='color:orange'>Lipsă cheie Gemini (gemini_key.txt).</div>"
-
-        except Exception as e:
-            ai_summary_html = f"<div style='color: red; padding: 10px; border: 1px solid red;'>Eroare Request AI: {e}</div>"
+                prompt = (
+                    f"Analizează următoarele știri financiare recente și creează un rezumat scurt și concis (maxim 3-4 paragrafe scurte) "
+                    f"în limba ROMÂNĂ. Stilul trebuie să fie simplu, clar, pentru un investitor obișnuit (fără jargon tehnic excesiv). "
+                    f"Evidențiază sentimentul general al pieței (Pozitiv/Negativ/Neutru) și principalele riscuri sau oportunități.\n\n"
+                    f"Știri:\n{news_text}\n\n"
+                    f"Context Piață: VIX={indicators.get('VIX', {}).get('value', 'N/A')}, SPX={indicators.get('SPX', {}).get('value', 'N/A')}"
+                )
+                
+                # OpenAI Request
+                url = "https://api.openai.com/v1/chat/completions"
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {openai_key}"
+                }
+                payload = {
+                    "model": "gpt-4o", # Folosim gpt-4o sau gpt-3.5-turbo
+                    "messages": [
+                        {"role": "system", "content": "Ești un analist financiar expert care explică piețele pe înțelesul tuturor."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "temperature": 0.7
+                }
+                
+                resp = requests.post(url, headers=headers, json=payload, timeout=20)
+                
+                if resp.status_code == 200:
+                    data = resp.json()
+                    content = data['choices'][0]['message']['content']
+                    ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px;'><strong>🤖 Analiză OpenAI (GPT-4o):</strong><br>{content}</div>"
+                elif resp.status_code == 429:
+                    ai_summary_html = "<div style='color:orange'><strong>Eroare OpenAI (429):</strong> Rate Limit / Quota Exceeded.</div>"
+                else:
+                    print(f"  OpenAI Error: {resp.status_code} - {resp.text[:100]}")
+                    ai_summary_html = f"<div style='color:red'>Eroare OpenAI: {resp.status_code}</div>"
+                    
+            except Exception as e:
+                print(f"  Eroare request OpenAI: {e}")
+                ai_summary_html = f"<div style='color:red'>Eroare conexiune OpenAI: {str(e)[:50]}</div>"
+        
+        elif not openai_key:
+             ai_summary_html = "<div style='color:orange'>Lipsă cheie OpenAI (openai_key.txt).</div>"
 
         if ai_summary_html:
             news_html += ai_summary_html

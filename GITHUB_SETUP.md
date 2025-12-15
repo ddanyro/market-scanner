@@ -11,16 +11,19 @@ Pentru ca Market Scanner să se actualizeze singur în fiecare oră (inclusiv AI
 2. Selectează **Actions**.
 
 ### Pasul 3: Adaugă Cheile
-Apasă pe butonul verde **New repository secret** și adaugă următoarele 3 secrete (numele trebuie să fie exact):
+3. Apasă pe **New repository secret**.
+4. Adaugă următoarele secrete (pe rând):
 
-1. **Nume:** `GOOGLE_API_KEY`
-   **Valoare:** (Introdu aici cheia ta Gemini API nouă - cea anterioară a fost expusă și trebuie revocată!)
+   - **Name**: `OPENAI_API_KEY`
+     - **Value**: Cheia ta OpenAI (începe cu `sk-...`).
+   
+   - **Name**: `IBKR_TOKEN`
+     - **Value**: Token-ul generat din IBKR Portal (pentru Flex Query).
 
-2. **Nume:** `IBKR_TOKEN`
-   **Valoare:** Token-ul lung generat din IBKR Portal (dacă îl ai).
+   - **Name**: `IBKR_QUERY_ID`
+     - **Value**: Query ID-ul raportului Flex.
 
-3. **Nume:** `IBKR_QUERY_ID`
-   **Valoare:** ID-ul scurt al raportului Flex (ex: `1349493` sau similar).
+   *(Opțional: `GOOGLE_API_KEY` nu mai este necesar dacă folosești OpenAI)* (ex: `1349493` sau similar).
 
 ### Gata!
 După ce le adaugi, GitHub va avea acces la ele și va putea rula scriptul automat la fiecare oră, generând analiza AI și portofoliul actualizat.
