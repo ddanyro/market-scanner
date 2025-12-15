@@ -43,29 +43,13 @@ def fetch_active_orders(output_file='tws_orders.csv'):
         # ib.reqAllOpenOrders() returnează [Order, Order...]
         
         # Mai bine folosim:
-        client_orders = ib.reqOpenOrders() # Returnează o listă de obiecte Order (fără contract detalii full?)
+        ib.reqAllOpenOrders() # Cere update de la server
+        ib.sleep(1) # Așteaptă procesarea
         
-        # O metodă mai bună în ib_insync pentru detalii complete:
-        # ib.positions() -> Portofoliu
-        # ib.orders() -> Doar ordinele curente ale sesiunii?
-        # ib.reqAllOpenOrders() -> Toate de pe server.
+        # ib.openTrades() returnează lista curentă de obiecte Trade (cached)
+        open_trades = ib.openTrades()
         
-        orders_data = []
-        all_open = ib.reqAllOpenOrders()
-        
-        # Mapare contracte pentru a ști simbolul
-        # reqAllOpenOrders returnează doar Order objects. Contractul e legat?
-        # Nu. Metoda care returnează legătura e reqOpenOrders() care updatează starea internă?
-        
-        # Să folosim ib.openTrades() -> Returnează o listă de obiecte 'Trade' care conțin (contract, order, orderStatus).
-        open_trades = ib.reqOpenTrades() # Aceasta e cea mai robustă.
-        
-        if not open_trades:
-            # Poate nu a apucat să primească?
-            ib.sleep(1)
-            open_trades = ib.openTrades()
-            
-        print(f"Găsite {len(open_trades)} ordine active.")
+        print(f"Găsite {len(open_trades)} ordine active în TWS.")
         
         for t in open_trades:
             contract = t.contract
