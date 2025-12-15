@@ -1271,7 +1271,18 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     """
     
     # Adăugăm analiza AI (News + Calendar)
-    html_head += generate_market_analysis(market_indicators)
+    # Load existing AI summary from state (if any)
+    cached_ai = dashboard_state.get('last_ai_summary', None)
+    
+    # Generare analiză piață (returnează HTML + Raw Text)
+    market_analysis_html, new_ai_text = generate_market_analysis(market_indicators, cached_ai)
+    
+    # Save new AI text to state if successfully generated
+    if new_ai_text:
+         dashboard_state['last_ai_summary'] = new_ai_text
+         print("  -> Rezumat AI salvat în cache (dashboard_state).")
+    
+    html_head += market_analysis_html
 
     # Adăugăm Explicații Macro (Glosar) - ULTIMUL
     html_head += get_macro_explanations()

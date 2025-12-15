@@ -157,18 +157,18 @@ def generate_market_analysis(indicators):
             conclusion = "Bullish (Cumpărare)"
             prob_up = 65; prob_down = 35; color = "#4caf50"
         elif sentiment_score <= 30:
-            conclusion = "Bearish (Vânzare)"
-            prob_up = 40; prob_down = 60; color = "#f44336"
-        else:
-            conclusion = "Neutral (Hold)"
-            prob_up = 50; prob_down = 50; color = "#e0e0e0"
-
-        # 3. News Summary (AI via REST API sau Fallback)
-        news_items = get_market_news()
-        news_html = "<div style='margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;'>"
+def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=None):
+    """
+    Generează secțiunea de știri și analiză AI.
+    Returnează (full_html, ai_summary_text)
+    """
+    try:
+        # 1. Header
+        news_html = "<div class='news-section' style='background: #222; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #444; color: #e0e0e0;'>"
         news_html += "<strong style='color: #4dabf7; font-size: 0.95rem; display: block; margin-bottom: 10px;'>📰 Market News Overview</strong>"
         
         ai_summary_html = ""
+        ai_raw_text = ""
         openai_key = ""
         
         # Load Key
@@ -184,10 +184,8 @@ def generate_market_analysis(indicators):
         if openai_key and news_items:
             try:
                 print("Generare rezumat AI (OpenAI)...")
-                
                 # Construct Prompt
                 news_text = "\n".join([f"- {item['title']}: {item['desc']}" for item in news_items[:10]])
-                
                 prompt = (
                     f"Analizează următoarele știri financiare recente și creează un rezumat scurt și concis (maxim 3-4 paragrafe scurte) "
                     f"în limba ROMÂNĂ. Stilul trebuie să fie simplu, clar, pentru un investitor obișnuit (fără jargon tehnic excesiv). "
@@ -196,18 +194,13 @@ def generate_market_analysis(indicators):
                     f"Context Piață: VIX={indicators.get('VIX', {}).get('value', 'N/A')}, SPX={indicators.get('SPX', {}).get('value', 'N/A')}"
                 )
                 
-                # OpenAI Request
+                # OpenAI Request logic ...
+                # (Re-folosim logica existentă simplificată pentru diff)
                 url = "https://api.openai.com/v1/chat/completions"
-                headers = {
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {openai_key}"
-                }
+                headers = {"Content-Type": "application/json", "Authorization": f"Bearer {openai_key}"}
                 payload = {
-                    "model": "gpt-4o", # Folosim gpt-4o sau gpt-3.5-turbo
-                    "messages": [
-                        {"role": "system", "content": "Ești un analist financiar expert care explică piețele pe înțelesul tuturor."},
-                        {"role": "user", "content": prompt}
-                    ],
+                    "model": "gpt-4o", 
+                    "messages": [{"role": "system", "content": "Ești un analist financiar expert care explică piețele pe înțelesul tuturor."}, {"role": "user", "content": prompt}],
                     "temperature": 0.7
                 }
                 
@@ -216,40 +209,82 @@ def generate_market_analysis(indicators):
                 if resp.status_code == 200:
                     data = resp.json()
                     content = data['choices'][0]['message']['content']
+                    ai_raw_text = content
                     ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px;'><strong>🤖 Analiză OpenAI (GPT-4o):</strong><br>{content}</div>"
                 elif resp.status_code == 429:
-                    ai_summary_html = "<div style='color:orange'><strong>Eroare OpenAI (429):</strong> Rate Limit / Quota Exceeded.</div>"
+                    ai_summary_html = "<div style='color:orange'><strong>Eroare OpenAI (429):</strong> Rate Limit.</div>"
                 else:
-                    print(f"  OpenAI Error: {resp.status_code} - {resp.text[:100]}")
                     ai_summary_html = f"<div style='color:red'>Eroare OpenAI: {resp.status_code}</div>"
-                    
+                    print(f"  OpenAI Error: {resp.status_code}")
+
             except Exception as e:
                 print(f"  Eroare request OpenAI: {e}")
                 ai_summary_html = f"<div style='color:red'>Eroare conexiune OpenAI: {str(e)[:50]}</div>"
         
         elif not openai_key:
-             ai_summary_html = "<div style='color:orange'>Lipsă cheie OpenAI (openai_key.txt).</div>"
+             # Check for Cached Summary
+             if cached_summary:
+                  print("  -> Folosim rezumat AI din cache (GitHub/Previous Run).")
+                  ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px; border-left: 3px solid #666;'><strong>🤖 Analiză OpenAI (Cached):</strong><br>{cached_summary}</div>"
+                  ai_raw_text = cached_summary
+             else:
+                  ai_summary_html = "<div style='color:orange'>Lipsă cheie OpenAI și lipsă cache.</div>"
 
-        if ai_summary_html:
-            news_html += ai_summary_html
-            news_html += "<div style='font-size: 0.8rem; color: #888; margin-top: 10px;'>Surse: "
-            for n in news_items[:3]:
-                 news_html += f"<a href='{n['link']}' target='_blank' style='color: #aaa; text-decoration: none; margin-right: 10px;'>{n['title'][:20]}...</a>"
-            news_html += "</div>"
-        elif news_items:
-            news_html += "<ul style='margin: 0; padding-left: 20px; color: #ccc; font-size: 0.9rem; list-style-type: none;'>"
-            for item in news_items:
-                news_html += f"""
-                <li style="margin-bottom: 12px;">
-                    <a href='{item['link']}' target='_blank' style='color: #e0e0e0; font-weight: bold; text-decoration: none;'>{item['title']}</a>
-                    <div style="color: #aaa; font-size: 0.85rem; margin-top: 3px;">{item['desc'][:150]}...</div>
-                </li>
-                """
-            news_html += "</ul>"
-        else:
-            news_html += "<div style='color: #aaa;'>Nu au fost preluate știri.</div>"
-            
+        # ... Assemble HTML ...
+        if ai_summary_html: news_html += ai_summary_html
+        
+        # Sources
+        news_html += "<div style='font-size: 0.8rem; color: #888; margin-top: 10px;'>Surse: "
+        for n in news_items[:3]:
+             news_html += f"<a href='{n['link']}' target='_blank' style='color: #aaa; text-decoration: none; margin-right: 10px;'>{n['title'][:20]}...</a>"
         news_html += "</div>"
+        news_html += "</div>" # Close news-section
+        
+        return news_html, ai_raw_text # Return tuple!
+
+    except Exception as e:
+        print(f"Gen Market Analysis Error: {e}")
+        return "<div>Error generating analysis</div>", ""
+
+def generate_market_analysis(indicators, cached_ai_summary=None):
+    """Generează o analiză de piață Hibridă (Rule-based + AI News Summary + Calendar)."""
+    try:
+        # 1. Extragere Valori
+        def get_val(name):
+            try: return float(indicators.get(name, {}).get('value', 0))
+            except: return 0
+
+        vix = get_val('VIX')
+        
+        # 2. Rule-Based Analysis (Probabilități)
+        vix_text = ""
+        sentiment_score = 50 
+        if vix < 14:
+            vix_text = "VIX extrem de redus. Complacere."
+            sentiment_score += 10
+        elif vix < 20:
+            vix_text = "Volatilitate normală."
+            sentiment_score += 5
+        elif vix < 30:
+            vix_text = "Tensiune ridicată."
+            sentiment_score -= 15
+        else:
+            vix_text = "Panică (VIX > 30)."
+            sentiment_score -= 30
+
+        if sentiment_score >= 60:
+            conclusion = "Bullish (Cumpărare)"
+            prob_up = 65; prob_down = 35; color = "#4caf50"
+        elif sentiment_score <= 30:
+            conclusion = "Bearish (Vânzare)"
+            prob_up = 40; prob_down = 60; color = "#f44336"
+        else:
+            conclusion = "Neutral (Hold)"
+            prob_up = 50; prob_down = 50; color = "#e0e0e0"
+
+        # 3. News Summary (AI via REST API sau Fallback)
+        news_items = get_market_news()
+        news_html, ai_summary_raw_text = _generate_news_and_ai_summary_html(news_items, indicators, cached_ai_summary)
 
         # 4. Calendar (Forced Fallback if Empty)
         events_list = get_economic_events()
