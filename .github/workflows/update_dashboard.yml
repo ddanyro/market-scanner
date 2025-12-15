@@ -27,6 +27,7 @@ jobs:
 
     - name: Run Market Scanner
       env:
+        TZ: 'Europe/Bucharest'
         GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         IBKR_TOKEN: ${{ secrets.IBKR_TOKEN }}
         IBKR_QUERY_ID: ${{ secrets.IBKR_QUERY_ID }}
