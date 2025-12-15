@@ -187,7 +187,7 @@ def get_market_indicators():
         'VIX1D': [(12, 'perfect 12'), (30, '12 normal 30'), (999, '30 panica')],
         'VIX9D': [(12, 'perfect 12'), (18, '12 normal 18'), (25, '18 teama 25'), (999, '25 panica')],
         'VXN': [(15, 'perfect 15'), (25, '15 normal 25'), (35, '25 teama 35'), (999, '35 panica')],
-        'LTV': [(10, 'perfect 10'), (13, '10 normal 13'), (20, '13 tensiune 20'), (999, '20 panica')],
+        'LTV': [(10, 'perfect 10'), (13, '10 normal 13'), (999, '13 panica')],
         'SKEW': [(135, 'low 135'), (150, '135 normal 150'), (165, '150 tensiune 165'), (999, '165 panica')],
         'MOVE': [(80, 'perfect 80'), (120, '80 normal 120'), (150, '120 tensiune 150'), (999, '150 panica')],
         'GVZ': [(17, 'perfect 17'), (22, '17 normal 22'), (30, '22 tensiune 30'), (999, '30 panica')],
