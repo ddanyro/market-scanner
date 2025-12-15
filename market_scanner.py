@@ -250,6 +250,10 @@ def get_market_indicators():
                             elif 'normal' in desc.lower(): status = "Normal"
                             elif 'tensiune' in desc.lower(): status = "Tension"
                             else: status = "Panic"
+                            
+                            if name == 'VIX3M':
+                                print(f"  [DEBUG] VIX3M: {current} -> {description} ({status})")
+                                
                             break
                 else:
                     status = "Normal"
