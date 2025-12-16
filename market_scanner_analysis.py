@@ -131,7 +131,7 @@ def get_market_news():
 def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=None):
     """
     Generează secțiunea de știri și analiză AI.
-    Returnează (full_html, ai_summary_text)
+    Returnează (full_html, ai_summary_text, sentiment_score)
     """
     try:
         # 1. Header
@@ -140,6 +140,7 @@ def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=No
         
         ai_summary_html = ""
         ai_raw_text = ""
+        ai_sentiment_score = 50 # Default Neutral
         openai_key = ""
         
         # Load Key
@@ -157,22 +158,27 @@ def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=No
                 print("Generare rezumat AI (OpenAI)...")
                 # Construct Prompt
                 news_text = "\n".join([f"- {item['title']}: {item['desc']}" for item in news_items[:10]])
+                
+                # Context din indicatori pentru AI
+                vix_val = indicators.get('VIX', {}).get('value', 'N/A')
+                spx_val = indicators.get('SPX', {}).get('value', 'N/A')
+                
                 prompt = (
-                    f"Analizează următoarele știri financiare recente și creează un rezumat scurt și concis (maxim 3-4 paragrafe scurte) "
-                    f"în limba ROMÂNĂ. Stilul trebuie să fie simplu, clar, pentru un investitor obișnuit (fără jargon tehnic excesiv). "
-                    f"Evidențiază sentimentul general al pieței (Pozitiv/Negativ/Neutru) și principalele riscuri sau oportunități.\n\n"
-                    f"Știri:\n{news_text}\n\n"
-                    f"Context Piață: VIX={indicators.get('VIX', {}).get('value', 'N/A')}, SPX={indicators.get('SPX', {}).get('value', 'N/A')}"
+                    f"Analizează următoarele știri financiare și indicatori de piață pentru a determina sentimentul general.\n"
+                    f"Context Tehnic: VIX={vix_val}, SPX={spx_val}.\n\n"
+                    f"Știri Recente:\n{news_text}\n\n"
+                    f"Te rog să răspunzi EXACT în următorul format:\n"
+                    f"SENTIMENT_SCORE: <un număr între 0 și 100, unde 0=Extreme Bearish, 50=Neutral, 100=Extreme Bullish>\n"
+                    f"REZUMAT_HTML: <un rezumat succint (max 150 cuvinte) în format HTML (fără tag-uri <html> sau <body>, doar <p>, <b>, <ul> etc.), în limba ROMÂNĂ, analizând riscurile și oportunitățile.>\n"
                 )
                 
-                # OpenAI Request logic ...
-                # (Re-folosim logica existentă simplificată pentru diff)
+                # OpenAI Request logic
                 url = "https://api.openai.com/v1/chat/completions"
                 headers = {"Content-Type": "application/json", "Authorization": f"Bearer {openai_key}"}
                 payload = {
                     "model": "gpt-4o", 
-                    "messages": [{"role": "system", "content": "Ești un analist financiar expert care explică piețele pe înțelesul tuturor."}, {"role": "user", "content": prompt}],
-                    "temperature": 0.7
+                    "messages": [{"role": "system", "content": "Ești un analist financiar expert. Răspunde strict în formatul cerut."}, {"role": "user", "content": prompt}],
+                    "temperature": 0.5
                 }
                 
                 resp = requests.post(url, headers=headers, json=payload, timeout=20)
@@ -181,7 +187,25 @@ def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=No
                     data = resp.json()
                     content = data['choices'][0]['message']['content']
                     ai_raw_text = content
-                    ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px;'><strong>🤖 Analiză OpenAI (GPT-4o):</strong><br>{content}</div>"
+                    
+                    # Parsing Response
+                    score_line = [l for l in content.split('\n') if 'SENTIMENT_SCORE:' in l]
+                    if score_line:
+                        try:
+                            score_str = score_line[0].split(':')[1].strip()
+                            ai_sentiment_score = int(float(score_str))
+                        except:
+                            ai_sentiment_score = 50
+                    
+                    # Extract Summary HTML (everything after SENTIMENT_SCORE line)
+                    summary_part = content
+                    if 'REZUMAT_HTML:' in content:
+                        summary_part = content.split('REZUMAT_HTML:')[1].strip()
+                    elif 'SENTIMENT_SCORE:' in content:
+                         parts = content.split('\n')
+                         summary_part = "\n".join([p for p in parts if 'SENTIMENT_SCORE' not in p]).strip()
+
+                    ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px;'><strong>🤖 Analiză OpenAI:</strong><br>{summary_part}</div>"
                 elif resp.status_code == 429:
                     ai_summary_html = "<div style='color:orange'><strong>Eroare OpenAI (429):</strong> Rate Limit.</div>"
                 else:
@@ -195,8 +219,18 @@ def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=No
         elif not openai_key:
              # Check for Cached Summary
              if cached_summary:
-                  print("  -> Folosim rezumat AI din cache (GitHub/Previous Run).")
-                  ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px; border-left: 3px solid #666;'><strong>🤖 Analiză OpenAI (Cached):</strong><br>{cached_summary}</div>"
+                  print("  -> Folosim rezumat AI din cache.")
+                  # Try to extract previous score if saved in raw text, otherwise default
+                  if 'SENTIMENT_SCORE:' in cached_summary:
+                      try:
+                          ai_sentiment_score = int(float(cached_summary.split('SENTIMENT_SCORE:')[1].split()[0]))
+                      except: pass
+                  
+                  summary_display = cached_summary
+                  if 'REZUMAT_HTML:' in cached_summary:
+                       summary_display = cached_summary.split('REZUMAT_HTML:')[1].strip()
+
+                  ai_summary_html = f"<div style='color: #ddd; font-size: 0.95rem; line-height: 1.5; background: #333; padding: 10px; border-radius: 5px; margin-bottom: 15px; border-left: 3px solid #666;'><strong>🤖 Analiză OpenAI (Cached):</strong><br>{summary_display}</div>"
                   ai_raw_text = cached_summary
              else:
                   ai_summary_html = "<div style='color:orange'>Lipsă cheie OpenAI și lipsă cache.</div>"
@@ -211,53 +245,155 @@ def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=No
         news_html += "</div>"
         news_html += "</div>" # Close news-section
         
-        return news_html, ai_raw_text # Return tuple!
+        return news_html, ai_raw_text, ai_sentiment_score
 
     except Exception as e:
         print(f"Gen Market Analysis Error: {e}")
-        return "<div>Error generating analysis</div>", ""
+        return "<div>Error generating analysis</div>", "", 50
 
 def generate_market_analysis(indicators, cached_ai_summary=None):
-    """Generează o analiză de piață Hibridă (Rule-based + AI News Summary + Calendar)."""
+    """Generează o analiză de piață Hibridă (Algoritmică Multi-Factor + AI)."""
     try:
-        # 1. Extragere Valori
+        # 1. Extragere Valori (Safe)
         def get_val(name):
             try: return float(indicators.get(name, {}).get('value', 0))
             except: return 0
+            
+        def get_spark(name):
+            try: return indicators.get(name, {}).get('sparkline', [])
+            except: return []
 
         vix = get_val('VIX')
+        vix3m = get_val('VIX3M')
+        skew = get_val('SKEW')
+        move = get_val('MOVE')
         
-        # 2. Rule-Based Analysis (Probabilități)
-        vix_text = ""
-        sentiment_score = 50 
-        if vix < 14:
-            vix_text = "VIX extrem de redus. Complacere."
-            sentiment_score += 10
-        elif vix < 20:
-            vix_text = "Volatilitate normală."
-            sentiment_score += 5
-        elif vix < 30:
-            vix_text = "Tensiune ridicată."
-            sentiment_score -= 15
-        else:
-            vix_text = "Panică (VIX > 30)."
-            sentiment_score -= 30
-
-        if sentiment_score >= 60:
-            conclusion = "Bullish (Cumpărare)"
-            prob_up = 65; prob_down = 35; color = "#4caf50"
-        elif sentiment_score <= 30:
-            conclusion = "Bearish (Vânzare)"
-            prob_up = 40; prob_down = 60; color = "#f44336"
-        else:
-            conclusion = "Neutral (Hold)"
-            prob_up = 50; prob_down = 50; color = "#e0e0e0"
-
-        # 3. News Summary (AI via REST API sau Fallback)
+        # 2. Market News & AI Sentiment
         news_items = get_market_news()
-        news_html, ai_summary_raw_text = _generate_news_and_ai_summary_html(news_items, indicators, cached_ai_summary)
+        news_html, ai_summary_raw, ai_score = _generate_news_and_ai_summary_html(news_items, indicators, cached_ai_summary)
+        
+        # 3. Calcul Scor Algoritmic (0-100, unde 100 = Bullish Perfect)
+        # Factori:
+        # - VIX (Weight 20%): Mic = Bullish, Mare = Bearish
+        # - VIX Structure (Weight 15%): VIX3M > VIX (Contango) = Bullish
+        # - SKEW (Weight 10%): Extrem (>140) = Bearish Risk
+        # - MOVE (Weight 10%): Mic = Bullish Stocks
+        # - SPX Trend (Weight 15%): Uptrend = Bullish
+        # - AI Sentiment (Weight 30%): Direct input
+        
+        algo_score = 0
+        total_weight = 0
+        
+        # --- VIX Score (Inverse) ---
+        # 10-15: 100pts
+        # 15-20: 75pts
+        # 20-25: 50pts
+        # 25-30: 25pts
+        # >30: 0pts
+        vix_s = 0
+        if vix > 0:
+            if vix < 15: vix_s = 100
+            elif vix < 20: vix_s = 75
+            elif vix < 25: vix_s = 50
+            elif vix < 30: vix_s = 25
+            else: vix_s = 0
+            algo_score += vix_s * 0.20
+            total_weight += 0.20
+            
+        # --- Term Structure (Contango vs Backwardation) ---
+        # VIX3M / VIX > 1.1 -> Bullish (100)
+        # 1.0 - 1.1 -> Neutral (50)
+        # < 1.0 -> Bearish (0)
+        if vix > 0 and vix3m > 0:
+            ratio = vix3m / vix
+            ts_s = 0
+            if ratio > 1.1: ts_s = 100
+            elif ratio > 1.0: ts_s = 50
+            else: ts_s = 0
+            algo_score += ts_s * 0.15
+            total_weight += 0.15
+            
+        # --- SKEW ---
+        # > 145 -> Bearish (Black Swan Risk) -> 20pts
+        # 115-135 -> Normal Bullish -> 90pts
+        if skew > 0:
+            skew_s = 50
+            if skew > 145: skew_s = 25
+            elif skew > 135: skew_s = 50
+            elif 115 <= skew <= 135: skew_s = 90
+            else: skew_s = 80
+            algo_score += skew_s * 0.10
+            total_weight += 0.10
+        
+        # --- MOVE (Bond Vol) ---
+        # < 100 -> Bullish (100)
+        # 100-120 -> Neutral (50)
+        # > 120 -> Bearish (0)
+        if move > 0:
+            move_s = 50
+            if move < 100: move_s = 100
+            elif move > 125: move_s = 0
+            algo_score += move_s * 0.10
+            total_weight += 0.10
 
-        # 4. Calendar (Forced Fallback if Empty)
+        # --- SPX Trend (Sparkline) ---
+        spx_points = get_spark('SPX')
+        if spx_points and len(spx_points) > 10:
+            # Simplu: Last vs Avg(Last 10)
+            last = spx_points[-1]
+            avg_recent = sum(spx_points[-10:]) / 10
+            if last > avg_recent: score_trend = 100
+            else: score_trend = 25
+            algo_score += score_trend * 0.15
+            total_weight += 0.15
+            
+        # --- AI Sentiment ---
+        if ai_score >= 0:
+            algo_score += ai_score * 0.30
+            total_weight += 0.30
+            
+        # Final Norm
+        if total_weight > 0:
+            final_score = algo_score / total_weight
+        else:
+            final_score = 50 # Fallback
+            
+        # Interpretare
+        prob_up = int(final_score)
+        prob_down = 100 - prob_up
+        
+        conclusion = "Neutral"
+        color = "#e0e0e0"
+        if final_score >= 65: 
+            conclusion = "Bullish"
+            color = "#4caf50"
+        elif final_score <= 35: 
+            conclusion = "Bearish"
+            color = "#f44336"
+            
+        # Detalii Factori Text
+        factors_html = f"""
+        <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px;'>
+            <div style='background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px; text-align: center;'>
+                <div style='font-size: 0.7rem; color: #888;'>VIX Score</div>
+                <div style='font-weight: bold; color: {"#fc5c65" if vix>25 else "#26de81"}'>{vix:.2f}</div>
+            </div>
+            <div style='background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px; text-align: center;'>
+                <div style='font-size: 0.7rem; color: #888;'>Term Struct (3M/1M)</div>
+                <div style='font-weight: bold; color: {"#fc5c65" if (vix>0 and vix3m/vix<1) else "#26de81"}'>{(vix3m/vix if vix>0 else 0):.2f}</div>
+            </div>
+            <div style='background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px; text-align: center;'>
+                <div style='font-size: 0.7rem; color: #888;'>AI Sentiment</div>
+                <div style='font-weight: bold; color: {"#4caf50" if ai_score>60 else "#f44336" if ai_score<40 else "#aaa"}'>{ai_score}/100</div>
+            </div>
+            <div style='background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px; text-align: center;'>
+                <div style='font-size: 0.7rem; color: #888;'>SKEW Risk</div>
+                <div style='font-weight: bold; color: {"#fc5c65" if skew>140 else "#aaa"}'>{skew:.1f}</div>
+            </div>
+        </div>
+        """
+
+        # 4. Calendar logic (Forced Fallback if Empty)
         events_list = get_economic_events()
         
         # STATIC FALLBACK if scraper returns empty list
@@ -300,28 +436,28 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
         <div style="margin-top: 25px; background-color: #252526; border-radius: 8px; border: 1px solid #3e3e42; overflow: hidden;">
             <div style="background-color: #333; padding: 10px 15px; border-bottom: 1px solid #3e3e42; display: flex; align-items: center;">
                 <span style="font-size: 1.2rem; margin-right: 10px;">🤖</span>
-                <h3 style="margin: 0; font-size: 1rem; color: #e0e0e0;">Analiză de Piață & Calendar</h3>
+                <h3 style="margin: 0; font-size: 1rem; color: #e0e0e0;">Antigravity Market Cortex (Multi-Factor Analysis)</h3>
             </div>
             <div style="padding: 20px;">
                 
                 <!-- Probabilități Section -->
                 <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 15px;">
                     <div style="flex: 1; min-width: 200px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px;">
-                        <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">Probabilități Direcție Piață</div>
+                        <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">Probabilitate Direcție (Agregată)</div>
                         <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;">
-                            <span style="color: #4caf50;">Creștere: <strong>{prob_up}%</strong></span>
-                            <span style="color: #f44336;">Scădere: <strong>{prob_down}%</strong></span>
+                            <span style="color: #4caf50;">Bullish: <strong>{prob_up}%</strong></span>
+                            <span style="color: #f44336;">Bearish: <strong>{prob_down}%</strong></span>
                         </div>
-                        <div style="width: 100%; height: 4px; background: #555; margin-top: 5px; border-radius: 2px; overflow: hidden; display: flex;">
+                        <div style="width: 100%; height: 6px; background: #555; margin-top: 5px; border-radius: 3px; overflow: hidden; display: flex;">
                             <div style="width: {prob_up}%; background: #4caf50; height: 100%;"></div>
                             <div style="width: {prob_down}%; background: #f44336; height: 100%;"></div>
                         </div>
                     </div>
                     
                     <div style="flex: 1; padding: 5px;">
-                        <span style="font-weight: bold; color: #888; font-size: 0.9rem;">Concluzie: </span>
-                        <span style="font-size: 1.1rem; font-weight: bold; color: {color};">{conclusion}</span>
-                        <div style="font-size: 0.8rem; color: #aaa; margin-top: 5px;">{vix_text}</div>
+                        <span style="font-weight: bold; color: #888; font-size: 0.9rem;">Verdict Sistem: </span>
+                        <span style="font-size: 1.2rem; font-weight: bold; color: {color};">{conclusion}</span>
+                        {factors_html}
                     </div>
                 </div>
 
@@ -330,6 +466,8 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
             </div>
         </div>
         """
-        return html, ai_summary_raw_text
+        return html, ai_summary_raw
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return f"<div style='color: red;'>Eroare generare analiză: {e}</div>", ""
