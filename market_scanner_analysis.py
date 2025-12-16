@@ -371,25 +371,34 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
             conclusion = "Bearish"
             color = "#f44336"
             
-        # Detalii Factori Text
+        # Detalii Factori Text (Simplificat)
+        # Eliminăm VIX și SKEW din afișare vizuală (sunt deja sus), păstrăm doar Term Structure și AI Sentiment cu explicații.
         factors_html = f"""
-        <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px;'>
-            <div style='background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px; text-align: center;'>
-                <div style='font-size: 0.7rem; color: #888;'>VIX Score</div>
-                <div style='font-weight: bold; color: {"#fc5c65" if vix>25 else "#26de81"}'>{vix:.2f}</div>
+        <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 15px;'>
+            
+            <div style='background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #444;'>
+                <div style='font-size: 0.75rem; color: #aaa; margin-bottom: 2px;'>Term Structure (3M/1M)</div>
+                <div style='font-weight: bold; font-size: 1.1rem; color: {"#fc5c65" if (vix>0 and vix3m/vix<1) else "#26de81"}'>{(vix3m/vix if vix>0 else 0):.2f}</div>
+                <div style='font-size: 0.65rem; color: #888; margin-top: 4px; line-height: 1.2;'>
+                    Raport VIX3M / VIX.<br>
+                    <span style='color: #26de81;'>> 1.1 (Contango)</span> = Normal/Bullish<br>
+                    <span style='color: #fc5c65;'>< 1.0 (Backwardation)</span> = Panică/Bearish
+                </div>
             </div>
-            <div style='background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px; text-align: center;'>
-                <div style='font-size: 0.7rem; color: #888;'>Term Struct (3M/1M)</div>
-                <div style='font-weight: bold; color: {"#fc5c65" if (vix>0 and vix3m/vix<1) else "#26de81"}'>{(vix3m/vix if vix>0 else 0):.2f}</div>
+
+            <div style='background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #444;'>
+                <div style='font-size: 0.75rem; color: #aaa; margin-bottom: 2px;'>AI Market Sentiment</div>
+                <div style='font-weight: bold; font-size: 1.1rem; color: {"#4caf50" if ai_score>60 else "#f44336" if ai_score<40 else "#fbbf24"}'>{ai_score}/100</div>
+                <div style='font-size: 0.65rem; color: #888; margin-top: 4px; line-height: 1.2;'>
+                    Analiză semantică știri.<br>
+                    <span style='color: #4caf50;'>> 60</span> = Știri Pozitive<br>
+                    <span style='color: #f44336;'>< 40</span> = Știri Negative
+                </div>
             </div>
-            <div style='background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px; text-align: center;'>
-                <div style='font-size: 0.7rem; color: #888;'>AI Sentiment</div>
-                <div style='font-weight: bold; color: {"#4caf50" if ai_score>60 else "#f44336" if ai_score<40 else "#aaa"}'>{ai_score}/100</div>
-            </div>
-            <div style='background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px; text-align: center;'>
-                <div style='font-size: 0.7rem; color: #888;'>SKEW Risk</div>
-                <div style='font-weight: bold; color: {"#fc5c65" if skew>140 else "#aaa"}'>{skew:.1f}</div>
-            </div>
+            
+        </div>
+        <div style='font-size: 0.7rem; color: #666; margin-top: 8px; text-align: center;'>
+            *Scorul "Verdict Sistem" include și factori invizibili aici: VIX Level, MOVE Index (Bond Vol) și SKEW (Black Swan Risk), afișați în secțiunea "Indicatori".
         </div>
         """
 
