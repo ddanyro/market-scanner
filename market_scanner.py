@@ -895,9 +895,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     # Recalculăm Max Profit și P/L la Stop iterând
     total_max_profit = 0
     total_pl_at_stop = 0
+    total_pos_profit = 0      # Count positions > 0 profit
+    total_pos_stop_profit = 0 # Count positions > 0 P/L at Stop
     
     if not portfolio_df.empty:
         for _, row in portfolio_df.iterrows():
+            if row['Profit'] > 0:
+                total_pos_profit += 1
+                
             # Max Profit
             if row['Target'] and pd.notna(row['Target']):
                  mp = (row['Target'] - row['Buy_Price']) * row['Shares']
@@ -909,6 +914,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                  # Da, e convertit.
                  pls = (row['Trail_Stop'] - row['Buy_Price']) * row['Shares']
                  total_pl_at_stop += pls
+                 if pls > 0:
+                     total_pos_stop_profit += 1
 
     total_profit_pct = ((total_value - total_investment) / total_investment * 100) if total_investment > 0 else 0
 
@@ -1031,6 +1038,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     <div class="summary-card">
                         <h3>Current Value</h3>
                         <div class="value">€{total_value:,.2f}</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Positions on Profit</h3>
+                        <div class="value" style="color: #4caf50;">{total_pos_profit}/{len(portfolio_df)}</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>P&L at Stop Positive</h3>
+                        <div class="value" style="color: #4caf50;">{total_pos_stop_profit}/{len(portfolio_df)}</div>
                     </div>
                     <div class="summary-card">
                         <h3>Total Profit</h3>
