@@ -1448,10 +1448,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         var minAnalysts = parseFloat($('#filter-analysts').val());
                         var minTarget = parseFloat($('#filter-target-pct').val());
 
-                        // Indices: 3: To Target %, 4: Consensus, 5: Analysts
-                        var rowTargetPct = parseFloat(data[3].replace('%', '')) || -9999;
-                        var rowConsensus = data[4] || "";
-                        var rowAnalysts = parseFloat(data[5]) || 0;
+                        // Indices: 4: To Target %, 5: Consensus, 6: Analysts (Shifted due to Sparkline col)
+                        var rowTargetPct = parseFloat(data[4].replace('%', '')) || -9999;
+                        var rowConsensus = data[5] || "";
+                        var rowAnalysts = parseFloat(data[6]) || 0;
 
                         if (consensus && !rowConsensus.includes(consensus)) return false;
                         if (!isNaN(minAnalysts) && rowAnalysts < minAnalysts) return false;
