@@ -273,13 +273,13 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
         news_html, ai_summary_raw, ai_score = _generate_news_and_ai_summary_html(news_items, indicators, cached_ai_summary)
         
         # 3. Calcul Scor Algoritmic (0-100, unde 100 = Bullish Perfect)
-        # Factori:
-        # - VIX (Weight 20%): Mic = Bullish, Mare = Bearish
-        # - VIX Structure (Weight 15%): VIX3M > VIX (Contango) = Bullish
-        # - SKEW (Weight 10%): Extrem (>140) = Bearish Risk
-        # - MOVE (Weight 10%): Mic = Bullish Stocks
-        # - SPX Trend (Weight 15%): Uptrend = Bullish
-        # - AI Sentiment (Weight 30%): Direct input
+        # Factori Refined:
+        # - VIX (Weight 15%): Panic check
+        # - VIX Structure (Weight 10%): Contango check
+        # - SKEW (Weight 5%): Tail Risk
+        # - MOVE (Weight 5%): Bond Vol
+        # - SPX Trend (Weight 30%): Price Action & Momentum (SMA20 + 5d Return)
+        # - AI Sentiment (Weight 35%): Fundamental/News Context
         
         algo_score = 0
         total_weight = 0
@@ -297,8 +297,8 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
             elif vix < 25: vix_s = 50
             elif vix < 30: vix_s = 25
             else: vix_s = 0
-            algo_score += vix_s * 0.20
-            total_weight += 0.20
+            algo_score += vix_s * 0.15
+            total_weight += 0.15
             
         # --- Term Structure (Contango vs Backwardation) ---
         # VIX3M / VIX > 1.1 -> Bullish (100)
@@ -310,8 +310,8 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
             if ratio > 1.1: ts_s = 100
             elif ratio > 1.0: ts_s = 50
             else: ts_s = 0
-            algo_score += ts_s * 0.15
-            total_weight += 0.15
+            algo_score += ts_s * 0.10
+            total_weight += 0.10
             
         # --- SKEW ---
         # > 145 -> Bearish (Black Swan Risk) -> 20pts
@@ -322,8 +322,8 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
             elif skew > 135: skew_s = 50
             elif 115 <= skew <= 135: skew_s = 90
             else: skew_s = 80
-            algo_score += skew_s * 0.10
-            total_weight += 0.10
+            algo_score += skew_s * 0.05
+            total_weight += 0.05
         
         # --- MOVE (Bond Vol) ---
         # < 100 -> Bullish (100)
@@ -333,24 +333,39 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
             move_s = 50
             if move < 100: move_s = 100
             elif move > 125: move_s = 0
-            algo_score += move_s * 0.10
-            total_weight += 0.10
+            algo_score += move_s * 0.05
+            total_weight += 0.05
 
-        # --- SPX Trend (Sparkline) ---
+        # --- SPX Trend (Trend + Momentum) ---
         spx_points = get_spark('SPX')
-        if spx_points and len(spx_points) > 10:
-            # Simplu: Last vs Avg(Last 10)
+        score_trend = 50
+        if spx_points and len(spx_points) >= 20:
             last = spx_points[-1]
-            avg_recent = sum(spx_points[-10:]) / 10
-            if last > avg_recent: score_trend = 100
-            else: score_trend = 25
-            algo_score += score_trend * 0.15
-            total_weight += 0.15
+            # SMA 20 (Short Term)
+            sma_20 = sum(spx_points[-20:]) / 20
+            # Momentum (5 days) - Check if 5 days ago exists
+            idx_5d = -5 if len(spx_points) >= 5 else 0
+            mom_5d = (last / spx_points[idx_5d]) - 1 if spx_points[idx_5d] > 0 else 0
+             
+            if last > sma_20:
+                 if mom_5d > -0.01: score_trend = 100 # Uptrend solid
+                 else: score_trend = 60 # Uptrend but recent pullback
+            else:
+                 # Sub SMA20
+                 if mom_5d < -0.02: score_trend = 0 # Strong Downtrend
+                 else: score_trend = 25 # Weak/Correction
+
+            algo_score += score_trend * 0.30
+            total_weight += 0.30
+        elif spx_points:
+             # Fallback if less than 20 points
+             algo_score += 50 * 0.30
+             total_weight += 0.30
             
         # --- AI Sentiment ---
-        if ai_score >= 0:
-            algo_score += ai_score * 0.30
-            total_weight += 0.30
+        if ai_score >= 0: 
+            algo_score += ai_score * 0.35
+            total_weight += 0.35
             
         # Final Norm
         if total_weight > 0:
