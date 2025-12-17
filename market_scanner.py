@@ -1355,7 +1355,6 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Stop Loss</th>
                         <th>SMA 50</th>
                         <th>SMA 200</th>
-                        <th>VIX Tag</th>
                         <th>Change %</th>
                     </tr>
                 </thead>
@@ -1428,7 +1427,6 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <td>€{row['Stop_Loss']:.2f}</td>
                         <td>€{row['SMA_50']:.2f}</td>
                         <td>€{row['SMA_200']:.2f}</td>
-                        <td>{row.get('VIX_Tag','Normal')}</td>
                         <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: {change_color};">{arrow} {abs(change):.2f}%</td>
                     </tr>
             """
