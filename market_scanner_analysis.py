@@ -475,8 +475,8 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
             </div>
         </div>
         """
-        return html, ai_summary_raw
+        return html, ai_summary_raw, ai_score
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return f"<div style='color: red;'>Eroare generare analiză: {e}</div>", ""
+        return f"<div style='color: red;'>Eroare generare analiză: {e}</div>", "", 50

@@ -708,6 +708,10 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         df['SMA_50'] = calculate_sma(df, 50)
         df['SMA_200'] = calculate_sma(df, 200)
         
+        # Extrage ultimele 30 zile pentru sparkline
+        sparkline_data = df['Close'].tail(30).tolist()
+        sparkline_data = [round(float(x) * rate, 2) for x in sparkline_data if not pd.isna(x)]
+        
         last_row = df.iloc[-1]
         
         last_close = get_scalar(last_row['Close']) * rate
@@ -792,6 +796,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'SMA_50': round(sma_50, 2),
             'SMA_200': round(sma_200, 2),
             'VIX_Tag': vix_regime,
+            'Sparkline': sparkline_data,
             'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         }
         return result
@@ -1277,12 +1282,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     cached_ai = full_state.get('last_ai_summary', None)
     
     # Generare analiză piață (returnează HTML + Raw Text)
-    market_analysis_html, new_ai_text = generate_market_analysis(market_indicators, cached_ai)
+    market_analysis_html, new_ai_text, ai_score = generate_market_analysis(market_indicators, cached_ai)
     
     # Save new AI text to state if successfully generated
     if new_ai_text:
          full_state['last_ai_summary'] = new_ai_text
-         print("  -> Rezumat AI salvat în cache (state).")
          print("  -> Rezumat AI salvat în cache (dashboard_state).")
     
     html_head += market_analysis_html
@@ -1323,6 +1327,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     <tr>
                         <th>Ticker</th>
                         <th>Price</th>
+                        <th>Grafic</th>
                         <th>Target</th>
                         <th>To Target %</th>
                         <th>Consensus</th>
@@ -1330,55 +1335,72 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Industry</th>
                         <th>Trend</th>
                         <th>RSI</th>
-                        <th>Status</th>
+                        <th>RSI Status</th>
                         <th>ATR</th>
-                        <th>Suggested Stop</th>
+                        <th>Stop Loss</th>
                         <th>SMA 50</th>
                         <th>SMA 200</th>
+                        <th>VIX Tag</th>
+                        <th>Change %</th>
                     </tr>
                 </thead>
                 <tbody>
     """
     
     # Watchlist rows
-    # Trebuie să ne asigurăm că 'Target' există în DataFrame
-    # process_watchlist_ticker returnează 'Target' în dict?
-    # Verificăm: result = {'Ticker': ..., 'Target': target_display ...} - Da.
-    
-    for _, row in watchlist_df.iterrows():
-        trend_cls = row['Trend'].replace(' ', '-')
-        rsi_cls = row['RSI_Status']
-        
-        # Target display logic
-        target_val = row.get('Target')
-        target_display = "-"
-        if target_val:
-             if isinstance(target_val, (int, float)):
-                 target_display = f"€{target_val:.2f}"
-             else:
-                 target_display = str(target_val)
-        
-        # Pct Target Logic
-        pct_target_val = row.get('Pct_To_Target')
-        pct_display = "-"
-        pct_class = ""
-        if pct_target_val is not None:
-             pct_display = f"{pct_target_val:.2f}%"
-             pct_class = "positive" if pct_target_val > 0 else "negative"
+    watch_chart_id = 0
+    if not watchlist_df.empty:
+        for idx, row in watchlist_df.iterrows():
+            trend_cls = row['Trend'].replace(' ', '-')
+            rsi_cls = row['RSI_Status']
+            
+            # Target display logic
+            target_val = row.get('Target')
+            target_display = "-"
+            if target_val:
+                 if isinstance(target_val, (int, float)):
+                     target_display = f"€{target_val:.2f}"
+                 else:
+                     target_display = str(target_val)
+            
+            # Pct Target Logic
+            pct_target_val = row.get('Pct_To_Target')
+            pct_display = "-"
+            pct_class = ""
+            if pct_target_val is not None:
+                 pct_display = f"{pct_target_val:.2f}%"
+                 pct_class = "positive" if pct_target_val > 0 else "negative"
 
-        # Consensus color
-        cons = row.get('Consensus', '-')
-        cons_style = ""
-        if 'Buy' in cons: cons_style = 'color: #4caf50; font-weight: bold;'
-        elif 'Sell' in cons: cons_style = 'color: #f44336; font-weight: bold;'
-        
-        analysts = row.get('Analysts', 0)
-        industry = row.get('Industry', '-')
+            # Consensus color
+            cons = row.get('Consensus', '-')
+            cons_style = ""
+            if 'Buy' in cons: cons_style = 'color: #4caf50; font-weight: bold;'
+            elif 'Sell' in cons: cons_style = 'color: #f44336; font-weight: bold;'
+            
+            analysts = row.get('Analysts', 0)
+            industry = row.get('Industry', '-')
+            
+            spark_wl_id = f"spark_wl_{watch_chart_id}"
+            watch_chart_id += 1
 
-        html_head += f"""
+            # Change % logic
+            change = 0.0
+            spark_data = row.get('Sparkline', [])
+            if isinstance(spark_data, list) and len(spark_data) > 1:
+                change = ((spark_data[-1] - spark_data[-2]) / spark_data[-2]) * 100
+                
+            change_color = '#aaa'
+            arrow = ''
+            if change > 0:
+                change_color = '#4caf50'; arrow = '▲'
+            elif change < 0:
+                change_color = '#f44336'; arrow = '▼'
+
+            html_head += f"""
                     <tr>
                         <td><strong>{row['Ticker']}</strong></td>
                         <td>€{row['Price']:.2f}</td>
+                        <td><canvas id="{spark_wl_id}" class="sparkline-container"></canvas></td>
                         <td>{target_display}</td>
                         <td class="{pct_class}">{pct_display}</td>
                         <td style="{cons_style}">{cons}</td>
@@ -1391,8 +1413,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <td>€{row['Stop_Loss']:.2f}</td>
                         <td>€{row['SMA_50']:.2f}</td>
                         <td>€{row['SMA_200']:.2f}</td>
+                        <td>{row.get('VIX_Tag','Normal')}</td>
+                        <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: {change_color};">{arrow} {abs(change):.2f}%</td>
                     </tr>
-        """
+            """
         
     html_footer = """
                 </tbody>
@@ -1484,6 +1508,17 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 '{sparkline_id}': {sparkline_values},
         """
         
+    # Adăugăm datele pentru sparklines WATCHLIST
+    if not watchlist_df.empty:
+        watch_chart_id = 0
+        for idx, row in watchlist_df.iterrows():
+            spark_wl_id = f"spark_wl_{watch_chart_id}"
+            watch_chart_id += 1
+            spark_values = row.get('Sparkline', [])
+            html_footer += f"""
+                '{spark_wl_id}': {spark_values},
+            """
+            
     # Adăugăm datele pentru sparklines INDICATORI
     for name in market_indicators:
         if 'sparkline' in market_indicators[name]:
