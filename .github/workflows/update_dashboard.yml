@@ -1,8 +1,10 @@
 name: Update Market Dashboard
 
 on:
+  push:
+    branches: [ "main" ]
   schedule:
-    - cron: '0 * * * *'  # Rulează la fiecare oră fixă
+    - cron: '*/30 * * * *'  # Rulează la fiecare 30 de minute
   workflow_dispatch:      # Permite rularea manuală din buton
 
 jobs:
