@@ -534,6 +534,20 @@ def process_portfolio_ticker(row, vix_value, rates):
             except:
                 pass
         
+        # Fetch detailed info from Yahoo (Consensus) - Inserted Logic
+        consensus = "-"
+        analysts_count = 0
+        try:
+           yt = yf.Ticker(ticker)
+           info = yt.info
+           # Dacă info e gol sau fail
+           if info:
+               consensus = info.get('recommendationKey', '-').replace('_', ' ').title()
+               analysts_count = info.get('numberOfAnalystOpinions', 0)
+        except Exception as e:
+           # print(f"  Warning: Could not fetch info for {ticker}: {e}")
+           pass
+
         df['ATR'] = calculate_atr(df)
         df['RSI'] = calculate_rsi(df)
         df['SMA_50'] = calculate_sma(df, 50)
@@ -663,6 +677,8 @@ def process_portfolio_ticker(row, vix_value, rates):
             'Profit': round(profit, 2),
             'Profit_Pct': round(profit_pct, 2),
             'Max_Profit': round(max_profit, 2) if max_profit else None,
+            'Consensus': consensus,
+            'Analysts': analysts_count,
             'Status': rsi_status,  # RSI Status (Overbought/Oversold/Neutral)
             'RSI': round(last_rsi, 2),  # Păstrat pentru Watchlist
             'RSI_Status': rsi_status,
@@ -1080,6 +1096,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Grafic</th>
                         <th>Target</th>
                         <th>% Mid</th>
+                        <th>Consensus</th>
+                        <th>Analysts</th>
                         <th>Trail %</th>
                         <th># Stop</th>
                         <th>Suggested Stop</th>
@@ -1135,6 +1153,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         trail_stop_val = row['Trail_Stop'] if row['Trail_Stop'] and pd.notna(row['Trail_Stop']) and row['Trail_Stop'] > 0 else ""
         if isinstance(trail_stop_val, (int, float)): trail_stop_val = f"{trail_stop_val:.2f}"
 
+        # Consensus color
+        cons = row.get('Consensus', '-')
+        cons_style = ""
+        if 'Buy' in str(cons): cons_style = 'color: #4caf50; font-weight: bold;'
+        elif 'Sell' in str(cons): cons_style = 'color: #f44336; font-weight: bold;'
+        
+        analysts = row.get('Analysts', 0)
+
         html_head += f"""
                     <tr id="row-{row['Symbol']}" data-price="{row['Current_Price']}" data-buy="{row['Buy_Price']}" data-shares="{row['Shares']}">
                         <td><strong>{row['Symbol']}</strong></td>
@@ -1148,6 +1174,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         
                         <td class="{'positive' if pct_to_target > 0 else 'negative' if row['Target'] else ''}">{pct_display}</td>
                         
+                        <!-- Consensus -->
+                        <td style="{cons_style}">{cons}</td>
+                        <td>{analysts}</td>
+
                         <!-- Trail % (Static) -->
                         <td>{trail_pct_val:.1f}%</td>
                         
