@@ -1074,52 +1074,65 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             // const ENCRYPTED_DATA = { ... }; 
             
             function sortTable(n) {
-              var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-              table = document.getElementById("portfolio-table");
+              var tbody = document.getElementById("portfolio-rows-body");
+              if (!tbody) return;
+              
+              var rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
               switching = true;
               dir = "asc"; 
+              
               while (switching) {
                 switching = false;
-                rows = table.rows;
-                // rows[0] is header
-                for (i = 1; i < (rows.length - 1); i++) {
+                rows = tbody.rows;
+                
+                for (i = 0; i < (rows.length - 1); i++) {
                   shouldSwitch = false;
+                  
+                  // Get TDs
                   x = rows[i].getElementsByTagName("TD")[n];
                   y = rows[i + 1].getElementsByTagName("TD")[n];
                   
-                  var xContent = x.textContent || x.innerText;
-                  var yContent = y.textContent || y.innerText;
+                  if (!x || !y) continue;
+
+                  var xContent = (x.textContent || x.innerText).toLowerCase().trim();
+                  var yContent = (y.textContent || y.innerText).toLowerCase().trim();
                   
-                  // Curățare pt numere
+                  // Clean numeric values
                   var xVal = xContent.replace(/[€%,\s]/g, "");
                   var yVal = yContent.replace(/[€%,\s]/g, "");
                   
-                  // Caz special: "N/A", "-", "" -> Treat as -Infinity (bottom)
                   var xNum = parseFloat(xVal);
                   var yNum = parseFloat(yVal);
                   
-                  // Dacă parsarea eșuează sau e text pur (Simbol), folosim string comparison
-                  // Verificăm dacă originalul conținea litere (excluzând N/A) și nu e număr valid
-                  var xIsNum = !isNaN(xNum) && xVal !== "";
-                  var yIsNum = !isNaN(yNum) && yVal !== "";
+                  // Check if valid numbers (excluding empty strings or just symbols)
+                  var xIsNum = !isNaN(xNum) && xVal.length > 0 && !xContent.includes("n/a");
+                  var yIsNum = !isNaN(yNum) && yVal.length > 0 && !yContent.includes("n/a");
                   
                   if (dir == "asc") {
-                    if (xIsNum && yIsNum) { if (xNum > yNum) { shouldSwitch = true; break; } }
-                    else { if (xContent.toLowerCase() > yContent.toLowerCase()) { shouldSwitch = true; break; } }
+                    if (xIsNum && yIsNum) {
+                        if (xNum > yNum) shouldSwitch = true;
+                    } else {
+                        if (xContent > yContent) shouldSwitch = true;
+                    }
                   } else if (dir == "desc") {
-                    if (xIsNum && yIsNum) { if (xNum < yNum) { shouldSwitch = true; break; } }
-                    else { if (xContent.toLowerCase() < yContent.toLowerCase()) { shouldSwitch = true; break; } }
+                    if (xIsNum && yIsNum) {
+                        if (xNum < yNum) shouldSwitch = true;
+                    } else {
+                        if (xContent < yContent) shouldSwitch = true;
+                    }
+                  }
+                  
+                  if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount ++; 
+                    break; // Restart loop after switch
                   }
                 }
-                if (shouldSwitch) {
-                  rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                
+                if (!switching && switchcount == 0 && dir == "asc") {
+                  dir = "desc";
                   switching = true;
-                  switchcount ++; 
-                } else {
-                  if (switchcount == 0 && dir == "asc") {
-                    dir = "desc";
-                    switching = true;
-                  }
                 }
               }
             }
