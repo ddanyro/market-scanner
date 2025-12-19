@@ -1073,70 +1073,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             // Variabila cu datele criptate va fi injectată aici de Python
             // const ENCRYPTED_DATA = { ... }; 
             
-            function sortTable(n) {
-              try {
-                  var tbody = document.getElementById("portfolio-rows-body");
-                  if (!tbody) return;
-                  
-                  var rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-                  switching = true;
-                  dir = "asc"; 
-                  
-                  while (switching) {
-                    switching = false;
-                    rows = tbody.rows;
-                    
-                    for (i = 0; i < (rows.length - 1); i++) {
-                      shouldSwitch = false;
-                      
-                      x = rows[i].getElementsByTagName("TD")[n];
-                      y = rows[i + 1].getElementsByTagName("TD")[n];
-                      
-                      if (!x || !y) continue;
 
-                      var xContent = (x.textContent || x.innerText).toLowerCase().trim();
-                      var yContent = (y.textContent || y.innerText).toLowerCase().trim();
-                      
-                      var xVal = xContent.replace(/[€%,\s]/g, "");
-                      var yVal = yContent.replace(/[€%,\s]/g, "");
-                      
-                      var xNum = parseFloat(xVal);
-                      var yNum = parseFloat(yVal);
-                      
-                      var xIsNum = !isNaN(xNum) && xVal.length > 0 && !xContent.includes("n/a");
-                      var yIsNum = !isNaN(yNum) && yVal.length > 0 && !yContent.includes("n/a");
-                      
-                      if (dir == "asc") {
-                        if (xIsNum && yIsNum) {
-                            if (xNum > yNum) shouldSwitch = true;
-                        } else {
-                            if (xContent > yContent) shouldSwitch = true;
-                        }
-                      } else if (dir == "desc") {
-                        if (xIsNum && yIsNum) {
-                            if (xNum < yNum) shouldSwitch = true;
-                        } else {
-                            if (xContent < yContent) shouldSwitch = true;
-                        }
-                      }
-                      
-                      if (shouldSwitch) {
-                        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                        switching = true;
-                        switchcount ++; 
-                        break; 
-                      }
-                    }
-                    
-                    if (!switching && switchcount == 0 && dir == "asc") {
-                      dir = "desc";
-                      switching = true;
-                    }
-                  }
-              } catch(e) {
-                  alert("Eroare Sortare: " + e.message);
-              }
-            }
 
             function unlockPortfolio() {
                 const input = document.getElementById('pf-pass').value;
@@ -1193,6 +1130,21 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 
                 // Init Charts
                 initCharts(data.sparklines);
+                
+                // Re-Init DataTables (pentru Sortare)
+                if (typeof $ !== 'undefined' && $.fn.DataTable) {
+                    try {
+                        if ($.fn.DataTable.isDataTable('#portfolio-table')) {
+                            $('#portfolio-table').DataTable().destroy();
+                        }
+                        $('#portfolio-table').DataTable({
+                            paging: false,
+                            searching: true,
+                            info: false,
+                            order: [] // Păstrează ordinea inițială
+                        });
+                    } catch(e) { console.error("DataTable Init Error: ", e); }
+                }
             }
             
             function initCharts(sparklines) {
@@ -1314,26 +1266,26 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             <table id="portfolio-table">
                 <thead>
                     <tr>
-                        <th style="width: 80px; cursor: pointer;" onclick="sortTable(0)">Simbol</th>
-                        <th style="cursor: pointer;" onclick="sortTable(1)">Acțiuni</th>
-                        <th style="cursor: pointer;" onclick="sortTable(2)">Preț Cumpărare</th>
-                        <th style="cursor: pointer;" onclick="sortTable(3)">Preț Curent</th>
+                        <th style="width: 80px;">Simbol</th>
+                        <th>Acțiuni</th>
+                        <th>Preț Cumpărare</th>
+                        <th>Preț Curent</th>
                         <th>Grafic</th>
-                        <th style="cursor: pointer;" onclick="sortTable(5)">Target</th>
-                        <th style="cursor: pointer;" onclick="sortTable(6)">% Mid</th>
-                        <th style="cursor: pointer;" onclick="sortTable(7)">Consensus</th>
-                        <th style="cursor: pointer;" onclick="sortTable(8)">Analysts</th>
-                        <th style="cursor: pointer;" onclick="sortTable(9)">Trail %</th>
-                        <th style="cursor: pointer;" onclick="sortTable(10)"># Stop</th>
-                        <th style="cursor: pointer;" onclick="sortTable(11)">Suggested Stop</th>
-                        <th style="cursor: pointer;" onclick="sortTable(12)">Investiție</th>
-                        <th style="cursor: pointer;" onclick="sortTable(13)">Valoare</th>
-                        <th style="cursor: pointer;" onclick="sortTable(14)">Profit</th>
-                        <th style="cursor: pointer;" onclick="sortTable(15)">% Profit</th>
-                        <th style="cursor: pointer;" onclick="sortTable(16)">P/L la Stop</th>
-                        <th style="cursor: pointer;" onclick="sortTable(17)">Max Profit</th>
-                        <th style="cursor: pointer;" onclick="sortTable(18)">Status</th>
-                        <th style="cursor: pointer;" onclick="sortTable(19)">Trend</th>
+                        <th>Target</th>
+                        <th>% Mid</th>
+                        <th>Consensus</th>
+                        <th>Analysts</th>
+                        <th>Trail %</th>
+                        <th># Stop</th>
+                        <th>Suggested Stop</th>
+                        <th>Investiție</th>
+                        <th>Valoare</th>
+                        <th>Profit</th>
+                        <th>% Profit</th>
+                        <th>P/L la Stop</th>
+                        <th>Max Profit</th>
+                        <th>Status</th>
+                        <th>Trend</th>
                     </tr>
                 </thead>
                 <tbody id="portfolio-rows-body">
