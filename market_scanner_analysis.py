@@ -392,10 +392,10 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
         <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 15px;'>
             
             <div style='background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #444;'>
-                <div style='font-size: 0.75rem; color: #aaa; margin-bottom: 2px;'>Term Structure (3M/1M)</div>
+                <div style='font-size: 0.75rem; color: #aaa; margin-bottom: 2px;'>Analiză VIX Futures (Term Structure)</div>
                 <div style='font-weight: bold; font-size: 1.1rem; color: {"#fc5c65" if (vix>0 and vix3m/vix<1) else "#26de81"}'>{(vix3m/vix if vix>0 else 0):.2f}</div>
                 <div style='font-size: 0.65rem; color: #888; margin-top: 4px; line-height: 1.2;'>
-                    Raport VIX3M / VIX.<br>
+                    Raport VIX Futures (3M) / VIX Spot.<br>
                     <span style='color: #26de81;'>> 1.1 (Contango)</span> = Normal/Bullish<br>
                     <span style='color: #fc5c65;'>< 1.0 (Backwardation)</span> = Panică/Bearish
                 </div>

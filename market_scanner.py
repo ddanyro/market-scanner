@@ -1220,11 +1220,20 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     # Ordinea indicatorilor
     indicator_order = ['VIX3M', 'VIX', 'VIX1D', 'VIX9D', 'VXN', 'LTV', 'SKEW', 'MOVE', 'Crypto Fear', 'GVZ', 'OVX', 'SPX']
     
+    # Mapping Display Names
+    display_map = {
+        'VIX3M': 'VIX Futures (3M)',
+        'VIX': 'VIX Spot',
+        'VIX1D': 'VIX 1D',
+        'VIX9D': 'VIX 9D'
+    }
+    
     # Header row
     for name in indicator_order:
         if name in market_indicators:
+            disp_name = display_map.get(name, name)
             html_head += f"""
-                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">{name}</th>"""
+                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">{disp_name}</th>"""
     
     html_head += """
                         </tr>
