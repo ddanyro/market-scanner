@@ -1921,6 +1921,35 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                                 <td id="res-month" style="text-align: right; font-weight: bold;">-</td>
                           </tr>
                       </table>
+                      
+                      <!-- Trailing Stop Calculations -->
+                      <h4 style="color: #ba68c8; margin-top: 30px; margin-bottom: 15px; text-align: center;">📊 Trailing Stop Levels</h4>
+                      <table style="width: 100%; border-collapse: collapse; color: #ddd; margin-top: 10px;">
+                          <tr style="border-bottom: 1px solid #444;">
+                                <th style="text-align: left; padding: 10px;">Strategy</th>
+                                <th style="text-align: right; padding: 10px;">Volatility %</th>
+                                <th style="text-align: right; padding: 10px;">Stop Sell</th>
+                                <th style="text-align: right; padding: 10px;">Stop Buy</th>
+                          </tr>
+                          <tr>
+                                <td style="padding: 10px; color: #f44336;">🔴 LARG (Loose)</td>
+                                <td id="vol-larg" style="text-align: right; font-weight: bold;">-</td>
+                                <td id="stop-larg-sell" style="text-align: right; font-weight: bold; color: #f44336;">-</td>
+                                <td id="stop-larg-buy" style="text-align: right; font-weight: bold; color: #4caf50;">-</td>
+                          </tr>
+                          <tr>
+                                <td style="padding: 10px; color: #ff9800;">🟠 MEDIU (Medium)</td>
+                                <td id="vol-mediu" style="text-align: right; font-weight: bold;">-</td>
+                                <td id="stop-mediu-sell" style="text-align: right; font-weight: bold; color: #f44336;">-</td>
+                                <td id="stop-mediu-buy" style="text-align: right; font-weight: bold; color: #4caf50;">-</td>
+                          </tr>
+                          <tr>
+                                <td style="padding: 10px; color: #4caf50;">🟢 STRÂNS (Tight)</td>
+                                <td id="vol-strans" style="text-align: right; font-weight: bold;">-</td>
+                                <td id="stop-strans-sell" style="text-align: right; font-weight: bold; color: #f44336;">-</td>
+                                <td id="stop-strans-buy" style="text-align: right; font-weight: bold; color: #4caf50;">-</td>
+                          </tr>
+                      </table>
                  </div>
              </div>
              
@@ -1931,11 +1960,51 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     const resDiv = document.getElementById('vol-results');
                     if (volData[val]) {
                          const d = volData[val];
-                         document.getElementById('res-price-native').innerText = d.Price_Native;
+                         const price = d.Price_Native;
+                         const atrPct = d.ATR_Pct;
+                         const volW = d.Vol_W;
+                         const volM = d.Vol_M;
+                         
+                         // Display basic metrics
+                         document.getElementById('res-price-native').innerText = price;
                          document.getElementById('res-atr-val').innerText = d.ATR_Val;
-                         document.getElementById('res-atr').innerText = d.ATR_Pct + '%';
-                         document.getElementById('res-week').innerText = d.Vol_W + '%';
-                         document.getElementById('res-month').innerText = d.Vol_M + '%';
+                         document.getElementById('res-atr').innerText = atrPct + '%';
+                         document.getElementById('res-week').innerText = volW + '%';
+                         document.getElementById('res-month').innerText = volM + '%';
+                         
+                         // Calculate trailing stop levels
+                         const vols = [atrPct, volW, volM].filter(v => v > 0);
+                         
+                         if (vols.length > 0 && price > 0) {
+                             // LARG: MAX × 3
+                             const volLarg = Math.max(...vols) * 3;
+                             const stopLargSell = price * (1 - volLarg / 100);
+                             const stopLargBuy = price * (1 + volLarg / 100);
+                             
+                             // MEDIU: AVG × 2
+                             const volMediu = (vols.reduce((a, b) => a + b, 0) / vols.length) * 2;
+                             const stopMediuSell = price * (1 - volMediu / 100);
+                             const stopMediuBuy = price * (1 + volMediu / 100);
+                             
+                             // STRÂNS: MIN × 1.5
+                             const volStrans = Math.min(...vols) * 1.5;
+                             const stopStransSell = price * (1 - volStrans / 100);
+                             const stopStransBuy = price * (1 + volStrans / 100);
+                             
+                             // Display results
+                             document.getElementById('vol-larg').innerText = volLarg.toFixed(2) + '%';
+                             document.getElementById('stop-larg-sell').innerText = stopLargSell.toFixed(2);
+                             document.getElementById('stop-larg-buy').innerText = stopLargBuy.toFixed(2);
+                             
+                             document.getElementById('vol-mediu').innerText = volMediu.toFixed(2) + '%';
+                             document.getElementById('stop-mediu-sell').innerText = stopMediuSell.toFixed(2);
+                             document.getElementById('stop-mediu-buy').innerText = stopMediuBuy.toFixed(2);
+                             
+                             document.getElementById('vol-strans').innerText = volStrans.toFixed(2) + '%';
+                             document.getElementById('stop-strans-sell').innerText = stopStransSell.toFixed(2);
+                             document.getElementById('stop-strans-buy').innerText = stopStransBuy.toFixed(2);
+                         }
+                         
                          resDiv.style.display = 'block';
                     } else {
                          resDiv.style.display = 'none';
