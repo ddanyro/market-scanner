@@ -1663,6 +1663,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     </select>
                 </div>
                 <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 0.8rem; margin-bottom: 5px; color: #aaa;">Min Analysts</label>
+                    <input type="number" id="filter-analysts" placeholder="0" style="padding: 5px; background: #444; color: #fff; border: none; border-radius: 4px; width: 100px;">
+                </div>
+                <div style="display: flex; flex-direction: column;">
                     <label style="font-size: 0.8rem; margin-bottom: 5px; color: #aaa;">Min Target %</label>
                     <input type="number" id="filter-target-pct" placeholder="0" step="any" style="padding: 5px; background: #444; color: #fff; border: none; border-radius: 4px; width: 100px;">
                 </div>
