@@ -1670,6 +1670,26 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     <label style="font-size: 0.8rem; margin-bottom: 5px; color: #aaa;">Min Target %</label>
                     <input type="number" id="filter-target-pct" placeholder="0" step="any" style="padding: 5px; background: #444; color: #fff; border: none; border-radius: 4px; width: 100px;">
                 </div>
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 0.8rem; margin-bottom: 5px; color: #aaa;">Trend</label>
+                    <select id="filter-trend" style="padding: 5px; background: #444; color: #fff; border: none; border-radius: 4px; width: 120px;">
+                        <option value="">All</option>
+                        <option value="Strong Bullish">Strong Bullish</option>
+                        <option value="Bullish Pullback">Bullish Pullback</option>
+                        <option value="Bearish Rally">Bearish Rally</option>
+                        <option value="Strong Bearish">Strong Bearish</option>
+                        <option value="Neutral">Neutral</option>
+                    </select>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 0.8rem; margin-bottom: 5px; color: #aaa;">Status</label>
+                    <select id="filter-status" style="padding: 5px; background: #444; color: #fff; border: none; border-radius: 4px; width: 100px;">
+                        <option value="">All</option>
+                        <option value="Oversold">Oversold</option>
+                        <option value="Overbought">Overbought</option>
+                        <option value="Neutral">Neutral</option>
+                    </select>
+                </div>
             </div>
 
 
@@ -1810,24 +1830,32 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         var consensus = $('#filter-consensus').val();
                         var minAnalysts = parseFloat($('#filter-analysts').val());
                         var minTarget = parseFloat($('#filter-target-pct').val());
+                        var trend = $('#filter-trend').val();
+                        var status = $('#filter-status').val();
 
-                        // Indices: 4: To Target %, 5: Consensus, 6: Analysts (Shifted due to Sparkline col)
+                        // Indices: 5: Consensus, 6: Analysts, 8: Trend, 12: Status
                         var rowTargetPct = parseFloat(data[4].replace('%', '')) || -9999;
                         var rowConsensus = data[5] || "";
                         var rowAnalysts = parseFloat(data[6]) || 0;
+                        var rowTrend = data[8] || "";
+                        var rowStatus = data[12] || "";
 
                         if (consensus && !rowConsensus.includes(consensus)) return false;
                         if (!isNaN(minAnalysts) && rowAnalysts < minAnalysts) return false;
                         if (!isNaN(minTarget) && rowTargetPct < minTarget) return false;
+                        if (trend && !rowTrend.includes(trend)) return false;
+                        if (status && !rowStatus.includes(status)) return false;
 
                         return true;
                     }
                 );
 
-                // Bind inputs
-                $('#filter-consensus, #filter-analysts, #filter-target-pct').on('change keyup', function() {
-                    var table = $('#watchlist-table').DataTable();
+                // Event listener to redraw on input change
+                $('#filter-consensus, #filter-analysts, #filter-target-pct, #filter-trend, #filter-status').change(function() {
                     table.draw();
+                });
+                $('#filter-analysts, #filter-target-pct').keyup(function() {
+                     table.draw();
                 });
             });
 
