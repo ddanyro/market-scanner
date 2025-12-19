@@ -1488,6 +1488,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Consensus</th>
                         <th>Analysts</th>
                         <th>Trail %</th>
+                        <th>Trail Propus</th>
                         <th># Stop</th>
                         <th>Suggested Stop</th>
                         <th>Investiție</th>
@@ -1553,6 +1554,17 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         if 'Buy' in str(cons): cons_style = 'color: #4caf50; font-weight: bold;'
         elif 'Sell' in str(cons): cons_style = 'color: #f44336; font-weight: bold;'
         analysts = row.get('Analysts', 0)
+        
+        # Calculate Trail LARG (Propus)
+        atr_pct = (row.get('Finviz_ATR', 0) / row.get('Price_Native', 1) * 100) if row.get('Price_Native', 0) > 0 and row.get('Finviz_ATR', 0) else 0
+        vol_w = row.get('Vol_W', 0) or 0
+        vol_m = row.get('Vol_M', 0) or 0
+        vols_valid = [v for v in [atr_pct, vol_w, vol_m] if v > 0]
+        trail_larg = max(vols_valid) * 3 if vols_valid else 0
+        
+        # Color green if Trail LARG >= Trail %
+        trail_larg_style = "color: #4caf50; font-weight: bold;" if trail_larg >= trail_pct_val else ""
+        trail_larg_display = f"{trail_larg:.1f}%" if trail_larg > 0 else "-"
 
         # Build Row HTML string (NO html_head += here)
         portfolio_rows_html += f"""
@@ -1573,6 +1585,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
                         <!-- Trail % -->
                         <td>{trail_pct_val:.1f}%</td>
+                        
+                        <!-- Trail Propus (LARG) -->
+                        <td style="{trail_larg_style}">{trail_larg_display}</td>
                         
                         <!-- Trail Stop -->
                         <td>{f"€{trail_stop_val}" if isinstance(trail_stop_val, (int, float)) or (isinstance(trail_stop_val, str) and trail_stop_val) else "-"}</td>
@@ -1947,12 +1962,18 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         # ATR percentage must be calculated using base currency price
         atr_pct = (atr / price_native * 100) if price_native and atr else 0
         
+        # Calculate Trail LARG (MAX × 3)
+        vols = [atr_pct, get_val(item, 'Vol_W'), get_val(item, 'Vol_M')]
+        vols_valid = [v for v in vols if v > 0]
+        trail_larg = max(vols_valid) * 3 if vols_valid else 0
+        
         vol_map[sym] = {
             'Price_Native': round(price_native, 2) if price_native else 0,
             'ATR_Val': round(atr, 2),
             'ATR_Pct': round(atr_pct, 2),
             'Vol_W': get_val(item, 'Vol_W'),
-            'Vol_M': get_val(item, 'Vol_M')
+            'Vol_M': get_val(item, 'Vol_M'),
+            'Trail_Larg': round(trail_larg, 2)
         }
         
     vol_json = json.dumps(vol_map)
