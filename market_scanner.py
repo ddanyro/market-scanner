@@ -277,6 +277,49 @@ def save_market_history(history):
     except Exception as e:
         print(f"Eroare salvare istoric: {e}")
 
+def calculate_historical_monthly_returns():
+    """Calculate average monthly returns for S&P 500 and NASDAQ since 1950."""
+    returns = {}
+    
+    indices = {
+        'SP500': '^GSPC',  # S&P 500
+        'NASDAQ': '^IXIC'  # NASDAQ Composite
+    }
+    
+    for name, ticker in indices.items():
+        try:
+            print(f"  → Calculez randamente istorice pentru {name}...")
+            data = yf.Ticker(ticker)
+            
+            # Get historical data from 1950 to today
+            hist = data.history(start="1950-01-01", end=datetime.datetime.now().strftime('%Y-%m-%d'))
+            
+            if hist.empty:
+                print(f"    ⚠️  Nu există date pentru {name}")
+                continue
+            
+            # Resample to monthly and calculate returns
+            monthly = hist['Close'].resample('M').last()
+            monthly_returns = monthly.pct_change().dropna() * 100  # Convert to percentage
+            
+            # Calculate average monthly return
+            avg_return = monthly_returns.mean()
+            
+            returns[name] = {
+                'avg_monthly_return': round(avg_return, 2),
+                'data_points': len(monthly_returns),
+                'start_date': monthly_returns.index[0].strftime('%Y-%m'),
+                'end_date': monthly_returns.index[-1].strftime('%Y-%m')
+            }
+            
+            print(f"    ✅ {name}: {avg_return:.2f}% avg monthly return ({len(monthly_returns)} months)")
+            
+        except Exception as e:
+            print(f"    ❌ Eroare la calculul randamentelor pentru {name}: {e}")
+            continue
+    
+    return returns
+
 def get_market_indicators():
     """Preia indicatori volum și sentiment, cu persistență locală."""
     indicators = {}
@@ -443,6 +486,11 @@ def get_market_indicators():
                 }
     except Exception as e:
         print(f"  ⚠ Eroare Crypto Fear: {str(e)[:40]}")
+    
+    # Calculate historical monthly returns
+    historical_returns = calculate_historical_monthly_returns()
+    if historical_returns:
+        indicators['Historical_Returns'] = historical_returns
     
     return indicators
 
@@ -1757,6 +1805,47 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 </table>
             </div>
     """
+    
+    # Add Historical Returns Card
+    if 'Historical_Returns' in market_indicators and market_indicators['Historical_Returns']:
+        hist_returns = market_indicators['Historical_Returns']
+        html_head += """
+            <div style="background: #2d2d2d; padding: 20px; border-radius: 10px; margin-top: 20px; border: 1px solid #444;">
+                <h4 style="color: #4dabf7; margin-top: 0; text-align: center;">📈 Randamente Lunare Istorice (1950 - Prezent)</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        """
+        
+        for name, data in hist_returns.items():
+            display_name = "S&P 500" if name == "SP500" else "NASDAQ"
+            avg_return = data.get('avg_monthly_return', 0)
+            data_points = data.get('data_points', 0)
+            start_date = data.get('start_date', '')
+            end_date = data.get('end_date', '')
+            
+            color = "#4caf50" if avg_return > 0 else "#f44336"
+            
+            html_head += f"""
+                    <div style="background: #1e1e1e; padding: 15px; border-radius: 8px; border: 1px solid #333;">
+                        <h5 style="color: #ba68c8; margin: 0 0 10px 0;">{display_name}</h5>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: {color}; margin-bottom: 5px;">
+                            {avg_return:+.2f}%
+                        </div>
+                        <div style="font-size: 0.8rem; color: #aaa;">
+                            Medie lunară<br>
+                            {data_points} luni ({start_date} - {end_date})
+                        </div>
+                    </div>
+            """
+        
+        html_head += """
+                </div>
+                <p style="text-align: center; color: #888; font-size: 0.8rem; margin-top: 15px; margin-bottom: 0;">
+                    * Date calculate pe baza prețurilor de închidere lunare din Yahoo Finance
+                </p>
+            </div>
+        """
+    
+    
     
     # Adăugăm analiza AI (News + Calendar)
     # Adăugăm analiza AI (News + Calendar)
