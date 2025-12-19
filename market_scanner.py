@@ -971,10 +971,13 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     total_profit_pct = ((total_value - total_investment) / total_investment * 100) if total_investment > 0 else 0
 
     # Citire parolă
-    password = "1234"
+    # Pe GitHub Actions ignorăm password.txt pentru securitate
+    is_github = os.environ.get('GITHUB_ACTIONS') == 'true'
+    password = "1234" # Default fallback
+    
     if 'PORTFOLIO_PASSWORD' in os.environ:
         password = os.environ['PORTFOLIO_PASSWORD']
-    elif os.path.exists("password.txt"):
+    elif not is_github and os.path.exists("password.txt"):
         try:
             with open("password.txt", "r") as f:
                 password = f.read().strip()
