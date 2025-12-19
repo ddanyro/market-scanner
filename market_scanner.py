@@ -1124,24 +1124,29 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             }
             
             function renderPortfolio(data) {
-                // Populate Table Body
+                // 1. Destroy existing DataTable FIRST (if any)
+                if (typeof $ !== 'undefined' && $.fn.DataTable) {
+                    if ($.fn.DataTable.isDataTable('#portfolio-table')) {
+                        $('#portfolio-table').DataTable().destroy();
+                    }
+                }
+                
+                // 2. Populate Table Body
                 const tbody = document.getElementById('portfolio-rows-body');
                 if (tbody) tbody.innerHTML = data.html;
                 
-                // Init Charts
+                // 3. Init Charts
                 initCharts(data.sparklines);
                 
-                // Re-Init DataTables (pentru Sortare)
+                // 4. Re-Init DataTables
                 if (typeof $ !== 'undefined' && $.fn.DataTable) {
                     try {
-                        if ($.fn.DataTable.isDataTable('#portfolio-table')) {
-                            $('#portfolio-table').DataTable().destroy();
-                        }
                         $('#portfolio-table').DataTable({
+                            destroy: true,
                             paging: false,
                             searching: true,
                             info: false,
-                            order: [] // Păstrează ordinea inițială
+                            order: [] // Preserve order from Python
                         });
                     } catch(e) { console.error("DataTable Init Error: ", e); }
                 }
