@@ -954,21 +954,47 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             if row['Profit'] > 0:
                 total_pos_profit += 1
                 
-            # Max Profit
-            if row['Target'] and pd.notna(row['Target']):
-                 mp = (row['Target'] - row['Buy_Price']) * row['Shares']
-                 total_max_profit += mp
+            # Max Profit (old logic, replaced by direct sum from df)
+            # if row['Target'] and pd.notna(row['Target']):
+            #      mp = (row['Target'] - row['Buy_Price']) * row['Shares']
+            #      total_max_profit += mp
             
-            # P/L la Stop
-            if row['Trail_Stop'] and pd.notna(row['Trail_Stop']) and row['Trail_Stop'] > 0:
-                 # Trail_Stop e deja convertit în EUR în dataframe? Verificăm process_portfolio_ticker.
-                 # Da, e convertit.
-                 pls = (row['Trail_Stop'] - row['Buy_Price']) * row['Shares']
-                 total_pl_at_stop += pls
-                 if pls > 0:
-                     total_pos_stop_profit += 1
+            # P/L la Stop (old logic, replaced by direct sum from df)
+            # if row['Trail_Stop'] and pd.notna(row['Trail_Stop']) and row['Trail_Stop'] > 0:
+            #      pls = (row['Trail_Stop'] - row['Buy_Price']) * row['Shares']
+            #      total_pl_at_stop += pls
+            #      if pls > 0:
+            #          total_pos_stop_profit += 1
 
+    # Calcul totaluri portofoliu
+    total_investment = portfolio_df['Investment'].sum() if not portfolio_df.empty else 0
+    total_value = portfolio_df['Current_Value'].sum() if not portfolio_df.empty else 0
+    total_profit = portfolio_df['Profit'].sum() if not portfolio_df.empty else 0
+    portfolio_df['Max_Profit'] = pd.to_numeric(portfolio_df['Max_Profit'], errors='coerce').fillna(0)
+    total_max_profit = portfolio_df['Max_Profit'].sum() if not portfolio_df.empty else 0
+    
+    # Calc P/L la Stop
+    total_pl_at_stop = 0
+    if not portfolio_df.empty:
+        for _, r in portfolio_df.iterrows():
+            if r['Trail_Stop'] and r['Trail_Stop'] > 0:
+                 diff = (r['Trail_Stop'] - r['Buy_Price']) * r['Shares']
+                 total_pl_at_stop += diff
+    
     total_profit_pct = ((total_value - total_investment) / total_investment * 100) if total_investment > 0 else 0
+
+    # Citire IBKR Stats (MTD/YTD)
+    ib_mtd = 0
+    ib_ytd = 0
+    has_stats = False
+    if os.path.exists('ib_stats.json'):
+         try:
+             with open('ib_stats.json') as f:
+                 st = json.load(f)
+                 ib_mtd = st.get('mtd_val', 0)
+                 ib_ytd = st.get('ytd_val', 0)
+                 has_stats = True
+         except: pass
 
     # Citire parolă
     # Pe GitHub Actions ignorăm password.txt pentru securitate
@@ -1205,6 +1231,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     <div class="summary-card">
                         <h3>Total P/L la Stop</h3>
                         <div class="value {'positive' if total_pl_at_stop >= 0 else 'negative'}">€{total_pl_at_stop:,.2f}</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>IBKR MTD</h3>
+                        <div class="value {'positive' if ib_mtd >= 0 else 'negative'}" title="Actualizat via Flex">€{ib_mtd:,.2f}</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>IBKR YTD</h3>
+                        <div class="value {'positive' if ib_ytd >= 0 else 'negative'}" title="Actualizat via Flex">€{ib_ytd:,.2f}</div>
                     </div>
                 </div>
             

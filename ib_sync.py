@@ -196,8 +196,6 @@ def sync_ibkr():
                                     mkt_val = float(pos.get('marketValue', 0))
                                     unreal_pnl = float(pos.get('unrealizedPNL', 0))
                                     
-                                    if ' ' in sym: sym = sym.replace(' ', '.')
-                                    
                                     invest = qty * avg_cost
                                     
                                     trail_data = orders_map.get(sym, {})
@@ -217,6 +215,30 @@ def sync_ibkr():
                                     positions.append(item)
                                 except ValueError:
                                     pass
+                            
+                            # === Parse Performance Stats (MTD/YTD) ===
+                            ib_stats = {}
+                            # Tag-urile variază, dar EquitySummaryByReportDateInBase este standard pentru Base Currency
+                            for summary in root_dl.iter('EquitySummaryByReportDateInBase'):
+                                try:
+                                    nav = float(summary.get('total', 0))
+                                    mtd_val = float(summary.get('mtmMTD', 0))
+                                    ytd_val = float(summary.get('mtmYTD', 0))
+                                    
+                                    ib_stats = {
+                                        'nav': nav,
+                                        'mtd_val': mtd_val,
+                                        'ytd_val': ytd_val,
+                                        'updated': datetime.now().strftime('%Y-%m-%d %H:%M')
+                                    }
+                                    print(f"  -> Statistici Extrase: NAV={nav:,.0f}, MTD={mtd_val:,.0f}, YTD={ytd_val:,.0f}")
+                                except: pass
+                            
+                            if ib_stats:
+                                import json
+                                with open('ib_stats.json', 'w') as f:
+                                    json.dump(ib_stats, f)
+                                    
                     else:
                         err = xml_root.find('ErrorMessage')
                         code = xml_root.find('ErrorCode')
