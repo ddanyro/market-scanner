@@ -724,6 +724,7 @@ def process_portfolio_ticker(row, vix_value, rates):
             'Symbol': ticker,
             'Shares': int(shares),
             'Current_Price': round(current_price, 2),
+            'Price_Native': round(current_price_native, 2),
             'Buy_Price': round(buy_price, 2),
             'Target': target_display,  # None dacă nu există
             'Trail_Stop': round(trail_stop_price, 2),
@@ -790,7 +791,8 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         
         last_row = df.iloc[-1]
         
-        last_close = get_scalar(last_row['Close']) * rate
+        last_close_native = get_scalar(last_row['Close']) 
+        last_close = last_close_native * rate
         last_atr = get_scalar(last_row['ATR']) * rate
         if pd.isna(last_atr): last_atr = 0.0
         
@@ -866,6 +868,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         result = {
             'Ticker': ticker,
             'Price': round(last_close, 2),
+            'Price_Native': round(last_close_native, 2),
             'Target': round(target_val, 2) if target_val else None,
             'Pct_To_Target': round(pct_to_target, 2) if pct_to_target is not None else None,
             'Consensus': consensus,
@@ -1857,10 +1860,12 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         if not sym: continue
         
         price = get_val(item, 'Current_Price') or get_val(item, 'Price')
+        price_native = get_val(item, 'Price_Native')
         atr = get_val(item, 'Finviz_ATR') or get_val(item, 'ATR_14')
         atr_pct = (atr / price * 100) if price and atr else 0
         
         vol_map[sym] = {
+            'Price_Native': round(price_native, 2) if price_native else 0,
             'ATR_Val': round(atr, 2),
             'ATR_Pct': round(atr_pct, 2),
             'Vol_W': get_val(item, 'Vol_W'),
@@ -1894,6 +1899,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                                 <th style="text-align: right; padding: 10px;">Value</th>
                           </tr>
                           <tr>
+                                <td style="padding: 10px;">Price (Base Currency)</td>
+                                <td id="res-price-native" style="text-align: right; font-weight: bold; color: #4caf50;">-</td>
+                          </tr>
+                          <tr>
                                 <td style="padding: 10px;">ATR (14) Value</td>
                                 <td id="res-atr-val" style="text-align: right; font-weight: bold; color: #ccc;">-</td>
                           </tr>
@@ -1920,6 +1929,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     const resDiv = document.getElementById('vol-results');
                     if (volData[val]) {
                          const d = volData[val];
+                         document.getElementById('res-price-native').innerText = d.Price_Native;
                          document.getElementById('res-atr-val').innerText = d.ATR_Val;
                          document.getElementById('res-atr').innerText = d.ATR_Pct + '%';
                          document.getElementById('res-week').innerText = d.Vol_W + '%';
