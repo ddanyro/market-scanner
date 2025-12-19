@@ -119,15 +119,8 @@ def main():
         for symbol in sorted(missing_symbols):
             print(f"  • {symbol}")
         
-        # Confirm before adding
-        try:
-            confirm = input("\nAdd these symbols to watchlist? (y/n): ").strip().lower()
-            if confirm == 'y':
-                add_symbols_to_watchlist(missing_symbols)
-            else:
-                print("❌ Cancelled")
-        except (EOFError, KeyboardInterrupt):
-            print("\n❌ Cancelled")
+        # Add to local watchlist automatically
+        add_symbols_to_watchlist(missing_symbols)
     else:
         print("\n✅ Local watchlist is up to date!")
     
