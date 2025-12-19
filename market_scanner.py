@@ -1688,6 +1688,12 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         
         <div id="watchlist" class="tab-content">
             
+            <!-- Watchlist Header -->
+            <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: #2d2d2d; border-radius: 8px; border: 1px solid #444;">
+                <h3 style="color: #ba68c8; margin: 0;">📊 Watchlist</h3>
+                <p style="color: #aaa; margin: 5px 0 0 0; font-size: 0.9rem;">Total Stocks: <strong style="color: #4dabf7;">{len(watchlist_df)}</strong></p>
+            </div>
+            
             <!-- Filters -->
             <div class="filters-container" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; background: #2d2d2d; padding: 15px; border-radius: 8px; border: 1px solid #444;">
                 <div style="display: flex; flex-direction: column;">
