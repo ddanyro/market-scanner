@@ -1861,6 +1861,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         atr_pct = (atr / price * 100) if price and atr else 0
         
         vol_map[sym] = {
+            'ATR_Val': round(atr, 2),
             'ATR_Pct': round(atr_pct, 2),
             'Vol_W': get_val(item, 'Vol_W'),
             'Vol_M': get_val(item, 'Vol_M')
@@ -1890,7 +1891,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                       <table style="width: 100%; border-collapse: collapse; color: #ddd;">
                           <tr style="border-bottom: 1px solid #444;">
                                 <th style="text-align: left; padding: 10px;">Metric</th>
-                                <th style="text-align: right; padding: 10px;">Value (%)</th>
+                                <th style="text-align: right; padding: 10px;">Value</th>
+                          </tr>
+                          <tr>
+                                <td style="padding: 10px;">ATR (14) Value</td>
+                                <td id="res-atr-val" style="text-align: right; font-weight: bold; color: #ccc;">-</td>
                           </tr>
                           <tr>
                                 <td style="padding: 10px;">ATR (14) Volatility</td>
@@ -1915,6 +1920,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     const resDiv = document.getElementById('vol-results');
                     if (volData[val]) {
                          const d = volData[val];
+                         document.getElementById('res-atr-val').innerText = d.ATR_Val;
                          document.getElementById('res-atr').innerText = d.ATR_Pct + '%';
                          document.getElementById('res-week').innerText = d.Vol_W + '%';
                          document.getElementById('res-month').innerText = d.Vol_M + '%';
