@@ -1922,6 +1922,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                           </tr>
                       </table>
                       
+                      <!-- Suggested Stop (ATR-based) -->
+                      <div style="margin-top: 20px; padding: 15px; background: #1e1e1e; border-radius: 8px; border: 1px solid #555;">
+                          <div style="display: flex; justify-content: space-between; align-items: center;">
+                              <span style="color: #aaa; font-size: 0.9rem;">💡 Suggested Stop (2×ATR):</span>
+                              <span id="suggested-stop" style="font-size: 1.1rem; font-weight: bold; color: #4dabf7;">-</span>
+                          </div>
+                      </div>
+                      
                       <!-- Trailing Stop Calculations -->
                       <h4 style="color: #ba68c8; margin-top: 30px; margin-bottom: 15px; text-align: center;">📊 Trailing Stop Levels</h4>
                       <table style="width: 100%; border-collapse: collapse; color: #ddd; margin-top: 10px;">
@@ -1971,6 +1979,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                          document.getElementById('res-atr').innerText = atrPct + '%';
                          document.getElementById('res-week').innerText = volW + '%';
                          document.getElementById('res-month').innerText = volM + '%';
+                         
+                         // Calculate and display Suggested Stop (Price - 2×ATR)
+                         const suggestedStop = price - (2 * d.ATR_Val);
+                         document.getElementById('suggested-stop').innerText = suggestedStop.toFixed(2);
                          
                          // Calculate trailing stop levels
                          const vols = [atrPct, volW, volM].filter(v => v > 0);
