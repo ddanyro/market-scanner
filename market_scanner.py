@@ -125,6 +125,73 @@ def load_portfolio(filename='portfolio.csv'):
     df.columns = [c.strip().lower() for c in df.columns]
     return df
 
+def sync_watchlist_from_remote(url="https://betty333ro.github.io/market-scanner/", filepath='watchlist.csv'):
+    """Sincronizează watchlist-ul cu pagina remote."""
+    try:
+        print(f"🔄 Sincronizare watchlist de pe {url}...")
+        
+        # Fetch remote page
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        
+        from bs4 import BeautifulSoup
+        import re
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Find all Finviz links
+        finviz_links = soup.find_all('a', href=re.compile(r'finviz\.com/quote\.ashx\?t='))
+        
+        if not finviz_links:
+            print("⚠️  Nu s-au găsit simboluri pe pagina remote")
+            return
+        
+        # Extract symbols
+        remote_symbols = set()
+        for link in finviz_links:
+            symbol = link.get_text(strip=True).upper()
+            if symbol:
+                remote_symbols.add(symbol)
+        
+        # Load local symbols
+        local_symbols = set()
+        if os.path.exists(filepath):
+            try:
+                df = pd.read_csv(filepath)
+                if 'symbol' in df.columns:
+                    local_symbols = set(df['symbol'].str.upper())
+            except:
+                pass
+        
+        # Find new symbols
+        new_symbols = remote_symbols - local_symbols
+        
+        if new_symbols:
+            print(f"  ✅ Găsite {len(new_symbols)} simboluri noi")
+            
+            # Add to watchlist
+            if os.path.exists(filepath):
+                df = pd.read_csv(filepath)
+            else:
+                df = pd.DataFrame(columns=['symbol'])
+            
+            new_rows = [{'symbol': s} for s in new_symbols]
+            df_new = pd.DataFrame(new_rows)
+            df = pd.concat([df, df_new], ignore_index=True)
+            
+            # Remove duplicates
+            df['symbol'] = df['symbol'].str.upper()
+            df = df.drop_duplicates(subset=['symbol'], keep='first')
+            
+            # Save
+            df.to_csv(filepath, index=False)
+            print(f"  ✅ Watchlist actualizat: {len(df)} simboluri total")
+        else:
+            print(f"  ✅ Watchlist la zi ({len(remote_symbols)} simboluri)")
+            
+    except Exception as e:
+        print(f"⚠️  Eroare la sincronizare watchlist: {e}")
+
 def load_watchlist(filename='watchlist.csv'):
     """Încarcă lista de tickere de urmărit din CSV."""
     if not os.path.exists(filename):
@@ -2267,6 +2334,10 @@ def update_portfolio_data(state, rates, vix_val):
 def update_watchlist_data(state, rates, vix_val):
     """Actualizează datele din watchlist și le salvează în state."""
     print("\n=== Actualizare Watchlist ===")
+    
+    # Sync watchlist from remote
+    sync_watchlist_from_remote()
+    
     watchlist_tickers = load_watchlist()
     watchlist_results = []
     
