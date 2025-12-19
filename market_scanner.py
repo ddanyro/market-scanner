@@ -1862,7 +1862,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         price = get_val(item, 'Current_Price') or get_val(item, 'Price')
         price_native = get_val(item, 'Price_Native')
         atr = get_val(item, 'Finviz_ATR') or get_val(item, 'ATR_14')
-        atr_pct = (atr / price * 100) if price and atr else 0
+        
+        # ATR percentage must be calculated using base currency price
+        atr_pct = (atr / price_native * 100) if price_native and atr else 0
         
         vol_map[sym] = {
             'Price_Native': round(price_native, 2) if price_native else 0,
