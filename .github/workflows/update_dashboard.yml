@@ -24,8 +24,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install pandas requests yfinance ib_insync beautifulsoup4 lxml pycryptodome -r requirements.txt
 
     - name: Run Market Scanner
       env:
@@ -34,6 +33,7 @@ jobs:
         GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }} # Optional/Deprecated
         IBKR_TOKEN: ${{ secrets.IBKR_TOKEN }}
         IBKR_QUERY_ID: ${{ secrets.IBKR_QUERY_ID }}
+        PORTFOLIO_PASSWORD: ${{ secrets.PORTFOLIO_PASSWORD }}
       run: python market_scanner.py --mode all
 
     - name: Commit and Push changes

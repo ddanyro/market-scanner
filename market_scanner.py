@@ -1,18 +1,52 @@
 import yfinance as yf
 import pandas as pd
-import numpy as np
-import datetime
-import os
-import sys
 import argparse
+import sys
+import datetime
+import time
+import os
+import requests
+import pandas as pd
+import numpy as np
+import xml.etree.ElementTree as ET
+from bs4 import BeautifulSoup
+import re
+import math
+import yfinance as yf
+# New imports for encryption
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Random import get_random_bytes
+from base64 import b64encode
 import json
 from market_scanner_analysis import generate_market_analysis  # Import modul analiză
-import time
-import csv
-import requests
-from bs4 import BeautifulSoup
 
 STATE_FILE = "dashboard_state.json"
+MARKET_HISTORY_FILE = "market_history.json"
+
+def encrypt_for_js(data, password):
+    """Criptează datele (JSON string) folosind AES-CBC compatibil cu CryptoJS."""
+    # 1. Generate Salt and Key
+    salt = get_random_bytes(16)
+    # Key derivation: PBKDF2 using SHA256 (default for many) or SHA1. 
+    # CryptoJS default PBKDF2 uses SHA1! We must match. Or specify SHA256 in JS.
+    # Let's use SHA256 for better security and specify it in JS.
+    from Crypto.Hash import SHA256
+    key = PBKDF2(password, salt, dkLen=32, count=1000, hmac_hash_module=SHA256)
+    
+    # 2. Encrypt
+    iv = get_random_bytes(16)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    padded_data = pad(data.encode('utf-8'), AES.block_size)
+    ciphertext = cipher.encrypt(padded_data)
+    
+    # 3. Return format
+    return json.dumps({
+        "salt": b64encode(salt).decode('utf-8'),
+        "iv": b64encode(iv).decode('utf-8'),
+        "ciphertext": b64encode(ciphertext).decode('utf-8')
+    })
 
 def load_state():
     if os.path.exists(STATE_FILE):
@@ -132,14 +166,15 @@ def get_vix_data():
         print(f"Eroare la preluarea VIX: {e}")
         return None
 
-import json
+# The original HISTORY_FILE definition was here, now it's MARKET_HISTORY_FILE at the top.
+# import json # This import is already at the top.
 
-HISTORY_FILE = "market_history.json"
+# HISTORY_FILE = "market_history.json" # This is now MARKET_HISTORY_FILE at the top.
 
 def load_market_history():
-    if os.path.exists(HISTORY_FILE):
+    if os.path.exists(MARKET_HISTORY_FILE):
         try:
-            with open(HISTORY_FILE, 'r') as f:
+            with open(MARKET_HISTORY_FILE, 'r') as f:
                 return json.load(f)
         except:
             return {}
@@ -937,7 +972,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
     # Citire parolă
     password = "1234"
-    if os.path.exists("password.txt"):
+    if 'PORTFOLIO_PASSWORD' in os.environ:
+        password = os.environ['PORTFOLIO_PASSWORD']
+    elif os.path.exists("password.txt"):
         try:
             with open("password.txt", "r") as f:
                 password = f.read().strip()
@@ -993,30 +1030,109 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             /* Hide sorting icons if they clash or let them be */
         </style>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <!-- CryptoJS for AES Decryption -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+        
         <script>
-            const APP_PASS = "{password}";
+            // Variabila cu datele criptate va fi injectată aici de Python
+            // const ENCRYPTED_DATA = { ... }; 
             
-            function unlockPortfolio() {{
+            function unlockPortfolio() {
                 const input = document.getElementById('pf-pass').value;
-                if (input === APP_PASS) {{
-                    document.getElementById('portfolio-lock').style.display = 'none';
-                    document.getElementById('portfolio-data').style.display = 'block';
-                    sessionStorage.setItem('pf_auth', 'true');
-                }} else {{
-                    alert('PIN Incorect');
-                }}
-            }}
+                if (!input) return;
+                
+                try {
+                    // Decrypt
+                    // ENCRYPTED_DATA is defined below in the body/script injection
+                    if (typeof ENCRYPTED_DATA === 'undefined') {
+                        alert('Eroare: Datele criptate lipsesc.');
+                        return;
+                    }
+                    
+                    const salt = CryptoJS.enc.Base64.parse(ENCRYPTED_DATA.salt);
+                    const iv = CryptoJS.enc.Base64.parse(ENCRYPTED_DATA.iv);
+                    const ciphertext = ENCRYPTED_DATA.ciphertext;
+                    
+                    // Derive Key matches Python PBKDF2 (SHA256, 1000 iter, 32 bytes)
+                    const key = CryptoJS.PBKDF2(input, salt, { 
+                        keySize: 256/32, 
+                        iterations: 1000,
+                        hasher: CryptoJS.algo.SHA256
+                    });
+                    
+                    const decrypted = CryptoJS.AES.decrypt(ciphertext, key, { 
+                        iv: iv, 
+                        padding: CryptoJS.pad.Pkcs7,
+                        mode: CryptoJS.mode.CBC
+                    });
+                    
+                    const strData = decrypted.toString(CryptoJS.enc.Utf8);
+                    
+                    if (!strData) {
+                        alert('Parolă Incorectă (Decriptare eșuată)');
+                    } else {
+                        const data = JSON.parse(strData);
+                        renderPortfolio(data);
+                        
+                        document.getElementById('portfolio-lock').style.display = 'none';
+                        document.getElementById('portfolio-data').style.display = 'block';
+                        sessionStorage.setItem('pf_auth', 'true'); // Optional: store flag, but can't store password safely
+                        // Store decrypted data? No, keep in memory.
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('Parolă Incorectă sau Eroare Decriptare.');
+                }
+            }
             
-            function checkPortfolioAuth() {{
-                if (sessionStorage.getItem('pf_auth') === 'true') {{
-                    document.getElementById('portfolio-lock').style.display = 'none';
-                    document.getElementById('portfolio-data').style.display = 'block';
-                }}
-            }}
+            function renderPortfolio(data) {
+                // Populate Table Body
+                const tbody = document.getElementById('portfolio-rows-body');
+                if (tbody) tbody.innerHTML = data.html;
+                
+                // Init Charts
+                initCharts(data.sparklines);
+            }
             
-            // Inplace editing removed as per user request
-            // Just portfolio check
-            window.addEventListener('load', checkPortfolioAuth);
+            function initCharts(sparklines) {
+                if (!sparklines) return;
+                
+                Object.keys(sparklines).forEach(function(sparkId) {
+                    const ctx = document.getElementById(sparkId);
+                    if (!ctx) return;
+                    
+                    const dataPoints = sparklines[sparkId];
+                    if (!dataPoints || dataPoints.length === 0) return;
+                    
+                    // Logică colorare (replicată din Python logic, dar simplificată aici)
+                    // Stock logic: Up = Green
+                    const isUp = dataPoints[dataPoints.length - 1] >= dataPoints[0];
+                    const color = isUp ? '#4caf50' : '#f44336';
+                    
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: Array(dataPoints.length).fill(''),
+                            datasets: [{
+                                data: dataPoints,
+                                borderColor: color,
+                                borderWidth: 1.5,
+                                fill: false,
+                                pointRadius: 0,
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                            scales: { x: { display: false }, y: { display: false } }
+                        }
+                    });
+                });
+            }
+            
+            // Auto unlock if dev mode? No.
         </script>
     </head>
     <body>
@@ -1111,10 +1227,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Trend</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="portfolio-rows-body">
+                    <!-- Rows will be injected by JS after decryption -->
     """
     
-    # Portfolio rows
+    # Portfolio rows generation (for encryption)
+    portfolio_rows_html = ""
+    sparkline_data = {}
+    
     chart_id = 0
     for _, row in portfolio_df.iterrows():
         trend_cls = row['Trend'].replace(' ', '-')
@@ -1128,13 +1248,16 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             pct_display = f"{pct_to_target:.1f}%"
             max_profit_display = f"€{row['Max_Profit']:,.2f}" if row['Max_Profit'] and pd.notna(row['Max_Profit']) else "N/A"
         else:
-            pct_to_target = 0  # Initialize to avoid UnboundLocalError
+            pct_to_target = 0
             target_display = "N/A"
             pct_display = "N/A"
             max_profit_display = "N/A"
         
         sparkline_id = f"spark_{chart_id}"
         chart_id += 1
+        
+        # Save sparkline data for JS
+        sparkline_data[sparkline_id] = row['Sparkline']
         
         # P/L la Stop Calc
         pl_at_stop_display = "-"
@@ -1144,24 +1267,22 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             pl_at_stop_display = f"€{pl_at_stop:,.2f}"
             pl_at_stop_class = "positive" if pl_at_stop > 0 else "negative"
         
-        # Prepare values for inputs (handle N/A or strings)
         target_val = row['Target'] if row['Target'] and pd.notna(row['Target']) else ""
         if isinstance(target_val, (int, float)): target_val = f"{target_val:.2f}"
         
         trail_pct_val = row['Trail_Pct'] if pd.notna(row['Trail_Pct']) else 0
-        
         trail_stop_val = row['Trail_Stop'] if row['Trail_Stop'] and pd.notna(row['Trail_Stop']) and row['Trail_Stop'] > 0 else ""
         if isinstance(trail_stop_val, (int, float)): trail_stop_val = f"{trail_stop_val:.2f}"
 
-        # Consensus color
+        # Consensus
         cons = row.get('Consensus', '-')
         cons_style = ""
         if 'Buy' in str(cons): cons_style = 'color: #4caf50; font-weight: bold;'
         elif 'Sell' in str(cons): cons_style = 'color: #f44336; font-weight: bold;'
-        
         analysts = row.get('Analysts', 0)
 
-        html_head += f"""
+        # Build Row HTML string (NO html_head += here)
+        portfolio_rows_html += f"""
                     <tr id="row-{row['Symbol']}" data-price="{row['Current_Price']}" data-buy="{row['Buy_Price']}" data-shares="{row['Shares']}">
                         <td><strong>{row['Symbol']}</strong></td>
                         <td>{row['Shares']}</td>
@@ -1169,19 +1290,18 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <td>€{row['Current_Price']:.2f}</td>
                         <td><canvas id="{sparkline_id}" class="sparkline-container"></canvas></td>
                         
-                        <!-- TARGET (Static/Auto) -->
+                        <!-- TARGET -->
                         <td>{target_display}</td>
-                        
                         <td class="{'positive' if pct_to_target > 0 else 'negative' if row['Target'] else ''}">{pct_display}</td>
                         
                         <!-- Consensus -->
                         <td style="{cons_style}">{cons}</td>
                         <td>{analysts}</td>
 
-                        <!-- Trail % (Static) -->
+                        <!-- Trail % -->
                         <td>{trail_pct_val:.1f}%</td>
                         
-                        <!-- Trail Stop (Static) -->
+                        <!-- Trail Stop -->
                         <td>{f"€{trail_stop_val}" if isinstance(trail_stop_val, (int, float)) or (isinstance(trail_stop_val, str) and trail_stop_val) else "-"}</td>
                         
                         <td>€{row['Suggested_Stop']:.2f}</td>
@@ -1193,7 +1313,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <!-- P/L la Stop -->
                         <td class="{pl_at_stop_class}">{pl_at_stop_display}</td>
                         
-                        <!-- MAX PROFIT (Recalculated via JS) -->
+                        <!-- Max Profit -->
                         <td id="cell-{row['Symbol']}-maxprofit">{max_profit_display}</td>
                         
                         <td class="rsi-{status_cls}">{row['Status']}</td>
@@ -1201,10 +1321,27 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     </tr>
         """
         
-    html_head += """
+    # Encrypt Data
+    full_pf_data = {
+        "html": portfolio_rows_html,
+        "sparklines": sparkline_data
+    }
+    # Use password variable (should be defined)
+    if not password: password = "1234" # Fallback
+    
+    # print(f"  Encrypting Portfolio with password: {password}")
+    encrypted_blob = encrypt_for_js(json.dumps(full_pf_data), password)
+    
+    html_head += f"""
                 </tbody>
             </table>
             </div> <!-- End table-container -->
+            
+            <!-- Encrypted Data Injection -->
+            <script>
+                const ENCRYPTED_DATA = {encrypted_blob};
+            </script>
+            
         </div> <!-- End portfolio-data -->
         </div> <!-- End portfolio Tab -->
         
