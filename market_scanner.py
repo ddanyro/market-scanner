@@ -1032,6 +1032,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             }}
             /* Hide sorting icons if they clash or let them be */
         </style>
+    """
+    
+    # JS Block (Raw String to avoid f-string syntax errors with { })
+    html_head += """
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
         <!-- CryptoJS for AES Decryption -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
@@ -1137,6 +1141,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             
             // Auto unlock if dev mode? No.
         </script>
+    """
+    
+    # Continue HTML (f-string again for {timestamp})
+    html_head += f"""
     </head>
     <body>
     
