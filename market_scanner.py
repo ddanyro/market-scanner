@@ -305,11 +305,17 @@ def calculate_historical_monthly_returns():
             # Calculate average monthly return
             avg_return = monthly_returns.mean()
             
+            # Calculate average return for each calendar month (1-12)
+            monthly_returns_df = monthly_returns.to_frame('return')
+            monthly_returns_df['month'] = monthly_returns_df.index.month
+            monthly_averages = monthly_returns_df.groupby('month')['return'].mean().to_dict()
+            
             returns[name] = {
                 'avg_monthly_return': round(avg_return, 2),
                 'data_points': len(monthly_returns),
                 'start_date': monthly_returns.index[0].strftime('%Y-%m'),
-                'end_date': monthly_returns.index[-1].strftime('%Y-%m')
+                'end_date': monthly_returns.index[-1].strftime('%Y-%m'),
+                'monthly_averages': {int(k): round(v, 2) for k, v in monthly_averages.items()}
             }
             
             print(f"    ✅ {name}: {avg_return:.2f}% avg monthly return ({len(monthly_returns)} months)")
@@ -1845,10 +1851,18 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         next_month_date = now + datetime.timedelta(days=32)
         next_month_date = next_month_date.replace(day=1)
         next_month = next_month_date.strftime('%B %Y')
+        next_month_num = next_month_date.month
         
         # Calculate date range for next month
         last_day = calendar.monthrange(next_month_date.year, next_month_date.month)[1]
         next_month_range = f"{next_month_date.strftime('%d %b')} - {next_month_date.replace(day=last_day).strftime('%d %b %Y')}"
+        
+        # Get expected returns for next month
+        sp500_next = hist_returns.get('SP500', {}).get('monthly_averages', {}).get(next_month_num, 0)
+        nasdaq_next = hist_returns.get('NASDAQ', {}).get('monthly_averages', {}).get(next_month_num, 0)
+        
+        sp500_color = "#4caf50" if sp500_next > 0 else "#f44336"
+        nasdaq_color = "#4caf50" if nasdaq_next > 0 else "#f44336"
         
         html_head += f"""
                 </div>
@@ -1863,6 +1877,23 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                             <div style="color: #ba68c8; font-weight: bold; margin-bottom: 5px;">📅 Luna Următoare</div>
                             <div style="color: #fff; font-size: 1.1rem;">{next_month}</div>
                             <div style="color: #888; font-size: 0.8rem; margin-top: 3px;">{next_month_range}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
+                        <div style="color: #ba68c8; font-weight: bold; text-align: center; margin-bottom: 10px;">Randamente Așteptate pentru {next_month_date.strftime('%B')}</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center;">
+                            <div>
+                                <div style="color: #aaa; font-size: 0.85rem;">S&P 500</div>
+                                <div style="font-size: 1.3rem; font-weight: bold; color: {sp500_color};">{sp500_next:+.2f}%</div>
+                            </div>
+                            <div>
+                                <div style="color: #aaa; font-size: 0.85rem;">NASDAQ</div>
+                                <div style="font-size: 1.3rem; font-weight: bold; color: {nasdaq_color};">{nasdaq_next:+.2f}%</div>
+                            </div>
+                        </div>
+                        <div style="text-align: center; color: #666; font-size: 0.75rem; margin-top: 8px;">
+                            Bazat pe media istorică pentru {next_month_date.strftime('%B')}
                         </div>
                     </div>
                 </div>
