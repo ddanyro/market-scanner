@@ -1,16 +1,46 @@
 #!/usr/bin/env python3
 """
 Script to sync watchlist from remote GitHub Pages dashboard.
-Since the remote dashboard uses encrypted data, this version accepts manual input.
-
-Usage:
-    python3 sync_watchlist.py
-    
-Then paste symbols from https://betty333ro.github.io/market-scanner/ (one per line)
+Fetches symbols from https://betty333ro.github.io/market-scanner/ and adds missing ones to local watchlist.csv
 """
 
+import requests
+from bs4 import BeautifulSoup
 import pandas as pd
 import os
+import re
+
+
+def fetch_remote_watchlist(url="https://betty333ro.github.io/market-scanner/"):
+    """Fetch watchlist symbols from remote dashboard."""
+    print(f"📡 Fetching watchlist from {url}...")
+    
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Find all Finviz links
+        finviz_links = soup.find_all('a', href=re.compile(r'finviz\.com/quote\.ashx\?t='))
+        
+        if not finviz_links:
+            print("❌ Could not find any Finviz links on remote page")
+            return []
+        
+        symbols = []
+        for link in finviz_links:
+            # Extract symbol from link text
+            symbol = link.get_text(strip=True)
+            if symbol and symbol not in symbols:
+                symbols.append(symbol.upper())
+        
+        print(f"✅ Found {len(symbols)} symbols in remote watchlist")
+        return symbols
+        
+    except Exception as e:
+        print(f"❌ Error fetching remote watchlist: {e}")
+        return []
 
 
 def load_local_watchlist(filepath='watchlist.csv'):
@@ -69,52 +99,19 @@ def main():
     print("=" * 60)
     print("🔄 Watchlist Sync Tool")
     print("=" * 60)
-    print("\n📋 Manual Input Mode")
-    print("=" * 60)
-    print("\nPlease visit: https://betty333ro.github.io/market-scanner/")
-    print("\nSteps:")
-    print("1. Open the Watchlist tab")
-    print("2. Copy all symbols (one per line)")
-    print("3. Paste them below")
-    print("\nEnter symbols (one per line, press Ctrl+D or enter empty line twice to finish):")
-    print("-" * 60)
     
-    remote_symbols = []
-    empty_count = 0
-    
-    try:
-        while True:
-            try:
-                line = input().strip()
-            except EOFError:
-                break
-                
-            if not line:
-                empty_count += 1
-                if empty_count >= 2:
-                    break
-                continue
-            empty_count = 0
-            
-            # Extract just the symbol (first word, uppercase)
-            symbol = line.split()[0].upper()
-            if symbol and symbol not in remote_symbols:
-                remote_symbols.append(symbol)
-    except KeyboardInterrupt:
-        print("\n\n⚠️  Interrupted by user")
-        return
+    # Fetch remote symbols
+    remote_symbols = fetch_remote_watchlist()
     
     if not remote_symbols:
-        print("\n❌ No symbols entered. Exiting.")
+        print("\n❌ No symbols fetched from remote. Exiting.")
         return
-    
-    print(f"\n✅ Received {len(remote_symbols)} symbols")
     
     # Load local symbols
     local_symbols = load_local_watchlist()
     
     # Find missing symbols
-    remote_set = set(remote_symbols)
+    remote_set = set(s.upper() for s in remote_symbols)
     missing_symbols = remote_set - local_symbols
     
     if missing_symbols:
