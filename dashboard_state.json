@@ -441,6 +441,9 @@
     "Historical_Returns": {
       "SP500": {
         "avg_monthly_return": 0.75,
+        "data_points": 911,
+        "start_date": "1950-02",
+        "end_date": "2025-12",
         "monthly_averages": {
           "1": 1.07,
           "2": -0.03,
@@ -458,6 +461,9 @@
       },
       "NASDAQ": {
         "avg_monthly_return": 1.01,
+        "data_points": 658,
+        "start_date": "1971-03",
+        "end_date": "2025-12",
         "monthly_averages": {
           "1": 2.5,
           "2": 0.47,
