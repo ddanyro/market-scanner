@@ -2002,13 +2002,16 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             
             # Only include if Trail LARG < Trail % (red)
             if trail_larg > 0 and trail_pct > 0 and trail_larg < trail_pct and old_stop > 0:
-                # Get current price
-                price_eur = row.get('Current_Price', 0) or 0
+                # Reconstruct original price when stop was set
+                # Price = Stop / (1 - Trail% / 100)
+                original_price = old_stop / (1 - trail_pct / 100)
                 
-                # Calculate adjusted stop: Price × (1 - Trail LARG / 100)
-                new_stop = price_eur * (1 - trail_larg / 100)
+                # Apply new trail to original price
+                # New Stop = Original Price × (1 - Trail LARG / 100)
+                new_stop = original_price * (1 - trail_larg / 100)
                 
                 # Get conversion rate (EUR to base currency)
+                price_eur = row.get('Current_Price', 0) or 0
                 price_native = row.get('Price_Native', 0) or 0
                 rate = price_native / price_eur if price_eur > 0 else 1
                 
