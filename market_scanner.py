@@ -2271,8 +2271,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 
                 // Function to navigate to Volatility Calculator with symbol
                 function goToVolatility(symbol) {
-                    // Save current tab
-                    const currentTab = document.querySelector('.tab-content[style*="display: block"]');
+                    // Save current tab by checking for active class
+                    const currentTab = document.querySelector('.tab-content.active');
                     if (currentTab) {
                         sourceTab = currentTab.id;
                     }
