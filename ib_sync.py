@@ -216,25 +216,35 @@ def sync_ibkr():
                                 except ValueError:
                                     pass
                             
+
+                            
                             # === Parse Performance Stats (MTD/YTD) ===
                             ib_stats = {}
-                            # Tag-urile variază, dar EquitySummaryByReportDateInBase este standard pentru Base Currency
-                            for summary in root_dl.iter('EquitySummaryByReportDateInBase'):
-                                try:
-                                    nav = float(summary.get('total', 0))
-                                    mtd_val = float(summary.get('mtmMTD', 0))
-                                    ytd_val = float(summary.get('mtmYTD', 0))
-                                    
-                                    ib_stats = {
-                                        'nav': nav,
-                                        'mtd_val': mtd_val,
-                                        'ytd_val': ytd_val,
-                                        'updated': datetime.now().strftime('%Y-%m-%d %H:%M')
-                                    }
-                                    print(f"  -> Statistici Extrase: NAV={nav:,.0f}, MTD={mtd_val:,.0f}, YTD={ytd_val:,.0f}")
-                                except: pass
                             
-                            if ib_stats:
+                            # Tag corect detectat: MTDYTDPerformanceSummary -> Children: MTDYTDPerformanceSummaryUnderlying
+                            # Trebuie să sumăm tot pentru că vine defalcat per simbol
+                            total_mtd = 0.0
+                            total_ytd = 0.0
+                            found_stats = False
+                            
+                            for summary in root_dl.iter('MTDYTDPerformanceSummary'):
+                                for child in summary:
+                                    try:
+                                        mtd = float(child.get('mtmMTD', 0))
+                                        ytd = float(child.get('mtmYTD', 0))
+                                        total_mtd += mtd
+                                        total_ytd += ytd
+                                        found_stats = True
+                                    except: pass
+                            
+                            if found_stats:
+                                ib_stats = {
+                                    'mtd_val': total_mtd,
+                                    'ytd_val': total_ytd,
+                                    'updated': datetime.now().strftime('%Y-%m-%d %H:%M')
+                                }
+                                print(f"  -> Statistici Extrase (Sum): MTD={total_mtd:,.2f}, YTD={total_ytd:,.2f}")
+                                
                                 import json
                                 with open('ib_stats.json', 'w') as f:
                                     json.dump(ib_stats, f)
@@ -318,202 +328,9 @@ def sync_ibkr():
                     if t_pct > 0:
                         new_df.loc[mask, 'Trail_Pct'] = t_pct
         except Exception as e:
-                
-                # Check for Trail
-                order_type = order.get('orderType', '').upper()
-                if 'TRAIL' in order_type:
-                    # Trailing Percent
-                    trail_pct = float(order.get('trailingPercent', 0))
-                    
-                    # Stop Price (Trigger)
-                    # Flex attributes: 'auxPrice' (trail amount), 'stopPrice' (current trigger)
-                    stop_price = float(order.get('stopPrice', 0))
-                    
-                    # Dacă avem procent, salvăm
-                    if trail_pct > 0:
-                        orders_map[sym] = {'trail_pct': trail_pct, 'trail_stop': stop_price}
-                        print(f"  → Găsit Ordin TRAIL pentru {sym}: {trail_pct}% (Stop: {stop_price})")
-            except Exception as e:
-                # print(f"Err parse order: {e}") 
-                pass
-
-                # print(f"Err parse order: {e}") 
-                pass
-
-        positions = []
-        
-        # Check Flex Date vs Today for Fallback
-        use_tws_backup = False
-        today_str = datetime.now().strftime('%Y%m%d')
-        flex_date_str = None
-        
-        stm = root.find('.//FlexStatement')
-        if stm is not None:
-             flex_date_str = stm.get('toDate')
-             
-        if flex_date_str and flex_date_str < today_str:
-             print(f"Avertisment: Date Flex vechi ({flex_date_str} vs {today_str}).")
-             if os.path.exists('tws_positions.csv'):
-                  mt = os.path.getmtime('tws_positions.csv')
-                  # Dacă fișierul TWS e de azi (mai recent de miezul nopții sau macar last hour)
-                  # Considerăm de azi
-                  if datetime.fromtimestamp(mt).strftime('%Y%m%d') == today_str:
-                       print("  -> Folosim date LIVE din TWS (tws_positions.csv) ca backup.")
-                       use_tws_backup = True
-                  else:
-                       print("  -> Backup TWS e vechi. Folosim Flex (chiar dacă e vechi).")
-             else:
-                  print("  -> Lipsă backup TWS. Folosim Flex.")
-        
-        if use_tws_backup:
-             try:
-                 tdf = pd.read_csv('tws_positions.csv')
-                 for _, r in tdf.iterrows():
-                      invest = float(r['Shares']) * float(r['Buy_Price'])
-                      positions.append({
-                          'Symbol': str(r['Symbol']),
-                          'Shares': float(r['Shares']),
-                          'Buy_Price': float(r['Buy_Price']),
-                          'Current_Price': float(r['Buy_Price']), # Placeholder, update later
-                          'Current_Value': invest,
-                          'Profit': 0,
-                          'Profit_Pct': 0,
-                          'Investment': invest,
-                          'Trail_Pct': 0,
-                          'Trail_Stop_IBKR': 0
-                      })
-             except Exception as ex:
-                 print(f"Eroare citire TWS Backup: {ex}. Revert to Flex.")
-                 use_tws_backup = False
+            print(f"Eroare procesare TWS Orders: {e}")
 
         
-        # Căutăm recursiv orice tag OpenPosition (Logica Standard)
-        for pos in root.iter('OpenPosition'):
-            if use_tws_backup: break # Skip Flex parsing if TWS backup is used
-            # Citim atributele. Numele atributelor depind de config-ul query-ului, 
-            # dar de obicei sunt 'symbol', 'position', 'markPrice', 'costBasisPrice' (sau 'avgPrice')
-            
-            # Verificăm ce atribute avem disponibile (pentru debug)
-            # print(pos.attrib) 
-            
-            sym = pos.get('symbol')
-            if not sym: continue
-            
-            try:
-                qty = float(pos.get('position', 0))
-                if qty == 0: continue
-                
-                # Prețuri
-                # Uneori e 'costBasisPrice', alteori 'avgPrice'
-                avg_cost = float(pos.get('costBasisPrice', 0))
-                if avg_cost == 0: avg_cost = float(pos.get('avgPrice', 0))
-                
-                mkt_price = float(pos.get('markPrice', 0))
-                if mkt_price == 0: mkt_price = float(pos.get('closePrice', 0))
-                
-                mkt_val = float(pos.get('marketValue', 0))
-                unreal_pnl = float(pos.get('unrealizedPNL', 0)) # sau 'fifoPnlUnrealized'
-                
-                # Gestionare simboluri cu spațiu (BRK B) sau "/"
-                if ' ' in sym: sym = sym.replace(' ', '.')
-                
-                # Logică profit pct fallback
-                calc_profit_pct = 0.0
-                invest = qty * avg_cost
-                if invest != 0:
-                    calc_profit_pct = (unreal_pnl / invest) * 100
-                
-                # Verificăm dacă avem date de Trail din Orders
-                trail_data = orders_map.get(sym, {})
-                
-                item = {
-                    'Symbol': sym,
-                    'Shares': qty,
-                    'Buy_Price': avg_cost, 
-                    'Current_Price': mkt_price,
-                    'Current_Value': mkt_val,
-                    'Profit': unreal_pnl,
-                    'Profit_Pct': calc_profit_pct,
-                    'Investment': invest,
-                    'Trail_Pct': trail_data.get('trail_pct', 0),
-                    'Trail_Stop_IBKR': trail_data.get('trail_stop', 0) # Salvăm explicit ca IBKR Stop
-                }
-                positions.append(item)
-            except ValueError:
-                continue
-            
-        # === Integrare Portofoliu Manual (Tradeville/Altele) ===
-        MANUAL_FILE = 'tradeville_portfolio.csv'
-        if os.path.exists(MANUAL_FILE):
-             print(f"Adăugare poziții manuale din {MANUAL_FILE}...")
-             try:
-                 man_df = pd.read_csv(MANUAL_FILE)
-                 for _, row in man_df.iterrows():
-                     sym = str(row.get('Symbol', '')).strip()
-                     if not sym or sym.lower() == 'nan': continue
-                     
-                     try:
-                         qty = float(row.get('Shares', 0))
-                         bp = float(row.get('Buy_Price', 0))
-                         
-                         # Verificăm dacă simbolul există deja (din IBKR) pt a nu duplica
-                         exists = any(p['Symbol'] == sym for p in positions)
-                         if exists:
-                             print(f"  Info: Simbolul {sym} există deja în IBKR, se ignoră cel manual.")
-                             continue
-                         
-                         item = {
-                             'Symbol': sym,
-                             'Shares': qty,
-                             'Buy_Price': bp,
-                             'Current_Price': 0.0,
-                             'Current_Value': 0.0,
-                             'Profit': 0.0,
-                             'Profit_Pct': 0.0,
-                             'Investment': qty * bp,
-                             'Trail_Pct': float(row.get('Trail_Pct', 0)),
-                             'Trail_Stop_IBKR': 0 # Manual nu are IBKR Stop
-                         }
-                         positions.append(item)
-                     except: pass
-             except Exception as e:
-                 print(f"Eroare încărcare manual portfolio: {e}")
-
-        if not positions:
-            print("Nicio poziție găsită (nici în IBKR, nici manual).")
-            # return False # Nu returnam False, poate e doar un portofoliu gol temporar
-            
-        print(f"Total poziții pentru analiză: {len(positions)}")
-        
-        # Creare DataFrame
-        new_df = pd.DataFrame(positions)
-        
-        # === Integrare TWS Orders (Live Stops) ===
-        TWS_ORDERS_FILE = 'tws_orders.csv'
-        if os.path.exists(TWS_ORDERS_FILE):
-            print(f"Integrare date ordine live din {TWS_ORDERS_FILE}...")
-            try:
-                tws_df = pd.read_csv(TWS_ORDERS_FILE)
-                # Mapăm Symbol -> Stop/Trail
-                # Presupunem că un simbol are un singur ordin active de tip Sell (Stop). Luăm primul găsit.
-                
-                for _, row in tws_df.iterrows():
-                    t_sym = str(row.get('Symbol', ''))
-                    t_stop = float(row.get('Calculated_Stop', 0))
-                    t_pct = float(row.get('Trail_Pct', 0))
-                    
-                    # Căutăm în new_df și updatăm
-                    mask = new_df['Symbol'] == t_sym
-                    if mask.any():
-                        if t_stop > 0:
-                            new_df.loc[mask, 'Trail_Stop_IBKR'] = t_stop
-                            # Putem actualiza si 'Trail_Stop' generic daca vrem sa suprascriem manualul? 
-                            # Mai bine lasam Trail_Stop_IBKR separat si il decidem la afisare sau merge.
-                        if t_pct > 0:
-                            new_df.loc[mask, 'Trail_Pct'] = t_pct
-            except Exception as e:
-                print(f"Eroare procesare TWS Orders: {e}")
-                
         # Merge cu preferințele locale (CSV vechi)
         
         if os.path.exists(PORTFOLIO_FILE):
@@ -546,9 +363,7 @@ def sync_ibkr():
         print("Portofoliu actualizat cu succes!")
         return True
 
-    except Exception as e:
-        print(f"Eroare procesare raport: {e}")
-        return False
+
 
 if __name__ == "__main__":
     sync_ibkr()
