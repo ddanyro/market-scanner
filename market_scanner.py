@@ -1236,10 +1236,6 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <h3>IBKR MTD</h3>
                         <div class="value {'positive' if ib_mtd >= 0 else 'negative'}" title="Actualizat via Flex">€{ib_mtd:,.2f}</div>
                     </div>
-                    <div class="summary-card">
-                        <h3>IBKR YTD</h3>
-                        <div class="value {'positive' if ib_ytd >= 0 else 'negative'}" title="Actualizat via Flex">€{ib_ytd:,.2f}</div>
-                    </div>
                 </div>
             
             <div style="text-align: right; color: #888; font-size: 0.8rem; margin-bottom: 10px; padding-right: 10px;">
