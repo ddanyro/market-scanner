@@ -2040,7 +2040,12 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
         <!-- Volatility Tab -->
         <div id="volatility" class="tab-content">
-             <h3 style="color: #ba68c8; text-align: center; margin-bottom: 20px;">📉 Volatility Calculator</h3>
+             <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px; position: relative;">
+                 <button id="vol-back-btn" onclick="goBackFromVolatility()" style="position: absolute; left: 20px; padding: 8px 16px; background: #444; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">
+                     ← Back
+                 </button>
+                 <h3 style="color: #ba68c8; margin: 0;">📉 Volatility Calculator</h3>
+             </div>
              <div style="background: #2d2d2d; padding: 20px; border-radius: 10px; max-width: 500px; margin: 0 auto; border: 1px solid #444;">
                  <label style="color: #aaa; margin-bottom: 5px; display: block;">Search Symbol (Portfolio & Watchlist)</label>
                  <input list="vol-tickers" id="vol-input" oninput="calcVolatility()" placeholder="Type symbol..." 
@@ -2261,11 +2266,25 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     }
                 }
                 
+                // Track source tab for back navigation
+                let sourceTab = 'portfolio';
+                
                 // Function to navigate to Volatility Calculator with symbol
                 function goToVolatility(symbol) {
+                    // Save current tab
+                    const currentTab = document.querySelector('.tab-content[style*="display: block"]');
+                    if (currentTab) {
+                        sourceTab = currentTab.id;
+                    }
+                    
                     switchTab('volatility');
                     document.getElementById('vol-input').value = symbol;
                     calcVolatility();
+                }
+                
+                // Function to go back to source tab
+                function goBackFromVolatility() {
+                    switchTab(sourceTab);
                 }
              </script>
         </div>
