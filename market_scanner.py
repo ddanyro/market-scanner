@@ -1645,7 +1645,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     # Adăugăm Explicații Macro (Glosar) - ULTIMUL
     html_head += get_macro_explanations()
     
-    html_head += """
+    html_head += f"""
         </div>
         
         <div id="watchlist" class="tab-content">
