@@ -125,15 +125,23 @@ def load_portfolio(filename='portfolio.csv'):
     df.columns = [c.strip().lower() for c in df.columns]
     return df
 
-def load_watchlist(filename='watchlist.txt'):
-    """Încarcă lista de tickere de urmărit."""
+def load_watchlist(filename='watchlist.csv'):
+    """Încarcă lista de tickere de urmărit din CSV."""
     if not os.path.exists(filename):
         print(f"Fișierul {filename} nu a fost găsit.")
         return []
     
-    with open(filename, 'r') as f:
-        tickers = [line.strip().upper() for line in f if line.strip()]
-    return list(set(tickers))
+    try:
+        df = pd.read_csv(filename)
+        if 'symbol' in df.columns:
+            tickers = df['symbol'].str.upper().tolist()
+            return list(set(tickers))  # Remove duplicates
+        else:
+            print(f"Coloana 'symbol' nu a fost găsită în {filename}")
+            return []
+    except Exception as e:
+        print(f"Eroare la citirea {filename}: {e}")
+        return []
 
 def calculate_atr(df, period=14):
     """Calculează Average True Range (ATR)."""
