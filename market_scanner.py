@@ -1848,6 +1848,12 @@ def main():
     parser.add_argument('--tws', action='store_true', help='Try fetching active orders from local TWS (requires ib_insync)')
     args = parser.parse_args()
     
+    # Auto-enable TWS if local (not GitHub Actions) to prioritize live data
+    if not os.environ.get('GITHUB_ACTIONS'):
+        if not args.tws:
+            print("Mediu Local detectat: Activare automată TWS Sync.")
+            args.tws = True
+    
     print(f"=== Rulează Market Scanner [Mod: {args.mode}] ===\n")
     
     # 1. Încărcăm starea anterioară
