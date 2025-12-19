@@ -1979,7 +1979,41 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'Trail_Larg': round(trail_larg, 2)
         }
         
+        
     vol_json = json.dumps(vol_map)
+    
+    # Generate adjustment data for portfolio stocks with Trail Propus < Trail %
+    adjust_data = []
+    if not portfolio_df.empty:
+        for _, row in portfolio_df.iterrows():
+            sym = row.get('Symbol')
+            if not sym:
+                continue
+            
+            # Get volatility data
+            atr_pct = (row.get('Finviz_ATR', 0) / row.get('Price_Native', 1) * 100) if row.get('Price_Native', 0) > 0 and row.get('Finviz_ATR', 0) else 0
+            vol_w = row.get('Vol_W', 0) or 0
+            vol_m = row.get('Vol_M', 0) or 0
+            vols_valid = [v for v in [atr_pct, vol_w, vol_m] if v > 0]
+            trail_larg = max(vols_valid) * 3 if vols_valid else 0
+            
+            trail_pct = row.get('Trail_Pct', 0) or 0
+            old_stop = row.get('Trail_Stop', 0) or 0
+            
+            # Only include if Trail LARG < Trail % (red)
+            if trail_larg > 0 and trail_pct > 0 and trail_larg < trail_pct and old_stop > 0:
+                # Calculate adjusted stop: Old Stop × (Trail LARG / Trail %)
+                new_stop = old_stop * (trail_larg / trail_pct)
+                
+                adjust_data.append({
+                    'Symbol': sym,
+                    'Trail_Current': round(trail_pct, 1),
+                    'Trail_Propus': round(trail_larg, 1),
+                    'Stop_Current': round(old_stop, 2),
+                    'Stop_Ajustat': round(new_stop, 2)
+                })
+    
+    adjust_json = json.dumps(adjust_data)
     
     # Watchlist Closures
     html_footer = """
@@ -2073,7 +2107,61 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                  </div>
              </div>
              
+             <!-- Stop Adjustment Table for Portfolio (Trail Propus < Trail %) -->
+             <div id="stop-adjust-section" style="margin-top: 30px; max-width: 800px; margin-left: auto; margin-right: auto;">
+                 <h4 style="color: #f44336; text-align: center; margin-bottom: 15px;">🔴 Ajustare Stop - Portofoliu (Trail Propus < Trail %)</h4>
+                 <div id="adjust-table-container"></div>
+             </div>
+             
              <script>
+                const adjustData = """ + adjust_json + """;
+                
+                // Render adjustment table
+                function renderAdjustTable() {
+                    const container = document.getElementById('adjust-table-container');
+                    
+                    if (!adjustData || adjustData.length === 0) {
+                        container.innerHTML = '<p style="text-align: center; color: #aaa;">✅ Toate stop-urile sunt OK</p>';
+                        return;
+                    }
+                    
+                    let html = `
+                        <table style="width: 100%; border-collapse: collapse; color: #ddd; background: #2d2d2d; border-radius: 8px; overflow: hidden;">
+                            <thead>
+                                <tr style="background: #1e1e1e; border-bottom: 2px solid #444;">
+                                    <th style="padding: 12px; text-align: left;">Symbol</th>
+                                    <th style="padding: 12px; text-align: right;">Trail %</th>
+                                    <th style="padding: 12px; text-align: right;">Trail Propus</th>
+                                    <th style="padding: 12px; text-align: right;">Stop Curent</th>
+                                    <th style="padding: 12px; text-align: right;">Stop Ajustat</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    adjustData.forEach(item => {
+                        html += `
+                            <tr style="border-bottom: 1px solid #333;">
+                                <td style="padding: 10px;"><strong style="color: #4dabf7;">${item.Symbol}</strong></td>
+                                <td style="padding: 10px; text-align: right;">${item.Trail_Current}%</td>
+                                <td style="padding: 10px; text-align: right; color: #f44336; font-weight: bold;">${item.Trail_Propus}%</td>
+                                <td style="padding: 10px; text-align: right;">€${item.Stop_Current}</td>
+                                <td style="padding: 10px; text-align: right; color: #4caf50; font-weight: bold;">€${item.Stop_Ajustat}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                            </tbody>
+                        </table>
+                    `;
+                    
+                    container.innerHTML = html;
+                }
+                
+                // Render on load
+                renderAdjustTable();
+             </script>
                 const volData = """ + vol_json + """;
                 function calcVolatility() {
                     const val = document.getElementById('vol-input').value.toUpperCase();
