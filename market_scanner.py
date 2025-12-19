@@ -975,11 +975,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     
     # Calc P/L la Stop
     total_pl_at_stop = 0
+    total_pos_stop_profit = 0
     if not portfolio_df.empty:
         for _, r in portfolio_df.iterrows():
             if r['Trail_Stop'] and r['Trail_Stop'] > 0:
                  diff = (r['Trail_Stop'] - r['Buy_Price']) * r['Shares']
                  total_pl_at_stop += diff
+                 if diff > 0:
+                     total_pos_stop_profit += 1
     
     total_profit_pct = ((total_value - total_investment) / total_investment * 100) if total_investment > 0 else 0
 
@@ -1070,6 +1073,57 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             // Variabila cu datele criptate va fi injectată aici de Python
             // const ENCRYPTED_DATA = { ... }; 
             
+            function sortTable(n) {
+              var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+              table = document.getElementById("portfolio-table");
+              switching = true;
+              dir = "asc"; 
+              while (switching) {
+                switching = false;
+                rows = table.rows;
+                // rows[0] is header
+                for (i = 1; i < (rows.length - 1); i++) {
+                  shouldSwitch = false;
+                  x = rows[i].getElementsByTagName("TD")[n];
+                  y = rows[i + 1].getElementsByTagName("TD")[n];
+                  
+                  var xContent = x.textContent || x.innerText;
+                  var yContent = y.textContent || y.innerText;
+                  
+                  // Curățare pt numere
+                  var xVal = xContent.replace(/[€%,\s]/g, "");
+                  var yVal = yContent.replace(/[€%,\s]/g, "");
+                  
+                  // Caz special: "N/A", "-", "" -> Treat as -Infinity (bottom)
+                  var xNum = parseFloat(xVal);
+                  var yNum = parseFloat(yVal);
+                  
+                  // Dacă parsarea eșuează sau e text pur (Simbol), folosim string comparison
+                  // Verificăm dacă originalul conținea litere (excluzând N/A) și nu e număr valid
+                  var xIsNum = !isNaN(xNum) && xVal !== "";
+                  var yIsNum = !isNaN(yNum) && yVal !== "";
+                  
+                  if (dir == "asc") {
+                    if (xIsNum && yIsNum) { if (xNum > yNum) { shouldSwitch = true; break; } }
+                    else { if (xContent.toLowerCase() > yContent.toLowerCase()) { shouldSwitch = true; break; } }
+                  } else if (dir == "desc") {
+                    if (xIsNum && yIsNum) { if (xNum < yNum) { shouldSwitch = true; break; } }
+                    else { if (xContent.toLowerCase() < yContent.toLowerCase()) { shouldSwitch = true; break; } }
+                  }
+                }
+                if (shouldSwitch) {
+                  rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                  switching = true;
+                  switchcount ++; 
+                } else {
+                  if (switchcount == 0 && dir == "asc") {
+                    dir = "desc";
+                    switching = true;
+                  }
+                }
+              }
+            }
+
             function unlockPortfolio() {
                 const input = document.getElementById('pf-pass').value;
                 if (!input) return;
@@ -1246,26 +1300,26 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             <table id="portfolio-table">
                 <thead>
                     <tr>
-                        <th style="width: 80px;">Simbol</th>
-                        <th>Acțiuni</th>
-                        <th>Preț Cumpărare</th>
-                        <th>Preț Curent</th>
+                        <th style="width: 80px; cursor: pointer;" onclick="sortTable(0)">Simbol</th>
+                        <th style="cursor: pointer;" onclick="sortTable(1)">Acțiuni</th>
+                        <th style="cursor: pointer;" onclick="sortTable(2)">Preț Cumpărare</th>
+                        <th style="cursor: pointer;" onclick="sortTable(3)">Preț Curent</th>
                         <th>Grafic</th>
-                        <th>Target</th>
-                        <th>% Mid</th>
-                        <th>Consensus</th>
-                        <th>Analysts</th>
-                        <th>Trail %</th>
-                        <th># Stop</th>
-                        <th>Suggested Stop</th>
-                        <th>Investiție</th>
-                        <th>Valoare</th>
-                        <th>Profit</th>
-                        <th>% Profit</th>
-                        <th>P/L la Stop</th>
-                        <th>Max Profit</th>
-                        <th>Status</th>
-                        <th>Trend</th>
+                        <th style="cursor: pointer;" onclick="sortTable(5)">Target</th>
+                        <th style="cursor: pointer;" onclick="sortTable(6)">% Mid</th>
+                        <th style="cursor: pointer;" onclick="sortTable(7)">Consensus</th>
+                        <th style="cursor: pointer;" onclick="sortTable(8)">Analysts</th>
+                        <th style="cursor: pointer;" onclick="sortTable(9)">Trail %</th>
+                        <th style="cursor: pointer;" onclick="sortTable(10)"># Stop</th>
+                        <th style="cursor: pointer;" onclick="sortTable(11)">Suggested Stop</th>
+                        <th style="cursor: pointer;" onclick="sortTable(12)">Investiție</th>
+                        <th style="cursor: pointer;" onclick="sortTable(13)">Valoare</th>
+                        <th style="cursor: pointer;" onclick="sortTable(14)">Profit</th>
+                        <th style="cursor: pointer;" onclick="sortTable(15)">% Profit</th>
+                        <th style="cursor: pointer;" onclick="sortTable(16)">P/L la Stop</th>
+                        <th style="cursor: pointer;" onclick="sortTable(17)">Max Profit</th>
+                        <th style="cursor: pointer;" onclick="sortTable(18)">Status</th>
+                        <th style="cursor: pointer;" onclick="sortTable(19)">Trend</th>
                     </tr>
                 </thead>
                 <tbody id="portfolio-rows-body">
