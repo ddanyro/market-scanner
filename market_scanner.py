@@ -1837,8 +1837,36 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     </div>
             """
         
-        html_head += """
+        
+        # Add current and next month info
+        import calendar
+        now = datetime.datetime.now()
+        current_month = now.strftime('%B %Y')  # December 2025
+        next_month_date = now + datetime.timedelta(days=32)
+        next_month_date = next_month_date.replace(day=1)
+        next_month = next_month_date.strftime('%B %Y')
+        
+        # Calculate date range for next month
+        last_day = calendar.monthrange(next_month_date.year, next_month_date.month)[1]
+        next_month_range = f"{next_month_date.strftime('%d %b')} - {next_month_date.replace(day=last_day).strftime('%d %b %Y')}"
+        
+        html_head += f"""
                 </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #1e1e1e; border-radius: 8px; border: 1px solid #333;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center;">
+                        <div>
+                            <div style="color: #4dabf7; font-weight: bold; margin-bottom: 5px;">📅 Luna Curentă</div>
+                            <div style="color: #fff; font-size: 1.1rem;">{current_month}</div>
+                        </div>
+                        <div>
+                            <div style="color: #ba68c8; font-weight: bold; margin-bottom: 5px;">📅 Luna Următoare</div>
+                            <div style="color: #fff; font-size: 1.1rem;">{next_month}</div>
+                            <div style="color: #888; font-size: 0.8rem; margin-top: 3px;">{next_month_range}</div>
+                        </div>
+                    </div>
+                </div>
+                
                 <p style="text-align: center; color: #888; font-size: 0.8rem; margin-top: 15px; margin-bottom: 0;">
                     * Date calculate pe baza prețurilor de închidere lunare din Yahoo Finance
                 </p>
