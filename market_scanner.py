@@ -1074,66 +1074,67 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             // const ENCRYPTED_DATA = { ... }; 
             
             function sortTable(n) {
-              var tbody = document.getElementById("portfolio-rows-body");
-              if (!tbody) return;
-              
-              var rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-              switching = true;
-              dir = "asc"; 
-              
-              while (switching) {
-                switching = false;
-                rows = tbody.rows;
-                
-                for (i = 0; i < (rows.length - 1); i++) {
-                  shouldSwitch = false;
+              try {
+                  var tbody = document.getElementById("portfolio-rows-body");
+                  if (!tbody) return;
                   
-                  // Get TDs
-                  x = rows[i].getElementsByTagName("TD")[n];
-                  y = rows[i + 1].getElementsByTagName("TD")[n];
-                  
-                  if (!x || !y) continue;
-
-                  var xContent = (x.textContent || x.innerText).toLowerCase().trim();
-                  var yContent = (y.textContent || y.innerText).toLowerCase().trim();
-                  
-                  // Clean numeric values
-                  var xVal = xContent.replace(/[€%,\s]/g, "");
-                  var yVal = yContent.replace(/[€%,\s]/g, "");
-                  
-                  var xNum = parseFloat(xVal);
-                  var yNum = parseFloat(yVal);
-                  
-                  // Check if valid numbers (excluding empty strings or just symbols)
-                  var xIsNum = !isNaN(xNum) && xVal.length > 0 && !xContent.includes("n/a");
-                  var yIsNum = !isNaN(yNum) && yVal.length > 0 && !yContent.includes("n/a");
-                  
-                  if (dir == "asc") {
-                    if (xIsNum && yIsNum) {
-                        if (xNum > yNum) shouldSwitch = true;
-                    } else {
-                        if (xContent > yContent) shouldSwitch = true;
-                    }
-                  } else if (dir == "desc") {
-                    if (xIsNum && yIsNum) {
-                        if (xNum < yNum) shouldSwitch = true;
-                    } else {
-                        if (xContent < yContent) shouldSwitch = true;
-                    }
-                  }
-                  
-                  if (shouldSwitch) {
-                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                    switching = true;
-                    switchcount ++; 
-                    break; // Restart loop after switch
-                  }
-                }
-                
-                if (!switching && switchcount == 0 && dir == "asc") {
-                  dir = "desc";
+                  var rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
                   switching = true;
-                }
+                  dir = "asc"; 
+                  
+                  while (switching) {
+                    switching = false;
+                    rows = tbody.rows;
+                    
+                    for (i = 0; i < (rows.length - 1); i++) {
+                      shouldSwitch = false;
+                      
+                      x = rows[i].getElementsByTagName("TD")[n];
+                      y = rows[i + 1].getElementsByTagName("TD")[n];
+                      
+                      if (!x || !y) continue;
+
+                      var xContent = (x.textContent || x.innerText).toLowerCase().trim();
+                      var yContent = (y.textContent || y.innerText).toLowerCase().trim();
+                      
+                      var xVal = xContent.replace(/[€%,\s]/g, "");
+                      var yVal = yContent.replace(/[€%,\s]/g, "");
+                      
+                      var xNum = parseFloat(xVal);
+                      var yNum = parseFloat(yVal);
+                      
+                      var xIsNum = !isNaN(xNum) && xVal.length > 0 && !xContent.includes("n/a");
+                      var yIsNum = !isNaN(yNum) && yVal.length > 0 && !yContent.includes("n/a");
+                      
+                      if (dir == "asc") {
+                        if (xIsNum && yIsNum) {
+                            if (xNum > yNum) shouldSwitch = true;
+                        } else {
+                            if (xContent > yContent) shouldSwitch = true;
+                        }
+                      } else if (dir == "desc") {
+                        if (xIsNum && yIsNum) {
+                            if (xNum < yNum) shouldSwitch = true;
+                        } else {
+                            if (xContent < yContent) shouldSwitch = true;
+                        }
+                      }
+                      
+                      if (shouldSwitch) {
+                        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                        switching = true;
+                        switchcount ++; 
+                        break; 
+                      }
+                    }
+                    
+                    if (!switching && switchcount == 0 && dir == "asc") {
+                      dir = "desc";
+                      switching = true;
+                    }
+                  }
+              } catch(e) {
+                  alert("Eroare Sortare: " + e.message);
               }
             }
 
