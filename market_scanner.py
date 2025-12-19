@@ -1683,8 +1683,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Analysts</th>
                         <th>Sector</th>
                         <th>Trend</th>
-                        <th>Phase (Now)</th>
-                        <th>Phase (Next)</th>
+                        <th style="color: #4caf50;">{full_state.get('eco_phase', 'Cycle')}</th>
+                        <th style="color: #4dabf7;">{full_state.get('eco_next_phase', 'Next')} (Next)</th>
                         <th>RSI</th>
                         <th>Status</th>
                         <th>ATR</th>
