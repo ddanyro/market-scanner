@@ -83,9 +83,18 @@ def add_symbols_to_watchlist(new_symbols, filepath='watchlist.csv'):
         df_new = pd.DataFrame(new_rows)
         df = pd.concat([df, df_new], ignore_index=True)
         
+        # Remove duplicates (case-insensitive)
+        df['symbol'] = df['symbol'].str.upper()
+        original_count = len(df)
+        df = df.drop_duplicates(subset=['symbol'], keep='first')
+        duplicates_removed = original_count - len(df)
+        
         # Save
         df.to_csv(filepath, index=False)
         print(f"✅ Successfully added {len(new_symbols)} symbols to {filepath}")
+        
+        if duplicates_removed > 0:
+            print(f"🧹 Removed {duplicates_removed} duplicate(s)")
         
         for symbol in sorted(new_symbols):
             print(f"  + {symbol}")
