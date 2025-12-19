@@ -230,11 +230,19 @@ def sync_ibkr():
                             for summary in root_dl.iter('MTDYTDPerformanceSummary'):
                                 for child in summary:
                                     try:
-                                        mtd = float(child.get('mtmMTD', 0))
-                                        ytd = float(child.get('mtmYTD', 0))
-                                        total_mtd += mtd
-                                        total_ytd += ytd
-                                        found_stats = True
+                                        # Flex include un rând de TOTAL care are simbolul gol
+                                        # Trebuie să luăm doar acel rând, altfel dublăm suma (sumând și componentele)
+                                        sym = child.get('symbol', '')
+                                        
+                                        if not sym:
+                                            # Acesta este rândul de TOTAL
+                                            mtd = float(child.get('mtmMTD', 0))
+                                            ytd = float(child.get('mtmYTD', 0))
+                                            
+                                            total_mtd = mtd
+                                            total_ytd = ytd
+                                            found_stats = True
+                                            print(f"  -> Found TOTAL Row: MTD={mtd}, YTD={ytd}")
                                     except: pass
                             
                             if found_stats:
