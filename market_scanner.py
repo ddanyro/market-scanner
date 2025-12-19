@@ -1557,7 +1557,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     
     # Mapping Display Names
     display_map = {
-        'VIX3M': 'VIX Futures (3M)',
+        'VIX3M': 'VIX (3M)',
         'VIX': 'VIX Spot',
         'VIX1D': 'VIX 1D',
         'VIX9D': 'VIX 9D'
