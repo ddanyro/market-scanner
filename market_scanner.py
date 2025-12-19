@@ -2005,12 +2005,23 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 # Calculate adjusted stop: Old Stop × (Trail LARG / Trail %)
                 new_stop = old_stop * (trail_larg / trail_pct)
                 
+                # Get conversion rate (EUR to base currency)
+                price_eur = row.get('Current_Price', 0) or 0
+                price_native = row.get('Price_Native', 0) or 0
+                rate = price_native / price_eur if price_eur > 0 else 1
+                
+                # Convert stops to base currency
+                old_stop_native = old_stop * rate
+                new_stop_native = new_stop * rate
+                
                 adjust_data.append({
                     'Symbol': sym,
                     'Trail_Current': round(trail_pct, 1),
                     'Trail_Propus': round(trail_larg, 1),
-                    'Stop_Current': round(old_stop, 2),
-                    'Stop_Ajustat': round(new_stop, 2)
+                    'Stop_Current_EUR': round(old_stop, 2),
+                    'Stop_Ajustat_EUR': round(new_stop, 2),
+                    'Stop_Current_Native': round(old_stop_native, 2),
+                    'Stop_Ajustat_Native': round(new_stop_native, 2)
                 })
     
     adjust_json = json.dumps(adjust_data)
@@ -2116,12 +2127,22 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
              <script>
                 const adjustData = """ + adjust_json + """;
                 
-                // Render adjustment table
-                function renderAdjustTable() {
+                // Render adjustment table (filtered by symbol if provided)
+                function renderAdjustTable(filterSymbol) {
                     const container = document.getElementById('adjust-table-container');
                     
-                    if (!adjustData || adjustData.length === 0) {
-                        container.innerHTML = '<p style="text-align: center; color: #aaa;">✅ Toate stop-urile sunt OK</p>';
+                    // Filter data by symbol if provided
+                    let dataToShow = adjustData;
+                    if (filterSymbol) {
+                        dataToShow = adjustData.filter(item => item.Symbol === filterSymbol);
+                    }
+                    
+                    if (!dataToShow || dataToShow.length === 0) {
+                        if (filterSymbol) {
+                            container.innerHTML = '<p style="text-align: center; color: #aaa;">✅ Stop-ul pentru ' + filterSymbol + ' este OK</p>';
+                        } else {
+                            container.innerHTML = '<p style="text-align: center; color: #aaa;">✅ Toate stop-urile sunt OK</p>';
+                        }
                         return;
                     }
                     
@@ -2132,21 +2153,25 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                                     <th style="padding: 12px; text-align: left;">Symbol</th>
                                     <th style="padding: 12px; text-align: right;">Trail %</th>
                                     <th style="padding: 12px; text-align: right;">Trail Propus</th>
-                                    <th style="padding: 12px; text-align: right;">Stop Curent</th>
-                                    <th style="padding: 12px; text-align: right;">Stop Ajustat</th>
+                                    <th style="padding: 12px; text-align: right;">Stop Curent (EUR)</th>
+                                    <th style="padding: 12px; text-align: right;">Stop Ajustat (EUR)</th>
+                                    <th style="padding: 12px; text-align: right;">Stop Curent (Base)</th>
+                                    <th style="padding: 12px; text-align: right;">Stop Ajustat (Base)</th>
                                 </tr>
                             </thead>
                             <tbody>
                     `;
                     
-                    adjustData.forEach(item => {
+                    dataToShow.forEach(item => {
                         html += `
                             <tr style="border-bottom: 1px solid #333;">
                                 <td style="padding: 10px;"><strong style="color: #4dabf7;">${item.Symbol}</strong></td>
                                 <td style="padding: 10px; text-align: right;">${item.Trail_Current}%</td>
                                 <td style="padding: 10px; text-align: right; color: #f44336; font-weight: bold;">${item.Trail_Propus}%</td>
-                                <td style="padding: 10px; text-align: right;">€${item.Stop_Current}</td>
-                                <td style="padding: 10px; text-align: right; color: #4caf50; font-weight: bold;">€${item.Stop_Ajustat}</td>
+                                <td style="padding: 10px; text-align: right;">€${item.Stop_Current_EUR}</td>
+                                <td style="padding: 10px; text-align: right; color: #4caf50; font-weight: bold;">€${item.Stop_Ajustat_EUR}</td>
+                                <td style="padding: 10px; text-align: right;">${item.Stop_Current_Native}</td>
+                                <td style="padding: 10px; text-align: right; color: #4caf50; font-weight: bold;">${item.Stop_Ajustat_Native}</td>
                             </tr>
                         `;
                     });
@@ -2222,8 +2247,12 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                          }
                          
                          resDiv.style.display = 'block';
+                         
+                         // Update adjustment table for this symbol
+                         renderAdjustTable(val);
                     } else {
                          resDiv.style.display = 'none';
+                         renderAdjustTable(null);
                     }
                 }
                 
