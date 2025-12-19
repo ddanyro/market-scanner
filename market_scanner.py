@@ -2162,6 +2162,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 // Render on load
                 renderAdjustTable();
              </script>
+             
+             <script>
                 const volData = """ + vol_json + """;
                 function calcVolatility() {
                     const val = document.getElementById('vol-input').value.toUpperCase();
