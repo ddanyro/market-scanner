@@ -826,6 +826,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
            consensus = info.get('recommendationKey', '-').replace('_', ' ').title() # ex: Strong Buy
            analysts_count = info.get('numberOfAnalystOpinions', 0)
            industry = info.get('industry', '-')
+           sector = info.get('sector', '-')
            # Scurtăm industria dacă e prea lungă
            if len(industry) > 20: industry = industry[:17] + "..."
         except:
@@ -839,6 +840,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'Consensus': consensus,
             'Analysts': analysts_count,
             'Industry': industry,
+            'Sector': sector,
             'Trend': trend,
             'RSI': round(last_rsi, 2),
             'RSI_Status': rsi_status,
@@ -855,7 +857,99 @@ def process_watchlist_ticker(ticker, vix_value, rates):
     except Exception as e:
         print(f"Eroare procesare {ticker}: {e}")
         return None
+    except Exception as e:
+        print(f"Eroare procesare {ticker}: {e}")
+        return None
 
+# --- Economic Cycle Logic ---
+def determine_economic_cycle():
+    """
+    Deduce faza economică bazată pe Yield Curve și Market Trend.
+    Phases: Recovery -> Expansion -> Slowdown -> Recession
+    """
+    try:
+        # 1. Market Trend (SP500)
+        spx = yf.Ticker("^GSPC")
+        hist = spx.history(period="1y")
+        if hist.empty: return "Expansion", "Slowdown" # Default safe
+        
+        price = hist['Close'].iloc[-1]
+        sma_200 = hist['Close'].mean() # Approx SMA200 (using 1y avg)
+        
+        market_trend = "Bull" if price > sma_200 else "Bear"
+        
+        # 2. Yield Curve (10Y - 3M) -> Proxy for Recession prob
+        # ^TNX = 10 Year Yield (index format, e.g. 4.50)
+        # ^IRX = 13 Week Yield (index format)
+        tnx = yf.Ticker("^TNX").history(period="5d")
+        irx = yf.Ticker("^IRX").history(period="5d")
+        
+        if not tnx.empty and not irx.empty:
+            y10 = tnx['Close'].iloc[-1]
+            y3m = irx['Close'].iloc[-1]
+            spread = y10 - y3m
+        else:
+            spread = 0.5 # Default normal
+            
+        # Logic Matrix
+        phase = "Expansion"
+        
+        if market_trend == "Bear":
+            if spread < -0.5: phase = "Recession"
+            else: phase = "Slowdown"
+        else:
+            # Bull Market
+            if spread < 0: 
+                phase = "Late Expansion" # Or Slowdown warning
+            elif spread > 1.2: # Steep curve
+                phase = "Recovery"
+            else:
+                phase = "Expansion"
+                
+        # Simplify to 4 phases
+        if phase == "Late Expansion": phase = "Slowdown"
+        
+        # Next Phase Logic
+        cycle_order = ["Recovery", "Expansion", "Slowdown", "Recession"]
+        try:
+            curr_idx = cycle_order.index(phase)
+            next_phase = cycle_order[(curr_idx + 1) % 4]
+        except:
+            next_phase = "Unknown"
+            
+        print(f"Economic Cycle: {phase} (Spread: {spread:.2f}, Trend: {market_trend})")
+        return phase, next_phase
+        
+    except Exception as e:
+        print(f"Error determining cycle: {e}")
+        return "Expansion", "Slowdown"
+
+def assess_stock_fitness(sector, phase):
+    """
+    Verifică dacă sectorul este favorizat în faza dată.
+    """
+    if not sector: return "N/A"
+    
+    # Mapping simplificat Yahoo Finance Sectors -> Cycle
+    # Recovery: Materials, Real Estate, Industrials, Financials, Cons Cyclical
+    # Expansion: Tech, Industrials, Financials, Communication, Cons Cyclical
+    # Slowdown: Energy, Healthcare, Cons Defensive (Staples), Utilities
+    # Recession: Utilities, Cons Defensive, Healthcare
+    
+    favored = []
+    if phase == "Recovery":
+        favored = ["Basic Materials", "Real Estate", "Industrials", "Financial Services", "Consumer Cyclical"]
+    elif phase == "Expansion":
+        favored = ["Technology", "Industrials", "Financial Services", "Communication Services", "Consumer Cyclical"]
+    elif phase == "Slowdown":
+        favored = ["Energy", "Healthcare", "Consumer Defensive", "Utilities"]
+    elif phase == "Recession":
+        favored = ["Utilities", "Consumer Defensive", "Healthcare"]
+        
+    for fav in favored:
+        if fav in sector: return "✅" # Good Fit
+    
+    return "⚠️" # Caution/Neutral
 def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filename="index.html", full_state=None):
     if full_state is None: full_state = {}
     """Generează dashboard HTML cu 2 tab-uri și indicatori de piață."""
@@ -1569,35 +1663,35 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     </select>
                 </div>
                 <div style="display: flex; flex-direction: column;">
-                    <label style="font-size: 0.8rem; margin-bottom: 5px; color: #aaa;">Min Analysts</label>
-                    <input type="number" id="filter-analysts" placeholder="0" style="padding: 5px; background: #444; color: #fff; border: none; border-radius: 4px; width: 100px;">
-                </div>
-                <div style="display: flex; flex-direction: column;">
                     <label style="font-size: 0.8rem; margin-bottom: 5px; color: #aaa;">Min Target %</label>
                     <input type="number" id="filter-target-pct" placeholder="0" step="any" style="padding: 5px; background: #444; color: #fff; border: none; border-radius: 4px; width: 100px;">
                 </div>
             </div>
 
+        <div id="watchlist" class="tab-content">
+            <h3 style="color: #4dabf7; margin-bottom: 20px; text-align: center;">👀 Watchlist</h3>
             <div class="table-container">
             <table id="watchlist-table">
                 <thead>
                     <tr>
-                        <th>Ticker</th>
-                        <th>Price</th>
+                        <th style="width: 80px;">Simbol</th>
+                        <th>Preț</th>
                         <th>Grafic</th>
                         <th>Target</th>
-                        <th>To Target %</th>
+                        <th>To Target</th>
                         <th>Consensus</th>
                         <th>Analysts</th>
-                        <th>Industry</th>
+                        <th>Sector</th>
                         <th>Trend</th>
+                        <th>Phase (Now)</th>
+                        <th>Phase (Next)</th>
                         <th>RSI</th>
-                        <th>RSI Status</th>
+                        <th>Status</th>
                         <th>ATR</th>
                         <th>Stop Loss</th>
                         <th>SMA 50</th>
                         <th>SMA 200</th>
-                        <th>Change %</th>
+                        <th>Schimbare</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1652,6 +1746,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             elif change < 0:
                 change_color = '#f44336'; arrow = '▼'
 
+            # Calc Fitness
+            eco_phase = full_state.get('eco_phase', 'Expansion')
+            eco_next = full_state.get('eco_next_phase', 'Slowdown')
+            sector = row.get('Sector', row.get('Industry', '-'))
+            
+            fit_now = assess_stock_fitness(sector, eco_phase)
+            fit_next = assess_stock_fitness(sector, eco_next)
+
             html_head += f"""
                     <tr>
                         <td><strong>{row['Ticker']}</strong></td>
@@ -1661,8 +1763,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <td class="{pct_class}">{pct_display}</td>
                         <td style="{cons_style}">{cons}</td>
                         <td>{analysts}</td>
-                        <td style="font-size: 0.8rem; color: #aaa;">{industry}</td>
+                        <td style="font-size: 0.8rem; color: #aaa;">{sector}</td>
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
+                        <td style="text-align: center;">{fit_now}</td>
+                        <td style="text-align: center;">{fit_next}</td>
                         <td>{row['RSI']:.0f}</td>
                         <td class="rsi-{rsi_cls}">{row['RSI_Status']}</td>
                         <td>{row['ATR_14']:.2f}</td>
@@ -2039,6 +2143,11 @@ def main():
             print(f"VIX: {vix_val:.2f}")
         else:
             print("VIX indisponibil, folosim valoarea anterioară.")
+            
+        # Economic Cycle
+        curr_phase, next_phase = determine_economic_cycle()
+        state['eco_phase'] = curr_phase
+        state['eco_next_phase'] = next_phase
     
     # 3. Actualizări Secționale
     if args.mode in ['all', 'portfolio']:
