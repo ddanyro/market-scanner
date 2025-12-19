@@ -1864,37 +1864,54 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         sp500_color = "#4caf50" if sp500_next > 0 else "#f44336"
         nasdaq_color = "#4caf50" if nasdaq_next > 0 else "#f44336"
         
+        # Get current month returns
+        current_month_num = now.month
+        sp500_current = hist_returns.get('SP500', {}).get('monthly_averages', {}).get(current_month_num, 0)
+        nasdaq_current = hist_returns.get('NASDAQ', {}).get('monthly_averages', {}).get(current_month_num, 0)
+        
+        sp500_current_color = "#4caf50" if sp500_current > 0 else "#f44336"
+        nasdaq_current_color = "#4caf50" if nasdaq_current > 0 else "#f44336"
+        
         html_head += f"""
                 </div>
                 
-                <div style="margin-top: 20px; padding: 15px; background: #1e1e1e; border-radius: 8px; border: 1px solid #333;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center;">
-                        <div>
-                            <div style="color: #4dabf7; font-weight: bold; margin-bottom: 5px;">📅 Luna Curentă</div>
-                            <div style="color: #fff; font-size: 1.1rem;">{current_month}</div>
-                        </div>
-                        <div>
-                            <div style="color: #ba68c8; font-weight: bold; margin-bottom: 5px;">📅 Luna Următoare</div>
-                            <div style="color: #fff; font-size: 1.1rem;">{next_month}</div>
-                            <div style="color: #888; font-size: 0.8rem; margin-top: 3px;">{next_month_range}</div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
-                        <div style="color: #ba68c8; font-weight: bold; text-align: center; margin-bottom: 10px;">Randamente Așteptate pentru {next_month_date.strftime('%B')}</div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center;">
-                            <div>
-                                <div style="color: #aaa; font-size: 0.85rem;">S&P 500</div>
-                                <div style="font-size: 1.3rem; font-weight: bold; color: {sp500_color};">{sp500_next:+.2f}%</div>
-                            </div>
-                            <div>
-                                <div style="color: #aaa; font-size: 0.85rem;">NASDAQ</div>
-                                <div style="font-size: 1.3rem; font-weight: bold; color: {nasdaq_color};">{nasdaq_next:+.2f}%</div>
-                            </div>
-                        </div>
-                        <div style="text-align: center; color: #666; font-size: 0.75rem; margin-top: 8px;">
-                            Bazat pe media istorică pentru {next_month_date.strftime('%B')}
-                        </div>
+                <div style="margin-top: 20px; padding: 20px; background: #1e1e1e; border-radius: 8px; border: 1px solid #333;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #444;"></th>
+                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #444; color: #4dabf7; font-size: 1.1rem;">
+                                    📅 {current_month}
+                                </th>
+                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #444; color: #ba68c8; font-size: 1.1rem;">
+                                    📅 {next_month}<br>
+                                    <span style="color: #888; font-size: 0.75rem; font-weight: normal;">{next_month_range}</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid #333;">
+                                <td style="padding: 15px; color: #aaa; font-weight: bold;">S&P 500</td>
+                                <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {sp500_current_color};">
+                                    {sp500_current:+.2f}%
+                                </td>
+                                <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {sp500_color};">
+                                    {sp500_next:+.2f}%
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 15px; color: #aaa; font-weight: bold;">NASDAQ</td>
+                                <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {nasdaq_current_color};">
+                                    {nasdaq_current:+.2f}%
+                                </td>
+                                <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {nasdaq_color};">
+                                    {nasdaq_next:+.2f}%
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div style="text-align: center; color: #666; font-size: 0.75rem; margin-top: 15px;">
+                        Bazat pe media istorică pentru fiecare lună
                     </div>
                 </div>
                 
