@@ -1562,8 +1562,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         vols_valid = [v for v in [atr_pct, vol_w, vol_m] if v > 0]
         trail_larg = max(vols_valid) * 3 if vols_valid else 0
         
-        # Color green if Trail LARG >= Trail %
-        trail_larg_style = "color: #4caf50; font-weight: bold;" if trail_larg >= trail_pct_val else ""
+        # Color green if Trail LARG >= Trail %, red otherwise
+        if trail_larg >= trail_pct_val:
+            trail_larg_style = "color: #4caf50; font-weight: bold;"
+        else:
+            trail_larg_style = "color: #f44336; font-weight: bold;"
         trail_larg_display = f"{trail_larg:.1f}%" if trail_larg > 0 else "-"
 
         # Build Row HTML string (NO html_head += here)
