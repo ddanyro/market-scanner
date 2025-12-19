@@ -1482,7 +1482,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         # Build Row HTML string (NO html_head += here)
         portfolio_rows_html += f"""
                     <tr id="row-{row['Symbol']}" data-price="{row['Current_Price']}" data-buy="{row['Buy_Price']}" data-shares="{row['Shares']}">
-                        <td><strong>{row['Symbol']}</strong></td>
+                        <td><strong style="cursor: pointer; color: #4dabf7; text-decoration: underline;" onclick="goToVolatility('{row['Symbol']}')">{row['Symbol']}</strong></td>
                         <td>{row['Shares']}</td>
                         <td>€{row['Buy_Price']:.2f}</td>
                         <td>€{row['Current_Price']:.2f}</td>
@@ -1818,7 +1818,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
             html_head += f"""
                     <tr>
-                        <td><strong>{row['Ticker']}</strong></td>
+                        <td><strong style="cursor: pointer; color: #4dabf7; text-decoration: underline;" onclick="goToVolatility('{row['Ticker']}')">{row['Ticker']}</strong></td>
                         <td>€{row['Price']:.2f}</td>
                         <td><canvas id="{spark_wl_id}" class="sparkline-container"></canvas></td>
                         <td>{target_display}</td>
@@ -2030,6 +2030,13 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     } else {
                          resDiv.style.display = 'none';
                     }
+                }
+                
+                // Function to navigate to Volatility Calculator with symbol
+                function goToVolatility(symbol) {
+                    switchTab('volatility');
+                    document.getElementById('vol-input').value = symbol;
+                    calcVolatility();
                 }
              </script>
         </div>
