@@ -61,8 +61,9 @@ def save_state(state):
     with open(STATE_FILE, 'w') as f:
         json.dump(state, f, indent=2)
 
-def get_finviz_target(ticker):
-    """Preia price target-ul de pe Finviz prin scraping direct."""
+def get_finviz_data(ticker):
+    """Preia datele fundamentale de pe Finviz (Target, ATR, Volatility)."""
+    data = {'Target': None, 'ATR': None, 'VolW': None, 'VolM': None}
     try:
         # Elimină sufixe pentru tickere europene (de ex: .DE)
         clean_ticker = ticker.split('.')[0]
@@ -74,30 +75,44 @@ def get_finviz_target(ticker):
         
         response = requests.get(url, headers=headers, timeout=10)
         if response.status_code != 200:
-            return None
+            return data
             
         soup = BeautifulSoup(response.text, 'html.parser')
         
         # Găsim tabelul cu datele fundamentale
-        # Target Price este într-un td cu textul "Target Price" urmat de valoare
         rows = soup.find_all('tr', class_='table-dark-row')
         
         for row in rows:
             cells = row.find_all('td')
             for i, cell in enumerate(cells):
-                if 'Target Price' in cell.get_text():
-                    # Următorul cell conține valoarea
-                    if i + 1 < len(cells):
-                        target_text = cells[i + 1].get_text().strip()
-                        if target_text and target_text != '-':
-                            # Curăță și convertește
-                            target = float(target_text.replace('$', '').replace(',', ''))
-                            return target
+                txt = cell.get_text()
+                if i + 1 >= len(cells): continue
+                
+                val_txt = cells[i+1].get_text().strip()
+                
+                if 'Target Price' in txt:
+                    try:
+                        if val_txt and val_txt != '-':
+                            data['Target'] = float(val_txt.replace('$', '').replace(',', ''))
+                    except: pass
+                elif 'ATR' in txt: # ATR defaults to ATR 14 in finviz
+                     try:
+                        if val_txt and val_txt != '-':
+                             data['ATR'] = float(val_txt)
+                     except: pass
+                elif 'Volatility' in txt:
+                     # Format: "1.50% 2.05%" (Week Month)
+                     try:
+                         parts = val_txt.split()
+                         if len(parts) >= 2:
+                             data['VolW'] = float(parts[0].replace('%', ''))
+                             data['VolM'] = float(parts[1].replace('%', ''))
+                     except: pass
         
-        return None
+        return data
     except Exception as e:
         print(f"  ⚠ Eroare Finviz pentru {ticker}: {str(e)[:50]}")
-        return None
+        return data
 
 def load_portfolio(filename='portfolio.csv'):
     """Încarcă portofoliul din CSV."""
@@ -481,7 +496,9 @@ def process_portfolio_ticker(row, vix_value, rates):
         buy_price = buy_price_native * rate
         
         # Ia target-ul DOAR de pe Finviz (USD usually)
-        target_usd = get_finviz_target(ticker)
+        finviz_data = get_finviz_data(ticker)
+        target_usd = finviz_data.get('Target')
+        
         target = None
         if target_usd:
             # Finviz e mereu USD? Nu neapărat. Dar pt US stocks da.
@@ -491,6 +508,11 @@ def process_portfolio_ticker(row, vix_value, rates):
             print(f"  → Target Finviz: €{target:.2f} (calc)")
         else:
             print(f"  → Target: N/A")
+            
+        # Volatility Data
+        finviz_atr = finviz_data.get('ATR')
+        vol_w = finviz_data.get('VolW') 
+        vol_m = finviz_data.get('VolM')
         
         time.sleep(2)
         df = yf.download(ticker, period="1y", progress=False)
@@ -706,6 +728,9 @@ def process_portfolio_ticker(row, vix_value, rates):
             'Target': target_display,  # None dacă nu există
             'Trail_Stop': round(trail_stop_price, 2),
             'Suggested_Stop': round(suggested_stop_atr, 2),
+            'Finviz_ATR': finviz_atr,
+            'Vol_W': vol_w,
+            'Vol_M': vol_m,
             'Trail_Pct': trail_pct,
             'Investment': round(investment, 2),
             'Current_Value': round(current_value, 2),
@@ -774,15 +799,21 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         sma_200 = get_scalar(last_row['SMA_200']) * rate
         
         # Preluare Target din Finviz
+        # Preluare date din Finviz (Target + Volatility)
         target_val = None
+        finviz_atr = None
+        vol_w = None
+        vol_m = None
+        
         try:
-            target_usd = get_finviz_target(ticker)
+            finviz_data = get_finviz_data(ticker)
+            target_usd = finviz_data.get('Target')
+            finviz_atr = finviz_data.get('ATR')
+            vol_w = finviz_data.get('VolW')
+            vol_m = finviz_data.get('VolM')
+            
             if target_usd:
                 target_val = target_usd * rate
-            else:
-                # Fallback: estimate from info if possible, but scraping logic is main.
-                # yf info logic is slow, better skip if scraping fails.
-                pass
         except Exception:
             pass
 
@@ -845,6 +876,9 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'RSI': round(last_rsi, 2),
             'RSI_Status': rsi_status,
             'ATR_14': round(last_atr, 2),
+            'Finviz_ATR': finviz_atr,
+            'Vol_W': vol_w,
+            'Vol_M': vol_m,
             'Stop_Loss': round(suggested_stop, 2),
             'SMA_50': round(sma_50, 2),
             'SMA_200': round(sma_200, 2),
@@ -1303,6 +1337,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             <div class="menu-item" onclick="switchTab('portfolio')">💼 Portofoliu Activ</div>
             <div class="menu-item" onclick="switchTab('market')">📊 Market Overview</div>
             <div class="menu-item" onclick="switchTab('watchlist')">👀 Watchlist</div>
+            <div class="menu-item" onclick="switchTab('volatility')">📉 Volatility Calc</div>
         </div>
     </div>
         
@@ -1801,10 +1836,94 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     </tr>
             """
         
+
+    
+    # --- VOLATILITY DATA & TAB GENERATION ---
+    vol_map = {}
+    
+    # Helper to clean/convert
+    def get_val(d, k, default=0):
+        v = d.get(k)
+        try: return float(v) if v is not None else default
+        except: return default
+
+    # Merge Data
+    all_items = []
+    if not watchlist_df.empty: all_items.extend(watchlist_df.to_dict('records'))
+    if not portfolio_df.empty: all_items.extend(portfolio_df.to_dict('records'))
+    
+    for item in all_items:
+        sym = item.get('Ticker', item.get('Symbol'))
+        if not sym: continue
+        
+        price = get_val(item, 'Current_Price') or get_val(item, 'Price')
+        atr = get_val(item, 'Finviz_ATR') or get_val(item, 'ATR_14')
+        atr_pct = (atr / price * 100) if price and atr else 0
+        
+        vol_map[sym] = {
+            'ATR_Pct': round(atr_pct, 2),
+            'Vol_W': get_val(item, 'Vol_W'),
+            'Vol_M': get_val(item, 'Vol_M')
+        }
+        
+    vol_json = json.dumps(vol_map)
+    
+    # Watchlist Closures
     html_footer = """
                 </tbody>
             </table>
             </div>
+        </div>
+
+        <!-- Volatility Tab -->
+        <div id="volatility" class="tab-content">
+             <h3 style="color: #ba68c8; text-align: center; margin-bottom: 20px;">📉 Volatility Calculator</h3>
+             <div style="background: #2d2d2d; padding: 20px; border-radius: 10px; max-width: 500px; margin: 0 auto; border: 1px solid #444;">
+                 <label style="color: #aaa; margin-bottom: 5px; display: block;">Search Symbol (Portfolio & Watchlist)</label>
+                 <input list="vol-tickers" id="vol-input" oninput="calcVolatility()" placeholder="Type symbol..." 
+                        style="width: 100%; padding: 12px; margin-bottom: 20px; background: #333; color: white; border: 1px solid #555; border-radius: 5px; font-size: 1rem;">
+                 <datalist id="vol-tickers">
+    """ + "".join([f'<option value="{k}">' for k in sorted(vol_map.keys())]) + """
+                 </datalist>
+                 
+                 <div id="vol-results" style="display: none;">
+                      <table style="width: 100%; border-collapse: collapse; color: #ddd;">
+                          <tr style="border-bottom: 1px solid #444;">
+                                <th style="text-align: left; padding: 10px;">Metric</th>
+                                <th style="text-align: right; padding: 10px;">Value (%)</th>
+                          </tr>
+                          <tr>
+                                <td style="padding: 10px;">ATR (14) Volatility</td>
+                                <td id="res-atr" style="text-align: right; font-weight: bold; color: #4dabf7;">-</td>
+                          </tr>
+                          <tr>
+                                <td style="padding: 10px;">Weekly Volatility</td>
+                                <td id="res-week" style="text-align: right; font-weight: bold; color: #ff9800;">-</td>
+                          </tr>
+                          <tr>
+                                <td style="padding: 10px;">Monthly Volatility</td>
+                                <td id="res-month" style="text-align: right; font-weight: bold;">-</td>
+                          </tr>
+                      </table>
+                 </div>
+             </div>
+             
+             <script>
+                const volData = """ + vol_json + """;
+                function calcVolatility() {
+                    const val = document.getElementById('vol-input').value.toUpperCase();
+                    const resDiv = document.getElementById('vol-results');
+                    if (volData[val]) {
+                         const d = volData[val];
+                         document.getElementById('res-atr').innerText = d.ATR_Pct + '%';
+                         document.getElementById('res-week').innerText = d.Vol_W + '%';
+                         document.getElementById('res-month').innerText = d.Vol_M + '%';
+                         resDiv.style.display = 'block';
+                    } else {
+                         resDiv.style.display = 'none';
+                    }
+                }
+             </script>
         </div>
         
         <div class="footer">
