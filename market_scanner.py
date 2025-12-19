@@ -1922,11 +1922,18 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                           </tr>
                       </table>
                       
-                      <!-- Suggested Stop (ATR-based) -->
+                      
+                      <!-- Suggested Stop & Buy (ATR-based) -->
                       <div style="margin-top: 20px; padding: 15px; background: #1e1e1e; border-radius: 8px; border: 1px solid #555;">
-                          <div style="display: flex; justify-content: space-between; align-items: center;">
-                              <span style="color: #aaa; font-size: 0.9rem;">💡 Suggested Stop (2×ATR):</span>
-                              <span id="suggested-stop" style="font-size: 1.1rem; font-weight: bold; color: #4dabf7;">-</span>
+                          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                              <div>
+                                  <div style="color: #aaa; font-size: 0.85rem; margin-bottom: 5px;">💡 Suggested Stop (2×ATR)</div>
+                                  <div id="suggested-stop" style="font-size: 1.1rem; font-weight: bold; color: #f44336;">-</div>
+                              </div>
+                              <div>
+                                  <div style="color: #aaa; font-size: 0.85rem; margin-bottom: 5px;">🎯 Suggested Buy (2×ATR)</div>
+                                  <div id="suggested-buy" style="font-size: 1.1rem; font-weight: bold; color: #4caf50;">-</div>
+                              </div>
                           </div>
                       </div>
                       
@@ -1980,9 +1987,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                          document.getElementById('res-week').innerText = volW + '%';
                          document.getElementById('res-month').innerText = volM + '%';
                          
-                         // Calculate and display Suggested Stop (Price - 2×ATR)
+                         // Calculate and display Suggested Stop & Buy (Price ± 2×ATR)
                          const suggestedStop = price - (2 * d.ATR_Val);
+                         const suggestedBuy = price + (2 * d.ATR_Val);
                          document.getElementById('suggested-stop').innerText = suggestedStop.toFixed(2);
+                         document.getElementById('suggested-buy').innerText = suggestedBuy.toFixed(2);
                          
                          // Calculate trailing stop levels
                          const vols = [atrPct, volW, volM].filter(v => v > 0);
