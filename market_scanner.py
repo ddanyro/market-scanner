@@ -2326,8 +2326,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     container.innerHTML = html;
                 }
                 
-                // Render on load
-                renderAdjustTable();
+                // Don't render on load - only when symbol is selected
+                // renderAdjustTable();
              </script>
              
              <script>
