@@ -1122,67 +1122,383 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     
     css = """
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1e1e1e; color: #e0e0e0; padding: 20px; }
-        h1 { text-align: center; color: #4dabf7; margin-bottom: 10px; }
-        .meta { text-align: center; margin-bottom: 30px; color: #888; font-size: 0.9rem; }
+        /* ===== DRIPIFY-INSPIRED DESIGN SYSTEM ===== */
         
-        /* Tabs */
-        /* Header & Menu */
-        .header-bar { display: flex; align-items: center; background-color: #2d2d2d; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; position: relative; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-        .hamburger { font-size: 24px; cursor: pointer; color: #4dabf7; margin-right: 20px; user-select: none; padding: 5px; }
-        .app-title { font-size: 1.5rem; font-weight: bold; color: #e0e0e0; flex-grow: 1; }
+        /* CSS Variables */
+        :root {
+            --primary-purple: #7760F9;
+            --dark-purple: #6349F8;
+            --light-purple-bg: #F2F0FF;
+            --text-primary: #111827;
+            --text-secondary: #4B5563;
+            --success-green: #5CD670;
+            --error-red: #FE4141;
+            --bg-white: #FFFFFF;
+            --bg-light: #F9FAFB;
+            --border-light: #E5E7EB;
+            --shadow-sm: 0px 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0px 4px 24px rgba(0, 0, 0, 0.06);
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --spacing-unit: 24px;
+        }
+        
+        /* Reset & Base */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body { 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+        }
+        
+        /* Typography */
+        h1 { 
+            font-size: clamp(32px, 4vw, 48px);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+        
+        h2 {
+            font-size: clamp(24px, 3vw, 36px);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+        
+        h3 {
+            font-size: clamp(18px, 2vw, 24px);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        
+        h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+        
+        p, .meta {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        .meta {
+            text-align: center;
+            margin-bottom: var(--spacing-unit);
+            font-size: 14px;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-unit);
+        }
+        
+        /* Header & Navigation */
+        .header-bar { 
+            background: var(--bg-white);
+            padding: 20px var(--spacing-unit);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .header-bar .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .hamburger { 
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--primary-purple);
+            user-select: none;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            transition: background 0.2s;
+        }
+        
+        .hamburger:hover {
+            background: var(--light-purple-bg);
+        }
+        
+        .app-title { 
+            font-size: clamp(20px, 3vw, 28px);
+            font-weight: 700;
+            color: var(--text-primary);
+            flex-grow: 1;
+            margin-left: 16px;
+        }
         
         .menu-dropdown { 
-            position: absolute; top: 70px; left: 20px; background-color: #333; border-radius: 8px; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6); display: none; z-index: 1000; min-width: 220px; overflow: hidden; border: 1px solid #444;
+            position: absolute;
+            top: 80px;
+            left: var(--spacing-unit);
+            background: var(--bg-white);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            display: none;
+            z-index: 1000;
+            min-width: 240px;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
         }
-        .menu-dropdown.show { display: block; animation: slideDown 0.2s ease-out; }
         
-        .menu-item { padding: 15px 20px; cursor: pointer; color: #e0e0e0; border-bottom: 1px solid #444; transition: background 0.2s; font-size: 1rem; display: flex; align-items: center; gap: 10px; }
-        .menu-item:hover { background-color: #4dabf7; color: white; }
-        .menu-item:last-child { border-bottom: none; }
+        .menu-dropdown.show { 
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
         
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.4s; }
+        .menu-item { 
+            padding: 16px 20px;
+            cursor: pointer;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-light);
+            transition: all 0.2s;
+            font-size: 16px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
         
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .menu-item:hover { 
+            background: var(--light-purple-bg);
+            color: var(--primary-purple);
+        }
         
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .menu-item:last-child { 
+            border-bottom: none;
+        }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 0; box-shadow: none; background-color: #2d2d2d; }
-        .table-container { width: 100%; overflow-x: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.3); border-radius: 8px; margin-top: 20px; }
+        /* Tab Content */
+        .tab-content { 
+            display: none;
+            padding: var(--spacing-unit);
+        }
         
-        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #444; font-size: 0.85rem; white-space: nowrap; vertical-align: middle; }
-        th { background-color: #333; color: #fff; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; position: sticky; top: 0; z-index: 5; }
-        tr:hover { background-color: #3a3a3a; }
+        .tab-content.active { 
+            display: block;
+            animation: fadeIn 0.4s;
+        }
         
-        .positive { color: #4caf50; font-weight: bold; }
-        .negative { color: #f44336; font-weight: bold; }
+        /* Cards */
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: var(--spacing-unit);
+            margin-bottom: calc(var(--spacing-unit) * 2);
+        }
         
-        .trend-Strong-Bullish { color: #4caf50; font-weight: bold; }
-        .trend-Bullish-Pullback { color: #81c784; }
-        .trend-Strong-Bearish { color: #f44336; font-weight: bold; }
-        .trend-Bearish-Rally { color: #e57373; }
+        .summary-card { 
+            background: var(--bg-white);
+            padding: var(--spacing-unit);
+            border-radius: var(--radius-md);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            transition: all 0.3s ease;
+        }
         
-        .rsi-Overbought { color: #ff9800; font-weight: bold; }
-        .rsi-Oversold { color: #2196f3; font-weight: bold; }
-
-        .edit-input { width: 80px; text-align: right; }
-        input[data-field="trail_pct"] { width: 45px !important; }
+        .summary-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
         
-        .vix-Ridicat { color: #ff9800; }
-        .vix-Extrem { color: #f44336; font-weight: bold; }
+        .summary-card h3 { 
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
         
-        .footer { margin-top: 40px; text-align: center; font-size: 0.8rem; color: #666; }
+        .summary-card .value { 
+            font-size: clamp(28px, 4vw, 36px);
+            font-weight: 700;
+            color: var(--text-primary);
+        }
         
-        .summary { display: flex; justify-content: space-around; margin-bottom: 30px; flex-wrap: wrap; }
-        .summary-card { background-color: #2d2d2d; padding: 20px; border-radius: 10px; min-width: 200px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin: 5px; }
-        .summary-card h3 { color: #888; font-size: 0.9rem; margin-bottom: 10px; }
-        .summary-card .value { font-size: 1.8rem; font-weight: bold; }
+        /* Tables */
+        .table-container { 
+            width: 100%;
+            overflow-x: auto;
+            background: var(--bg-white);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            margin-top: var(--spacing-unit);
+        }
         
-        .sparkline-container { width: 80px; height: 30px; }
+        table { 
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-white);
+        }
+        
+        th, td { 
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        
+        th { 
+            background: var(--bg-light);
+            color: var(--text-primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.05em;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        tr:hover { 
+            background: var(--light-purple-bg);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Status Colors */
+        .positive { 
+            color: var(--success-green);
+            font-weight: 600;
+        }
+        
+        .negative { 
+            color: var(--error-red);
+            font-weight: 600;
+        }
+        
+        .trend-Strong-Bullish { color: var(--success-green); font-weight: 600; }
+        .trend-Bullish-Pullback { color: #86EFAC; }
+        .trend-Strong-Bearish { color: var(--error-red); font-weight: 600; }
+        .trend-Bearish-Rally { color: #FCA5A5; }
+        
+        .rsi-Overbought { color: #F59E0B; font-weight: 600; }
+        .rsi-Oversold { color: #3B82F6; font-weight: 600; }
+        
+        .vix-Ridicat { color: #F59E0B; }
+        .vix-Extrem { color: var(--error-red); font-weight: 600; }
+        
+        /* Inputs */
+        .edit-input { 
+            width: 80px;
+            text-align: right;
+            padding: 6px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .edit-input:focus {
+            outline: none;
+            border-color: var(--primary-purple);
+            box-shadow: 0 0 0 3px rgba(119, 96, 249, 0.1);
+        }
+        
+        input[data-field="trail_pct"] { 
+            width: 60px !important;
+        }
+        
+        /* Sparklines */
+        .sparkline-container { 
+            width: 80px;
+            height: 30px;
+        }
+        
+        /* Footer */
+        .footer { 
+            margin-top: calc(var(--spacing-unit) * 2);
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+            padding: var(--spacing-unit);
+        }
+        
+        /* Animations */
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideDown { 
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            :root {
+                --spacing-unit: 16px;
+            }
+            
+            .header-bar {
+                padding: 16px;
+            }
+            
+            .summary {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .summary-card {
+                padding: 20px;
+            }
+            
+            .table-container {
+                border-radius: var(--radius-sm);
+            }
+            
+            th, td {
+                padding: 12px 8px;
+                font-size: 13px;
+            }
+            
+            .menu-dropdown {
+                left: 16px;
+                right: 16px;
+                min-width: auto;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            th, td {
+                padding: 10px 6px;
+                font-size: 12px;
+            }
+            
+            .summary-card .value {
+                font-size: 28px;
+            }
+        }
     </style>
     """
     
@@ -1461,9 +1777,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     
     <!-- Header cu Hamburger -->
     <div class="header-bar">
-    <div class="hamburger" onclick="toggleMenu()">☰</div>
-        <div class="app-title">Market Scanner</div>
-        <div style="font-size: 0.8rem; color: #888;">Generated: {timestamp}</div>
+        <div class="container">
+            <div class="hamburger" onclick="toggleMenu()">☰</div>
+            <div class="app-title">Market Scanner</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">Generated: {timestamp}</div>
+        </div>
         
         <div id="navMenu" class="menu-dropdown">
             <div class="menu-item" onclick="switchTab('portfolio')">💼 Portofoliu Activ</div>
@@ -1473,6 +1791,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         </div>
     </div>
         
+    <div class="container">
         <div id="portfolio" class="tab-content">
             
             <!-- LOCK SCREEN Local -->
@@ -2594,6 +2913,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 });
             });
         </script>
+    </div> <!-- End container -->
     </body>
     </html>
     """
