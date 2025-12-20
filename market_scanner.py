@@ -2209,37 +2209,37 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr>
-                            <th style="padding: 12px; text-align: center; border-bottom: 2px solid var(--border-light);"></th>
-                            <th style="padding: 12px; text-align: center; border-bottom: 2px solid var(--border-light); color: var(--text-primary); font-size: 16px; font-weight: 600;">
-                                {current_month_name}
+                            <th style="padding: clamp(6px, 2vw, 12px); text-align: left; border-bottom: 2px solid var(--border-light);"></th>
+                            <th style="padding: clamp(6px, 2vw, 12px); text-align: center; border-bottom: 2px solid var(--border-light); color: var(--text-primary); font-size: clamp(13px, 3vw, 16px); font-weight: 600;">
+                                {current_month_name.upper()}
                             </th>
-                            <th style="padding: 12px; text-align: center; border-bottom: 2px solid var(--border-light); color: var(--text-primary); font-size: 16px; font-weight: 600;">
-                                {next_month_name}
+                            <th style="padding: clamp(6px, 2vw, 12px); text-align: center; border-bottom: 2px solid var(--border-light); color: var(--text-primary); font-size: clamp(13px, 3vw, 16px); font-weight: 600;">
+                                {next_month_name.upper()}
                             </th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr style="border-bottom: 1px solid var(--border-light);">
-                            <td style="padding: 12px; color: var(--text-secondary); font-weight: 600; font-size: 15px;">S&P 500</td>
-                            <td style="padding: 12px; text-align: center; font-size: 18px; font-weight: 700; color: {sp500_current_color};">
+                            <td style="padding: clamp(8px, 2vw, 12px); color: var(--text-secondary); font-weight: 600; font-size: clamp(12px, 3vw, 15px); white-space: nowrap;">S&P 500</td>
+                            <td style="padding: clamp(8px, 2vw, 12px); text-align: center; font-size: clamp(16px, 4vw, 18px); font-weight: 700; color: {sp500_current_color};">
                                 {sp500_current:+.2f}%
                             </td>
-                            <td style="padding: 12px; text-align: center; font-size: 18px; font-weight: 700; color: {sp500_color};">
+                            <td style="padding: clamp(8px, 2vw, 12px); text-align: center; font-size: clamp(16px, 4vw, 18px); font-weight: 700; color: {sp500_color};">
                                 {sp500_next:+.2f}%
                             </td>
                         </tr>
                         <tr>
-                            <td style="padding: 12px; color: var(--text-secondary); font-weight: 600; font-size: 15px;">NASDAQ</td>
-                            <td style="padding: 12px; text-align: center; font-size: 18px; font-weight: 700; color: {nasdaq_current_color};">
+                            <td style="padding: clamp(8px, 2vw, 12px); color: var(--text-secondary); font-weight: 600; font-size: clamp(12px, 3vw, 15px);">NASDAQ</td>
+                            <td style="padding: clamp(8px, 2vw, 12px); text-align: center; font-size: clamp(16px, 4vw, 18px); font-weight: 700; color: {nasdaq_current_color};">
                                 {nasdaq_current:+.2f}%
                             </td>
-                            <td style="padding: 12px; text-align: center; font-size: 18px; font-weight: 700; color: {nasdaq_color};">
+                            <td style="padding: clamp(8px, 2vw, 12px); text-align: center; font-size: clamp(16px, 4vw, 18px); font-weight: 700; color: {nasdaq_color};">
                                 {nasdaq_next:+.2f}%
                             </td>
                         </tr>
                     </tbody>
                 </table>
-                <div style="text-align: center; color: var(--text-secondary); font-size: 13px; margin-top: 16px; font-style: italic;">
+                <div style="text-align: center; color: var(--text-secondary); font-size: clamp(11px, 2.5vw, 13px); margin-top: 16px; font-style: italic; padding: 0 8px;">
                     Bazat pe media istorică pentru fiecare lună (1950-Prezent)
                 </div>
                 
