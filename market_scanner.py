@@ -2119,13 +2119,13 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             if status == 'Perfect':
                 color = '#10B981'  # Success green
             elif status == 'Normal':
-                color = 'var(--text-primary)'  # Dark gray for readability
+                color = 'var(--text-secondary)'  # Medium gray for readability
             elif status == 'Tension':
                 color = '#F59E0B'  # Warning orange
             elif status == 'Panic':
                 color = '#EF4444'  # Error red
             else:
-                color = 'var(--text-primary)'
+                color = 'var(--text-secondary)'
             
             html_head += f"""
                             <td style="text-align: center; padding: 10px; font-size: 18px; font-weight: 700; color: {color};">{value}</td>"""
