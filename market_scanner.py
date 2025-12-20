@@ -503,49 +503,49 @@ def get_market_indicators():
 def get_macro_explanations():
     """Generează secțiunea de explicații pentru indicatori macroeconomici."""
     return """
-    <div class="macro-explainer" style="background: #222; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #444; color: #e0e0e0;">
-        <h3 style="color: #4db6ac; border-bottom: 1px solid #555; padding-bottom: 10px; margin-top: 0;">📚 Glosar: Indicatori Macroeconomici Cheie & Impact</h3>
-        <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 20px;">Ghid pentru înțelegerea evenimentelor din Calendarul Economic.</p>
+    <div class="macro-explainer" style="background: var(--bg-white); padding: 32px; border-radius: var(--radius-md); margin-top: 32px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+        <h3 style="color: var(--primary-purple); border-bottom: 2px solid var(--light-purple-bg); padding-bottom: 16px; margin-top: 0; font-size: 24px; font-weight: 700;">📚 Glosar: Indicatori Macroeconomici Cheie & Impact</h3>
+        <p style="font-size: 16px; color: var(--text-secondary); margin-bottom: 24px;">Ghid pentru înțelegerea evenimentelor din Calendarul Economic.</p>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
             
             <!-- Building Permits -->
-            <div class="macro-card" style="background: #2d2d2d; padding: 15px; border-radius: 6px; border: 1px solid #333;">
-                <h4 style="color: #ffb74d; margin-top: 0;">🏗️ Building Permits (Autorizații Construcție)</h4>
-                <p style="font-size: 0.9rem;"><strong>Ce este:</strong> Un indicator "leading" (anticipativ) care arată cererea viitoare în sectorul imobiliar.</p>
-                <p style="font-size: 0.9rem; margin-bottom: 0;"><strong>Impact Piață:</strong> 
-                   <br><span style="color: #4caf50;">Cifre Mari:</span> Economie robustă, încredere consumatori.
-                   <br><span style="color: #f44336;">Cifre Mici:</span> Semnal de recesiune (construcțiile sunt primele afectate de dobânzi mari).
+            <div class="macro-card" style="background: var(--light-purple-bg); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
+                <h4 style="color: #F59E0B; margin-top: 0; font-size: 18px; font-weight: 600;">🏗️ Building Permits</h4>
+                <p style="font-size: 14px; color: var(--text-primary);"><strong>Ce este:</strong> Un indicator "leading" (anticipativ) care arată cererea viitoare în sectorul imobiliar.</p>
+                <p style="font-size: 14px; margin-bottom: 0; color: var(--text-primary);"><strong>Impact Piață:</strong> 
+                   <br><span style="color: var(--success-green);">Cifre Mari:</span> Economie robustă, încredere consumatori.
+                   <br><span style="color: var(--error-red);">Cifre Mici:</span> Semnal de recesiune.
                 </p>
             </div>
 
             <!-- CPI -->
-            <div class="macro-card" style="background: #2d2d2d; padding: 15px; border-radius: 6px; border: 1px solid #333;">
-                <h4 style="color: #ef5350; margin-top: 0;">🔥 CPI (Consumer Price Index)</h4>
-                <p style="font-size: 0.9rem;"><strong>Ce este:</strong> Măsura principală a inflației (coșul de cumpărături). Cel mai urmărit indicator de către Fed.</p>
-                <p style="font-size: 0.9rem; margin-bottom: 0;"><strong>Impact Piață:</strong> 
-                   <br><span style="color: #f44336;">Peste Așteptări:</span> Fed crește dobânzile -> Acțiunile (Tech) scad, USD crește.
-                   <br><span style="color: #4caf50;">Sub Așteptări:</span> Fed poate tăia dobânzile -> Raliu pe burse.
+            <div class="macro-card" style="background: var(--light-purple-bg); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
+                <h4 style="color: var(--error-red); margin-top: 0; font-size: 18px; font-weight: 600;">🔥 CPI (Consumer Price Index)</h4>
+                <p style="font-size: 14px; color: var(--text-primary);"><strong>Ce este:</strong> Măsura principală a inflației. Cel mai urmărit indicator de către Fed.</p>
+                <p style="font-size: 14px; margin-bottom: 0; color: var(--text-primary);"><strong>Impact Piață:</strong> 
+                   <br><span style="color: var(--error-red);">Peste Așteptări:</span> Fed crește dobânzile → Acțiunile scad.
+                   <br><span style="color: var(--success-green);">Sub Așteptări:</span> Fed poate tăia dobânzile → Raliu.
                 </p>
             </div>
 
             <!-- NFP -->
-            <div class="macro-card" style="background: #2d2d2d; padding: 15px; border-radius: 6px; border: 1px solid #333;">
-                <h4 style="color: #64b5f6; margin-top: 0;">👥 NFP (Non-Farm Payrolls)</h4>
-                <p style="font-size: 0.9rem;"><strong>Ce este:</strong> Numărul de joburi noi create în SUA (lunar). Arată sănătatea motorului economic.</p>
-                <p style="font-size: 0.9rem; margin-bottom: 0;"><strong>Impact Piață:</strong> 
-                   <br><span style="color: #4caf50;">Joburi Multe:</span> Economie puternică (dar risc de inflație).
-                   <br><span style="color: #f44336;">Joburi Puține:</span> Risc de recesiune -> Fed trebuie să taie dobânzile.
+            <div class="macro-card" style="background: var(--light-purple-bg); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
+                <h4 style="color: #3B82F6; margin-top: 0; font-size: 18px; font-weight: 600;">👥 NFP (Non-Farm Payrolls)</h4>
+                <p style="font-size: 14px; color: var(--text-primary);"><strong>Ce este:</strong> Numărul de joburi noi create în SUA (lunar).</p>
+                <p style="font-size: 14px; margin-bottom: 0; color: var(--text-primary);"><strong>Impact Piață:</strong> 
+                   <br><span style="color: var(--success-green);">Joburi Multe:</span> Economie puternică (dar risc de inflație).
+                   <br><span style="color: var(--error-red);">Joburi Puține:</span> Risc de recesiune.
                 </p>
             </div>
             
              <!-- FOMC -->
-            <div class="macro-card" style="background: #2d2d2d; padding: 15px; border-radius: 6px; border: 1px solid #333;">
-                <h4 style="color: #ba68c8; margin-top: 0;">🏛️ FOMC (Ședința Fed)</h4>
-                <p style="font-size: 0.9rem;"><strong>Ce este:</strong> Decizia privind dobânda de referință. "Costul banilor".</p>
-                <p style="font-size: 0.9rem; margin-bottom: 0;"><strong>Impact Piață:</strong> 
-                   <br>Dobânzi Mari = Lichiditate scăzută = Acțiuni jos.
-                   <br>Pivot (Tăiere) = Lichiditate = Acțiuni sus (Moon).
+            <div class="macro-card" style="background: var(--light-purple-bg); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
+                <h4 style="color: var(--primary-purple); margin-top: 0; font-size: 18px; font-weight: 600;">🏛️ FOMC (Ședința Fed)</h4>
+                <p style="font-size: 14px; color: var(--text-primary);"><strong>Ce este:</strong> Decizia privind dobânda de referință. "Costul banilor".</p>
+                <p style="font-size: 14px; margin-bottom: 0; color: var(--text-primary);"><strong>Impact Piață:</strong> 
+                   <br>Dobânzi Mari = Acțiuni jos.
+                   <br>Pivot (Tăiere) = Acțiuni sus 🚀
                 </p>
             </div>
 
@@ -2174,8 +2174,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     if 'Historical_Returns' in market_indicators and market_indicators['Historical_Returns']:
         hist_returns = market_indicators['Historical_Returns']
         html_head += """
-            <div style="background: #2d2d2d; padding: 20px; border-radius: 10px; margin-top: 20px; border: 1px solid #444;">
-                <h4 style="color: #4dabf7; margin-top: 0; text-align: center;">📈 Randamente Lunare Istorice (1950 - Prezent)</h4>
+            <div style="background: var(--bg-white); padding: 32px; border-radius: var(--radius-md); margin-top: 32px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+                <h4 style="color: var(--primary-purple); margin-top: 0; text-align: center; font-size: 24px; font-weight: 700;">📈 Randamente Lunare Istorice (1950 - Prezent)</h4>
         """
         
         # Add current and next month info
@@ -2272,16 +2272,16 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         <div id="watchlist" class="tab-content">
             
             <!-- Watchlist Header -->
-            <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: #2d2d2d; border-radius: 8px; border: 1px solid #444;">
-                <h3 style="color: #ba68c8; margin: 0;">📊 Watchlist</h3>
-                <p style="color: #aaa; margin: 5px 0 0 0; font-size: 0.9rem;">Total Stocks: <strong style="color: #4dabf7;">{len(watchlist_df)}</strong></p>
+            <div style="text-align: center; margin-bottom: 24px; padding: 24px; background: var(--bg-white); border-radius: var(--radius-md); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+                <h3 style="color: var(--primary-purple); margin: 0; font-size: 28px; font-weight: 700;">📊 Watchlist</h3>
+                <p style="color: var(--text-secondary); margin: 8px 0 0 0; font-size: 16px;">Total Stocks: <strong style="color: var(--primary-purple);">{len(watchlist_df)}</strong></p>
             </div>
             
             <!-- Filters -->
-            <div class="filters-container" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; background: #2d2d2d; padding: 15px; border-radius: 8px; border: 1px solid #444;">
+            <div class="filters-container" style="margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 16px; background: var(--bg-white); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
                 <div style="display: flex; flex-direction: column;">
-                    <label style="font-size: 0.8rem; margin-bottom: 5px; color: #aaa;">Consensus</label>
-                    <select id="filter-consensus" style="padding: 5px; background: #444; color: #fff; border: none; border-radius: 4px;">
+                    <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Consensus</label>
+                    <select id="filter-consensus" style="padding: 10px 14px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 14px; cursor: pointer;">
                         <option value="">All</option>
                         <option value="Strong Buy">Strong Buy</option>
                         <option value="Buy">Buy</option>
@@ -2290,16 +2290,16 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     </select>
                 </div>
                 <div style="display: flex; flex-direction: column;">
-                    <label style="font-size: 0.8rem; margin-bottom: 5px; color: #aaa;">Min Analysts</label>
-                    <input type="number" id="filter-analysts" placeholder="0" style="padding: 5px; background: #444; color: #fff; border: none; border-radius: 4px; width: 100px;">
+                    <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Min Analysts</label>
+                    <input type="number" id="filter-analysts" placeholder="0" style="padding: 10px 14px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); width: 120px; font-size: 14px;">
                 </div>
                 <div style="display: flex; flex-direction: column;">
-                    <label style="font-size: 0.8rem; margin-bottom: 5px; color: #aaa;">Min Target %</label>
-                    <input type="number" id="filter-target-pct" placeholder="0" step="any" style="padding: 5px; background: #444; color: #fff; border: none; border-radius: 4px; width: 100px;">
+                    <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Min Target %</label>
+                    <input type="number" id="filter-target-pct" placeholder="0" step="any" style="padding: 10px 14px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); width: 120px; font-size: 14px;">
                 </div>
                 <div style="display: flex; flex-direction: column;">
-                    <label style="font-size: 0.8rem; margin-bottom: 5px; color: #aaa;">Trend</label>
-                    <select id="filter-trend" style="padding: 5px; background: #444; color: #fff; border: none; border-radius: 4px; width: 120px;">
+                    <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Trend</label>
+                    <select id="filter-trend" style="padding: 10px 14px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); width: 180px; font-size: 14px; cursor: pointer;">
                         <option value="">All</option>
                         <option value="Strong Bullish">Strong Bullish</option>
                         <option value="Bullish Pullback">Bullish Pullback</option>
@@ -2648,9 +2648,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     }
                     
                     let html = `
-                        <table style="width: 100%; border-collapse: collapse; color: #ddd; background: #2d2d2d; border-radius: 8px; overflow: hidden;">
+                        <table style="width: 100%; border-collapse: collapse; color: var(--text-primary); background: var(--bg-white); border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border-light);">
                             <thead>
-                                <tr style="background: #1e1e1e; border-bottom: 2px solid #444;">
+                                <tr style="background: var(--bg-light); border-bottom: 2px solid var(--border-light);">
                                     <th style="padding: 12px; text-align: left;">Symbol</th>
                                     <th style="padding: 12px; text-align: right;">Trail %</th>
                                     <th style="padding: 12px; text-align: right;">Trail Propus</th>
