@@ -1857,17 +1857,17 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         last_day = calendar.monthrange(next_month_date.year, next_month_date.month)[1]
         next_month_range = f"{next_month_date.strftime('%d %b')} - {next_month_date.replace(day=last_day).strftime('%d %b %Y')}"
         
-        # Get expected returns for next month
-        sp500_next = hist_returns.get('SP500', {}).get('monthly_averages', {}).get(next_month_num, 0)
-        nasdaq_next = hist_returns.get('NASDAQ', {}).get('monthly_averages', {}).get(next_month_num, 0)
+        # Get expected returns for next month (convert to string for JSON keys)
+        sp500_next = hist_returns.get('SP500', {}).get('monthly_averages', {}).get(str(next_month_num), 0)
+        nasdaq_next = hist_returns.get('NASDAQ', {}).get('monthly_averages', {}).get(str(next_month_num), 0)
         
         sp500_color = "#4caf50" if sp500_next > 0 else "#f44336"
         nasdaq_color = "#4caf50" if nasdaq_next > 0 else "#f44336"
         
-        # Get current month returns
+        # Get current month returns (convert to string for JSON keys)
         current_month_num = now.month
-        sp500_current = hist_returns.get('SP500', {}).get('monthly_averages', {}).get(current_month_num, 0)
-        nasdaq_current = hist_returns.get('NASDAQ', {}).get('monthly_averages', {}).get(current_month_num, 0)
+        sp500_current = hist_returns.get('SP500', {}).get('monthly_averages', {}).get(str(current_month_num), 0)
+        nasdaq_current = hist_returns.get('NASDAQ', {}).get('monthly_averages', {}).get(str(current_month_num), 0)
         
         sp500_current_color = "#4caf50" if sp500_current > 0 else "#f44336"
         nasdaq_current_color = "#4caf50" if nasdaq_current > 0 else "#f44336"
