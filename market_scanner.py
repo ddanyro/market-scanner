@@ -1818,44 +1818,16 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         html_head += """
             <div style="background: #2d2d2d; padding: 20px; border-radius: 10px; margin-top: 20px; border: 1px solid #444;">
                 <h4 style="color: #4dabf7; margin-top: 0; text-align: center;">📈 Randamente Lunare Istorice (1950 - Prezent)</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
         """
-        
-        for name, data in hist_returns.items():
-            display_name = "S&P 500" if name == "SP500" else "NASDAQ"
-            avg_return = data.get('avg_monthly_return', 0)
-            data_points = data.get('data_points', 0)
-            start_date = data.get('start_date', '')
-            end_date = data.get('end_date', '')
-            
-            color = "#4caf50" if avg_return > 0 else "#f44336"
-            
-            html_head += f"""
-                    <div style="background: #1e1e1e; padding: 15px; border-radius: 8px; border: 1px solid #333;">
-                        <h5 style="color: #ba68c8; margin: 0 0 10px 0;">{display_name}</h5>
-                        <div style="font-size: 1.5rem; font-weight: bold; color: {color}; margin-bottom: 5px;">
-                            {avg_return:+.2f}%
-                        </div>
-                        <div style="font-size: 0.8rem; color: #aaa;">
-                            Medie lunară<br>
-                            {data_points} luni ({start_date} - {end_date})
-                        </div>
-                    </div>
-            """
-        
         
         # Add current and next month info
         import calendar
         now = datetime.datetime.now()
-        current_month = now.strftime('%B %Y')  # December 2025
+        current_month_name = now.strftime('%B')  # December (fără an)
         next_month_date = now + datetime.timedelta(days=32)
         next_month_date = next_month_date.replace(day=1)
-        next_month = next_month_date.strftime('%B %Y')
+        next_month_name = next_month_date.strftime('%B')  # January (fără an)
         next_month_num = next_month_date.month
-        
-        # Calculate date range for next month
-        last_day = calendar.monthrange(next_month_date.year, next_month_date.month)[1]
-        next_month_range = f"{next_month_date.strftime('%d %b')} - {next_month_date.replace(day=last_day).strftime('%d %b %Y')}"
         
         # Get expected returns for next month (convert to string for JSON keys)
         sp500_next = hist_returns.get('SP500', {}).get('monthly_averages', {}).get(str(next_month_num), 0)
@@ -1873,46 +1845,41 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         nasdaq_current_color = "#4caf50" if nasdaq_current > 0 else "#f44336"
         
         html_head += f"""
-                </div>
-                
-                <div style="margin-top: 20px; padding: 20px; background: #1e1e1e; border-radius: 8px; border: 1px solid #333;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr>
-                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #444;"></th>
-                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #444; color: #4dabf7; font-size: 1.1rem;">
-                                    📅 {current_month}
-                                </th>
-                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #444; color: #ba68c8; font-size: 1.1rem;">
-                                    📅 {next_month}<br>
-                                    <span style="color: #888; font-size: 0.75rem; font-weight: normal;">{next_month_range}</span>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr style="border-bottom: 1px solid #333;">
-                                <td style="padding: 15px; color: #aaa; font-weight: bold;">S&P 500</td>
-                                <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {sp500_current_color};">
-                                    {sp500_current:+.2f}%
-                                </td>
-                                <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {sp500_color};">
-                                    {sp500_next:+.2f}%
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 15px; color: #aaa; font-weight: bold;">NASDAQ</td>
-                                <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {nasdaq_current_color};">
-                                    {nasdaq_current:+.2f}%
-                                </td>
-                                <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {nasdaq_color};">
-                                    {nasdaq_next:+.2f}%
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div style="text-align: center; color: #666; font-size: 0.75rem; margin-top: 15px;">
-                        Bazat pe media istorică pentru fiecare lună
-                    </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 12px; text-align: center; border-bottom: 2px solid #444;"></th>
+                            <th style="padding: 12px; text-align: center; border-bottom: 2px solid #444; color: #4dabf7; font-size: 1.1rem;">
+                                📅 {current_month_name}
+                            </th>
+                            <th style="padding: 12px; text-align: center; border-bottom: 2px solid #444; color: #ba68c8; font-size: 1.1rem;">
+                                📅 {next_month_name}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid #333;">
+                            <td style="padding: 15px; color: #aaa; font-weight: bold;">S&P 500</td>
+                            <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {sp500_current_color};">
+                                {sp500_current:+.2f}%
+                            </td>
+                            <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {sp500_color};">
+                                {sp500_next:+.2f}%
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 15px; color: #aaa; font-weight: bold;">NASDAQ</td>
+                            <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {nasdaq_current_color};">
+                                {nasdaq_current:+.2f}%
+                            </td>
+                            <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {nasdaq_color};">
+                                {nasdaq_next:+.2f}%
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="text-align: center; color: #666; font-size: 0.75rem; margin-top: 15px;">
+                    Bazat pe media istorică pentru fiecare lună (1950-Prezent)
                 </div>
                 
                 <p style="text-align: center; color: #888; font-size: 0.8rem; margin-top: 15px; margin-bottom: 0;">
