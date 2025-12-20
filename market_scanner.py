@@ -503,7 +503,7 @@ def get_market_indicators():
 def get_macro_explanations():
     """Generează secțiunea de explicații pentru indicatori macroeconomici."""
     return """
-    <div class="macro-explainer" style="background: var(--bg-white); padding: 32px; border-radius: var(--radius-md); margin-top: 32px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+    <div class="macro-explainer" style="background: var(--bg-white); padding: 32px; border-radius: var(--radius-md); margin-top: 32px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); animation: fadeIn 0.8s ease-out 0.8s backwards;">
         <h3 style="color: var(--primary-purple); border-bottom: 2px solid var(--light-purple-bg); padding-bottom: 16px; margin-top: 0;">Glosar: Indicatori Macroeconomici Cheie & Impact</h3>
         <p style="font-size: 16px; color: var(--text-secondary); margin-bottom: 24px;">Ghid pentru înțelegerea evenimentelor din Calendarul Economic.</p>
         
@@ -1401,6 +1401,24 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             color: var(--text-primary);
         }
         
+        /* Macro Cards & Animated Cards */
+        .macro-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .macro-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .animated-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .animated-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+        
         /* Tables */
         .table-container { 
             width: 100%;
@@ -2129,8 +2147,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         
         <!-- TAB MARKET (NOU) -->
         <div id="market" class="tab-content active">
-            <h2 style="color: var(--text-primary); margin-bottom: 24px; text-align: center;">Indicatori de Piață</h2>
-            <div style="background-color: var(--bg-white); padding: 32px; border-radius: var(--radius-md); overflow-x: auto; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);">
+            <h2 style="color: var(--text-primary); margin-bottom: 24px; text-align: center; animation: fadeIn 0.6s ease-out;">Indicatori de Piață</h2>
+            <div class="animated-card" style="background-color: var(--bg-white); padding: 32px; border-radius: var(--radius-md); overflow-x: auto; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); animation: fadeIn 0.8s ease-out 0.2s backwards;">
                 <table style="width: 100%; background-color: transparent; box-shadow: none;">
                     <thead>
                         <tr style="border-bottom: 2px solid #444;">
@@ -2253,7 +2271,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     if 'Historical_Returns' in market_indicators and market_indicators['Historical_Returns']:
         hist_returns = market_indicators['Historical_Returns']
         html_head += """
-            <div style="background: var(--bg-white); padding: 32px; border-radius: var(--radius-md); margin-top: 32px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+            <div style="background: var(--bg-white); padding: 32px; border-radius: var(--radius-md); margin-top: 32px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); animation: fadeIn 0.8s ease-out 0.4s backwards;">
                 <h3 style="color: var(--text-primary); margin-top: 0; text-align: center;">Randamente Lunare Istorice (1950 - Prezent)</h3>
         """
         
