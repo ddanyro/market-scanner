@@ -1144,6 +1144,47 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             --spacing-unit: 24px;
         }
         
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideInFromLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+        }
+        
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+        
         /* Reset & Base */
         * { 
             margin: 0; 
@@ -1157,6 +1198,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             color: var(--text-primary);
             line-height: 1.5;
             font-size: 16px;
+            animation: fadeIn 0.5s ease-out;
         }
         
         /* Typography */
@@ -1238,6 +1280,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         
         .hamburger:hover {
             background: var(--light-purple-bg);
+            transform: scale(1.1);
         }
         
         .app-title { 
@@ -1262,9 +1305,20 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             border: 1px solid var(--border-light);
         }
         
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
         .menu-dropdown.show { 
             display: block;
-            animation: slideDown 0.3s ease-out;
+            animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .menu-item { 
@@ -1272,7 +1326,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             cursor: pointer;
             color: var(--text-primary);
             border-bottom: 1px solid var(--border-light);
-            transition: all 0.2s;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             font-size: 16px;
             font-weight: 500;
             display: flex;
@@ -1283,6 +1337,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         .menu-item:hover { 
             background: var(--light-purple-bg);
             color: var(--primary-purple);
+            padding-left: 28px;
         }
         
         .menu-item:last-child { 
@@ -1315,12 +1370,20 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             text-align: center;
             box-shadow: var(--shadow-sm);
             border: 1px solid var(--border-light);
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeIn 0.6s ease-out backwards;
         }
+        
+        .summary-card:nth-child(1) { animation-delay: 0.1s; }
+        .summary-card:nth-child(2) { animation-delay: 0.2s; }
+        .summary-card:nth-child(3) { animation-delay: 0.3s; }
+        .summary-card:nth-child(4) { animation-delay: 0.4s; }
+        .summary-card:nth-child(5) { animation-delay: 0.5s; }
+        .summary-card:nth-child(6) { animation-delay: 0.6s; }
         
         .summary-card:hover {
             box-shadow: var(--shadow-md);
-            transform: translateY(-2px);
+            transform: translateY(-4px) scale(1.02);
         }
         
         .summary-card h3 { 
@@ -1375,8 +1438,13 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             z-index: 10;
         }
         
+        tbody tr {
+            transition: all 0.2s ease;
+        }
+        
         tr:hover { 
             background: var(--light-purple-bg);
+            transform: scale(1.005);
         }
         
         tr:last-child td {
@@ -1413,8 +1481,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             border: none;
             border-radius: 7px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             font-family: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button:active, .btn:active {
+            transform: scale(0.98);
         }
         
         .btn-primary, button[onclick*="unlock"] {
@@ -1425,7 +1499,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         
         .btn-primary:hover, button[onclick*="unlock"]:hover {
             background: var(--dark-purple);
-            box-shadow: 0 6px 16px rgba(119, 96, 249, 0.4);
+            box-shadow: 0 6px 20px rgba(119, 96, 249, 0.5);
             transform: translateY(-2px);
         }
         
@@ -1439,6 +1513,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             background: var(--light-purple-bg);
             border-color: var(--primary-purple);
             color: var(--primary-purple);
+            transform: translateY(-1px);
         }
         
         /* Inputs */
@@ -1449,13 +1524,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             border: 1px solid var(--border-light);
             border-radius: var(--radius-sm);
             font-size: 14px;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .edit-input:focus {
             outline: none;
             border-color: var(--primary-purple);
-            box-shadow: 0 0 0 3px rgba(119, 96, 249, 0.1);
+            box-shadow: 0 0 0 4px rgba(119, 96, 249, 0.15);
+            transform: scale(1.02);
         }
         
         input[data-field="trail_pct"] { 
