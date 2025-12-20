@@ -2117,18 +2117,18 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             
             # Colorare bazată pe status (4 nivele)
             if status == 'Perfect':
-                color = '#4caf50'
+                color = '#10B981'  # Success green
             elif status == 'Normal':
-                color = '#e0e0e0'
+                color = 'var(--text-primary)'  # Dark gray for readability
             elif status == 'Tension':
-                color = '#ff9800'
+                color = '#F59E0B'  # Warning orange
             elif status == 'Panic':
-                color = '#f44336'
+                color = '#EF4444'  # Error red
             else:
-                color = '#e0e0e0'
+                color = 'var(--text-primary)'
             
             html_head += f"""
-                            <td style="text-align: center; padding: 10px; font-size: 1rem; font-weight: bold; color: {color};">{value}</td>"""
+                            <td style="text-align: center; padding: 10px; font-size: 18px; font-weight: 700; color: {color};">{value}</td>"""
     
     html_head += """
                         </tr>
@@ -2548,30 +2548,34 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                  </datalist>
                  
                  <div id="vol-results" style="display: none;">
-                      <table style="width: 100%; border-collapse: collapse; color: #ddd;">
-                          <tr style="border-bottom: 1px solid #444;">
-                                <th style="text-align: left; padding: 10px;">Metric</th>
-                                <th style="text-align: right; padding: 10px;">Value</th>
+                      <table style="width: 100%; border-collapse: collapse; color: var(--text-primary);">
+                          <tr style="border-bottom: 2px solid var(--border-light);">
+                                <th style="text-align: left; padding: 10px; color: var(--text-secondary); font-weight: 600;">Metric</th>
+                                <th style="text-align: right; padding: 10px; color: var(--text-secondary); font-weight: 600;">Value</th>
                           </tr>
                           <tr>
-                                <td style="padding: 10px;">Price (Base Currency)</td>
-                                <td id="res-price-native" style="text-align: right; font-weight: bold; color: #4caf50;">-</td>
+                                <td style="padding: 10px; color: var(--text-secondary);">Price (Base Currency)</td>
+                                <td id="res-price-native" style="text-align: right; font-weight: 700; color: var(--success-green);">-</td>
                           </tr>
                           <tr>
-                                <td style="padding: 10px;">ATR (14) Value</td>
-                                <td id="res-atr-val" style="text-align: right; font-weight: bold; color: #ccc;">-</td>
+                                <td style="padding: 10px; color: var(--text-secondary);">ATR (14) Value</td>
+                                <td id="res-atr-val" style="text-align: right; font-weight: 700; color: var(--text-primary);">-</td>
                           </tr>
                           <tr>
-                                <td style="padding: 10px;">ATR (14) Volatility</td>
-                                <td id="res-atr" style="text-align: right; font-weight: bold; color: #4dabf7;">-</td>
+                                <td style="padding: 10px; color: var(--text-secondary);">ATR (14) Volatility</td>
+                                <td id="res-atr-pct" style="text-align: right; font-weight: 700; color: var(--primary-purple);">-</td>
                           </tr>
                           <tr>
-                                <td style="padding: 10px;">Weekly Volatility</td>
-                                <td id="res-week" style="text-align: right; font-weight: bold; color: #ff9800;">-</td>
+                                <td style="padding: 10px; color: var(--text-secondary);">Daily Volatility</td>
+                                <td id="res-day" style="text-align: right; font-weight: 700; color: var(--text-primary);">-</td>
                           </tr>
                           <tr>
-                                <td style="padding: 10px;">Monthly Volatility</td>
-                                <td id="res-month" style="text-align: right; font-weight: bold;">-</td>
+                                <td style="padding: 10px; color: var(--text-secondary);">Weekly Volatility</td>
+                                <td id="res-week" style="text-align: right; font-weight: 700; color: var(--text-primary);">-</td>
+                          </tr>
+                          <tr>
+                                <td style="padding: 10px; color: var(--text-secondary);">Monthly Volatility</td>
+                                <td id="res-month" style="text-align: right; font-weight: 700; color: var(--text-primary);">-</td>
                           </tr>
                       </table>
                       
@@ -2584,7 +2588,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                                   <div id="suggested-stop" style="font-size: 1.1rem; font-weight: bold; color: #f44336;">-</div>
                               </div>
                               <div>
-                                  <div style="color: #aaa; font-size: 0.85rem; margin-bottom: 5px;">🎯 Suggested Buy (2×ATR)</div>
+                                  <div style="color: var(--text-secondary); font-size: 14px; margin-bottom: 5px; font-weight: 600;">Suggested Buy (2×ATR)</div>
                                   <div id="suggested-buy" style="font-size: 1.1rem; font-weight: bold; color: #4caf50;">-</div>
                               </div>
                           </div>
@@ -2592,8 +2596,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                       
                       <!-- Trailing Stop Calculations -->
                       <h4 style="color: var(--primary-purple); margin-top: 30px; margin-bottom: 15px; text-align: center;">Trailing Stop Levels</h4>
-                      <table style="width: 100%; border-collapse: collapse; color: #ddd; margin-top: 10px;">
-                          <tr style="border-bottom: 1px solid #444;">
+                      <table style="width: 100%; border-collapse: collapse; color: var(--text-primary); margin-top: 10px;">
+                          <tr style="border-bottom: 1px solid var(--border-light);">
                                 <th style="text-align: left; padding: 10px;">Strategy</th>
                                 <th style="text-align: right; padding: 10px;">Volatility %</th>
                                 <th style="text-align: right; padding: 10px;">Stop Sell</th>
