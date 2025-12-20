@@ -315,7 +315,7 @@ def calculate_historical_monthly_returns():
                 'data_points': len(monthly_returns),
                 'start_date': monthly_returns.index[0].strftime('%Y-%m'),
                 'end_date': monthly_returns.index[-1].strftime('%Y-%m'),
-                'monthly_averages': {int(k): round(v, 2) for k, v in monthly_averages.items()}
+                'monthly_averages': {str(k): round(v, 2) for k, v in monthly_averages.items()}
             }
             
             print(f"    ✅ {name}: {avg_return:.2f}% avg monthly return ({len(monthly_returns)} months)")
