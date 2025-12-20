@@ -504,14 +504,14 @@ def get_macro_explanations():
     """Generează secțiunea de explicații pentru indicatori macroeconomici."""
     return """
     <div class="macro-explainer" style="background: var(--bg-white); padding: 32px; border-radius: var(--radius-md); margin-top: 32px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
-        <h3 style="color: var(--primary-purple); border-bottom: 2px solid var(--light-purple-bg); padding-bottom: 16px; margin-top: 0; font-size: 24px; font-weight: 700;">📚 Glosar: Indicatori Macroeconomici Cheie & Impact</h3>
+        <h3 style="color: var(--primary-purple); border-bottom: 2px solid var(--light-purple-bg); padding-bottom: 16px; margin-top: 0;">Glosar: Indicatori Macroeconomici Cheie & Impact</h3>
         <p style="font-size: 16px; color: var(--text-secondary); margin-bottom: 24px;">Ghid pentru înțelegerea evenimentelor din Calendarul Economic.</p>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
             
             <!-- Building Permits -->
             <div class="macro-card" style="background: var(--light-purple-bg); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
-                <h4 style="color: #F59E0B; margin-top: 0; font-size: 18px; font-weight: 600;">🏗️ Building Permits</h4>
+                <h4 style="color: #F59E0B; margin-top: 0;">Building Permits</h4>
                 <p style="font-size: 14px; color: var(--text-primary);"><strong>Ce este:</strong> Un indicator "leading" (anticipativ) care arată cererea viitoare în sectorul imobiliar.</p>
                 <p style="font-size: 14px; margin-bottom: 0; color: var(--text-primary);"><strong>Impact Piață:</strong> 
                    <br><span style="color: var(--success-green);">Cifre Mari:</span> Economie robustă, încredere consumatori.
@@ -521,7 +521,7 @@ def get_macro_explanations():
 
             <!-- CPI -->
             <div class="macro-card" style="background: var(--light-purple-bg); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
-                <h4 style="color: var(--error-red); margin-top: 0; font-size: 18px; font-weight: 600;">🔥 CPI (Consumer Price Index)</h4>
+                <h4 style="color: var(--error-red); margin-top: 0;">CPI (Consumer Price Index)</h4>
                 <p style="font-size: 14px; color: var(--text-primary);"><strong>Ce este:</strong> Măsura principală a inflației. Cel mai urmărit indicator de către Fed.</p>
                 <p style="font-size: 14px; margin-bottom: 0; color: var(--text-primary);"><strong>Impact Piață:</strong> 
                    <br><span style="color: var(--error-red);">Peste Așteptări:</span> Fed crește dobânzile → Acțiunile scad.
@@ -531,7 +531,7 @@ def get_macro_explanations():
 
             <!-- NFP -->
             <div class="macro-card" style="background: var(--light-purple-bg); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
-                <h4 style="color: #3B82F6; margin-top: 0; font-size: 18px; font-weight: 600;">👥 NFP (Non-Farm Payrolls)</h4>
+                <h4 style="color: #3B82F6; margin-top: 0;">NFP (Non-Farm Payrolls)</h4>
                 <p style="font-size: 14px; color: var(--text-primary);"><strong>Ce este:</strong> Numărul de joburi noi create în SUA (lunar).</p>
                 <p style="font-size: 14px; margin-bottom: 0; color: var(--text-primary);"><strong>Impact Piață:</strong> 
                    <br><span style="color: var(--success-green);">Joburi Multe:</span> Economie puternică (dar risc de inflație).
@@ -541,7 +541,7 @@ def get_macro_explanations():
             
              <!-- FOMC -->
             <div class="macro-card" style="background: var(--light-purple-bg); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
-                <h4 style="color: var(--primary-purple); margin-top: 0; font-size: 18px; font-weight: 600;">🏛️ FOMC (Ședința Fed)</h4>
+                <h4 style="color: var(--primary-purple); margin-top: 0;">FOMC (Ședința Fed)</h4>
                 <p style="font-size: 14px; color: var(--text-primary);"><strong>Ce este:</strong> Decizia privind dobânda de referință. "Costul banilor".</p>
                 <p style="font-size: 14px; margin-bottom: 0; color: var(--text-primary);"><strong>Impact Piață:</strong> 
                    <br>Dobânzi Mari = Acțiuni jos.
@@ -1152,32 +1152,30 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         }
         
         body { 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: var(--bg-light);
             color: var(--text-primary);
-            line-height: 1.6;
-            padding: 0;
-            margin: 0;
+            line-height: 1.5;
+            font-size: 16px;
         }
         
         /* Typography */
-        h1 { 
-            font-size: clamp(32px, 4vw, 48px);
+        h1 {
+            font-size: clamp(28px, 4vw, 36px);
             font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 8px;
-            letter-spacing: -0.02em;
+            margin-bottom: 16px;
         }
         
         h2 {
-            font-size: clamp(24px, 3vw, 36px);
+            font-size: clamp(20px, 3vw, 24px);
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 16px;
         }
         
         h3 {
-            font-size: clamp(18px, 2vw, 24px);
+            font-size: clamp(18px, 2vw, 20px);
             font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 12px;
@@ -1826,10 +1824,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         </div>
         
         <div id="navMenu" class="menu-dropdown">
-            <div class="menu-item" onclick="switchTab('portfolio')">💼 Portofoliu Activ</div>
-            <div class="menu-item" onclick="switchTab('market')">📊 Market Overview</div>
-            <div class="menu-item" onclick="switchTab('watchlist')">👀 Watchlist</div>
-            <div class="menu-item" onclick="switchTab('volatility')">📉 Volatility Calc</div>
+            <div class="menu-item" onclick="switchTab('portfolio')">Portofoliu Activ</div>
+            <div class="menu-item" onclick="switchTab('market')">Market Overview</div>
+            <div class="menu-item" onclick="switchTab('watchlist')">Watchlist</div>
+            <div class="menu-item" onclick="switchTab('volatility')">Volatility Calculator</div>
         </div>
     </div>
         
@@ -1838,8 +1836,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             
             <!-- LOCK SCREEN Local -->
             <div id="portfolio-lock" style="max-width: 500px; margin: 80px auto; text-align: center; padding: 48px; background: var(--bg-white); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); border: 1px solid var(--border-light);">
-                <div style="font-size: 4rem; margin-bottom: 24px;">🔒</div>
-                <h2 style="color: var(--text-primary); margin-bottom: 12px; font-size: 28px;">Secțiune Protejată</h2>
+                <h2 style="color: var(--text-primary); margin-bottom: 12px;">Secțiune Protejată</h2>
                 <p style="color: var(--text-secondary); margin-bottom: 32px; font-size: 16px;">Introdu PIN-ul pentru a accesa portofoliul</p>
                 <div style="display: flex; gap: 12px; justify-content: center; align-items: center;">
                     <input type="password" id="pf-pass" style="padding: 14px 20px; font-size: 18px; text-align: center; width: 180px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: var(--bg-white); color: var(--text-primary); letter-spacing: 8px; font-weight: 600; transition: all 0.2s;" placeholder="••••" onkeyup="if(event.key==='Enter') unlockPortfolio()" onfocus="this.style.borderColor='var(--primary-purple)'; this.style.boxShadow='0 0 0 3px rgba(119,96,249,0.1)'" onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none'">
@@ -2056,7 +2053,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         
         <!-- TAB MARKET (NOU) -->
         <div id="market" class="tab-content active">
-            <h3 style="color: var(--primary-purple); margin-bottom: 24px; text-align: center; font-size: 28px; font-weight: 700;">📊 Indicatori de Piață</h3>
+            <h2 style="color: var(--primary-purple); margin-bottom: 24px; text-align: center;">Indicatori de Piață</h2>
             <div style="background-color: var(--bg-white); padding: 32px; border-radius: var(--radius-md); overflow-x: auto; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);">
                 <table style="width: 100%; background-color: transparent; box-shadow: none;">
                     <thead>
@@ -2181,7 +2178,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         hist_returns = market_indicators['Historical_Returns']
         html_head += """
             <div style="background: var(--bg-white); padding: 32px; border-radius: var(--radius-md); margin-top: 32px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
-                <h4 style="color: var(--primary-purple); margin-top: 0; text-align: center; font-size: 24px; font-weight: 700;">📈 Randamente Lunare Istorice (1950 - Prezent)</h4>
+                <h3 style="color: var(--primary-purple); margin-top: 0; text-align: center;">Randamente Lunare Istorice (1950 - Prezent)</h3>
         """
         
         # Add current and next month info
@@ -2279,7 +2276,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             
             <!-- Watchlist Header -->
             <div style="text-align: center; margin-bottom: 24px; padding: 24px; background: var(--bg-white); border-radius: var(--radius-md); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
-                <h3 style="color: var(--primary-purple); margin: 0; font-size: 28px; font-weight: 700;">📊 Watchlist</h3>
+                <h2 style="color: var(--primary-purple); margin: 0;">Watchlist</h2>
                 <p style="color: var(--text-secondary); margin: 8px 0 0 0; font-size: 16px;">Total Stocks: <strong style="color: var(--primary-purple);">{len(watchlist_df)}</strong></p>
             </div>
             
@@ -2540,7 +2537,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                  <button id="vol-back-btn" onclick="goBackFromVolatility()" class="btn-secondary" style="padding: 10px 20px;">
                      ← Back
                  </button>
-                 <h2 style="color: var(--text-primary); margin: 0; font-size: 28px; font-weight: 700;">📉 Volatility Calculator</h2>
+                 <h2 style="color: var(--text-primary); margin: 0;">Volatility Calculator</h2>
                  <div style="width: 100px;"></div> <!-- Spacer for centering -->
              </div>
              <div style="background: var(--bg-white); padding: 32px; border-radius: var(--radius-md); max-width: 600px; margin: 0 auto; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);">
@@ -2584,7 +2581,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                       <div style="margin-top: 24px; padding: 20px; background: var(--light-purple-bg); border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
                           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                               <div>
-                                  <div style="color: #aaa; font-size: 0.85rem; margin-bottom: 5px;">💡 Suggested Stop (2×ATR)</div>
+                                  <div style="color: var(--text-secondary); font-size: 14px; margin-bottom: 5px; font-weight: 600;">Suggested Stop (2×ATR)</div>
                                   <div id="suggested-stop" style="font-size: 1.1rem; font-weight: bold; color: #f44336;">-</div>
                               </div>
                               <div>
@@ -2595,7 +2592,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                       </div>
                       
                       <!-- Trailing Stop Calculations -->
-                      <h4 style="color: #ba68c8; margin-top: 30px; margin-bottom: 15px; text-align: center;">📊 Trailing Stop Levels</h4>
+                      <h4 style="color: var(--primary-purple); margin-top: 30px; margin-bottom: 15px; text-align: center;">Trailing Stop Levels</h4>
                       <table style="width: 100%; border-collapse: collapse; color: #ddd; margin-top: 10px;">
                           <tr style="border-bottom: 1px solid #444;">
                                 <th style="text-align: left; padding: 10px;">Strategy</th>

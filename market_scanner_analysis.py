@@ -136,7 +136,7 @@ def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=No
     try:
         # 1. Header
         news_html = "<div class='news-section' style='background: var(--bg-white); padding: 24px; border-radius: var(--radius-md); margin-top: 24px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);'>"
-        news_html += "<strong style='color: var(--primary-purple); font-size: 18px; font-weight: 700; display: block; margin-bottom: 16px;'>📰 Market News Overview</strong>"
+        news_html += "<strong style='color: var(--primary-purple); font-size: 18px; font-weight: 700; display: block; margin-bottom: 16px;'>Market News Overview</strong>"
         
         ai_summary_html = ""
         ai_raw_text = ""
@@ -205,7 +205,7 @@ def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=No
                          parts = content.split('\n')
                          summary_part = "\n".join([p for p in parts if 'SENTIMENT_SCORE' not in p]).strip()
 
-                    ai_summary_html = f"<div style='color: var(--text-primary); font-size: 15px; line-height: 1.6; background: var(--light-purple-bg); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 16px; border-left: 3px solid var(--primary-purple);'><strong style='color: var(--primary-purple);'>🤖 Analiză OpenAI:</strong><br>{summary_part}</div>"
+                    ai_summary_html = f"<div style='color: var(--text-primary); font-size: 15px; line-height: 1.6; background: var(--light-purple-bg); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 16px; border-left: 3px solid var(--primary-purple);'><strong style='color: var(--primary-purple);'>Analiză OpenAI:</strong><br>{summary_part}</div>"
                 elif resp.status_code == 429:
                     ai_summary_html = "<div style='color:orange'><strong>Eroare OpenAI (429):</strong> Rate Limit.</div>"
                 else:
@@ -230,7 +230,7 @@ def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=No
                   if 'REZUMAT_HTML:' in cached_summary:
                        summary_display = cached_summary.split('REZUMAT_HTML:')[1].strip()
 
-                  ai_summary_html = f"<div style='color: var(--text-primary); font-size: 15px; line-height: 1.6; background: var(--light-purple-bg); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 16px; border-left: 3px solid var(--primary-purple);'><strong style='color: var(--primary-purple);'>🤖 Analiză OpenAI (Cached):</strong><br>{summary_display}</div>"
+                  ai_summary_html = f"<div style='color: var(--text-primary); font-size: 15px; line-height: 1.6; background: var(--light-purple-bg); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 16px; border-left: 3px solid var(--primary-purple);'><strong style='color: var(--primary-purple);'>Analiză OpenAI (Cached):</strong><br>{summary_display}</div>"
                   ai_raw_text = cached_summary
              else:
                   ai_summary_html = "<div style='color:orange'>Lipsă cheie OpenAI și lipsă cache.</div>"
@@ -430,10 +430,10 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
                 {'name': 'GDP Growth Rate (Final)', 'week': 'Joi 19 Dec', 'desc': 'Creștere economică trimestrială.'}
             ]
 
-        events_html = "<div style='margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;'>"
-        events_html += "<strong style='color: #ffb74d; font-size: 0.95rem; display: block; margin-bottom: 10px;'>⚠️ Evenimente Majore Următoare:</strong>"
+        events_html = "<div style='margin-top: 24px; border-top: 2px solid var(--border-light); padding-top: 20px;'>"
+        events_html += "<strong style='color: #F59E0B; font-size: 18px; font-weight: 700; display: block; margin-bottom: 16px;'>Evenimente Majore Următoare:</strong>"
         
-        events_html += "<ul style='margin: 0; padding-left: 20px; color: #ccc; font-size: 0.9rem; list-style-type: none;'>"
+        events_html += "<ul style='margin: 0; padding-left: 20px; color: var(--text-primary); font-size: 15px; list-style-type: none;'>"
         for ev in events_list:
             name = ev['name']
             name_ro = name.replace('Fed', 'Fed').replace('CPI', 'Inflația CPI').replace('GDP', 'PIB').replace('Unemployment', 'Șomaj')
@@ -459,8 +459,8 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
         html = f"""
         <div style="margin-top: 32px; background-color: var(--bg-white); border-radius: var(--radius-md); border: 1px solid var(--border-light); overflow: hidden; box-shadow: var(--shadow-sm);">
             <div style="background: linear-gradient(135deg, var(--primary-purple) 0%, var(--dark-purple) 100%); padding: 16px 20px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center;">
-                <span style="font-size: 24px; margin-right: 12px;">🤖</span>
-                <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: white;">Antigravity Market Cortex (Multi-Factor Analysis)</h3>
+
+                <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: white;">Market Cortex - Multi-Factor Analysis</h3>
             </div>
             <div style="padding: 20px;">
                 
