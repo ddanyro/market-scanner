@@ -2323,7 +2323,6 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             </div>
 
 
-            <h3 style="color: #4dabf7; margin-bottom: 20px; text-align: center;">👀 Watchlist</h3>
             <div class="table-container">
             <table id="watchlist-table">
                 <thead>
