@@ -1645,28 +1645,34 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             .dataTables_wrapper .dataTables_filter, 
             .dataTables_wrapper .dataTables_info, 
             .dataTables_wrapper .dataTables_paginate {{
-                color: #e0e0e0 !important;
+                color: var(--text-primary) !important;
                 margin-bottom: 15px;
             }}
             .dataTables_wrapper .dataTables_filter input {{
-                background-color: #2d2d2d;
-                color: #fff;
-                border: 1px solid #444;
-                padding: 5px;
-                border-radius: 4px;
+                background-color: var(--bg-white);
+                color: var(--text-primary);
+                border: 1px solid var(--border-light);
+                padding: 10px 14px;
+                border-radius: var(--radius-sm);
+                font-size: 14px;
+            }}
+            .dataTables_wrapper .dataTables_filter input:focus {{
+                border-color: var(--primary-purple);
+                box-shadow: 0 0 0 3px rgba(119, 96, 249, 0.1);
+                outline: none;
             }}
             table.dataTable tbody tr {{
-                background-color: #2d2d2d;
-                color: #e0e0e0;
+                background-color: var(--bg-white);
+                color: var(--text-primary);
             }}
             table.dataTable tbody tr.even {{
-                background-color: #2d2d2d;
+                background-color: var(--bg-light);
             }}
             table.dataTable.hover tbody tr:hover, table.dataTable.display tbody tr:hover {{
-                background-color: #3a3a3a !important;
+                background-color: var(--light-purple-bg) !important;
             }}
             table.dataTable thead th, table.dataTable tfoot th {{
-                border-bottom: 1px solid #555;
+                border-bottom: 2px solid var(--border-light);
             }}
             table.dataTable.no-footer {{
                 border-bottom: 1px solid #444;
@@ -2050,8 +2056,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         
         <!-- TAB MARKET (NOU) -->
         <div id="market" class="tab-content active">
-            <h3 style="color: #4dabf7; margin-bottom: 20px; text-align: center;">📊 Indicatori de Piață</h3>
-            <div style="background-color: #2d2d2d; padding: 20px; border-radius: 10px; overflow-x: auto;">
+            <h3 style="color: var(--primary-purple); margin-bottom: 24px; text-align: center; font-size: 28px; font-weight: 700;">📊 Indicatori de Piață</h3>
+            <div style="background-color: var(--bg-white); padding: 32px; border-radius: var(--radius-md); overflow-x: auto; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);">
                 <table style="width: 100%; background-color: transparent; box-shadow: none;">
                     <thead>
                         <tr style="border-bottom: 2px solid #444;">
@@ -2309,8 +2315,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     </select>
                 </div>
                 <div style="display: flex; flex-direction: column;">
-                    <label style="font-size: 0.8rem; margin-bottom: 5px; color: #aaa;">Status</label>
-                    <select id="filter-status" style="padding: 5px; background: #444; color: #fff; border: none; border-radius: 4px; width: 100px;">
+                    <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Status</label>
+                    <select id="filter-status" style="padding: 10px 14px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); width: 140px; font-size: 14px; cursor: pointer;">
                         <option value="">All</option>
                         <option value="Oversold">Oversold</option>
                         <option value="Overbought">Overbought</option>
@@ -2575,7 +2581,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                       
                       
                       <!-- Suggested Stop & Buy (ATR-based) -->
-                      <div style="margin-top: 20px; padding: 15px; background: #1e1e1e; border-radius: 8px; border: 1px solid #555;">
+                      <div style="margin-top: 24px; padding: 20px; background: var(--light-purple-bg); border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
                           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                               <div>
                                   <div style="color: #aaa; font-size: 0.85rem; margin-bottom: 5px;">💡 Suggested Stop (2×ATR)</div>
