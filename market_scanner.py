@@ -1407,6 +1407,42 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         .vix-Ridicat { color: #F59E0B; }
         .vix-Extrem { color: var(--error-red); font-weight: 600; }
         
+        /* Buttons */
+        button, .btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        .btn-primary, button[onclick*="unlock"] {
+            background: var(--primary-purple);
+            color: white;
+            box-shadow: 0 4px 12px rgba(119, 96, 249, 0.3);
+        }
+        
+        .btn-primary:hover, button[onclick*="unlock"]:hover {
+            background: var(--dark-purple);
+            box-shadow: 0 6px 16px rgba(119, 96, 249, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-white);
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--light-purple-bg);
+            border-color: var(--primary-purple);
+            color: var(--primary-purple);
+        }
+        
         /* Inputs */
         .edit-input { 
             width: 80px;
@@ -1795,11 +1831,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         <div id="portfolio" class="tab-content">
             
             <!-- LOCK SCREEN Local -->
-            <div id="portfolio-lock" style="text-align: center; padding: 60px; background: #252526; border-radius: 10px; margin-top: 20px;">
-                <div style="font-size: 3rem; margin-bottom: 20px;">🔒</div>
-                <h3 style="color: #e0e0e0; margin-bottom: 20px;">Secțiune Protejată</h3>
-                <input type="password" id="pf-pass" style="padding: 10px; font-size: 1.2rem; text-align: center; width: 150px; border-radius: 5px; border: 1px solid #555; background: #333; color: white; letter-spacing: 5px;" placeholder="PIN" onkeyup="if(event.key==='Enter') unlockPortfolio()">
-                <button onclick="unlockPortfolio()" style="padding: 10px 20px; font-size: 1.2rem; background: #4dabf7; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">Unlock</button>
+            <div id="portfolio-lock" style="max-width: 500px; margin: 80px auto; text-align: center; padding: 48px; background: var(--bg-white); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); border: 1px solid var(--border-light);">
+                <div style="font-size: 4rem; margin-bottom: 24px;">🔒</div>
+                <h2 style="color: var(--text-primary); margin-bottom: 12px; font-size: 28px;">Secțiune Protejată</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 32px; font-size: 16px;">Introdu PIN-ul pentru a accesa portofoliul</p>
+                <div style="display: flex; gap: 12px; justify-content: center; align-items: center;">
+                    <input type="password" id="pf-pass" style="padding: 14px 20px; font-size: 18px; text-align: center; width: 180px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: var(--bg-white); color: var(--text-primary); letter-spacing: 8px; font-weight: 600; transition: all 0.2s;" placeholder="••••" onkeyup="if(event.key==='Enter') unlockPortfolio()" onfocus="this.style.borderColor='var(--primary-purple)'; this.style.boxShadow='0 0 0 3px rgba(119,96,249,0.1)'" onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none'">
+                    <button onclick="unlockPortfolio()" class="btn-primary">Unlock</button>
+                </div>
             </div>
             
             <!-- ACTUAL DATA (Hidden) -->
@@ -2491,16 +2530,17 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
         <!-- Volatility Tab -->
         <div id="volatility" class="tab-content">
-             <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px; position: relative;">
-                 <button id="vol-back-btn" onclick="goBackFromVolatility()" style="position: absolute; left: 20px; padding: 8px 16px; background: #444; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">
+             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;">
+                 <button id="vol-back-btn" onclick="goBackFromVolatility()" class="btn-secondary" style="padding: 10px 20px;">
                      ← Back
                  </button>
-                 <h3 style="color: #ba68c8; margin: 0;">📉 Volatility Calculator</h3>
+                 <h2 style="color: var(--text-primary); margin: 0; font-size: 28px; font-weight: 700;">📉 Volatility Calculator</h2>
+                 <div style="width: 100px;"></div> <!-- Spacer for centering -->
              </div>
-             <div style="background: #2d2d2d; padding: 20px; border-radius: 10px; max-width: 500px; margin: 0 auto; border: 1px solid #444;">
-                 <label style="color: #aaa; margin-bottom: 5px; display: block;">Search Symbol (Portfolio & Watchlist)</label>
-                 <input list="vol-tickers" id="vol-input" oninput="calcVolatility()" placeholder="Type symbol..." 
-                        style="width: 100%; padding: 12px; margin-bottom: 20px; background: #333; color: white; border: 1px solid #555; border-radius: 5px; font-size: 1rem;">
+             <div style="background: var(--bg-white); padding: 32px; border-radius: var(--radius-md); max-width: 600px; margin: 0 auto; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);">
+                 <label style="color: var(--text-secondary); margin-bottom: 8px; display: block; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Search Symbol</label>
+                 <input list="vol-tickers" id="vol-input" oninput="calcVolatility()" placeholder="Type symbol (e.g. NVDA)..." 
+                        style="width: 100%; padding: 14px 16px; margin-bottom: 24px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 16px; transition: all 0.2s;" onfocus="this.style.borderColor='var(--primary-purple)'; this.style.boxShadow='0 0 0 3px rgba(119,96,249,0.1)'" onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none'">
                  <datalist id="vol-tickers">
     """ + "".join([f'<option value="{k}">' for k in sorted(vol_map.keys())]) + """
                  </datalist>
