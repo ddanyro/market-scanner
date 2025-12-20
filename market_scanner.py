@@ -2053,7 +2053,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         
         <!-- TAB MARKET (NOU) -->
         <div id="market" class="tab-content active">
-            <h2 style="color: var(--primary-purple); margin-bottom: 24px; text-align: center;">Indicatori de Piață</h2>
+            <h2 style="color: var(--text-primary); margin-bottom: 24px; text-align: center;">Indicatori de Piață</h2>
             <div style="background-color: var(--bg-white); padding: 32px; border-radius: var(--radius-md); overflow-x: auto; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);">
                 <table style="width: 100%; background-color: transparent; box-shadow: none;">
                     <thead>
@@ -2178,7 +2178,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         hist_returns = market_indicators['Historical_Returns']
         html_head += """
             <div style="background: var(--bg-white); padding: 32px; border-radius: var(--radius-md); margin-top: 32px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
-                <h3 style="color: var(--primary-purple); margin-top: 0; text-align: center;">Randamente Lunare Istorice (1950 - Prezent)</h3>
+                <h3 style="color: var(--text-primary); margin-top: 0; text-align: center;">Randamente Lunare Istorice (1950 - Prezent)</h3>
         """
         
         # Add current and next month info
@@ -2209,37 +2209,37 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr>
-                            <th style="padding: 12px; text-align: center; border-bottom: 2px solid #444;"></th>
-                            <th style="padding: 12px; text-align: center; border-bottom: 2px solid #444; color: #4dabf7; font-size: 1.1rem;">
-                                📅 {current_month_name}
+                            <th style="padding: 12px; text-align: center; border-bottom: 2px solid var(--border-light);"></th>
+                            <th style="padding: 12px; text-align: center; border-bottom: 2px solid var(--border-light); color: var(--text-primary); font-size: 16px; font-weight: 600;">
+                                {current_month_name}
                             </th>
-                            <th style="padding: 12px; text-align: center; border-bottom: 2px solid #444; color: #ba68c8; font-size: 1.1rem;">
-                                📅 {next_month_name}
+                            <th style="padding: 12px; text-align: center; border-bottom: 2px solid var(--border-light); color: var(--text-primary); font-size: 16px; font-weight: 600;">
+                                {next_month_name}
                             </th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr style="border-bottom: 1px solid #333;">
-                            <td style="padding: 15px; color: #aaa; font-weight: bold;">S&P 500</td>
-                            <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {sp500_current_color};">
+                        <tr style="border-bottom: 1px solid var(--border-light);">
+                            <td style="padding: 12px; color: var(--text-secondary); font-weight: 600; font-size: 15px;">S&P 500</td>
+                            <td style="padding: 12px; text-align: center; font-size: 18px; font-weight: 700; color: {sp500_current_color};">
                                 {sp500_current:+.2f}%
                             </td>
-                            <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {sp500_color};">
+                            <td style="padding: 12px; text-align: center; font-size: 18px; font-weight: 700; color: {sp500_color};">
                                 {sp500_next:+.2f}%
                             </td>
                         </tr>
                         <tr>
-                            <td style="padding: 15px; color: #aaa; font-weight: bold;">NASDAQ</td>
-                            <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {nasdaq_current_color};">
+                            <td style="padding: 12px; color: var(--text-secondary); font-weight: 600; font-size: 15px;">NASDAQ</td>
+                            <td style="padding: 12px; text-align: center; font-size: 18px; font-weight: 700; color: {nasdaq_current_color};">
                                 {nasdaq_current:+.2f}%
                             </td>
-                            <td style="padding: 15px; text-align: center; font-size: 1.3rem; font-weight: bold; color: {nasdaq_color};">
+                            <td style="padding: 12px; text-align: center; font-size: 18px; font-weight: 700; color: {nasdaq_color};">
                                 {nasdaq_next:+.2f}%
                             </td>
                         </tr>
                     </tbody>
                 </table>
-                <div style="text-align: center; color: #666; font-size: 0.75rem; margin-top: 15px;">
+                <div style="text-align: center; color: var(--text-secondary); font-size: 13px; margin-top: 16px; font-style: italic;">
                     Bazat pe media istorică pentru fiecare lună (1950-Prezent)
                 </div>
                 
@@ -2276,7 +2276,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             
             <!-- Watchlist Header -->
             <div style="text-align: center; margin-bottom: 24px; padding: 24px; background: var(--bg-white); border-radius: var(--radius-md); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
-                <h2 style="color: var(--primary-purple); margin: 0;">Watchlist</h2>
+                <h2 style="color: var(--text-primary); margin: 0;">Watchlist</h2>
                 <p style="color: var(--text-secondary); margin: 8px 0 0 0; font-size: 16px;">Total Stocks: <strong style="color: var(--primary-purple);">{len(watchlist_df)}</strong></p>
             </div>
             
