@@ -674,7 +674,7 @@ def generate_swing_trading_html():
     fg_rating = str(data.get('FG_Rating', 'neutral')).capitalize()
     pcr_val = data.get('PCR_Value', 0.8) if data.get('PCR_Value') else 0.8
     
-    # Prepare JSONs for JS Charting
+    # Chart Data JSON
     default_spx = {'labels': [], 'price': [], 'sma50': [], 'sma200': []}
     chart_spx_json = json.dumps(data.get('Chart_SPX', default_spx))
     chart_fg_json = json.dumps(data.get('Chart_FG', []))
@@ -684,9 +684,9 @@ def generate_swing_trading_html():
     
     # 1. Trend
     trend_bullish = spx_price > sma_200
-    trend_text = "BULLISH" if trend_bullish else "BEARISH"
+    trend_text = "BULLISH (Preț > SMA200)" if trend_bullish else "BEARISH (Preț < SMA200)"
     trend_color = "#4caf50" if trend_bullish else "#f44336"
-    trend_desc = f"Preț ({spx_price:.0f}) > SMA200 ({sma_200:.0f})" if trend_bullish else f"Preț ({spx_price:.0f}) < SMA200 ({sma_200:.0f})"
+    trend_val_text = f"Preț {spx_price:.0f} vs SMA {sma_200:.0f}"
 
     # 2. Sentiment
     if fg_score < 25: fg_zone = "Extreme Fear"; fg_color = "#4caf50" 
@@ -698,49 +698,53 @@ def generate_swing_trading_html():
     # 3. Breadth
     breadth_ok = spx_price > sma_50
     breadth_color = "#4caf50" if breadth_ok else "#ff9800"
-    breadth_text = "Peste SMA50" if breadth_ok else "Sub SMA50"
+    breadth_text = "Puternic (Peste SMA50)" if breadth_ok else "Slab (Sub SMA50)"
 
     # 4. Timing
     panic_signal = pcr_val > 1.0
     pcr_color = "#4caf50" if panic_signal else "#aaa"
-    pcr_text = "OPORTUNITATE (Fear)" if panic_signal else "Normal"
+    pcr_text = "OPORTUNITATE (Fear > 1.0)" if panic_signal else "Normal (< 1.0)"
     
     # Verdict
     verdict = "WAIT"
     verdict_color = "#ff9800"
     verdict_reason = ""
+    verdict_expl = ""
     
     if trend_bullish:
         if fg_score < 50:
             verdict = "BUY"
             verdict_color = "#4caf50"
-            verdict_reason = "Trend Up + Fear"
+            verdict_reason = "Trend UP + Frica în piață = Buy Dip."
+            verdict_expl = "Acesta este momentul ideal pentru Swing: trendul major te susține, iar corecția de preț îți oferă intrare ieftină."
         else:
             verdict = "WAIT"
             verdict_color = "#ff9800"
-            verdict_reason = "Trend Up + Greed"
+            verdict_reason = "Trend UP + Euforie (Greed)."
+            verdict_expl = "Deși trendul e bun, piața este extinsă. Riscul de pullback este mare. Așteaptă o corecție (Fear) pentru a intra."
     else:
         verdict = "CASH"
         verdict_color = "#f44336"
-        verdict_reason = "Trend Down"
+        verdict_reason = "Trend DOWN (Sub SMA200)."
+        verdict_expl = "Nu deschide poziții Long Swing când prețul este sub media de 200 zile. Probabilitatea de succes e mică. Stai în cash."
 
     if panic_signal and trend_bullish:
         verdict += " (STRONG)"
+        verdict_expl += " Panica semnalată de Put/Call confirmă un potențial minim local."
     
-    # Unique ID for charts to avoid conflicts
     uid = str(int(datetime.datetime.now().timestamp()))
 
     html = f"""
-    <div style="margin: 32px 0; background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden;">
+    <div style="margin: 32px 0; background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
         
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); padding: 16px 24px; color: white; display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <h3 style="margin: 0; font-size: 18px; font-weight: 700;">🏦 Swing Trading Signal (Long-only)</h3>
-                <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">Analiză Multi-Factor: Trend, Sentiment, Breadth, Timing</div>
+                <div style="font-size: 13px; opacity: 0.9; margin-top: 4px;">Analiză Context SPX • Strategie: <b>Trend Following + Contrarian Entry</b></div>
             </div>
             <div style="text-align: right;">
-                 <div style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-weight: bold;">{verdict}</div>
+                 <div style="background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 16px; border: 1px solid rgba(255,255,255,0.3);">{verdict}</div>
             </div>
         </div>
 
@@ -749,40 +753,65 @@ def generate_swing_trading_html():
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
                 
                 <!-- 1. TREND CARD -->
-                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px;">
+                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px; background: #fdfdfd;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                         <span style="font-weight: 600; color: #555;">Trend (SPX vs SMA200)</span>
                         <span style="font-weight: 800; color: {trend_color};">{trend_text}</span>
                     </div>
-                    <div style="position: relative; height: 160px; width: 100%;"><canvas id="chart_trend_{uid}"></canvas></div>
-                    <div style="font-size: 11px; color: #888; margin-top: 8px; text-align: center;">Preț (Albastru) vs SMA50 (Verde) vs SMA200 (Rosu)</div>
+                    <div style="position: relative; height: 160px; width: 100%;">
+                        <canvas id="chart_trend_{uid}"></canvas>
+                    </div>
+                    <div style="font-size: 11px; color: #888; margin-top: 8px; text-align: center;">Albastru: Preț | Galben: SMA200 (Trend Major)</div>
                 </div>
 
                 <!-- 2. SENTIMENT CARD -->
-                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px;">
+                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px; background: #fdfdfd;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                         <span style="font-weight: 600; color: #555;">Sentiment (CNN F&G)</span>
                         <span style="font-weight: 800; color: {fg_color};">{fg_zone} ({fg_score})</span>
                     </div>
-                    <div style="position: relative; height: 120px; width: 100%;"><canvas id="chart_fg_{uid}"></canvas></div>
+                    <div style="position: relative; height: 120px; width: 100%;">
+                        <canvas id="chart_fg_{uid}"></canvas>
+                    </div>
                 </div>
 
                 <!-- 3. TIMING CARD (PCR) -->
-                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px;">
+                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px; background: #fdfdfd;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                         <span style="font-weight: 600; color: #555;">Timing (Put/Call Ratio)</span>
-                        <span style="font-weight: 800; color: {pcr_color};">{pcr_val:.2f} ({pcr_text})</span>
+                        <span style="font-weight: 800; color: {pcr_color};">{pcr_text}</span>
                     </div>
-                    <div style="position: relative; height: 120px; width: 100%;"><canvas id="chart_pcr_{uid}"></canvas></div>
+                     <div style="position: relative; height: 120px; width: 100%;">
+                        <canvas id="chart_pcr_{uid}"></canvas>
+                    </div>
+                    <div style="text-align: center; margin-top: 5px; font-weight: bold; color: {pcr_color}">{pcr_val:.2f}</div>
                 </div>
                 
-                <!-- 4. VERDICT DETAILS -->
-                <div style="background: {verdict_color}10; border-radius: 8px; padding: 16px; border: 1px solid {verdict_color};">
-                    <h4 style="margin: 0 0 10px 0; color: {verdict_color};">Detalii Verdict: {verdict}</h4>
-                    <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #444; line-height: 1.6;">
-                        <li><strong>Trend:</strong> {trend_desc}</li>
-                        <li><strong>Breadth:</strong> <span style="color: {breadth_color}; font-weight: bold;">{breadth_text}</span></li>
-                        <li><strong>Concluzie:</strong> {verdict_reason}</li>
+                <!-- 4. VERDICT DETAILS & EDUCATION -->
+                <div style="background: {verdict_color}08; border-radius: 8px; padding: 20px; border-left: 5px solid {verdict_color}; border-top: 1px solid {verdict_color}20; border-right: 1px solid {verdict_color}20; border-bottom: 1px solid {verdict_color}20;">
+                    <h4 style="margin: 0 0 15px 0; color: {verdict_color}; font-size: 18px; border-bottom: 1px solid {verdict_color}30; padding-bottom: 8px;">
+                        DETALII VERDICT: {verdict}
+                    </h4>
+                    
+                    <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #333; line-height: 1.6;">
+                        <li style="margin-bottom: 10px;">
+                            <strong>Trend:</strong> <span style="color: {trend_color}; font-weight: 800;">{trend_text}</span>
+                            <div style="font-size: 12px; color: #666; margin-top: 2px;">
+                                <i>ℹ️ SMA 200 este "linia din nisip". Swing Traderii cumpără DOAR dacă prețul este deasupra ei (Bull Market).</i>
+                            </div>
+                        </li>
+                        <li style="margin-bottom: 10px;">
+                            <strong>Breadth:</strong> <span style="color: {breadth_color}; font-weight: 800;">{breadth_text}</span>
+                            <div style="font-size: 12px; color: #666; margin-top: 2px;">
+                                <i>ℹ️ Prețul peste SMA 50 indică faptul că piața are "vânt din spate" (Momentum pozitiv) pe termen mediu.</i>
+                            </div>
+                        </li>
+                        <li style="margin-bottom: 10px;">
+                            <strong>Concluzie:</strong> <span style="color: {verdict_color}; font-weight: 800;">{verdict_reason}</span>
+                            <div style="font-size: 12px; color: #333; margin-top: 4px; background: rgba(255,255,255,0.5); padding: 8px; border-radius: 4px; border-left: 2px solid {verdict_color};">
+                                💡 <b>Explicație pentru Investitor:</b> {verdict_expl}
+                            </div>
+                        </li>
                     </ul>
                 </div>
 
@@ -792,104 +821,44 @@ def generate_swing_trading_html():
 
     <script>
     (function() {{
-        // Data passed from Python
         const spxData = {chart_spx_json};
         const fgData = {chart_fg_json};
         const pcrData = {chart_pcr_json};
 
-        // --- CHART 1: SPX TREND ---
-        const ctxTrend = document.getElementById('chart_trend_{uid}').getContext('2d');
-        // Simple line drawing logic (no external lib dependency if we want standalone, but Chart.js is better if included)
-        // Checks if Chart.js is available. It is usually included in standard templates.
-        // Assuming Chart.js is present (standard in this dashboard).
-        
         if (typeof Chart !== 'undefined') {{
-            new Chart(ctxTrend, {{
+            // SPX Chart
+            new Chart(document.getElementById('chart_trend_{uid}').getContext('2d'), {{
                 type: 'line',
                 data: {{
                     labels: spxData.labels,
                     datasets: [
-                        {{
-                            label: 'SPX Price',
-                            data: spxData.price,
-                            borderColor: '#2196f3',
-                            borderWidth: 2,
-                            pointRadius: 0
-                        }},
-                        {{
-                            label: 'SMA 50',
-                            data: spxData.sma50,
-                            borderColor: '#4caf50',
-                            borderWidth: 1.5,
-                            borderDash: [5, 5],
-                            pointRadius: 0
-                        }},
-                        {{
-                            label: 'SMA 200',
-                            data: spxData.sma200,
-                            borderColor: '#f44336',
-                            borderWidth: 1.5,
-                            pointRadius: 0
-                        }}
+                        {{ label: 'Price', data: spxData.price, borderColor: '#2196f3', borderWidth: 2, pointRadius: 0 }},
+                        {{ label: 'SMA50', data: spxData.sma50, borderColor: '#4caf50', borderWidth: 1, borderDash: [5,5], pointRadius: 0 }},
+                        {{ label: 'SMA200', data: spxData.sma200, borderColor: '#fbc02d', borderWidth: 2, pointRadius: 0 }}
                     ]
                 }},
-                options: {{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {{ legend: {{ display: false }} }},
-                    scales: {{ 
-                        x: {{ display: false }},
-                        y: {{ display: true }}
-                    }}
-                }}
+                options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }}, y: {{ display: true }} }} }}
             }});
 
-            // --- CHART 2: F&G ---
-            const ctxFG = document.getElementById('chart_fg_{uid}').getContext('2d');
-            new Chart(ctxFG, {{
+            // FG Chart
+            new Chart(document.getElementById('chart_fg_{uid}').getContext('2d'), {{
                 type: 'line',
                 data: {{
                     labels: Array(fgData.length).fill(''),
-                    datasets: [{{
-                        label: 'Fear & Greed',
-                        data: fgData,
-                        borderColor: '#ff9800',
-                        backgroundColor: 'rgba(255, 152, 0, 0.1)',
-                        fill: true,
-                        pointRadius: 0,
-                        tension: 0.4
-                    }}]
+                    datasets: [{{ label: 'F&G', data: fgData, borderColor: '{fg_color}', backgroundColor: '{fg_color}20', fill: true, pointRadius: 0, tension: 0.4 }}]
                 }},
-                options: {{
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: {{ legend: {{ display: false }} }},
-                    scales: {{ x: {{ display: false }}, y: {{ min:0, max:100 }} }}
-                }}
+                options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }}, y: {{ min: 0, max: 100 }} }} }}
             }});
 
-            // --- CHART 3: PCR ---
-            const ctxPCR = document.getElementById('chart_pcr_{uid}').getContext('2d');
-            new Chart(ctxPCR, {{
+            // PCR Chart
+            new Chart(document.getElementById('chart_pcr_{uid}').getContext('2d'), {{
                 type: 'line',
                 data: {{
                     labels: Array(pcrData.length).fill(''),
-                    datasets: [{{
-                        label: 'Put/Call Ratio',
-                        data: pcrData,
-                        borderColor: '#9c27b0',
-                        pointRadius: 0,
-                        tension: 0.3
-                    }}]
+                    datasets: [{{ label: 'PCR', data: pcrData, borderColor: '{pcr_color}', pointRadius: 0, tension: 0.2 }}]
                 }},
-                options: {{
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: {{ legend: {{ display: false }} }},
-                    scales: {{ x: {{ display: false }} }}
-                }}
+                options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }} }} }}
             }});
-        }} else {{
-            // Fallback text if Chart.js missing
-            document.getElementById('chart_trend_{uid}').parentNode.innerHTML += '<div style="color:red">Chart.js missing</div>';
         }}
     }})();
     </script>
