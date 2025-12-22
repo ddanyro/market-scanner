@@ -459,10 +459,10 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
                     'desc': template['desc']
                 })
 
-        events_html = "<div style='margin-top: 24px; border-top: 2px solid var(--border-light); padding-top: 20px;'>"
-        events_html += "<strong style='color: #F59E0B; font-size: 18px; font-weight: 700; display: block; margin-bottom: 16px;'>Evenimente Majore Următoare:</strong>"
+        events_html = "<div style='margin-top: 32px; border-top: 2px solid var(--border-light); padding-top: 24px;'>"
+        events_html += "<h4 style='color: var(--primary-purple); font-size: 18px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px;'>Evenimente Majore Următoare</h4>"
         
-        events_html += "<ul style='margin: 0; padding-left: 20px; color: var(--text-primary); font-size: 15px; list-style-type: none;'>"
+        events_html += "<div style='display: grid; gap: 12px;'>"
         for ev in events_list:
             name = ev['name']
             name_ro = name.replace('Fed', 'Fed').replace('CPI', 'Inflația CPI').replace('GDP', 'PIB').replace('Unemployment', 'Șomaj')
@@ -474,15 +474,15 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
                  desc = ev.get('desc', desc)
             
             events_html += f"""
-            <li style="margin-bottom: 10px; padding-left: 10px; border-left: 3px solid #666;">
-                <div>
-                    <strong style="color: #fff;">{name_ro}</strong> 
-                    <span style="color: #888; font-size: 0.8rem;">({ev['week']})</span>
+            <div style="background: var(--light-purple-bg); border-left: 4px solid var(--primary-purple); padding: 16px 20px; border-radius: var(--radius-sm); transition: all 0.2s ease;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                    <strong style="color: var(--text-primary); font-size: 15px; font-weight: 600;">{name_ro}</strong>
+                    <span style="color: var(--text-secondary); font-size: 13px; font-weight: 500; white-space: nowrap; margin-left: 12px;">{ev['week']}</span>
                 </div>
-                <div style="font-size: 0.85rem; color: #aaa; margin-top: 2px;">{desc}</div>
-            </li>
+                <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">{desc}</div>
+            </div>
             """
-        events_html += "</ul></div>"
+        events_html += "</div></div>"
 
         # Formatare HTML Final 
         html = f"""
