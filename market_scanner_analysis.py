@@ -420,15 +420,44 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
         # 4. Calendar logic (Forced Fallback if Empty)
         events_list = get_economic_events()
         
-        # STATIC FALLBACK if scraper returns empty list
+        # DYNAMIC FALLBACK if scraper returns empty list
         if not events_list:
-             events_list = [
-                {'name': 'Consumer Confidence (US)', 'week': 'Lun 23 Dec', 'desc': 'Încrederea consumatorilor. Impact retail și spending.'},
-                {'name': 'New Home Sales (US)', 'week': 'Mar 24 Dec', 'desc': 'Vânzări case noi. Indicator sănătate piață imobiliară.'},
-                {'name': 'Durable Goods Orders', 'week': 'Mie 25 Dec', 'desc': 'Comenzi bunuri durabile. Indicator activitate industrială.'},
-                {'name': 'Initial Jobless Claims', 'week': 'Joi 26 Dec', 'desc': 'Cereri șomaj săptămânale. Impact piață muncă.'},
-                {'name': 'Pending Home Sales', 'week': 'Vin 27 Dec', 'desc': 'Vânzări case în așteptare. Indicator anticipativ imobiliare.'}
+            from datetime import datetime, timedelta
+            
+            # Calculate next week's dates dynamically
+            today = datetime.now()
+            
+            # Find next Monday
+            days_until_monday = (7 - today.weekday()) % 7
+            if days_until_monday == 0:
+                days_until_monday = 7  # If today is Monday, get next Monday
+            next_monday = today + timedelta(days=days_until_monday)
+            
+            # Generate events for next week (Monday-Friday)
+            events_list = []
+            days_ro = ['Lun', 'Mar', 'Mie', 'Joi', 'Vin']
+            
+            event_templates = [
+                {'name': 'Consumer Confidence (US)', 'desc': 'Încrederea consumatorilor. Impact retail și spending.'},
+                {'name': 'New Home Sales (US)', 'desc': 'Vânzări case noi. Indicator sănătate piață imobiliară.'},
+                {'name': 'Durable Goods Orders', 'desc': 'Comenzi bunuri durabile. Indicator activitate industrială.'},
+                {'name': 'Initial Jobless Claims', 'desc': 'Cereri șomaj săptămânale. Impact piață muncă.'},
+                {'name': 'Pending Home Sales', 'desc': 'Vânzări case în așteptare. Indicator anticipativ imobiliare.'}
             ]
+            
+            for i, template in enumerate(event_templates):
+                event_date = next_monday + timedelta(days=i)
+                month_names = {
+                    1: 'Ian', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'Mai', 6: 'Iun',
+                    7: 'Iul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
+                }
+                date_str = f"{days_ro[i]} {event_date.day} {month_names[event_date.month]}"
+                
+                events_list.append({
+                    'name': template['name'],
+                    'week': date_str,
+                    'desc': template['desc']
+                })
 
         events_html = "<div style='margin-top: 24px; border-top: 2px solid var(--border-light); padding-top: 20px;'>"
         events_html += "<strong style='color: #F59E0B; font-size: 18px; font-weight: 700; display: block; margin-bottom: 16px;'>Evenimente Majore Următoare:</strong>"
