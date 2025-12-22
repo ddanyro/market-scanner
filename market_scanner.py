@@ -20,7 +20,7 @@ from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
 from base64 import b64encode
 import json
-from market_scanner_analysis import generate_market_analysis  # Import modul analiză
+from market_scanner_analysis import generate_market_analysis, generate_swing_trading_html  # Import modul analiză
 
 STATE_FILE = "dashboard_state.json"
 MARKET_HISTORY_FILE = "market_history.json"
@@ -2345,7 +2345,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             </div>
         """
     
-    
+    # --- SWING TRADING ANALYSIS SECTION ---
+    # Generăm cardul de analiză Swing Trading (Trend, F&G, Breadth, Timing)
+    print("  -> Generare Analiză Swing Trading (Long-only)...")
+    try:
+        swing_html = generate_swing_trading_html()
+        html_head += swing_html
+    except Exception as e:
+        print(f"  ⚠ Eroare generare Swing Trading HTML: {e}")
     
     # Adăugăm analiza AI (News + Calendar)
     # Adăugăm analiza AI (News + Calendar)
