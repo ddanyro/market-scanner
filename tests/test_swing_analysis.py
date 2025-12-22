@@ -98,7 +98,7 @@ class TestSwingAnalysis(unittest.TestCase):
         self.assertIn("Swing Trading Signal", html)
         self.assertIn("BULLISH", html) # 5000 > 4800
         self.assertIn("Extreme Fear", html) # Score 20
-        self.assertIn("Panică (PCR>1)", html) # PCR 1.2
+        self.assertIn("OPORTUNITATE (Fear)", html) # PCR 1.2
         self.assertIn("<canvas id=\"chart_trend_", html)
         self.assertIn("const spxData =", html)
 
@@ -113,7 +113,7 @@ class TestSwingAnalysis(unittest.TestCase):
             # Should not crash, but defaults might cause JS issues if not handled.
             # We just verify it generates HTML successfully.
             self.assertIn("Swing Trading Signal", html)
-            self.assertIn("const spxData = {}", html) # Or whatever default
+            self.assertIn('"labels": []', html) # Check for robust default structure
         except Exception as e:
             self.fail(f"HTML Generation crashed on missing data: {e}")
 

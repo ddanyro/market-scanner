@@ -572,8 +572,13 @@ def get_swing_trading_data():
 
     # 2. Fear & Greed
     try:
-        headers = {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://edition.cnn.com/'}
-        r = requests.get("https://production.dataviz.cnn.io/index/fearandgreed/graphdata", headers=headers, timeout=5)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json',
+            'Referer': 'https://edition.cnn.com',
+            'Origin': 'https://edition.cnn.com'
+        }
+        r = requests.get("https://production.dataviz.cnn.io/index/fearandgreed/graphdata", headers=headers, timeout=10)
         if r.status_code == 200:
             j = r.json()
             data['FG_Score'] = j.get('fear_and_greed', {}).get('score', 50)
