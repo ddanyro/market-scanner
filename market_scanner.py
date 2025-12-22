@@ -367,8 +367,6 @@ def get_market_indicators():
         'MOVE': [(80, 'perfect 80'), (120, '80 moderat 120'), (150, '120 teama 150'), (999, '150 panica')],
         'GVZ': [(17, 'perfect 22'), (22, '17 teama 22'), (999, '22 panica')],
         'OVX': [(25, 'perfect 25'), (35, '25 teama 35'), (999, '35 panica')],
-        'SPX': [(999999, 'NORMAL')],  # SPX is always shown as normal (index level)
-        'NASDAQ': [(999999, 'NORMAL')],  # NASDAQ is always shown as normal (index level)
     }
     
     for name, ticker in tickers_map.items():
@@ -430,8 +428,14 @@ def get_market_indicators():
                                 
                             break
                 else:
+                    # For indices (SPX, NASDAQ) that don't have thresholds
                     status = "Normal"
-                    description = ""
+                    if name == 'SPX':
+                        description = "S&P 500 Index"
+                    elif name == 'NASDAQ':
+                        description = "NASDAQ Composite"
+                    else:
+                        description = ""
                 
                 indicators[name] = {
                     'value': round(current, 2),
