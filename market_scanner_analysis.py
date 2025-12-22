@@ -2,6 +2,9 @@ import requests
 import pandas as pd
 from io import StringIO
 import datetime
+import yfinance as yf
+import numpy as np
+import json
 
 # Dicționar de interpretare a evenimentelor
 EVENT_DESCRIPTIONS = {
@@ -533,3 +536,340 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
         import traceback
         traceback.print_exc()
         return f"<div style='color: red;'>Eroare generare analiză: {e}</div>", "", 50
+
+
+# --- SWING TRADING COMPONENT ---
+
+def get_swing_trading_data():
+    """ Fetches data for Swing Trading Analysis including historical context. """
+    data = {}
+    
+    # 1. SPX Data (Full History for SMA calculation)
+    try:
+        spx = yf.Ticker("^GSPC")
+        # Need enough history for SMA 200 + 30 days display buffer
+        hist = spx.history(period="2y") 
+        if not hist.empty:
+            # Current values
+            current_price = hist['Close'].iloc[-1]
+            
+            # Calculate SMAs
+            hist['SMA50'] = hist['Close'].rolling(window=50).mean()
+            hist['SMA200'] = hist['Close'].rolling(window=200).mean()
+            
+            data['SPX_Price'] = current_price
+            data['SPX_SMA50'] = hist['SMA50'].iloc[-1]
+            data['SPX_SMA200'] = hist['SMA200'].iloc[-1]
+            
+            # Historical arrays (last 60 days to show trend better)
+            lookback = 60
+            subset = hist.iloc[-lookback:]
+            
+            data['Chart_SPX'] = {
+                'labels': [d.strftime('%m-%d') for d in subset.index],
+                'price': subset['Close'].fillna(0).tolist(),
+                'sma50': subset['SMA50'].fillna(0).tolist(),
+                'sma200': subset['SMA200'].fillna(0).tolist()
+            }
+            
+    except Exception as e:
+        print(f"Error Swing Data (SPX): {e}")
+
+    # 2. Fear & Greed (CNN)
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Referer': 'https://edition.cnn.com/'
+        }
+        # CNN API returns "fear_and_greed_historical" usually
+        r = requests.get("https://production.dataviz.cnn.io/index/fearandgreed/graphdata", headers=headers, timeout=5)
+        if r.status_code == 200:
+            j = r.json()
+            fg_score = j.get('fear_and_greed', {}).get('score', 50)
+            fg_rating = j.get('fear_and_greed', {}).get('rating', 'neutral')
+            
+            data['FG_Score'] = fg_score
+            data['FG_Rating'] = fg_rating
+            
+            # Try to get historical data
+            hist_data = j.get('fear_and_greed_historical', {}).get('data', [])
+            if hist_data:
+                # hist_data is list of {x: timestamp, y: score}
+                # Sort and take last 60
+                sorted_hist = sorted(hist_data, key=lambda x: x['x'])
+                last_60 = sorted_hist[-60:]
+                data['Chart_FG'] = [item['y'] for item in last_60]
+            else:
+                data['Chart_FG'] = [fg_score] * 60 # Flat line fallback
+                
+    except Exception as e:
+        print(f"Error Swing Data (F&G): {e}")
+        data['FG_Score'] = 50
+        data['FG_Rating'] = 'neutral'
+        data['Chart_FG'] = []
+
+    # 3. PCR (Put/Call Ratio) - Robust Fetch
+    try:
+        # Priority list: ^CPC (CBOE Total), ^PCX (CBOE Equity), ^PCR (Generic)
+        tickers = ['^CPC', '^PCR', '^PCX'] # Yahoo tickers
+        pcr_hist = pd.DataFrame()
+        
+        for t in tickers:
+            try:
+                temp = yf.Ticker(t).history(period="3mo")
+                if not temp.empty:
+                    pcr_hist = temp
+                    print(f"  -> PCR Data found using {t}")
+                    break
+            except:
+                continue
+        
+        if not pcr_hist.empty:
+            data['PCR_Value'] = pcr_hist['Close'].iloc[-1]
+            # Chart data (last 60)
+            subset = pcr_hist['Close'].iloc[-60:]
+            data['Chart_PCR'] = subset.fillna(0).tolist()
+        else:
+             data['PCR_Value'] = 0.8 # Neutral placeholder
+             data['Chart_PCR'] = []
+             print("  ⚠ PCR Data not found (Yahoo).")
+             
+    except Exception as e:
+        print(f"Error Swing Data (PCR): {e}")
+
+    return data
+
+def generate_swing_trading_html():
+    """ Generates HTML Card for Swing Trading Context (Long Only). """
+    data = get_swing_trading_data()
+    
+    # Extract Data
+    spx_price = data.get('SPX_Price', 0)
+    sma_200 = data.get('SPX_SMA200', 0)
+    sma_50 = data.get('SPX_SMA50', 0)
+    fg_score = data.get('FG_Score', 50)
+    fg_rating = str(data.get('FG_Rating', 'neutral')).capitalize()
+    pcr_val = data.get('PCR_Value', 0.8) if data.get('PCR_Value') else 0.8
+    
+    # Prepare JSONs for JS Charting
+    default_spx = {'labels': [], 'price': [], 'sma50': [], 'sma200': []}
+    chart_spx_json = json.dumps(data.get('Chart_SPX', default_spx))
+    chart_fg_json = json.dumps(data.get('Chart_FG', []))
+    chart_pcr_json = json.dumps(data.get('Chart_PCR', []))
+
+    # --- Analysis Logic ---
+    
+    # 1. Trend
+    trend_bullish = spx_price > sma_200
+    trend_text = "BULLISH" if trend_bullish else "BEARISH"
+    trend_color = "#4caf50" if trend_bullish else "#f44336"
+    trend_desc = f"Preț ({spx_price:.0f}) > SMA200 ({sma_200:.0f})" if trend_bullish else f"Preț ({spx_price:.0f}) < SMA200 ({sma_200:.0f})"
+
+    # 2. Sentiment
+    if fg_score < 25: fg_zone = "Extreme Fear"; fg_color = "#4caf50" 
+    elif fg_score < 45: fg_zone = "Fear"; fg_color = "#8bc34a"
+    elif fg_score < 55: fg_zone = "Neutral"; fg_color = "#ff9800"
+    elif fg_score < 75: fg_zone = "Greed"; fg_color = "#f44336"
+    else: fg_zone = "Extreme Greed"; fg_color = "#d32f2f"
+
+    # 3. Breadth
+    breadth_ok = spx_price > sma_50
+    breadth_color = "#4caf50" if breadth_ok else "#ff9800"
+    breadth_text = "Peste SMA50" if breadth_ok else "Sub SMA50"
+
+    # 4. Timing
+    panic_signal = pcr_val > 1.0
+    pcr_color = "#4caf50" if panic_signal else "#aaa"
+    pcr_text = "Panică (PCR>1)" if panic_signal else "Normal"
+    
+    # Verdict
+    verdict = "WAIT"
+    verdict_color = "#ff9800"
+    verdict_reason = ""
+    
+    if trend_bullish:
+        if fg_score < 50:
+            verdict = "BUY"
+            verdict_color = "#4caf50"
+            verdict_reason = "Trend Up + Fear"
+        else:
+            verdict = "WAIT"
+            verdict_color = "#ff9800"
+            verdict_reason = "Trend Up + Greed"
+    else:
+        verdict = "CASH"
+        verdict_color = "#f44336"
+        verdict_reason = "Trend Down"
+
+    if panic_signal and trend_bullish:
+        verdict += " (STRONG)"
+    
+    # Unique ID for charts to avoid conflicts
+    uid = str(int(datetime.datetime.now().timestamp()))
+
+    html = f"""
+    <div style="margin: 32px 0; background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden;">
+        
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); padding: 16px 24px; color: white; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 style="margin: 0; font-size: 18px; font-weight: 700;">🏦 Swing Trading Signal (Long-only)</h3>
+                <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">Analiză Multi-Factor: Trend, Sentiment, Breadth, Timing</div>
+            </div>
+            <div style="text-align: right;">
+                 <div style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-weight: bold;">{verdict}</div>
+            </div>
+        </div>
+
+        <div style="padding: 24px;">
+            <!-- Grid Layout -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                
+                <!-- 1. TREND CARD -->
+                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="font-weight: 600; color: #555;">Trend (SPX vs SMA200)</span>
+                        <span style="font-weight: 800; color: {trend_color};">{trend_text}</span>
+                    </div>
+                    <canvas id="chart_trend_{uid}" height="150"></canvas>
+                    <div style="font-size: 11px; color: #888; margin-top: 8px; text-align: center;">Preț (Albastru) vs SMA50 (Verde) vs SMA200 (Rosu)</div>
+                </div>
+
+                <!-- 2. SENTIMENT CARD -->
+                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="font-weight: 600; color: #555;">Sentiment (CNN F&G)</span>
+                        <span style="font-weight: 800; color: {fg_color};">{fg_zone} ({fg_score})</span>
+                    </div>
+                    <canvas id="chart_fg_{uid}" height="100"></canvas>
+                </div>
+
+                <!-- 3. TIMING CARD (PCR) -->
+                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="font-weight: 600; color: #555;">Timing (Put/Call Ratio)</span>
+                        <span style="font-weight: 800; color: {pcr_color};">{pcr_val:.2f} ({pcr_text})</span>
+                    </div>
+                    <canvas id="chart_pcr_{uid}" height="100"></canvas>
+                </div>
+                
+                <!-- 4. VERDICT DETAILS -->
+                <div style="background: {verdict_color}10; border-radius: 8px; padding: 16px; border: 1px solid {verdict_color};">
+                    <h4 style="margin: 0 0 10px 0; color: {verdict_color};">Detalii Verdict: {verdict}</h4>
+                    <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #444; line-height: 1.6;">
+                        <li><strong>Trend:</strong> {trend_desc}</li>
+                        <li><strong>Breadth:</strong> {breadth_text} ({breadth_color})</li>
+                        <li><strong>Concluzie:</strong> {verdict_reason}</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function() {{
+        // Data passed from Python
+        const spxData = {chart_spx_json};
+        const fgData = {chart_fg_json};
+        const pcrData = {chart_pcr_json};
+
+        // --- CHART 1: SPX TREND ---
+        const ctxTrend = document.getElementById('chart_trend_{uid}').getContext('2d');
+        // Simple line drawing logic (no external lib dependency if we want standalone, but Chart.js is better if included)
+        // Checks if Chart.js is available. It is usually included in standard templates.
+        // Assuming Chart.js is present (standard in this dashboard).
+        
+        if (typeof Chart !== 'undefined') {{
+            new Chart(ctxTrend, {{
+                type: 'line',
+                data: {{
+                    labels: spxData.labels,
+                    datasets: [
+                        {{
+                            label: 'SPX Price',
+                            data: spxData.price,
+                            borderColor: '#2196f3',
+                            borderWidth: 2,
+                            pointRadius: 0
+                        }},
+                        {{
+                            label: 'SMA 50',
+                            data: spxData.sma50,
+                            borderColor: '#4caf50',
+                            borderWidth: 1.5,
+                            borderDash: [5, 5],
+                            pointRadius: 0
+                        }},
+                        {{
+                            label: 'SMA 200',
+                            data: spxData.sma200,
+                            borderColor: '#f44336',
+                            borderWidth: 1.5,
+                            pointRadius: 0
+                        }}
+                    ]
+                }},
+                options: {{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {{ legend: {{ display: false }} }},
+                    scales: {{ 
+                        x: {{ display: false }},
+                        y: {{ display: true }}
+                    }}
+                }}
+            }});
+
+            // --- CHART 2: F&G ---
+            const ctxFG = document.getElementById('chart_fg_{uid}').getContext('2d');
+            new Chart(ctxFG, {{
+                type: 'line',
+                data: {{
+                    labels: Array(fgData.length).fill(''),
+                    datasets: [{{
+                        label: 'Fear & Greed',
+                        data: fgData,
+                        borderColor: '#ff9800',
+                        backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                        fill: true,
+                        pointRadius: 0,
+                        tension: 0.4
+                    }}]
+                }},
+                options: {{
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {{ legend: {{ display: false }} }},
+                    scales: {{ x: {{ display: false }}, y: {{ min:0, max:100 }} }}
+                }}
+            }});
+
+            // --- CHART 3: PCR ---
+            const ctxPCR = document.getElementById('chart_pcr_{uid}').getContext('2d');
+            new Chart(ctxPCR, {{
+                type: 'line',
+                data: {{
+                    labels: Array(pcrData.length).fill(''),
+                    datasets: [{{
+                        label: 'Put/Call Ratio',
+                        data: pcrData,
+                        borderColor: '#9c27b0',
+                        pointRadius: 0,
+                        tension: 0.3
+                    }}]
+                }},
+                options: {{
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {{ legend: {{ display: false }} }},
+                    scales: {{ x: {{ display: false }} }}
+                }}
+            }});
+        }} else {{
+            // Fallback text if Chart.js missing
+            document.getElementById('chart_trend_{uid}').parentNode.innerHTML += '<div style="color:red">Chart.js missing</div>';
+        }}
+    }})();
+    </script>
+    """
+    
+    return html
