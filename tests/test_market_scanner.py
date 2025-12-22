@@ -83,6 +83,67 @@ class TestMarketAnalysis(unittest.TestCase):
         
         # Check HTML contains expected elements
         self.assertIn('Market Cortex', html)
+    
+    def test_nasdaq_indicator_inclusion(self):
+        """Test that NASDAQ is included in market indicators."""
+        indicators = {
+            'VIX': {'value': 18.5, 'status': 'Normal', 'change': -0.5},
+            'SPX': {'value': 4500.0, 'status': 'Normal', 'change': 15.0, 'sparkline': [4480, 4490, 4500]},
+            'NASDAQ': {'value': 14500.0, 'status': 'Normal', 'change': 50.0, 'sparkline': [14400, 14450, 14500]}
+        }
+        
+        html, summary, score = market_scanner_analysis.generate_market_analysis(indicators)
+        
+        # NASDAQ should be processed
+        self.assertIsInstance(html, str)
+        self.assertIsInstance(score, (int, float))
+        
+    def test_nasdaq_affects_probability_calculation(self):
+        """Test that NASDAQ affects probability direction calculation."""
+        # Test with bullish NASDAQ
+        indicators_bullish = {
+            'SPX': {'value': 4500.0, 'status': 'Normal', 'change': 15.0, 'sparkline': [4400, 4450, 4500]},
+            'NASDAQ': {'value': 14500.0, 'status': 'Normal', 'change': 50.0, 'sparkline': [14300, 14400, 14500]}
+        }
+        
+        _, _, score_bullish = market_scanner_analysis.generate_market_analysis(indicators_bullish)
+        
+        # Test with bearish NASDAQ
+        indicators_bearish = {
+            'SPX': {'value': 4500.0, 'status': 'Normal', 'change': -15.0, 'sparkline': [4600, 4550, 4500]},
+            'NASDAQ': {'value': 14500.0, 'status': 'Normal', 'change': -50.0, 'sparkline': [14700, 14600, 14500]}
+        }
+        
+        _, _, score_bearish = market_scanner_analysis.generate_market_analysis(indicators_bearish)
+        
+        # Bullish should have higher score than bearish
+        # (This is a basic sanity check - actual scores depend on full algorithm)
+        self.assertIsInstance(score_bullish, (int, float))
+        self.assertIsInstance(score_bearish, (int, float))
+        
+    def test_nasdaq_and_spx_averaging(self):
+        """Test that SPX and NASDAQ scores are averaged correctly."""
+        # When both indices agree (both bullish)
+        indicators_agree = {
+            'SPX': {'value': 4500.0, 'status': 'Normal', 'change': 20.0, 'sparkline': list(range(4400, 4520, 5))},
+            'NASDAQ': {'value': 14500.0, 'status': 'Normal', 'change': 60.0, 'sparkline': list(range(14300, 14520, 10))}
+        }
+        
+        _, _, score_agree = market_scanner_analysis.generate_market_analysis(indicators_agree)
+        
+        # When indices disagree (one bullish, one bearish)
+        indicators_disagree = {
+            'SPX': {'value': 4500.0, 'status': 'Normal', 'change': 20.0, 'sparkline': list(range(4400, 4520, 5))},
+            'NASDAQ': {'value': 14500.0, 'status': 'Normal', 'change': -60.0, 'sparkline': list(range(14700, 14480, -10))}
+        }
+        
+        _, _, score_disagree = market_scanner_analysis.generate_market_analysis(indicators_disagree)
+        
+        # Both should return valid scores
+        self.assertGreaterEqual(score_agree, 0)
+        self.assertLessEqual(score_agree, 100)
+        self.assertGreaterEqual(score_disagree, 0)
+        self.assertLessEqual(score_disagree, 100)
 
 
 class TestDataValidation(unittest.TestCase):

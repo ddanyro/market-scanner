@@ -336,31 +336,40 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
             algo_score += move_s * 0.05
             total_weight += 0.05
 
-        # --- SPX Trend (Trend + Momentum) ---
-        spx_points = get_spark('SPX')
-        score_trend = 50
-        if spx_points and len(spx_points) >= 20:
-            last = spx_points[-1]
-            # SMA 20 (Short Term)
-            sma_20 = sum(spx_points[-20:]) / 20
-            # Momentum (5 days) - Check if 5 days ago exists
-            idx_5d = -5 if len(spx_points) >= 5 else 0
-            mom_5d = (last / spx_points[idx_5d]) - 1 if spx_points[idx_5d] > 0 else 0
-             
-            if last > sma_20:
-                 if mom_5d > -0.01: score_trend = 100 # Uptrend solid
-                 else: score_trend = 60 # Uptrend but recent pullback
-            else:
-                 # Sub SMA20
-                 if mom_5d < -0.02: score_trend = 0 # Strong Downtrend
-                 else: score_trend = 25 # Weak/Correction
-
-            algo_score += score_trend * 0.30
+        # --- Market Indices Trend (SPX + NASDAQ) ---
+        # Calculate trend for both SPX and NASDAQ, then average
+        indices_scores = []
+        
+        for index_name in ['SPX', 'NASDAQ']:
+            index_points = get_spark(index_name)
+            score_trend = 50  # Default neutral
+            
+            if index_points and len(index_points) >= 20:
+                last = index_points[-1]
+                # SMA 20 (Short Term)
+                sma_20 = sum(index_points[-20:]) / 20
+                # Momentum (5 days)
+                idx_5d = -5 if len(index_points) >= 5 else 0
+                mom_5d = (last / index_points[idx_5d]) - 1 if index_points[idx_5d] > 0 else 0
+                 
+                if last > sma_20:
+                     if mom_5d > -0.01: score_trend = 100  # Uptrend solid
+                     else: score_trend = 60  # Uptrend but recent pullback
+                else:
+                     # Sub SMA20
+                     if mom_5d < -0.02: score_trend = 0  # Strong Downtrend
+                     else: score_trend = 25  # Weak/Correction
+                
+                indices_scores.append(score_trend)
+            elif index_points:
+                # Fallback if less than 20 points
+                indices_scores.append(50)
+        
+        # Average the scores from both indices
+        if indices_scores:
+            avg_index_score = sum(indices_scores) / len(indices_scores)
+            algo_score += avg_index_score * 0.30
             total_weight += 0.30
-        elif spx_points:
-             # Fallback if less than 20 points
-             algo_score += 50 * 0.30
-             total_weight += 0.30
             
         # --- AI Sentiment ---
         if ai_score >= 0: 

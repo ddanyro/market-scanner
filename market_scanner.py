@@ -345,13 +345,14 @@ def get_market_indicators():
         'GVZ': '^GVZ',          # Gold Volatility
         'OVX': '^OVX',          # Oil Volatility
         'SPX': '^GSPC',         # S&P 500
+        'NASDAQ': '^IXIC',      # NASDAQ Composite
     }
     
     # Thresholds (aceleași ca înainte, le păstrăm)
     thresholds = {
         'VIX3M': (14, 20), 'VIX': (15, 20), 'VIX1D': (12, 30), 'VIX9D': (12, 18), 'VXN': (15, 25),
         'LTV': (10, 13), 'SKEW': (135, 150), 'MOVE': (80, 120), 'GVZ': (17, 22), 'OVX': (25, 35),
-        'SPX': (None, None)
+        'SPX': (None, None), 'NASDAQ': (None, None)
     }
     
     # Definițiile nivelelor (copiate din codul existent pentru consistență)
@@ -2155,7 +2156,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     """
     
     # Ordinea indicatorilor
-    indicator_order = ['VIX3M', 'VIX', 'VIX1D', 'VIX9D', 'VXN', 'LTV', 'SKEW', 'MOVE', 'Crypto Fear', 'GVZ', 'OVX', 'SPX']
+    indicator_order = ['VIX3M', 'VIX', 'VIX1D', 'VIX9D', 'VXN', 'LTV', 'SKEW', 'MOVE', 'Crypto Fear', 'GVZ', 'OVX', 'SPX', 'NASDAQ']
     
     # Mapping Display Names
     display_map = {
