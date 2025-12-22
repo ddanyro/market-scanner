@@ -430,12 +430,7 @@ def get_market_indicators():
                 else:
                     # For indices (SPX, NASDAQ) that don't have thresholds
                     status = "Normal"
-                    if name == 'SPX':
-                        description = "S&P 500 Index"
-                    elif name == 'NASDAQ':
-                        description = "NASDAQ Composite"
-                    else:
-                        description = ""
+                    description = ""  # Indices don't need status descriptions
                 
                 indicators[name] = {
                     'value': round(current, 2),
