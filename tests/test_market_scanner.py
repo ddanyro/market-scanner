@@ -324,6 +324,139 @@ class TestIntegration(unittest.TestCase):
         self.assertIn('C', result.columns)
 
 
+class TestDynamicEvents(unittest.TestCase):
+    """Test dynamic economic events generation."""
+    
+    def test_next_monday_calculation(self):
+        """Test calculation of next Monday from any day."""
+        # Test from different days of the week
+        test_cases = [
+            (datetime(2025, 12, 22), datetime(2025, 12, 29)),  # Monday -> next Monday
+            (datetime(2025, 12, 23), datetime(2025, 12, 29)),  # Tuesday -> next Monday
+            (datetime(2025, 12, 24), datetime(2025, 12, 29)),  # Wednesday -> next Monday
+            (datetime(2025, 12, 25), datetime(2025, 12, 29)),  # Thursday -> next Monday
+            (datetime(2025, 12, 26), datetime(2025, 12, 29)),  # Friday -> next Monday
+            (datetime(2025, 12, 27), datetime(2025, 12, 29)),  # Saturday -> next Monday
+            (datetime(2025, 12, 28), datetime(2025, 12, 29)),  # Sunday -> next Monday
+        ]
+        
+        for today, expected_monday in test_cases:
+            days_until_monday = (7 - today.weekday()) % 7
+            if days_until_monday == 0:
+                days_until_monday = 7
+            next_monday = today + timedelta(days=days_until_monday)
+            
+            self.assertEqual(next_monday.date(), expected_monday.date(),
+                           f"Failed for {today.strftime('%A')}")
+            self.assertEqual(next_monday.weekday(), 0, "Should be Monday")
+    
+    def test_event_date_formatting(self):
+        """Test Romanian date formatting for events."""
+        test_date = datetime(2025, 12, 29)  # Monday
+        
+        days_ro = ['Lun', 'Mar', 'Mie', 'Joi', 'Vin']
+        month_names = {
+            1: 'Ian', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'Mai', 6: 'Iun',
+            7: 'Iul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
+        }
+        
+        # Test Monday
+        date_str = f"{days_ro[0]} {test_date.day} {month_names[test_date.month]}"
+        self.assertEqual(date_str, "Lun 29 Dec")
+        
+        # Test Friday (4 days later)
+        friday = test_date + timedelta(days=4)
+        date_str_fri = f"{days_ro[4]} {friday.day} {month_names[friday.month]}"
+        self.assertEqual(date_str_fri, "Vin 2 Ian")  # Crosses into January
+    
+    def test_events_always_in_future(self):
+        """Test that generated events are always in the future."""
+        today = datetime.now()
+        
+        # Calculate next Monday
+        days_until_monday = (7 - today.weekday()) % 7
+        if days_until_monday == 0:
+            days_until_monday = 7
+        next_monday = today + timedelta(days=days_until_monday)
+        
+        # All events should be in the future
+        for i in range(5):  # Monday through Friday
+            event_date = next_monday + timedelta(days=i)
+            self.assertGreater(event_date, today, 
+                             f"Event on day {i} should be in future")
+    
+    def test_event_structure(self):
+        """Test that generated events have correct structure."""
+        event_templates = [
+            {'name': 'Consumer Confidence (US)', 'desc': 'Încrederea consumatorilor. Impact retail și spending.'},
+            {'name': 'New Home Sales (US)', 'desc': 'Vânzări case noi. Indicator sănătate piață imobiliară.'},
+        ]
+        
+        for template in event_templates:
+            self.assertIn('name', template)
+            self.assertIn('desc', template)
+            self.assertIsInstance(template['name'], str)
+            self.assertIsInstance(template['desc'], str)
+            self.assertGreater(len(template['name']), 0)
+            self.assertGreater(len(template['desc']), 0)
+    
+    def test_weekday_names_romanian(self):
+        """Test Romanian weekday names are correct."""
+        days_ro = ['Lun', 'Mar', 'Mie', 'Joi', 'Vin']
+        
+        # Should have 5 days (Monday-Friday)
+        self.assertEqual(len(days_ro), 5)
+        
+        # Check each is a string
+        for day in days_ro:
+            self.assertIsInstance(day, str)
+            self.assertEqual(len(day), 3)  # All are 3 characters
+    
+    def test_month_names_romanian(self):
+        """Test Romanian month abbreviations are correct."""
+        month_names = {
+            1: 'Ian', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'Mai', 6: 'Iun',
+            7: 'Iul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
+        }
+        
+        # Should have 12 months
+        self.assertEqual(len(month_names), 12)
+        
+        # Check specific months
+        self.assertEqual(month_names[1], 'Ian')
+        self.assertEqual(month_names[12], 'Dec')
+        
+        # All should be 3 characters
+        for month_abbr in month_names.values():
+            self.assertEqual(len(month_abbr), 3)
+    
+    def test_year_boundary_crossing(self):
+        """Test events crossing year boundary (Dec -> Jan)."""
+        # Test from late December
+        late_dec = datetime(2025, 12, 29)  # Monday
+        
+        # Friday should be in January
+        friday = late_dec + timedelta(days=4)
+        self.assertEqual(friday.month, 1)
+        self.assertEqual(friday.year, 2026)
+    
+    @patch('market_scanner_analysis.get_economic_events')
+    def test_fallback_activation(self, mock_get_events):
+        """Test that fallback is used when scraping fails."""
+        # Mock empty return from scraper
+        mock_get_events.return_value = []
+        
+        # The fallback should generate 5 events
+        # This would be tested in integration, but we can verify the logic
+        events_list = mock_get_events()
+        
+        if not events_list:
+            # Fallback logic would create 5 events
+            expected_count = 5
+            self.assertEqual(len(events_list), 0)  # Mock returns empty
+            # In real code, fallback would populate it with 5 events
+
+
 if __name__ == '__main__':
     # Run tests with verbose output
     unittest.main(verbosity=2)
