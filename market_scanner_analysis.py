@@ -731,7 +731,7 @@ def generate_swing_trading_html():
                         <span style="font-weight: 600; color: #555;">Trend (SPX vs SMA200)</span>
                         <span style="font-weight: 800; color: {trend_color};">{trend_text}</span>
                     </div>
-                    <canvas id="chart_trend_{uid}" height="150"></canvas>
+                    <div style="position: relative; height: 160px; width: 100%;"><canvas id="chart_trend_{uid}"></canvas></div>
                     <div style="font-size: 11px; color: #888; margin-top: 8px; text-align: center;">Preț (Albastru) vs SMA50 (Verde) vs SMA200 (Rosu)</div>
                 </div>
 
@@ -741,7 +741,7 @@ def generate_swing_trading_html():
                         <span style="font-weight: 600; color: #555;">Sentiment (CNN F&G)</span>
                         <span style="font-weight: 800; color: {fg_color};">{fg_zone} ({fg_score})</span>
                     </div>
-                    <canvas id="chart_fg_{uid}" height="100"></canvas>
+                    <div style="position: relative; height: 120px; width: 100%;"><canvas id="chart_fg_{uid}"></canvas></div>
                 </div>
 
                 <!-- 3. TIMING CARD (PCR) -->
@@ -750,7 +750,7 @@ def generate_swing_trading_html():
                         <span style="font-weight: 600; color: #555;">Timing (Put/Call Ratio)</span>
                         <span style="font-weight: 800; color: {pcr_color};">{pcr_val:.2f} ({pcr_text})</span>
                     </div>
-                    <canvas id="chart_pcr_{uid}" height="100"></canvas>
+                    <div style="position: relative; height: 120px; width: 100%;"><canvas id="chart_pcr_{uid}"></canvas></div>
                 </div>
                 
                 <!-- 4. VERDICT DETAILS -->
