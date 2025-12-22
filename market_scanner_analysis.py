@@ -423,11 +423,11 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
         # STATIC FALLBACK if scraper returns empty list
         if not events_list:
              events_list = [
-                {'name': 'Empire State Manufacturing (US)', 'week': 'Lun 16 Dec', 'desc': 'Indicator activitate manufacturieră NY.'},
-                {'name': 'Building Permits (US)', 'week': 'Mar 17 Dec', 'desc': 'Indicator anticipativ piață imobiliară.'},
-                {'name': 'Crude Oil Inventories', 'week': 'Mie 18 Dec', 'desc': 'Stocuri petrol. Impact Energy.'},
-                {'name': 'Initial Jobless Claims', 'week': 'Joi 19 Dec', 'desc': 'Cereri șomaj. Impact piață muncă.'},
-                {'name': 'GDP Growth Rate (Final)', 'week': 'Joi 19 Dec', 'desc': 'Creștere economică trimestrială.'}
+                {'name': 'Consumer Confidence (US)', 'week': 'Lun 23 Dec', 'desc': 'Încrederea consumatorilor. Impact retail și spending.'},
+                {'name': 'New Home Sales (US)', 'week': 'Mar 24 Dec', 'desc': 'Vânzări case noi. Indicator sănătate piață imobiliară.'},
+                {'name': 'Durable Goods Orders', 'week': 'Mie 25 Dec', 'desc': 'Comenzi bunuri durabile. Indicator activitate industrială.'},
+                {'name': 'Initial Jobless Claims', 'week': 'Joi 26 Dec', 'desc': 'Cereri șomaj săptămânale. Impact piață muncă.'},
+                {'name': 'Pending Home Sales', 'week': 'Vin 27 Dec', 'desc': 'Vânzări case în așteptare. Indicator anticipativ imobiliare.'}
             ]
 
         events_html = "<div style='margin-top: 24px; border-top: 2px solid var(--border-light); padding-top: 20px;'>"
