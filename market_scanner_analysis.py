@@ -663,7 +663,7 @@ def get_swing_trading_data():
     return data
 
 def generate_swing_trading_html():
-    """ Generates HTML Card for Swing Trading Context. """
+    """ Generates HTML Card for Swing Trading Context with 4th Card (SMA50). """
     data = get_swing_trading_data()
     
     # Extract Data
@@ -685,7 +685,6 @@ def generate_swing_trading_html():
     # 1. Trend
     trend_bullish = spx_price > sma_200
     trend_text = "BULLISH" if trend_bullish else "BEARISH"
-    trend_subtext = "(Preț > SMA200)" if trend_bullish else "(Preț < SMA200)"
     trend_color = "#4caf50" if trend_bullish else "#f44336"
 
     # 2. Sentiment
@@ -698,14 +697,13 @@ def generate_swing_trading_html():
     # 3. Breadth
     breadth_ok = spx_price > sma_50
     breadth_color = "#4caf50" if breadth_ok else "#ff9800"
-    breadth_text = "Puternic" if breadth_ok else "Slab"
-    breadth_subtext = "(Peste SMA50)" if breadth_ok else "(Sub SMA50)"
+    breadth_text = "PUTERNIC" if breadth_ok else "SLAB"
+    breadth_subtext = "(Preț > SMA50)" if breadth_ok else "(Preț < SMA50)"
 
     # 4. Timing
     panic_signal = pcr_val > 1.0
     pcr_color = "#4caf50" if panic_signal else "#aaa"
     pcr_text = "OPORTUNITATE" if panic_signal else "Normal"
-    pcr_subtext = "(Fear > 1.0)" if panic_signal else "(< 1.0)"
     
     # Verdict
     verdict = "WAIT"
@@ -718,7 +716,7 @@ def generate_swing_trading_html():
             verdict = "BUY"
             verdict_color = "#4caf50"
             verdict_reason = "Trend UP + Frica în piață"
-            verdict_expl = "Configurație ideală 'Buy the Dip'. Trendul major este ascendent, dar sentimentul de frică oferă prețuri bune."
+            verdict_expl = "Configurație ideală 'Buy the Dip'. Trendul major este ascendent, iar sentimentul de frică oferă prețuri bune."
         else:
             verdict = "WAIT"
             verdict_color = "#ff9800"
@@ -752,8 +750,8 @@ def generate_swing_trading_html():
 
         <div style="padding: 24px;">
             
-            <!-- SECTION 1: METRICS & CHARTS (3 Columns) -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 32px;">
+            <!-- SECTION 1: METRICS & CHARTS (4 Columns) -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 32px;">
                 
                 <!-- 1. TREND CARD -->
                 <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px; background: #fdfdfd; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
@@ -761,22 +759,34 @@ def generate_swing_trading_html():
                         <span style="font-weight: 600; color: #555;">Trend (SMA200)</span>
                         <div style="text-align: right;">
                              <div style="font-weight: 800; color: {trend_color};">{trend_text}</div>
-                             <div style="font-size: 11px; color: {trend_color}; opacity: 0.8;">{trend_subtext}</div>
                         </div>
                     </div>
                     <div style="position: relative; height: 160px; width: 100%;">
                         <canvas id="chart_trend_{uid}"></canvas>
                     </div>
-                    <div style="font-size: 11px; color: #888; margin-top: 8px; text-align: center;">Albastru: Preț | Galben: SMA200</div>
+                    <div style="font-size: 11px; color: #888; margin-top: 8px; text-align: center;">Preț vs SMA200 (Galben)</div>
                 </div>
 
-                <!-- 2. SENTIMENT CARD -->
+                <!-- 2. BREADTH CARD (SMA50) - NEW -->
+                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px; background: #fdfdfd; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="font-weight: 600; color: #555;">Momentum (SMA50)</span>
+                        <div style="text-align: right;">
+                             <div style="font-weight: 800; color: {breadth_color};">{breadth_text}</div>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 160px; width: 100%;">
+                        <canvas id="chart_breadth_{uid}"></canvas>
+                    </div>
+                    <div style="font-size: 11px; color: #888; margin-top: 8px; text-align: center;">Preț vs SMA50 (Verde)</div>
+                </div>
+
+                <!-- 3. SENTIMENT CARD -->
                 <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px; background: #fdfdfd; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                         <span style="font-weight: 600; color: #555;">Sentiment (F&G)</span>
                         <div style="text-align: right;">
                              <div style="font-weight: 800; color: {fg_color};">{fg_zone} ({fg_score:.0f})</div>
-                             <div style="font-size: 11px; color: #888;">(0=Fear, 100=Greed)</div>
                         </div>
                     </div>
                     <div style="position: relative; height: 120px; width: 100%;">
@@ -784,24 +794,22 @@ def generate_swing_trading_html():
                     </div>
                 </div>
 
-                <!-- 3. TIMING CARD -->
+                <!-- 4. TIMING CARD -->
                 <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px; background: #fdfdfd; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                         <span style="font-weight: 600; color: #555;">Timing (PCR)</span>
                         <div style="text-align: right;">
                              <div style="font-weight: 800; color: {pcr_color};">{pcr_text}</div>
-                             <div style="font-size: 11px; color: {pcr_color}; opacity: 0.8;">{pcr_subtext}</div>
                         </div>
                     </div>
                      <div style="position: relative; height: 120px; width: 100%;">
                         <canvas id="chart_pcr_{uid}"></canvas>
                     </div>
-                    <div style="text-align: center; margin-top: 5px; font-weight: 800; color: {pcr_color}; font-size: 16px;">{pcr_val:.2f}</div>
                 </div>
 
             </div>
 
-            <!-- SECTION 2: VERDICT DETAILS (New Boxed Layout) -->
+            <!-- SECTION 2: VERDICT DETAILS (Boxed) -->
             <div style="border-top: 2px solid #f0f0f0; padding-top: 24px;">
                 <h4 style="margin: 0 0 16px 0; color: {verdict_color}; font-size: 18px; text-transform: uppercase; letter-spacing: 0.5px;">
                    ⚠️ Analiză Detaliată: {verdict_reason}
@@ -809,7 +817,6 @@ def generate_swing_trading_html():
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
                     
-                    <!-- Box 1: Trend Context -->
                     <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; border-left: 4px solid {trend_color}; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <div style="font-size: 12px; font-weight: bold; color: #666; text-transform: uppercase;">1. Context Trend</div>
                         <div style="font-size: 16px; font-weight: bold; color: {trend_color}; margin-bottom: 6px;">{trend_text}</div>
@@ -818,18 +825,16 @@ def generate_swing_trading_html():
                         </div>
                     </div>
 
-                    <!-- Box 2: Breadth Context -->
                     <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; border-left: 4px solid {breadth_color}; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                        <div style="font-size: 12px; font-weight: bold; color: #666; text-transform: uppercase;">2. Momentum (Breadth)</div>
+                        <div style="font-size: 12px; font-weight: bold; color: #666; text-transform: uppercase;">2. Momentum (SMA50)</div>
                         <div style="font-size: 16px; font-weight: bold; color: {breadth_color}; margin-bottom: 6px;">{breadth_text}</div>
                         <div style="font-size: 13px; color: #444; line-height: 1.5;">
-                             <span style="font-weight: bold;">{breadth_subtext}</span>. Arată câți participanți susțin mișcarea. Un breadth sănătos confirmă trendul, unul slab semnalează epuizare.
+                             <span style="font-weight: bold;">{breadth_subtext}</span>. Un preț solid peste media de 50 de zile indică participanți activi și momentum sănătos.
                         </div>
                     </div>
 
-                    <!-- Box 3: Strategie de Execuție -->
                     <div style="background: {verdict_color}10; padding: 16px; border-radius: 8px; border: 1px solid {verdict_color}40; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                         <div style="font-size: 12px; font-weight: bold; color: {verdict_color}; text-transform: uppercase;">🎯 Concluzie & Execuție</div>
+                         <div style="font-size: 12px; font-weight: bold; color: {verdict_color}; text-transform: uppercase;">🎯 Concluzie</div>
                          <div style="font-size: 16px; font-weight: 800; color: {verdict_color}; margin-bottom: 6px;">{verdict}</div>
                          <div style="font-size: 13px; color: #222; font-weight: 500; line-height: 1.5; font-style: italic;">
                             "{verdict_expl}"
@@ -849,15 +854,27 @@ def generate_swing_trading_html():
         const pcrData = {chart_pcr_json};
 
         if (typeof Chart !== 'undefined') {{
-            // SPX Chart
+            // SPX Chart (Trend - SMA200 Focus)
             new Chart(document.getElementById('chart_trend_{uid}').getContext('2d'), {{
                 type: 'line',
                 data: {{
                     labels: spxData.labels,
                     datasets: [
-                        {{ label: 'Price', data: spxData.price, borderColor: '#2196f3', borderWidth: 2, pointRadius: 0 }},
-                        {{ label: 'SMA50', data: spxData.sma50, borderColor: '#4caf50', borderWidth: 1, borderDash: [5,5], pointRadius: 0 }},
-                        {{ label: 'SMA200', data: spxData.sma200, borderColor: '#fbc02d', borderWidth: 2, pointRadius: 0 }}
+                        {{ label: 'Preț', data: spxData.price, borderColor: '#2196f3', borderWidth: 2, pointRadius: 0 }},
+                        {{ label: 'SMA200', data: spxData.sma200, borderColor: '#fbc02d', borderWidth: 2, pointRadius: 0, borderDash: [2,2] }}
+                    ]
+                }},
+                options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }}, y: {{ display: true }} }} }}
+            }});
+
+            // Breadth Chart (SMA50 Focus)
+            new Chart(document.getElementById('chart_breadth_{uid}').getContext('2d'), {{
+                type: 'line',
+                data: {{
+                    labels: spxData.labels,
+                    datasets: [
+                        {{ label: 'Preț', data: spxData.price, borderColor: '#cad5e2', borderWidth: 1.5, pointRadius: 0 }},
+                        {{ label: 'SMA50', data: spxData.sma50, borderColor: '#4caf50', borderWidth: 2, pointRadius: 0 }}
                     ]
                 }},
                 options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }}, y: {{ display: true }} }} }}
