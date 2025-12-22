@@ -782,7 +782,7 @@ def generate_swing_trading_html():
                     <h4 style="margin: 0 0 10px 0; color: {verdict_color};">Detalii Verdict: {verdict}</h4>
                     <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #444; line-height: 1.6;">
                         <li><strong>Trend:</strong> {trend_desc}</li>
-                        <li><strong>Breadth:</strong> {breadth_text} ({breadth_color})</li>
+                        <li><strong>Breadth:</strong> <span style="color: {breadth_color}; font-weight: bold;">{breadth_text}</span></li>
                         <li><strong>Concluzie:</strong> {verdict_reason}</li>
                     </ul>
                 </div>
