@@ -1,0 +1,491 @@
+/Users/danieldragomir/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/danieldragomir/antigravity/ib_sync.py:333: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise an error in a future version of pandas. Value '14.46' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  new_df.loc[mask, 'Trail_Stop_IBKR'] = t_stop
+/Users/danieldragomir/antigravity/market_scanner.py:576: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  data = yf.download(tickers, period="5d", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:302: FutureWarning: 'M' is deprecated and will be removed in a future version, please use 'ME' instead.
+  monthly = hist['Close'].resample('M').last()
+/Users/danieldragomir/antigravity/market_scanner.py:302: FutureWarning: 'M' is deprecated and will be removed in a future version, please use 'ME' instead.
+  monthly = hist['Close'].resample('M').last()
+/Users/danieldragomir/antigravity/ib_sync.py:333: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise an error in a future version of pandas. Value '14.46' has dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+  new_df.loc[mask, 'Trail_Stop_IBKR'] = t_stop
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: SXRZ"}}}
+
+1 Failed download:
+['SXRZ']: YFPricesMissingError('possibly delisted; no price data found  (period=1y) (Yahoo error = "No data found, symbol may be delisted")')
+/Users/danieldragomir/antigravity/market_scanner.py:659: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df_alt = yf.download(alt_ticker, period="1y", progress=False)
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: SXRZ"}}}
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:649: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: SXRZ"}}}
+
+1 Failed download:
+['SXRZ']: YFPricesMissingError('possibly delisted; no price data found  (period=1y) (Yahoo error = "No data found, symbol may be delisted")')
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+
+1 Failed download:
+['IWDA']: YFPricesMissingError('possibly delisted; no price data found  (period=1y) (Yahoo error = "No data found, symbol may be delisted")')
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+
+1 Failed download:
+['8JO1']: YFPricesMissingError('possibly delisted; no price data found  (period=1y) (Yahoo error = "No data found, symbol may be delisted")')
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+
+1 Failed download:
+['NANO']: YFPricesMissingError('possibly delisted; no price data found  (period=1y) (Yahoo error = "No data found, symbol may be delisted")')
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+
+1 Failed download:
+['E3B']: YFPricesMissingError('possibly delisted; no price data found  (period=1y) (Yahoo error = "No data found, symbol may be delisted")')
+/Users/danieldragomir/antigravity/market_scanner.py:902: FutureWarning: YF.download() has changed argument auto_adjust default to True
+  df = yf.download(ticker, period="1y", progress=False)
+Mediu Local detectat: Activare automată TWS Sync.
+=== Rulează Market Scanner [Mod: all] ===
+
+
+=== Conectare TWS pentru Ordine Active ===
+Conectat la TWS pe portul 7497.
+Găsite 18 ordine active în TWS.
+  -> SMR: TRAIL (Stop: 14.46)
+  -> URG: TRAIL (Stop: 1.05)
+  -> TE: TRAIL (Stop: 3.65)
+  -> APLD: TRAIL (Stop: 21.61)
+  -> META: TRAIL (Stop: 619.85)
+  -> QBTS: TRAIL (Stop: 19.8)
+  -> AMZN: TRAIL (Stop: 213.58)
+  -> AMPX: TRAIL (Stop: 7.42)
+  -> SXRZ: TRAIL (Stop: 252.1)
+  -> LNG: TRAIL (Stop: 178.58)
+  -> MELI: TRAIL (Stop: 1896.48)
+  -> MSFT: TRAIL (Stop: 460.3)
+  -> MARA: TRAIL (Stop: 9.38)
+  -> UUUU: TRAIL (Stop: 11.97)
+  -> FCX: TRAIL (Stop: 44.31)
+  -> MSTR: TRAIL (Stop: 146.8)
+  -> NVDA: TRAIL (Stop: 165.44)
+  -> DNN: TRAIL (Stop: 2.37)
+Salvat tws_orders.csv cu 18 înregistrări.
+Găsite 18 poziții deschise în TWS.
+  -> Pos: MSTR x 27.0
+  -> Pos: SMR x 220.0
+  -> Pos: FCX x 100.0
+  -> Pos: SXRZ x 20.0
+  -> Pos: DNN x 2000.0
+  -> Pos: UUUU x 300.0
+  -> Pos: URG x 3500.0
+  -> Pos: META x 8.0
+  -> Pos: TE x 1000.0
+  -> Pos: NVDA x 30.0
+  -> Pos: LNG x 25.0
+  -> Pos: AMPX x 500.0
+  -> Pos: MARA x 500.0
+  -> Pos: APLD x 220.0
+  -> Pos: MSFT x 11.0
+  -> Pos: AMZN x 22.0
+  -> Pos: QBTS x 210.0
+  -> Pos: MELI x 2.0
+Salvat tws_positions.csv cu 18 poziții.
+Applying TWS Orders to portfolio.csv...
+Portfolio CSV updated with live orders.
+Merging TWS Positions (Shares/AvgPrice) into portfolio.csv...
+=== Sincronizare IBKR... ===
+  -> Găsit fișier TWS recent (0s). Folosim ca Sursă PRIMARĂ.
+  -> Încărcate 18 poziții din TWS.
+Adăugare poziții manuale din tradeville_portfolio.csv...
+Total poziții pentru analiză: 20
+Integrare date ordine live din tws_orders.csv...
+Îmbinare cu preferințele locale...
+Portofoliu actualizat cu succes!
+=== Actualizare Date Globale ===
+Rates: 1 RON=0.197€, 1 USD=0.852€
+Eroare salvare istoric: name 'HISTORY_FILE' is not defined
+  → Calculez randamente istorice pentru SP500...
+    ✅ SP500: 0.75% avg monthly return (911 months)
+  → Calculez randamente istorice pentru NASDAQ...
+    ✅ NASDAQ: 1.01% avg monthly return (658 months)
+VIX: 15.00
+Economic Cycle: Expansion (Spread: 0.63, Trend: Bull)
+
+=== Actualizare Portofoliu ===
+=== Sincronizare IBKR... ===
+  -> Găsit fișier TWS recent (9s). Folosim ca Sursă PRIMARĂ.
+  -> Încărcate 18 poziții din TWS.
+Adăugare poziții manuale din tradeville_portfolio.csv...
+Total poziții pentru analiză: 20
+Integrare date ordine live din tws_orders.csv...
+Îmbinare cu preferințele locale...
+Portofoliu actualizat cu succes!
+Procesare 20 poziții...
+  > MSTR
+Procesare: MSTR
+  → Target Finviz: €414.27 (calc)
+  > SMR
+Procesare: SMR
+  → Target Finviz: €31.16 (calc)
+  > FCX
+Procesare: FCX
+  → Target Finviz: €43.42 (calc)
+  > SXRZ
+Procesare: SXRZ
+  → Target: N/A
+  ⚠️ Ticker SXRZ not found. Trying suffixes...
+    Trying SXRZ.DE...
+    ✅ Found data for SXRZ.DE!
+  → Target Technical (ATR+52W): €301.25
+  > DNN
+Procesare: DNN
+  → Target Finviz: €3.05 (calc)
+  > UUUU
+Procesare: UUUU
+  → Target Finviz: €18.75 (calc)
+  > URG
+Procesare: URG
+  → Target Finviz: €1.87 (calc)
+  > META
+Procesare: META
+  → Target Finviz: €712.66 (calc)
+  > TE
+Procesare: TE
+  → Target Finviz: €6.22 (calc)
+  > NVDA
+Procesare: NVDA
+  → Target Finviz: €222.01 (calc)
+  > LNG
+Procesare: LNG
+  → Target Finviz: €231.54 (calc)
+  > AMPX
+Procesare: AMPX
+  → Target Finviz: €14.63 (calc)
+  > MARA
+Procesare: MARA
+  → Target Finviz: €18.74 (calc)
+  > APLD
+Procesare: APLD
+  → Target Finviz: €36.55 (calc)
+  > MSFT
+Procesare: MSFT
+  → Target Finviz: €536.98 (calc)
+  > AMZN
+Procesare: AMZN
+  → Target Finviz: €253.40 (calc)
+  > QBTS
+Procesare: QBTS
+  → Target Finviz: €33.77 (calc)
+  > MELI
+Procesare: MELI
+  → Target Finviz: €2426.92 (calc)
+  > TVBETETF.RO
+Procesare: TVBETETF.RO
+  → Target: N/A
+  → Target Technical (ATR+52W): €8.22
+  > LQQ.PA
+Procesare: LQQ.PA
+  → Target: N/A
+  → Target Technical (ATR+52W): €1612.20
+
+=== Actualizare Watchlist ===
+🔄 Sincronizare watchlist de pe https://betty333ro.github.io/market-scanner/...
+  ✅ Watchlist la zi (86 simboluri)
+Procesare 86 tickere...
+  > MUR
+  > CRM
+  > TSM
+  > MARA
+  > CRC
+  > HD
+  > ACHR
+  > SNOW
+  > RH
+  > CHDN
+  > PLTR
+  > MOS
+  > VST
+  > UEC
+  > SXRZ
+Nu există date pentru SXRZ
+  > NFE
+  > SFM
+  > BWXT
+  > SMR
+  > SUN
+  > DXCM
+  > RGTI
+  > CSTE
+  > META
+  > ENVX
+  > ALAB
+  > AMZN
+  > NKE
+  > UUUU
+  > NNE
+  > AMPX
+  > NVDA
+  > PBR
+  > AAPL
+  > VRT
+  > AVGO
+  > GOOG
+  > TE
+  > MU
+  > DLR
+  > TSLA
+  > ROIV
+  > LAES
+  > DNN
+  > BLK
+  > DRS
+  > WDC
+  > IONQ
+  > ADPT
+  > MP
+  > IWDA
+Nu există date pentru IWDA
+  > RTX
+  > VG
+  > SHOP
+  > APLD
+  > OKLO
+  > MSFT
+  > UAL
+  > CEG
+  > HOOD
+  > IBM
+  > URG
+  > FCX
+  > MGNX
+  > PAAS
+  > MSTR
+  > ARX
+  > 8JO1
+Nu există date pentru 8JO1
+  > MELI
+  > CCJ
+  > LQQ.PA
+  > RBLX
+  > MRVL
+  > AEHR
+  > NANO
+Nu există date pentru NANO
+  > BA
+  > CTRA
+  > LNG
+  > OMC
+  > CRNC
+  > QBTS
+  > PRAX
+  > PVLA
+  > AMD
+  > E3B
+Nu există date pentru E3B
+  > HWM
+
+Starea dashboard-ului a fost salvată.
+
+=== Generare Dashboard HTML ===
+Dashboard HTML generat: /Users/danieldragomir/antigravity/index.html
