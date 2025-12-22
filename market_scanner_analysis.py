@@ -685,7 +685,7 @@ def generate_swing_trading_html():
     breadth_text = "PUTERNIC" if breadth_ok else "SLAB"
 
     if pcr_val > 1.0:
-        pcr_text = "OPORTUNITATE"
+        pcr_text = "OPORTUNITATE (Fear)"
         pcr_color = "#4caf50"
         panic_signal = True
     elif pcr_val < 0.7:
@@ -712,7 +712,11 @@ def generate_swing_trading_html():
             verdict = "WAIT"
             verdict_color = "#ff9800"
             verdict_reason = "Trend UP + Euforie"
-            verdict_expl = "Piața este bullish dar supraîncălzită. Riscul de corecție este mare. Așteaptă un pullback (Frică) pentru a intra."
+            verdict_expl = (
+                f"Trendul este pozitiv (Bull Market), dar sentimentul actual ({fg_rating}, scor {fg_score:.0f}) nu oferă un punct de intrare sigur. "
+                "Istoric, intrările pe 'Lăcomie' au un raport Risc/Recompensă slab. "
+                "Așteaptă răbdător o corecție spre SMA50 sau o creștere a fricii (PCR > 1.0) pentru a cumpăra la un preț mai bun."
+            )
     else:
         verdict = "CASH"
         verdict_color = "#f44336"
@@ -794,7 +798,10 @@ def generate_swing_trading_html():
                 <!-- 4. TIMING CARD -->
                 <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px; background: #fdfdfd; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span style="font-weight: 600; color: #555;">Timing (PCR)</span>
+                        <div>
+                            <span style="font-weight: 600; color: #555;">Timing (PCR)</span>
+                            <div style="font-size: 10px; color: #999;">Total Market (Vol)</div>
+                        </div>
                         <div style="text-align: right;">
                              <div style="font-weight: 800; color: {pcr_color};">{pcr_text}</div>
                         </div>
@@ -804,6 +811,9 @@ def generate_swing_trading_html():
                     </div>
                     <div style="font-size: 16px; color: {pcr_color}; font-weight: 800; margin-top: 8px; text-align: center;">
                         {pcr_val:.2f}
+                    </div>
+                    <div style="font-size: 10px; color: #777; margin-top: 4px; text-align: center; font-style: italic;">
+                        *Notă: PCR Equity-only poate fi mai mic (~{(pcr_val*0.9):.2f})
                     </div>
                 </div>
 
