@@ -663,7 +663,7 @@ def get_swing_trading_data():
     return data
 
 def generate_swing_trading_html():
-    """ Generates HTML Card for Swing Trading Context (Long Only). """
+    """ Generates HTML Card for Swing Trading Context. """
     data = get_swing_trading_data()
     
     # Extract Data
@@ -684,9 +684,9 @@ def generate_swing_trading_html():
     
     # 1. Trend
     trend_bullish = spx_price > sma_200
-    trend_text = "BULLISH (Preț > SMA200)" if trend_bullish else "BEARISH (Preț < SMA200)"
+    trend_text = "BULLISH" if trend_bullish else "BEARISH"
+    trend_subtext = "(Preț > SMA200)" if trend_bullish else "(Preț < SMA200)"
     trend_color = "#4caf50" if trend_bullish else "#f44336"
-    trend_val_text = f"Preț {spx_price:.0f} vs SMA {sma_200:.0f}"
 
     # 2. Sentiment
     if fg_score < 25: fg_zone = "Extreme Fear"; fg_color = "#4caf50" 
@@ -698,12 +698,14 @@ def generate_swing_trading_html():
     # 3. Breadth
     breadth_ok = spx_price > sma_50
     breadth_color = "#4caf50" if breadth_ok else "#ff9800"
-    breadth_text = "Puternic (Peste SMA50)" if breadth_ok else "Slab (Sub SMA50)"
+    breadth_text = "Puternic" if breadth_ok else "Slab"
+    breadth_subtext = "(Peste SMA50)" if breadth_ok else "(Sub SMA50)"
 
     # 4. Timing
     panic_signal = pcr_val > 1.0
     pcr_color = "#4caf50" if panic_signal else "#aaa"
-    pcr_text = "OPORTUNITATE (Fear > 1.0)" if panic_signal else "Normal (< 1.0)"
+    pcr_text = "OPORTUNITATE" if panic_signal else "Normal"
+    pcr_subtext = "(Fear > 1.0)" if panic_signal else "(< 1.0)"
     
     # Verdict
     verdict = "WAIT"
@@ -715,22 +717,22 @@ def generate_swing_trading_html():
         if fg_score < 50:
             verdict = "BUY"
             verdict_color = "#4caf50"
-            verdict_reason = "Trend UP + Frica în piață = Buy Dip."
-            verdict_expl = "Acesta este momentul ideal pentru Swing: trendul major te susține, iar corecția de preț îți oferă intrare ieftină."
+            verdict_reason = "Trend UP + Frica în piață"
+            verdict_expl = "Configurație ideală 'Buy the Dip'. Trendul major este ascendent, dar sentimentul de frică oferă prețuri bune."
         else:
             verdict = "WAIT"
             verdict_color = "#ff9800"
-            verdict_reason = "Trend UP + Euforie (Greed)."
-            verdict_expl = "Deși trendul e bun, piața este extinsă. Riscul de pullback este mare. Așteaptă o corecție (Fear) pentru a intra."
+            verdict_reason = "Trend UP + Euforie"
+            verdict_expl = "Piața este bullish dar supraîncălzită. Riscul de corecție este mare. Așteaptă un pullback (Frică) pentru a intra."
     else:
         verdict = "CASH"
         verdict_color = "#f44336"
-        verdict_reason = "Trend DOWN (Sub SMA200)."
-        verdict_expl = "Nu deschide poziții Long Swing când prețul este sub media de 200 zile. Probabilitatea de succes e mică. Stai în cash."
+        verdict_reason = "Trend DOWN (Bear Market)"
+        verdict_expl = "Prețul este sub media de 200 de zile. Statistic, pozițiile Long au rată mică de succes. Păstrează cash sau joacă defensiv."
 
     if panic_signal and trend_bullish:
         verdict += " (STRONG)"
-        verdict_expl += " Panica semnalată de Put/Call confirmă un potențial minim local."
+        verdict_expl += " Panica semnalată de Put/Call confirmă un potențial minim local iminent."
     
     uid = str(int(datetime.datetime.now().timestamp()))
 
@@ -738,84 +740,105 @@ def generate_swing_trading_html():
     <div style="margin: 32px 0; background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
         
         <!-- Header -->
-        <div style="background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); padding: 16px 24px; color: white; display: flex; justify-content: space-between; align-items: center;">
+        <div style="background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); padding: 16px 24px; color: white; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
             <div>
                 <h3 style="margin: 0; font-size: 18px; font-weight: 700;">🏦 Swing Trading Signal (Long-only)</h3>
-                <div style="font-size: 13px; opacity: 0.9; margin-top: 4px;">Analiză Context SPX • Strategie: <b>Trend Following + Contrarian Entry</b></div>
+                <div style="font-size: 13px; opacity: 0.9; margin-top: 4px;">Analiză Context SPX • Strategie Trend Following</div>
             </div>
             <div style="text-align: right;">
-                 <div style="background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 16px; border: 1px solid rgba(255,255,255,0.3);">{verdict}</div>
+                 <div style="background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 16px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 2px 4px rgba(0,0,0,0.1);">{verdict}</div>
             </div>
         </div>
 
         <div style="padding: 24px;">
-            <!-- Grid Layout -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+            
+            <!-- SECTION 1: METRICS & CHARTS (3 Columns) -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 32px;">
                 
                 <!-- 1. TREND CARD -->
-                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px; background: #fdfdfd;">
+                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px; background: #fdfdfd; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span style="font-weight: 600; color: #555;">Trend (SPX vs SMA200)</span>
-                        <span style="font-weight: 800; color: {trend_color};">{trend_text}</span>
+                        <span style="font-weight: 600; color: #555;">Trend (SMA200)</span>
+                        <div style="text-align: right;">
+                             <div style="font-weight: 800; color: {trend_color};">{trend_text}</div>
+                             <div style="font-size: 11px; color: {trend_color}; opacity: 0.8;">{trend_subtext}</div>
+                        </div>
                     </div>
                     <div style="position: relative; height: 160px; width: 100%;">
                         <canvas id="chart_trend_{uid}"></canvas>
                     </div>
-                    <div style="font-size: 11px; color: #888; margin-top: 8px; text-align: center;">Albastru: Preț | Galben: SMA200 (Trend Major)</div>
+                    <div style="font-size: 11px; color: #888; margin-top: 8px; text-align: center;">Albastru: Preț | Galben: SMA200</div>
                 </div>
 
                 <!-- 2. SENTIMENT CARD -->
-                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px; background: #fdfdfd;">
+                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px; background: #fdfdfd; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span style="font-weight: 600; color: #555;">Sentiment (CNN F&G)</span>
-                        <span style="font-weight: 800; color: {fg_color};">{fg_zone} ({fg_score})</span>
+                        <span style="font-weight: 600; color: #555;">Sentiment (F&G)</span>
+                        <div style="text-align: right;">
+                             <div style="font-weight: 800; color: {fg_color};">{fg_zone} ({fg_score:.0f})</div>
+                             <div style="font-size: 11px; color: #888;">(0=Fear, 100=Greed)</div>
+                        </div>
                     </div>
                     <div style="position: relative; height: 120px; width: 100%;">
                         <canvas id="chart_fg_{uid}"></canvas>
                     </div>
                 </div>
 
-                <!-- 3. TIMING CARD (PCR) -->
-                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px; background: #fdfdfd;">
+                <!-- 3. TIMING CARD -->
+                <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px; background: #fdfdfd; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span style="font-weight: 600; color: #555;">Timing (Put/Call Ratio)</span>
-                        <span style="font-weight: 800; color: {pcr_color};">{pcr_text}</span>
+                        <span style="font-weight: 600; color: #555;">Timing (PCR)</span>
+                        <div style="text-align: right;">
+                             <div style="font-weight: 800; color: {pcr_color};">{pcr_text}</div>
+                             <div style="font-size: 11px; color: {pcr_color}; opacity: 0.8;">{pcr_subtext}</div>
+                        </div>
                     </div>
                      <div style="position: relative; height: 120px; width: 100%;">
                         <canvas id="chart_pcr_{uid}"></canvas>
                     </div>
-                    <div style="text-align: center; margin-top: 5px; font-weight: bold; color: {pcr_color}">{pcr_val:.2f}</div>
-                </div>
-                
-                <!-- 4. VERDICT DETAILS & EDUCATION -->
-                <div style="background: {verdict_color}08; border-radius: 8px; padding: 20px; border-left: 5px solid {verdict_color}; border-top: 1px solid {verdict_color}20; border-right: 1px solid {verdict_color}20; border-bottom: 1px solid {verdict_color}20;">
-                    <h4 style="margin: 0 0 15px 0; color: {verdict_color}; font-size: 18px; border-bottom: 1px solid {verdict_color}30; padding-bottom: 8px;">
-                        DETALII VERDICT: {verdict}
-                    </h4>
-                    
-                    <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #333; line-height: 1.6;">
-                        <li style="margin-bottom: 10px;">
-                            <strong>Trend:</strong> <span style="color: {trend_color}; font-weight: 800;">{trend_text}</span>
-                            <div style="font-size: 12px; color: #666; margin-top: 2px;">
-                                <i>ℹ️ SMA 200 este "linia din nisip". Swing Traderii cumpără DOAR dacă prețul este deasupra ei (Bull Market).</i>
-                            </div>
-                        </li>
-                        <li style="margin-bottom: 10px;">
-                            <strong>Breadth:</strong> <span style="color: {breadth_color}; font-weight: 800;">{breadth_text}</span>
-                            <div style="font-size: 12px; color: #666; margin-top: 2px;">
-                                <i>ℹ️ Prețul peste SMA 50 indică faptul că piața are "vânt din spate" (Momentum pozitiv) pe termen mediu.</i>
-                            </div>
-                        </li>
-                        <li style="margin-bottom: 10px;">
-                            <strong>Concluzie:</strong> <span style="color: {verdict_color}; font-weight: 800;">{verdict_reason}</span>
-                            <div style="font-size: 12px; color: #333; margin-top: 4px; background: rgba(255,255,255,0.5); padding: 8px; border-radius: 4px; border-left: 2px solid {verdict_color};">
-                                💡 <b>Explicație pentru Investitor:</b> {verdict_expl}
-                            </div>
-                        </li>
-                    </ul>
+                    <div style="text-align: center; margin-top: 5px; font-weight: 800; color: {pcr_color}; font-size: 16px;">{pcr_val:.2f}</div>
                 </div>
 
             </div>
+
+            <!-- SECTION 2: VERDICT DETAILS (New Boxed Layout) -->
+            <div style="border-top: 2px solid #f0f0f0; padding-top: 24px;">
+                <h4 style="margin: 0 0 16px 0; color: {verdict_color}; font-size: 18px; text-transform: uppercase; letter-spacing: 0.5px;">
+                   ⚠️ Analiză Detaliată: {verdict_reason}
+                </h4>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                    
+                    <!-- Box 1: Trend Context -->
+                    <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; border-left: 4px solid {trend_color}; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <div style="font-size: 12px; font-weight: bold; color: #666; text-transform: uppercase;">1. Context Trend</div>
+                        <div style="font-size: 16px; font-weight: bold; color: {trend_color}; margin-bottom: 6px;">{trend_text}</div>
+                        <div style="font-size: 13px; color: #444; line-height: 1.5;">
+                            Poziția prețului față de SMA 200 determină direcția majoră. În <span style="font-weight: bold; color: #4caf50;">Bull Market</span> (Preț > SMA200), căutăm doar intrări Long.
+                        </div>
+                    </div>
+
+                    <!-- Box 2: Breadth Context -->
+                    <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; border-left: 4px solid {breadth_color}; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <div style="font-size: 12px; font-weight: bold; color: #666; text-transform: uppercase;">2. Momentum (Breadth)</div>
+                        <div style="font-size: 16px; font-weight: bold; color: {breadth_color}; margin-bottom: 6px;">{breadth_text}</div>
+                        <div style="font-size: 13px; color: #444; line-height: 1.5;">
+                             <span style="font-weight: bold;">{breadth_subtext}</span>. Arată câți participanți susțin mișcarea. Un breadth sănătos confirmă trendul, unul slab semnalează epuizare.
+                        </div>
+                    </div>
+
+                    <!-- Box 3: Strategie de Execuție -->
+                    <div style="background: {verdict_color}10; padding: 16px; border-radius: 8px; border: 1px solid {verdict_color}40; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                         <div style="font-size: 12px; font-weight: bold; color: {verdict_color}; text-transform: uppercase;">🎯 Concluzie & Execuție</div>
+                         <div style="font-size: 16px; font-weight: 800; color: {verdict_color}; margin-bottom: 6px;">{verdict}</div>
+                         <div style="font-size: 13px; color: #222; font-weight: 500; line-height: 1.5; font-style: italic;">
+                            "{verdict_expl}"
+                         </div>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
     </div>
 
