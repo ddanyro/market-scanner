@@ -272,7 +272,7 @@ def load_market_history():
 
 def save_market_history(history):
     try:
-        with open(HISTORY_FILE, 'w') as f:
+        with open(MARKET_HISTORY_FILE, 'w') as f:
             json.dump(history, f, indent=2)
     except Exception as e:
         print(f"Eroare salvare istoric: {e}")
