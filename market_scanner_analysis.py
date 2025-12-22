@@ -570,7 +570,7 @@ def get_swing_trading_data():
     except Exception as e:
         print(f"Error Swing Data (SPX): {e}")
 
-    # 2. Fear & Greed
+    # 2. Fear & Greed AND PCR from CNN
     try:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -579,8 +579,12 @@ def get_swing_trading_data():
             'Origin': 'https://edition.cnn.com'
         }
         r = requests.get("https://production.dataviz.cnn.io/index/fearandgreed/graphdata", headers=headers, timeout=10)
+        pcr_fetched_from_cnn = False
+        
         if r.status_code == 200:
             j = r.json()
+            
+            # F&G Logic
             data['FG_Score'] = j.get('fear_and_greed', {}).get('score', 50)
             data['FG_Rating'] = j.get('fear_and_greed', {}).get('rating', 'neutral')
             hist = j.get('fear_and_greed_historical', {}).get('data', [])
@@ -589,76 +593,61 @@ def get_swing_trading_data():
                 data['Chart_FG'] = [item['y'] for item in sorted_hist[-60:]]
             else:
                 data['Chart_FG'] = [data['FG_Score']] * 60
-    except Exception as e:
-        print(f"Error Swing Data (F&G): {e}")
-        data['FG_Score'] = 50
-        data['FG_Rating'] = 'neutral'
-        data['Chart_FG'] = []
-
-    # 3. PCR (Put/Call Ratio) - Persistence
-    try:
-        tickers = ['^CPC', '^PCR', '^PCX'] # Try real
-        pcr_found = False
-        for t in tickers:
-            try:
-                temp = yf.Ticker(t).history(period="3mo")
-                if not temp.empty:
-                    data['PCR_Value'] = temp['Close'].iloc[-1]
-                    pcr_found = True
-                    break
-            except: continue
-            
-        if not pcr_found: # Fallback SPY
-            try:
-                spy = yf.Ticker("SPY")
-                exps = spy.options
-                if exps:
-                    total_c = 0; total_p = 0
-                    for date in exps[:2]:
-                        opt = spy.option_chain(date)
-                        total_c += opt.calls['volume'].fillna(0).sum()
-                        total_p += opt.puts['volume'].fillna(0).sum()
-                    if total_c > 0:
-                        data['PCR_Value'] = total_p / total_c
-                        print(f"    -> Calculated SPY Option PCR: {data['PCR_Value']:.2f}")
-            except Exception as opt_e:
-                print(f"    PCR Fallback failed: {opt_e}")
-
-    except Exception as e:
-        print(f"Error Swing Data (PCR): {e}")
-
-    # Persistence Logic
-    if 'PCR_Value' in data:
-        try:
-            hist_file = "market_history.json"
-            today = datetime.datetime.now().strftime('%Y-%m-%d')
-            db = {}
-            if os.path.exists(hist_file):
-                with open(hist_file, 'r') as f:
-                    try: db = json.load(f)
-                    except: db = {}
-            
-            if 'PCR' not in db: db['PCR'] = {}
-            db['PCR'][today] = float(data['PCR_Value'])
-            
-            with open(hist_file, 'w') as f:
-                json.dump(db, f, indent=4)
-            
-            # Chart from History
-            dates = sorted(db['PCR'].keys())
-            chart_vals = [db['PCR'][d] for d in dates[-60:]]
-            
-            if len(chart_vals) < 2:
-                data['Chart_PCR'] = [data['PCR_Value']] * 60
-            else:
-                data['Chart_PCR'] = chart_vals
                 
-        except Exception as e:
-            print(f"Error saving PCR history: {e}")
-            if 'Chart_PCR' not in data: data['Chart_PCR'] = [data.get('PCR_Value', 0.8)] * 60
-    else:
-        data['PCR_Value'] = 0.8
-        data['Chart_PCR'] = []
+            # PCR Logic from CNN (Priority)
+            if 'put_call_options' in j:
+                 try:
+                     pcr_list = j['put_call_options'].get('data', [])
+                     if pcr_list:
+                         sorted_pcr = sorted(pcr_list, key=lambda x: x['x'])
+                         last_item = sorted_pcr[-1]
+                         data['PCR_Value'] = last_item['y']
+                         data['Chart_PCR'] = [item['y'] for item in sorted_pcr[-60:]]
+                         pcr_fetched_from_cnn = True
+                         print(f"    -> PCR fetched from CNN (Value: {data['PCR_Value']:.2f})")
+                 except Exception as e:
+                     print(f"Error parsing CNN PCR: {e}")
+
+    except Exception as e:
+        print(f"Error Swing Data (CNN): {e}")
+        if 'FG_Score' not in data:
+            data['FG_Score'] = 50; data['FG_Rating'] = 'neutral'; data['Chart_FG'] = []
+
+    # 3. PCR Fallback (Only if CNN failed)
+    if not data.get('PCR_Value'):
+        try:
+            # Try Yahoo Tickers
+            tickers = ['^CPC', '^PCR', '^PCX']
+            pcr_found = False
+            for t in tickers:
+                try:
+                    temp = yf.Ticker(t).history(period="3mo")
+                    if not temp.empty:
+                        data['PCR_Value'] = temp['Close'].iloc[-1]
+                        data['Chart_PCR'] = temp['Close'].iloc[-60:].tolist()
+                        pcr_found = True
+                        break
+                except: continue
+                
+            if not pcr_found: # Fallback SPY Options
+                try:
+                    spy = yf.Ticker("SPY")
+                    exps = spy.options
+                    if exps:
+                        total_c = 0; total_p = 0
+                        for date in exps[:2]:
+                            opt = spy.option_chain(date)
+                            total_c += opt.calls['volume'].fillna(0).sum()
+                            total_p += opt.puts['volume'].fillna(0).sum()
+                        if total_c > 0:
+                            data['PCR_Value'] = total_p / total_c
+                            print(f"    -> Calculated SPY Option PCR: {data['PCR_Value']:.2f}")
+                except Exception as opt_e:
+                    print(f"    PCR Fallback failed: {opt_e}")
+                    data['PCR_Value'] = 0.8
+                    data['Chart_PCR'] = []
+        except Exception:
+            pass
 
     return data
 
@@ -695,9 +684,18 @@ def generate_swing_trading_html():
     breadth_color = "#4caf50" if breadth_ok else "#ff9800"
     breadth_text = "PUTERNIC" if breadth_ok else "SLAB"
 
-    panic_signal = pcr_val > 1.0
-    pcr_color = "#4caf50" if panic_signal else "#aaa"
-    pcr_text = "OPORTUNITATE" if panic_signal else "Normal"
+    if pcr_val > 1.0:
+        pcr_text = "OPORTUNITATE"
+        pcr_color = "#4caf50"
+        panic_signal = True
+    elif pcr_val < 0.7:
+        pcr_text = "GREED"
+        pcr_color = "#f44336"
+        panic_signal = False
+    else:
+        pcr_text = "NEUTRAL"
+        pcr_color = "#ff9800"
+        panic_signal = False
     
     verdict = "WAIT"
     verdict_color = "#ff9800"
