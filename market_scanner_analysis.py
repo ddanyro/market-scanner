@@ -740,7 +740,7 @@ def generate_swing_trading_html():
     <div style="margin: 32px 0; background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
         
         <!-- Header -->
-        <div style="background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); padding: 16px 24px; color: white; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
+        <div style="background: {verdict_color}; padding: 16px 24px; color: white; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
             <div>
                 <h3 style="margin: 0; font-size: 18px; font-weight: 700;">🏦 Swing Trading Signal (Long-only)</h3>
                 <div style="font-size: 13px; opacity: 0.9; margin-top: 4px;">Analiză Context SPX • Strategie Trend Following</div>
