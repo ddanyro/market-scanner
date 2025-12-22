@@ -2722,7 +2722,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
              </div>
              
              <!-- Stop Adjustment Table for Portfolio (Trail Propus < Trail %) -->
-             <div id="stop-adjust-section" style="margin-top: 30px; max-width: 800px; margin-left: auto; margin-right: auto;">
+             <div id="stop-adjust-section" style="margin-top: 30px; max-width: 800px; margin-left: auto; margin-right: auto; display: none;">
                  <h4 style="color: #f44336; text-align: center; margin-bottom: 15px;">🔴 Ajustare Stop - Portofoliu (Trail Propus < Trail %)</h4>
                  <div id="adjust-table-container"></div>
              </div>
@@ -2741,13 +2741,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     }
                     
                     if (!dataToShow || dataToShow.length === 0) {
-                        if (filterSymbol) {
-                            container.innerHTML = '<p style="text-align: center; color: #aaa;">✅ Stop-ul pentru ' + filterSymbol + ' este OK</p>';
-                        } else {
-                            container.innerHTML = '<p style="text-align: center; color: #aaa;">✅ Toate stop-urile sunt OK</p>';
-                        }
+                        container.parentElement.style.display = 'none';
                         return;
                     }
+                    
+                    container.parentElement.style.display = 'block';
                     
                     let html = `
                         <table style="width: 100%; border-collapse: collapse; color: var(--text-primary); background: var(--bg-white); border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border-light);">
@@ -2806,7 +2804,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                          // Display basic metrics
                          document.getElementById('res-price-native').innerText = price;
                          document.getElementById('res-atr-val').innerText = d.ATR_Val;
-                         document.getElementById('res-atr').innerText = atrPct + '%';
+                         document.getElementById('res-atr-pct').innerText = atrPct + '%';
+                         document.getElementById('res-day').innerText = '-'; // Data not available yet
                          document.getElementById('res-week').innerText = volW + '%';
                          document.getElementById('res-month').innerText = volM + '%';
                          
