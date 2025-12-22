@@ -2238,7 +2238,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             change = market_indicators[name].get('change', 0)
             
             # Colorare inversă (stock logic vs volatility logic)
-            if name == 'SPX' or name == 'Crypto Fear':
+            if name == 'SPX' or name == 'NASDAQ' or name == 'Crypto Fear':
                 if change > 0:
                     change_color = '#4caf50'
                     arrow = '↑'
