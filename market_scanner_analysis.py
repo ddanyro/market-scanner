@@ -875,7 +875,7 @@ def generate_swing_trading_html():
         if (typeof Chart !== 'undefined') {{
             new Chart(document.getElementById('chart_trend_{uid}').getContext('2d'), {{
                 type: 'line',
-                data: {{ labels: spxData.labels, datasets: [{{ label: 'Preț', data: spxData.price, borderColor: '#2196f3', borderWidth: 2, pointRadius: 0 }}, {{ label: 'SMA200', data: spxData.sma200, borderColor: '#fbc02d', borderWidth: 2, pointRadius: 0, borderDash: [2,2] }}] }},
+                data: {{ labels: spxData.labels, datasets: [{{ label: 'Preț', data: spxData.price, borderColor: '#cad5e2', borderWidth: 1.5, pointRadius: 0 }}, {{ label: 'SMA200', data: spxData.sma200, borderColor: '#fbc02d', borderWidth: 2, pointRadius: 0, borderDash: [2,2] }}] }},
                 options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }}, y: {{ display: true }} }} }}
             }});
             new Chart(document.getElementById('chart_breadth_{uid}').getContext('2d'), {{
