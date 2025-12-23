@@ -830,6 +830,10 @@ def generate_swing_trading_html():
                     <div style="font-size: 10px; color: #777; margin-top: 4px; text-align: center; font-style: italic;">
                         *Notă: PCR Equity-only poate fi mai mic (~{(pcr_val*0.85):.2f})
                     </div>
+                    <div style="font-size: 10px; color: #555; margin-top: 6px; text-align: center; display: flex; justify-content: center; gap: 10px;">
+                        <span style="display: flex; align-items: center;"><span style="width: 12px; height: 3px; background: {pcr_color}; margin-right: 4px;"></span>Zilnic</span>
+                        <span style="display: flex; align-items: center;"><span style="width: 12px; height: 2px; border-top: 2px dotted #999; margin-right: 4px;"></span>MA10</span>
+                    </div>
                 </div>
 
             </div>
