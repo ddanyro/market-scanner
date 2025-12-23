@@ -676,6 +676,7 @@ def generate_swing_trading_html():
     fg_score = data.get('FG_Score', 50)
     fg_rating = str(data.get('FG_Rating', 'neutral')).capitalize()
     pcr_val = data.get('PCR_Value', 0.8) if data.get('PCR_Value') else 0.8
+    pcr_ma10 = data.get('PCR_MA10', pcr_val) if data.get('PCR_MA10') else pcr_val
     
     # Chart Data JSON
     default_spx = {'labels': [], 'price': [], 'sma50': [], 'sma200': []}
@@ -830,9 +831,9 @@ def generate_swing_trading_html():
                     <div style="font-size: 10px; color: #777; margin-top: 4px; text-align: center; font-style: italic;">
                         *Notă: PCR Equity-only poate fi mai mic (~{(pcr_val*0.85):.2f})
                     </div>
-                    <div style="font-size: 10px; color: #555; margin-top: 6px; text-align: center; display: flex; justify-content: center; gap: 10px;">
-                        <span style="display: flex; align-items: center;"><span style="width: 12px; height: 3px; background: {pcr_color}; margin-right: 4px;"></span>Zilnic</span>
-                        <span style="display: flex; align-items: center;"><span style="width: 12px; height: 2px; border-top: 2px dotted #999; margin-right: 4px;"></span>MA10</span>
+                    <div style="font-size: 10px; color: #555; margin-top: 6px; text-align: center; display: flex; justify-content: center; gap: 16px;">
+                        <span style="display: flex; align-items: center;"><span style="width: 12px; height: 3px; background: {pcr_color}; margin-right: 4px;"></span>Zilnic: <b style="margin-left: 2px;">{pcr_val:.2f}</b></span>
+                        <span style="display: flex; align-items: center;"><span style="width: 12px; height: 2px; border-top: 2px dotted #999; margin-right: 4px;"></span>MA10: <b style="margin-left: 2px;">{pcr_ma10:.2f}</b></span>
                     </div>
                 </div>
 
