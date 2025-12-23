@@ -603,8 +603,22 @@ def get_swing_trading_data():
                          last_item = sorted_pcr[-1]
                          data['PCR_Value'] = last_item['y']
                          data['Chart_PCR'] = [item['y'] for item in sorted_pcr[-60:]]
+                         
+                         # Calculate MA10
+                         pcr_vals = [item['y'] for item in sorted_pcr[-70:]] # Get a bit more for rolling window
+                         if len(pcr_vals) >= 10:
+                             ma_series = pd.Series(pcr_vals).rolling(window=10).mean().iloc[-1]
+                             data['PCR_MA10'] = float(ma_series)
+                             
+                             # Generate MA10 Series for Chart
+                             # Need to align with Chart_PCR (last 60)
+                             # So we compute rolling on full history then slice last 60
+                             full_series = pd.Series([item['y'] for item in sorted_pcr])
+                             ma_full = full_series.rolling(window=10).mean()
+                             data['Chart_PCR_MA10'] = ma_full.iloc[-60:].fillna(0).tolist()
+                             
                          pcr_fetched_from_cnn = True
-                         print(f"    -> PCR fetched from CNN (Value: {data['PCR_Value']:.2f})")
+                         print(f"    -> PCR fetched from CNN (Value: {data['PCR_Value']:.2f}, MA10: {data.get('PCR_MA10', 'N/A')})")
                  except Exception as e:
                      print(f"Error parsing CNN PCR: {e}")
 
@@ -668,6 +682,7 @@ def generate_swing_trading_html():
     chart_spx_json = json.dumps(data.get('Chart_SPX', default_spx))
     chart_fg_json = json.dumps(data.get('Chart_FG', []))
     chart_pcr_json = json.dumps(data.get('Chart_PCR', []))
+    chart_pcr_ma_json = json.dumps(data.get('Chart_PCR_MA10', []))
 
     # --- Analysis Logic ---
     trend_bullish = spx_price > sma_200
@@ -851,6 +866,7 @@ def generate_swing_trading_html():
         const spxData = {chart_spx_json};
         const fgData = {chart_fg_json};
         const pcrData = {chart_pcr_json};
+        const pcrMA = {chart_pcr_ma_json};
 
         if (typeof Chart !== 'undefined') {{
             new Chart(document.getElementById('chart_trend_{uid}').getContext('2d'), {{
@@ -870,7 +886,13 @@ def generate_swing_trading_html():
             }});
             new Chart(document.getElementById('chart_pcr_{uid}').getContext('2d'), {{
                 type: 'line',
-                data: {{ labels: Array(pcrData.length).fill(''), datasets: [{{ label: 'PCR', data: pcrData, borderColor: '{pcr_color}', pointRadius: 0, tension: 0.2 }}] }},
+                data: {{ 
+                    labels: Array(pcrData.length).fill(''), 
+                    datasets: [
+                        {{ label: 'PCR', data: pcrData, borderColor: '{pcr_color}', borderWidth: 1.5, pointRadius: 0, tension: 0.2 }},
+                        {{ label: 'MA10', data: pcrMA, borderColor: '#999', borderWidth: 1, pointRadius: 0, borderDash: [2,2], tension: 0.2 }}
+                    ] 
+                }},
                 options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }} }} }}
             }});
         }}
