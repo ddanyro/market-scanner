@@ -68,8 +68,21 @@ def sync_ibkr():
              use_tws_primary = False
              positions = []
 
-    if not use_tws_primary:
-        print("  -> Executare Flex Service...")
+    need_flex_pos = not use_tws_primary
+    need_flex_stats = False
+    
+    # Check stats freshness
+    try:
+        s_file = 'ib_stats.json'
+        if os.path.exists(s_file):
+            if time.time() - os.path.getmtime(s_file) > 1000: # Refresh if older than ~15 mins (Logic: TWS doesn't provide it, so we need Flex often if TWS is running)
+                need_flex_stats = True
+        else:
+            need_flex_stats = True
+    except: need_flex_stats = True
+
+    if need_flex_pos or need_flex_stats:
+        print(f"  -> Executare Flex Service... (Pos: {need_flex_pos}, Stats: {need_flex_stats})")
         # Flex Logic Here (Indentat sau lăsat în flow)
         # Încercăm din Env Vars (pentru GitHub Actions) sau Config File (Local)
         token = os.environ.get('IBKR_TOKEN')
@@ -180,6 +193,7 @@ def sync_ibkr():
 
                             # Parse Open Positions
                             for pos in root_dl.iter('OpenPosition'):
+                                if not need_flex_pos: break
                                 sym = pos.get('symbol')
                                 if not sym: continue
                                 
