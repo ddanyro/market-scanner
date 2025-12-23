@@ -813,7 +813,7 @@ def generate_swing_trading_html():
                         {pcr_val:.2f}
                     </div>
                     <div style="font-size: 10px; color: #777; margin-top: 4px; text-align: center; font-style: italic;">
-                        *Notă: PCR Equity-only poate fi mai mic (~{(pcr_val*0.9):.2f})
+                        *Notă: PCR Equity-only poate fi mai mic (~{(pcr_val*0.85):.2f})
                     </div>
                 </div>
 
