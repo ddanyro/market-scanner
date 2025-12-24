@@ -10,7 +10,7 @@ cd /Users/danieldragomir/antigravity
 echo "=== $(date '+%Y-%m-%d %H:%M:%S') - Sincronizare TWS ===" >> dashboard.log
 
 # Sincronizare TWS (ordine active + poziții)
-/usr/local/bin/python3 -c "
+/usr/bin/python3 -c "
 import sys
 sys.path.insert(0, '.')
 try:
