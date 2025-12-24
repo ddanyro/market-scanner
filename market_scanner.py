@@ -3282,6 +3282,15 @@ def main():
     portfolio_df = pd.DataFrame(state.get('portfolio', []))
     watchlist_df = pd.DataFrame(state.get('watchlist', []))
     
+    # Filtrare watchlist: exclude simbolurile care sunt deja în portofoliu (doar pentru afișare)
+    if not portfolio_df.empty and not watchlist_df.empty and 'Symbol' in portfolio_df.columns and 'Ticker' in watchlist_df.columns:
+        portfolio_symbols = set(portfolio_df['Symbol'].str.upper())
+        original_count = len(watchlist_df)
+        watchlist_df = watchlist_df[~watchlist_df['Ticker'].str.upper().isin(portfolio_symbols)]
+        filtered_count = original_count - len(watchlist_df)
+        if filtered_count > 0:
+            print(f"  -> Ascunse {filtered_count} acțiuni din watchlist (deja în portofoliu)")
+    
     # Verificăm indicatorii (s-ar putea să fie None în state inițial)
     indicators_data = state.get('market_indicators', {})
     
