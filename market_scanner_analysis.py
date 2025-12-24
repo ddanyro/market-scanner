@@ -570,6 +570,32 @@ def get_swing_trading_data():
     except Exception as e:
         print(f"Error Swing Data (SPX): {e}")
 
+    # 1b. Nasdaq (NDX) Data - "Motorul" pieței tech
+    try:
+        ndx = yf.Ticker("^NDX")
+        hist_ndx = ndx.history(period="2y")
+        if not hist_ndx.empty:
+            ndx_price = hist_ndx['Close'].iloc[-1]
+            hist_ndx['SMA50'] = hist_ndx['Close'].rolling(window=50).mean()
+            hist_ndx['SMA200'] = hist_ndx['Close'].rolling(window=200).mean()
+            
+            data['NDX_Price'] = ndx_price
+            data['NDX_SMA50'] = hist_ndx['SMA50'].iloc[-1]
+            data['NDX_SMA200'] = hist_ndx['SMA200'].iloc[-1]
+            
+            lookback = 60
+            subset_ndx = hist_ndx.iloc[-lookback:]
+            
+            data['Chart_NDX'] = {
+                'labels': [d.strftime('%m-%d') for d in subset_ndx.index],
+                'price': subset_ndx['Close'].fillna(0).tolist(),
+                'sma50': subset_ndx['SMA50'].fillna(0).tolist(),
+                'sma200': subset_ndx['SMA200'].fillna(0).tolist()
+            }
+            print(f"    -> NDX fetched (Price: {ndx_price:.0f}, SMA200: {data['NDX_SMA200']:.0f})")
+    except Exception as e:
+        print(f"Error Swing Data (NDX): {e}")
+
     # 2. Fear & Greed AND PCR from CNN
     try:
         headers = {
@@ -669,10 +695,16 @@ def generate_swing_trading_html():
     """ Generates HTML Card for Swing Trading with Explicit Numerical Values. """
     data = get_swing_trading_data()
     
-    # Extract Data
+    # Extract SPX Data
     spx_price = data.get('SPX_Price', 0)
     sma_200 = data.get('SPX_SMA200', 0)
     sma_50 = data.get('SPX_SMA50', 0)
+    
+    # Extract NDX Data
+    ndx_price = data.get('NDX_Price', 0)
+    ndx_sma_200 = data.get('NDX_SMA200', 0)
+    ndx_sma_50 = data.get('NDX_SMA50', 0)
+    
     fg_score = data.get('FG_Score', 50)
     fg_rating = str(data.get('FG_Rating', 'neutral')).capitalize()
     pcr_val = data.get('PCR_Value', 0.8) if data.get('PCR_Value') else 0.8
@@ -681,24 +713,43 @@ def generate_swing_trading_html():
     # Chart Data JSON
     default_spx = {'labels': [], 'price': [], 'sma50': [], 'sma200': []}
     chart_spx_json = json.dumps(data.get('Chart_SPX', default_spx))
+    chart_ndx_json = json.dumps(data.get('Chart_NDX', default_spx))
     chart_fg_json = json.dumps(data.get('Chart_FG', []))
     chart_pcr_json = json.dumps(data.get('Chart_PCR', []))
     chart_pcr_ma_json = json.dumps(data.get('Chart_PCR_MA10', []))
 
-    # --- Analysis Logic ---
+    # --- Analysis Logic SPX ---
     trend_bullish = spx_price > sma_200
     trend_text = "BULLISH" if trend_bullish else "BEARISH"
     trend_color = "#4caf50" if trend_bullish else "#f44336"
+
+    breadth_ok = spx_price > sma_50
+    breadth_color = "#4caf50" if breadth_ok else "#ff9800"
+    breadth_text = "PUTERNIC" if breadth_ok else "SLAB"
+
+    # --- Analysis Logic NDX (Nasdaq - "Motorul" Tech) ---
+    ndx_trend_bullish = ndx_price > ndx_sma_200 if ndx_sma_200 else True
+    ndx_trend_text = "BULLISH" if ndx_trend_bullish else "BEARISH"
+    ndx_trend_color = "#4caf50" if ndx_trend_bullish else "#f44336"
+
+    ndx_momentum_ok = ndx_price > ndx_sma_50 if ndx_sma_50 else True
+    ndx_momentum_color = "#4caf50" if ndx_momentum_ok else "#ff9800"
+    ndx_momentum_text = "PUTERNIC" if ndx_momentum_ok else "SLAB"
+
+    # Divergence Detection (SPX vs NDX)
+    divergence = trend_bullish != ndx_trend_bullish
+    divergence_warning = ""
+    if divergence:
+        if trend_bullish and not ndx_trend_bullish:
+            divergence_warning = "⚠️ DIVERGENȚĂ: SPX bullish dar NDX bearish - Tech în pericol!"
+        elif ndx_trend_bullish and not trend_bullish:
+            divergence_warning = "⚠️ DIVERGENȚĂ: NDX bullish dar SPX bearish - Tech rezistă."
 
     if fg_score < 25: fg_zone = "Extreme Fear"; fg_color = "#4caf50" 
     elif fg_score < 45: fg_zone = "Fear"; fg_color = "#8bc34a"
     elif fg_score < 55: fg_zone = "Neutral"; fg_color = "#ff9800"
     elif fg_score < 75: fg_zone = "Greed"; fg_color = "#f44336"
     else: fg_zone = "Extreme Greed"; fg_color = "#d32f2f"
-
-    breadth_ok = spx_price > sma_50
-    breadth_color = "#4caf50" if breadth_ok else "#ff9800"
-    breadth_text = "PUTERNIC" if breadth_ok else "SLAB"
 
     if pcr_val > 1.0:
         pcr_text = "OPORTUNITATE (Fear)"
@@ -718,28 +769,41 @@ def generate_swing_trading_html():
     verdict_reason = ""
     verdict_expl = ""
     
-    if trend_bullish:
+    # Combined analysis: Both SPX and NDX must align for strong signals
+    both_bullish = trend_bullish and ndx_trend_bullish
+    both_momentum = breadth_ok and ndx_momentum_ok
+    
+    if both_bullish:
         if fg_score < 50:
             verdict = "BUY"
             verdict_color = "#4caf50"
-            verdict_reason = "Trend UP + Frica în piață"
-            verdict_expl = "Configurație ideală 'Buy the Dip'. Trendul major este ascendent, iar sentimentul de frică oferă prețuri bune."
+            verdict_reason = "Trend UP (SPX+NDX) + Frica în piață"
+            verdict_expl = "Configurație ideală 'Buy the Dip'. Ambii indici (SPX și NDX) sunt în trend ascendent, iar sentimentul de frică oferă prețuri bune pentru Tech."
         else:
             verdict = "WAIT"
             verdict_color = "#ff9800"
             verdict_reason = "Trend UP + Euforie"
             verdict_expl = (
-                f"Trendul este pozitiv (Bull Market), dar sentimentul actual ({fg_rating}, scor {fg_score:.0f}) nu oferă un punct de intrare sigur. "
-                "Istoric, intrările pe 'Lăcomie' au un raport Risc/Recompensă slab. "
-                "Așteaptă răbdător o corecție spre SMA50 sau o creștere a fricii (PCR > 1.0) pentru a cumpăra la un preț mai bun."
+                f"Trendul este pozitiv (Bull Market pe SPX și NDX), dar sentimentul actual ({fg_rating}, scor {fg_score:.0f}) nu oferă un punct de intrare sigur. "
+                "Așteaptă o corecție sau creștere a fricii (PCR > 1.0)."
             )
+    elif trend_bullish and not ndx_trend_bullish:
+        verdict = "AVOID TECH"
+        verdict_color = "#f44336"
+        verdict_reason = "⚠️ Divergență: SPX UP dar NDX DOWN"
+        verdict_expl = "SPX este bullish dar Nasdaq a căzut sub SMA200. Evită acțiunile de Tech/Growth - rotație sectorială în curs. Preferă sectoare defensive sau cash."
+    elif ndx_trend_bullish and not trend_bullish:
+        verdict = "TECH ONLY"
+        verdict_color = "#ff9800"
+        verdict_reason = "Divergență: NDX UP dar SPX DOWN"
+        verdict_expl = "Nasdaq rezistă dar SPX este slab. Tech poate performa, dar riscul general este ridicat. Intrări selective doar pe liderii tech."
     else:
         verdict = "CASH"
         verdict_color = "#f44336"
         verdict_reason = "Trend DOWN (Bear Market)"
-        verdict_expl = "Prețul este sub media de 200 de zile. Statistic, pozițiile Long au rată mică de succes. Păstrează cash sau joacă defensiv."
+        verdict_expl = "Ambii indici (SPX și NDX) sunt sub SMA200. Statistic, pozițiile Long au rată mică de succes. Păstrează cash sau joacă defensiv."
 
-    if panic_signal and trend_bullish:
+    if panic_signal and both_bullish:
         verdict += " (STRONG)"
         verdict_expl += " Panica semnalată de Put/Call confirmă un potențial minim local iminent."
     
@@ -751,7 +815,7 @@ def generate_swing_trading_html():
         <div style="background: {verdict_color}; padding: 16px 24px; color: white; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
             <div>
                 <h3 style="margin: 0; font-size: 18px; font-weight: 700;">🏦 Swing Trading Signal (Long-only)</h3>
-                <div style="font-size: 13px; opacity: 0.9; margin-top: 4px;">Analiză Context SPX • Strategie Trend Following</div>
+                <div style="font-size: 13px; opacity: 0.9; margin-top: 4px;">Analiză Context SPX + NDX • Strategie Trend Following</div>
             </div>
             <div style="text-align: right;">
                  <div style="background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 16px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 2px 4px rgba(0,0,0,0.1);">{verdict}</div>
@@ -839,6 +903,54 @@ def generate_swing_trading_html():
 
             </div>
 
+            <!-- SECTION 1b: NASDAQ (Tech Motor) -->
+            <div style="margin-bottom: 32px;">
+                <div style="font-size: 14px; font-weight: 700; color: #7b1fa2; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e1bee7;">
+                    📊 NASDAQ (NDX) — „Motorul" Tech
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+                    
+                    <!-- NDX TREND CARD -->
+                    <div style="border: 1px solid #e1bee7; border-radius: 8px; padding: 16px; background: #faf5fc; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <div>
+                                <span style="font-weight: 600; color: #555;">NDX Trend (SMA200)</span>
+                                <div style="font-size: 10px; color: #999;">Nasdaq 100</div>
+                            </div>
+                            <div style="text-align: right;">
+                                 <div style="font-weight: 800; color: {ndx_trend_color};">{ndx_trend_text}</div>
+                            </div>
+                        </div>
+                        <div style="position: relative; height: 140px; width: 100%;">
+                            <canvas id="chart_ndx_trend_{uid}"></canvas>
+                        </div>
+                        <div style="font-size: 12px; color: #555; margin-top: 8px; text-align: center; background: #f3e5f5; padding: 4px; border-radius: 4px;">
+                            Preț: <b>{ndx_price:.0f}</b> / <span style="color:#f9a825">SMA200: <b>{ndx_sma_200:.0f}</b></span>
+                        </div>
+                    </div>
+
+                    <!-- NDX MOMENTUM CARD -->
+                    <div style="border: 1px solid #e1bee7; border-radius: 8px; padding: 16px; background: #faf5fc; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <div>
+                                <span style="font-weight: 600; color: #555;">NDX Momentum (SMA50)</span>
+                                <div style="font-size: 10px; color: #999;">Nasdaq 100</div>
+                            </div>
+                            <div style="text-align: right;">
+                                 <div style="font-weight: 800; color: {ndx_momentum_color};">{ndx_momentum_text}</div>
+                            </div>
+                        </div>
+                        <div style="position: relative; height: 140px; width: 100%;">
+                            <canvas id="chart_ndx_momentum_{uid}"></canvas>
+                        </div>
+                        <div style="font-size: 12px; color: #555; margin-top: 8px; text-align: center; background: #f3e5f5; padding: 4px; border-radius: 4px;">
+                            Preț: <b>{ndx_price:.0f}</b> / <span style="color:#2e7d32">SMA50: <b>{ndx_sma_50:.0f}</b></span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
             <!-- SECTION 2: DETAILS -->
             <div style="border-top: 2px solid #f0f0f0; padding-top: 24px;">
                 <h4 style="margin: 0 0 16px 0; color: {verdict_color}; font-size: 18px; text-transform: uppercase;">
@@ -869,6 +981,7 @@ def generate_swing_trading_html():
     <script>
     (function() {{
         const spxData = {chart_spx_json};
+        const ndxData = {chart_ndx_json};
         const fgData = {chart_fg_json};
         const pcrData = {chart_pcr_json};
         const pcrMA = {chart_pcr_ma_json};
@@ -900,6 +1013,20 @@ def generate_swing_trading_html():
                 }},
                 options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }} }} }}
             }});
+            
+            // NDX Charts (Nasdaq - Purple theme)
+            if (ndxData && ndxData.price && ndxData.price.length > 0) {{
+                new Chart(document.getElementById('chart_ndx_trend_{uid}').getContext('2d'), {{
+                    type: 'line',
+                    data: {{ labels: ndxData.labels, datasets: [{{ label: 'Preț', data: ndxData.price, borderColor: '#d1c4e9', borderWidth: 1.5, pointRadius: 0 }}, {{ label: 'SMA200', data: ndxData.sma200, borderColor: '#9c27b0', borderWidth: 2, pointRadius: 0, borderDash: [2,2] }}] }},
+                    options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }}, y: {{ display: true }} }} }}
+                }});
+                new Chart(document.getElementById('chart_ndx_momentum_{uid}').getContext('2d'), {{
+                    type: 'line',
+                    data: {{ labels: ndxData.labels, datasets: [{{ label: 'Preț', data: ndxData.price, borderColor: '#d1c4e9', borderWidth: 1.5, pointRadius: 0 }}, {{ label: 'SMA50', data: ndxData.sma50, borderColor: '#7b1fa2', borderWidth: 2, pointRadius: 0 }}] }},
+                    options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }}, y: {{ display: true }} }} }}
+                }});
+            }}
         }}
     }})();
     </script>
