@@ -807,6 +807,36 @@ def generate_swing_trading_html():
         verdict += " (STRONG)"
         verdict_expl += " Panica semnalată de Put/Call confirmă un potențial minim local iminent."
     
+    # --- Individual SPX Verdict ---
+    if trend_bullish:
+        if fg_score < 50:
+            spx_verdict = "BUY"
+            spx_verdict_color = "#4caf50"
+            spx_verdict_text = "Bull Market + Frica oferă oportunitate de cumpărare."
+        else:
+            spx_verdict = "WAIT"
+            spx_verdict_color = "#ff9800"
+            spx_verdict_text = "Bull Market, dar euforie excesivă. Așteaptă corecție."
+    else:
+        spx_verdict = "CASH"
+        spx_verdict_color = "#f44336"
+        spx_verdict_text = "Bear Market (sub SMA200). Risc ridicat pentru poziții Long."
+    
+    # --- Individual NDX Verdict ---
+    if ndx_trend_bullish:
+        if fg_score < 50:
+            ndx_verdict = "BUY TECH"
+            ndx_verdict_color = "#4caf50"
+            ndx_verdict_text = "Nasdaq bullish + Frica = oportunitate pe Growth/Tech."
+        else:
+            ndx_verdict = "HOLD TECH"
+            ndx_verdict_color = "#ff9800"
+            ndx_verdict_text = "Tech în trend ascendent, dar greed = riscant pentru intrări noi."
+    else:
+        ndx_verdict = "AVOID TECH"
+        ndx_verdict_color = "#f44336"
+        ndx_verdict_text = "Nasdaq sub SMA200. Acțiunile Tech/Growth sunt vulnerabile."
+    
     uid = str(int(datetime.datetime.now().timestamp()))
 
     html = f"""
@@ -951,27 +981,42 @@ def generate_swing_trading_html():
                 </div>
             </div>
 
-            <!-- SECTION 2: DETAILS -->
+            <!-- SECTION 2: ANALYSIS DETAILS -->
             <div style="border-top: 2px solid #f0f0f0; padding-top: 24px;">
                 <h4 style="margin: 0 0 16px 0; color: {verdict_color}; font-size: 18px; text-transform: uppercase;">
                    ⚠️ Analiză: {verdict_reason}
                 </h4>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-                    <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; border-left: 4px solid {trend_color};">
-                        <div style="font-size: 12px; font-weight: bold; color: #666;">CONTEXT TREND</div>
-                        <div style="font-size: 16px; font-weight: bold; color: {trend_color}; margin-bottom: 6px;">{trend_text}</div>
-                         <div style="font-size: 13px; color: #444;">Preț > SMA200 confirmă Bull Market.</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    
+                    <!-- S&P 500 Analysis -->
+                    <div style="background: #e3f2fd; padding: 16px; border-radius: 8px; border-left: 4px solid {spx_verdict_color};">
+                        <div style="font-size: 11px; font-weight: bold; color: #1565c0; text-transform: uppercase; margin-bottom: 4px;">📈 S&P 500 (Corpul)</div>
+                        <div style="font-size: 18px; font-weight: 800; color: {spx_verdict_color}; margin-bottom: 8px;">{spx_verdict}</div>
+                        <div style="font-size: 12px; color: #333; margin-bottom: 6px;">
+                            <b>Trend:</b> <span style="color:{trend_color}">{trend_text}</span> | <b>Momentum:</b> <span style="color:{breadth_color}">{breadth_text}</span>
+                        </div>
+                        <div style="font-size: 13px; color: #444; font-style: italic;">"{spx_verdict_text}"</div>
                     </div>
-                    <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; border-left: 4px solid {breadth_color};">
-                        <div style="font-size: 12px; font-weight: bold; color: #666;">MOMENTUM</div>
-                        <div style="font-size: 16px; font-weight: bold; color: {breadth_color}; margin-bottom: 6px;">{breadth_text}</div>
-                        <div style="font-size: 13px; color: #444;">Participare solidă (Peste SMA50).</div>
+
+                    <!-- Nasdaq Analysis -->
+                    <div style="background: #f3e5f5; padding: 16px; border-radius: 8px; border-left: 4px solid {ndx_verdict_color};">
+                        <div style="font-size: 11px; font-weight: bold; color: #7b1fa2; text-transform: uppercase; margin-bottom: 4px;">🚀 NASDAQ (Motorul Tech)</div>
+                        <div style="font-size: 18px; font-weight: 800; color: {ndx_verdict_color}; margin-bottom: 8px;">{ndx_verdict}</div>
+                        <div style="font-size: 12px; color: #333; margin-bottom: 6px;">
+                            <b>Trend:</b> <span style="color:{ndx_trend_color}">{ndx_trend_text}</span> | <b>Momentum:</b> <span style="color:{ndx_momentum_color}">{ndx_momentum_text}</span>
+                        </div>
+                        <div style="font-size: 13px; color: #444; font-style: italic;">"{ndx_verdict_text}"</div>
                     </div>
-                    <div style="background: {verdict_color}10; padding: 16px; border-radius: 8px; border: 1px solid {verdict_color}40;">
-                         <div style="font-size: 12px; font-weight: bold; color: {verdict_color};">CONCLUZIE</div>
-                         <div style="font-size: 16px; font-weight: 800; color: {verdict_color}; margin-bottom: 6px;">{verdict}</div>
-                         <div style="font-size: 13px; font-style: italic;">"{verdict_expl}"</div>
+
+                    <!-- Combined Conclusion -->
+                    <div style="background: {verdict_color}15; padding: 16px; border-radius: 8px; border: 2px solid {verdict_color}60; grid-column: 1 / -1;">
+                        <div style="font-size: 11px; font-weight: bold; color: {verdict_color}; text-transform: uppercase; margin-bottom: 4px;">🎯 CONCLUZIE GENERALĂ</div>
+                        <div style="font-size: 22px; font-weight: 800; color: {verdict_color}; margin-bottom: 8px;">{verdict}</div>
+                        <div style="font-size: 14px; color: #333;">
+                            {verdict_expl}
+                        </div>
                     </div>
+
                 </div>
             </div>
 
