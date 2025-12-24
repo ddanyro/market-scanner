@@ -3,9 +3,16 @@
 # LOCAL CRON: Sincronizare TWS + Push Date
 # Rulează orar pentru a prelua date live din TWS
 # GitHub Actions va genera dashboard-ul ulterior
+# NU rulează dacă TWS nu e deschis
 # ===========================================
 
 cd /Users/danieldragomir/antigravity
+
+# Verifică dacă TWS e deschis (verifică portul 7497)
+if ! nc -z 127.0.0.1 7497 2>/dev/null; then
+    echo "=== $(date '+%Y-%m-%d %H:%M:%S') - TWS nu e deschis. Skip. ===" >> dashboard.log
+    exit 0
+fi
 
 echo "=== $(date '+%Y-%m-%d %H:%M:%S') - Sincronizare TWS ===" >> dashboard.log
 
