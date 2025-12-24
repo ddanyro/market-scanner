@@ -27,12 +27,20 @@ except Exception as e:
     print(f'TWS Sync Error: {e}')
 " >> dashboard.log 2>&1
 
-# Push doar fișierele de date (nu dashboard-ul)
+# Stash orice modificări locale înainte de pull
+git stash --include-untracked >> dashboard.log 2>&1
+
+# Pull ultimele modificări de pe remote
 git pull --rebase origin main >> dashboard.log 2>&1
 
-git add portfolio.csv tws_orders.csv tws_positions.csv ib_stats.json 2>/dev/null
-git commit -m "Auto-sync TWS data $(date '+%Y-%m-%d %H:%M')" >> dashboard.log 2>&1
+# Aplică stash-ul înapoi
+git stash pop >> dashboard.log 2>&1 || true
 
+# Adaugă și commitează fișierele de date
+git add portfolio.csv tws_orders.csv tws_positions.csv ib_stats.json 2>/dev/null
+git commit -m "Auto-sync TWS data $(date '+%Y-%m-%d %H:%M')" >> dashboard.log 2>&1 || true
+
+# Push pe GitHub
 git push origin main >> dashboard.log 2>&1
 
 echo "=== Sincronizare completă ===" >> dashboard.log
