@@ -551,10 +551,12 @@ def get_swing_trading_data():
         hist = spx.history(period="2y") 
         if not hist.empty:
             current_price = hist['Close'].iloc[-1]
+            hist['SMA10'] = hist['Close'].rolling(window=10).mean()
             hist['SMA50'] = hist['Close'].rolling(window=50).mean()
             hist['SMA200'] = hist['Close'].rolling(window=200).mean()
             
             data['SPX_Price'] = current_price
+            data['SPX_SMA10'] = hist['SMA10'].iloc[-1]
             data['SPX_SMA50'] = hist['SMA50'].iloc[-1]
             data['SPX_SMA200'] = hist['SMA200'].iloc[-1]
             
@@ -564,6 +566,7 @@ def get_swing_trading_data():
             data['Chart_SPX'] = {
                 'labels': [d.strftime('%m-%d') for d in subset.index],
                 'price': subset['Close'].fillna(0).tolist(),
+                'sma10': subset['SMA10'].fillna(0).tolist(),
                 'sma50': subset['SMA50'].fillna(0).tolist(),
                 'sma200': subset['SMA200'].fillna(0).tolist()
             }
@@ -576,10 +579,12 @@ def get_swing_trading_data():
         hist_ndx = ndx.history(period="2y")
         if not hist_ndx.empty:
             ndx_price = hist_ndx['Close'].iloc[-1]
+            hist_ndx['SMA10'] = hist_ndx['Close'].rolling(window=10).mean()
             hist_ndx['SMA50'] = hist_ndx['Close'].rolling(window=50).mean()
             hist_ndx['SMA200'] = hist_ndx['Close'].rolling(window=200).mean()
             
             data['NDX_Price'] = ndx_price
+            data['NDX_SMA10'] = hist_ndx['SMA10'].iloc[-1]
             data['NDX_SMA50'] = hist_ndx['SMA50'].iloc[-1]
             data['NDX_SMA200'] = hist_ndx['SMA200'].iloc[-1]
             
@@ -589,6 +594,7 @@ def get_swing_trading_data():
             data['Chart_NDX'] = {
                 'labels': [d.strftime('%m-%d') for d in subset_ndx.index],
                 'price': subset_ndx['Close'].fillna(0).tolist(),
+                'sma10': subset_ndx['SMA10'].fillna(0).tolist(),
                 'sma50': subset_ndx['SMA50'].fillna(0).tolist(),
                 'sma200': subset_ndx['SMA200'].fillna(0).tolist()
             }
@@ -699,11 +705,13 @@ def generate_swing_trading_html():
     spx_price = data.get('SPX_Price', 0)
     sma_200 = data.get('SPX_SMA200', 0)
     sma_50 = data.get('SPX_SMA50', 0)
+    sma_10 = data.get('SPX_SMA10', 0)
     
     # Extract NDX Data
     ndx_price = data.get('NDX_Price', 0)
     ndx_sma_200 = data.get('NDX_SMA200', 0)
     ndx_sma_50 = data.get('NDX_SMA50', 0)
+    ndx_sma_10 = data.get('NDX_SMA10', 0)
     
     fg_score = data.get('FG_Score', 50)
     fg_rating = str(data.get('FG_Rating', 'neutral')).capitalize()
@@ -711,7 +719,7 @@ def generate_swing_trading_html():
     pcr_ma10 = data.get('PCR_MA10', pcr_val) if data.get('PCR_MA10') else pcr_val
     
     # Chart Data JSON
-    default_spx = {'labels': [], 'price': [], 'sma50': [], 'sma200': []}
+    default_spx = {'labels': [], 'price': [], 'sma10': [], 'sma50': [], 'sma200': []}
     chart_spx_json = json.dumps(data.get('Chart_SPX', default_spx))
     chart_ndx_json = json.dumps(data.get('Chart_NDX', default_spx))
     chart_fg_json = json.dumps(data.get('Chart_FG', []))
@@ -727,6 +735,11 @@ def generate_swing_trading_html():
     breadth_color = "#4caf50" if breadth_ok else "#ff9800"
     breadth_text = "PUTERNIC" if breadth_ok else "SLAB"
 
+    # SPX SMA10 Short-term Timing
+    spx_timing_ok = spx_price > sma_10 if sma_10 else True
+    spx_timing_color = "#4caf50" if spx_timing_ok else "#f44336"
+    spx_timing_text = "UP" if spx_timing_ok else "DOWN"
+
     # --- Analysis Logic NDX (Nasdaq - "Motorul" Tech) ---
     ndx_trend_bullish = ndx_price > ndx_sma_200 if ndx_sma_200 else True
     ndx_trend_text = "BULLISH" if ndx_trend_bullish else "BEARISH"
@@ -735,6 +748,11 @@ def generate_swing_trading_html():
     ndx_momentum_ok = ndx_price > ndx_sma_50 if ndx_sma_50 else True
     ndx_momentum_color = "#4caf50" if ndx_momentum_ok else "#ff9800"
     ndx_momentum_text = "PUTERNIC" if ndx_momentum_ok else "SLAB"
+
+    # NDX SMA10 Short-term Timing
+    ndx_timing_ok = ndx_price > ndx_sma_10 if ndx_sma_10 else True
+    ndx_timing_color = "#4caf50" if ndx_timing_ok else "#f44336"
+    ndx_timing_text = "UP" if ndx_timing_ok else "DOWN"
 
     # Divergence Detection (SPX vs NDX)
     divergence = trend_bullish != ndx_trend_bullish
@@ -772,13 +790,20 @@ def generate_swing_trading_html():
     # Combined analysis: Both SPX and NDX must align for strong signals
     both_bullish = trend_bullish and ndx_trend_bullish
     both_momentum = breadth_ok and ndx_momentum_ok
+    both_timing = spx_timing_ok and ndx_timing_ok  # SMA10 timing
     
     if both_bullish:
         if fg_score < 50:
-            verdict = "BUY"
-            verdict_color = "#4caf50"
-            verdict_reason = "Trend UP (SPX+NDX) + Frica în piață"
-            verdict_expl = "Configurație ideală 'Buy the Dip'. Ambii indici (SPX și NDX) sunt în trend ascendent, iar sentimentul de frică oferă prețuri bune pentru Tech."
+            if both_timing:
+                verdict = "BUY"
+                verdict_color = "#4caf50"
+                verdict_reason = "Trend UP (SPX+NDX) + Frica + Timing OK"
+                verdict_expl = "Configurație ideală 'Buy the Dip'. Ambii indici sunt în trend ascendent, SMA10 confirmă timing-ul, iar sentimentul de frică oferă prețuri bune."
+            else:
+                verdict = "WAIT DIP"
+                verdict_color = "#ff9800"
+                verdict_reason = "Trend UP + Frica, dar SMA10 DOWN"
+                verdict_expl = f"Trendul major e bullish și există frică, dar prețul e sub SMA10 (SPX: {spx_timing_text}, NDX: {ndx_timing_text}). Așteaptă revenire peste SMA10 pentru intrare."
         else:
             verdict = "WAIT"
             verdict_color = "#ff9800"
@@ -803,7 +828,7 @@ def generate_swing_trading_html():
         verdict_reason = "Trend DOWN (Bear Market)"
         verdict_expl = "Ambii indici (SPX și NDX) sunt sub SMA200. Statistic, pozițiile Long au rată mică de succes. Păstrează cash sau joacă defensiv."
 
-    if panic_signal and both_bullish:
+    if panic_signal and both_bullish and both_timing:
         verdict += " (STRONG)"
         verdict_expl += " Panica semnalată de Put/Call confirmă un potențial minim local iminent."
     
@@ -886,6 +911,22 @@ def generate_swing_trading_html():
                     </div>
                     <div style="font-size: 12px; color: #555; margin-top: 8px; text-align: center; background: #f5f5f5; padding: 4px; border-radius: 4px;">
                         Preț: <b>{spx_price:.0f}</b> / <span style="color:#2e7d32">SMA50: <b>{sma_50:.0f}</b></span>
+                    </div>
+                </div>
+
+                <!-- 2b. TIMING CARD (SMA10) -->
+                <div style="border: 1px solid #e3f2fd; border-radius: 8px; padding: 16px; background: #f8fbff; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="font-weight: 600; color: #555;">Timing (SMA10)</span>
+                        <div style="text-align: right;">
+                             <div style="font-weight: 800; color: {spx_timing_color};">{spx_timing_text}</div>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 160px; width: 100%;">
+                        <canvas id="chart_timing_{uid}"></canvas>
+                    </div>
+                    <div style="font-size: 12px; color: #555; margin-top: 8px; text-align: center; background: #e3f2fd; padding: 4px; border-radius: 4px;">
+                        Preț: <b>{spx_price:.0f}</b> / <span style="color:#1976d2">SMA10: <b>{sma_10:.0f}</b></span>
                     </div>
                 </div>
 
@@ -978,6 +1019,25 @@ def generate_swing_trading_html():
                         </div>
                     </div>
 
+                    <!-- NDX TIMING CARD (SMA10) -->
+                    <div style="border: 1px solid #e1bee7; border-radius: 8px; padding: 16px; background: #faf5fc; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <div>
+                                <span style="font-weight: 600; color: #555;">NDX Timing (SMA10)</span>
+                                <div style="font-size: 10px; color: #999;">Nasdaq 100</div>
+                            </div>
+                            <div style="text-align: right;">
+                                 <div style="font-weight: 800; color: {ndx_timing_color};">{ndx_timing_text}</div>
+                            </div>
+                        </div>
+                        <div style="position: relative; height: 140px; width: 100%;">
+                            <canvas id="chart_ndx_timing_{uid}"></canvas>
+                        </div>
+                        <div style="font-size: 12px; color: #555; margin-top: 8px; text-align: center; background: #f3e5f5; padding: 4px; border-radius: 4px;">
+                            Preț: <b>{ndx_price:.0f}</b> / <span style="color:#1976d2">SMA10: <b>{ndx_sma_10:.0f}</b></span>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -1042,6 +1102,12 @@ def generate_swing_trading_html():
                 data: {{ labels: spxData.labels, datasets: [{{ label: 'Preț', data: spxData.price, borderColor: '#cad5e2', borderWidth: 1.5, pointRadius: 0 }}, {{ label: 'SMA50', data: spxData.sma50, borderColor: '#4caf50', borderWidth: 2, pointRadius: 0 }}] }},
                 options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }}, y: {{ display: true }} }} }}
             }});
+            // SPX SMA10 Timing Chart
+            new Chart(document.getElementById('chart_timing_{uid}').getContext('2d'), {{
+                type: 'line',
+                data: {{ labels: spxData.labels, datasets: [{{ label: 'Preț', data: spxData.price, borderColor: '#cad5e2', borderWidth: 1.5, pointRadius: 0 }}, {{ label: 'SMA10', data: spxData.sma10, borderColor: '#1976d2', borderWidth: 2, pointRadius: 0 }}] }},
+                options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }}, y: {{ display: true }} }} }}
+            }});
             new Chart(document.getElementById('chart_fg_{uid}').getContext('2d'), {{
                 type: 'line',
                 data: {{ labels: Array(fgData.length).fill(''), datasets: [{{ label: 'F&G', data: fgData, borderColor: '{fg_color}', backgroundColor: '{fg_color}20', fill: true, pointRadius: 0, tension: 0.4 }}] }},
@@ -1069,6 +1135,12 @@ def generate_swing_trading_html():
                 new Chart(document.getElementById('chart_ndx_momentum_{uid}').getContext('2d'), {{
                     type: 'line',
                     data: {{ labels: ndxData.labels, datasets: [{{ label: 'Preț', data: ndxData.price, borderColor: '#d1c4e9', borderWidth: 1.5, pointRadius: 0 }}, {{ label: 'SMA50', data: ndxData.sma50, borderColor: '#7b1fa2', borderWidth: 2, pointRadius: 0 }}] }},
+                    options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }}, y: {{ display: true }} }} }}
+                }});
+                // NDX SMA10 Timing Chart
+                new Chart(document.getElementById('chart_ndx_timing_{uid}').getContext('2d'), {{
+                    type: 'line',
+                    data: {{ labels: ndxData.labels, datasets: [{{ label: 'Preț', data: ndxData.price, borderColor: '#d1c4e9', borderWidth: 1.5, pointRadius: 0 }}, {{ label: 'SMA10', data: ndxData.sma10, borderColor: '#1976d2', borderWidth: 2, pointRadius: 0 }}] }},
                     options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }}, y: {{ display: true }} }} }}
                 }});
             }}
