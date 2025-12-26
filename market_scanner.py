@@ -615,7 +615,7 @@ def process_portfolio_ticker(row, vix_value, rates):
         print(f"Procesare: {ticker}")
         
         # Detect Currency
-        currency_explicit = row.get('Currency', '')
+        currency_explicit = row.get('currency', '')
         if isinstance(currency_explicit, str) and len(currency_explicit) == 3:
              currency = currency_explicit.upper()
              print(f"  [Info] Currency explicit din CSV: {currency}")
@@ -3312,7 +3312,7 @@ def main():
                                  if abs(current_shares - shares) > 0.0001 or abs(current_price - price) > 0.01:
                                       p_df.loc[mask, 'Shares'] = shares
                                       p_df.loc[mask, 'Buy_Price'] = price
-                                      # p_df.loc[mask, 'Currency'] = curr # Optional
+                                      p_df.loc[mask, 'Currency'] = curr # Optional
                                       p_changed = True
                                       print(f"  Updated {sym}: {shares} shares @ {price}")
                              else:
