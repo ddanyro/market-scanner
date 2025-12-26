@@ -998,15 +998,28 @@ def process_watchlist_ticker(ticker, vix_value, rates):
 
         # Calculate RS (Relative Strength) vs S&P 500
         rs_vs_spx = None
+        rs_trend_up = False
         rs_status = "Neutral"
         try:
             spx_df = yf.download("^GSPC", period="3mo", progress=False)
             if not spx_df.empty and len(df) >= 60:
-                # Calculate 60-day return for both
-                stock_return = (df['Close'].iloc[-1] / df['Close'].iloc[-60] - 1) * 100
-                spx_return = (spx_df['Close'].iloc[-1] / spx_df['Close'].iloc[-60] - 1) * 100
-                rs_vs_spx = stock_return - spx_return
-                rs_vs_spx = float(rs_vs_spx.iloc[0]) if hasattr(rs_vs_spx, 'iloc') else float(rs_vs_spx)
+                # Calculate 60-day RS (Medium Term)
+                stock_ret_60 = (df['Close'].iloc[-1] / df['Close'].iloc[-60] - 1) * 100
+                spx_ret_60 = (spx_df['Close'].iloc[-1] / spx_df['Close'].iloc[-60] - 1) * 100
+                rs_60 = stock_ret_60 - spx_ret_60
+                
+                # Calculate 20-day RS (Short Term / Momentum)
+                stock_ret_20 = (df['Close'].iloc[-1] / df['Close'].iloc[-20] - 1) * 100
+                spx_ret_20 = (spx_df['Close'].iloc[-1] / spx_df['Close'].iloc[-20] - 1) * 100
+                rs_20 = stock_ret_20 - spx_ret_20
+                
+                # Normalize values
+                rs_vs_spx = float(rs_60.iloc[0]) if hasattr(rs_60, 'iloc') else float(rs_60)
+                rs_20_val = float(rs_20.iloc[0]) if hasattr(rs_20, 'iloc') else float(rs_20)
+                
+                # Logic: RS is good if Positive AND Accelerating (Short term > Long term) or significantly positive
+                rs_trend_up = rs_20_val > rs_vs_spx # Is RS line trending up?
+                
                 if rs_vs_spx > 5:
                     rs_status = "Strong"
                 elif rs_vs_spx > 0:
@@ -1030,13 +1043,15 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         else:
             check_details.append("✗ Trend")
         
-        # Check 2: Stronger than market? (RS vs SPX positive)
-        check2_rs = rs_vs_spx is not None and rs_vs_spx > 0
+        # Check 2: Stronger than market & Improving? (RS > 0 AND Trend UP)
+        check2_rs = rs_vs_spx is not None and rs_vs_spx > 0 and rs_trend_up
         if check2_rs:
             checks_passed += 1
-            check_details.append("✓ RS")
+            check_details.append(f"✓ RS (Trend: {'Up' if rs_trend_up else 'Down'})")
         else:
-            check_details.append("✗ RS")
+            reason = "Weak" if rs_vs_spx is None or rs_vs_spx <= 0 else "Downtrend"
+            check_details.append(f"✗ RS ({reason})")
+        
         
         # Check 3: Entry calm? (RSI between 40-70, not overbought)
         check3_rsi = 40 <= last_rsi <= 70
