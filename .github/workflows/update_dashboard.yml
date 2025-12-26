@@ -40,6 +40,6 @@ jobs:
       run: |
         git config --global user.name 'GitHub Action'
         git config --global user.email 'action@github.com'
-        git add index.html dashboard_state.json market_history.json
+        git add index.html dashboard_state.json market_history.json portfolio.csv watchlist.csv
         git commit -m "Auto-update Dashboard [skip ci]" || echo "No changes to commit"
         git push
