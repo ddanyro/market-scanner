@@ -620,6 +620,30 @@ def get_swing_trading_data():
     except Exception as e:
         print(f"Error Swing Data (NDX): {e}")
 
+    # 1c. VIX Volatility Data
+    try:
+        vix = yf.Ticker("^VIX")
+        hist_vix = vix.history(period="6mo")
+        if not hist_vix.empty:
+            vix_current = hist_vix['Close'].iloc[-1]
+            data['VIX_Current'] = vix_current
+            data['VIX_SMA20'] = hist_vix['Close'].rolling(window=20).mean().iloc[-1]
+            
+            # Calculate percentile (how current VIX compares to last 6 months)
+            vix_percentile = (hist_vix['Close'] < vix_current).sum() / len(hist_vix) * 100
+            data['VIX_Percentile'] = vix_percentile
+            
+            lookback = 60
+            subset_vix = hist_vix.iloc[-lookback:]
+            
+            data['Chart_VIX'] = {
+                'labels': [d.strftime('%m-%d') for d in subset_vix.index],
+                'values': subset_vix['Close'].fillna(20).tolist()
+            }
+            print(f"    -> VIX fetched (Current: {vix_current:.1f}, Percentile: {vix_percentile:.0f}%)")
+    except Exception as e:
+        print(f"Error Swing Data (VIX): {e}")
+
     # 2. Fear & Greed AND PCR from CNN
     try:
         headers = {
@@ -747,6 +771,31 @@ def generate_swing_trading_html():
     chart_fg_json = json.dumps(data.get('Chart_FG', []))
     chart_pcr_json = json.dumps(data.get('Chart_PCR', []))
     chart_pcr_ma_json = json.dumps(data.get('Chart_PCR_MA10', []))
+    
+    # VIX Data
+    vix_current = data.get('VIX_Current', 20)
+    vix_sma20 = data.get('VIX_SMA20', 20)
+    vix_percentile = data.get('VIX_Percentile', 50)
+    default_vix = {'labels': [], 'values': []}
+    chart_vix_json = json.dumps(data.get('Chart_VIX', default_vix))
+    
+    # VIX Interpretation (Volatility zones)
+    if vix_current < 15:
+        vix_zone = "COMPLAZENȚĂ"
+        vix_color = "#ff9800"  # Orange - warning (too calm)
+        vix_hint = "⚠️ Piață prea calmă - potențial de corecție"
+    elif vix_current < 20:
+        vix_zone = "NORMAL"
+        vix_color = "#4caf50"  # Green
+        vix_hint = "✅ Volatilitate normală"
+    elif vix_current < 30:
+        vix_zone = "FRICĂ"
+        vix_color = "#2196f3"  # Blue - opportunity in bull
+        vix_hint = "🎯 Frică = oportunitate (dacă trend bullish)"
+    else:
+        vix_zone = "PANICĂ"
+        vix_color = "#f44336"  # Red
+        vix_hint = "⛔ Volatilitate extremă - prudență maximă"
     
     # RSI Interpretation is done AFTER trend analysis (context-aware) - see below
 
@@ -1043,6 +1092,31 @@ def generate_swing_trading_html():
                     </div>
                 </div>
 
+                <!-- 6. VIX VOLATILITY CARD -->
+                <div style="border: 1px solid #ffcdd2; border-radius: 8px; padding: 16px; background: #fff5f5; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <div>
+                            <span style="font-weight: 600; color: #555;">Volatilitate (VIX)</span>
+                            <div style="font-size: 10px; color: #999;">Fear Index</div>
+                        </div>
+                        <div style="text-align: right;">
+                             <div style="font-weight: 800; color: {vix_color};">{vix_zone}</div>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 100px; width: 100%;">
+                        <canvas id="chart_vix_{uid}"></canvas>
+                    </div>
+                    <div style="font-size: 14px; color: {vix_color}; font-weight: 800; margin-top: 8px; text-align: center;">
+                        VIX: {vix_current:.1f}
+                    </div>
+                    <div style="font-size: 10px; color: #555; margin-top: 4px; text-align: center;">
+                        {vix_hint}
+                    </div>
+                    <div style="font-size: 9px; color: #888; margin-top: 4px; text-align: center;">
+                        Percentilă 6M: {vix_percentile:.0f}% | SMA20: {vix_sma20:.1f}
+                    </div>
+                </div>
+
             </div>
 
             <!-- SECTION 1b: NASDAQ (Tech Motor) -->
@@ -1183,6 +1257,7 @@ def generate_swing_trading_html():
         const fgData = {chart_fg_json};
         const pcrData = {chart_pcr_json};
         const pcrMA = {chart_pcr_ma_json};
+        const vixData = {chart_vix_json};
 
         if (typeof Chart !== 'undefined') {{
             new Chart(document.getElementById('chart_trend_{uid}').getContext('2d'), {{
@@ -1250,6 +1325,35 @@ def generate_swing_trading_html():
                     type: 'line',
                     data: {{ labels: spxData.labels, datasets: [{{ label: 'RSI', data: spxData.rsi, borderColor: '#ff9800', backgroundColor: '#ff980020', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.3 }}] }},
                     options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }}, y: {{ min: 0, max: 100, ticks: {{ callback: (v) => v === 30 || v === 70 ? v : '' }} }} }} }}
+                }});
+            }}
+            
+            // VIX Chart with color zones
+            if (vixData && vixData.values && vixData.values.length > 0) {{
+                new Chart(document.getElementById('chart_vix_{uid}').getContext('2d'), {{
+                    type: 'line',
+                    data: {{ 
+                        labels: vixData.labels, 
+                        datasets: [{{ 
+                            label: 'VIX', 
+                            data: vixData.values, 
+                            borderColor: '{vix_color}', 
+                            backgroundColor: '{vix_color}20', 
+                            fill: true, 
+                            borderWidth: 2, 
+                            pointRadius: 0, 
+                            tension: 0.3 
+                        }}] 
+                    }},
+                    options: {{ 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        plugins: {{ legend: {{ display: false }} }}, 
+                        scales: {{ 
+                            x: {{ display: false }}, 
+                            y: {{ min: 10, max: 40, ticks: {{ callback: (v) => [15, 20, 30].includes(v) ? v : '' }} }} 
+                        }} 
+                    }}
                 }});
             }}
         }}
