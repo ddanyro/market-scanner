@@ -615,10 +615,15 @@ def process_portfolio_ticker(row, vix_value, rates):
         print(f"Procesare: {ticker}")
         
         # Detect Currency
-        currency = 'USD' # Default
-        if '.RO' in ticker: currency = 'RON'
-        elif '.PA' in ticker or '.DE' in ticker or '.AS' in ticker: currency = 'EUR'
-        elif '.L' in ticker: currency = 'GBP'
+        currency_explicit = row.get('Currency', '')
+        if isinstance(currency_explicit, str) and len(currency_explicit) == 3:
+             currency = currency_explicit.upper()
+             print(f"  [Info] Currency explicit din CSV: {currency}")
+        else:
+             currency = 'USD' # Default
+             if '.RO' in ticker: currency = 'RON'
+             elif '.PA' in ticker or '.DE' in ticker or '.AS' in ticker: currency = 'EUR'
+             elif '.L' in ticker: currency = 'GBP'
         
         rate = rates.get(currency, rates['USD'])
         if currency == 'EUR': rate = 1.0

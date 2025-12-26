@@ -60,7 +60,8 @@ def sync_ibkr():
                       'Profit_Pct': 0,
                       'Investment': invest,
                       'Trail_Pct': 0,
-                      'Trail_Stop_IBKR': 0
+                      'Trail_Stop_IBKR': 0,
+                      'Currency': str(r.get('Currency', 'USD'))
                   })
              print(f"  -> Încărcate {len(positions)} poziții din TWS.")
         except Exception as ex:
@@ -224,7 +225,8 @@ def sync_ibkr():
                                         'Profit_Pct': 0, # Recalculated later
                                         'Investment': invest,
                                         'Trail_Pct': trail_data.get('trail_pct', 0),
-                                        'Trail_Stop_IBKR': trail_data.get('trail_stop', 0)
+                                        'Trail_Stop_IBKR': trail_data.get('trail_stop', 0),
+                                        'Currency': str(pos.get('currency', 'USD'))
                                     }
                                     positions.append(item)
                                 except ValueError:
