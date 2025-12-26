@@ -560,6 +560,14 @@ def get_swing_trading_data():
             data['SPX_SMA50'] = hist['SMA50'].iloc[-1]
             data['SPX_SMA200'] = hist['SMA200'].iloc[-1]
             
+            # RSI(14) calculation
+            delta = hist['Close'].diff()
+            gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+            loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+            rs = gain / loss
+            hist['RSI'] = 100 - (100 / (1 + rs))
+            data['SPX_RSI'] = hist['RSI'].iloc[-1]
+            
             lookback = 60
             subset = hist.iloc[-lookback:]
             
@@ -568,7 +576,8 @@ def get_swing_trading_data():
                 'price': subset['Close'].fillna(0).tolist(),
                 'sma10': subset['SMA10'].fillna(0).tolist(),
                 'sma50': subset['SMA50'].fillna(0).tolist(),
-                'sma200': subset['SMA200'].fillna(0).tolist()
+                'sma200': subset['SMA200'].fillna(0).tolist(),
+                'rsi': subset['RSI'].fillna(50).tolist()
             }
     except Exception as e:
         print(f"Error Swing Data (SPX): {e}")
@@ -588,6 +597,14 @@ def get_swing_trading_data():
             data['NDX_SMA50'] = hist_ndx['SMA50'].iloc[-1]
             data['NDX_SMA200'] = hist_ndx['SMA200'].iloc[-1]
             
+            # RSI(14) calculation for NDX
+            delta_ndx = hist_ndx['Close'].diff()
+            gain_ndx = (delta_ndx.where(delta_ndx > 0, 0)).rolling(window=14).mean()
+            loss_ndx = (-delta_ndx.where(delta_ndx < 0, 0)).rolling(window=14).mean()
+            rs_ndx = gain_ndx / loss_ndx
+            hist_ndx['RSI'] = 100 - (100 / (1 + rs_ndx))
+            data['NDX_RSI'] = hist_ndx['RSI'].iloc[-1]
+            
             lookback = 60
             subset_ndx = hist_ndx.iloc[-lookback:]
             
@@ -596,9 +613,10 @@ def get_swing_trading_data():
                 'price': subset_ndx['Close'].fillna(0).tolist(),
                 'sma10': subset_ndx['SMA10'].fillna(0).tolist(),
                 'sma50': subset_ndx['SMA50'].fillna(0).tolist(),
-                'sma200': subset_ndx['SMA200'].fillna(0).tolist()
+                'sma200': subset_ndx['SMA200'].fillna(0).tolist(),
+                'rsi': subset_ndx['RSI'].fillna(50).tolist()
             }
-            print(f"    -> NDX fetched (Price: {ndx_price:.0f}, SMA200: {data['NDX_SMA200']:.0f})")
+            print(f"    -> NDX fetched (Price: {ndx_price:.0f}, SMA200: {data['NDX_SMA200']:.0f}, RSI: {data['NDX_RSI']:.1f})")
     except Exception as e:
         print(f"Error Swing Data (NDX): {e}")
 
@@ -713,18 +731,36 @@ def generate_swing_trading_html():
     ndx_sma_50 = data.get('NDX_SMA50', 0)
     ndx_sma_10 = data.get('NDX_SMA10', 0)
     
+    # Extract RSI Data
+    spx_rsi = data.get('SPX_RSI', 50)
+    ndx_rsi = data.get('NDX_RSI', 50)
+    
     fg_score = data.get('FG_Score', 50)
     fg_rating = str(data.get('FG_Rating', 'neutral')).capitalize()
     pcr_val = data.get('PCR_Value', 0.8) if data.get('PCR_Value') else 0.8
     pcr_ma10 = data.get('PCR_MA10', pcr_val) if data.get('PCR_MA10') else pcr_val
     
     # Chart Data JSON
-    default_spx = {'labels': [], 'price': [], 'sma10': [], 'sma50': [], 'sma200': []}
+    default_spx = {'labels': [], 'price': [], 'sma10': [], 'sma50': [], 'sma200': [], 'rsi': []}
     chart_spx_json = json.dumps(data.get('Chart_SPX', default_spx))
     chart_ndx_json = json.dumps(data.get('Chart_NDX', default_spx))
     chart_fg_json = json.dumps(data.get('Chart_FG', []))
     chart_pcr_json = json.dumps(data.get('Chart_PCR', []))
     chart_pcr_ma_json = json.dumps(data.get('Chart_PCR_MA10', []))
+    
+    # RSI Interpretation
+    def interpret_rsi(rsi_val):
+        if rsi_val >= 70:
+            return "SUPRACUMPĂRAT", "#f44336", "⚠️ Prudență"
+        elif rsi_val >= 50:
+            return "BULLISH", "#4caf50", "✅ Momentum OK"
+        elif rsi_val >= 30:
+            return "BEARISH", "#ff9800", "⚠️ Momentum slab"
+        else:
+            return "SUPRAVÂNDUT", "#4caf50", "🎯 Potențial bounce"
+    
+    spx_rsi_text, spx_rsi_color, spx_rsi_hint = interpret_rsi(spx_rsi)
+    ndx_rsi_text, ndx_rsi_color, ndx_rsi_hint = interpret_rsi(ndx_rsi)
 
     # --- Analysis Logic SPX ---
     trend_bullish = spx_price > sma_200
@@ -972,6 +1008,28 @@ def generate_swing_trading_html():
                     </div>
                 </div>
 
+                <!-- 5. RSI MOMENTUM CARD (SPX) -->
+                <div style="border: 1px solid #ffe0b2; border-radius: 8px; padding: 16px; background: #fff8e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <div>
+                            <span style="font-weight: 600; color: #555;">Momentum (RSI14)</span>
+                            <div style="font-size: 10px; color: #999;">Confirmation Signal</div>
+                        </div>
+                        <div style="text-align: right;">
+                             <div style="font-weight: 800; color: {spx_rsi_color};">{spx_rsi_text}</div>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 100px; width: 100%;">
+                        <canvas id="chart_rsi_{uid}"></canvas>
+                    </div>
+                    <div style="font-size: 14px; color: {spx_rsi_color}; font-weight: 800; margin-top: 8px; text-align: center;">
+                        RSI: {spx_rsi:.1f}
+                    </div>
+                    <div style="font-size: 10px; color: #555; margin-top: 4px; text-align: center;">
+                        {spx_rsi_hint}
+                    </div>
+                </div>
+
             </div>
 
             <!-- SECTION 1b: NASDAQ (Tech Motor) -->
@@ -1035,6 +1093,28 @@ def generate_swing_trading_html():
                         </div>
                         <div style="font-size: 12px; color: #555; margin-top: 8px; text-align: center; background: #f3e5f5; padding: 4px; border-radius: 4px;">
                             Preț: <b>{ndx_price:.0f}</b> / <span style="color:#1976d2">SMA10: <b>{ndx_sma_10:.0f}</b></span>
+                        </div>
+                    </div>
+
+                    <!-- NDX RSI MOMENTUM CARD -->
+                    <div style="border: 1px solid #e1bee7; border-radius: 8px; padding: 16px; background: #faf5fc; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <div>
+                                <span style="font-weight: 600; color: #555;">NDX Momentum (RSI14)</span>
+                                <div style="font-size: 10px; color: #999;">Confirmation Signal</div>
+                            </div>
+                            <div style="text-align: right;">
+                                 <div style="font-weight: 800; color: {ndx_rsi_color};">{ndx_rsi_text}</div>
+                            </div>
+                        </div>
+                        <div style="position: relative; height: 100px; width: 100%;">
+                            <canvas id="chart_ndx_rsi_{uid}"></canvas>
+                        </div>
+                        <div style="font-size: 14px; color: {ndx_rsi_color}; font-weight: 800; margin-top: 8px; text-align: center;">
+                            RSI: {ndx_rsi:.1f}
+                        </div>
+                        <div style="font-size: 10px; color: #555; margin-top: 4px; text-align: center;">
+                            {ndx_rsi_hint}
                         </div>
                     </div>
 
@@ -1142,6 +1222,21 @@ def generate_swing_trading_html():
                     type: 'line',
                     data: {{ labels: ndxData.labels, datasets: [{{ label: 'Preț', data: ndxData.price, borderColor: '#d1c4e9', borderWidth: 1.5, pointRadius: 0 }}, {{ label: 'SMA10', data: ndxData.sma10, borderColor: '#1976d2', borderWidth: 2, pointRadius: 0 }}] }},
                     options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }}, y: {{ display: true }} }} }}
+                }});
+                // NDX RSI Chart
+                new Chart(document.getElementById('chart_ndx_rsi_{uid}').getContext('2d'), {{
+                    type: 'line',
+                    data: {{ labels: ndxData.labels, datasets: [{{ label: 'RSI', data: ndxData.rsi, borderColor: '#9c27b0', backgroundColor: '#9c27b020', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.3 }}] }},
+                    options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }}, y: {{ min: 0, max: 100, ticks: {{ callback: (v) => v === 30 || v === 70 ? v : '' }} }} }} }}
+                }});
+            }}
+            
+            // SPX RSI Chart
+            if (spxData && spxData.rsi && spxData.rsi.length > 0) {{
+                new Chart(document.getElementById('chart_rsi_{uid}').getContext('2d'), {{
+                    type: 'line',
+                    data: {{ labels: spxData.labels, datasets: [{{ label: 'RSI', data: spxData.rsi, borderColor: '#ff9800', backgroundColor: '#ff980020', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.3 }}] }},
+                    options: {{ responsive: true, maintainAspectRatio: false, plugins: {{ legend: {{ display: false }} }}, scales: {{ x: {{ display: false }}, y: {{ min: 0, max: 100, ticks: {{ callback: (v) => v === 30 || v === 70 ? v : '' }} }} }} }}
                 }});
             }}
         }}
