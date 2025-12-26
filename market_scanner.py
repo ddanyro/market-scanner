@@ -2501,6 +2501,15 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <option value="Neutral">Neutral</option>
                     </select>
                 </div>
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Decizie</label>
+                    <select id="filter-decision" style="padding: 10px 14px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); width: 140px; font-size: 14px; cursor: pointer;">
+                        <option value="">All</option>
+                        <option value="BUY">BUY</option>
+                        <option value="WAIT">WAIT</option>
+                        <option value="AVOID">AVOID</option>
+                    </select>
+                </div>
             </div>
 
 
@@ -2995,26 +3004,29 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         var minTarget = parseFloat($('#filter-target-pct').val());
                         var trend = $('#filter-trend').val();
                         var status = $('#filter-status').val();
+                        var decision = $('#filter-decision').val();
 
-                        // Indices: 5: Consensus, 6: Analysts, 8: Trend, 12: Status
+                        // Indices: 4: TargetPct, 5: Consensus, 6: Analysts, 8: Decision, 10: Trend, 14: Status
                         var rowTargetPct = parseFloat(data[4].replace('%', '')) || -9999;
                         var rowConsensus = data[5] || "";
                         var rowAnalysts = parseFloat(data[6]) || 0;
-                        var rowTrend = data[8] || "";
-                        var rowStatus = data[12] || "";
+                        var rowDecision = data[8] || "";
+                        var rowTrend = data[10] || "";
+                        var rowStatus = data[14] || "";
 
                         if (consensus && !rowConsensus.includes(consensus)) return false;
                         if (!isNaN(minAnalysts) && rowAnalysts < minAnalysts) return false;
                         if (!isNaN(minTarget) && rowTargetPct < minTarget) return false;
                         if (trend && !rowTrend.includes(trend)) return false;
                         if (status && !rowStatus.includes(status)) return false;
+                        if (decision && !rowDecision.includes(decision)) return false;
 
                         return true;
                     }
                 );
 
                 // Event listener to redraw on input change
-                $('#filter-consensus, #filter-analysts, #filter-target-pct, #filter-trend, #filter-status').change(function() {
+                $('#filter-consensus, #filter-analysts, #filter-target-pct, #filter-trend, #filter-status, #filter-decision').change(function() {
                     table.draw();
                 });
                 $('#filter-analysts, #filter-target-pct').keyup(function() {
