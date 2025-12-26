@@ -656,35 +656,41 @@ def get_swing_trading_data():
     except Exception as e:
         print(f"Error Swing Data (SKEW): {e}")
 
-    # 1e. Market Breadth - % of major stocks above SMA50
+    # 1e. Market Breadth - % of S&P 500 stocks above SMA200/SMA50 (from Finviz)
     try:
-        # Use top S&P 500 components to calculate breadth
-        breadth_tickers = ['AAPL', 'MSFT', 'AMZN', 'NVDA', 'GOOGL', 'META', 'TSLA', 'BRK-B', 'UNH', 'XOM',
-                          'JPM', 'JNJ', 'V', 'PG', 'MA', 'HD', 'CVX', 'MRK', 'ABBV', 'PEP',
-                          'KO', 'COST', 'AVGO', 'WMT', 'MCD', 'CSCO', 'ACN', 'ABT', 'DHR', 'NEE']
+        import re
+        finviz_headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
         
-        above_sma50 = 0
-        total_checked = 0
-        
-        for ticker in breadth_tickers:
+        def get_finviz_count(filter_type):
+            """Get count of S&P 500 stocks above a moving average from Finviz"""
+            url = f'https://finviz.com/screener.ashx?v=111&f=idx_sp500,ta_{filter_type}_pa'
             try:
-                stock = yf.Ticker(ticker)
-                hist = stock.history(period="3mo")
-                if not hist.empty and len(hist) >= 50:
-                    current_price = hist['Close'].iloc[-1]
-                    sma50 = hist['Close'].rolling(window=50).mean().iloc[-1]
-                    if current_price > sma50:
-                        above_sma50 += 1
-                    total_checked += 1
+                r = requests.get(url, headers=finviz_headers, timeout=15)
+                match = re.search(r'(\d+)\s*Total', r.text)
+                if match:
+                    return int(match.group(1))
             except:
                 pass
+            return None
         
-        if total_checked > 0:
-            breadth_pct = (above_sma50 / total_checked) * 100
-            data['Breadth_Pct'] = breadth_pct
-            data['Breadth_Above'] = above_sma50
-            data['Breadth_Total'] = total_checked
-            print(f"    -> Breadth fetched: {above_sma50}/{total_checked} above SMA50 ({breadth_pct:.0f}%)")
+        sp500_total = 505  # Approximate S&P 500 count
+        
+        above_200 = get_finviz_count('sma200')
+        above_50 = get_finviz_count('sma50')
+        
+        if above_200 is not None:
+            breadth_pct_200 = (above_200 / sp500_total) * 100
+            data['Breadth_200_Pct'] = breadth_pct_200
+            data['Breadth_200_Above'] = above_200
+        
+        if above_50 is not None:
+            breadth_pct_50 = (above_50 / sp500_total) * 100
+            data['Breadth_Pct'] = breadth_pct_50
+            data['Breadth_Above'] = above_50
+            data['Breadth_Total'] = sp500_total
+            print(f"    -> Breadth fetched: {above_50}/{sp500_total} above SMA50 ({breadth_pct_50:.0f}%), {above_200}/{sp500_total} above SMA200 ({breadth_pct_200:.0f}%)")
     except Exception as e:
         print(f"Error Swing Data (Breadth): {e}")
 
@@ -898,6 +904,10 @@ def generate_swing_trading_html():
         breadth_color = "#f44336"
         breadth_hint = "⛔ Doar câteva acțiuni conduc piața!"
         breadth_ok = False
+    
+    # Also get Breadth_200 for display
+    breadth_200_pct = data.get('Breadth_200_Pct', 50)
+    breadth_200_above = data.get('Breadth_200_Above', 0)
     
     # RSI Interpretation is done AFTER trend analysis (context-aware) - see below
 
@@ -1271,7 +1281,7 @@ def generate_swing_trading_html():
                         {breadth_hint}
                     </div>
                     <div style="font-size: 9px; color: #888; margin-top: 4px; text-align: center;">
-                        {breadth_above:.0f} din {breadth_total:.0f} acțiuni > SMA50
+                        SMA50: {breadth_above:.0f}/{breadth_total:.0f} | SMA200: {breadth_200_above:.0f}/{breadth_total:.0f} ({breadth_200_pct:.0f}%)
                     </div>
                 </div>
 
