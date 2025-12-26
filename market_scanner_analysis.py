@@ -1053,8 +1053,14 @@ def generate_swing_trading_html():
         verdict_reason = "⛔ VIX > 30: Panică în piață"
         verdict_expl = "VIX peste 30 indică panică extremă. Chiar dacă condițiile de trend sunt favorabile, volatilitatea e prea mare. Așteaptă stabilizare."
     
-    # Add breadth warning for fake rally
-    if not breadth_ok and verdict.startswith("BUY"):
+    # Fake rally (breadth < 30%) blocks BUY signals
+    if breadth_pct < 30 and verdict.startswith("BUY"):
+        verdict = "WAIT (FAKE RALLY)"
+        verdict_color = "#f44336"
+        verdict_reason = f"⛔ Breadth {breadth_pct:.0f}%: Rally fals"
+        verdict_expl = f"Doar {breadth_pct:.0f}% din acțiuni participă în rally. Indicele e tras de câțiva giganți. Risc mare de corecție bruscă."
+    # Add breadth warning for weak rally (30-50%)
+    elif not breadth_ok and verdict.startswith("BUY"):
         verdict_expl += f" ⚠️ ATENȚIE BREADTH: Doar {breadth_pct:.0f}% din acțiuni participă - posibil fake rally!"
     
     # --- Individual SPX Verdict ---
@@ -1072,6 +1078,22 @@ def generate_swing_trading_html():
         spx_verdict_color = "#f44336"
         spx_verdict_text = "Bear Market (sub SMA200). Risc ridicat pentru poziții Long."
     
+    # Add confirmation indicators to SPX conclusion
+    spx_confirmations = []
+    if spx_rsi >= 80:
+        spx_confirmations.append(f"⚠️ RSI {spx_rsi:.0f} (supraextins)")
+    elif spx_rsi >= 40 and spx_rsi < 50:
+        spx_confirmations.append(f"🎯 RSI {spx_rsi:.0f} (Buy Dip)")
+    
+    if vol_risk_warning:
+        spx_confirmations.append(vol_risk_warning)
+    
+    if not breadth_ok:
+        spx_confirmations.append(f"⚠️ Breadth {breadth_pct:.0f}% (participare slabă)")
+    
+    if spx_confirmations:
+        spx_verdict_text += " | " + " | ".join(spx_confirmations)
+    
     # --- Individual NDX Verdict ---
     if ndx_trend_bullish:
         if fg_score < 50:
@@ -1086,6 +1108,22 @@ def generate_swing_trading_html():
         ndx_verdict = "AVOID TECH"
         ndx_verdict_color = "#f44336"
         ndx_verdict_text = "Nasdaq sub SMA200. Acțiunile Tech/Growth sunt vulnerabile."
+    
+    # Add confirmation indicators to NDX conclusion
+    ndx_confirmations = []
+    if ndx_rsi >= 80:
+        ndx_confirmations.append(f"⚠️ RSI {ndx_rsi:.0f} (supraextins)")
+    elif ndx_rsi >= 40 and ndx_rsi < 50:
+        ndx_confirmations.append(f"🎯 RSI {ndx_rsi:.0f} (Buy Dip)")
+    
+    if vol_risk_warning:
+        ndx_confirmations.append(vol_risk_warning)
+    
+    if not breadth_ok:
+        ndx_confirmations.append(f"⚠️ Breadth {breadth_pct:.0f}% (participare slabă)")
+    
+    if ndx_confirmations:
+        ndx_verdict_text += " | " + " | ".join(ndx_confirmations)
     
     uid = str(int(datetime.datetime.now().timestamp()))
 
