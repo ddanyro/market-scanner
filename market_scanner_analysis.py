@@ -748,19 +748,7 @@ def generate_swing_trading_html():
     chart_pcr_json = json.dumps(data.get('Chart_PCR', []))
     chart_pcr_ma_json = json.dumps(data.get('Chart_PCR_MA10', []))
     
-    # RSI Interpretation
-    def interpret_rsi(rsi_val):
-        if rsi_val >= 70:
-            return "SUPRACUMPĂRAT", "#f44336", "⚠️ Prudență"
-        elif rsi_val >= 50:
-            return "BULLISH", "#4caf50", "✅ Momentum OK"
-        elif rsi_val >= 30:
-            return "BEARISH", "#ff9800", "⚠️ Momentum slab"
-        else:
-            return "SUPRAVÂNDUT", "#4caf50", "🎯 Potențial bounce"
-    
-    spx_rsi_text, spx_rsi_color, spx_rsi_hint = interpret_rsi(spx_rsi)
-    ndx_rsi_text, ndx_rsi_color, ndx_rsi_hint = interpret_rsi(ndx_rsi)
+    # RSI Interpretation is done AFTER trend analysis (context-aware) - see below
 
     # --- Analysis Logic SPX ---
     trend_bullish = spx_price > sma_200
@@ -789,6 +777,31 @@ def generate_swing_trading_html():
     ndx_timing_ok = ndx_price > ndx_sma_10 if ndx_sma_10 else True
     ndx_timing_color = "#4caf50" if ndx_timing_ok else "#f44336"
     ndx_timing_text = "UP" if ndx_timing_ok else "DOWN"
+
+    # --- RSI Context-Aware Interpretation ---
+    # RSI = CONFIRMARE, nu semnal! Interpretarea depinde de trend.
+    def interpret_rsi_with_context(rsi_val, is_bullish_trend):
+        if is_bullish_trend:
+            # În trend BULLISH: RSI 40-80 e normal, pullback 40-50 = oportunitate
+            if rsi_val >= 80:
+                return "EXTINS", "#ff9800", "⚠️ Supraextins - evită intrări noi"
+            elif rsi_val >= 50:
+                return "MOMENTUM OK", "#4caf50", "✅ Trend sănătos (40-80)"
+            elif rsi_val >= 40:
+                return "BUY DIP", "#2196f3", "🎯 Pullback ideal pentru intrare!"
+            else:
+                return "SLĂBIT", "#ff9800", "⚠️ Momentum sub 40 - atenție"
+        else:
+            # În trend BEARISH: orice RSI e un warning
+            if rsi_val >= 70:
+                return "BOUNCE", "#ff9800", "⚠️ Bounce temporar, nu trend"
+            elif rsi_val >= 50:
+                return "NEUTRU", "#ff9800", "⚠️ Bear market - risc crescut"
+            else:
+                return "SLAB", "#f44336", "⛔ Bear market + momentum slab"
+    
+    spx_rsi_text, spx_rsi_color, spx_rsi_hint = interpret_rsi_with_context(spx_rsi, trend_bullish)
+    ndx_rsi_text, ndx_rsi_color, ndx_rsi_hint = interpret_rsi_with_context(ndx_rsi, ndx_trend_bullish)
 
     # Divergence Detection (SPX vs NDX)
     divergence = trend_bullish != ndx_trend_bullish
