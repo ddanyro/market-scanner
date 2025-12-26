@@ -996,6 +996,75 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         except:
            pass
 
+        # Calculate RS (Relative Strength) vs S&P 500
+        rs_vs_spx = None
+        rs_status = "Neutral"
+        try:
+            spx_df = yf.download("^GSPC", period="3mo", progress=False)
+            if not spx_df.empty and len(df) >= 60:
+                # Calculate 60-day return for both
+                stock_return = (df['Close'].iloc[-1] / df['Close'].iloc[-60] - 1) * 100
+                spx_return = (spx_df['Close'].iloc[-1] / spx_df['Close'].iloc[-60] - 1) * 100
+                rs_vs_spx = stock_return - spx_return
+                rs_vs_spx = float(rs_vs_spx.iloc[0]) if hasattr(rs_vs_spx, 'iloc') else float(rs_vs_spx)
+                if rs_vs_spx > 5:
+                    rs_status = "Strong"
+                elif rs_vs_spx > 0:
+                    rs_status = "Positive"
+                elif rs_vs_spx > -5:
+                    rs_status = "Weak"
+                else:
+                    rs_status = "Lagging"
+        except Exception as e:
+            pass
+
+        # --- 4-Check Decision Logic ---
+        checks_passed = 0
+        check_details = []
+        
+        # Check 1: Stock in trend? (Price > SMA50)
+        check1_trend = last_close > sma_50 if sma_50 > 0 else False
+        if check1_trend:
+            checks_passed += 1
+            check_details.append("✓ Trend")
+        else:
+            check_details.append("✗ Trend")
+        
+        # Check 2: Stronger than market? (RS vs SPX positive)
+        check2_rs = rs_vs_spx is not None and rs_vs_spx > 0
+        if check2_rs:
+            checks_passed += 1
+            check_details.append("✓ RS")
+        else:
+            check_details.append("✗ RS")
+        
+        # Check 3: Entry calm? (RSI between 40-70, not overbought)
+        check3_rsi = 40 <= last_rsi <= 70
+        if check3_rsi:
+            checks_passed += 1
+            check_details.append("✓ RSI")
+        else:
+            check_details.append("✗ RSI")
+        
+        # Check 4: Risk known? (ATR allows logical stop - stop > 0 and < 10% of price)
+        check4_atr = last_atr > 0 and (stop_loss_dist / last_close * 100) < 10 if last_close > 0 else False
+        if check4_atr:
+            checks_passed += 1
+            check_details.append("✓ ATR")
+        else:
+            check_details.append("✗ ATR")
+        
+        # Decision
+        if checks_passed == 4:
+            decision = "BUY"
+            decision_color = "#4caf50"
+        elif checks_passed == 3:
+            decision = "WAIT"
+            decision_color = "#ff9800"
+        else:
+            decision = "AVOID"
+            decision_color = "#f44336"
+
         result = {
             'Ticker': ticker,
             'Price': round(last_close, 2),
@@ -1018,6 +1087,12 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'SMA_200': round(sma_200, 2),
             'VIX_Tag': vix_regime,
             'Sparkline': sparkline_data,
+            'RS_vs_SPX': round(rs_vs_spx, 2) if rs_vs_spx is not None else None,
+            'RS_Status': rs_status,
+            'Decision': decision,
+            'Decision_Color': decision_color,
+            'Checks_Passed': checks_passed,
+            'Check_Details': " ".join(check_details),
             'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         }
         return result
@@ -2441,6 +2516,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Consensus</th>
                         <th>Analysts</th>
                         <th>Sector</th>
+                        <th style="color: #9c27b0;">Decizie</th>
+                        <th>RS vs SPX</th>
                         <th>Trend</th>
                         <th style="color: #4caf50;">{full_state.get('eco_phase', 'Cycle')}</th>
                         <th style="color: #4dabf7;">{full_state.get('eco_next_phase', 'Next')} (Next)</th>
@@ -2523,6 +2600,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <td style="{cons_style}">{cons}</td>
                         <td>{analysts}</td>
                         <td style="font-size: 0.8rem; color: #aaa;">{sector}</td>
+                        <td style="font-weight: 700; color: {row.get('Decision_Color', '#888')};" title="{row.get('Check_Details', '')}">{row.get('Decision', '-')} ({row.get('Checks_Passed', 0)}/4)</td>
+                        <td style="color: {'#4caf50' if row.get('RS_vs_SPX', 0) and row.get('RS_vs_SPX', 0) > 0 else '#f44336'};">{row.get('RS_vs_SPX', '-') if row.get('RS_vs_SPX') is not None else '-'}%</td>
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
                         <td style="text-align: center;">{fit_now}</td>
                         <td style="text-align: center;">{fit_next}</td>
