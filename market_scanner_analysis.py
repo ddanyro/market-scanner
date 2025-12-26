@@ -644,6 +644,18 @@ def get_swing_trading_data():
     except Exception as e:
         print(f"Error Swing Data (VIX): {e}")
 
+    # 1d. SKEW (Tail Risk / Black Swan Index)
+    try:
+        skew_ticker = yf.Ticker("^SKEW")
+        hist_skew = skew_ticker.history(period="3mo")
+        if not hist_skew.empty:
+            skew_current = hist_skew['Close'].iloc[-1]
+            data['SKEW_Current'] = skew_current
+            data['SKEW_SMA20'] = hist_skew['Close'].rolling(window=20).mean().iloc[-1]
+            print(f"    -> SKEW fetched (Current: {skew_current:.1f})")
+    except Exception as e:
+        print(f"Error Swing Data (SKEW): {e}")
+
     # 2. Fear & Greed AND PCR from CNN
     try:
         headers = {
@@ -797,6 +809,38 @@ def generate_swing_trading_html():
         vix_color = "#f44336"  # Red
         vix_hint = "⛔ Volatilitate extremă - prudență maximă"
     
+    # SKEW Interpretation (Tail Risk / Black Swan)
+    skew_current = data.get('SKEW_Current', 120)
+    if skew_current > 145:
+        skew_zone = "EXTREM"
+        skew_color = "#f44336"
+        skew_hint = "🚨 Tail risk foarte ridicat!"
+    elif skew_current > 130:
+        skew_zone = "RIDICAT"
+        skew_color = "#ff9800"
+        skew_hint = "⚠️ Smart money cumpără protecție"
+    elif skew_current >= 115:
+        skew_zone = "NORMAL"
+        skew_color = "#4caf50"
+        skew_hint = "✅ Risc normal"
+    else:
+        skew_zone = "SCĂZUT"
+        skew_color = "#4caf50"
+        skew_hint = "✅ Fără semnale de tail risk"
+    
+    # Combined VIX + SKEW Risk Assessment
+    vol_risk_warning = ""
+    if vix_current < 15 and skew_current > 130:
+        vol_risk_warning = "🚨 ATENȚIE: VIX scăzut + SKEW ridicat = setup pre-crash clasic!"
+    elif vix_current > 30:
+        vol_risk_warning = "⛔ VIX > 30: Panică în piață, prudență maximă!"
+    elif skew_current > 145:
+        vol_risk_warning = "🚨 SKEW extrem: Marii investitori anticipează crash!"
+    elif vix_current < 15:
+        vol_risk_warning = "⚠️ VIX scăzut: Complazență ridicată."
+    elif skew_current > 130:
+        vol_risk_warning = "⚠️ SKEW ridicat: Smart money cumpără protecție."
+    
     # RSI Interpretation is done AFTER trend analysis (context-aware) - see below
 
     # --- Analysis Logic SPX ---
@@ -929,6 +973,17 @@ def generate_swing_trading_html():
     if panic_signal and both_bullish and both_timing:
         verdict += " (STRONG)"
         verdict_expl += " Panica semnalată de Put/Call confirmă un potențial minim local iminent."
+    
+    # Add VIX/SKEW risk warning to explanation
+    if vol_risk_warning:
+        verdict_expl += f" {vol_risk_warning}"
+    
+    # VIX panic overrides BUY signals
+    if vix_current > 30 and verdict.startswith("BUY"):
+        verdict = "WAIT (PANIC)"
+        verdict_color = "#f44336"
+        verdict_reason = "⛔ VIX > 30: Panică în piață"
+        verdict_expl = "VIX peste 30 indică panică extremă. Chiar dacă condițiile de trend sunt favorabile, volatilitatea e prea mare. Așteaptă stabilizare."
     
     # --- Individual SPX Verdict ---
     if trend_bullish:
@@ -1114,6 +1169,25 @@ def generate_swing_trading_html():
                     </div>
                     <div style="font-size: 9px; color: #888; margin-top: 4px; text-align: center;">
                         Percentilă 6M: {vix_percentile:.0f}% | SMA20: {vix_sma20:.1f}
+                    </div>
+                </div>
+
+                <!-- 7. SKEW TAIL RISK CARD -->
+                <div style="border: 1px solid #e1bee7; border-radius: 8px; padding: 16px; background: #faf5fc; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <div>
+                            <span style="font-weight: 600; color: #555;">Tail Risk (SKEW)</span>
+                            <div style="font-size: 10px; color: #999;">Black Swan Index</div>
+                        </div>
+                        <div style="text-align: right;">
+                             <div style="font-weight: 800; color: {skew_color};">{skew_zone}</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 24px; color: {skew_color}; font-weight: 800; margin: 16px 0; text-align: center;">
+                        {skew_current:.0f}
+                    </div>
+                    <div style="font-size: 10px; color: #555; margin-top: 4px; text-align: center;">
+                        {skew_hint}
                     </div>
                 </div>
 
