@@ -656,6 +656,38 @@ def get_swing_trading_data():
     except Exception as e:
         print(f"Error Swing Data (SKEW): {e}")
 
+    # 1e. Market Breadth - % of major stocks above SMA50
+    try:
+        # Use top S&P 500 components to calculate breadth
+        breadth_tickers = ['AAPL', 'MSFT', 'AMZN', 'NVDA', 'GOOGL', 'META', 'TSLA', 'BRK-B', 'UNH', 'XOM',
+                          'JPM', 'JNJ', 'V', 'PG', 'MA', 'HD', 'CVX', 'MRK', 'ABBV', 'PEP',
+                          'KO', 'COST', 'AVGO', 'WMT', 'MCD', 'CSCO', 'ACN', 'ABT', 'DHR', 'NEE']
+        
+        above_sma50 = 0
+        total_checked = 0
+        
+        for ticker in breadth_tickers:
+            try:
+                stock = yf.Ticker(ticker)
+                hist = stock.history(period="3mo")
+                if not hist.empty and len(hist) >= 50:
+                    current_price = hist['Close'].iloc[-1]
+                    sma50 = hist['Close'].rolling(window=50).mean().iloc[-1]
+                    if current_price > sma50:
+                        above_sma50 += 1
+                    total_checked += 1
+            except:
+                pass
+        
+        if total_checked > 0:
+            breadth_pct = (above_sma50 / total_checked) * 100
+            data['Breadth_Pct'] = breadth_pct
+            data['Breadth_Above'] = above_sma50
+            data['Breadth_Total'] = total_checked
+            print(f"    -> Breadth fetched: {above_sma50}/{total_checked} above SMA50 ({breadth_pct:.0f}%)")
+    except Exception as e:
+        print(f"Error Swing Data (Breadth): {e}")
+
     # 2. Fear & Greed AND PCR from CNN
     try:
         headers = {
@@ -841,6 +873,32 @@ def generate_swing_trading_html():
     elif skew_current > 130:
         vol_risk_warning = "⚠️ SKEW ridicat: Smart money cumpără protecție."
     
+    # Market Breadth Interpretation (% stocks above SMA50)
+    breadth_pct = data.get('Breadth_Pct', 50)
+    breadth_above = data.get('Breadth_Above', 0)
+    breadth_total = data.get('Breadth_Total', 30)
+    
+    if breadth_pct >= 70:
+        breadth_zone = "SĂNĂTOS"
+        breadth_color = "#4caf50"
+        breadth_hint = "✅ Rally larg - participare bună"
+        breadth_ok = True
+    elif breadth_pct >= 50:
+        breadth_zone = "NORMAL"
+        breadth_color = "#4caf50"
+        breadth_hint = "✅ Majoritate peste SMA50"
+        breadth_ok = True
+    elif breadth_pct >= 30:
+        breadth_zone = "SLAB"
+        breadth_color = "#ff9800"
+        breadth_hint = "⚠️ Rally concentrat - puține acțiuni participă"
+        breadth_ok = False
+    else:
+        breadth_zone = "FAKE RALLY"
+        breadth_color = "#f44336"
+        breadth_hint = "⛔ Doar câteva acțiuni conduc piața!"
+        breadth_ok = False
+    
     # RSI Interpretation is done AFTER trend analysis (context-aware) - see below
 
     # --- Analysis Logic SPX ---
@@ -984,6 +1042,10 @@ def generate_swing_trading_html():
         verdict_color = "#f44336"
         verdict_reason = "⛔ VIX > 30: Panică în piață"
         verdict_expl = "VIX peste 30 indică panică extremă. Chiar dacă condițiile de trend sunt favorabile, volatilitatea e prea mare. Așteaptă stabilizare."
+    
+    # Add breadth warning for fake rally
+    if not breadth_ok and verdict.startswith("BUY"):
+        verdict_expl += f" ⚠️ ATENȚIE BREADTH: Doar {breadth_pct:.0f}% din acțiuni participă - posibil fake rally!"
     
     # --- Individual SPX Verdict ---
     if trend_bullish:
@@ -1188,6 +1250,28 @@ def generate_swing_trading_html():
                     </div>
                     <div style="font-size: 10px; color: #555; margin-top: 4px; text-align: center;">
                         {skew_hint}
+                    </div>
+                </div>
+
+                <!-- 8. MARKET BREADTH CARD -->
+                <div style="border: 1px solid #c8e6c9; border-radius: 8px; padding: 16px; background: #f1f8e9; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <div>
+                            <span style="font-weight: 600; color: #555;">Breadth (SMA50)</span>
+                            <div style="font-size: 10px; color: #999;">Participare în Rally</div>
+                        </div>
+                        <div style="text-align: right;">
+                             <div style="font-weight: 800; color: {breadth_color};">{breadth_zone}</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 28px; color: {breadth_color}; font-weight: 800; margin: 16px 0; text-align: center;">
+                        {breadth_pct:.0f}%
+                    </div>
+                    <div style="font-size: 10px; color: #555; margin-top: 4px; text-align: center;">
+                        {breadth_hint}
+                    </div>
+                    <div style="font-size: 9px; color: #888; margin-top: 4px; text-align: center;">
+                        {breadth_above:.0f} din {breadth_total:.0f} acțiuni > SMA50
                     </div>
                 </div>
 
