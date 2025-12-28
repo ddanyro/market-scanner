@@ -539,11 +539,81 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
         return f"<div style='color: red;'>Eroare generare analiză: {e}</div>", "", 50
 
 
+def check_market_structure_break(hist):
+    """
+    Checks for Market Structure Break (Rule #4).
+    Logic: Lower High (PH2 < PH1) AND Break of Intervening Swing Low (SL).
+    Returns: (is_active, debug_msg)
+    """
+    try:
+        highs = hist['High'].values
+        lows = hist['Low'].values
+        dates = hist.index
+        n = len(highs)
+        
+        pivots_high = [] # (index, price)
+        # Scan last 120 days backwards
+        scan_start = max(0, n - 120)
+        window = 10
+        
+        # Naive pivot detection: Local Max in +/- window
+        for i in range(scan_start, n - 1): # Exclude very last bar for pivot confirmation usually, but naive ok
+            # Check left
+            left_ok = True
+            for k in range(1, window + 1):
+                if i - k >= 0 and highs[i - k] > highs[i]:
+                    left_ok = False
+                    break
+            if not left_ok: continue
+            
+            # Check right (limited by current data)
+            right_ok = True
+            for k in range(1, window + 1):
+                if i + k < n and highs[i + k] > highs[i]:
+                    right_ok = False
+                    break
+            
+            if left_ok and right_ok:
+                pivots_high.append((i, highs[i]))
+
+        # We need at least 2 highs
+        if len(pivots_high) < 2:
+            return False, "Not enough pivots (Need 2+ PH)"
+
+        ph2_idx, ph2_price = pivots_high[-1] # Most recent
+        ph1_idx, ph1_price = pivots_high[-2] # Previous
+
+        # 1. Check for Lower High
+        if ph2_price < ph1_price:
+            # 2. Find lowest Low between PH1 and PH2
+            sl_price = 999999
+            sl_idx = -1
+            for k in range(ph1_idx, ph2_idx + 1):
+                if lows[k] < sl_price:
+                    sl_price = lows[k]
+                    sl_idx = k
+            
+            # 3. Check if Current Price broke below SL
+            current_price = hist['Close'].iloc[-1]
+            
+            # Debug info
+            # debug_msg = f"LH ({ph2_price:.0f}<{ph1_price:.0f}) + SL Break ({current_price:.0f}<{sl_price:.0f})"
+            
+            if current_price < sl_price:
+                 return True, f"MS Break: LH({ph2_price:.0f}<{ph1_price:.0f}) + SL Break(Now {current_price:.0f}<{sl_price:.0f})"
+            else:
+                 return False, f"No Break: LH({ph2_price:.0f}<{ph1_price:.0f}) but Holding SL({sl_price:.0f})"
+        else:
+            return False, f"Uptrend Structure: PH2({ph2_price:.0f}) > PH1({ph1_price:.0f})"
+
+    except Exception as e:
+        return False, f"Error Rule #4: {e}"
+
 # --- SWING TRADING COMPONENT ---
 
-def get_swing_trading_data():
+def get_swing_trading_data(data=None):
     """ Fetches data for Swing Trading Analysis including historical context. """
-    data = {}
+    if data is None: data = {}
     
     # 1. SPX Data
     try:
@@ -581,83 +651,11 @@ def get_swing_trading_data():
             }
             
             # --- RULE #4: MARKET STRUCTURE BREAK ANALYSIS ---
-            try:
-                # Logic: Identify last 2 Swing Highs (PH1, PH2) and intervening Swing Low (SL).
-                # Trigger: PH2 < PH1 (Lower High) AND Current < SL (Break of Higher Low).
-                
-                # Helper to find pivots (Lookback 10 days left/right)
-                highs = hist['High'].values
-                lows = hist['Low'].values
-                dates = hist.index
-                n = len(highs)
-                
-                pivots_high = [] # (index, price)
-                # Scan last 120 days backwards
-                scan_start = max(0, n - 120)
-                window = 10
-                
-                # Naive pivot detection: Local Max in +/- window
-                # Note: We can't check right side for very recent bars, so we assume temporary pivot.
-                # But for structure break, usually the pivot is established.
-                for i in range(n - 1 - window, scan_start, -1):
-                    # Check left and right
-                    # Slicing is exclusive at end, so i+1+window
-                    left_idx = max(0, i-window)
-                    right_idx = min(n, i+window+1)
-                    
-                    local_slice = highs[left_idx:right_idx]
-                    if highs[i] == max(local_slice):
-                        # Found a pivot
-                        # De-duplicate adjacent/close pivots (keep highest)
-                        if pivots_high and abs(pivots_high[-1][0] - i) < 10:
-                            if highs[i] > pivots_high[-1][1]:
-                                pivots_high[-1] = (i, highs[i])
-                        else:
-                            pivots_high.append((i, highs[i]))
-                        
-                        if len(pivots_high) >= 2:
-                            break
-                
-                rule4_active = False
-                rule4_debug = "No Pivots"
-                
-                if len(pivots_high) >= 2:
-                    # Most recent is index 0 in list (since we iterated backwards)
-                    # Actually we iterated backwards, so first appended is most recent.
-                    ph2_idx, ph2_price = pivots_high[0] # Recent High
-                    ph1_idx, ph1_price = pivots_high[1] # Previous High (Older)
-                    
-                    # Check Lower High condition
-                    is_lower_high = ph2_price < ph1_price
-                    
-                    # Find Intervening Low (Between PH1 and PH2)
-                    # Slice between indices
-                    idx_start = min(ph1_idx, ph2_idx)
-                    idx_end = max(ph1_idx, ph2_idx)
-                    
-                    # Get minimum low in this range
-                    sl_slice = lows[idx_start:idx_end]
-                    sl_min = min(sl_slice) if len(sl_slice) > 0 else 0
-                    
-                    # Check Break of HL
-                    is_break = current_price < sl_min
-                    
-                    rule4_active = is_lower_high and is_break
-                    
-                    status_lh = "LH CONFIRMED" if is_lower_high else "No LH"
-                    status_br = "BREAK CONFIRMED" if is_break else "No Break"
-                    rule4_debug = f"{status_lh} ({ph2_price:.0f}<{ph1_price:.0f}) + {status_br} (Now {current_price:.0f}<{sl_min:.0f})"
-                else:
-                    rule4_debug = "Not enough pivots"
+            active, debug = check_market_structure_break(hist)
+            data['Rule4_Active'] = active
+            data['Rule4_Debug'] = debug
+            print(f"    -> Rule #4 Analysis: {debug} -> Active: {active}")
 
-                data['Rule4_Active'] = rule4_active
-                data['Rule4_Debug'] = rule4_debug
-                print(f"    -> Rule #4 Analysis: {rule4_debug} -> Active: {rule4_active}")
-
-            except Exception as e:
-                print(f"    ⚠️ Error calculating Rule #4: {e}")
-                data['Rule4_Active'] = False
-                data['Rule4_Debug'] = "Error"
     except Exception as e:
         print(f"Error Swing Data (SPX): {e}")
 

@@ -604,7 +604,7 @@ def get_exchange_rates():
         print(f"Eroare curs valutar: {e}. Folosim fallback.")
     return rates
 
-def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downtrend=False, breadth_pct=50):
+def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downtrend=False, breadth_pct=50, rule4_active=False):
     """Procesează un ticker din portofoliu cu date de ownership (Conversie EUR)."""
     try:
         ticker = row.get('symbol', 'UNKNOWN').upper()
@@ -954,6 +954,24 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                     # Case 3 (Exit)
                     sell_decision = "EXIT" 
                     sell_reason = "Breadth<45% Fail: Sub SMA50/RSI<45/RS Down"
+
+            elif rule4_active:
+                # --- MARKET STRUCTURE RULES (Rule #4 Active: LH + Break HL) ---
+                # Logic: P > SMA200 AND RS Ascendent AND RSI >= 55 -> TRAIL STRANS. Else -> EXIT.
+                
+                is_above_sma200 = current_price > sma_200
+                is_rs_up = not rule_d # Proxy for Ascendent (Not Falling)
+                
+                if is_above_sma200 and is_rs_up and last_rsi >= 55:
+                     sell_decision = "TRAIL STRANS"
+                     sell_reason = "Structure Break: Strong Stock (Hold)"
+                else:
+                     sell_decision = "EXIT"
+                     reasons = []
+                     if not is_above_sma200: reasons.append("Sub SMA200")
+                     if not is_rs_up: reasons.append("RS Down")
+                     if last_rsi < 55: reasons.append(f"RSI {last_rsi:.0f}<55")
+                     sell_reason = f"Structure Break Fail: {', '.join(reasons)}"
 
             elif market_in_downtrend:
                 # --- BEAR MARKET RULES (Rule #1 Active) ---
@@ -3591,6 +3609,21 @@ def update_portfolio_data(state, rates, vix_val):
                 print(f"  ⚠️ Market Rule #1 ACTIVE: SPX ({current_spx:.0f}) < SMA200 ({spx_sma200:.0f})")
     except Exception as e:
         print(f"Error calculating Market Rule #1: {e}")
+    
+    # Check Rule #4 (Market Structure Break)
+    rule4_active = False
+    try:
+        # Reusing spx_df (1y should be enough for recent structure, usually 2y better but 1y ok for last LH)
+        # analysis.check_market_structure_break uses 'High', 'Low'. 
+        # yf.download should have included High/Low by default.
+        r4_active, r4_debug = analysis.check_market_structure_break(spx_df)
+        if r4_active:
+            rule4_active = True
+            print(f"  ⚠️ Market Rule #4 ACTIVE: {r4_debug}")
+    except Exception as e:
+        print(f"Error calculating Rule #4: {e}")
+
+    # Pre-fetch Market Breadth for Rule #3 (Breadth < 45%)
 
     # Pre-fetch Market Breadth for Rule #3 (Breadth < 45%)
     # Logic reused from market_scanner_analysis to avoid full swing data calc here
@@ -3621,7 +3654,7 @@ def update_portfolio_data(state, rates, vix_val):
         print(f"Procesare {len(portfolio_data)} poziții...")
         for _, row in portfolio_data.iterrows():
             print(f"  > {row['symbol']}")
-            data = process_portfolio_ticker(row, vix_val, rates, spx_df, market_in_downtrend, breadth_pct)
+            data = process_portfolio_ticker(row, vix_val, rates, spx_df, market_in_downtrend, breadth_pct, rule4_active)
             if data:
                 portfolio_results.append(data)
     
