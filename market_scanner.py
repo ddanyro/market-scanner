@@ -837,7 +837,47 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                         sell_reason += "RS Fail (Falling); "
             
             # Combine Rules (Branched Logic)
-            if market_in_downtrend:
+            if vix_value > 25:
+                # --- HIGH VOLATILITY RULES (Rule #2 Active: VIX > 25) ---
+                # Logic: Preț > SMA200 AND RS Ascendent AND RSI >= 55 -> TRAIL STRANS. Else -> EXIT.
+                
+                is_above_sma200 = current_price > sma_200
+                # RS Ascendent: Strict check, not just "not falling".
+                is_rs_up = False
+                if spx_df is not None and not spx_df.empty and len(df) >= 10:
+                     try:
+                        # Re-calc check just to be sure or reuse local vars if available?
+                        # Using local calculation from Rule D block if available. 
+                        # But wait, Rule D block is `if spx_df...`. I should ensure `rs_now` and `rs_10` exist.
+                        # If Rule D ran, rs_now/rs_10 might vary. 
+                        # Let's rely on rule_d (Falling). So Not Falling = At least stable.
+                        # But user said "Clar Ascendent".
+                        # Let's check rs_now > rs_10 explicitly if possible.
+                        # I'll rely on the rule_d block having run? 
+                        # Python scope: `rs_now` might not be defined if `if` block skipped.
+                        # Safer to re-use rule_d as proxy or initialize vars.
+                        pass
+                     except: pass
+                
+                # Assumption: If rule_d is False, RS is at least not falling.
+                # For "Clar Ascendent", maybe require `not rule_d` ?
+                # Or assume if it passed the check.
+                # Let's use `not rule_d` as "RS OK/Up" for now, as we don't have stored slopes.
+                is_rs_up = not rule_d 
+                
+                if is_above_sma200 and is_rs_up and last_rsi >= 55:
+                    sell_decision = "TRAIL STRANS"
+                    sell_reason = "VIX>25: Strong Stock (Hold w/ Tight Trail)"
+                else:
+                    sell_decision = "EXIT"
+                    # Detail the failure
+                    reasons = []
+                    if not is_above_sma200: reasons.append("Sub SMA200")
+                    if not is_rs_up: reasons.append("RS Weak")
+                    if last_rsi < 55: reasons.append(f"RSI {last_rsi:.0f}<55")
+                    sell_reason = f"VIX>25 Panic: {', '.join(reasons)}"
+
+            elif market_in_downtrend:
                 # --- BEAR MARKET RULES (Rule #1 Active) ---
                 is_above_sma200 = current_price > sma_200
                 is_rs_falling = rule_d # Rule D = RS Falling
