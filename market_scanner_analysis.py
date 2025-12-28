@@ -905,9 +905,10 @@ def get_swing_trading_data():
 
     return data
 
-def generate_swing_trading_html():
+def generate_swing_trading_html(data=None):
     """ Generates HTML Card for Swing Trading with Explicit Numerical Values. """
-    data = get_swing_trading_data()
+    if data is None:
+        data = get_swing_trading_data()
     
     # Extract SPX Data
     spx_price = data.get('SPX_Price', 0)

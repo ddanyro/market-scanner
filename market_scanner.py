@@ -21,7 +21,7 @@ from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
 from base64 import b64encode
 import json
-from market_scanner_analysis import generate_market_analysis, generate_swing_trading_html  # Import modul analiză
+from market_scanner_analysis import generate_market_analysis, generate_swing_trading_html, get_swing_trading_data  # Import modul analiză
 
 STATE_FILE = "dashboard_state.json"
 MARKET_HISTORY_FILE = "market_history.json"
@@ -1730,6 +1730,84 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     
     vix_val = portfolio_df.iloc[0]['VIX_Tag'] if not portfolio_df.empty else watchlist_df.iloc[0]['VIX_Tag'] if not watchlist_df.empty else 'N/A'
     vix_cls = vix_val if vix_val != 'N/A' else 'Normal'
+
+    # --- RISK MANAGEMENT LOGIC (NEW) ---
+    swing_data = get_swing_trading_data()
+    
+    # Extract Metrics
+    r_spx_price = swing_data.get('SPX_Price', 0)
+    r_sma200 = swing_data.get('SPX_SMA200', 0)
+    r_sma50 = swing_data.get('SPX_SMA50', 0)
+    r_vix = swing_data.get('VIX_Current', 0)
+    r_breadth = swing_data.get('Breadth_Pct', 0)
+    
+    # Evaluate Rules
+    # Rule 1: SPX < SMA200
+    rule1_active = r_spx_price < r_sma200 and r_spx_price > 0
+    rule1_status = "ACTIVĂ" if rule1_active else "INACTIVĂ"
+    rule1_action = "REDUCI / IEȘI" if rule1_active else "NORMAL"
+    rule1_color = "#e53935" if rule1_active else "#4caf50" # Red/Green
+
+    # Rule 2: VIX > 25
+    rule2_active = r_vix > 25
+    rule2_status = "ACTIVĂ" if rule2_active else "INACTIVĂ"
+    rule2_action = "IEȘI RAPID" if rule2_active else "NORMAL"
+    rule2_color = "#d32f2f" if rule2_active else "#4caf50" # Dark Red
+
+    # Rule 3: Breadth < 45%
+    rule3_active = r_breadth < 45
+    rule3_status = "ACTIVĂ" if rule3_active else "INACTIVĂ"
+    rule3_action = "IEȘI TREPTAT" if rule3_active else "NORMAL"
+    rule3_color = "#fb8c00" if rule3_active else "#4caf50" # Orange
+
+    # Rule 4: Trend Structure (Lower Highs + Break Lows) -> Proxy: Death Cross Zone (Price < SMA50 & SMA50 < SMA200)
+    # User asked for: "IF SP500 face LOWER HIGH AND sparge ultimul HIGHER LOW"
+    # Proxy: If Price is below SMA50 AND SMA50 is below SMA200 (Confirmed Downtrend)
+    rule4_active = (r_spx_price < r_sma50) and (r_sma50 < r_sma200) and r_spx_price > 0
+    rule4_status = "ACTIVĂ" if rule4_active else "INACTIVĂ"
+    rule4_action = "MARKET RISK-OFF" if rule4_active else "NORMAL"
+    rule4_color = "#e53935" if rule4_active else "#4caf50"
+
+    # Count Active Rules
+    active_rules_count = sum([rule1_active, rule2_active, rule3_active, rule4_active])
+    
+    overall_status = "NORMAL"
+    overall_color = "#4caf50"
+    if active_rules_count >= 2:
+        overall_status = "EXIT AGRESIV"
+        overall_color = "#b71c1c" # Deep Red
+
+    # Generate HTML for Risk Cards
+    risk_cards_html = f"""
+    <div class="summary-card" style="border: 1px solid {rule1_color}40;">
+        <h3 style="font-size: 0.9rem; margin-bottom: 5px;">Regula #1 (SPX &lt; SMA200)</h3>
+        <div class="value" style="font-size: 1.2rem; color: {rule1_color};">{rule1_status}</div>
+        <div style="font-size: 0.8rem; color: {rule1_color}; font-weight: 600;">{rule1_action}</div>
+    </div>
+    
+    <div class="summary-card" style="border: 1px solid {rule2_color}40;">
+        <h3 style="font-size: 0.9rem; margin-bottom: 5px;">Regula #2 (VIX &gt; 25)</h3>
+        <div class="value" style="font-size: 1.2rem; color: {rule2_color};">{rule2_status}</div>
+        <div style="font-size: 0.8rem; color: {rule2_color}; font-weight: 600;">{rule2_action}</div>
+    </div>
+    
+    <div class="summary-card" style="border: 1px solid {rule3_color}40;">
+        <h3 style="font-size: 0.9rem; margin-bottom: 5px;">Regula #3 (Breadth &lt; 45%)</h3>
+        <div class="value" style="font-size: 1.2rem; color: {rule3_color};">{rule3_status}</div>
+        <div style="font-size: 0.8rem; color: {rule3_color}; font-weight: 600;">{rule3_action}</div>
+    </div>
+    
+    <div class="summary-card" style="border: 1px solid {rule4_color}40;">
+        <h3 style="font-size: 0.9rem; margin-bottom: 5px;">Regula #4 (Trend Reversal)</h3>
+        <div class="value" style="font-size: 1.2rem; color: {rule4_color};">{rule4_status}</div>
+        <div style="font-size: 0.8rem; color: {rule4_color}; font-weight: 600;">{rule4_action}</div>
+    </div>
+    
+    <div class="summary-card" style="border: 2px solid {overall_color}; background: {overall_color}10;">
+        <h3 style="font-size: 0.9rem; margin-bottom: 5px;">REZULTAT ({active_rules_count}/4)</h3>
+        <div class="value" style="font-size: 1.3rem; color: {overall_color};">{overall_status}</div>
+    </div>
+    """
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # Calcul Timestamp IBKR File
@@ -2078,6 +2156,12 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <h3>IBKR YTD</h3>
                         <div class="value {'positive' if ib_ytd >= 0 else 'negative'}" title="Actualizat via Flex">€{ib_ytd:,.2f}</div>
                     </div>
+                </div>
+                
+                <!-- RISK ON/OFF ANALYSIS CARDS -->
+                <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">Market Risk Status</h3>
+                <div class="summary">
+                    {risk_cards_html}
                 </div>
             
             <div style="text-align: right; color: #888; font-size: 0.8rem; margin-bottom: 10px; padding-right: 10px;">
@@ -2448,7 +2532,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     # Generăm cardul de analiză Swing Trading (Trend, F&G, Breadth, Timing)
     print("  -> Generare Analiză Swing Trading (Long-only)...")
     try:
-        swing_html = generate_swing_trading_html()
+        swing_html = generate_swing_trading_html(data=swing_data)
         html_head += swing_html
     except Exception as e:
         print(f"  ⚠ Eroare generare Swing Trading HTML: {e}")
