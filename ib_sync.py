@@ -215,6 +215,27 @@ def sync_ibkr():
                                     
                                     trail_data = orders_map.get(sym, {})
                                     
+                                    # Try to get Entry Date (if available in Flex Query config)
+                                    # Common fields: 'openDateTime', 'tradeDate', 'origTradeDate'
+                                    entry_date = pos.get('openDateTime', '')
+                                    if not entry_date: entry_date = pos.get('tradeDate', '')
+                                    if not entry_date: entry_date = pos.get('origTradeDate', '')
+                                    
+                                    # Format conversion: usually YYYYMMDD or YYYYMMDD;HHMMSS
+                                    # We need YYYY-MM-DD
+                                    if entry_date:
+                                        try:
+                                            # Clean up if it has time
+                                            if ';' in entry_date: entry_date = entry_date.split(';')[0]
+                                            elif ',' in entry_date: entry_date = entry_date.split(',')[0]
+                                            
+                                            # Parse YYYYMMDD
+                                            if len(entry_date) == 8 and entry_date.isdigit():
+                                                d = datetime.strptime(entry_date, "%Y%m%d")
+                                                entry_date = d.strftime("%Y-%m-%d")
+                                        except:
+                                            pass # Keep raw if parse fails, or ignore
+                                    
                                     item = {
                                         'Symbol': sym,
                                         'Shares': qty,
@@ -226,7 +247,8 @@ def sync_ibkr():
                                         'Investment': invest,
                                         'Trail_Pct': trail_data.get('trail_pct', 0),
                                         'Trail_Stop_IBKR': trail_data.get('trail_stop', 0),
-                                        'Currency': str(pos.get('currency', 'USD'))
+                                        'Currency': str(pos.get('currency', 'USD')),
+                                        'Entry_Date': entry_date
                                     }
                                     positions.append(item)
                                 except ValueError:
