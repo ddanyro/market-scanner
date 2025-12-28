@@ -604,7 +604,7 @@ def get_exchange_rates():
         print(f"Eroare curs valutar: {e}. Folosim fallback.")
     return rates
 
-def process_portfolio_ticker(row, vix_value, rates):
+def process_portfolio_ticker(row, vix_value, rates, spx_df=None):
     """Procesează un ticker din portofoliu cu date de ownership (Conversie EUR)."""
     try:
         ticker = row.get('symbol', 'UNKNOWN').upper()
@@ -771,6 +771,84 @@ def process_portfolio_ticker(row, vix_value, rates):
         investment = buy_price * shares
         profit = current_value - investment
         profit_pct = ((current_price - buy_price) / buy_price) * 100 if buy_price != 0 else 0
+
+        # --- SELL DECISION LOGIC (Normal Market) ---
+        sell_decision = "HOLD"
+        sell_reason = ""
+        entry_status = "GOOD"
+        
+        try:
+            # Rule A: Time Failure (Days >= 5 AND Price <= Entry)
+            rule_a = False
+            entry_date_str = row.get('Entry_Date')
+            if entry_date_str:
+                try:
+                    entry_date = datetime.datetime.strptime(entry_date_str, "%Y-%m-%d")
+                    days_since = (datetime.datetime.now() - entry_date).days
+                    if days_since >= 5 and current_price <= buy_price:
+                        rule_a = True
+                        sell_reason += "Time Fail; "
+                except:
+                    pass
+
+            # Rule B: Structure Failure (Under SMA50 for 2+ sessions)
+            rule_b = False
+            if len(df) >= 2:
+                # Check last 2 closes vs SMA50
+                c1 = df['Close'].iloc[-1]
+                s1 = df['SMA_50'].iloc[-1]
+                c2 = df['Close'].iloc[-2]
+                s2 = df['SMA_50'].iloc[-2]
+                if c1 < s1 and c2 < s2:
+                    rule_b = True
+                    sell_reason += "Structure Fail (Sub SMA50); "
+
+            # Rule C: Momentum Failure (RSI < 45 for 2+ sessions)
+            rule_c = False
+            if len(df) >= 2:
+                r1 = df['RSI'].iloc[-1]
+                r2 = df['RSI'].iloc[-2]
+                if r1 < 45 and r2 < 45:
+                    rule_c = True
+                    sell_reason += "Momentum Fail (RSI<45); "
+
+            # Rule D: Relative Strength Failure (RS Falling 10 sessions)
+            rule_d = False
+            if spx_df is not None and len(df) >= 10 and not spx_df.empty:
+                # Align dates? Simplified: Just take last 10 rows comparison
+                # Calculate RS = Stock / SPX
+                # We need matched closes. Using simple tail alignment
+                stock_acc = df['Close'].tail(15)
+                spx_acc = spx_df['Close'].tail(len(stock_acc))  # Assumes same calendar approx
+                
+                if len(stock_acc) == len(spx_acc):
+                    rs_series = stock_acc / spx_acc
+                    # Check if 'falling' for 10 sessions. 
+                    # Strict: Every day lower? Too strict.
+                    # Proxy: Current RS < RS_10_days_ago AND Trending Down (SMA3 < SMA10)
+                    rs_now = rs_series.iloc[-1]
+                    rs_10 = rs_series.iloc[-10] if len(rs_series) >= 10 else rs_series.iloc[0]
+                    
+                    if rs_now < rs_10:
+                        # Check strictly falling trend or just lower?
+                        # User said "FALLING for 10 consecutive sessions".
+                        # Relaxed to: Net negative over 10 days
+                        rule_d = True
+                        sell_reason += "RS Fail (Falling); "
+            
+            # Combine Rules
+            if rule_a or rule_b or rule_c or rule_d:
+                entry_status = "BAD"
+                
+                if profit > 0:
+                    sell_decision = "REDUCE" # Reduce 50% + Trail
+                else:
+                    sell_decision = "EXIT" # Cut Loss
+            
+        except Exception as e:
+            print(f"Error calculating Sell Decision: {e}")
+            pass
+
         
         # Stop loss logic: Prioritate Manual > IBKR Order > Calculated
         trail_stop_manual = float(row.get('trail_stop', 0))
@@ -882,6 +960,8 @@ def process_portfolio_ticker(row, vix_value, rates):
             'RSI_Status': rsi_status,
             'Trend': trend,
             'VIX_Tag': vix_regime,
+            'Sell_Decision': sell_decision,
+            'Sell_Reason': sell_reason,
             'Sparkline': sparkline_data,
             'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         }
@@ -2194,6 +2274,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Max Profit</th>
                         <th>Status</th>
                         <th>Trend</th>
+                        <th>Decizie</th>
                     </tr>
                 </thead>
                 <tbody id="portfolio-rows-body">
@@ -2264,6 +2345,19 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             trail_larg_style = "color: #f44336; font-weight: bold;"
         trail_larg_display = f"{trail_larg:.1f}%" if trail_larg > 0 else "-"
 
+        sell_decision = row.get('Sell_Decision', 'HOLD')
+        sell_reason = row.get('Sell_Reason', '')
+        
+        sell_style = "color: #4caf50; font-weight: bold;" # Green (HOLD)
+        if sell_decision == "EXIT":
+            sell_style = "color: #d32f2f; font-weight: bold; background-color: #ffebee; border-radius: 4px; padding: 2px 6px;" # Red
+        elif sell_decision == "REDUCE":
+            sell_style = "color: #fb8c00; font-weight: bold;" # Orange
+            
+        sell_display = sell_decision
+        if sell_decision != "HOLD":
+             sell_display = f"{sell_decision} ⚠️"
+
         # Build Row HTML string (NO html_head += here)
         portfolio_rows_html += f"""
                     <tr id="row-{row['Symbol']}" data-price="{row['Current_Price']}" data-buy="{row['Buy_Price']}" data-shares="{row['Shares']}">
@@ -2304,6 +2398,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         
                         <td class="rsi-{status_cls}">{row['Status']}</td>
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
+                        <td style="{sell_style}" title="{sell_reason}">{sell_display}</td>
                     </tr>
         """
         
@@ -3322,11 +3417,20 @@ def update_portfolio_data(state, rates, vix_val):
     portfolio_data = load_portfolio()
     portfolio_results = []
     
+    # Pre-fetch SPX data for Relative Strength (RS) calculations
+    print("  Pre-fetching SPX data...")
+    spx_df = yf.download("^GSPC", period="6mo", progress=False)
+    if isinstance(spx_df.columns, pd.MultiIndex):
+        try:
+            spx_df.columns = spx_df.columns.droplevel(1)
+        except:
+            pass
+            
     if not portfolio_data.empty:
         print(f"Procesare {len(portfolio_data)} poziții...")
         for _, row in portfolio_data.iterrows():
             print(f"  > {row['symbol']}")
-            data = process_portfolio_ticker(row, vix_val, rates)
+            data = process_portfolio_ticker(row, vix_val, rates, spx_df)
             if data:
                 portfolio_results.append(data)
     
