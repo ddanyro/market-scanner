@@ -2255,6 +2255,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     <tr>
                         <th style="width: 80px;">Simbol</th>
                         <th>Decizie</th>
+                        <th>Data</th>
                         <th>Acțiuni</th>
                         <th>Preț Cumpărare</th>
                         <th>Preț Curent</th>
@@ -2363,6 +2364,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     <tr id="row-{row['Symbol']}" data-price="{row['Current_Price']}" data-buy="{row['Buy_Price']}" data-shares="{row['Shares']}">
                         <td><strong style="cursor: pointer; color: #4dabf7; text-decoration: underline;" onclick="goToVolatility('{row['Symbol']}')">{row['Symbol']}</strong></td>
                         <td style="{sell_style}" title="{sell_reason}">{sell_display}</td>
+                        <td style="font-size: 0.9em; color: var(--text-secondary);">{row.get('Entry_Date', '-')}</td>
                         <td>{row['Shares']}</td>
                         <td>€{row['Buy_Price']:.2f}</td>
                         <td>€{row['Current_Price']:.2f}</td>
