@@ -579,6 +579,85 @@ def get_swing_trading_data():
                 'sma200': subset['SMA200'].fillna(0).tolist(),
                 'rsi': subset['RSI'].fillna(50).tolist()
             }
+            
+            # --- RULE #4: MARKET STRUCTURE BREAK ANALYSIS ---
+            try:
+                # Logic: Identify last 2 Swing Highs (PH1, PH2) and intervening Swing Low (SL).
+                # Trigger: PH2 < PH1 (Lower High) AND Current < SL (Break of Higher Low).
+                
+                # Helper to find pivots (Lookback 10 days left/right)
+                highs = hist['High'].values
+                lows = hist['Low'].values
+                dates = hist.index
+                n = len(highs)
+                
+                pivots_high = [] # (index, price)
+                # Scan last 120 days backwards
+                scan_start = max(0, n - 120)
+                window = 10
+                
+                # Naive pivot detection: Local Max in +/- window
+                # Note: We can't check right side for very recent bars, so we assume temporary pivot.
+                # But for structure break, usually the pivot is established.
+                for i in range(n - 1 - window, scan_start, -1):
+                    # Check left and right
+                    # Slicing is exclusive at end, so i+1+window
+                    left_idx = max(0, i-window)
+                    right_idx = min(n, i+window+1)
+                    
+                    local_slice = highs[left_idx:right_idx]
+                    if highs[i] == max(local_slice):
+                        # Found a pivot
+                        # De-duplicate adjacent/close pivots (keep highest)
+                        if pivots_high and abs(pivots_high[-1][0] - i) < 10:
+                            if highs[i] > pivots_high[-1][1]:
+                                pivots_high[-1] = (i, highs[i])
+                        else:
+                            pivots_high.append((i, highs[i]))
+                        
+                        if len(pivots_high) >= 2:
+                            break
+                
+                rule4_active = False
+                rule4_debug = "No Pivots"
+                
+                if len(pivots_high) >= 2:
+                    # Most recent is index 0 in list (since we iterated backwards)
+                    # Actually we iterated backwards, so first appended is most recent.
+                    ph2_idx, ph2_price = pivots_high[0] # Recent High
+                    ph1_idx, ph1_price = pivots_high[1] # Previous High (Older)
+                    
+                    # Check Lower High condition
+                    is_lower_high = ph2_price < ph1_price
+                    
+                    # Find Intervening Low (Between PH1 and PH2)
+                    # Slice between indices
+                    idx_start = min(ph1_idx, ph2_idx)
+                    idx_end = max(ph1_idx, ph2_idx)
+                    
+                    # Get minimum low in this range
+                    sl_slice = lows[idx_start:idx_end]
+                    sl_min = min(sl_slice) if len(sl_slice) > 0 else 0
+                    
+                    # Check Break of HL
+                    is_break = current_price < sl_min
+                    
+                    rule4_active = is_lower_high and is_break
+                    
+                    status_lh = "LH CONFIRMED" if is_lower_high else "No LH"
+                    status_br = "BREAK CONFIRMED" if is_break else "No Break"
+                    rule4_debug = f"{status_lh} ({ph2_price:.0f}<{ph1_price:.0f}) + {status_br} (Now {current_price:.0f}<{sl_min:.0f})"
+                else:
+                    rule4_debug = "Not enough pivots"
+
+                data['Rule4_Active'] = rule4_active
+                data['Rule4_Debug'] = rule4_debug
+                print(f"    -> Rule #4 Analysis: {rule4_debug} -> Active: {rule4_active}")
+
+            except Exception as e:
+                print(f"    ⚠️ Error calculating Rule #4: {e}")
+                data['Rule4_Active'] = False
+                data['Rule4_Debug'] = "Error"
     except Exception as e:
         print(f"Error Swing Data (SPX): {e}")
 

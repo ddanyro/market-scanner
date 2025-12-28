@@ -1760,10 +1760,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     rule3_action = "IEȘI TREPTAT" if rule3_active else "NORMAL"
     rule3_color = "#fb8c00" if rule3_active else "#4caf50" # Orange
 
-    # Rule 4: Trend Structure (Lower Highs + Break Lows) -> Proxy: Death Cross Zone (Price < SMA50 & SMA50 < SMA200)
-    # User asked for: "IF SP500 face LOWER HIGH AND sparge ultimul HIGHER LOW"
-    # Proxy: If Price is below SMA50 AND SMA50 is below SMA200 (Confirmed Downtrend)
-    rule4_active = (r_spx_price < r_sma50) and (r_sma50 < r_sma200) and r_spx_price > 0
+    # Rule 4: Trend Structure (Lower Highs + Break Lows) - Calculated in analysis module
+    # Logic: PH2 < PH1 (Lower High) AND Current < SL (Break of Last Higher Low)
+    rule4_active = swing_data.get('Rule4_Active', False)
+    rule4_debug = swing_data.get('Rule4_Debug', 'N/A')
+    
     rule4_status = "ACTIVĂ" if rule4_active else "INACTIVĂ"
     rule4_action = "MARKET RISK-OFF" if rule4_active else "NORMAL"
     rule4_color = "#e53935" if rule4_active else "#4caf50"
@@ -1797,8 +1798,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         <div style="font-size: 0.8rem; color: {rule3_color}; font-weight: 600;">{rule3_action}</div>
     </div>
     
-    <div class="summary-card" style="border: 1px solid {rule4_color}40;">
-        <h3 style="font-size: 0.9rem; margin-bottom: 5px;">Regula #4 (Trend Reversal)</h3>
+    <div class="summary-card" style="border: 1px solid {rule4_color}40;" title="{rule4_debug}">
+        <h3 style="font-size: 0.9rem; margin-bottom: 5px;">Regula #4 (Market Structure)</h3>
         <div class="value" style="font-size: 1.2rem; color: {rule4_color};">{rule4_status}</div>
         <div style="font-size: 0.8rem; color: {rule4_color}; font-weight: 600;">{rule4_action}</div>
     </div>
