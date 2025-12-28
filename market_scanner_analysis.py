@@ -667,18 +667,133 @@ def get_swing_trading_data():
             """Get count of S&P 500 stocks above a moving average from Finviz"""
             url = f'https://finviz.com/screener.ashx?v=111&f=idx_sp500,ta_{filter_type}_pa'
             try:
-                r = requests.get(url, headers=finviz_headers, timeout=15)
+                r = requests.get(url, headers=finviz_headers, timeout=5) # Short timeout
                 match = re.search(r'(\d+)\s*Total', r.text)
                 if match:
                     return int(match.group(1))
             except:
                 pass
             return None
-        
+            
+        def get_fallback_breadth():
+            """Fallback: Calculate breadth using Top ~400 US Stocks + Sector ETFs via Yahoo Finance"""
+            
+            # Try to load expanded list from JSON
+            full_list = []
+            json_file = "sp500_tickers.json"
+            if os.path.exists(json_file):
+                try:
+                    with open(json_file, 'r') as f:
+                        full_list = json.load(f)
+                    print(f"    -> Loaded {len(full_list)} tickers from {json_file}")
+                except Exception as e:
+                    print(f"    ⚠️ Error loading {json_file}: {e}")
+            
+            # Fallback to hardcoded list if JSON missing/empty
+            if not full_list:
+                 # 1. Sector ETFs (Base)
+                etfs = ['XLK', 'XLF', 'XLV', 'XLY', 'XLP', 'XLE', 'XLI', 'XLB', 'XLU', 'XLC', 'XLRE']
+                # 2. Magnificent 7 + Big Tech
+                tech = ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'META', 'TSLA', 'AVGO', 'AMD', 'CRM', 'ADBE', 'NFLX', 'INTC', 'QCOM', 'TXN', 'ORCL', 'CSCO']
+                # 3. Financials
+                fin = ['JPM', 'BAC', 'WFC', 'V', 'MA', 'GS', 'MS', 'BLK', 'AXP', 'C']
+                # 4. Healthcare
+                health = ['LLY', 'UNH', 'JNJ', 'MRK', 'ABBV', 'PFE', 'TMO', 'ABT', 'BMY', 'CVS']
+                # 5. Consumer
+                cons = ['WMT', 'PG', 'COST', 'KO', 'PEP', 'HD', 'MCD', 'NKE', 'SBUX', 'DIS', 'PM', 'MO']
+                # 6. Industrial / Energy / Others
+                ind = ['CAT', 'DE', 'XOM', 'CVX', 'GE', 'UPS', 'BA', 'LMT', 'HON', 'UNP', 'RTX', 'MMM']
+                
+                full_list = list(set(etfs + tech + fin + health + cons + ind))
+                print(f"    -> Using hardcoded fallback ({len(full_list)} tickers)")
+
+            try:
+                # Batch download for speed
+                # period='6mo' is enough for SMA50. For SMA200 we need ~1y (252 trading days)
+                # Split huge list into chunks of 100 to avoid URL length issues or timeouts
+                chunk_size = 100
+                all_tickers = list(set(full_list))
+                total_tickers = len(all_tickers)
+                
+                # Setup master dataframe
+                frames = []
+                
+                for i in range(0, total_tickers, chunk_size):
+                    chunk = all_tickers[i:i + chunk_size]
+                    try:
+                        # auto_adjust=True default in newer yfinance, explicit helps
+                        df_chunk = yf.download(chunk, period="1y", progress=False, group_by='ticker', auto_adjust=True)
+                        
+                        # yfinance structure varies by number of tickers. 
+                        # If multi-ticker: columns are MultiIndex (Ticker, PriceType)
+                        # If single thicker: columns are Index (PriceType)
+                        # We need Close prices.
+                        
+                        # Simplified extraction:
+                        # yf.download with group_by='ticker' returns (Ticker, OHLCV).
+                        # We need to extract 'Close' for each.
+                        
+                        # Alternative: Just get 'Close' directly?
+                        # df = yf.download(..., auto_adjust=True)['Close']
+                        # This works best for batch.
+                        pass
+                    except: pass
+                
+                # Single massive download is usually fine for <500 tickers in yfinance
+                df = yf.download(all_tickers, period="1y", progress=False, auto_adjust=True)['Close']
+                
+                if df.empty: return None, None
+                
+                # Get latest prices
+                current_prices = df.iloc[-1]
+                
+                # Calculate SMAs
+                sma50 = df.rolling(window=50).mean().iloc[-1]
+                sma200 = df.rolling(window=200).mean().iloc[-1]
+                
+                count_50 = 0
+                count_200 = 0
+                valid_count = 0
+                
+                for ticker in all_tickers:
+                    if ticker in current_prices and not pd.isna(current_prices[ticker]):
+                        price = current_prices[ticker]
+                        mav50 = sma50.get(ticker, 0)
+                        mav200 = sma200.get(ticker, 0)
+                        
+                        # Only count if we have valid SMA data (not NaN)
+                        if pd.notna(mav50) and pd.notna(mav200) and mav50 > 0:
+                            valid_count += 1
+                            if price > mav50: count_50 += 1
+                            if price > mav200: count_200 += 1
+                        
+                return {
+                    'above_50': count_50,
+                    'above_200': count_200,
+                    'total': valid_count,
+                    'source': f'Top {valid_count} US Stocks'
+                }
+            except Exception as e:
+                print(f"Error fetching Fallback Breadth: {e}")
+                return None
+
         sp500_total = 505  # Approximate S&P 500 count
         
+        # Try Finviz First
         above_200 = get_finviz_count('sma200')
         above_50 = get_finviz_count('sma50')
+        
+        breadth_source = "Finviz"
+        
+        # Fallback if Finviz fails
+        if above_50 is None:
+            print("    ⚠️ Finviz blocked/failed. Using Fallback list...")
+            fallback_data = get_fallback_breadth()
+            if fallback_data and fallback_data['total'] > 0:
+                above_50 = fallback_data['above_50']
+                above_200 = fallback_data['above_200']
+                sp500_total = fallback_data['total']
+                breadth_source = fallback_data['source']
         
         if above_200 is not None:
             breadth_pct_200 = (above_200 / sp500_total) * 100
@@ -690,7 +805,8 @@ def get_swing_trading_data():
             data['Breadth_Pct'] = breadth_pct_50
             data['Breadth_Above'] = above_50
             data['Breadth_Total'] = sp500_total
-            print(f"    -> Breadth fetched: {above_50}/{sp500_total} above SMA50 ({breadth_pct_50:.0f}%), {above_200}/{sp500_total} above SMA200 ({breadth_pct_200:.0f}%)")
+            data['Breadth_Source'] = breadth_source
+            print(f"    -> Breadth ({breadth_source}) fetched: {above_50}/{sp500_total} above SMA50 ({breadth_pct_50:.0f}%)")
     except Exception as e:
         print(f"Error Swing Data (Breadth): {e}")
 
@@ -880,44 +996,68 @@ def generate_swing_trading_html():
         vol_risk_warning = "⚠️ SKEW ridicat: Smart money cumpără protecție."
     
     # Market Breadth Interpretation (% stocks above SMA50)
-    breadth_pct = data.get('Breadth_Pct', 50)
-    breadth_above = data.get('Breadth_Above', 0)
-    breadth_total = data.get('Breadth_Total', 30)
-    
-    if breadth_pct >= 70:
-        breadth_zone = "SĂNĂTOS"
-        breadth_color = "#4caf50"
-        breadth_hint = "✅ Rally larg - participare bună"
-        breadth_ok = True
-    elif breadth_pct >= 50:
-        breadth_zone = "NORMAL"
-        breadth_color = "#4caf50"
-        breadth_hint = "✅ Majoritate peste SMA50"
-        breadth_ok = True
-    elif breadth_pct >= 30:
-        breadth_zone = "SLAB"
-        breadth_color = "#ff9800"
-        breadth_hint = "⚠️ Rally concentrat - puține acțiuni participă"
-        breadth_ok = False
+    # Market Breadth Interpretation (% stocks above SMA50)
+    # Check if data exists - explicit check to avoid defaults masking failure
+    if 'Breadth_Pct' in data and data['Breadth_Pct'] is not None:
+        breadth_pct = data['Breadth_Pct']
+        breadth_above = data.get('Breadth_Above', 0)
+        breadth_total = data.get('Breadth_Total', 505)
+        breadth_200_above = data.get('Breadth_200_Above', 0)
+        breadth_200_pct = data.get('Breadth_200_Pct', 0)
+        
+        if breadth_pct >= 70:
+            breadth_zone = "SĂNĂTOS"
+            breadth_color = "#4caf50"
+            breadth_hint = "✅ Rally larg - participare bună"
+            breadth_ok = True
+        elif breadth_pct >= 50:
+            breadth_zone = "NORMAL"
+            breadth_color = "#4caf50"
+            breadth_hint = "✅ Majoritate peste SMA50"
+            breadth_ok = True
+        elif breadth_pct >= 30:
+            breadth_zone = "SLAB"
+            breadth_color = "#ff9800"
+            breadth_hint = "⚠️ Rally concentrat - puține acțiuni participă"
+            breadth_ok = False
+        else:
+            breadth_zone = "PERICOL"
+            breadth_color = "#f44336"
+            breadth_hint = "⛔ Breath foarte slab - risc de crash"
+            breadth_ok = False
+            
+        breadth_source = data.get('Breadth_Source', 'Finviz')
+        breadth_title = f"Breadth ({breadth_source})"
+        breadth_header = f"{breadth_pct:.0f}%"
+        # Format subtext safely
+        breadth_subtext = f"SMA50: {breadth_above:.0f}/{breadth_total:.0f} | SMA200: {breadth_200_above:.0f}/{breadth_total:.0f} ({breadth_200_pct:.0f}%)"
+        
     else:
-        breadth_zone = "FAKE RALLY"
-        breadth_color = "#f44336"
-        breadth_hint = "⛔ Doar câteva acțiuni conduc piața!"
+        # Data Missing / Fetch Failed - Show honest state
+        breadth_zone = "OFFLINE"
+        breadth_color = "#9e9e9e" # Grey
+        breadth_hint = "⚠️ Date Finviz indisponibile (Blocat?)"
         breadth_ok = False
-    
-    # Also get Breadth_200 for display
-    breadth_200_pct = data.get('Breadth_200_Pct', 50)
-    breadth_200_above = data.get('Breadth_200_Above', 0)
+        breadth_header = "N/A"
+        breadth_subtext = "Datele nu au putut fi preluate"
+        breadth_title = "Breadth (Missing)"
+        breadth_pct = 0 # Safe default for downstream logic checks
+
+    # Also get Breadth_200 for display (legacy/unused logic below, but kept for context if needed later)
+    # breadth_200_pct = data.get('Breadth_200_Pct', 50) 
+    pass
     
     # RSI Interpretation is done AFTER trend analysis (context-aware) - see below
 
     # --- Analysis Logic SPX ---
+    # SPX SMA Trend Logic
     trend_bullish = spx_price > sma_200
     trend_text = "BULLISH" if trend_bullish else "BEARISH"
     trend_color = "#4caf50" if trend_bullish else "#f44336"
 
-    breadth_ok = spx_price > sma_50
-    breadth_color = "#4caf50" if breadth_ok else "#ff9800"
+    # Breadth Logic was handled above - DO NOT OVERWRITE with SPX Trend!
+    # breadth_ok = spx_price > sma_50 # REMOVED (Conflicting with Finviz Breadth)
+    # breadth_color = "#4caf50" if breadth_ok else "#ff9800" # REMOVED
     breadth_text = "PUTERNIC" if breadth_ok else "SLAB"
 
     # SPX SMA10 Short-term Timing
@@ -1305,7 +1445,7 @@ def generate_swing_trading_html():
                 <div style="border: 1px solid #c8e6c9; border-radius: 8px; padding: 16px; background: #f1f8e9; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                         <div>
-                            <span style="font-weight: 600; color: #555;">Breadth (SMA50)</span>
+                            <span style="font-weight: 600; color: #555;">{breadth_title}</span>
                             <div style="font-size: 10px; color: #999;">Participare în Rally</div>
                         </div>
                         <div style="text-align: right;">
@@ -1313,13 +1453,13 @@ def generate_swing_trading_html():
                         </div>
                     </div>
                     <div style="font-size: 28px; color: {breadth_color}; font-weight: 800; margin: 16px 0; text-align: center;">
-                        {breadth_pct:.0f}%
+                        {breadth_header}
                     </div>
                     <div style="font-size: 10px; color: #555; margin-top: 4px; text-align: center;">
                         {breadth_hint}
                     </div>
                     <div style="font-size: 9px; color: #888; margin-top: 4px; text-align: center;">
-                        SMA50: {breadth_above:.0f}/{breadth_total:.0f} | SMA200: {breadth_200_above:.0f}/{breadth_total:.0f} ({breadth_200_pct:.0f}%)
+                        {breadth_subtext}
                     </div>
                 </div>
 

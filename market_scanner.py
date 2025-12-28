@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import yfinance as yf
 import pandas as pd
 import argparse
@@ -2702,6 +2703,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             vol_m = row.get('Vol_M', 0) or 0
             vols_valid = [v for v in [atr_pct, vol_w, vol_m] if v > 0]
             trail_larg = max(vols_valid) * 3 if vols_valid else 0
+            trail_med = max(vols_valid) * 2 if vols_valid else 0
+            trail_strans = max(vols_valid) * 1.5 if vols_valid else 0
             
             trail_pct = row.get('Trail_Pct', 0) or 0
             old_stop = row.get('Trail_Stop', 0) or 0
@@ -2709,12 +2712,12 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             # Only include if Trail LARG < Trail % (red)
             if trail_larg > 0 and trail_pct > 0 and trail_larg < trail_pct and old_stop > 0:
                 # Reconstruct original price when stop was set
-                # Price = Stop / (1 - Trail% / 100)
                 original_price = old_stop / (1 - trail_pct / 100)
                 
-                # Apply new trail to original price
-                # New Stop = Original Price × (1 - Trail LARG / 100)
-                new_stop = original_price * (1 - trail_larg / 100)
+                # Calculate New Stops
+                new_stop_larg = original_price * (1 - trail_larg / 100)
+                new_stop_med = original_price * (1 - trail_med / 100)
+                new_stop_strans = original_price * (1 - trail_strans / 100)
                 
                 # Get conversion rate (EUR to base currency)
                 price_eur = row.get('Current_Price', 0) or 0
@@ -2723,16 +2726,27 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 
                 # Convert stops to base currency
                 old_stop_native = old_stop * rate
-                new_stop_native = new_stop * rate
+                new_stop_larg_native = new_stop_larg * rate
+                new_stop_med_native = new_stop_med * rate
+                new_stop_strans_native = new_stop_strans * rate
                 
                 adjust_data.append({
                     'Symbol': sym,
                     'Trail_Current': round(trail_pct, 1),
-                    'Trail_Propus': round(trail_larg, 1),
                     'Stop_Current_EUR': round(old_stop, 2),
-                    'Stop_Ajustat_EUR': round(new_stop, 2),
                     'Stop_Current_Native': round(old_stop_native, 2),
-                    'Stop_Ajustat_Native': round(new_stop_native, 2)
+                    
+                    'Trail_Larg': round(trail_larg, 1),
+                    'Stop_Larg_EUR': round(new_stop_larg, 2),
+                    'Stop_Larg_Native': round(new_stop_larg_native, 2),
+                    
+                    'Trail_Med': round(trail_med, 1),
+                    'Stop_Med_EUR': round(new_stop_med, 2),
+                    'Stop_Med_Native': round(new_stop_med_native, 2),
+                    
+                    'Trail_Strans': round(trail_strans, 1),
+                    'Stop_Strans_EUR': round(new_stop_strans, 2),
+                    'Stop_Strans_Native': round(new_stop_strans_native, 2)
                 })
     
     adjust_json = json.dumps(adjust_data)
@@ -2841,7 +2855,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
              
              <!-- Stop Adjustment Table for Portfolio (Trail Propus < Trail %) -->
              <div id="stop-adjust-section" style="margin-top: 30px; max-width: 800px; margin-left: auto; margin-right: auto; display: none;">
-                 <h4 style="color: #f44336; text-align: center; margin-bottom: 15px;">🔴 Ajustare Stop - Portofoliu (Trail Propus < Trail %)</h4>
+                 <h4 style="color: #f44336; text-align: center; margin-bottom: 15px;">🔴 Ajustare Stop - Portofoliu (Sugestii)</h4>
                  <div id="adjust-table-container"></div>
              </div>
              
@@ -2870,27 +2884,49 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                             <thead>
                                 <tr style="background: var(--bg-light); border-bottom: 2px solid var(--border-light);">
                                     <th style="padding: 12px; text-align: left;">Symbol</th>
-                                    <th style="padding: 12px; text-align: right;">Trail %</th>
+                                    <th style="padding: 12px; text-align: left;">Tip Ajustare</th>
                                     <th style="padding: 12px; text-align: right;">Trail Propus</th>
-                                    <th style="padding: 12px; text-align: right;">Stop Curent (EUR)</th>
-                                    <th style="padding: 12px; text-align: right;">Stop Ajustat (EUR)</th>
-                                    <th style="padding: 12px; text-align: right;">Stop Curent (Base)</th>
-                                    <th style="padding: 12px; text-align: right;">Stop Ajustat (Base)</th>
+                                    <th style="padding: 12px; text-align: right;">Stop Nou (EUR)</th>
+                                    <th style="padding: 12px; text-align: right;">Stop Nou (Base)</th>
                                 </tr>
                             </thead>
                             <tbody>
                     `;
                     
                     dataToShow.forEach(item => {
+                        // Header row per symbol
                         html += `
-                            <tr style="border-bottom: 1px solid #333;">
-                                <td style="padding: 10px;"><strong style="color: #4dabf7;">${item.Symbol}</strong></td>
-                                <td style="padding: 10px; text-align: right;">${item.Trail_Current}%</td>
-                                <td style="padding: 10px; text-align: right; color: #f44336; font-weight: bold;">${item.Trail_Propus}%</td>
-                                <td style="padding: 10px; text-align: right;">€${item.Stop_Current_EUR}</td>
-                                <td style="padding: 10px; text-align: right; color: #4caf50; font-weight: bold;">€${item.Stop_Ajustat_EUR}</td>
-                                <td style="padding: 10px; text-align: right;">${item.Stop_Current_Native}</td>
-                                <td style="padding: 10px; text-align: right; color: #4caf50; font-weight: bold;">${item.Stop_Ajustat_Native}</td>
+                            <tr style="background-color: #f8f9fa; border-top: 2px solid #ddd;">
+                                <td style="padding: 10px; font-weight: bold; color: #4dabf7;" rowspan="4">${item.Symbol}<br><span style="font-size:0.8em; color: #666;">Curent: ${item.Trail_Current}%</span></td>
+                                <td colspan="4" style="padding: 5px;"></td>
+                            </tr>
+                        `;
+                        
+                        // LARG Row
+                        html += `
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 8px;"><strong>LARG (3x)</strong></td>
+                                <td style="padding: 8px; text-align: right; color: #f44336;">${item.Trail_Larg}%</td>
+                                <td style="padding: 8px; text-align: right; font-weight: bold;">€${item.Stop_Larg_EUR}</td>
+                                <td style="padding: 8px; text-align: right;">${item.Stop_Larg_Native}</td>
+                            </tr>
+                        `;
+                        // MEDIU Row
+                        html += `
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 8px;"><strong>MEDIU (2x)</strong></td>
+                                <td style="padding: 8px; text-align: right; color: #ff9800;">${item.Trail_Med}%</td>
+                                <td style="padding: 8px; text-align: right; font-weight: bold;">€${item.Stop_Med_EUR}</td>
+                                <td style="padding: 8px; text-align: right;">${item.Stop_Med_Native}</td>
+                            </tr>
+                        `;
+                        // STRANS Row
+                        html += `
+                            <tr style="border-bottom: 2px solid #333;">
+                                <td style="padding: 8px;"><strong>STRANS (1.5x)</strong></td>
+                                <td style="padding: 8px; text-align: right; color: #4caf50;">${item.Trail_Strans}%</td>
+                                <td style="padding: 8px; text-align: right; font-weight: bold;">€${item.Stop_Strans_EUR}</td>
+                                <td style="padding: 8px; text-align: right;">${item.Stop_Strans_Native}</td>
                             </tr>
                         `;
                     });
