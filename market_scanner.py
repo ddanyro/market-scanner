@@ -837,7 +837,22 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                         sell_reason += "RS Fail (Falling); "
             
             # Combine Rules (Branched Logic)
-            if vix_value > 25:
+            # Combine Rules (Branched Logic)
+            
+            # Count Active Market Rules
+            active_rules_count = 0
+            if vix_value > 25: active_rules_count += 1
+            if breadth_pct < 45: active_rules_count += 1
+            if rule4_active: active_rules_count += 1
+            if market_in_downtrend: active_rules_count += 1
+            
+            if active_rules_count >= 2:
+                # --- GLOBAL SAFETY FILTER (2+ Rules Active) ---
+                # User: "If 2+ rules violated -> EXIT"
+                sell_decision = "EXIT"
+                sell_reason = f"CRITICAL: {active_rules_count} Rules Active (Market Failure)"
+            
+            elif vix_value > 25:
                 # --- HIGH VOLATILITY RULES (Rule #2 Active: VIX > 25) ---
                 # Logic: Preț > SMA200 AND RS Ascendent AND RSI >= 55 -> TRAIL STRANS. Else -> EXIT.
                 
