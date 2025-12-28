@@ -604,7 +604,7 @@ def get_exchange_rates():
         print(f"Eroare curs valutar: {e}. Folosim fallback.")
     return rates
 
-def process_portfolio_ticker(row, vix_value, rates, spx_df=None):
+def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downtrend=False):
     """Procesează un ticker din portofoliu cu date de ownership (Conversie EUR)."""
     try:
         ticker = row.get('symbol', 'UNKNOWN').upper()
@@ -836,15 +836,50 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None):
                         rule_d = True
                         sell_reason += "RS Fail (Falling); "
             
-            # Combine Rules
-            if rule_a or rule_b or rule_c or rule_d:
-                entry_status = "BAD"
+            # Combine Rules (Branched Logic)
+            if market_in_downtrend:
+                # --- BEAR MARKET RULES (Rule #1 Active) ---
+                is_above_sma200 = current_price > sma_200
+                is_rs_falling = rule_d # Rule D = RS Falling
+                is_rsi_weak = last_rsi < 45
+                is_rsi_mediocre = 45 <= last_rsi < 50
                 
-                if profit > 0:
-                    sell_decision = "REDUCE" # Reduce 50% + Trail
+                if (not is_above_sma200) or is_rsi_weak or is_rs_falling:
+                    # User: "Preț < SMA200 OR RSI < 45 OR RS clar descendent -> EXIT"
+                    # Exception: If P > SMA200 and RS Falling, is it Exit or Reduce?
+                    # User said: "daca Preț > SMA200 dar (RS ↓ ...) -> vinde 50%"
+                    # This implies P>SMA200 saves RS Falling from immediate Exit, downgrading to Reduce.
+                    # So strict Exit applies if P < SMA200 OR RSI < 45.
+                    # If P > SMA200 AND RS Falling -> Reduce.
+                    
+                    if is_above_sma200 and is_rs_falling and not is_rsi_weak:
+                         sell_decision = "REDUCE 50%"
+                         sell_reason = "Bear Mkt: Strong Price but RS Falling"
+                    else:
+                         sell_decision = "EXIT"
+                         sell_reason = "Bear Mkt: Broken (Sub SMA200/RSI<45/RS)"
+                         
+                elif is_rsi_mediocre:
+                    # User: "... RSI 45-49 -> vinde 50%" (assuming P > SMA200 implied by failing Exit above)
+                    sell_decision = "REDUCE 50%"
+                    sell_reason = "Bear Mkt: Weak RSI (45-49)"
+                    
                 else:
-                    sell_decision = "EXIT" # Cut Loss
-            
+                    # User: "Preț > SMA200 si RS Ascendent si RSI >= 50 -> Trail Strans"
+                    # Here we are: Above SMA200 (implied), RSI >= 50 (implied), RS Not Falling (implied)
+                    sell_decision = "TRAIL STRANS"
+                    sell_reason = "Bear Mkt: Strong -> Tight Trail"
+                    
+            else:
+                # --- NORMAL MARKET RULES (Rules A-D) ---
+                if rule_a or rule_b or rule_c or rule_d:
+                    entry_status = "BAD"
+                    
+                    if profit > 0:
+                        sell_decision = "REDUCE" # Reduce 50% + Trail
+                    else:
+                        sell_decision = "EXIT" # Cut Loss
+                        
         except Exception as e:
             print(f"Error calculating Sell Decision: {e}")
             pass
@@ -3419,20 +3454,31 @@ def update_portfolio_data(state, rates, vix_val):
     portfolio_data = load_portfolio()
     portfolio_results = []
     
-    # Pre-fetch SPX data for Relative Strength (RS) calculations
-    print("  Pre-fetching SPX data...")
-    spx_df = yf.download("^GSPC", period="6mo", progress=False)
-    if isinstance(spx_df.columns, pd.MultiIndex):
-        try:
+    # Pre-fetch SPX data for Relative Strength (RS) usage AND Market Rule #1 (SPX < SMA200)
+    print("  Pre-fetching SPX data (1y)...")
+    spx_df = yf.download("^GSPC", period="1y", progress=False)
+    
+    market_in_downtrend = False
+    try:
+        if isinstance(spx_df.columns, pd.MultiIndex):
             spx_df.columns = spx_df.columns.droplevel(1)
-        except:
-            pass
             
+        # Calculate SPX SMA200 for Rule #1
+        if len(spx_df) >= 200:
+            spx_df['SMA_200'] = spx_df['Close'].rolling(window=200).mean()
+            current_spx = spx_df['Close'].iloc[-1]
+            spx_sma200 = spx_df['SMA_200'].iloc[-1]
+            if current_spx < spx_sma200:
+                market_in_downtrend = True
+                print(f"  ⚠️ Market Rule #1 ACTIVE: SPX ({current_spx:.0f}) < SMA200 ({spx_sma200:.0f})")
+    except Exception as e:
+        print(f"Error calculating Market Rule #1: {e}")
+
     if not portfolio_data.empty:
         print(f"Procesare {len(portfolio_data)} poziții...")
         for _, row in portfolio_data.iterrows():
             print(f"  > {row['symbol']}")
-            data = process_portfolio_ticker(row, vix_val, rates, spx_df)
+            data = process_portfolio_ticker(row, vix_val, rates, spx_df, market_in_downtrend)
             if data:
                 portfolio_results.append(data)
     
