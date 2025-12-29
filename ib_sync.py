@@ -70,18 +70,14 @@ def sync_ibkr():
              positions = []
 
     need_flex_pos = not use_tws_primary
-    need_flex_stats = False
+    need_flex_stats = True  # Always fetch stats from Flex (TWS doesn't provide MTD/YTD)
     
-    # Check stats freshness
-    try:
-        s_file = 'ib_stats.json'
-        if os.path.exists(s_file):
-            if time.time() - os.path.getmtime(s_file) > 1000: # Refresh if older than ~15 mins (Logic: TWS doesn't provide it, so we need Flex often if TWS is running)
-                need_flex_stats = True
-        else:
-            need_flex_stats = True
-    except: need_flex_stats = True
-
+    # When TWS is fresh, we ONLY use TWS positions (no Flex overlay)
+    # This ensures sold positions disappear automatically
+    if use_tws_primary:
+        print(f"  -> TWS is primary. Skipping Flex positions to avoid sold positions reappearing.")
+        need_flex_pos = False
+    
     if need_flex_pos or need_flex_stats:
         print(f"  -> Executare Flex Service... (Pos: {need_flex_pos}, Stats: {need_flex_stats})")
         # Flex Logic Here (Indentat sau lăsat în flow)
