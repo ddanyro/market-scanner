@@ -367,8 +367,10 @@ def sync_ibkr():
             
             # Group by Symbol to inspect
             for sym, group in df_proxy.groupby('Symbol'):
-                # Check if we have valid dates
-                has_dates = any(group['Entry_Date'].str.len() > 0)
+                # Check if we have valid dates (only if Entry_Date column exists - TWS data might not have it)
+                has_dates = False
+                if 'Entry_Date' in group.columns:
+                    has_dates = any(group['Entry_Date'].str.len() > 0)
                 
                 if has_dates:
                     # Keep only rows with dates (Lots)
