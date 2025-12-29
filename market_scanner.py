@@ -640,9 +640,15 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         if currency == 'EUR': rate = 1.0
 
         # Extract Entry Date (newly added)
+        # Extract Entry Date (newly added)
         # Try multiple keys due to potential case sensitivity in CSV loading
+        # NOTE: load_portfolio converts columns to lowercase!
         entry_date = row.get('Entry_Date', row.get('entry_date', '-'))
-        if pd.isna(entry_date) or entry_date == 'nan': entry_date = '-'
+        # Debug fallback
+        if not entry_date or str(entry_date).lower() in ['nan', 'none', '']: 
+             entry_date = str(row.get('entry_date', '-')) # Force retry as string
+        
+        if str(entry_date).lower() in ['nan', 'none', '']: entry_date = '-'
         
         # Convert Buy Price to EUR
         buy_price = buy_price_native * rate
@@ -3826,7 +3832,7 @@ def main():
                                  # Update only if different
                                  if abs(current_shares - shares) > 0.0001 or abs(current_price - price) > 0.01:
                                       p_df.loc[mask, 'Shares'] = shares
-                                      p_df.loc[mask, 'Buy_Price'] = price
+                                      # p_df.loc[mask, 'Buy_Price'] = price  # Disable TWS Price Overwrite (User prefers Flex AvgPrice)
                                       p_df.loc[mask, 'Currency'] = curr # Optional
                                       p_changed = True
                                       print(f"  Updated {sym}: {shares} shares @ {price}")
