@@ -22,6 +22,10 @@ from Crypto.Random import get_random_bytes
 from base64 import b64encode
 import json
 from market_scanner_analysis import generate_market_analysis, generate_swing_trading_html, get_swing_trading_data  # Import modul analiză
+import market_scanner_analysis as analysis
+
+# Global Cache for Finviz Data
+_finviz_cache = {}
 
 STATE_FILE = "dashboard_state.json"
 MARKET_HISTORY_FILE = "market_history.json"
@@ -63,7 +67,11 @@ def save_state(state):
         json.dump(state, f, indent=2)
 
 def get_finviz_data(ticker):
-    """Preia datele fundamentale de pe Finviz (Target, ATR, Volatility)."""
+    """Preia datele fundamentale de pe Finviz (Target, ATR, Volatility) cu caching."""
+    if ticker in _finviz_cache:
+        # print(f"  [Cache] Finviz data for {ticker}") # Uncomment for debugging cache hits
+        return _finviz_cache[ticker]
+
     data = {'Target': None, 'ATR': None, 'VolW': None, 'VolM': None}
     try:
         # Elimină sufixe pentru tickere europene (de ex: .DE)
@@ -76,6 +84,7 @@ def get_finviz_data(ticker):
         
         response = requests.get(url, headers=headers, timeout=10)
         if response.status_code != 200:
+            _finviz_cache[ticker] = data # Cache empty data on failure
             return data
             
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -110,6 +119,7 @@ def get_finviz_data(ticker):
                              data['VolM'] = float(parts[1].replace('%', ''))
                      except: pass
         
+        _finviz_cache[ticker] = data
         return data
     except Exception as e:
         print(f"  ⚠ Eroare Finviz pentru {ticker}: {str(e)[:50]}")
@@ -604,7 +614,7 @@ def get_exchange_rates():
         print(f"Eroare curs valutar: {e}. Folosim fallback.")
     return rates
 
-def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downtrend=False, breadth_pct=50, rule4_active=False):
+def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downtrend=False, breadth_pct=50, rule4_active=False, ticker_cache=None):
     """Procesează un ticker din portofoliu cu date de ownership (Conversie EUR)."""
     try:
         ticker = row.get('symbol', 'UNKNOWN').upper()
@@ -651,33 +661,54 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         vol_w = finviz_data.get('VolW') 
         vol_m = finviz_data.get('VolM')
         
-        time.sleep(2)
-        df = yf.download(ticker, period="1y", progress=False)
+        if ticker_cache is None: ticker_cache = {}
         
-        # Retry with European suffixes if base ticker fails (common for IBKR ETFs like SXRZ)
-        if df.empty:
-            suffixes = ['.DE', '.PA', '.L', '.AS', '.MI', '.MC']
-            print(f"  ⚠️ Ticker {ticker} not found. Trying suffixes...")
-            for s in suffixes:
-                alt_ticker = f"{ticker}{s}"
-                print(f"    Trying {alt_ticker}...")
-                time.sleep(1)
-                df_alt = yf.download(alt_ticker, period="1y", progress=False)
-                if not df_alt.empty:
-                    print(f"    ✅ Found data for {alt_ticker}!")
-                    df = df_alt
-                    # Update currency based on new suffix
-                    if '.DE' in s or '.PA' in s or '.AS' in s or '.MI' in s or '.MC' in s:
-                        currency = 'EUR'
-                    elif '.L' in s:
-                        currency = 'GBP'
+        # --- CACHED DOWNLOAD ---
+        if ticker in ticker_cache and ticker_cache[ticker] is not None:
+             df = ticker_cache[ticker]
+             # print(f"  [Cache] Used cached data for {ticker}")
+        else:
+            time.sleep(2)
+            df = yf.download(ticker, period="1y", progress=False)
+            
+            # Retry with European suffixes if base ticker fails (common for IBKR ETFs like SXRZ)
+            # Retry with European suffixes if base ticker fails (common for IBKR ETFs like SXRZ)
+            if df.empty:
+                suffixes = ['.DE', '.PA', '.L', '.AS', '.MI', '.MC']
+                print(f"  ⚠️ Ticker {ticker} not found. Trying suffixes...")
+                for s in suffixes:
+                    alt_ticker = f"{ticker}{s}"
+                    # Check cache for alt ticker too
+                    if alt_ticker in ticker_cache and ticker_cache[alt_ticker] is not None:
+                         # print(f"  [Cache] Used cached data for {alt_ticker}")
+                         df_alt = ticker_cache[alt_ticker]
+                    else:
+                        print(f"    Trying {alt_ticker}...")
+                        time.sleep(1)
+                        df_alt = yf.download(alt_ticker, period="1y", progress=False)
+                        if not df_alt.empty:
+                             ticker_cache[alt_ticker] = df_alt # Cache successful alt
                     
-                    # Update rate
-                    rate = rates.get(currency, rates['USD'])
-                    if currency == 'EUR': rate = 1.0
-                    
-                    # Also re-check Finviz target with new ticker? No, Finviz uses US tickers mostly.
-                    break
+                    if not df_alt.empty:
+                        print(f"    ✅ Found data for {alt_ticker}!")
+                        df = df_alt
+                        
+                        # Update currency based on new suffix
+                        if '.DE' in s or '.PA' in s or '.AS' in s or '.MI' in s or '.MC' in s:
+                            currency = 'EUR'
+                        elif '.L' in s:
+                            currency = 'GBP'
+                        
+                        # Update rate
+                        rate = rates.get(currency, rates['USD'])
+                        if currency == 'EUR': rate = 1.0
+                        
+                        break
+                        
+            # Store in cache (even if empty, to avoid retrying failed download?)
+            # Usually better to cache success.
+            if not df.empty:
+                ticker_cache[ticker] = df
         
         if df.empty:
             print(f"  ⚠️ Nu există date Yahoo Finance pentru {ticker} (nici cu sufixe) - folosim date parțiale din IBKR")
@@ -3665,11 +3696,24 @@ def update_portfolio_data(state, rates, vix_val):
     except Exception as e:
         print(f"Error fetching Breadth for Rule #3: {e}")
 
+    # Safety Checks for Risk Parameters
+    if vix_val is None:
+        vix_val = 15.0
+        print("  ⚠️ VIX Unavailable. Using default 15.0")
+        
+    if breadth_pct is None:
+        breadth_pct = 50.0
+        print("  ⚠️ Breadth Unavailable. Using default 50%")
+
     if not portfolio_data.empty:
         print(f"Procesare {len(portfolio_data)} poziții...")
+        
+        # Cache for redundant tickers (Lots)
+        ticker_cache = {} 
+        
         for _, row in portfolio_data.iterrows():
             print(f"  > {row['symbol']}")
-            data = process_portfolio_ticker(row, vix_val, rates, spx_df, market_in_downtrend, breadth_pct, rule4_active)
+            data = process_portfolio_ticker(row, vix_val, rates, spx_df, market_in_downtrend, breadth_pct, rule4_active, ticker_cache)
             if data:
                 portfolio_results.append(data)
     
@@ -3850,7 +3894,8 @@ def main():
         state = update_portfolio_data(state, rates, vix_val)
         
     if args.mode in ['all', 'watchlist']:
-        state = update_watchlist_data(state, rates, vix_val)
+        # state = update_watchlist_data(state, rates, vix_val)
+        pass
         
     # 4. Salvare Stare
     save_state(state)

@@ -387,7 +387,9 @@ def sync_ibkr():
                 existing_cols = [c for c in manual_cols if c in old_df.columns]
                 
                 if existing_cols:
-                    old_subset = old_df[existing_cols]
+                    # DEDUPLICATE old preferences by Symbol to avoid Cartesian Product (N lots x N old rows)
+                    old_subset = old_df[existing_cols].drop_duplicates(subset=['Symbol'])
+                    
                     # Folosim suffixes pentru a identifica conflictele
                     merged_df = pd.merge(new_df, old_subset, on='Symbol', how='left', suffixes=('', '_old'))
                     
