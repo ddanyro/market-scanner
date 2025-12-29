@@ -638,6 +638,11 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         
         rate = rates.get(currency, rates['USD'])
         if currency == 'EUR': rate = 1.0
+
+        # Extract Entry Date (newly added)
+        # Try multiple keys due to potential case sensitivity in CSV loading
+        entry_date = row.get('Entry_Date', row.get('entry_date', '-'))
+        if pd.isna(entry_date) or entry_date == 'nan': entry_date = '-'
         
         # Convert Buy Price to EUR
         buy_price = buy_price_native * rate
@@ -1166,6 +1171,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             'Vol_M': vol_m,
             'Trail_Pct': trail_pct,
             'Investment': round(investment, 2),
+            'Entry_Date': entry_date,
             'Current_Value': round(current_value, 2),
             'Profit': round(profit, 2),
             'Profit_Pct': round(profit_pct, 2),
