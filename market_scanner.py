@@ -1291,6 +1291,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         consensus = "-"
         analysts_count = 0
         industry = "-"
+        sector = "-"
         
         try:
            # Folosim yf.Ticker pentru info detaliat
@@ -3900,8 +3901,7 @@ def main():
         state = update_portfolio_data(state, rates, vix_val)
         
     if args.mode in ['all', 'watchlist']:
-        # state = update_watchlist_data(state, rates, vix_val)
-        pass
+        state = update_watchlist_data(state, rates, vix_val)
         
     # 4. Salvare Stare
     save_state(state)
