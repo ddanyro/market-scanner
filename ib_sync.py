@@ -345,6 +345,61 @@ def sync_ibkr():
         print("Nicio poziție găsită (nici în IBKR, nici manual).")
         # return False # Nu returnam False, poate e doar un portofoliu gol temporar
         
+    print(f"Total raw lots before aggregation: {len(positions)}")
+    
+    # === AGGREGATION LOGIC (Merge Lots -> Single Position) ===
+    if positions:
+        try:
+            # 1. Debug AIOT Dates
+            aiot_dates = [p.get('Entry_Date') for p in positions if p['Symbol'] == 'AIOT']
+            if aiot_dates:
+                print(f"DEBUG AIOT Raw Dates: {aiot_dates}")
+            
+            # 2. Create DF
+            df_proxy = pd.DataFrame(positions)
+            
+            # 3. Define Aggregations
+            # We want: Sum Shares/Invest/Profit. Avg Price. Min Date. First Currency.
+            def get_earliest_date(series):
+                dates = [d for d in series if d and isinstance(d, str) and len(d) >= 10]
+                if dates:
+                    return min(dates)
+                return ""
+
+            agg_rules = {
+                'Shares': 'sum',
+                'Investment': 'sum',
+                'Current_Value': 'sum',
+                'Profit': 'sum',
+                'Current_Price': 'first',
+                'Currency': 'first',
+                'Trail_Pct': 'max',
+                'Trail_Stop_IBKR': 'max',
+                'Entry_Date': get_earliest_date
+            }
+            
+            # Ensure columns exist
+            for col in agg_rules:
+                if col not in df_proxy.columns:
+                    df_proxy[col] = 0 if col != 'Entry_Date' else ''
+
+            # Group
+            grouped = df_proxy.groupby('Symbol', as_index=False).agg(agg_rules)
+            
+            # Recalculate Weighted Stats
+            # Buy Price = Total Investment / Total Shares
+            grouped['Buy_Price'] = grouped.apply(lambda row: row['Investment'] / row['Shares'] if row['Shares'] > 0 else 0, axis=1)
+            grouped['Profit_Pct'] = grouped.apply(lambda row: (row['Profit'] / row['Investment'] * 100) if row['Investment'] > 0 else 0, axis=1)
+            
+            # Replace positions list
+            positions = grouped.to_dict('records')
+            print(f"  -> Aggregated to {len(positions)} unique positions.")
+            
+        except Exception as e:
+            print(f"Error Aggregating Lots: {e}")
+            import traceback
+            traceback.print_exc()
+
     print(f"Total poziții pentru analiză: {len(positions)}")
     
     # Creare DataFrame
