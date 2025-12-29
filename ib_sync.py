@@ -358,6 +358,38 @@ def sync_ibkr():
             # 2. Create DF
             df_proxy = pd.DataFrame(positions)
             
+            # === DEDUPLICATION logic (Remove Summary Rows if Lots exist) ===
+            # Problem: Flex report includes a "Summary" row (Date='') AND "Lot" rows (Date='YYYY-MM-DD').
+            # Summing them duplicates the position size.
+            # Solution: If a symbol has BOTH rows with date and rows without, drop the ones without.
+            
+            clean_rows = []
+            
+            # Group by Symbol to inspect
+            for sym, group in df_proxy.groupby('Symbol'):
+                # Check if we have valid dates
+                has_dates = any(group['Entry_Date'].str.len() > 0)
+                
+                if has_dates:
+                    # Keep only rows with dates (Lots)
+                    # Filter: Date is not empty
+                    valid_rows = group[group['Entry_Date'].str.len() > 0]
+                    clean_rows.append(valid_rows)
+                    
+                    # Log if we dropped something (e.g. the Summary row)
+                    dropped = len(group) - len(valid_rows)
+                    if dropped > 0:
+                        # print(f"  Dedup {sym}: Dropped {dropped} summary rows. Kept {len(valid_rows)} lots.")
+                        pass
+                else:
+                    # No dates at all (maybe old position or config issue). Keep all (likely just 1 summary row).
+                    # If there are multiple empty-date rows, we might still have duplication?
+                    # Assume for now keep all if no dates.
+                    clean_rows.append(group)
+            
+            if clean_rows:
+                df_proxy = pd.concat(clean_rows, ignore_index=True)
+            
             # 3. Define Aggregations
             # We want: Sum Shares/Invest/Profit. Avg Price. Min Date. First Currency.
             def get_earliest_date(series):
