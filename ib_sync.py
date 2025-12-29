@@ -34,6 +34,7 @@ def sync_ibkr():
     
     TWS_FILE_POS = 'tws_positions.csv'
     use_tws_primary = False
+    tws_symbols = set()  # Track symbols from TWS for cleanup
     
     if os.path.exists(TWS_FILE_POS):
         # Verificăm vechimea
@@ -49,9 +50,11 @@ def sync_ibkr():
         try:
              tdf = pd.read_csv(TWS_FILE_POS)
              for _, r in tdf.iterrows():
+                  sym = str(r['Symbol'])
+                  tws_symbols.add(sym)  # Track TWS symbols
                   invest = float(r['Shares']) * float(r['Buy_Price'])
                   positions.append({
-                      'Symbol': str(r['Symbol']),
+                      'Symbol': sym,
                       'Shares': float(r['Shares']),
                       'Buy_Price': float(r['Buy_Price']), 
                       'Current_Price': float(r['Buy_Price']), 
@@ -491,6 +494,18 @@ def sync_ibkr():
                     new_df = merged_df
              except Exception as e:
                  print(f"Eroare merge, suprascriere: {e}")
+        
+        # CLEANUP: When TWS is primary, remove positions not in TWS (sold positions)
+        # but preserve Tradeville positions (they don't come from TWS)
+        if use_tws_primary and len(tws_symbols) > 0:
+            original_count = len(new_df)
+            # Keep only: TWS symbols + Tradeville symbols (ending with .RO or from tradeville_portfolio)
+            tradeville_mask = new_df['Symbol'].str.endswith('.RO', na=False) | new_df['Symbol'].str.contains('tradeville', case=False, na=False)
+            tws_mask = new_df['Symbol'].isin(tws_symbols)
+            new_df = new_df[tws_mask | tradeville_mask]
+            removed = original_count - len(new_df)
+            if removed > 0:
+                print(f"  -> Cleaned up {removed} sold positions (not in TWS anymore)")
         
         new_df.to_csv(PORTFOLIO_FILE, index=False)
         print("Portofoliu actualizat cu succes!")
