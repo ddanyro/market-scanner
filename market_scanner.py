@@ -3911,6 +3911,22 @@ def update_portfolio_data(state, rates, vix_val):
     state['portfolio'] = portfolio_results
     return state
 
+def get_cached_watchlist_ticker(state, ticker):
+    """Returnează datele cached pentru un ticker din watchlist, dacă există."""
+    for item in state.get('watchlist', []):
+        if item.get('Ticker') == ticker:
+            return item
+    return None
+
+def is_fresh(ticker_data, ttl_hours=5):
+    """Verifică dacă datele ticker-ului sunt fresh (mai noi de TTL)."""
+    cached_at = ticker_data.get('_cached_at')
+    if not cached_at:
+        return False
+    import time
+    age_hours = (time.time() - cached_at) / 3600
+    return age_hours < ttl_hours
+
 def update_watchlist_data(state, rates, vix_val):
     """Actualizează datele din watchlist și le salvează în state."""
     print("\n=== Actualizare Watchlist ===")
@@ -3922,12 +3938,32 @@ def update_watchlist_data(state, rates, vix_val):
     watchlist_results = []
     
     if watchlist_tickers:
+        cached_count = 0
+        updated_count = 0
+        
         print(f"Procesare {len(watchlist_tickers)} tickere...")
+        
         for ticker in watchlist_tickers:
-            print(f"  > {ticker}")
-            data = process_watchlist_ticker(ticker, vix_val, rates)
-            if data:
-                watchlist_results.append(data)
+            # Check cache first
+            cached_data = get_cached_watchlist_ticker(state, ticker)
+            
+            if cached_data and is_fresh(cached_data, ttl_hours=5):
+                # Use cached data
+                watchlist_results.append(cached_data)
+                cached_count += 1
+                print(f"  ✓ {ticker} (cached)")
+            else:
+                # Process ticker
+                data = process_watchlist_ticker(ticker, vix_val, rates)
+                if data:
+                    # Add timestamp for caching
+                    import time
+                    data['_cached_at'] = time.time()
+                    watchlist_results.append(data)
+                    updated_count += 1
+                    print(f"  > {ticker} (updated)")
+        
+        print(f"  → {cached_count} cached, {updated_count} updated")
     
     state['watchlist'] = watchlist_results
     return state
