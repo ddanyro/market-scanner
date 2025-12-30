@@ -800,8 +800,14 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         last_atr = last_atr_native * rate # EUR
         
         last_rsi = get_scalar(last_row['RSI'])
-        sma_50 = get_scalar(last_row['SMA_50']) * rate
-        sma_200 = get_scalar(last_row['SMA_200']) * rate
+        
+        # Native Values for Decision Logic
+        sma_50_native = get_scalar(last_row['SMA_50'])
+        sma_200_native = get_scalar(last_row['SMA_200'])
+        
+        # Converted Values for Portfolio Totals (EUR)
+        sma_50 = sma_50_native * rate
+        sma_200 = sma_200_native * rate
         
         # Extrage ultimele 30 zile pentru sparkline (conversie si aici? nu, trendul e la fel, dar valorile difera)
         # Sparkline e doar vizual, nu contează scara, dar hai să convertim pt consistență dacă afișăm tooltip
@@ -827,9 +833,13 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 try:
                     entry_date = datetime.datetime.strptime(entry_date_str, "%Y-%m-%d")
                     days_since = (datetime.datetime.now() - entry_date).days
-                    if days_since >= 5 and current_price <= buy_price:
+                    days_since = (datetime.datetime.now() - entry_date).days
+                    if days_since >= 5 and current_price <= buy_price: 
+                        # Comparison: Price vs BuyPrice (Both should be same currency to be fair)
+                        # buy_price is in EUR (from CSV/IBKR converted). current_price is EUR.
+                        # Rule A checks P&L basically. Keep EUR for consistency with "Profit" column logic.
                         rule_a = True
-                        sell_reason += "Time Fail; "
+                        sell_reason += f"Time Fail ({days_since}d > 5); "
                 except:
                     pass
 
@@ -843,7 +853,8 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 s2 = df['SMA_50'].iloc[-2]
                 if c1 < s1 and c2 < s2:
                     rule_b = True
-                    sell_reason += "Structure Fail (Sub SMA50); "
+                    # Use current native vs SMA native for display consistency
+                    sell_reason += f"Structure Fail (Sub SMA50: {current_price_native:.2f} < {sma_50_native:.2f}); "
 
             # Rule C: Momentum Failure (RSI < 45 for 2+ sessions)
             rule_c = False
@@ -852,7 +863,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 r2 = df['RSI'].iloc[-2]
                 if r1 < 45 and r2 < 45:
                     rule_c = True
-                    sell_reason += "Momentum Fail (RSI<45); "
+                    sell_reason += f"Momentum Fail (RSI {r1:.1f} < 45); "
 
             # Rule D: Relative Strength Failure (RS Falling 10 sessions)
             rule_d = False
@@ -898,7 +909,8 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 # --- HIGH VOLATILITY RULES (Rule #2 Active: VIX > 25) ---
                 # Logic: Preț > SMA200 AND RS Ascendent AND RSI >= 55 -> TRAIL STRANS. Else -> EXIT.
                 
-                is_above_sma200 = current_price > sma_200
+                is_above_sma200 = current_price_native > sma_200_native
+                # RS Ascendent: Strict check, not just "not falling".
                 # RS Ascendent: Strict check, not just "not falling".
                 is_rs_up = False
                 if spx_df is not None and not spx_df.empty and len(df) >= 10:
@@ -929,9 +941,9 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                     sell_decision = "EXIT"
                     # Detail the failure
                     reasons = []
-                    if not is_above_sma200: reasons.append("Sub SMA200")
+                    if not is_above_sma200: reasons.append(f"Sub SMA200 ({current_price_native:.2f} < {sma_200_native:.2f})")
                     if not is_rs_up: reasons.append("RS Weak")
-                    if last_rsi < 55: reasons.append(f"RSI {last_rsi:.0f}<55")
+                    if last_rsi < 55: reasons.append(f"RSI {last_rsi:.0f} < 55")
                     sell_reason = f"VIX>25 Panic: {', '.join(reasons)}"
 
             elif breadth_pct < 45:
@@ -941,10 +953,10 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 # Case 2: RS Flat OR RSI 45-49 OR P Test SMA50 -> REDUCE 50%
                 # Case 3: Else -> EXIT
                 
-                # Calculate SMA50 status
-                sma_50 = df['SMA_50'].iloc[-1] if 'SMA_50' in df.columns else current_price
-                is_above_sma50 = current_price > sma_50
-                is_testing_sma50 = abs(current_price - sma_50) / sma_50 <= 0.02 # Within 2%
+                # Calculate SMA50 status (Native)
+                # sma_50 variable above is EUR. We need native logic.
+                is_above_sma50 = current_price_native > sma_50_native
+                is_testing_sma50 = abs(current_price_native - sma_50_native) / sma_50_native <= 0.02 # Within 2%
                 
                 # Determine RS Status (Ascendent vs Flat vs Descendent)
                 # We reuse rule_d (Descendent). If rule_d is True, RS is Down.
@@ -1003,20 +1015,20 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                      sell_decision = "REDUCE 50%"
                      reasons = []
                      if is_rs_flat: reasons.append("RS Flat")
-                     if is_rsi_grey: reasons.append(f"RSI {last_rsi:.0f} Weak")
-                     if is_testing_sma50: reasons.append("Testing SMA50")
+                     if is_rsi_grey: reasons.append(f"RSI {last_rsi:.0f} Weak (45-55)")
+                     if is_testing_sma50: reasons.append(f"Testing SMA50 ({current_price_native:.2f} vs {sma_50_native:.2f})")
                      sell_reason = f"Breadth<45% Warn: {', '.join(reasons)}"
                 
                 else:
                     # Case 3 (Exit)
                     sell_decision = "EXIT" 
-                    sell_reason = "Breadth<45% Fail: Sub SMA50/RSI<45/RS Down"
+                    sell_reason = f"Breadth<45% Fail: Sub SMA50 ({current_price_native:.2f}<{sma_50_native:.2f}) / RSI {last_rsi:.0f} < 45"
 
             elif rule4_active:
                 # --- MARKET STRUCTURE RULES (Rule #4 Active: LH + Break HL) ---
                 # Logic: P > SMA200 AND RS Ascendent AND RSI >= 55 -> TRAIL STRANS. Else -> EXIT.
                 
-                is_above_sma200 = current_price > sma_200
+                is_above_sma200 = current_price_native > sma_200_native
                 is_rs_up = not rule_d # Proxy for Ascendent (Not Falling)
                 
                 if is_above_sma200 and is_rs_up and last_rsi >= 55:
@@ -1025,14 +1037,14 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 else:
                      sell_decision = "EXIT"
                      reasons = []
-                     if not is_above_sma200: reasons.append("Sub SMA200")
+                     if not is_above_sma200: reasons.append(f"Sub SMA200 ({current_price_native:.2f} < {sma_200_native:.2f})")
                      if not is_rs_up: reasons.append("RS Down")
-                     if last_rsi < 55: reasons.append(f"RSI {last_rsi:.0f}<55")
+                     if last_rsi < 55: reasons.append(f"RSI {last_rsi:.0f} < 55")
                      sell_reason = f"Structure Break Fail: {', '.join(reasons)}"
 
             elif market_in_downtrend:
                 # --- BEAR MARKET RULES (Rule #1 Active) ---
-                is_above_sma200 = current_price > sma_200
+                is_above_sma200 = current_price_native > sma_200_native
                 is_rs_falling = rule_d # Rule D = RS Falling
                 is_rsi_weak = last_rsi < 45
                 is_rsi_mediocre = 45 <= last_rsi < 50
@@ -1050,7 +1062,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                          sell_reason = "Bear Mkt: Strong Price but RS Falling"
                     else:
                          sell_decision = "EXIT"
-                         sell_reason = "Bear Mkt: Broken (Sub SMA200/RSI<45/RS)"
+                         sell_reason = f"Bear Mkt: Broken (Sub SMA200 {current_price_native:.2f}<{sma_200_native:.2f} / RSI {last_rsi:.0f}<45)"
                          
                 elif is_rsi_mediocre:
                     # User: "... RSI 45-49 -> vinde 50%" (assuming P > SMA200 implied by failing Exit above)
@@ -1150,18 +1162,41 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         if last_rsi > 70: rsi_status = "Overbought"
         elif last_rsi < 30: rsi_status = "Oversold"
         
-        # Trend Interpretation
+        # Trend Interpretation (Native)
         trend = "Neutral"
-        if current_price > sma_200:
-            if current_price > sma_50:
+        if current_price_native > sma_200_native:
+            if current_price_native > sma_50_native:
                 trend = "Strong Bullish"
             else:
                 trend = "Bullish Pullback"
-        elif current_price < sma_200:
-            if current_price < sma_50:
+        elif current_price_native < sma_200_native:
+            if current_price_native < sma_50_native:
                 trend = "Strong Bearish"
             else:
                 trend = "Bearish Rally"
+
+        # --- ENRICH HOLD REASON WITH METRICS (If currently empty) ---
+        if sell_decision == "HOLD" and not sell_reason:
+            # Construct positive reason: "Trend UP (P 150 > 140), RSI 60"
+            positive_factors = []
+            
+            # 1. Trend / SMA Logic (Native)
+            if current_price_native > sma_200_native:
+                positive_factors.append(f"Trend UP (P {current_price_native:.1f} > SMA200 {sma_200_native:.1f})")
+            elif current_price_native > sma_50_native:
+                 positive_factors.append(f"Recovery (P {current_price_native:.1f} > SMA50 {sma_50_native:.1f})")
+            else:
+                 positive_factors.append("Consolidation")
+
+            # 2. RSI Status
+            positive_factors.append(f"RSI {last_rsi:.0f}")
+            
+            # 3. Stop Distance (Keep %, so logic stays same regardless of currency)
+            if trail_stop_price > 0:
+                 dist_pct = (current_price - trail_stop_price) / current_price * 100
+                 positive_factors.append(f"Risk {dist_pct:.1f}%")
+
+            sell_reason = ", ".join(positive_factors)
 
         result = {
             'Symbol': ticker,
@@ -1609,6 +1644,41 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             animation: fadeIn 0.5s ease-out;
         }
         
+        /* Tooltips */
+        #global-tooltip {
+            position: fixed;
+            visibility: hidden;
+            background-color: #111827;
+            color: #fff;
+            text-align: left;
+            border-radius: 8px;
+            padding: 10px 14px;
+            z-index: 99999; /* Always on top */
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            pointer-events: none;
+            line-height: 1.5;
+            max-width: 280px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transform: translate(-50%, -100%); /* Center horizontally, anchor bottom */
+            margin-top: -12px; /* Slight offset from cursor */
+            opacity: 0;
+            transition: opacity 0.15s ease-out;
+            white-space: normal; /* Allow wrapping */
+        }
+        
+        #global-tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -6px;
+            border-width: 6px;
+            border-style: solid;
+            border-color: #111827 transparent transparent transparent;
+        }
+
         /* Typography */
         h1 {
             font-size: clamp(28px, 4vw, 36px);
@@ -2387,6 +2457,31 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             }
             
             // Auto unlock if dev mode? No.
+            
+            // Global Tooltip Logic
+            function showTooltip(evt, text) {
+                const tooltip = document.getElementById('global-tooltip');
+                if (!tooltip) return;
+                
+                tooltip.innerHTML = text;
+                tooltip.style.visibility = 'visible';
+                tooltip.style.opacity = '1';
+                
+                // Position logic
+                const x = evt.clientX;
+                const y = evt.clientY;
+                
+                tooltip.style.top = y + 'px';
+                tooltip.style.left = x + 'px';
+            }
+            
+            function hideTooltip() {
+                const tooltip = document.getElementById('global-tooltip');
+                if (tooltip) {
+                    tooltip.style.visibility = 'hidden';
+                    tooltip.style.opacity = '0';
+                }
+            }
         </script>
     """
     
@@ -2394,6 +2489,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     html_head += f"""
     </head>
     <body>
+    
+    <div id="global-tooltip"></div>
     
     <!-- Header cu Hamburger -->
     <div class="header-bar">
@@ -2579,6 +2676,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         sell_decision = row.get('Sell_Decision', 'HOLD')
         sell_reason = row.get('Sell_Reason', '')
         
+        # Default text for HOLD is now handled in process_portfolio_ticker with real metrics.
+        # Fallback only if somehow still empty:
+        if sell_decision == 'HOLD' and not sell_reason:
+             sell_reason = "Hold (Metrics Optimized)"
+
         sell_style = "color: #4caf50; font-weight: bold;" # Green (HOLD)
         if sell_decision == "EXIT":
             sell_style = "color: #d32f2f; font-weight: bold; background-color: #ffebee; border-radius: 4px; padding: 2px 6px;" # Red
@@ -2590,10 +2692,13 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
              sell_display = f"{sell_decision} ⚠️"
 
         # Build Row HTML string (NO html_head += here)
+        # Using JS Global Tooltip for guaranteed visibility (no overflow clipping)
         portfolio_rows_html += f"""
                     <tr id="row-{row['Symbol']}" data-price="{row['Current_Price']}" data-buy="{row['Buy_Price']}" data-shares="{row['Shares']}">
                         <td><strong style="cursor: pointer; color: #4dabf7; text-decoration: underline;" onclick="goToVolatility('{row['Symbol']}')">{row['Symbol']}</strong></td>
-                        <td style="{sell_style}" title="{sell_reason}">{sell_display}</td>
+                        <td style="{sell_style}" onmousemove="showTooltip(event, '{sell_reason}')" onmouseout="hideTooltip()">
+                            {sell_display}
+                        </td>
                         <td style="font-size: 0.9em; color: var(--text-secondary);">{row.get('Entry_Date', '-')}</td>
                         <td>{row['Shares']}</td>
                         <td>€{row['Buy_Price']:.2f}</td>
