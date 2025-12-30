@@ -883,6 +883,30 @@ def get_swing_trading_data(data=None):
             data['Breadth_Above'] = above_50
             data['Breadth_Total'] = sp500_total
             data['Breadth_Source'] = breadth_source
+            
+            # --- BREADTH DIVERGENCE ANALYSIS ---
+            # Classify rally quality based on SMA50 vs SMA200 participation gap
+            if above_200 is not None and 'Breadth_200_Pct' in data: # Check if breadth_pct_200 was calculated
+                divergence = breadth_pct_50 - data['Breadth_200_Pct']
+                
+                if abs(divergence) <= 5:
+                    quality = "Rally Solid (Aligned)"
+                    quality_color = "#4caf50"  # Green
+                elif divergence > 15:
+                    quality = "Rally Fresh (Climbing fast, watch exhaustion)"
+                    quality_color = "#ff9800"  # Orange
+                elif divergence < -15:
+                    quality = "Correction in Bull Market (dip opportunity)"
+                    quality_color = "#f44336"  # Red
+                else:
+                    quality = "Rally Mixed"
+                    quality_color = "#2196f3"  # Blue
+                
+                data['Breadth_Quality'] = quality
+                data['Breadth_Quality_Color'] = quality_color
+                data['Breadth_Divergence'] = divergence
+                print(f"    -> Breadth Quality: {quality} (Divergence: {divergence:+.1f}%)")
+            
             print(f"    -> Breadth ({breadth_source}) fetched: {above_50}/{sp500_total} above SMA50 ({breadth_pct_50:.0f}%)")
     except Exception as e:
         print(f"Error Swing Data (Breadth): {e}")
@@ -1116,6 +1140,15 @@ def generate_swing_trading_html(data=None):
         breadth_source = data.get('Breadth_Source', 'Finviz')
         breadth_title = f"Breadth ({breadth_source})"
         breadth_header = f"{breadth_pct:.0f}%"
+        
+        # Get quality analysis
+        breadth_quality = data.get('Breadth_Quality', '')
+        breadth_quality_color = data.get('Breadth_Quality_Color', breadth_color)
+        
+        # Update hint to show quality if available
+        if breadth_quality:
+            breadth_hint = f"<span style='color: {breadth_quality_color}; font-weight: 600;'>{breadth_quality}</span>"
+        
         # Format subtext safely
         breadth_subtext = f"SMA50: {breadth_above:.0f}/{breadth_total:.0f} | SMA200: {breadth_200_above:.0f}/{breadth_total:.0f} ({breadth_200_pct:.0f}%)"
         
@@ -1295,7 +1328,15 @@ def generate_swing_trading_html(data=None):
         verdict_color = "#f44336"
         verdict_reason = f"⛔ Breadth {breadth_pct:.0f}%: Rally fals"
         verdict_expl = f"Doar {breadth_pct:.0f}% din acțiuni participă în rally. Indicele e tras de câțiva giganți. Risc mare de corecție bruscă."
-    # Add breadth warning for weak rally (30-50%)
+    # Add breadth quality as confidence modifier
+    elif breadth_quality and verdict.startswith("BUY"):
+        if "Aligned" in breadth_quality:
+            verdict += " (HIGH CONFIDENCE)"
+            verdict_expl += f" ✅ {breadth_quality} - rally sustenabil, risc redus."
+        elif "Fresh" in breadth_quality:
+            verdict_expl += f" 🔥 {breadth_quality} - momentum puternic dar urmărește semnale de epuizare."
+        elif "Correction" in breadth_quality:
+            verdict_expl += f" 📉 {breadth_quality} - revenire după corecție, nivel de intrare potențial." 
     elif not breadth_ok and verdict.startswith("BUY"):
         verdict_expl += f" ⚠️ ATENȚIE BREADTH: Doar {breadth_pct:.0f}% din acțiuni participă - posibil fake rally!"
     
@@ -1329,7 +1370,18 @@ def generate_swing_trading_html(data=None):
     if vol_risk_warning:
         spx_confirmations.append(vol_risk_warning)
     
-    if not breadth_ok:
+    # Add breadth quality context instead of just weak participation
+    breadth_quality = data.get('Breadth_Quality', '')
+    if breadth_quality:
+        if "Aligned" in breadth_quality:
+            spx_confirmations.append(f"✅ {breadth_quality}")
+        elif "Fresh" in breadth_quality:
+            spx_confirmations.append(f"🔥 {breadth_quality}")
+        elif "Correction" in breadth_quality:
+            spx_confirmations.append(f"📉 {breadth_quality}")
+        else:
+            spx_confirmations.append(f"➖ {breadth_quality}")
+    elif not breadth_ok:
         spx_confirmations.append(f"⚠️ Breadth {breadth_pct:.0f}% (participare slabă)")
     
     if spx_confirmations:
@@ -1365,7 +1417,17 @@ def generate_swing_trading_html(data=None):
     if vol_risk_warning:
         ndx_confirmations.append(vol_risk_warning)
     
-    if not breadth_ok:
+    # Add breadth quality context (same logic as SPX)
+    if breadth_quality:
+        if "Aligned" in breadth_quality:
+            ndx_confirmations.append(f"✅ {breadth_quality}")
+        elif "Fresh" in breadth_quality:
+            ndx_confirmations.append(f"🔥 {breadth_quality}")
+        elif "Correction" in breadth_quality:
+            ndx_confirmations.append(f"📉 {breadth_quality}")
+        else:
+            ndx_confirmations.append(f"➖ {breadth_quality}")
+    elif not breadth_ok:
         ndx_confirmations.append(f"⚠️ Breadth {breadth_pct:.0f}% (participare slabă)")
     
     if ndx_confirmations:
