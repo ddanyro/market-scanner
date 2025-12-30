@@ -40,7 +40,7 @@ def sync_ibkr():
         # Verificăm vechimea
         mtime = os.path.getmtime(TWS_FILE_POS)
         age = time.time() - mtime
-        if age < 3600: # 60 minute (permitem fișiere mai vechi dacă TWS e închis recent)
+        if age < 300: # 5 minute (cache scurt pentru a permite trecerea rapidă la Flex dacă TWS e închis)
             print(f"  -> Găsit fișier TWS recent ({int(age)}s). Folosim ca Sursă PRIMARĂ.")
             use_tws_primary = True
         else:
