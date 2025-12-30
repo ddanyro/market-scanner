@@ -1395,35 +1395,37 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         check1_trend = last_close > sma_50 if sma_50 > 0 else False
         if check1_trend:
             checks_passed += 1
-            check_details.append("✓ Trend")
+            check_details.append(f"✓ Trend (P {last_close:.1f} > SMA50 {sma_50:.1f})")
         else:
-            check_details.append("✗ Trend")
+            check_details.append(f"✗ Trend (P {last_close:.1f} < SMA50 {sma_50:.1f})")
         
         # Check 2: Stronger than market & Improving? (RS > 0 AND Trend UP)
         check2_rs = rs_vs_spx is not None and rs_vs_spx > 0 and rs_trend_up
+        rs_val_str = f"{rs_vs_spx:.2f}" if rs_vs_spx is not None else "N/A"
         if check2_rs:
             checks_passed += 1
-            check_details.append(f"✓ RS (Trend: {'Up' if rs_trend_up else 'Down'})")
+            check_details.append(f"✓ RS (Trend: {'Up' if rs_trend_up else 'Down'}, Val: {rs_val_str})")
         else:
             reason = "Weak" if rs_vs_spx is None or rs_vs_spx <= 0 else "Downtrend"
-            check_details.append(f"✗ RS ({reason})")
+            check_details.append(f"✗ RS ({reason}, Val: {rs_val_str})")
         
         
         # Check 3: Entry calm? (RSI between 40-70, not overbought)
         check3_rsi = 40 <= last_rsi <= 70
         if check3_rsi:
             checks_passed += 1
-            check_details.append("✓ RSI")
+            check_details.append(f"✓ RSI ({last_rsi:.1f})")
         else:
-            check_details.append("✗ RSI")
+            check_details.append(f"✗ RSI ({last_rsi:.1f})")
         
         # Check 4: Risk known? (ATR allows logical stop - stop > 0 and < 10% of price)
-        check4_atr = last_atr > 0 and (stop_loss_dist / last_close * 100) < 10 if last_close > 0 else False
+        risk_pct = (stop_loss_dist / last_close * 100) if last_close > 0 else 0
+        check4_atr = last_atr > 0 and risk_pct < 10
         if check4_atr:
             checks_passed += 1
-            check_details.append("✓ ATR")
+            check_details.append(f"✓ ATR (Risk {risk_pct:.1f}%)")
         else:
-            check_details.append("✗ ATR")
+            check_details.append(f"✗ ATR (Risk {risk_pct:.1f}%)")
         
         # Decision
         if checks_passed == 4:
@@ -3152,7 +3154,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <td style="{cons_style}">{cons}</td>
                         <td>{analysts}</td>
                         <td style="font-size: 0.8rem; color: #aaa;">{sector}</td>
-                        <td style="font-weight: 700; color: {row.get('Decision_Color', '#888')};" title="{row.get('Check_Details', '')}">{row.get('Decision', '-')} ({row.get('Checks_Passed', 0)}/4)</td>
+                        <td style="font-weight: 700; color: {row.get('Decision_Color', '#888')};" onmousemove="showTooltip(event, '{row.get('Check_Details', '')}')" onmouseout="hideTooltip()">{row.get('Decision', '-')} ({row.get('Checks_Passed', 0)}/4)</td>
                         <td style="color: {'#4caf50' if row.get('RS_vs_SPX', 0) and row.get('RS_vs_SPX', 0) > 0 else '#f44336'};">{row.get('RS_vs_SPX', '-') if row.get('RS_vs_SPX') is not None else '-'}%</td>
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
                         <td style="text-align: center;">{fit_now}</td>
