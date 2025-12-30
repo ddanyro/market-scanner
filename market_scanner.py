@@ -241,12 +241,16 @@ def calculate_atr(df, period=14):
     return atr
 
 def calculate_rsi(df, period=14):
-    """Calculează RSI."""
+    """Calculează RSI folosind metoda Wilder's Smoothing (Standard)."""
     delta = df['Close'].diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
     
-    rs = gain / loss
+    # Wilder's Smoothing (alpha = 1/period)
+    avg_gain = gain.ewm(alpha=1/period, adjust=False).mean()
+    avg_loss = loss.ewm(alpha=1/period, adjust=False).mean()
+    
+    rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
     return rsi
 
@@ -680,7 +684,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
              # print(f"  [Cache] Used cached data for {ticker}")
         else:
             time.sleep(2)
-            df = yf.download(ticker, period="1y", progress=False)
+            df = yf.download(ticker, period="1y", auto_adjust=True, progress=False)
             
             # Retry with European suffixes if base ticker fails (common for IBKR ETFs like SXRZ)
             # Retry with European suffixes if base ticker fails (common for IBKR ETFs like SXRZ)
@@ -696,7 +700,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                     else:
                         print(f"    Trying {alt_ticker}...")
                         time.sleep(1)
-                        df_alt = yf.download(alt_ticker, period="1y", progress=False)
+                        df_alt = yf.download(alt_ticker, period="1y", auto_adjust=True, progress=False)
                         if not df_alt.empty:
                              ticker_cache[alt_ticker] = df_alt # Cache successful alt
                     
