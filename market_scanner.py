@@ -588,7 +588,8 @@ def get_exchange_rates():
         # EURUSD=X -> 1 EUR = x USD
         # EURGBP=X -> 1 EUR = x GBP
         tickers = "EURRON=X EURUSD=X EURGBP=X"
-        data = yf.download(tickers, period="5d", progress=False)
+        # Descarcă datele (Adjusted Close default now, but explicit is better)
+        data = yf.download(tickers, period="5d", auto_adjust=True, progress=False)
         
         if not data.empty:
             # Handle MultiIndex columns if present
@@ -1253,7 +1254,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         rate = rates.get(currency, rates['USD'])
         if currency == 'EUR': rate = 1.0
         
-        df = yf.download(ticker, period="1y", progress=False)
+        df = yf.download(ticker, period="1y", auto_adjust=True, progress=False)
         
         if df.empty:
             print(f"Nu există date pentru {ticker}")
@@ -1356,7 +1357,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         rs_trend_up = False
         rs_status = "Neutral"
         try:
-            spx_df = yf.download("^GSPC", period="3mo", progress=False)
+            spx_df = yf.download("^GSPC", period="3mo", auto_adjust=True, progress=False)
             if not spx_df.empty and len(df) >= 60:
                 # Calculate 60-day RS (Medium Term)
                 stock_ret_60 = (df['Close'].iloc[-1] / df['Close'].iloc[-60] - 1) * 100
@@ -3826,7 +3827,7 @@ def update_portfolio_data(state, rates, vix_val):
     
     # Pre-fetch SPX data for Relative Strength (RS) usage AND Market Rule #1 (SPX < SMA200)
     print("  Pre-fetching SPX data (1y)...")
-    spx_df = yf.download("^GSPC", period="1y", progress=False)
+    spx_df = yf.download("^GSPC", period="1y", auto_adjust=True, progress=False)
     
     market_in_downtrend = False
     try:
