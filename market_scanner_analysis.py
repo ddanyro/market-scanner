@@ -908,6 +908,14 @@ def get_swing_trading_data(data=None):
             if hist:
                 sorted_hist = sorted(hist, key=lambda x: x['x'])
                 data['Chart_FG'] = [item['y'] for item in sorted_hist[-60:]]
+                
+                # F&G SMA5 Logic (Trend Detection)
+                # Calculate SMA5 on full history
+                fg_series = pd.Series([item['y'] for item in sorted_hist])
+                if len(fg_series) >= 5:
+                    fg_sma5 = fg_series.rolling(window=5).mean().iloc[-1]
+                    data['FG_SMA5'] = float(fg_sma5)
+                    print(f"    -> Trend F&G: Score {data['FG_Score']:.0f} vs SMA5 {fg_sma5:.1f}")
             else:
                 data['Chart_FG'] = [data['FG_Score']] * 60
                 
@@ -1004,6 +1012,7 @@ def generate_swing_trading_html(data=None):
     ndx_rsi = data.get('NDX_RSI', 50)
     
     fg_score = data.get('FG_Score', 50)
+    fg_sma5 = data.get('FG_SMA5', fg_score) # Default to score if no history
     fg_rating = str(data.get('FG_Rating', 'neutral')).capitalize()
     pcr_val = data.get('PCR_Value', 0.8) if data.get('PCR_Value') else 0.8
     pcr_ma10 = data.get('PCR_MA10', pcr_val) if data.get('PCR_MA10') else pcr_val
@@ -1223,10 +1232,19 @@ def generate_swing_trading_html(data=None):
     if both_bullish:
         if fg_score < 50:
             if both_timing:
-                verdict = "BUY"
-                verdict_color = "#4caf50"
-                verdict_reason = "Trend UP (SPX+NDX) + Frica + Timing OK"
-                verdict_expl = "Configurație ideală 'Buy the Dip'. Ambii indici sunt în trend ascendent, SMA10 confirmă timing-ul, iar sentimentul de frică oferă prețuri bune."
+                # F&G Trend Logic (Falling Knife vs Recovery)
+                if fg_score < fg_sma5:
+                    # Falling Knife
+                    verdict = "WAIT DIP"
+                    verdict_color = "#ff9800"
+                    verdict_reason = "Frica în creștere (Falling Knife)"
+                    verdict_expl = f"Deși suntem în zonă de frică ({fg_score:.0f}), sentimentul se deteriorează rapid (sub media de 5 zile: {fg_sma5:.0f}). Nu prinde cuțitul care cade. Așteaptă stabilizarea."
+                else:
+                    # Recovery / Bottom
+                    verdict = "BUY"
+                    verdict_color = "#4caf50"
+                    verdict_reason = "Trend UP + Frica (Stabilizare)"
+                    verdict_expl = f"Configurație ideală 'Buy the Dip'. Trendul este UP, iar sentimentul de frică ({fg_score:.0f}) începe să se stabilizeze (peste media de 5 zile: {fg_sma5:.0f}). Punct de intrare optim."
             else:
                 verdict = "WAIT DIP"
                 verdict_color = "#ff9800"
@@ -1284,9 +1302,14 @@ def generate_swing_trading_html(data=None):
     # --- Individual SPX Verdict ---
     if trend_bullish:
         if fg_score < 50:
-            spx_verdict = "BUY"
-            spx_verdict_color = "#4caf50"
-            spx_verdict_text = "Bull Market + Frica oferă oportunitate de cumpărare."
+            if fg_score < fg_sma5:
+                 spx_verdict = "WAIT DIP"
+                 spx_verdict_color = "#ff9800"
+                 spx_verdict_text = "Bull Market + Frică în creștere (Falling Knife). Așteaptă stabilizare."
+            else:
+                 spx_verdict = "BUY"
+                 spx_verdict_color = "#4caf50"
+                 spx_verdict_text = "Bull Market + Frică (Stabilizare) = Oportunitate."
         else:
             spx_verdict = "WAIT"
             spx_verdict_color = "#ff9800"
@@ -1315,9 +1338,14 @@ def generate_swing_trading_html(data=None):
     # --- Individual NDX Verdict ---
     if ndx_trend_bullish:
         if fg_score < 50:
-            ndx_verdict = "BUY TECH"
-            ndx_verdict_color = "#4caf50"
-            ndx_verdict_text = "Nasdaq bullish + Frica = oportunitate pe Growth/Tech."
+            if fg_score < fg_sma5:
+                ndx_verdict = "WAIT TECH"
+                ndx_verdict_color = "#ff9800"
+                ndx_verdict_text = "Tech Bullish + Frică în creștere. Risc de corecție mai adâncă."
+            else:
+                ndx_verdict = "BUY TECH"
+                ndx_verdict_color = "#4caf50"
+                ndx_verdict_text = "Nasdaq bullish + Frică (Stabilizare) = oportunitate pe Growth/Tech."
         else:
             ndx_verdict = "HOLD TECH"
             ndx_verdict_color = "#ff9800"
