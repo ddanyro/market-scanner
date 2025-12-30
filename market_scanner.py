@@ -3082,6 +3082,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>SMA 50</th>
                         <th>SMA 200</th>
                         <th>Schimbare</th>
+                        <th>Update</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -3144,6 +3145,16 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             fit_now = assess_stock_fitness(sector, eco_phase)
             fit_next = assess_stock_fitness(sector, eco_next)
 
+            # Calculate Time Ago
+            cached_at = row.get('_cached_at', 0)
+            time_ago = "-"
+            if cached_at:
+                diff = time.time() - cached_at
+                if diff < 60: time_ago = "<1m"
+                elif diff < 3600: time_ago = f"{int(diff//60)}m"
+                elif diff < 86400: time_ago = f"{int(diff//3600)}h"
+                else: time_ago = f"{int(diff//86400)}d"
+
             html_head += f"""
                     <tr>
                         <td><strong style="cursor: pointer; color: #4dabf7; text-decoration: underline;" onclick="goToVolatility('{row['Ticker']}')">{row['Ticker']}</strong></td>
@@ -3166,6 +3177,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <td>€{row['SMA_50']:.2f}</td>
                         <td>€{row['SMA_200']:.2f}</td>
                         <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: {change_color};">{arrow} {abs(change):.2f}%</td>
+                        <td style="text-align: center; font-size: 0.75rem; color: #888;">{time_ago}</td>
                     </tr>
             """
         
