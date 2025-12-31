@@ -1716,6 +1716,10 @@ def generate_swing_trading_html(data=None):
                         <span style="color: #4caf50;">{t_nh} ({t_nh_pct:.0f}%)</span>
                         <span style="color: #f44336;">{t_nl} ({t_nl_pct:.0f}%)</span>
                     </div>
+                    <div style="height: 4px; background: #eee; border-radius: 2px; margin-top: 4px; overflow: hidden; display: flex;">
+                        <div style="width: {t_nh_pct}%; background: #4caf50;"></div>
+                        <div style="width: {t_nl_pct}%; background: #f44336;"></div>
+                    </div>
                 </div>
                 
                 <!-- SMA 50 -->
