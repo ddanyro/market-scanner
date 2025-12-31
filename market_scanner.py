@@ -3245,8 +3245,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             trail_pct = row.get('Trail_Pct', 0) or 0
             old_stop = row.get('Trail_Stop', 0) or 0
             
-            # Only include if Trail LARG < Trail % (red)
-            if trail_larg > 0 and trail_pct > 0 and trail_larg < trail_pct and old_stop > 0:
+            # Only include if Trail LARG < Trail % (red) -> NOW CHANGED TO ALL per user request
+            if trail_larg > 0 and trail_pct > 0 and old_stop > 0:
                 # Reconstruct original price when stop was set
                 original_price = old_stop / (1 - trail_pct / 100)
                 
