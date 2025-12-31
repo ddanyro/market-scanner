@@ -613,12 +613,16 @@ def check_market_structure_break(hist):
 
 # --- SWING TRADING COMPONENT ---
 
+TIDE_CACHE_FILE = "market_tide_cache.json"
+
 def get_finviz_market_tide():
     """
-    Scrapes Finviz Home Page for Market Tide data:
+    Scrapes Finviz Home Page for Market Tide data with caching:
     - Advancing vs Declining
     - New Highs vs New Lows
     - Above vs Below SMA50/SMA200
+    
+    Caches data when valid (non-zero Adv/Dec) and falls back to cache when market is closed.
     """
     url = "https://finviz.com"
     headers = {
@@ -629,6 +633,18 @@ def get_finviz_market_tide():
         'Connection': 'keep-alive'
     }
     
+    # Load cache
+    cached_data = None
+    cache_timestamp = None
+    if os.path.exists(TIDE_CACHE_FILE):
+        try:
+            with open(TIDE_CACHE_FILE, 'r') as f:
+                cache = json.load(f)
+                cached_data = cache.get('data')
+                cache_timestamp = cache.get('timestamp')
+        except:
+            pass
+    
     tide_data = {}
     
     try:
@@ -637,6 +653,10 @@ def get_finviz_market_tide():
         
         if r.status_code != 200:
             print(f"    ⚠️ Finviz Home Page Error: {r.status_code}")
+            # Return cached data if available
+            if cached_data:
+                print(f"    → Using cached tide data from {cache_timestamp}")
+                return cached_data
             return None
             
         soup = BeautifulSoup(r.text, 'html.parser')
@@ -681,13 +701,37 @@ def get_finviz_market_tide():
                             tide_data['SMA50_Below'] = val_r
                         elif "SMA200" in full_div_text:
                             tide_data['SMA200_Above'] = val_l
-                            tide_data['SMA200_Above'] = val_l
                             tide_data['SMA200_Below'] = val_r
-                            
-        return tide_data
+        
+        # Check if we got valid Adv/Dec data (non-zero)
+        adv = tide_data.get('Advancing', 0)
+        dec = tide_data.get('Declining', 0)
+        
+        if adv > 0 or dec > 0:
+            # Valid data, save to cache
+            tide_data['_cached_at'] = datetime.datetime.now().isoformat()
+            try:
+                with open(TIDE_CACHE_FILE, 'w') as f:
+                    json.dump({'data': tide_data, 'timestamp': tide_data['_cached_at']}, f)
+                print(f"    ✅ Market Tide data cached (Adv: {adv}, Dec: {dec})")
+            except Exception as e:
+                print(f"    ⚠️ Failed to save tide cache: {e}")
+            return tide_data
+        else:
+            # Market closed, use cache if available
+            if cached_data:
+                print(f"    → Market closed, using cached tide data from {cache_timestamp}")
+                return cached_data
+            else:
+                print(f"    ⚠️ Market closed and no cache available")
+                return tide_data
                             
     except Exception as e:
         print(f"    ⚠️ Error scraping Finviz Home: {e}")
+        # Return cached data if available
+        if cached_data:
+            print(f"    → Using cached tide data due to error")
+            return cached_data
         return None
 
 finviz_headers = {
@@ -1617,6 +1661,26 @@ def generate_swing_trading_html(data=None):
         sma200_below = safe_int_tide(tide.get('SMA200_Below', '0'))
         sma200_total = sma200_above + sma200_below
         sma200_pct = (sma200_above / sma200_total * 100) if sma200_total > 0 else 0
+        
+        # Format cache timestamp
+        tide_timestamp_str = ""
+        if tide and '_cached_at' in tide:
+            try:
+                cached_time = datetime.datetime.fromisoformat(tide['_cached_at'])
+                now = datetime.datetime.now()
+                delta = now - cached_time
+                
+                hours = delta.total_seconds() / 3600
+                if hours < 1:
+                    minutes = int(delta.total_seconds() / 60)
+                    tide_timestamp_str = f" • Actualizat acum {minutes} min"
+                elif hours < 24:
+                    tide_timestamp_str = f" • Actualizat acum {int(hours)} h"
+                else:
+                    days = int(hours / 24)
+                    tide_timestamp_str = f" • Actualizat acum {days} zile"
+            except:
+                pass
 
     tide_html = f"""
         <!-- 8. MARKET TIDE CARD (FINVIZ FULL) -->
@@ -1688,7 +1752,7 @@ def generate_swing_trading_html(data=None):
                  {t_msg}
             </div>
             <div style="font-size: 9px; color: #888; margin-top: 4px; text-align: center;">
-                Sursă: Finviz Home Page
+                Sursă: Finviz Home Page{tide_timestamp_str}
             </div>
         </div>
         """
