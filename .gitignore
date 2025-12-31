@@ -2,3 +2,12 @@ ibkr_config.txt
 password.txt
 gemini_key.txt
 dashboard.log
+
+# Debug scripts
+cleanup_analysis.py
+patch_analysis.py
+debug_*.py
+finviz_status.txt
+
+# Logs
+*.log
