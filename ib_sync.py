@@ -496,13 +496,22 @@ def sync_ibkr():
                  print(f"Eroare merge, suprascriere: {e}")
         
         # CLEANUP: When TWS is primary, remove positions not in TWS (sold positions)
-        # but preserve Tradeville positions (they don't come from TWS)
+        # but preserve ALL manual positions from tradeville_portfolio.csv
         if use_tws_primary and len(tws_symbols) > 0:
             original_count = len(new_df)
-            # Keep only: TWS symbols + Tradeville symbols (ending with .RO or from tradeville_portfolio)
-            tradeville_mask = new_df['Symbol'].str.endswith('.RO', na=False) | new_df['Symbol'].str.contains('tradeville', case=False, na=False)
+            # Load manual symbols from tradeville file
+            manual_symbols = set()
+            if os.path.exists(MANUAL_FILE):
+                try:
+                    manual_df = pd.read_csv(MANUAL_FILE)
+                    manual_symbols = set(manual_df['Symbol'].dropna().astype(str).str.strip())
+                except:
+                    pass
+            
+            # Keep: TWS symbols + Manual tradeville symbols
+            manual_mask = new_df['Symbol'].isin(manual_symbols)
             tws_mask = new_df['Symbol'].isin(tws_symbols)
-            new_df = new_df[tws_mask | tradeville_mask]
+            new_df = new_df[tws_mask | manual_mask]
             removed = original_count - len(new_df)
             if removed > 0:
                 print(f"  -> Cleaned up {removed} sold positions (not in TWS anymore)")
