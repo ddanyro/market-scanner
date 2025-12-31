@@ -6,6 +6,8 @@ import yfinance as yf
 import numpy as np
 import json
 import os
+import re
+from bs4 import BeautifulSoup
 
 # Dicționar de interpretare a evenimentelor
 EVENT_DESCRIPTIONS = {
@@ -611,6 +613,181 @@ def check_market_structure_break(hist):
 
 # --- SWING TRADING COMPONENT ---
 
+def get_finviz_market_tide():
+    """
+    Scrapes Finviz Home Page for Market Tide data:
+    - Advancing vs Declining
+    - New Highs vs New Lows
+    - Above vs Below SMA50/SMA200
+    """
+    url = "https://finviz.com"
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://finviz.com/',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Connection': 'keep-alive'
+    }
+    
+    tide_data = {}
+    
+    try:
+        # Increase timeout to 10s to avoid flakes
+        r = requests.get(url, headers=headers, timeout=10)
+        
+        if r.status_code != 200:
+            print(f"    ⚠️ Finviz Home Page Error: {r.status_code}")
+            return None
+            
+        soup = BeautifulSoup(r.text, 'html.parser')
+        
+        # Find all market stats blocks
+        stats_divs = soup.find_all('div', class_='market-stats')
+        
+        for div in stats_divs:
+            # Helper to extract value in parenthesis or plain number
+            def extract_val(param_text):
+                # Matches: "23.3% (68)" -> 68, "(3391) 61.2%" -> 3391
+                match = re.search(r'\((\d+)\)', param_text)
+                if match:
+                    return int(match.group(1))
+                return None
+                
+            labels_left = div.find('div', class_='market-stats_labels_left')
+            labels_right = div.find('div', class_='market-stats_labels_right')
+            
+            if labels_left and labels_right:
+                left_ps = labels_left.find_all('p')
+                right_ps = labels_right.find_all('p')
+                
+                if len(left_ps) >= 2 and len(right_ps) >= 2:
+                    label_l = left_ps[0].get_text(strip=True)
+                    val_l_str = left_ps[1].get_text(strip=True)
+                    val_l = extract_val(val_l_str)
+                    
+                    val_r_str = right_ps[1].get_text(strip=True)
+                    val_r = extract_val(val_r_str)
+                    
+                    if val_l is not None and val_r is not None:
+                        full_div_text = div.get_text()
+                        if "Advancing" in label_l:
+                            tide_data['Advancing'] = val_l
+                            tide_data['Declining'] = val_r
+                        elif "New High" in label_l:
+                            tide_data['NewHighs'] = val_l
+                            tide_data['NewLows'] = val_r
+                        elif "SMA50" in full_div_text:
+                            tide_data['SMA50_Above'] = val_l
+                            tide_data['SMA50_Below'] = val_r
+                        elif "SMA200" in full_div_text:
+                            tide_data['SMA200_Above'] = val_l
+                            tide_data['SMA200_Above'] = val_l
+                            tide_data['SMA200_Below'] = val_r
+                            
+        return tide_data
+                            
+    except Exception as e:
+        print(f"    ⚠️ Error scraping Finviz Home: {e}")
+        return None
+
+finviz_headers = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+}
+
+def get_finviz_count(filter_type):
+    """Get count of S&P 500 stocks above a moving average from Finviz"""
+    url = f'https://finviz.com/screener.ashx?v=111&f=idx_sp500,ta_{filter_type}_pa'
+    try:
+        r = requests.get(url, headers=finviz_headers, timeout=5) # Short timeout
+        match = re.search(r'(\d+)\s*Total', r.text)
+        if match:
+            return int(match.group(1)), 505
+    except:
+        pass
+    return None, 505
+
+def get_fallback_breadth():
+    """Fallback: Calculate breadth using Top ~400 US Stocks + Sector ETFs via Yahoo Finance"""
+    
+    # Try to load expanded list from JSON
+    full_list = []
+    json_file = "sp500_tickers.json"
+    if os.path.exists(json_file):
+        try:
+            with open(json_file, 'r') as f:
+                full_list = json.load(f)
+            print(f"    -> Loaded {len(full_list)} tickers from {json_file}")
+        except Exception as e:
+            print(f"    ⚠️ Error loading {json_file}: {e}")
+    
+    # Fallback to hardcoded list if JSON missing/empty
+    if not full_list:
+            # 1. Sector ETFs (Base)
+        etfs = ['XLK', 'XLF', 'XLV', 'XLY', 'XLP', 'XLE', 'XLI', 'XLB', 'XLU', 'XLC', 'XLRE']
+        # 2. Magnificent 7 + Big Tech
+        tech = ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'META', 'TSLA', 'AVGO', 'AMD', 'CRM', 'ADBE', 'NFLX', 'INTC', 'QCOM', 'TXN', 'ORCL', 'CSCO']
+        # 3. Financials
+        fin = ['JPM', 'BAC', 'WFC', 'V', 'MA', 'GS', 'MS', 'BLK', 'AXP', 'C']
+        # 4. Healthcare
+        health = ['LLY', 'UNH', 'JNJ', 'MRK', 'ABBV', 'PFE', 'TMO', 'ABT', 'BMY', 'CVS']
+        # 5. Consumer
+        cons = ['WMT', 'PG', 'COST', 'KO', 'PEP', 'HD', 'MCD', 'NKE', 'SBUX', 'DIS', 'PM', 'MO']
+        # 6. Industrial / Energy / Others
+        ind = ['CAT', 'DE', 'XOM', 'CVX', 'GE', 'UPS', 'BA', 'LMT', 'HON', 'UNP', 'RTX', 'MMM']
+        
+        full_list = list(set(etfs + tech + fin + health + cons + ind))
+        print(f"    -> Using hardcoded fallback ({len(full_list)} tickers)")
+
+    try:
+        # Batch download for speed
+        # period='6mo' is enough for SMA50. For SMA200 we need ~1y (252 trading days)
+        # Split huge list into chunks of 100 to avoid URL length issues or timeouts
+        chunk_size = 100
+        all_tickers = list(set(full_list))
+        total_tickers = len(all_tickers)
+        
+        # Setup master dataframe
+        frames = []
+        
+        # Single massive download is usually fine for <500 tickers in yfinance
+        df = yf.download(all_tickers, period="1y", progress=False, auto_adjust=True)['Close']
+        
+        if df.empty: return None
+        
+        # Get latest prices
+        current_prices = df.iloc[-1]
+        
+        # Calculate SMAs
+        sma50 = df.rolling(window=50).mean().iloc[-1]
+        sma200 = df.rolling(window=200).mean().iloc[-1]
+        
+        count_50 = 0
+        count_200 = 0
+        valid_count = 0
+        
+        for ticker in all_tickers:
+            if ticker in current_prices and not pd.isna(current_prices[ticker]):
+                price = current_prices[ticker]
+                mav50 = sma50.get(ticker, 0)
+                mav200 = sma200.get(ticker, 0)
+                
+                # Only count if we have valid SMA data (not NaN)
+                if pd.notna(mav50) and pd.notna(mav200) and mav50 > 0:
+                    valid_count += 1
+                    if price > mav50: count_50 += 1
+                    if price > mav200: count_200 += 1
+        
+        return {
+            'above_50': count_50,
+            'above_200': count_200,
+            'total': valid_count,
+            'source': f'Top {valid_count} US Stocks'
+        }
+    except Exception as e:
+        print(f"Error fetching Fallback Breadth: {e}")
+        return None
+
+
 def get_swing_trading_data(data=None):
     """ Fetches data for Swing Trading Analysis including historical context. """
     if data is None: data = {}
@@ -733,132 +910,28 @@ def get_swing_trading_data(data=None):
     except Exception as e:
         print(f"Error Swing Data (SKEW): {e}")
 
-    # 1e. Market Breadth - % of S&P 500 stocks above SMA200/SMA50 (from Finviz)
+
+
+
+    # 1e. Market Breadth Analysis
     try:
-        import re
-        finviz_headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-        
-        def get_finviz_count(filter_type):
-            """Get count of S&P 500 stocks above a moving average from Finviz"""
-            url = f'https://finviz.com/screener.ashx?v=111&f=idx_sp500,ta_{filter_type}_pa'
-            try:
-                r = requests.get(url, headers=finviz_headers, timeout=5) # Short timeout
-                match = re.search(r'(\d+)\s*Total', r.text)
-                if match:
-                    return int(match.group(1))
-            except:
-                pass
-            return None
-            
-        def get_fallback_breadth():
-            """Fallback: Calculate breadth using Top ~400 US Stocks + Sector ETFs via Yahoo Finance"""
-            
-            # Try to load expanded list from JSON
-            full_list = []
-            json_file = "sp500_tickers.json"
-            if os.path.exists(json_file):
-                try:
-                    with open(json_file, 'r') as f:
-                        full_list = json.load(f)
-                    print(f"    -> Loaded {len(full_list)} tickers from {json_file}")
-                except Exception as e:
-                    print(f"    ⚠️ Error loading {json_file}: {e}")
-            
-            # Fallback to hardcoded list if JSON missing/empty
-            if not full_list:
-                 # 1. Sector ETFs (Base)
-                etfs = ['XLK', 'XLF', 'XLV', 'XLY', 'XLP', 'XLE', 'XLI', 'XLB', 'XLU', 'XLC', 'XLRE']
-                # 2. Magnificent 7 + Big Tech
-                tech = ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'META', 'TSLA', 'AVGO', 'AMD', 'CRM', 'ADBE', 'NFLX', 'INTC', 'QCOM', 'TXN', 'ORCL', 'CSCO']
-                # 3. Financials
-                fin = ['JPM', 'BAC', 'WFC', 'V', 'MA', 'GS', 'MS', 'BLK', 'AXP', 'C']
-                # 4. Healthcare
-                health = ['LLY', 'UNH', 'JNJ', 'MRK', 'ABBV', 'PFE', 'TMO', 'ABT', 'BMY', 'CVS']
-                # 5. Consumer
-                cons = ['WMT', 'PG', 'COST', 'KO', 'PEP', 'HD', 'MCD', 'NKE', 'SBUX', 'DIS', 'PM', 'MO']
-                # 6. Industrial / Energy / Others
-                ind = ['CAT', 'DE', 'XOM', 'CVX', 'GE', 'UPS', 'BA', 'LMT', 'HON', 'UNP', 'RTX', 'MMM']
-                
-                full_list = list(set(etfs + tech + fin + health + cons + ind))
-                print(f"    -> Using hardcoded fallback ({len(full_list)} tickers)")
-
-            try:
-                # Batch download for speed
-                # period='6mo' is enough for SMA50. For SMA200 we need ~1y (252 trading days)
-                # Split huge list into chunks of 100 to avoid URL length issues or timeouts
-                chunk_size = 100
-                all_tickers = list(set(full_list))
-                total_tickers = len(all_tickers)
-                
-                # Setup master dataframe
-                frames = []
-                
-                for i in range(0, total_tickers, chunk_size):
-                    chunk = all_tickers[i:i + chunk_size]
-                    try:
-                        # auto_adjust=True default in newer yfinance, explicit helps
-                        df_chunk = yf.download(chunk, period="1y", progress=False, group_by='ticker', auto_adjust=True)
-                        
-                        # yfinance structure varies by number of tickers. 
-                        # If multi-ticker: columns are MultiIndex (Ticker, PriceType)
-                        # If single thicker: columns are Index (PriceType)
-                        # We need Close prices.
-                        
-                        # Simplified extraction:
-                        # yf.download with group_by='ticker' returns (Ticker, OHLCV).
-                        # We need to extract 'Close' for each.
-                        
-                        # Alternative: Just get 'Close' directly?
-                        # df = yf.download(..., auto_adjust=True)['Close']
-                        # This works best for batch.
-                        pass
-                    except: pass
-                
-                # Single massive download is usually fine for <500 tickers in yfinance
-                df = yf.download(all_tickers, period="1y", progress=False, auto_adjust=True)['Close']
-                
-                if df.empty: return None, None
-                
-                # Get latest prices
-                current_prices = df.iloc[-1]
-                
-                # Calculate SMAs
-                sma50 = df.rolling(window=50).mean().iloc[-1]
-                sma200 = df.rolling(window=200).mean().iloc[-1]
-                
-                count_50 = 0
-                count_200 = 0
-                valid_count = 0
-                
-                for ticker in all_tickers:
-                    if ticker in current_prices and not pd.isna(current_prices[ticker]):
-                        price = current_prices[ticker]
-                        mav50 = sma50.get(ticker, 0)
-                        mav200 = sma200.get(ticker, 0)
-                        
-                        # Only count if we have valid SMA data (not NaN)
-                        if pd.notna(mav50) and pd.notna(mav200) and mav50 > 0:
-                            valid_count += 1
-                            if price > mav50: count_50 += 1
-                            if price > mav200: count_200 += 1
-                        
-                return {
-                    'above_50': count_50,
-                    'above_200': count_200,
-                    'total': valid_count,
-                    'source': f'Top {valid_count} US Stocks'
-                }
-            except Exception as e:
-                print(f"Error fetching Fallback Breadth: {e}")
-                return None
-
         sp500_total = 505  # Approximate S&P 500 count
         
+        # 1e. Market Breadth Full Tide (from Finviz Home)
+        try:
+            tide = get_finviz_market_tide()
+            if tide:
+                data['Market_Tide'] = tide
+                print(f"    -> Market Tide: Adv {tide.get('Advancing', '?')}/{tide.get('Declining', '?')}, Highs {tide.get('NewHighs', '?')}/{tide.get('NewLows', '?')}")
+        except Exception as e:
+            print(f"    ⚠️ Error fetching Market Tide: {e}")
+
         # Try Finviz First
-        above_200 = get_finviz_count('sma200')
-        above_50 = get_finviz_count('sma50')
+        res_200 = get_finviz_count('sma200')
+        res_50 = get_finviz_count('sma50')
+        
+        above_200 = res_200[0] if res_200 else None
+        above_50 = res_50[0] if res_50 else None
         
         breadth_source = "Finviz"
         
@@ -1109,6 +1182,9 @@ def generate_swing_trading_html(data=None):
     # Market Breadth Interpretation (% stocks above SMA50)
     # Market Breadth Interpretation (% stocks above SMA50)
     # Check if data exists - explicit check to avoid defaults masking failure
+    breadth_quality = None
+    breadth_quality_color = "#9e9e9e"
+    
     if 'Breadth_Pct' in data and data['Breadth_Pct'] is not None:
         breadth_pct = data['Breadth_Pct']
         breadth_above = data.get('Breadth_Above', 0)
@@ -1307,6 +1383,29 @@ def generate_swing_trading_html(data=None):
         verdict_reason = "Trend DOWN (Bear Market)"
         verdict_expl = "Ambii indici (SPX și NDX) sunt sub SMA200. Statistic, pozițiile Long au rată mică de succes. Păstrează cash sau joacă defensiv."
 
+    # 2b. Market Tide Breadth Check (Tie-breaker)
+    tide = data.get('Market_Tide')
+    if tide:
+        adv = tide.get('Advancing', 0) or 0
+        dec = tide.get('Declining', 0) or 0
+        new_highs = tide.get('NewHighs', 0) or 0
+        new_lows = tide.get('NewLows', 0) or 0
+        
+        # A. Internal Weakness (New Lows > New Highs)
+        if new_lows > new_highs and both_bullish:
+             verdict = "WAIT (INTERNAL ROT)"
+             verdict_color = "#ff9800"
+             verdict_reason = f"New Lows ({new_lows}) > Highs ({new_highs})"
+             verdict_expl = f"Deși indicii principali arată bine, sub capotă piața sângerează ({new_lows} minime noi vs {new_highs} maxime). Această divergență precede adesea o corecție majoră. Fii precaut."
+        
+        # B. Panic Selling Verification (Falling Knife)
+        elif verdict == "WAIT DIP" and "Falling Knife" in verdict_reason:
+            if dec > 2 * adv:
+                 verdict_expl += f" 📉 Confirmat de Market Breadth: {dec} acțiuni scad vs {adv} cresc. Vânzare generalizată."
+            elif adv > dec:
+                 # Divergence: Price down (Fear) but Breadth Up?
+                 verdict_expl += f" ⚠️ Notă: Deși sentimentul e rău, Breadth-ul e pozitiv ({adv} > {dec}). Ar putea fi o sperietură falsă (dip buyable)."
+
     if panic_signal and both_bullish and both_timing:
         verdict += " (STRONG)"
         verdict_expl += " Panica semnalată de Put/Call confirmă un potențial minim local iminent."
@@ -1386,6 +1485,15 @@ def generate_swing_trading_html(data=None):
     
     if spx_confirmations:
         spx_verdict_text += " | " + " | ".join(spx_confirmations)
+
+    # --- SAFETY LOCK: Market Tide Override (SPX) ---
+    if tide:
+        t_nh = tide.get('NewHighs', 0) or 0
+        t_nl = tide.get('NewLows', 0) or 0
+        if t_nl > t_nh and spx_verdict in ["BUY", "WAIT DIP"]:
+            spx_verdict = "WAIT (INTERNAL ROT)"
+            spx_verdict_color = "#ff9800"
+            spx_verdict_text = f"⛔ SAFETY LOCK: New Lows ({t_nl}) > Highs ({t_nh}). Piața sângerează intern. Ignoră semnalele Bullish."
     
     # --- Individual NDX Verdict ---
     if ndx_trend_bullish:
@@ -1432,8 +1540,140 @@ def generate_swing_trading_html(data=None):
     
     if ndx_confirmations:
         ndx_verdict_text += " | " + " | ".join(ndx_confirmations)
+
+    # --- SAFETY LOCK: Market Tide Override (NDX) ---
+    if tide:
+        t_nh = tide.get('NewHighs', 0) or 0
+        t_nl = tide.get('NewLows', 0) or 0
+        if t_nl > t_nh and ndx_verdict in ["BUY TECH", "WAIT TECH"]:
+            ndx_verdict = "WAIT (INTERNAL ROT)"
+            ndx_verdict_color = "#ff9800"
+            ndx_verdict_text = f"⛔ SAFETY LOCK: New Lows ({t_nl}) > Highs ({t_nh}). Risk de corecție Tech. Așteaptă stabilizare."
     
     uid = str(int(datetime.datetime.now().timestamp()))
+
+    # Logic for Market Tide HTML
+    # Logic for Market Tide HTML
+    tide_html = ""
+    tide = data.get('Market_Tide')
+    
+    # Defaults
+    t_adv = 0; t_dec = 0; t_nh = 0; t_nl = 0
+    t_adv_pct = 0; t_dec_pct = 0; t_nh_pct = 0; t_nl_pct = 0
+    t_label = "OFFLINE"
+    t_color = "#9e9e9e"
+    t_msg = "Date indisponibile (Finviz)"
+    
+    if tide:
+        t_adv = tide.get('Advancing', 0) or 0
+        t_dec = tide.get('Declining', 0) or 0
+        total_issues = t_adv + t_dec
+        t_adv_pct = (t_adv / total_issues * 100) if total_issues else 0
+        t_dec_pct = (t_dec / total_issues * 100) if total_issues else 0
+        
+        t_nh = tide.get('NewHighs', 0) or 0
+        t_nl = tide.get('NewLows', 0) or 0
+        total_hl = t_nh + t_nl
+        t_nh_pct = (t_nh / total_hl * 100) if total_hl else 0
+        t_nl_pct = (t_nl / total_hl * 100) if total_hl else 0
+        
+        t_label = "NEUTRAL"
+        t_color = "#ff9800"
+        t_msg = "Piață Mixtă"
+        
+        if t_adv > t_dec and t_nh > t_nl:
+             t_label = "BULLISH"
+             t_color = "#4caf50"
+             t_msg = "Piață Puternică"
+        elif t_dec > t_adv and t_nl > t_nh:
+             t_label = "BEARISH"
+             t_color = "#f44336"
+             t_msg = "Piață Slabă"
+        elif t_nl > t_nh:
+             t_label = "WEAKNESS"
+             t_color = "#f44336"
+             t_msg = "slăbiciune Internă"
+        elif t_nh > t_nl and t_adv < t_dec:
+             t_label = "DIVERGENCE"
+             t_msg = "Divergență (Highs vs Breadth)"
+
+
+    tide_html = f"""
+        <!-- 8. MARKET TIDE CARD (FINVIZ FULL) -->
+        <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                <div>
+                    <span style="font-weight: 600; color: #555;">🌊 Market Tide (Full US)</span>
+                    <div style="font-size: 10px; color: #999;">Advance/Decline lines & New Highs/Lows</div>
+                </div>
+                <div style="text-align: right;">
+                     <div style="font-weight: 800; color: {t_color};">{t_label}</div>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <!-- Adv/Dec -->
+                <div style="background: #fafafa; padding: 8px; border-radius: 6px; text-align: center;">
+                    <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Advance / Decline</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700;">
+                        <span style="color: #4caf50;">{t_adv} ({t_adv_pct:.0f}%)</span>
+                        <span style="color: #f44336;">{t_dec} ({t_dec_pct:.0f}%)</span>
+                    </div>
+                    <div style="height: 4px; background: #eee; border-radius: 2px; margin-top: 4px; overflow: hidden; display: flex;">
+                        <div style="width: {t_adv_pct}%; background: #4caf50;"></div>
+                        <div style="width: {t_dec_pct}%; background: #f44336;"></div>
+                    </div>
+                </div>
+                
+                <!-- Highs/Lows -->
+                <div style="background: #fafafa; padding: 8px; border-radius: 6px; text-align: center;">
+                    <div style="font-size: 11px; color: #666; margin-bottom: 4px;">New Highs / Lows</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700;">
+                        <span style="color: #4caf50;">{t_nh} ({t_nh_pct:.0f}%)</span>
+                        <span style="color: #f44336;">{t_nl} ({t_nl_pct:.0f}%)</span>
+                    </div>
+                    </div>
+                </div>
+                
+                <!-- SMA 50 -->
+                <div style="background: #fafafa; padding: 8px; border-radius: 6px; text-align: center;">
+                    <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Above/Below SMA 50</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700;">
+                        <span style="color: #4caf50;">{tide.get('SMA50_Above', 'N/A')}</span>
+                        <span style="color: #f44336;">{tide.get('SMA50_Below', 'N/A')}</span>
+                    </div>
+                     <div style="height: 4px; background: #eee; border-radius: 2px; margin-top: 4px; overflow: hidden; display: flex;">
+                        <div style="width: 50%; background: #4caf50;"></div>
+                        <div style="width: 50%; background: #f44336;"></div>
+                    </div>
+                    <div style="font-size: 9px; color: #999; margin-top: 2px;">Data Available</div>
+                </div>
+
+                <!-- SMA 200 -->
+                 <div style="background: #fafafa; padding: 8px; border-radius: 6px; text-align: center;">
+                    <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Above/Below SMA 200</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700;">
+                        <span style="color: #4caf50;">{tide.get('SMA200_Above', 'N/A')}</span>
+                        <span style="color: #f44336;">{tide.get('SMA200_Below', 'N/A')}</span>
+                    </div>
+                     <div style="height: 4px; background: #eee; border-radius: 2px; margin-top: 4px; overflow: hidden; display: flex;">
+                        <div style="width: 50%; background: #4caf50;"></div>
+                        <div style="width: 50%; background: #f44336;"></div>
+                    </div>
+                     <div style="font-size: 9px; color: #999; margin-top: 2px;">Data Available</div>
+                </div>
+                
+            </div>
+            
+            <div style="font-size: 11px; color: {t_color}; margin-top: 10px; text-align: center; font-weight: 500;">
+                 {t_msg}
+            </div>
+            <div style="font-size: 9px; color: #888; margin-top: 4px; text-align: center;">
+                Sursă: Finviz Home Page
+            </div>
+        </div>
+        """
+
 
     html = f"""
     <div style="margin: 32px 0; background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
@@ -1630,6 +1870,8 @@ def generate_swing_trading_html(data=None):
                         {breadth_subtext}
                     </div>
                 </div>
+
+                {tide_html}
 
             </div>
 
