@@ -1889,10 +1889,10 @@ def generate_swing_trading_html(data=None):
                         {breadth_subtext}
                     </div>
                 </div>
-
-                {tide_html}
-
             </div>
+
+            <!-- MARKET TIDE CARD (Full Width) -->
+            {tide_html}
 
             <!-- SECTION 1b: NASDAQ (Tech Motor) -->
             <div style="margin-bottom: 32px;">
