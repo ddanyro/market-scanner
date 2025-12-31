@@ -1598,6 +1598,26 @@ def generate_swing_trading_html(data=None):
              t_msg = "Divergență (Highs vs Breadth)"
 
 
+        # Helper to safely parse int
+        def safe_int_tide(val):
+            try:
+                if isinstance(val, str):
+                    return int(val.replace(',', ''))
+                return int(val)
+            except:
+                return 0
+
+        # Create SMA50/SMA200 Percentages
+        sma50_above = safe_int_tide(tide.get('SMA50_Above', '0'))
+        sma50_below = safe_int_tide(tide.get('SMA50_Below', '0'))
+        sma50_total = sma50_above + sma50_below
+        sma50_pct = (sma50_above / sma50_total * 100) if sma50_total > 0 else 0
+        
+        sma200_above = safe_int_tide(tide.get('SMA200_Above', '0'))
+        sma200_below = safe_int_tide(tide.get('SMA200_Below', '0'))
+        sma200_total = sma200_above + sma200_below
+        sma200_pct = (sma200_above / sma200_total * 100) if sma200_total > 0 else 0
+
     tide_html = f"""
         <!-- 8. MARKET TIDE CARD (FINVIZ FULL) -->
         <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 24px;">
@@ -1639,12 +1659,12 @@ def generate_swing_trading_html(data=None):
                 <div style="background: #fafafa; padding: 8px; border-radius: 6px; text-align: center;">
                     <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Above/Below SMA 50</div>
                     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700;">
-                        <span style="color: #4caf50;">{tide.get('SMA50_Above', 'N/A')}</span>
-                        <span style="color: #f44336;">{tide.get('SMA50_Below', 'N/A')}</span>
+                        <span style="color: #4caf50;">{tide.get('SMA50_Above', 'N/A')} ({sma50_pct:.0f}%)</span>
+                        <span style="color: #f44336;">{tide.get('SMA50_Below', 'N/A')} ({100-sma50_pct:.0f}%)</span>
                     </div>
                      <div style="height: 4px; background: #eee; border-radius: 2px; margin-top: 4px; overflow: hidden; display: flex;">
-                        <div style="width: 50%; background: #4caf50;"></div>
-                        <div style="width: 50%; background: #f44336;"></div>
+                        <div style="width: {sma50_pct}%; background: #4caf50;"></div>
+                        <div style="width: {100-sma50_pct}%; background: #f44336;"></div>
                     </div>
                     <div style="font-size: 9px; color: #999; margin-top: 2px;">Data Available</div>
                 </div>
@@ -1653,12 +1673,12 @@ def generate_swing_trading_html(data=None):
                  <div style="background: #fafafa; padding: 8px; border-radius: 6px; text-align: center;">
                     <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Above/Below SMA 200</div>
                     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700;">
-                        <span style="color: #4caf50;">{tide.get('SMA200_Above', 'N/A')}</span>
-                        <span style="color: #f44336;">{tide.get('SMA200_Below', 'N/A')}</span>
+                        <span style="color: #4caf50;">{tide.get('SMA200_Above', 'N/A')} ({sma200_pct:.0f}%)</span>
+                        <span style="color: #f44336;">{tide.get('SMA200_Below', 'N/A')} ({100-sma200_pct:.0f}%)</span>
                     </div>
                      <div style="height: 4px; background: #eee; border-radius: 2px; margin-top: 4px; overflow: hidden; display: flex;">
-                        <div style="width: 50%; background: #4caf50;"></div>
-                        <div style="width: 50%; background: #f44336;"></div>
+                        <div style="width: {sma200_pct}%; background: #4caf50;"></div>
+                        <div style="width: {100-sma200_pct}%; background: #f44336;"></div>
                     </div>
                      <div style="font-size: 9px; color: #999; margin-top: 2px;">Data Available</div>
                 </div>
