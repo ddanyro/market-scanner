@@ -3100,7 +3100,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Analysts</th>
                         <th>Sector</th>
                         <th style="color: #9c27b0;">Decizie</th>
-                        <th onmouseover="showTooltip(event, '<strong>RS vs SPX (Relative Strength vs S&P 500) pe 60 de zile.</strong><br><br>Reprezintă diferența dintre randamentul acțiunii și randamentul indexului S&P 500 în ultimele 60 de zile.<br><br><em>Exemplu:</em><br>Dacă acțiunea a crescut cu 20% și S&P 500 cu 5% => <strong>RS = +15%</strong>.<br>Dacă valoarea este pozitivă, acțiunea performează mai bine decât piața.')" onmouseout="hideTooltip()" style="cursor: help; text-decoration: underline dotted;">RS vs SPX</th>
+                        <th onmousemove="showTooltip(event, '<strong>RS vs SPX (Relative Strength vs S&P 500) pe 60 de zile.</strong><br><br>Reprezintă diferența dintre randamentul acțiunii și randamentul indexului S&P 500 în ultimele 60 de zile.<br><br><em>Exemplu:</em><br>Dacă acțiunea a crescut cu 20% și S&P 500 cu 5% => <strong>RS = +15%</strong>.<br>Dacă valoarea este pozitivă, acțiunea performează mai bine decât piața.')" onmouseout="hideTooltip()">RS vs SPX</th>
                         <th>Trend</th>
                         <th style="color: #4caf50;">{full_state.get('eco_phase', 'Cycle')}</th>
                         <th style="color: #4dabf7;">{full_state.get('eco_next_phase', 'Next')} (Next)</th>
