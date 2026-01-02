@@ -830,6 +830,29 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         sell_reason = ""
         entry_status = "GOOD"
         
+        # --- WATCHLIST FILTER: RS Falling Check (Pre-filter for BUY recommendations) ---
+        # Prevents recommending stocks with declining RS that would immediately trigger EXIT in portfolio
+        watchlist_rs_failing = False
+        if spx_df is not None and len(df) >= 10 and not spx_df.empty:
+            try:
+                # Calculate RS trend over last 10 days (same as Rule D but with different threshold)
+                stock_acc = df['Close'].tail(15)
+                spx_acc = spx_df['Close'].tail(len(stock_acc))
+                
+                if len(stock_acc) == len(spx_acc):
+                    rs_series = stock_acc / spx_acc
+                    rs_now = rs_series.iloc[-1]
+                    rs_10 = rs_series.iloc[-10] if len(rs_series) >= 10 else rs_series.iloc[0]
+                    
+                    # WATCHLIST THRESHOLD: Exclude stocks with RS decline >5%
+                    # (Portfolio uses 0% threshold for EXIT, this is more lenient for entry)
+                    if rs_now < (rs_10 * 0.95):  # RS dropped >5% in 10 days
+                        watchlist_rs_failing = True
+                        entry_status = "BAD"
+            except Exception as e:
+                # If RS calculation fails, don't penalize (keep entry_status = "GOOD")
+                pass
+        
         try:
             # Rule A: Time Failure (Days >= 5 AND Price <= Entry)
             rule_a = False
