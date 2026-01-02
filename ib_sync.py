@@ -235,6 +235,11 @@ def sync_ibkr():
                                         except:
                                             pass # Keep raw if parse fails, or ignore
                                     
+                                    # FALLBACK: If still no Entry_Date from Flex, use current date
+                                    # (Flex doesn't always provide openDateTime for recent positions)
+                                    if not entry_date:
+                                        entry_date = datetime.now().strftime("%Y-%m-%d")
+                                    
                                     item = {
                                         'Symbol': sym,
                                         'Shares': qty,
