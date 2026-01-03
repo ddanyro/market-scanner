@@ -1467,6 +1467,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
 
         result = {
             'Ticker': ticker,
+            'Currency': currency,
             'Price': round(last_close, 2),
             'Price_Native': round(last_close_native, 2),
             'Target': round(target_val, 2) if target_val else None,
@@ -3262,11 +3263,15 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 s_type = row.get('Smart_Type', 'LIMIT')
                 s_reason = row.get('Smart_Reason', '')
                 
+                # Currency Symbol
+                curr_code = row.get('Currency', 'USD')
+                curr_sym = "$" if curr_code == 'USD' else "€" if curr_code == 'EUR' else "£" if curr_code == 'GBP' else "RON" if curr_code == 'RON' else curr_code
+                
                 icon = "⚡" if s_type == "STOP" else "📉"
                 color = "#E91E63" if s_type == "STOP" else "#2196F3"
                 
-                tooltip_text = f"<strong>{s_type} ORDER @ {s_price:.2f}</strong><br>{s_reason}"
-                smart_entry_html = f'<span style="color: {color}; font-weight: bold; cursor: help;" onmousemove="showTooltip(event, \'{tooltip_text}\')" onmouseout="hideTooltip()">{icon} {s_price:.2f}</span>'
+                tooltip_text = f"<strong>{s_type} ORDER @ {curr_sym}{s_price:.2f}</strong><br>{s_reason}"
+                smart_entry_html = f'<span style="color: {color}; font-weight: bold; cursor: help;" onmousemove="showTooltip(event, \'{tooltip_text}\')" onmouseout="hideTooltip()">{icon} {s_price:.2f} <span style="font-size:0.8em; color:#888;">{curr_sym}</span></span>'
 
             # Sparkline ID
             spark_wl_id = f"spark_wl_{watch_chart_id}"
@@ -4109,22 +4114,24 @@ def update_watchlist_data(state, rates, vix_val):
             # Check cache first
             cached_data = get_cached_watchlist_ticker(state, ticker)
             
-            # Check if we need to backfill Smart Entry for BUY stocks
-            missing_smart_entry = False
-            if cached_data and cached_data.get('Decision') == 'BUY' and not cached_data.get('Smart_Entry'):
-                missing_smart_entry = True
+            # Check if we need to backfill Smart Entry or Currency
+            missing_fields = False
+            if cached_data:
+                # 1. Missing Smart Entry for BUY
+                if cached_data.get('Decision') == 'BUY' and not cached_data.get('Smart_Entry'):
+                    missing_fields = True
+                # 2. Missing Currency (New field)
+                if 'Currency' not in cached_data:
+                    missing_fields = True
 
-            if cached_data and is_fresh(cached_data, ttl_hours=5) and not missing_smart_entry:
+            if cached_data and is_fresh(cached_data, ttl_hours=5) and not missing_fields:
                 # Use cached data
                 watchlist_results.append(cached_data)
                 cached_count += 1
-                if missing_smart_entry:
-                     print(f"  ↻ {ticker} (refreshing for Smart Entry)")
-                else:
-                     print(f"  ✓ {ticker} (cached)")
+                print(f"  ✓ {ticker} (cached)")
             else:
-                if missing_smart_entry:
-                    print(f"  ↻ {ticker} (refreshing for Smart Entry)")
+                if missing_fields:
+                    print(f"  ↻ {ticker} (refreshing for missing fields)")
 
                 # Process ticker
                 data = process_watchlist_ticker(ticker, vix_val, rates)
