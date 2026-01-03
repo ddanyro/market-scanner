@@ -1454,12 +1454,16 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         if checks_passed == 4:
             decision = "BUY"
             decision_color = "#4caf50"
+            # Calculate Smart Entry for BUY stocks
+            s_entry, s_type, s_reason = calculate_smart_entry(df)
         elif checks_passed == 3:
             decision = "WAIT"
             decision_color = "#ff9800"
+            s_entry, s_type, s_reason = None, None, None
         else:
             decision = "AVOID"
             decision_color = "#f44336"
+            s_entry, s_type, s_reason = None, None, None
 
         result = {
             'Ticker': ticker,
@@ -1488,6 +1492,10 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'Decision': decision,
             'Decision_Color': decision_color,
             'Checks_Passed': checks_passed,
+            'Smart_Entry': round(s_entry, 2) if s_entry else None,
+            'Smart_Type': s_type,
+            'Smart_Reason': s_reason,
+
             'Check_Details': " ".join(check_details),
             'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         }
@@ -1499,6 +1507,94 @@ def process_watchlist_ticker(ticker, vix_value, rates):
     except Exception as e:
         print(f"Eroare procesare {ticker}: {e}")
         return None
+
+def calculate_smart_entry(df):
+    """
+    Calculates Smart Entry Price based on Fibs, Support, and Engulfing.
+    Returns: (Entry_Price, Entry_Type, Reason)
+    """
+    if df is None or len(df) < 60:
+        return None, None, None
+
+    try:
+        # Data prep
+        highs = df['High']
+        lows = df['Low']
+        opens = df['Open']
+        closes = df['Close']
+        
+        # 1. Swing Levels (Last 6 months ~ 126 days)
+        lookback = min(len(df), 126)
+        swing_high = float(highs.tail(lookback).max())
+        swing_low = float(lows.tail(lookback).min()) 
+        
+        current_price = float(closes.iloc[-1])
+        
+        # 2. Fibonacci Levels
+        diff = swing_high - swing_low
+        fib_500 = swing_high - (diff * 0.500)
+        fib_618 = swing_high - (diff * 0.618)
+        
+        # 3. Local Support (Last 20 days)
+        local_support = float(lows.tail(20).min())
+        
+        # 4. Pattern Recognition: Bullish Engulfing (Last 2 candles)
+        # Prev candle: Red
+        prev_open = float(opens.iloc[-2])
+        prev_close = float(closes.iloc[-2])
+        is_prev_red = prev_close < prev_open
+        
+        # Curr candle: Green, covers prev body
+        curr_open = float(opens.iloc[-1])
+        curr_close = float(closes.iloc[-1])
+        is_curr_green = curr_close > curr_open
+        
+        # Opens below or at prev close AND Closes above or at prev open
+        is_engulfing = (
+            is_prev_red and 
+            is_curr_green and 
+            curr_open <= prev_close and 
+            curr_close >= prev_open
+        )
+        
+        # --- DECISION LOGIC ---
+        
+        # SCENARIO A: Bullish Engulfing -> BUY STOP
+        if is_engulfing:
+            entry_price = float(highs.iloc[-1]) * 1.001 # 0.1% buffer
+            return entry_price, "STOP", "Bullish Engulfing (Momentum)"
+            
+        # SCENARIO C: Breakout (Near Highs) -> BUY STOP at High
+        # If price is within 2% of Swing High
+        if current_price >= swing_high * 0.98:
+            return swing_high, "STOP", "Breakout (Near Highs)"
+
+        # SCENARIO B: Buy the Dip -> BUY LIMIT
+        # Confluence of Fib 618 and Support
+        # We want the highest "floor" below current price
+        
+        # Candidates for support below current price
+        supports = [s for s in [fib_500, fib_618, local_support] if s < current_price]
+        
+        if not supports:
+            # If all supports are above price (weird downtrend or crashed), 
+            # default to local support or just Fib 618
+            entry_price = fib_618
+        else:
+            # Take the highest valid support (closest to price from below)
+            entry_price = max(supports)
+            
+        # Formatting reason
+        reason = "Fib/Support Confluence"
+        if entry_price == fib_618: reason = "Fib 0.618 Golden Pocket"
+        elif entry_price == fib_500: reason = "Fib 0.50 Retracement"
+        elif entry_price == local_support: reason = "Local Support Test"
+        
+        return entry_price, "LIMIT", reason
+        
+    except Exception as e:
+        # print(f"Smart Entry Error: {e}")
+        return None, None, None
 
 # --- Economic Cycle Logic ---
 def determine_economic_cycle():
@@ -3100,6 +3196,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Analysts</th>
                         <th>Sector</th>
                         <th style="color: #9c27b0;">Decizie</th>
+                        <th style="width: 90px; color: #E91E63;" onmousemove="showTooltip(event, '<strong>Smart Entry Price (Tactic)</strong><br><br>Sugestie de preț bazată pe analiză tehnică (Fibonacci, S/R, Patterns) pentru intrări optimizate.<br><br>⚡ <strong>STOP:</strong> Intrare pe momentum (Breakout/Engulfing).<br>📉 <strong>LIMIT:</strong> Intrare pe corecție (Fib/Support).')" onmouseout="hideTooltip()">Entry</th>
                         <th onmousemove="showTooltip(event, '<strong>RS vs SPX (Relative Strength vs S&P 500) pe 60 de zile.</strong><br><br>Reprezintă diferența dintre randamentul acțiunii și randamentul indexului S&P 500 în ultimele 60 de zile.<br><br><em>Exemplu:</em><br>Dacă acțiunea a crescut cu 20% și S&P 500 cu 5% => <strong>RS = +15%</strong>.<br>Dacă valoarea este pozitivă, acțiunea performează mai bine decât piața.')" onmouseout="hideTooltip()">RS vs SPX</th>
                         <th>Trend</th>
                         <th style="color: #4caf50;">{full_state.get('eco_phase', 'Cycle')}</th>
@@ -3150,6 +3247,20 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             analysts = row.get('Analysts', 0)
             industry = row.get('Industry', '-')
             
+            # Smart Entry Logic (HTML)
+            smart_entry_html = "-"
+            if row.get('Decision') == "BUY" and row.get('Smart_Entry'):
+                s_price = row.get('Smart_Entry')
+                s_type = row.get('Smart_Type', 'LIMIT')
+                s_reason = row.get('Smart_Reason', '')
+                
+                icon = "⚡" if s_type == "STOP" else "📉"
+                color = "#E91E63" if s_type == "STOP" else "#2196F3"
+                
+                tooltip_text = f"<strong>{s_type} ORDER @ {s_price:.2f}</strong><br>{s_reason}"
+                smart_entry_html = f'<span style="color: {color}; font-weight: bold; cursor: help;" onmousemove="showTooltip(event, \'{tooltip_text}\')" onmouseout="hideTooltip()">{icon} {s_price:.2f}</span>'
+
+            # Sparkline ID
             spark_wl_id = f"spark_wl_{watch_chart_id}"
             watch_chart_id += 1
 
@@ -3195,9 +3306,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <td>{analysts}</td>
                         <td style="font-size: 0.8rem; color: #aaa;">{sector}</td>
                         <td style="font-weight: 700; color: {row.get('Decision_Color', '#888')};" onmousemove="showTooltip(event, '{row.get('Check_Details', '')}')" onmouseout="hideTooltip()">{row.get('Decision', '-')} ({row.get('Checks_Passed', 0)}/4)</td>
+                        <td style="text-align: center;">{smart_entry_html}</td>
                         <td style="color: {'#4caf50' if row.get('RS_vs_SPX', 0) and row.get('RS_vs_SPX', 0) > 0 else '#f44336'};">{row.get('RS_vs_SPX', '-') if row.get('RS_vs_SPX') is not None else '-'}%</td>
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
                         <td style="text-align: center;">{fit_now}</td>
+
                         <td style="text-align: center;">{fit_next}</td>
                         <td>{row['RSI']:.0f}</td>
                         <td class="rsi-{rsi_cls}">{row['RSI_Status']}</td>
