@@ -1530,6 +1530,10 @@ def calculate_smart_entry(df):
         
         current_price = float(closes.iloc[-1])
         
+        # Debug 
+        if pd.isna(swing_high) or pd.isna(swing_low) or pd.isna(current_price):
+             print(f"DEBUG: Found NaN | High: {swing_high}, Low: {swing_low}, Price: {current_price}")
+        
         # 2. Fibonacci Levels
         diff = swing_high - swing_low
         fib_500 = swing_high - (diff * 0.500)
@@ -1590,6 +1594,10 @@ def calculate_smart_entry(df):
         elif entry_price == fib_500: reason = "Fib 0.50 Retracement"
         elif entry_price == local_support: reason = "Local Support Test"
         
+        # Check for NaN result
+        if pd.isna(entry_price):
+             return None, None, None
+
         return entry_price, "LIMIT", reason
         
     except Exception as e:
@@ -4101,12 +4109,23 @@ def update_watchlist_data(state, rates, vix_val):
             # Check cache first
             cached_data = get_cached_watchlist_ticker(state, ticker)
             
-            if cached_data and is_fresh(cached_data, ttl_hours=5):
+            # Check if we need to backfill Smart Entry for BUY stocks
+            missing_smart_entry = False
+            if cached_data and cached_data.get('Decision') == 'BUY' and not cached_data.get('Smart_Entry'):
+                missing_smart_entry = True
+
+            if cached_data and is_fresh(cached_data, ttl_hours=5) and not missing_smart_entry:
                 # Use cached data
                 watchlist_results.append(cached_data)
                 cached_count += 1
-                print(f"  ✓ {ticker} (cached)")
+                if missing_smart_entry:
+                     print(f"  ↻ {ticker} (refreshing for Smart Entry)")
+                else:
+                     print(f"  ✓ {ticker} (cached)")
             else:
+                if missing_smart_entry:
+                    print(f"  ↻ {ticker} (refreshing for Smart Entry)")
+
                 # Process ticker
                 data = process_watchlist_ticker(ticker, vix_val, rates)
                 if data:
