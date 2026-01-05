@@ -1668,17 +1668,7 @@ def generate_swing_trading_html(data=None):
             try:
                 cached_time = datetime.datetime.fromisoformat(tide['_cached_at'])
                 now = datetime.datetime.now()
-                delta = now - cached_time
-                
-                hours = delta.total_seconds() / 3600
-                if hours < 1:
-                    minutes = int(delta.total_seconds() / 60)
-                    tide_timestamp_str = f" • Actualizat acum {minutes} min"
-                elif hours < 24:
-                    tide_timestamp_str = f" • Actualizat acum {int(hours)} h"
-                else:
-                    days = int(hours / 24)
-                    tide_timestamp_str = f" • Actualizat acum {days} zile"
+                tide_timestamp_str = f" • Actualizat: {cached_time.strftime('%Y-%m-%d %H:%M')}"
             except:
                 pass
 
