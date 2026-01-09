@@ -1599,11 +1599,13 @@ def generate_swing_trading_html(data=None):
     # Logic for Market Tide HTML
     # Logic for Market Tide HTML
     tide_html = ""
-    tide = data.get('Market_Tide')
+    tide = data.get('Market_Tide') or {}
     
     # Defaults
     t_adv = 0; t_dec = 0; t_nh = 0; t_nl = 0
     t_adv_pct = 0; t_dec_pct = 0; t_nh_pct = 0; t_nl_pct = 0
+    sma50_pct = 0; sma200_pct = 0
+    tide_timestamp_str = ""
     t_label = "OFFLINE"
     t_color = "#9e9e9e"
     t_msg = "Date indisponibile (Finviz)"
