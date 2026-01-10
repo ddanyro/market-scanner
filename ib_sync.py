@@ -72,14 +72,13 @@ def sync_ibkr():
              use_tws_primary = False
              positions = []
 
-    need_flex_pos = not use_tws_primary
-    need_flex_stats = True  # Always fetch stats from Flex (TWS doesn't provide MTD/YTD)
+    # Even if using TWS, we might want Flex for Entry Dates (Enrichment)
+    # But we won't add Flex positions to the main list if TWS is primary
+    need_flex_pos = True 
+    need_flex_stats = True # Restore missing variable
     
-    # When TWS is fresh, we ONLY use TWS positions (no Flex overlay)
-    # This ensures sold positions disappear automatically
-    if use_tws_primary:
-        print(f"  -> TWS is primary. Skipping Flex positions to avoid sold positions reappearing.")
-        need_flex_pos = False
+    flex_enrichment_map = {} # Store metadata (dates) from Flex
+
     
     if need_flex_pos or need_flex_stats:
         print(f"  -> Executare Flex Service... (Pos: {need_flex_pos}, Stats: {need_flex_stats})")
@@ -254,7 +253,12 @@ def sync_ibkr():
                                         'Currency': str(pos.get('currency', 'USD')),
                                         'Entry_Date': entry_date
                                     }
-                                    positions.append(item)
+                                    
+                                    # Always cache metadata for enrichment
+                                    flex_enrichment_map[sym] = entry_date
+                                    
+                                    if not use_tws_primary:
+                                        positions.append(item)
                                 except ValueError:
                                     pass
                             
@@ -307,6 +311,19 @@ def sync_ibkr():
                         print(f"Eroare IBKR Flex: {msg} (Code: {err_code})")
             except Exception as e:
                 print(f"Eroare conexiune API: {e}")
+
+    # === Enrich TWS Positions with Flex Metadata (Entry Dates) ===
+    if use_tws_primary and flex_enrichment_map:
+        print(f"  -> Enriching {len(positions)} TWS positions with Dates from Flex...")
+        count_enriched = 0
+        for p in positions:
+            sym = p['Symbol']
+            # Try exact match or suffix robust match?
+            # TWS might have 'ACHV', Flex 'ACHV'. 
+            if sym in flex_enrichment_map:
+                p['Entry_Date'] = flex_enrichment_map[sym]
+                count_enriched += 1
+        print(f"  -> Enriched {count_enriched} positions with Entry Date.")
 
     # === Integrare Portofoliu Manual (Tradeville/Altele) ===
     MANUAL_FILE = 'tradeville_portfolio.csv'
