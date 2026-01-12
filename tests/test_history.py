@@ -5,17 +5,18 @@ import os
 import pandas as pd
 from datetime import datetime, timedelta
 import market_scanner
+import market_utils
 
 class TestMarketHistory(unittest.TestCase):
     
     def setUp(self):
         # Backup history file path
-        self.original_history_file = market_scanner.MARKET_HISTORY_FILE
-        market_scanner.MARKET_HISTORY_FILE = "test_market_history.json"
+        self.original_history_file = market_utils.MARKET_HISTORY_FILE
+        market_utils.MARKET_HISTORY_FILE = "test_market_history.json"
         
     def tearDown(self):
         # Restore history file path and cleanup
-        market_scanner.MARKET_HISTORY_FILE = self.original_history_file
+        market_utils.MARKET_HISTORY_FILE = self.original_history_file
         if os.path.exists("test_market_history.json"):
             os.remove("test_market_history.json")
 
