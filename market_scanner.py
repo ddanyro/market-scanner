@@ -21,109 +21,21 @@ from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
 from base64 import b64encode
 import json
-from market_scanner_analysis import generate_market_analysis, generate_swing_trading_html, get_swing_trading_data  # Import modul analiză
+from market_scanner_analysis import generate_market_analysis, generate_swing_trading_html, get_swing_trading_data
 import market_scanner_analysis as analysis
+import market_utils
+import market_security
+import market_data
 
-# Global Cache for Finviz Data
-_finviz_cache = {}
 
-STATE_FILE = "dashboard_state.json"
-MARKET_HISTORY_FILE = "market_history.json"
+# REFACTORED: security functions moved to market_security.py
+# REFACTORED: state functions moved to market_utils.py
 
-def encrypt_for_js(data, password):
-    """Criptează datele (JSON string) folosind AES-CBC compatibil cu CryptoJS."""
-    # 1. Generate Salt and Key
-    salt = get_random_bytes(16)
-    # Key derivation: PBKDF2 using SHA256 (default for many) or SHA1. 
-    # CryptoJS default PBKDF2 uses SHA1! We must match. Or specify SHA256 in JS.
-    # Let's use SHA256 for better security and specify it in JS.
-    from Crypto.Hash import SHA256
-    key = PBKDF2(password, salt, dkLen=32, count=1000, hmac_hash_module=SHA256)
-    
-    # 2. Encrypt
-    iv = get_random_bytes(16)
-    cipher = AES.new(key, AES.MODE_CBC, iv)
-    padded_data = pad(data.encode('utf-8'), AES.block_size)
-    ciphertext = cipher.encrypt(padded_data)
-    
-    # 3. Return format
-    return json.dumps({
-        "salt": b64encode(salt).decode('utf-8'),
-        "iv": b64encode(iv).decode('utf-8'),
-        "ciphertext": b64encode(ciphertext).decode('utf-8')
-    })
+# Finviz cache Logic moved to market_data.py
+# _finviz_cache = {} -> market_data._finviz_cache
 
-def load_state():
-    if os.path.exists(STATE_FILE):
-        try:
-            with open(STATE_FILE, 'r') as f:
-                return json.load(f)
-        except:
-            return {}
-    return {}
-
-def save_state(state):
-    with open(STATE_FILE, 'w') as f:
-        json.dump(state, f, indent=2)
-
-def get_finviz_data(ticker):
-    """Preia datele fundamentale de pe Finviz (Target, ATR, Volatility) cu caching."""
-    if ticker in _finviz_cache:
-        # print(f"  [Cache] Finviz data for {ticker}") # Uncomment for debugging cache hits
-        return _finviz_cache[ticker]
-
-    data = {'Target': None, 'ATR': None, 'VolW': None, 'VolM': None}
-    try:
-        # Elimină sufixe pentru tickere europene (de ex: .DE)
-        clean_ticker = ticker.split('.')[0]
-        
-        url = f"https://finviz.com/quote.ashx?t={clean_ticker}"
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
-        }
-        
-        response = requests.get(url, headers=headers, timeout=10)
-        if response.status_code != 200:
-            _finviz_cache[ticker] = data # Cache empty data on failure
-            return data
-            
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Găsim tabelul cu datele fundamentale
-        rows = soup.find_all('tr', class_='table-dark-row')
-        
-        for row in rows:
-            cells = row.find_all('td')
-            for i, cell in enumerate(cells):
-                txt = cell.get_text()
-                if i + 1 >= len(cells): continue
-                
-                val_txt = cells[i+1].get_text().strip()
-                
-                if 'Target Price' in txt:
-                    try:
-                        if val_txt and val_txt != '-':
-                            data['Target'] = float(val_txt.replace('$', '').replace(',', ''))
-                    except: pass
-                elif 'ATR' in txt: # ATR defaults to ATR 14 in finviz
-                     try:
-                        if val_txt and val_txt != '-':
-                             data['ATR'] = float(val_txt)
-                     except: pass
-                elif 'Volatility' in txt:
-                     # Format: "1.50% 2.05%" (Week Month)
-                     try:
-                         parts = val_txt.split()
-                         if len(parts) >= 2:
-                             data['VolW'] = float(parts[0].replace('%', ''))
-                             data['VolM'] = float(parts[1].replace('%', ''))
-                     except: pass
-        
-        _finviz_cache[ticker] = data
-        return data
-    except Exception as e:
-        print(f"  ⚠ Eroare Finviz pentru {ticker}: {str(e)[:50]}")
-        return data
+# get_finviz_data moved to market_data.py
+# load_portfolio remains here (specific to scanner usage)
 
 def load_portfolio(filename='portfolio.csv'):
     """Încarcă portofoliul din CSV."""
@@ -271,15 +183,15 @@ def get_vix_data():
         print(f"Eroare la preluarea VIX: {e}")
         return None
 
-# The original HISTORY_FILE definition was here, now it's MARKET_HISTORY_FILE at the top.
+# The original HISTORY_FILE definition was here, now it's market_utils.MARKET_HISTORY_FILE at the top.
 # import json # This import is already at the top.
 
-# HISTORY_FILE = "market_history.json" # This is now MARKET_HISTORY_FILE at the top.
+# HISTORY_FILE = "market_history.json" # This is now market_utils.MARKET_HISTORY_FILE at the top.
 
 def load_market_history():
-    if os.path.exists(MARKET_HISTORY_FILE):
+    if os.path.exists(market_utils.MARKET_HISTORY_FILE):
         try:
-            with open(MARKET_HISTORY_FILE, 'r') as f:
+            with open(market_utils.MARKET_HISTORY_FILE, 'r') as f:
                 return json.load(f)
         except:
             return {}
@@ -287,7 +199,7 @@ def load_market_history():
 
 def save_market_history(history):
     try:
-        with open(MARKET_HISTORY_FILE, 'w') as f:
+        with open(market_utils.MARKET_HISTORY_FILE, 'w') as f:
             json.dump(history, f, indent=2)
     except Exception as e:
         print(f"Eroare salvare istoric: {e}")
@@ -570,54 +482,9 @@ def get_macro_explanations():
     </div>
     """
 
-def get_scalar(series_val, default=0.0):
-    """Helper pentru extragerea valorilor scalare."""
-    try:
-        if hasattr(series_val, 'item'):
-            return series_val.item()
-        return float(series_val)
-    except:
-        return default
 
-def get_exchange_rates():
-    """Descarcă ratele de schimb pentru conversia la EUR."""
-    rates = {'EUR': 1.0, 'USD': 0.95, 'RON': 0.20, 'GBP': 1.15}
-    try:
-        # Download exchange rates relative to EUR (EURXYZ=X)
-        # EURRON=X -> 1 EUR = x RON
-        # EURUSD=X -> 1 EUR = x USD
-        # EURGBP=X -> 1 EUR = x GBP
-        tickers = "EURRON=X EURUSD=X EURGBP=X"
-        # Descarcă datele (Adjusted Close default now, but explicit is better)
-        data = yf.download(tickers, period="5d", auto_adjust=True, progress=False)
-        
-        if not data.empty:
-            # Handle MultiIndex columns if present
-            if isinstance(data.columns, pd.MultiIndex):
-                # We want 'Close' prices
-                df = data['Close']
-            else:
-                df = data
+# REFACTORED: get_scalar and get_exchange_rates moved to market_data.py
 
-            last = df.iloc[-1]
-            
-            # 1 EUR = val RON => 1 RON = 1/val EUR
-            if 'EURRON=X' in last and not pd.isna(last['EURRON=X']):
-                 val = float(last['EURRON=X'])
-                 if val > 0: rates['RON'] = 1.0 / val
-            
-            if 'EURUSD=X' in last and not pd.isna(last['EURUSD=X']):
-                 val = float(last['EURUSD=X'])
-                 if val > 0: rates['USD'] = 1.0 / val
-            
-            if 'EURGBP=X' in last and not pd.isna(last['EURGBP=X']):
-                 val = float(last['EURGBP=X'])
-                 if val > 0: rates['GBP'] = 1.0 / val
-            
-            print(f"Rates: 1 RON={rates['RON']:.3f}€, 1 USD={rates['USD']:.3f}€")
-    except Exception as e:
-        print(f"Eroare curs valutar: {e}. Folosim fallback.")
-    return rates
 
 def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downtrend=False, breadth_pct=50, rule4_active=False, ticker_cache=None):
     """Procesează un ticker din portofoliu cu date de ownership (Conversie EUR)."""
@@ -659,7 +526,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         buy_price = buy_price_native * rate
         
         # Ia target-ul DOAR de pe Finviz (USD usually)
-        finviz_data = get_finviz_data(ticker)
+        finviz_data = market_data.get_finviz_data(ticker)
         target_usd = finviz_data.get('Target')
         
         target = None
@@ -796,19 +663,19 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         
         last_row = df.iloc[-1]
         
-        current_price_native = get_scalar(last_row['Close'])
+        current_price_native = market_data.get_scalar(last_row['Close'])
         current_price = current_price_native * rate # EUR
         
         # Convert ATR for stops
-        last_atr_native = get_scalar(last_row['ATR'])
+        last_atr_native = market_data.get_scalar(last_row['ATR'])
         if pd.isna(last_atr_native): last_atr_native = 0.0
         last_atr = last_atr_native * rate # EUR
         
-        last_rsi = get_scalar(last_row['RSI'])
+        last_rsi = market_data.get_scalar(last_row['RSI'])
         
         # Native Values for Decision Logic
-        sma_50_native = get_scalar(last_row['SMA_50'])
-        sma_200_native = get_scalar(last_row['SMA_200'])
+        sma_50_native = market_data.get_scalar(last_row['SMA_50'])
+        sma_200_native = market_data.get_scalar(last_row['SMA_200'])
         
         # Converted Values for Portfolio Totals (EUR)
         sma_50 = sma_50_native * rate
@@ -1300,14 +1167,14 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         
         last_row = df.iloc[-1]
         
-        last_close_native = get_scalar(last_row['Close']) 
+        last_close_native = market_data.get_scalar(last_row['Close']) 
         last_close = last_close_native * rate
-        last_atr = get_scalar(last_row['ATR']) * rate
+        last_atr = market_data.get_scalar(last_row['ATR']) * rate
         if pd.isna(last_atr): last_atr = 0.0
         
-        last_rsi = get_scalar(last_row['RSI'])
-        sma_50 = get_scalar(last_row['SMA_50']) * rate
-        sma_200 = get_scalar(last_row['SMA_200']) * rate
+        last_rsi = market_data.get_scalar(last_row['RSI'])
+        sma_50 = market_data.get_scalar(last_row['SMA_50']) * rate
+        sma_200 = market_data.get_scalar(last_row['SMA_200']) * rate
         
         # Preluare Target din Finviz
         # Preluare date din Finviz (Target + Volatility)
@@ -1317,7 +1184,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         vol_m = None
         
         try:
-            finviz_data = get_finviz_data(ticker)
+            finviz_data = market_data.get_finviz_data(ticker)
             target_usd = finviz_data.get('Target')
             finviz_atr = finviz_data.get('ATR')
             vol_w = finviz_data.get('VolW')
@@ -2882,7 +2749,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     if not password: password = "1234" # Fallback
     
     # print(f"  Encrypting Portfolio with password: {password}")
-    encrypted_blob = encrypt_for_js(json.dumps(full_pf_data), password)
+    encrypted_blob = market_security.encrypt_for_js(json.dumps(full_pf_data), password)
     
     html_head += f"""
                 </tbody>
@@ -4071,21 +3938,9 @@ def update_portfolio_data(state, rates, vix_val):
     state['portfolio'] = portfolio_results
     return state
 
-def get_cached_watchlist_ticker(state, ticker):
-    """Returnează datele cached pentru un ticker din watchlist, dacă există."""
-    for item in state.get('watchlist', []):
-        if item.get('Ticker') == ticker:
-            return item
-    return None
 
-def is_fresh(ticker_data, ttl_hours=5):
-    """Verifică dacă datele ticker-ului sunt fresh (mai noi de TTL)."""
-    cached_at = ticker_data.get('_cached_at')
-    if not cached_at:
-        return False
-    import time
-    age_hours = (time.time() - cached_at) / 3600
-    return age_hours < ttl_hours
+# REFACTORED: cache helpers moved to market_data.py
+
 
 def update_watchlist_data(state, rates, vix_val):
     """Actualizează datele din watchlist și le salvează în state."""
@@ -4105,7 +3960,7 @@ def update_watchlist_data(state, rates, vix_val):
         
         for ticker in watchlist_tickers:
             # Check cache first
-            cached_data = get_cached_watchlist_ticker(state, ticker)
+            cached_data = market_data.get_cached_watchlist_ticker(state, ticker)
             
             # Check if we need to backfill Smart Entry or Currency
             missing_fields = False
@@ -4117,7 +3972,7 @@ def update_watchlist_data(state, rates, vix_val):
                 if 'Currency' not in cached_data:
                     missing_fields = True
 
-            if cached_data and is_fresh(cached_data, ttl_hours=5) and not missing_fields:
+            if cached_data and market_data.is_fresh(cached_data, ttl_hours=5) and not missing_fields:
                 # Use cached data
                 watchlist_results.append(cached_data)
                 cached_count += 1
@@ -4156,7 +4011,7 @@ def main():
     print(f"=== Rulează Market Scanner [Mod: {args.mode}] ===\n")
     
     # 1. Încărcăm starea anterioară
-    state = load_state()
+    state = market_utils.load_state()
 
     # 1. Update Portfolio Data
     if args.mode in ['all', 'portfolio']:
@@ -4265,7 +4120,7 @@ def main():
         if not ib_sync.sync_ibkr(): # Dacă sync eșuează, folosim datele vechi + prices
              print("Sync IBKR eșuat sau config lipsă. Se folosesc datele locale existente pentru cantități.")
         
-        # Procesare Portfolio Tickers (Price update) = load_state()
+        # Procesare Portfolio Tickers (Price update) = market_utils.load_state()
     
     # 2. Actualizăm datele globale (Rates, Indicators, VIX) DOAR dacă nu suntem în html-only
     # Le salvăm și pe ele în state pentru consistență
@@ -4275,7 +4130,7 @@ def main():
     
     if args.mode != 'html-only':
         print("=== Actualizare Date Globale ===")
-        rates = get_exchange_rates()
+        rates = market_data.get_exchange_rates()
         state['rates'] = rates
         
         market_indicators = get_market_indicators()
@@ -4301,7 +4156,7 @@ def main():
         state = update_watchlist_data(state, rates, vix_val)
         
     # 4. Salvare Stare
-    save_state(state)
+    market_utils.save_state(state)
     print("\nStarea dashboard-ului a fost salvată.")
     
     # 5. Generare HTML din State
