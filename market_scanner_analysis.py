@@ -1840,8 +1840,8 @@ def generate_swing_trading_html(data=None):
                 <div style="border: 1px solid #eee; border-radius: 8px; padding: 16px; background: #fdfdfd; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                         <div>
-                            <span style="font-weight: 600; color: #555;">Timing (PCR)</span>
-                            <div style="font-size: 10px; color: #999;">Total Market (Vol)</div>
+                            <span style="font-weight: 600; color: #555;">Total PCR (CNN)</span>
+                            <div style="font-size: 10px; color: #999;">Total Market Volume</div>
                         </div>
                         <div style="text-align: right;">
                              <div style="font-weight: 800; color: {pcr_color};">{pcr_text}</div>
@@ -1852,9 +1852,6 @@ def generate_swing_trading_html(data=None):
                     </div>
                     <div style="font-size: 16px; color: {pcr_color}; font-weight: 800; margin-top: 8px; text-align: center;">
                         {pcr_val:.2f}
-                    </div>
-                    <div style="font-size: 10px; color: #777; margin-top: 4px; text-align: center; font-style: italic;">
-                        *Notă: PCR Equity-only poate fi mai mic (~{(pcr_val*0.85):.2f})
                     </div>
                     <div style="font-size: 10px; color: #555; margin-top: 6px; text-align: center; display: flex; justify-content: center; gap: 16px;">
                         <span style="display: flex; align-items: center;"><span style="width: 12px; height: 3px; background: {pcr_color}; margin-right: 4px;"></span>Zilnic: <b style="margin-left: 2px;">{pcr_val:.2f}</b></span>
