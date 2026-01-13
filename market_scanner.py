@@ -3613,13 +3613,13 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         var status = $('#filter-status').val();
                         var decision = $('#filter-decision').val();
 
-                        // Indices: 4: TargetPct, 5: Consensus, 6: Analysts, 8: Decision, 10: Trend, 14: Status
+                        // Indices: 4: TargetPct, 5: Consensus, 6: Analysts, 8: Decision, 11: Trend, 15: Status
                         var rowTargetPct = parseFloat(data[4].replace('%', '')) || -9999;
                         var rowConsensus = data[5] || "";
                         var rowAnalysts = parseFloat(data[6]) || 0;
                         var rowDecision = data[8] || "";
-                        var rowTrend = data[10] || "";
-                        var rowStatus = data[14] || "";
+                        var rowTrend = data[11] || "";
+                        var rowStatus = data[15] || "";
 
                         if (consensus && !rowConsensus.includes(consensus)) return false;
                         if (!isNaN(minAnalysts) && rowAnalysts < minAnalysts) return false;
