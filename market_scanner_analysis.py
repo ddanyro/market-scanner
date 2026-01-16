@@ -858,6 +858,19 @@ def get_swing_trading_data(data=None):
             rs = gain / loss
             hist['RSI'] = 100 - (100 / (1 + rs))
             data['SPX_RSI'] = hist['RSI'].iloc[-1]
+
+            # Weekly RSI (SPX)
+            try:
+                weekly_spx = hist['Close'].resample('W').last()
+                delta_w = weekly_spx.diff()
+                gain_w = (delta_w.where(delta_w > 0, 0)).rolling(window=14).mean()
+                loss_w = (-delta_w.where(delta_w < 0, 0)).rolling(window=14).mean()
+                rs_w = gain_w / loss_w
+                rsi_w = 100 - (100 / (1 + rs_w))
+                data['SPX_RSI_Weekly'] = rsi_w.iloc[-1]
+            except Exception as e:
+                print(f"    ⚠️ Error calc Weekly RSI (SPX): {e}")
+                data['SPX_RSI_Weekly'] = data['SPX_RSI'] # Fallback
             
             lookback = 60
             subset = hist.iloc[-lookback:]
@@ -902,6 +915,19 @@ def get_swing_trading_data(data=None):
             rs_ndx = gain_ndx / loss_ndx
             hist_ndx['RSI'] = 100 - (100 / (1 + rs_ndx))
             data['NDX_RSI'] = hist_ndx['RSI'].iloc[-1]
+
+            # Weekly RSI (NDX)
+            try:
+                weekly_ndx = hist_ndx['Close'].resample('W').last()
+                delta_w_ndx = weekly_ndx.diff()
+                gain_w_ndx = (delta_w_ndx.where(delta_w_ndx > 0, 0)).rolling(window=14).mean()
+                loss_w_ndx = (-delta_w_ndx.where(delta_w_ndx < 0, 0)).rolling(window=14).mean()
+                rs_w_ndx = gain_w_ndx / loss_w_ndx
+                rsi_w_ndx = 100 - (100 / (1 + rs_w_ndx))
+                data['NDX_RSI_Weekly'] = rsi_w_ndx.iloc[-1]
+            except Exception as e:
+                print(f"    ⚠️ Error calc Weekly RSI (NDX): {e}")
+                data['NDX_RSI_Weekly'] = data['NDX_RSI'] # Fallback
             
             lookback = 60
             subset_ndx = hist_ndx.iloc[-lookback:]
@@ -1130,6 +1156,77 @@ def get_swing_trading_data(data=None):
             pass
 
     return data
+
+def calculate_market_bias(data):
+    """
+    Calculates a Market Bias Score (0-100) based on Trend, Volatility, Sentiment, and Breadth.
+    Returns: dict with score, verdict, label_color, breakdwon
+    """
+    score = 0
+    max_score = 0
+    breakdown = []
+
+    # 1. Trend (40%) - SPX Price vs SMA200/SMA50
+    spx_price = data.get('SPX_Price', 0)
+    sma200 = data.get('SPX_SMA200', 0)
+    sma50 = data.get('SPX_SMA50', 0)
+    
+    trend_score = 0
+    if spx_price > sma200: trend_score += 50
+    if spx_price > sma50: trend_score += 50
+    
+    score += trend_score * 0.4
+    breakdown.append(f"Trend: {trend_score}% (Weight 40%)")
+
+    # 2. Volatility (20%) - VIX Level
+    vix = data.get('VIX_Current', 20)
+    vol_score = 0
+    if vix < 20: vol_score = 100
+    elif vix < 25: vol_score = 50
+    else: vol_score = 0 # Panic
+    
+    score += vol_score * 0.2
+    breakdown.append(f"Volatility: {vol_score}% (Weight 20%)")
+
+    # 3. Sentiment (20%) - F&G
+    fg = data.get('FG_Score', 50)
+    sent_score = 0
+    if fg > 75: sent_score = 50 # Extreme Greed (Risk)
+    elif fg > 55: sent_score = 100 # Greed (Good Trend)
+    elif fg > 40: sent_score = 50 # Neutral
+    else: sent_score = 0 # Fear
+    
+    score += sent_score * 0.2
+    breakdown.append(f"Sentiment: {sent_score}% (Weight 20%)")
+
+    # 4. Breadth (20%) - % > SMA50
+    breadth = data.get('Breadth_Pct', 50)
+    breadth_score = 0
+    if breadth > 50: breadth_score = 100
+    else: breadth_score = 0
+    
+    score += breadth_score * 0.2
+    breakdown.append(f"Breadth: {breadth_score}% (Weight 20%)")
+
+    # Final Verdict
+    final_score = int(score)
+    
+    if final_score >= 60:
+        verdict = "BULLISH"
+        color = "#4caf50"
+    elif final_score <= 40:
+        verdict = "BEARISH"
+        color = "#f44336"
+    else:
+        verdict = "NEUTRAL"
+        color = "#ff9800"
+        
+    return {
+        'score': final_score,
+        'verdict': verdict,
+        'color': color,
+        'details': breakdown
+    }
 
 def generate_swing_trading_html(data=None):
     """ Generates HTML Card for Swing Trading with Explicit Numerical Values. """
@@ -1585,6 +1682,22 @@ def generate_swing_trading_html(data=None):
     if ndx_confirmations:
         ndx_verdict_text += " | " + " | ".join(ndx_confirmations)
 
+    # --- Market Bias Calculation ---
+    bias = calculate_market_bias(data)
+    
+    bias_html = f"""
+    <div style="grid-column: 1 / -1; background: {bias['color']}22; border-left: 5px solid {bias['color']}; padding: 15px; border-radius: 5px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+            <div style="font-size: 0.8rem; color: #888; text-transform: uppercase; font-weight: bold;">Market Bias</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: {bias['color']}; letter-spacing: 1px;">{bias['verdict']}</div>
+            <div style="font-size: 0.8rem; color: #aaa;">Score: {bias['score']}/100</div>
+        </div>
+        <div style="text-align: right; font-size: 0.75rem; color: #888; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 15px;">
+            {'<br>'.join(bias['details'])}
+        </div>
+    </div>
+    """
+
     # --- SAFETY LOCK: Market Tide Override (NDX) ---
     if tide:
         t_nh = tide.get('NewHighs', 0) or 0
@@ -1769,6 +1882,9 @@ def generate_swing_trading_html(data=None):
 
         <div style="padding: 24px;">
             
+            <!-- MARKET BIAS CARD -->
+            {bias_html}
+            
             <!-- SECTION 1: METRICS & CHARTS (4 Columns) -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 32px;">
                 
@@ -1874,7 +1990,7 @@ def generate_swing_trading_html(data=None):
                         <canvas id="chart_rsi_{uid}"></canvas>
                     </div>
                     <div style="font-size: 14px; color: {spx_rsi_color}; font-weight: 800; margin-top: 8px; text-align: center;">
-                        RSI: {spx_rsi:.1f}
+                        D: {spx_rsi:.1f} | W: {data.get('SPX_RSI_Weekly', 50):.1f}
                     </div>
                     <div style="font-size: 10px; color: #555; margin-top: 4px; text-align: center;">
                         {spx_rsi_hint}
@@ -2030,7 +2146,7 @@ def generate_swing_trading_html(data=None):
                             <canvas id="chart_ndx_rsi_{uid}"></canvas>
                         </div>
                         <div style="font-size: 14px; color: {ndx_rsi_color}; font-weight: 800; margin-top: 8px; text-align: center;">
-                            RSI: {ndx_rsi:.1f}
+                            D: {ndx_rsi:.1f} | W: {data.get('NDX_RSI_Weekly', 50):.1f}
                         </div>
                         <div style="font-size: 10px; color: #555; margin-top: 4px; text-align: center;">
                             {ndx_rsi_hint}
