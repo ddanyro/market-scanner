@@ -3211,6 +3211,31 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             elif "Reversal" in strat: strat_color = "#9C27B0"
             elif "Range" in strat: strat_color = "#FF9800"
 
+            # Strategy Descriptions (Tooltip)
+            strat_desc = {
+                "Strong Breakout": "<strong>Strong Breakout (Momentum)</strong><br>Prețul crește accelerat cu RSI ridicat.<br>⚡ <strong>Acțiune:</strong> Atenție la condiții de supravânzare (Overbought). Poate urma o corecție scurtă.",
+                "Breakout": "<strong>Breakout</strong><br>Prețul a depășit mediile mobile (SMA50) confirmând forța cumpărătorilor.<br>🚀 <strong>Acțiune:</strong> Setup favorabil pentru intrare pe momentum.",
+                "Pullback": "<strong>Bullish Pullback</strong><br>Trend general crescător, dar prețul a scăzut temporar (oportunitate).<br>📉 <strong>Acțiune:</strong> Caută intrări la un preț mai bun (Buy the Dip).",
+                "Deep Pullback": "<strong>Deep Pullback</strong><br>Corecție mai adâncă în trend crescător (RSI scăzut).<br>⚠️ <strong>Acțiune:</strong> Risc mediu. Așteaptă confirmarea revenirii prețului.",
+                "Reversal (Oversold)": "<strong>Reversal (Oversold)</strong><br>Prețul a scăzut agresiv, RSI sub 30.<br>🔄 <strong>Acțiune:</strong> Posibilă revenire tehnică rapidă (Rebound). Riscant (Catching a falling knife).",
+                "Range / Consolidation": "<strong>Range / Consolidation</strong><br>Prețul oscilează între mediile mobile fără direcție clară.<br>💤 <strong>Acțiune:</strong> Așteaptă un Breakout clar într-o direcție.",
+                "Normal": "<strong>Normal</strong><br>Nu există un setup tehnic specific detectat momentan.<br>👀 <strong>Acțiune:</strong> Monitorizează.",
+                "-": "Date insuficiente."
+            }
+            strat_tooltip = strat_desc.get(strat, strat_desc["Normal"])
+
+            # RSI Tooltip Logic
+            rsi_val = row['RSI']
+            rsi_tooltip = ""
+            if rsi_val >= 70:
+                rsi_tooltip = "<strong>RSI: Overbought (>70)</strong><br>Supra-cumpărat. Prețul a crescut foarte rapid.<br>⚠️ <strong>Acțiune:</strong> Risc crescut de corecție (scădere). Nu cumpăra la vârf."
+            elif 50 <= rsi_val < 70:
+                rsi_tooltip = "<strong>RSI: Bullish (50-70)</strong><br>Momentum pozitiv. Cumpărătorii controlează piața.<br>✅ <strong>Acțiune:</strong> Zonă bună pentru trend following."
+            elif 30 <= rsi_val < 50:
+                rsi_tooltip = "<strong>RSI: Bearish (30-50)</strong><br>Momentum negativ sau neutru-sláb.<br>⛔ <strong>Acțiune:</strong> Prudență. Trendul poate fi descendent."
+            else:
+                rsi_tooltip = "<strong>RSI: Oversold (<30)</strong><br>Supra-vândut. Prețul a scăzut extrem.<br>🔄 <strong>Acțiune:</strong> Posibilă revenire (Bounce) iminentă."
+
             html_head += f"""
                     <tr data-volume="{row.get('Volume', 0)}" data-avgvol="{row.get('Avg_Volume', 0)}" data-rsi="{row['RSI']}" data-rr="{rr_val}">
                         <td><strong style="cursor: pointer; color: #4dabf7; text-decoration: underline;" onclick="goToVolatility('{row['Ticker']}')">{row['Ticker']}</strong></td>
@@ -3226,11 +3251,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <td style="text-align: center;">{smart_entry_html}</td>
                         <td style="color: {'#4caf50' if row.get('RS_vs_SPX', 0) and row.get('RS_vs_SPX', 0) > 0 else '#f44336'};">{row.get('RS_vs_SPX', '-') if row.get('RS_vs_SPX') is not None else '-'}%</td>
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
-                        <td style="font-size: 0.85rem; color: {strat_color};">{strat}</td>
+                        <td style="font-size: 0.85rem; color: {strat_color}; cursor: help;" onmousemove="showTooltip(event, '{strat_tooltip}')" onmouseout="hideTooltip()">{strat}</td>
                         <td style="text-align: center;">{fit_now}</td>
 
                         <td style="text-align: center;">{fit_next}</td>
-                        <td>{row['RSI']:.0f}</td>
+                        <td style="cursor: help;" onmousemove="showTooltip(event, '{rsi_tooltip}')" onmouseout="hideTooltip()">{row['RSI']:.0f}</td>
                         <td class="rsi-{rsi_cls}">{row['RSI_Status']}</td>
                         <td>{row['ATR_14']:.2f}</td>
                         <td>€{row['Stop_Loss']:.2f}</td>
