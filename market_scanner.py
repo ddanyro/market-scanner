@@ -1237,10 +1237,13 @@ def process_watchlist_ticker(ticker, vix_value, rates):
            analysts_count = info.get('numberOfAnalystOpinions', 0)
            industry = info.get('industry', '-')
            sector = info.get('sector', '-')
+           avg_vol_3m = info.get('averageVolume', 0)
+
            # Scurtăm industria dacă e prea lungă
            if len(industry) > 20: industry = industry[:17] + "..."
         except:
-           pass
+           avg_vol_3m = 0
+
 
         # Calculate RS (Relative Strength) vs S&P 500
         rs_vs_spx = None
@@ -1361,9 +1364,18 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'Decision_Color': decision_color,
             'Checks_Passed': checks_passed,
             'Smart_Entry': round(s_entry, 2) if s_entry else None,
-            'Smart_Type': s_type,
-            'Smart_Reason': s_reason,
-
+            # New Fields
+            'Strategy': analysis.classify_strategy({
+                'Price': last_close,
+                'SMA_50': sma_50,
+                'SMA_200': sma_200,
+                'RSI': last_rsi,
+                'Trend': trend
+            }),
+            'RR_Ratio': analysis.calculate_risk_reward(last_close, suggested_stop, target_val) if target_val and suggested_stop else 0,
+            'Volume': int(df['Volume'].iloc[-1]) if 'Volume' in df.columns else 0,
+            'Avg_Volume': avg_vol_3m,
+            
             'Check_Details': " ".join(check_details),
             'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         }
@@ -3049,6 +3061,22 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <option value="AVOID">AVOID</option>
                     </select>
                 </div>
+                <!-- NEW FILTERS (Feedback 2.0) -->
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Min Volume (M)</label>
+                    <input type="number" id="filter-volume" placeholder="0" step="0.1" style="padding: 10px 14px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); width: 100px; font-size: 14px;">
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">RSI Range</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="number" id="filter-rsi-min" placeholder="Min" style="padding: 10px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); width: 70px; font-size: 14px;">
+                        <input type="number" id="filter-rsi-max" placeholder="Max" style="padding: 10px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); width: 70px; font-size: 14px;">
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Min R:R</label>
+                    <input type="number" id="filter-rr" placeholder="0" step="0.1" style="padding: 10px 14px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); width: 80px; font-size: 14px;">
+                </div>
             </div>
 
 
@@ -3061,6 +3089,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Grafic</th>
                         <th>Target</th>
                         <th>To Target</th>
+                        <th onmousemove="showTooltip(event, '<strong>Risk to Reward Ratio</strong><br>Calcul: (Target - Price) / (Price - Stop)<br><br>Raportul dintre potențialul profit și riscul asumat.<br>Minim recomandat: 1:2.')" onmouseout="hideTooltip()">R:R</th>
                         <th>Consensus</th>
                         <th>Analysts</th>
                         <th>Sector</th>
@@ -3068,6 +3097,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th style="width: 90px; color: #E91E63;" onmousemove="showTooltip(event, '<strong>Smart Entry Price (Tactic)</strong><br><br>Sugestie de preț bazată pe analiză tehnică (Fibonacci, S/R, Patterns) pentru intrări optimizate.<br><br>⚡ <strong>STOP:</strong> Intrare pe momentum (Breakout/Engulfing).<br>📉 <strong>LIMIT:</strong> Intrare pe corecție (Fib/Support).')" onmouseout="hideTooltip()">Entry</th>
                         <th onmousemove="showTooltip(event, '<strong>RS vs SPX (Relative Strength vs S&P 500) pe 60 de zile.</strong><br><br>Reprezintă diferența dintre randamentul acțiunii și randamentul indexului S&P 500 în ultimele 60 de zile.<br><br><em>Exemplu:</em><br>Dacă acțiunea a crescut cu 20% și S&P 500 cu 5% => <strong>RS = +15%</strong>.<br>Dacă valoarea este pozitivă, acțiunea performează mai bine decât piața.')" onmouseout="hideTooltip()">RS vs SPX</th>
                         <th>Trend</th>
+                        <th>Strategy</th>
                         <th style="color: #4caf50;">{full_state.get('eco_phase', 'Cycle')}</th>
                         <th style="color: #4dabf7;">{full_state.get('eco_next_phase', 'Next')} (Next)</th>
                         <th>RSI</th>
@@ -3168,13 +3198,27 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 elif diff < 86400: time_ago = f"{int(diff//3600)}h"
                 else: time_ago = f"{int(diff//86400)}d"
 
+            # R:R Display
+            rr_val = row.get('RR_Ratio', 0)
+            rr_display = f"1:{rr_val:.1f}" if rr_val > 0 else "-"
+            rr_color = "#4caf50" if rr_val >= 3 else "#ff9800" if rr_val >= 2 else "#f44336" if rr_val > 0 else "#888"
+
+            # Strategy Badge
+            strat = row.get('Strategy', '-')
+            strat_color = "#888"
+            if "Breakout" in strat: strat_color = "#E91E63; font-weight:bold"
+            elif "Pullback" in strat: strat_color = "#4caf50; font-weight:bold"
+            elif "Reversal" in strat: strat_color = "#9C27B0"
+            elif "Range" in strat: strat_color = "#FF9800"
+
             html_head += f"""
-                    <tr>
+                    <tr data-volume="{row.get('Volume', 0)}" data-avgvol="{row.get('Avg_Volume', 0)}" data-rsi="{row['RSI']}" data-rr="{rr_val}">
                         <td><strong style="cursor: pointer; color: #4dabf7; text-decoration: underline;" onclick="goToVolatility('{row['Ticker']}')">{row['Ticker']}</strong></td>
                         <td>€{row['Price']:.2f}</td>
                         <td><canvas id="{spark_wl_id}" class="sparkline-container"></canvas></td>
                         <td>{target_display}</td>
                         <td class="{pct_class}">{pct_display}</td>
+                        <td style="color: {rr_color}; font-weight: 600;">{rr_display}</td>
                         <td style="{cons_style}">{cons}</td>
                         <td>{analysts}</td>
                         <td style="font-size: 0.8rem; color: #aaa;">{sector}</td>
@@ -3182,6 +3226,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <td style="text-align: center;">{smart_entry_html}</td>
                         <td style="color: {'#4caf50' if row.get('RS_vs_SPX', 0) and row.get('RS_vs_SPX', 0) > 0 else '#f44336'};">{row.get('RS_vs_SPX', '-') if row.get('RS_vs_SPX') is not None else '-'}%</td>
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
+                        <td style="font-size: 0.85rem; color: {strat_color};">{strat}</td>
                         <td style="text-align: center;">{fit_now}</td>
 
                         <td style="text-align: center;">{fit_next}</td>
@@ -3613,13 +3658,13 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         var status = $('#filter-status').val();
                         var decision = $('#filter-decision').val();
 
-                        // Indices: 4: TargetPct, 5: Consensus, 6: Analysts, 8: Decision, 11: Trend, 15: Status
+                        // Indices Updated for new columns (R:R at 5, Strategy at 13)
                         var rowTargetPct = parseFloat(data[4].replace('%', '')) || -9999;
-                        var rowConsensus = data[5] || "";
-                        var rowAnalysts = parseFloat(data[6]) || 0;
-                        var rowDecision = data[8] || "";
-                        var rowTrend = data[11] || "";
-                        var rowStatus = data[15] || "";
+                        var rowConsensus = data[6] || "";       // Was 5
+                        var rowAnalysts = parseFloat(data[7]) || 0; // Was 6
+                        var rowDecision = data[9] || "";        // Was 8
+                        var rowTrend = data[12] || "";          // Was 11
+                        var rowStatus = data[17] || "";         // Was 15
 
                         if (consensus && !rowConsensus.includes(consensus)) return false;
                         if (!isNaN(minAnalysts) && rowAnalysts < minAnalysts) return false;
@@ -3628,15 +3673,34 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         if (status && !rowStatus.includes(status)) return false;
                         if (decision && !rowDecision.includes(decision)) return false;
 
+                        var minVol = parseFloat($('#filter-volume').val());
+                        var minRsi = parseFloat($('#filter-rsi-min').val());
+                        var maxRsi = parseFloat($('#filter-rsi-max').val());
+                        var minRR = parseFloat($('#filter-rr').val());
+
+                        // Get Data Attributes from TR
+                        var rowNode = settings.aoData[dataIndex].nTr;
+                        var rowVol = parseFloat(rowNode.getAttribute('data-avgvol')) || 0; // Use Avg Vol for filtering
+                        var rowRsi = parseFloat(rowNode.getAttribute('data-rsi')) || 50;
+                        var rowRR = parseFloat(rowNode.getAttribute('data-rr')) || 0;
+
+
+                        
+                        // New Filters
+                        if (!isNaN(minVol) && (rowVol / 1000000) < minVol) return false; // Input is in Millions
+                        if (!isNaN(minRsi) && rowRsi < minRsi) return false;
+                        if (!isNaN(maxRsi) && rowRsi > maxRsi) return false;
+                        if (!isNaN(minRR) && rowRR < minRR) return false;
+
                         return true;
                     }
                 );
 
                 // Event listener to redraw on input change
-                $('#filter-consensus, #filter-analysts, #filter-target-pct, #filter-trend, #filter-status, #filter-decision').change(function() {
+                $('#filter-consensus, #filter-analysts, #filter-target-pct, #filter-trend, #filter-status, #filter-decision, #filter-volume, #filter-rsi-min, #filter-rsi-max, #filter-rr').change(function() {
                     table.draw();
                 });
-                $('#filter-analysts, #filter-target-pct').keyup(function() {
+                $('#filter-analysts, #filter-target-pct, #filter-volume, #filter-rsi-min, #filter-rsi-max, #filter-rr').keyup(function() {
                      table.draw();
                 });
             });
@@ -3970,6 +4034,9 @@ def update_watchlist_data(state, rates, vix_val):
                     missing_fields = True
                 # 2. Missing Currency (New field)
                 if 'Currency' not in cached_data:
+                    missing_fields = True
+                # 3. Missing Strategy/Volume (New fields)
+                if 'Strategy' not in cached_data or 'Volume' not in cached_data:
                     missing_fields = True
 
             if cached_data and market_data.is_fresh(cached_data, ttl_hours=5) and not missing_fields:

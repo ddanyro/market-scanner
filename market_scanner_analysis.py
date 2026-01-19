@@ -2310,3 +2310,61 @@ def generate_swing_trading_html(data=None):
     """
     
     return html
+def classify_strategy(data):
+    """
+    Classifies the trading setup based on Price, SMA, RSI, and Trend.
+    Returns: 'Pullback', 'Breakout', 'Reversal', 'Range', or 'N/A'
+    """
+    try:
+        price = data.get('Price', 0)
+        sma50 = data.get('SMA_50', 0)
+        sma200 = data.get('SMA_200', 0)
+        rsi = data.get('RSI', 50)
+        trend = data.get('Trend', 'Neutral')
+        
+        # Pullback: Bullish Trend + Correction
+        # Logic: Uptrend (Price > 200), Price > SMA200, but RSI dipped (<55) and potentially < SMA10 (not checked here but implied)
+        if "Bullish" in trend and price > sma200 and rsi < 55:
+            if rsi < 45: return "Deep Pullback"
+            return "Pullback"
+            
+        # Breakout: Strong Momentum
+        # Logic: Price > SMA50, RSI Strong (>60), Trend is Bullish
+        if "Bullish" in trend and price > sma50 and rsi > 60:
+            if rsi > 70: return "Strong Breakout" # Watch for overbought
+            return "Breakout"
+            
+        # Reversal: Oversold in downtrend or Divergence
+        # Logic: RSI Oversold (<30)
+        if rsi < 30:
+            return "Reversal (Oversold)"
+            
+        # Range: Price trapped between SMAs or Low Volatility (implied)
+        # Logic: Price between SMA50 and SMA200 (approximate consolidation)
+        if (price > sma50 and price < sma200) or (price < sma50 and price > sma200):
+            return "Range / Consolidation"
+            
+        return "Normal"
+        
+    except Exception as e:
+        return "N/A"
+
+def calculate_risk_reward(price, stop_loss, target):
+    """
+    Calculates R:R Ratio.
+    Returns: float (e.g. 3.5 for 1:3.5) or 0 if invalid.
+    """
+    try:
+        if not price or not stop_loss or not target:
+            return 0
+        
+        risk = price - stop_loss
+        reward = target - price
+        
+        if risk <= 0: return 0 # Stop is above price (invalid for Long)
+        if reward <= 0: return 0 # Target is below price
+        
+        rr = reward / risk
+        return round(rr, 2)
+    except:
+        return 0
