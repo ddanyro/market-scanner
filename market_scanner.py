@@ -188,6 +188,29 @@ def get_vix_data():
 
 # HISTORY_FILE = "market_history.json" # This is now market_utils.MARKET_HISTORY_FILE at the top.
 
+
+def get_next_earnings_date(ticker_symbol):
+    """
+    Returnează următoarea dată de earnings (datetime.date) sau None dacă nu e găsită.
+    Folosește yfinance calendar.
+    """
+    try:
+        t = yf.Ticker(ticker_symbol)
+        cal = t.calendar
+        if cal and isinstance(cal, dict) and 'Earnings Date' in cal:
+            dates = cal['Earnings Date']
+            if dates:
+                # Return first date (usually range start or confirmed date)
+                d = dates[0]
+                # Ensure it's a date object
+                if isinstance(d, datetime.datetime):
+                    return d.date()
+                return d
+    except Exception as e:
+        # print(f"Earnings check failed for {ticker_symbol}: {e}")
+        pass
+    return None
+
 def load_market_history():
     if os.path.exists(market_utils.MARKET_HISTORY_FILE):
         try:
@@ -2739,9 +2762,16 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
         # Build Row HTML string (NO html_head += here)
         # Using JS Global Tooltip for guaranteed visibility (no overflow clipping)
+
+        # Symbol Display (with Earnings Bomb if danger)
+        symbol_display = row['Symbol']
+        if row.get('Earnings_Danger'):
+            msg = row.get('Earnings_Msg', 'Earnings Soon')
+            symbol_display += f' <span style="cursor:help; font-size:1.2em;" onmousemove="showTooltip(event, \'<strong>💣 Earnings Danger Zone</strong><br>{msg}<br>⚠️ Volatilitate extremă posibilă.\')" onmouseout="hideTooltip()">💣</span>'
+
         portfolio_rows_html += f"""
                     <tr id="row-{row['Symbol']}" data-price="{row['Current_Price']}" data-buy="{row['Buy_Price']}" data-shares="{row['Shares']}">
-                        <td><strong style="cursor: pointer; color: #4dabf7; text-decoration: underline;" onclick="goToVolatility('{row['Symbol']}')">{row['Symbol']}</strong></td>
+                        <td><strong style="cursor: pointer; color: #4dabf7; text-decoration: underline;" onclick="goToVolatility('{row['Symbol']}')">{symbol_display}</strong></td>
                         <td style="{sell_style}" onmousemove="showTooltip(event, '{sell_reason}')" onmouseout="hideTooltip()">
                             {sell_display}
                         </td>
