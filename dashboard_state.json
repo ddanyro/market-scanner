@@ -2,8 +2,8 @@
   "rates": {
     "EUR": 1.0,
     "USD": 0.858799988738537,
-    "RON": 0.1963996016102289,
-    "GBP": 1.1528972001664075
+    "RON": 0.19640153288855092,
+    "GBP": 1.15328283710112
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 19.51,
-      "change": 3.65,
+      "value": 19.43,
+      "change": 3.57,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         16.75,
         15.84000015258789,
         15.859999656677246,
-        19.510000228881836
+        19.43000030517578
       ]
     },
     "VIX1D": {
@@ -533,7 +533,7 @@
       }
     }
   },
-  "vix_val": 19.510000228881836,
+  "vix_val": 19.420000076293945,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -565,6 +565,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 5.8 > SMA200 3.4), RSI 71, Risk 14.9%",
+      "RS_vs_SPX": 10.5,
       "Sparkline": [
         4.11,
         3.97,
@@ -597,7 +598,7 @@
         4.8,
         5.01
       ],
-      "Date": "2026-01-19 16:55"
+      "Date": "2026-01-19 17:05"
     },
     {
       "Symbol": "AIOT",
@@ -627,6 +628,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 5.6 > SMA200 4.9), RSI 57, Risk 6.7%",
+      "RS_vs_SPX": 4.39,
       "Sparkline": [
         4.36,
         4.52,
@@ -659,7 +661,7 @@
         4.85,
         4.77
       ],
-      "Date": "2026-01-19 16:55"
+      "Date": "2026-01-19 17:05"
     },
     {
       "Symbol": "ASUR",
@@ -689,6 +691,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 10.0 > SMA200 9.0), RSI 69, Risk 8.4%",
+      "RS_vs_SPX": 13.64,
       "Sparkline": [
         7.11,
         7.03,
@@ -721,7 +724,7 @@
         8.69,
         8.59
       ],
-      "Date": "2026-01-19 16:55"
+      "Date": "2026-01-19 17:05"
     },
     {
       "Symbol": "DNN",
@@ -751,6 +754,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 3.7 > SMA200 2.2), RSI 79, Risk 4.1%",
+      "RS_vs_SPX": 32.07,
       "Sparkline": [
         2.44,
         2.35,
@@ -783,7 +787,7 @@
         3.05,
         3.17
       ],
-      "Date": "2026-01-19 16:55"
+      "Date": "2026-01-19 17:05"
     },
     {
       "Symbol": "HWM",
@@ -813,6 +817,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 224.9 > SMA200 180.9), RSI 70, Risk 6.7%",
+      "RS_vs_SPX": 14.08,
       "Sparkline": [
         168.56,
         164.01,
@@ -845,36 +850,37 @@
         192.59,
         193.14
       ],
-      "Date": "2026-01-19 16:55"
+      "Date": "2026-01-19 17:05"
     },
     {
       "Symbol": "LQQ.PA",
       "Shares": 12,
-      "Current_Price": 1450.0,
-      "Price_Native": 1450.0,
+      "Current_Price": 1451.2,
+      "Price_Native": 1451.2,
       "Buy_Price": 1487.57,
       "Target": 1612.2,
       "Trail_Stop": 0,
-      "Suggested_Stop": 1375.4,
+      "Suggested_Stop": 1376.49,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
       "Investment": 17850.83,
       "Entry_Date": "-",
-      "Current_Value": 17400.0,
-      "Profit": -450.83,
-      "Profit_Pct": -2.53,
+      "Current_Value": 17414.4,
+      "Profit": -436.43,
+      "Profit_Pct": -2.44,
       "Max_Profit": 1495.57,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 43.46,
+      "RSI": 43.61,
       "RSI_Status": "Neutral",
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 1450.0 > SMA200 1299.8), RSI 43",
+      "Sell_Reason": "Trend UP (P 1451.2 > SMA200 1299.8), RSI 44",
+      "RS_vs_SPX": -4.88,
       "Sparkline": [
         1512.2,
         1526.4,
@@ -905,9 +911,9 @@
         1482.0,
         1528.0,
         1510.2,
-        1450.0
+        1451.2
       ],
-      "Date": "2026-01-19 16:55"
+      "Date": "2026-01-19 17:05"
     },
     {
       "Symbol": "NVDA",
@@ -937,6 +943,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "REDUCE",
       "Sell_Reason": "RS Fail (Falling); ",
+      "RS_vs_SPX": -0.29,
       "Sparkline": [
         157.49,
         156.65,
@@ -969,7 +976,7 @@
         160.64,
         159.93
       ],
-      "Date": "2026-01-19 16:55"
+      "Date": "2026-01-19 17:05"
     },
     {
       "Symbol": "QBTS",
@@ -999,6 +1006,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "REDUCE",
       "Sell_Reason": "RS Fail (Falling); ",
+      "RS_vs_SPX": 2.05,
       "Sparkline": [
         24.67,
         23.19,
@@ -1031,7 +1039,7 @@
         24.66,
         24.76
       ],
-      "Date": "2026-01-19 16:55"
+      "Date": "2026-01-19 17:05"
     },
     {
       "Symbol": "SXRZ",
@@ -1061,6 +1069,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 295.9 > SMA200 253.9), RSI 64, Risk 10.7%",
+      "RS_vs_SPX": 2.98,
       "Sparkline": [
         278.7,
         277.35,
@@ -1093,7 +1102,7 @@
         297.8,
         295.85
       ],
-      "Date": "2026-01-19 16:55"
+      "Date": "2026-01-19 17:06"
     },
     {
       "Symbol": "TSM",
@@ -1123,6 +1132,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 342.4 > SMA200 245.7), RSI 72, Risk 5.4%",
+      "RS_vs_SPX": 15.26,
       "Sparkline": [
         250.89,
         252.42,
@@ -1155,7 +1165,7 @@
         293.4,
         294.05
       ],
-      "Date": "2026-01-19 16:55"
+      "Date": "2026-01-19 17:06"
     },
     {
       "Symbol": "TVBETETF.RO",
@@ -1170,12 +1180,12 @@
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
-      "Investment": 9441.97,
+      "Investment": 9442.06,
       "Entry_Date": "-",
-      "Current_Value": 16735.36,
-      "Profit": 7293.4,
+      "Current_Value": 16735.53,
+      "Profit": 7293.47,
       "Profit_Pct": 77.24,
-      "Max_Profit": 8484.5,
+      "Max_Profit": 8484.58,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
@@ -1185,6 +1195,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 46.0 > SMA200 33.7), RSI 91",
+      "RS_vs_SPX": 24.82,
       "Sparkline": [
         7.44,
         7.46,
@@ -1217,7 +1228,7 @@
         9.02,
         9.04
       ],
-      "Date": "2026-01-19 16:55"
+      "Date": "2026-01-19 17:06"
     }
   ],
   "watchlist": [

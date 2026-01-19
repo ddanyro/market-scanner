@@ -979,10 +979,27 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                         sell_decision = "REDUCE" # Reduce 50% + Trail
                     else:
                         sell_decision = "EXIT" # Cut Loss
-                        
+
         except Exception as e:
             print(f"Error calculating Sell Decision: {e}")
             pass
+
+        # Calculate RS vs SPX (60-day) using passed spx_df
+        rs_vs_spx = None
+        if spx_df is not None and len(df) >= 60:
+            try:
+                    # Calculate 60-day RS (Medium Term)
+                    # Align using tail (simple)
+                    s_series = df['Close'].tail(60)
+                    x_series = spx_df['Close'].tail(60)
+                    
+                    if len(s_series) == len(x_series):
+                        stock_ret = (s_series.iloc[-1] / s_series.iloc[0] - 1) * 100
+                        spx_ret = (x_series.iloc[-1] / x_series.iloc[0] - 1) * 100
+                        rs_vs_spx = stock_ret - spx_ret
+            except:
+                    pass
+
 
         
         # Stop loss logic: Prioritate Manual > IBKR Order > Calculated
@@ -1040,7 +1057,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 target = technical_target
                 max_profit = (target - buy_price) * shares
                 target_display = round(target, 2)
-                print(f"  → Target {target_source}: €{target_display:.2f}")
+                # print(f"  → Target {target_source}: €{target_display:.2f}")
             else:
                 # Nu putem estima un target valid
                 max_profit = None
@@ -1098,6 +1115,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             'Shares': int(shares),
             'Current_Price': round(current_price, 2),
             'Price_Native': round(current_price_native, 2),
+
             'Buy_Price': round(buy_price, 2),
             'Target': target_display,  # None dacă nu există
             'Trail_Stop': round(trail_stop_price, 2),
@@ -1121,6 +1139,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             'VIX_Tag': vix_regime,
             'Sell_Decision': sell_decision,
             'Sell_Reason': sell_reason,
+            'RS_vs_SPX': round(rs_vs_spx, 2) if rs_vs_spx is not None else None,
             'Sparkline': sparkline_data,
             'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         }
@@ -2616,6 +2635,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Max Profit</th>
                         <th>Status</th>
                         <th>Trend</th>
+                        <th onmousemove="showTooltip(event, '<strong>RSI (Relative Strength Index)</strong><br>măsoară viteza și schimbarea prețurilor.<br>Valori: >70 (Overbought), <30 (Oversold).')" onmouseout="hideTooltip()">RSI</th>
+                        <th onmousemove="showTooltip(event, '<strong>RS vs SPX (Relative Strength)</strong><br>Diferența de randament față de S&P 500 în ultimele 60 de zile.<br>Pozitiv = Acțiunea bate piața.')" onmouseout="hideTooltip()">RS vs SPX</th>
                     </tr>
                 </thead>
                 <tbody id="portfolio-rows-body">
@@ -2747,8 +2768,15 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <!-- Max Profit -->
                         <td id="cell-{row['Symbol']}-maxprofit">{max_profit_display}</td>
                         
-                        <td class="rsi-{status_cls}">{row['Status']}</td>
+
+                        <td class="rsi-{status_cls}" style="cursor: help;" onmousemove="showTooltip(event, 'RSI Status: {row['RSI_Status']}')" onmouseout="hideTooltip()">{row['Status']}</td>
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
+                        
+                        <!-- RSI Value -->
+                        <td style="font-weight: bold; cursor: help;" onmousemove="showTooltip(event, 'RSI: {row['RSI']:.0f}')" onmouseout="hideTooltip()">{row['RSI']:.0f}</td>
+                        
+                        <!-- RS vs SPX -->
+                        <td style="color: {'#4caf50' if row.get('RS_vs_SPX', 0) and row.get('RS_vs_SPX', 0) > 0 else '#f44336'}; font-weight: bold;">{row.get('RS_vs_SPX', '-') if row.get('RS_vs_SPX') is not None else '-'}%</td>
                     </tr>
         """
         
