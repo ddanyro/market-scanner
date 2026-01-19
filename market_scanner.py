@@ -2636,7 +2636,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <th>Status</th>
                         <th>Trend</th>
                         <th onmousemove="showTooltip(event, '<strong>RSI (Relative Strength Index)</strong><br>măsoară viteza și schimbarea prețurilor.<br>Valori: >70 (Overbought), <30 (Oversold).')" onmouseout="hideTooltip()">RSI</th>
-                        <th onmousemove="showTooltip(event, '<strong>RS vs SPX (Relative Strength)</strong><br>Diferența de randament față de S&P 500 în ultimele 60 de zile.<br>Pozitiv = Acțiunea bate piața.')" onmouseout="hideTooltip()">RS vs SPX</th>
+                        <th onmousemove="showTooltip(event, '<strong>RS vs SPX (Relative Strength vs S&P 500) pe 60 de zile.</strong><br><br>Reprezintă diferența dintre randamentul acțiunii și randamentul indexului S&P 500 în ultimele 60 de zile.<br><br><em>Exemplu:</em><br>Dacă acțiunea a crescut cu 20% și S&P 500 cu 5% => <strong>RS = +15%</strong>.<br>Dacă valoarea este pozitivă, acțiunea performează mai bine decât piața.')" onmouseout="hideTooltip()">RS vs SPX</th>
                     </tr>
                 </thead>
                 <tbody id="portfolio-rows-body">
@@ -2685,6 +2685,18 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         trail_pct_val = row['Trail_Pct'] if pd.notna(row['Trail_Pct']) else 0
         trail_stop_val = row['Trail_Stop'] if row['Trail_Stop'] and pd.notna(row['Trail_Stop']) and row['Trail_Stop'] > 0 else ""
         if isinstance(trail_stop_val, (int, float)): trail_stop_val = f"{trail_stop_val:.2f}"
+
+        # RSI Tooltip Logic (Matches Watchlist)
+        rsi_val = row['RSI']
+        rsi_tooltip = ""
+        if rsi_val >= 70:
+            rsi_tooltip = "<strong>RSI: Overbought (>70)</strong><br>Supra-cumpărat. Prețul a crescut foarte rapid.<br>⚠️ <strong>Acțiune:</strong> Risc crescut de corecție (scădere). Nu cumpăra la vârf."
+        elif 50 <= rsi_val < 70:
+            rsi_tooltip = "<strong>RSI: Bullish (50-70)</strong><br>Momentum pozitiv. Cumpărătorii controlează piața.<br>✅ <strong>Acțiune:</strong> Zonă bună pentru trend following."
+        elif 30 <= rsi_val < 50:
+            rsi_tooltip = "<strong>RSI: Bearish (30-50)</strong><br>Momentum negativ sau neutru-sláb.<br>⛔ <strong>Acțiune:</strong> Prudență. Trendul poate fi descendent."
+        else:
+            rsi_tooltip = "<strong>RSI: Oversold (<30)</strong><br>Supra-vândut. Prețul a scăzut extrem.<br>🔄 <strong>Acțiune:</strong> Posibilă revenire (Bounce) iminentă."
 
         # Consensus
         cons = row.get('Consensus', '-')
@@ -2773,7 +2785,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
                         
                         <!-- RSI Value -->
-                        <td style="font-weight: bold; cursor: help;" onmousemove="showTooltip(event, 'RSI: {row['RSI']:.0f}')" onmouseout="hideTooltip()">{row['RSI']:.0f}</td>
+                        <td style="font-weight: bold; cursor: help;" onmousemove="showTooltip(event, '{rsi_tooltip}')" onmouseout="hideTooltip()">{row['RSI']:.0f}</td>
                         
                         <!-- RS vs SPX -->
                         <td style="color: {'#4caf50' if row.get('RS_vs_SPX', 0) and row.get('RS_vs_SPX', 0) > 0 else '#f44336'}; font-weight: bold;">{row.get('RS_vs_SPX', '-') if row.get('RS_vs_SPX') is not None else '-'}%</td>
