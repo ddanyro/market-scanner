@@ -1321,6 +1321,20 @@ def process_watchlist_ticker(ticker, vix_value, rates):
                     rs_status = "Lagging"
         except Exception as e:
             pass
+            
+        # --- Earnings Check (Danger Zone) ---
+        earnings_danger = False
+        earnings_msg = ""
+        try:
+            next_earn = get_next_earnings_date(ticker)
+            if next_earn:
+                today_date = datetime.date.today()
+                days_to_earn = (next_earn - today_date).days
+                if 0 <= days_to_earn <= 5:
+                    earnings_danger = True
+                    earnings_msg = f"Report in {days_to_earn} days ({next_earn})"
+        except Exception as e:
+            pass
 
         # --- 4-Check Decision Logic ---
         checks_passed = 0
@@ -1417,6 +1431,8 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'RR_Ratio': analysis.calculate_risk_reward(last_close, suggested_stop, target_val) if target_val and suggested_stop else 0,
             'Volume': int(df['Volume'].iloc[-1]) if 'Volume' in df.columns else 0,
             'Avg_Volume': avg_vol_3m,
+            'Earnings_Danger': earnings_danger,
+            'Earnings_Msg': earnings_msg,
             
             'Check_Details': " ".join(check_details),
             'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -3306,9 +3322,15 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             else:
                 rsi_tooltip = "<strong>RSI: Oversold (<30)</strong><br>Supra-vândut. Prețul a scăzut extrem.<br>🔄 <strong>Acțiune:</strong> Posibilă revenire (Bounce) iminentă."
 
+            # Earnings Bomb HTML
+            bomb_html = ""
+            if row.get('Earnings_Danger'):
+                 msg = row.get("Earnings_Msg", "")
+                 bomb_html = f' <span style="cursor:help; font-size:1.2em;" onmousemove="showTooltip(event, \'<strong>💣 Earnings Danger Zone</strong><br>{msg}<br>⚠️ Volatilitate extremă posibilă.\')" onmouseout="hideTooltip()">💣</span>'
+
             html_head += f"""
                     <tr data-volume="{row.get('Volume', 0)}" data-avgvol="{row.get('Avg_Volume', 0)}" data-rsi="{row['RSI']}" data-rr="{rr_val}">
-                        <td><strong style="cursor: pointer; color: #4dabf7; text-decoration: underline;" onclick="goToVolatility('{row['Ticker']}')">{row['Ticker']}</strong></td>
+                        <td><strong style="cursor: pointer; color: #4dabf7; text-decoration: underline;" onclick="goToVolatility('{row['Ticker']}')">{row['Ticker']}</strong>{bomb_html}</td>
                         <td>€{row['Price']:.2f}</td>
                         <td><canvas id="{spark_wl_id}" class="sparkline-container"></canvas></td>
                         <td>{target_display}</td>
