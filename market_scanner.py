@@ -598,6 +598,8 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                     if not df_alt.empty:
                         print(f"    ✅ Found data for {alt_ticker}!")
                         df = df_alt
+                        ticker = alt_ticker # Update ticker to use the working suffix for metadata
+
                         
                         # Update currency based on new suffix
                         if '.DE' in s or '.PA' in s or '.AS' in s or '.MI' in s or '.MC' in s:
@@ -613,7 +615,16 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                         
             # Store in cache (even if empty, to avoid retrying failed download?)
             # Usually better to cache success.
-            if not df.empty:
+
+        company_name = ""
+        try:
+             yt = yf.Ticker(ticker)
+             info = yt.info
+             company_name = info.get('longName') or info.get('shortName') or ""
+        except:
+             pass
+
+        if not df.empty:
                 ticker_cache[ticker] = df
         
         if df.empty:
@@ -1135,6 +1146,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
 
         result = {
             'Symbol': ticker,
+            'Company_Name': company_name,
             'Shares': int(shares),
             'Current_Price': round(current_price, 2),
             'Price_Native': round(current_price_native, 2),
@@ -2787,7 +2799,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
         portfolio_rows_html += f"""
                     <tr id="row-{row['Symbol']}" data-price="{row['Current_Price']}" data-buy="{row['Buy_Price']}" data-shares="{row['Shares']}">
-                        <td><strong style="cursor: pointer; color: #4dabf7; text-decoration: underline;" onclick="goToVolatility('{row['Symbol']}')">{symbol_display}</strong></td>
+                        <td><strong style="cursor: help; color: #4dabf7; text-decoration: underline;" onmousemove="showTooltip(event, '{row.get('Company_Name', '')}')" onmouseout="hideTooltip()" onclick="goToVolatility('{row['Symbol']}')">{symbol_display}</strong></td>
                         <td style="{sell_style}" onmousemove="showTooltip(event, '{sell_reason}')" onmouseout="hideTooltip()">
                             {sell_display}
                         </td>
@@ -3330,7 +3342,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
             html_head += f"""
                     <tr data-volume="{row.get('Volume', 0)}" data-avgvol="{row.get('Avg_Volume', 0)}" data-rsi="{row['RSI']}" data-rr="{rr_val}">
-                        <td><strong style="cursor: pointer; color: #4dabf7; text-decoration: underline;" onclick="goToVolatility('{row['Ticker']}')">{row['Ticker']}</strong>{bomb_html}</td>
+                        <td><strong style="cursor: help; color: #4dabf7; text-decoration: underline;" onmousemove="showTooltip(event, '{row.get('Company_Name', '')}')" onmouseout="hideTooltip()" onclick="goToVolatility('{row['Ticker']}')">{row['Ticker']}</strong>{bomb_html}</td>
                         <td>€{row['Price']:.2f}</td>
                         <td><canvas id="{spark_wl_id}" class="sparkline-container"></canvas></td>
                         <td>{target_display}</td>
