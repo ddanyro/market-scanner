@@ -4151,7 +4151,11 @@ def update_watchlist_data(state, rates, vix_val):
         
         print(f"Procesare {len(watchlist_tickers)} tickere...")
         
-        for ticker in watchlist_tickers:
+        total_tickers = len(watchlist_tickers)
+        print(f"Procesare {total_tickers} tickere...")
+        
+        for i, ticker in enumerate(watchlist_tickers, 1):
+            progress_str = f"[{i}/{total_tickers}]"
             # Check cache first
             cached_data = market_data.get_cached_watchlist_ticker(state, ticker)
             
@@ -4172,10 +4176,12 @@ def update_watchlist_data(state, rates, vix_val):
                 # Use cached data
                 watchlist_results.append(cached_data)
                 cached_count += 1
-                print(f"  ✓ {ticker} (cached)")
+                watchlist_results.append(cached_data)
+                cached_count += 1
+                print(f"  {progress_str} ✓ {ticker} (cached)")
             else:
                 if missing_fields:
-                    print(f"  ↻ {ticker} (refreshing for missing fields)")
+                    print(f"  {progress_str} ↻ {ticker} (refreshing for missing fields)")
 
                 # Process ticker
                 data = process_watchlist_ticker(ticker, vix_val, rates)
@@ -4185,7 +4191,10 @@ def update_watchlist_data(state, rates, vix_val):
                     data['_cached_at'] = time.time()
                     watchlist_results.append(data)
                     updated_count += 1
-                    print(f"  > {ticker} (updated)")
+                    data['_cached_at'] = time.time()
+                    watchlist_results.append(data)
+                    updated_count += 1
+                    print(f"  {progress_str} > {ticker} (updated)")
         
         print(f"  → {cached_count} cached, {updated_count} updated")
     
