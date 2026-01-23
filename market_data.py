@@ -61,6 +61,29 @@ def get_finviz_data(ticker):
                              data['VolM'] = float(parts[1].replace('%', ''))
                      except: pass
         
+        # Extract Company Name from Title (Format: "TICKER - Company Name Stock Price...")
+        try:
+            page_title = soup.title.string
+            if page_title and '-' in page_title:
+                # Split by first hyphen
+                parts = page_title.split('-', 1)
+                if len(parts) > 1:
+                    # Take the part after hyphen, remove "Stock Price..."
+                    company_part = parts[1].strip()
+                    # Finviz title usually: "AAPL - Apple Inc. Stock Price..."
+                    # We want "Apple Inc."
+                    # Let's split by "Stock Price" or quote or just take the first meaningful chunk
+                    # Simple heuristic: take everything until "Stock" or "Quote"
+                    for stopper in ["Stock Price", "Quote", "|"]:
+                        if stopper in company_part:
+                            company_part = company_part.split(stopper)[0].strip()
+                    
+                    if company_part:
+                         data['Company'] = company_part
+        except Exception as e:
+            # print(f"  [Debug] Helper Title parse error: {e}")
+            pass
+        
         _finviz_cache[ticker] = data
         return data
     except Exception as e:

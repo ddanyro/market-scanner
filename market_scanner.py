@@ -1186,6 +1186,31 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
 
 def process_watchlist_ticker(ticker, vix_value, rates):
     """Procesează un ticker din watchlist (fără date de ownership)."""
+    
+    def get_company_name(symbol, finviz_data=None):
+        try:
+            # 1. Try yfinance
+            t = yf.Ticker(symbol)
+            info = t.info
+            name = info.get('longName') or info.get('shortName')
+            if name: return name
+        except:
+             pass
+        
+        # 2. Try Finviz Fallback
+        if finviz_data and 'Company' in finviz_data:
+             return finviz_data['Company']
+             
+        # 3. Try manual suffixes (last resort)
+        for s in ['.DE', '.PA', '.L', '.AS', '.MI', '.MC']:
+            try:
+                t_alt = yf.Ticker(f"{symbol}{s}")
+                info = t_alt.info
+                name = info.get('longName') or info.get('shortName')
+                if name: return name
+            except: continue
+        return ""
+
     try:
         time.sleep(2)
         
@@ -1412,6 +1437,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'Pct_To_Target': round(pct_to_target, 2) if pct_to_target is not None else None,
             'Consensus': consensus,
             'Analysts': analysts_count,
+            'Company_Name': get_company_name(ticker, finviz_data=finviz_data),
             'Industry': industry,
             'Sector': sector,
             'Trend': trend,
@@ -2321,6 +2347,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     total_investment = portfolio_df['Investment'].sum() if not portfolio_df.empty else 0
     total_value = portfolio_df['Current_Value'].sum() if not portfolio_df.empty else 0
     total_profit = portfolio_df['Profit'].sum() if not portfolio_df.empty else 0
+    
+    if 'Max_Profit' not in portfolio_df.columns:
+        portfolio_df['Max_Profit'] = 0.0
     portfolio_df['Max_Profit'] = pd.to_numeric(portfolio_df['Max_Profit'], errors='coerce').fillna(0)
     total_max_profit = portfolio_df['Max_Profit'].sum() if not portfolio_df.empty else 0
     
@@ -4145,56 +4174,62 @@ def update_watchlist_data(state, rates, vix_val):
     watchlist_tickers = load_watchlist()
     watchlist_results = []
     
-    if watchlist_tickers:
-        cached_count = 0
-        updated_count = 0
+    if not watchlist_tickers:
+         print("Watchlist gol.")
+         state['watchlist'] = []
+         return state
+
+    total_tickers = len(watchlist_tickers)
+    print(f"Procesare {total_tickers} tickere...")
+    
+    cached_count = 0
+    updated_count = 0
         
-        print(f"Procesare {len(watchlist_tickers)} tickere...")
+    seen_tickers = set()
+    
+    for i, ticker in enumerate(watchlist_tickers, 1):
+        if ticker in seen_tickers:
+            continue
+        seen_tickers.add(ticker)
         
-        total_tickers = len(watchlist_tickers)
-        print(f"Procesare {total_tickers} tickere...")
+        progress_str = f"[{i}/{total_tickers}]"
+        # Check cache first
+        cached_data = market_data.get_cached_watchlist_ticker(state, ticker)
         
-        for i, ticker in enumerate(watchlist_tickers, 1):
-            progress_str = f"[{i}/{total_tickers}]"
-            # Check cache first
-            cached_data = market_data.get_cached_watchlist_ticker(state, ticker)
-            
-            # Check if we need to backfill Smart Entry or Currency
-            missing_fields = False
-            if cached_data:
-                # 1. Missing Smart Entry for BUY
-                if cached_data.get('Decision') == 'BUY' and not cached_data.get('Smart_Entry'):
-                    missing_fields = True
-                # 2. Missing Currency (New field)
-                if 'Currency' not in cached_data:
-                    missing_fields = True
-                # 3. Missing Strategy/Volume (New fields)
-                if 'Strategy' not in cached_data or 'Volume' not in cached_data:
+        # Check if we need to backfill Smart Entry or Currency
+        missing_fields = False
+        if cached_data:
+            # 1. Missing Smart Entry for BUY
+            if cached_data.get('Decision') == 'BUY' and not cached_data.get('Smart_Entry'):
+                missing_fields = True
+            # 2. Missing Currency (New field)
+            if 'Currency' not in cached_data:
+                missing_fields = True
+            # 3. Missing Strategy/Volume (New fields)
+            if 'Strategy' not in cached_data or 'Volume' not in cached_data:
+                missing_fields = True
+            # 4. Missing Company Name (New field)
+            if 'Company_Name' not in cached_data or not cached_data['Company_Name']:
                     missing_fields = True
 
-            if cached_data and market_data.is_fresh(cached_data, ttl_hours=5) and not missing_fields:
-                # Use cached data
-                watchlist_results.append(cached_data)
-                cached_count += 1
-                watchlist_results.append(cached_data)
-                cached_count += 1
-                print(f"  {progress_str} ✓ {ticker} (cached)")
-            else:
-                if missing_fields:
-                    print(f"  {progress_str} ↻ {ticker} (refreshing for missing fields)")
+        if cached_data and market_data.is_fresh(cached_data, ttl_hours=5) and not missing_fields:
+            # Use cached data
+            watchlist_results.append(cached_data)
+            cached_count += 1
+            print(f"  {progress_str} ✓ {ticker} (cached)")
+        else:
+            if missing_fields:
+                print(f"  {progress_str} ↻ {ticker} (refreshing for missing fields)")
 
-                # Process ticker
-                data = process_watchlist_ticker(ticker, vix_val, rates)
-                if data:
-                    # Add timestamp for caching
-                    import time
-                    data['_cached_at'] = time.time()
-                    watchlist_results.append(data)
-                    updated_count += 1
-                    data['_cached_at'] = time.time()
-                    watchlist_results.append(data)
-                    updated_count += 1
-                    print(f"  {progress_str} > {ticker} (updated)")
+            # Process ticker
+            data = process_watchlist_ticker(ticker, vix_val, rates)
+            if data:
+                # Add timestamp for caching
+                import time
+                data['_cached_at'] = time.time()
+                watchlist_results.append(data)
+                updated_count += 1
+                print(f"  {progress_str} > {ticker} (updated)")
         
         print(f"  → {cached_count} cached, {updated_count} updated")
     
@@ -4361,6 +4396,18 @@ def main():
         state = update_watchlist_data(state, rates, vix_val)
         
     # 4. Salvare Stare
+    # Deduplicate Watchlist in State BEFORE saving
+    wl_list = state.get('watchlist', [])
+    if wl_list:
+        wl_df_state = pd.DataFrame(wl_list)
+        if 'Ticker' in wl_df_state.columns:
+             before_dedup = len(wl_df_state)
+             wl_df_state = wl_df_state.drop_duplicates(subset=['Ticker'])
+             after_dedup = len(wl_df_state)
+             if before_dedup > after_dedup:
+                 print(f"  -> Curățat state: {before_dedup - after_dedup} duplicate eliminate din watchlist.")
+                 state['watchlist'] = wl_df_state.to_dict('records')
+                 
     market_utils.save_state(state)
     print("\nStarea dashboard-ului a fost salvată.")
     
@@ -4378,6 +4425,8 @@ def main():
         if filtered_count > 0:
             print(f"  -> Ascunse {filtered_count} acțiuni din watchlist (deja în portofoliu)")
     
+
+
     # Verificăm indicatorii (s-ar putea să fie None în state inițial)
     indicators_data = state.get('market_indicators', {})
     
