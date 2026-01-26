@@ -1,14 +1,14 @@
 {
   "rates": {
     "EUR": 1.0,
-    "USD": 0.8414999964388311,
-    "RON": 0.19622116836230824,
-    "GBP": 1.152352549264721
+    "USD": 0.8418999747187371,
+    "RON": 0.1962123194628981,
+    "GBP": 1.151980822584878
   },
   "market_indicators": {
     "VIX3M": {
-      "value": 18.89,
-      "change": -0.26,
+      "value": 18.85,
+      "change": -0.3,
       "status": "Normal",
       "description": "14 normal 20",
       "sparkline": [
@@ -41,12 +41,12 @@
         19.360000610351562,
         18.75,
         19.149999618530273,
-        18.889999389648438
+        18.850000381469727
       ]
     },
     "VIX": {
-      "value": 15.95,
-      "change": -0.14,
+      "value": 15.9,
+      "change": -0.19,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,12 +79,12 @@
         16.899999618530273,
         15.640000343322754,
         16.09000015258789,
-        15.949999809265137
+        15.899999618530273
       ]
     },
     "VIX1D": {
-      "value": 8.62,
-      "change": -5.04,
+      "value": 8.53,
+      "change": -5.13,
       "status": "Perfect",
       "description": "perfect 12",
       "sparkline": [
@@ -117,12 +117,12 @@
         12.229999542236328,
         10.949999809265137,
         13.65999984741211,
-        8.619999885559082
+        8.529999732971191
       ]
     },
     "VIX9D": {
-      "value": 14.95,
-      "change": -0.05,
+      "value": 14.84,
+      "change": -0.16,
       "status": "Normal",
       "description": "12 normal 18",
       "sparkline": [
@@ -155,12 +155,12 @@
         15.880000114440918,
         14.380000114440918,
         15.0,
-        14.949999809265137
+        14.84000015258789
       ]
     },
     "VXN": {
-      "value": 20.18,
-      "change": -0.19,
+      "value": 20.07,
+      "change": -0.3,
       "status": "Normal",
       "description": "15 normal 25",
       "sparkline": [
@@ -193,12 +193,12 @@
         21.190000534057617,
         20.079999923706055,
         20.3700008392334,
-        20.18000030517578
+        20.06999969482422
       ]
     },
     "LTV": {
-      "value": 9.2,
-      "change": 0.04,
+      "value": 9.19,
+      "change": 0.03,
       "status": "Perfect",
       "description": "perfect 10",
       "sparkline": [
@@ -225,7 +225,7 @@
         13.079999923706055,
         9.199999809265137,
         9.15999984741211,
-        9.199999809265137
+        9.1899995803833
       ]
     },
     "SKEW": {
@@ -305,8 +305,8 @@
       ]
     },
     "GVZ": {
-      "value": 34.4,
-      "change": 4.39,
+      "value": 34.38,
+      "change": 4.37,
       "status": "Panic",
       "description": "22 panica",
       "sparkline": [
@@ -339,12 +339,12 @@
         26.270000457763672,
         28.110000610351562,
         30.010000228881836,
-        34.400001525878906
+        34.380001068115234
       ]
     },
     "OVX": {
-      "value": 46.97,
-      "change": -0.67,
+      "value": 47.3,
+      "change": -0.34,
       "status": "Panic",
       "description": "35 panica",
       "sparkline": [
@@ -377,12 +377,12 @@
         45.45000076293945,
         44.70000076293945,
         47.63999938964844,
-        46.970001220703125
+        47.29999923706055
       ]
     },
     "SPX": {
-      "value": 6959.27,
-      "change": 43.66,
+      "value": 6959.89,
+      "change": 44.28,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -415,12 +415,12 @@
         6875.6201171875,
         6913.35009765625,
         6915.60986328125,
-        6959.27001953125
+        6959.89013671875
       ]
     },
     "NASDAQ": {
-      "value": 23661.95,
-      "change": 160.71,
+      "value": 23657.25,
+      "change": 156.01,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -453,7 +453,7 @@
         23224.8203125,
         23436.01953125,
         23501.240234375,
-        23661.94921875
+        23657.25390625
       ]
     },
     "Crypto Fear": {
@@ -537,7 +537,7 @@
       }
     }
   },
-  "vix_val": 15.960000038146973,
+  "vix_val": 15.90999984741211,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -545,129 +545,65 @@
       "Symbol": "CCL",
       "Company_Name": "Carnival Corporation & plc",
       "Shares": 175,
-      "Current_Price": 23.96,
-      "Price_Native": 28.47,
-      "Buy_Price": 24.09,
-      "Target": 31.73,
-      "Trail_Stop": 23.45,
-      "Suggested_Stop": 22.41,
+      "Current_Price": 24.02,
+      "Price_Native": 28.53,
+      "Buy_Price": 24.1,
+      "Target": 31.75,
+      "Trail_Stop": 23.46,
+      "Suggested_Stop": 22.47,
       "Finviz_ATR": 0.91,
       "Vol_W": 2.39,
       "Vol_M": 2.79,
       "Trail_Pct": 3.48,
-      "Investment": 4215.49,
+      "Investment": 4217.5,
       "Entry_Date": "2026-01-21",
-      "Current_Value": 4192.56,
-      "Profit": -22.93,
-      "Profit_Pct": -0.54,
-      "Max_Profit": 1337.77,
+      "Current_Value": 4203.4,
+      "Profit": -14.1,
+      "Profit_Pct": -0.33,
+      "Max_Profit": 1338.41,
       "Consensus": "Buy",
       "Analysts": 23,
       "Status": "Neutral",
-      "RSI": 41.83,
+      "RSI": 42.22,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "EXIT",
-      "Sell_Reason": "Momentum Fail (RSI 41.8 < 45); RS Fail (Falling); ",
-      "RS_vs_SPX": 1.16,
+      "Sell_Reason": "Momentum Fail (RSI 42.2 < 45); RS Fail (Falling); ",
+      "RS_vs_SPX": 1.36,
       "Sparkline": [
-        23.43,
-        23.24,
-        24.07,
-        23.73,
-        23.59,
-        23.85,
-        26.19,
-        27.1,
-        26.64,
-        26.3,
-        25.83,
+        23.44,
+        23.25,
+        24.08,
+        23.74,
+        23.6,
+        23.86,
+        26.2,
+        27.11,
+        26.65,
+        26.31,
         25.85,
-        25.94,
-        25.7,
-        26.02,
-        26.5,
-        27.18,
-        27.02,
-        26.67,
-        27.04,
-        26.6,
-        26.08,
-        25.4,
-        24.77,
-        24.34,
-        23.58,
-        23.77,
-        23.97,
-        24.02,
-        23.96
+        25.86,
+        25.95,
+        25.71,
+        26.03,
+        26.51,
+        27.19,
+        27.03,
+        26.68,
+        27.05,
+        26.61,
+        26.09,
+        25.41,
+        24.79,
+        24.35,
+        23.59,
+        23.78,
+        23.99,
+        24.04,
+        24.02
       ],
-      "Date": "2026-01-26 20:59"
-    },
-    {
-      "Symbol": "DNN",
-      "Company_Name": "Denison Mines Corp.",
-      "Shares": 2000,
-      "Current_Price": 3.19,
-      "Price_Native": 3.79,
-      "Buy_Price": 2.39,
-      "Target": 3.14,
-      "Trail_Stop": 3.16,
-      "Suggested_Stop": 2.89,
-      "Finviz_ATR": 0.18,
-      "Vol_W": 4.53,
-      "Vol_M": 5.02,
-      "Trail_Pct": 6.76,
-      "Investment": 4788.13,
-      "Entry_Date": "2025-12-05",
-      "Current_Value": 6378.57,
-      "Profit": 1590.43,
-      "Profit_Pct": 33.22,
-      "Max_Profit": 1489.45,
-      "Consensus": "Strong Buy",
-      "Analysts": 2,
-      "Status": "Overbought",
-      "RSI": 73.73,
-      "RSI_Status": "Overbought",
-      "Trend": "Strong Bullish",
-      "VIX_Tag": "Normal",
-      "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 3.8 > SMA200 2.3), RSI 74, Risk 0.8%",
-      "RS_vs_SPX": 18.56,
-      "Sparkline": [
-        2.32,
-        2.2,
-        2.14,
-        2.19,
-        2.09,
-        2.16,
-        2.31,
-        2.33,
-        2.34,
-        2.33,
-        2.26,
-        2.27,
-        2.21,
-        2.24,
-        2.55,
-        2.71,
-        2.76,
-        2.8,
-        2.8,
-        2.79,
-        2.84,
-        2.82,
-        2.94,
-        2.99,
-        3.11,
-        3.11,
-        3.16,
-        3.3,
-        3.28,
-        3.19
-      ],
-      "Date": "2026-01-26 20:59"
+      "Date": "2026-01-26 21:26"
     },
     {
       "Symbol": "LQQ.PA",
@@ -698,7 +634,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "REDUCE",
       "Sell_Reason": "RS Fail (Falling); ",
-      "RS_vs_SPX": -6.33,
+      "RS_vs_SPX": -6.34,
       "Sparkline": [
         1490.0,
         1454.4,
@@ -731,7 +667,7 @@
         1495.6,
         1494.4
       ],
-      "Date": "2026-01-26 20:59"
+      "Date": "2026-01-26 21:26"
     },
     {
       "Symbol": "SXRZ.DE",
@@ -795,7 +731,7 @@
         291.9,
         291.85
       ],
-      "Date": "2026-01-26 20:59"
+      "Date": "2026-01-26 21:26"
     },
     {
       "Symbol": "TVBETETF.RO",
@@ -811,12 +747,12 @@
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
-      "Investment": 9433.39,
+      "Investment": 9432.96,
       "Entry_Date": "-",
-      "Current_Value": 16727.42,
-      "Profit": 7294.04,
+      "Current_Value": 16726.67,
+      "Profit": 7293.71,
       "Profit_Pct": 77.32,
-      "Max_Profit": 8875.54,
+      "Max_Profit": 8875.14,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
@@ -826,12 +762,12 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 46.1 > SMA200 34.1), RSI 77",
-      "RS_vs_SPX": 24.7,
+      "RS_vs_SPX": 24.69,
       "Sparkline": [
         7.66,
         7.71,
-        7.78,
-        7.84,
+        7.77,
+        7.83,
         7.88,
         7.85,
         7.85,
@@ -854,12 +790,12 @@
         9.02,
         8.86,
         8.82,
-        8.72,
+        8.71,
         8.88,
         8.93,
         9.04
       ],
-      "Date": "2026-01-26 20:59"
+      "Date": "2026-01-26 21:26"
     }
   ],
   "watchlist": [
