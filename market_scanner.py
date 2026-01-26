@@ -62,8 +62,9 @@ def sync_watchlist_from_remote(url="https://betty333ro.github.io/market-scanner/
         
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # Find all Finviz links
-        finviz_links = soup.find_all('a', href=re.compile(r'finviz\.com/quote\.ashx\?t='))
+        # Find all Finviz links (covers both 'Market Overview' and 'Advanced Filters' sections)
+        finviz_links = soup.find_all('a', href=re.compile(r'finviz\.com/quote\.ashx'))
+        print(f"  → Found {len(finviz_links)} potential ticker links (merging all sections)...")
         
         if not finviz_links:
             print("⚠️  Nu s-au găsit simboluri pe pagina remote")
