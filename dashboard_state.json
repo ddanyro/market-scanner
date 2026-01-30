@@ -1,14 +1,14 @@
 {
   "rates": {
     "EUR": 1.0,
-    "USD": 0.8414000612448308,
-    "RON": 0.19627315799246486,
-    "GBP": 1.154787747417162
+    "USD": 0.8420000287070284,
+    "RON": 0.19626044728042227,
+    "GBP": 1.1543345436821622
   },
   "market_indicators": {
     "VIX3M": {
-      "value": 19.8,
-      "change": 0.13,
+      "value": 19.97,
+      "change": 0.3,
       "status": "Normal",
       "description": "14 normal 20",
       "sparkline": [
@@ -41,12 +41,12 @@
         19.219999313354492,
         19.299999237060547,
         19.670000076293945,
-        19.799999237060547
+        19.969999313354492
       ]
     },
     "VIX": {
-      "value": 17.17,
-      "change": 0.29,
+      "value": 17.52,
+      "change": 0.64,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,12 +79,12 @@
         16.350000381469727,
         16.350000381469727,
         16.8799991607666,
-        17.170000076293945
+        17.520000457763672
       ]
     },
     "VIX1D": {
-      "value": 12.22,
-      "change": -1.5,
+      "value": 12.83,
+      "change": -0.89,
       "status": "Normal",
       "description": "12 normal 30",
       "sparkline": [
@@ -117,12 +117,12 @@
         10.609999656677246,
         13.239999771118164,
         13.720000267028809,
-        12.220000267028809
+        12.829999923706055
       ]
     },
     "VIX9D": {
-      "value": 15.68,
-      "change": 0.46,
+      "value": 16.15,
+      "change": 0.93,
       "status": "Normal",
       "description": "12 normal 18",
       "sparkline": [
@@ -155,12 +155,12 @@
         14.850000381469727,
         14.539999961853027,
         15.220000267028809,
-        15.680000305175781
+        16.149999618530273
       ]
     },
     "VXN": {
-      "value": 21.88,
-      "change": 0.44,
+      "value": 22.14,
+      "change": 0.7,
       "status": "Normal",
       "description": "15 normal 25",
       "sparkline": [
@@ -193,14 +193,14 @@
         20.549999237060547,
         20.3700008392334,
         21.440000534057617,
-        21.8799991607666
+        22.139999389648438
       ]
     },
     "LTV": {
-      "value": 9.8,
-      "change": 0.89,
-      "status": "Perfect",
-      "description": "perfect 10",
+      "value": 10.07,
+      "change": 1.16,
+      "status": "Normal",
+      "description": "10 normal 13",
       "sparkline": [
         9.970000267028809,
         10.609999656677246,
@@ -227,7 +227,7 @@
         9.15999984741211,
         9.239999771118164,
         8.90999984741211,
-        9.800000190734863
+        10.069999694824219
       ]
     },
     "SKEW": {
@@ -307,8 +307,8 @@
       ]
     },
     "GVZ": {
-      "value": 43.82,
-      "change": -2.2,
+      "value": 42.85,
+      "change": -3.17,
       "status": "Panic",
       "description": "22 panica",
       "sparkline": [
@@ -341,12 +341,12 @@
         33.130001068115234,
         39.66999816894531,
         46.02000045776367,
-        43.81999969482422
+        42.849998474121094
       ]
     },
     "OVX": {
-      "value": 53.4,
-      "change": -1.97,
+      "value": 53.55,
+      "change": -1.82,
       "status": "Panic",
       "description": "35 panica",
       "sparkline": [
@@ -379,15 +379,16 @@
         49.61000061035156,
         50.38999938964844,
         55.369998931884766,
-        53.400001525878906
+        53.54999923706055
       ]
     },
     "SPX": {
-      "value": 6935.61,
-      "change": -33.4,
+      "value": 6969.01,
+      "change": -9.02,
       "status": "Normal",
       "description": "",
       "sparkline": [
+        6800.259765625,
         6721.43017578125,
         6774.759765625,
         6834.5,
@@ -416,13 +417,12 @@
         6950.22998046875,
         6978.60009765625,
         6978.02978515625,
-        6969.009765625,
-        6935.60986328125
+        6969.009765625
       ]
     },
     "NASDAQ": {
-      "value": 23544.4,
-      "change": -140.72,
+      "value": 23458.01,
+      "change": -227.11,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -455,7 +455,7 @@
         23817.099609375,
         23857.44921875,
         23685.119140625,
-        23544.3984375
+        23458.0078125
       ]
     },
     "Crypto Fear": {
@@ -539,104 +539,40 @@
       }
     }
   },
-  "vix_val": 17.170000076293945,
+  "vix_val": 17.520000457763672,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
     {
-      "Symbol": "CCL",
-      "Company_Name": "Carnival Corporation & plc",
-      "Shares": 175,
-      "Current_Price": 25.01,
-      "Price_Native": 29.73,
-      "Buy_Price": 24.09,
-      "Target": 31.75,
-      "Trail_Stop": 23.8,
-      "Suggested_Stop": 23.31,
-      "Finviz_ATR": 1.02,
-      "Vol_W": 3.15,
-      "Vol_M": 2.91,
-      "Trail_Pct": 3.48,
-      "Investment": 4214.99,
-      "Entry_Date": "0.0",
-      "Current_Value": 4377.59,
-      "Profit": 162.6,
-      "Profit_Pct": 3.86,
-      "Max_Profit": 1342.03,
-      "Consensus": "Buy",
-      "Analysts": 23,
-      "Status": "Neutral",
-      "RSI": 51.29,
-      "RSI_Status": "Neutral",
-      "Trend": "Strong Bullish",
-      "VIX_Tag": "Normal",
-      "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 29.7 > SMA200 27.3), RSI 51, Risk 4.8%",
-      "RS_vs_SPX": 11.43,
-      "Sparkline": [
-        23.58,
-        23.85,
-        26.18,
-        27.09,
-        26.64,
-        26.29,
-        25.83,
-        25.85,
-        25.93,
-        25.7,
-        26.02,
-        26.5,
-        27.18,
-        27.02,
-        26.66,
-        27.03,
-        26.6,
-        26.07,
-        25.39,
-        24.77,
-        24.33,
-        23.58,
-        23.77,
-        23.97,
-        24.02,
-        24.12,
-        24.14,
-        24.17,
-        26.21,
-        25.01
-      ],
-      "Date": "2026-01-30 18:32"
-    },
-    {
       "Symbol": "LQQ.PA",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 12,
-      "Current_Price": 1485.0,
-      "Price_Native": 1485.0,
+      "Current_Price": 1484.6,
+      "Price_Native": 1484.6,
       "Buy_Price": 1487.57,
       "Target": 1612.2,
       "Trail_Stop": 0,
-      "Suggested_Stop": 1401.23,
+      "Suggested_Stop": 1400.83,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
       "Investment": 17850.83,
       "Entry_Date": "-",
-      "Current_Value": 17820.0,
-      "Profit": -30.83,
-      "Profit_Pct": -0.17,
+      "Current_Value": 17815.2,
+      "Profit": -35.63,
+      "Profit_Pct": -0.2,
       "Max_Profit": 1495.57,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 49.22,
+      "RSI": 49.15,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 1485.0 > SMA200 1328.8), RSI 49",
-      "RS_vs_SPX": -6.83,
+      "Sell_Reason": "Trend UP (P 1484.6 > SMA200 1328.8), RSI 49",
+      "RS_vs_SPX": -6.53,
       "Sparkline": [
         1407.4,
         1450.6,
@@ -667,40 +603,40 @@
         1505.2,
         1518.0,
         1463.2,
-        1485.0
+        1484.6
       ],
-      "Date": "2026-01-30 18:32"
+      "Date": "2026-01-30 19:12"
     },
     {
       "Symbol": "SXRZ.DE",
       "Company_Name": "iShares VII PLC - iShares Nikkei 225 ETF JPY Acc",
       "Shares": 20,
-      "Current_Price": 296.35,
-      "Price_Native": 296.35,
+      "Current_Price": 296.45,
+      "Price_Native": 296.45,
       "Buy_Price": 279.45,
-      "Target": 308.61,
+      "Target": 308.71,
       "Trail_Stop": 264.3,
-      "Suggested_Stop": 288.18,
+      "Suggested_Stop": 288.28,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 12.0,
       "Investment": 5589.0,
       "Entry_Date": "0.0",
-      "Current_Value": 5927.0,
-      "Profit": 338.0,
-      "Profit_Pct": 6.05,
-      "Max_Profit": 583.14,
+      "Current_Value": 5929.0,
+      "Profit": 340.0,
+      "Profit_Pct": 6.08,
+      "Max_Profit": 585.14,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 57.77,
+      "RSI": 57.87,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 296.4 > SMA200 258.1), RSI 58, Risk 10.8%",
-      "RS_vs_SPX": -3.51,
+      "Sell_Reason": "Trend UP (P 296.5 > SMA200 258.1), RSI 58, Risk 10.8%",
+      "RS_vs_SPX": -3.15,
       "Sparkline": [
         278.95,
         276.95,
@@ -731,15 +667,15 @@
         293.8,
         296.65,
         293.0,
-        296.35
+        296.45
       ],
-      "Date": "2026-01-30 18:32"
+      "Date": "2026-01-30 19:12"
     },
     {
       "Symbol": "TVBETETF.RO",
       "Company_Name": "ETF BET Tradeville",
       "Shares": 1851,
-      "Current_Price": 8.99,
+      "Current_Price": 8.98,
       "Price_Native": 45.78,
       "Buy_Price": 5.1,
       "Target": 9.74,
@@ -749,12 +685,12 @@
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
-      "Investment": 9435.89,
+      "Investment": 9435.28,
       "Entry_Date": "-",
-      "Current_Value": 16631.95,
-      "Profit": 7196.06,
+      "Current_Value": 16630.87,
+      "Profit": 7195.59,
       "Profit_Pct": 76.26,
-      "Max_Profit": 8595.81,
+      "Max_Profit": 8595.25,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
@@ -764,14 +700,14 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 45.8 > SMA200 34.5), RSI 65",
-      "RS_vs_SPX": 18.59,
+      "RS_vs_SPX": 18.92,
       "Sparkline": [
-        7.89,
+        7.88,
         7.85,
         7.85,
         7.9,
         7.91,
-        7.84,
+        7.83,
         7.87,
         7.83,
         7.89,
@@ -792,12 +728,12 @@
         8.89,
         8.93,
         9.04,
-        9.19,
-        9.26,
+        9.18,
+        9.25,
         9.15,
-        8.99
+        8.98
       ],
-      "Date": "2026-01-30 18:32"
+      "Date": "2026-01-30 19:12"
     }
   ],
   "watchlist": [
