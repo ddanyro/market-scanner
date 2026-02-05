@@ -27,6 +27,10 @@ import market_utils
 import market_security
 import market_data
 
+# Cache settings for long-horizon historical returns (slow to compute)
+HISTORICAL_RETURNS_FILE = "historical_returns.json"
+HISTORICAL_RETURNS_TTL_DAYS = 30
+
 
 # REFACTORED: security functions moved to market_security.py
 # REFACTORED: state functions moved to market_utils.py
@@ -228,8 +232,29 @@ def save_market_history(history):
     except Exception as e:
         print(f"Eroare salvare istoric: {e}")
 
-def calculate_historical_monthly_returns():
-    """Calculate average monthly returns for S&P 500 and NASDAQ since 1950."""
+def calculate_historical_monthly_returns(cache_file=HISTORICAL_RETURNS_FILE, ttl_days=HISTORICAL_RETURNS_TTL_DAYS):
+    """Calculate average monthly returns for S&P 500 and NASDAQ since 1950 (cached monthly)."""
+    # Serve from cache if fresh
+    if os.path.exists(cache_file):
+        try:
+            with open(cache_file, 'r') as f:
+                cached = json.load(f)
+            cached_at = cached.get('generated_at')
+            cached_month = cached.get('generated_month')
+            cached_data = cached.get('data')
+            if cached_at and cached_data:
+                cached_dt = datetime.datetime.fromisoformat(cached_at)
+                now = datetime.datetime.now()
+                # Recompute only when month changes (1st trading day will trigger)
+                if cached_dt.year == now.year and cached_dt.month == now.month:
+                    return cached_data
+            if cached_month and cached_data:
+                now_month = datetime.datetime.now().strftime("%Y-%m")
+                if cached_month == now_month:
+                    return cached_data
+        except Exception:
+            pass
+
     returns = {}
     
     indices = {
@@ -249,8 +274,8 @@ def calculate_historical_monthly_returns():
                 print(f"    ⚠️  Nu există date pentru {name}")
                 continue
             
-            # Resample to monthly and calculate returns
-            monthly = hist['Close'].resample('M').last()
+            # Resample to monthly (Month Start) and calculate returns
+            monthly = hist['Close'].resample('MS').first()
             monthly_returns = monthly.pct_change().dropna() * 100  # Convert to percentage
             
             # Calculate average monthly return
@@ -275,6 +300,22 @@ def calculate_historical_monthly_returns():
             print(f"    ❌ Eroare la calculul randamentelor pentru {name}: {e}")
             continue
     
+    # Save cache
+    try:
+        now = datetime.datetime.now()
+        with open(cache_file, 'w') as f:
+            json.dump(
+                {
+                    "generated_at": now.isoformat(),
+                    "generated_month": now.strftime("%Y-%m"),
+                    "data": returns
+                },
+                f,
+                indent=2
+            )
+    except Exception:
+        pass
+
     return returns
 
 def get_market_indicators():
