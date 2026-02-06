@@ -274,8 +274,8 @@ def calculate_historical_monthly_returns(cache_file=HISTORICAL_RETURNS_FILE, ttl
                 print(f"    ⚠️  Nu există date pentru {name}")
                 continue
             
-            # Resample to monthly (Month Start) and calculate returns
-            monthly = hist['Close'].resample('MS').first()
+            # Resample to monthly and calculate returns
+            monthly = hist['Close'].resample('M').last()
             monthly_returns = monthly.pct_change().dropna() * 100  # Convert to percentage
             
             # Calculate average monthly return
