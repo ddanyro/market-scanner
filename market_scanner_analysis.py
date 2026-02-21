@@ -35,77 +35,67 @@ def get_event_impact(event_name):
     return "Indicator economic. Poate genera volatilitate intraday."
 
 def get_economic_events():
-    """Scrapes Yahoo Finance for upcoming US economic events (Current & Next Week)."""
+    """Fetches high-impact US economic events from TradingView API."""
     try:
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+        import datetime
+        import requests
+        
+        today = datetime.datetime.utcnow()
+        from_time = today.strftime("%Y-%m-%dT00:00:00.000Z")
+        to_time = (today + datetime.timedelta(days=10)).strftime("%Y-%m-%dT00:00:00.000Z")
+        
+        url = "https://economic-calendar.tradingview.com/events"
+        headers = {
+            'User-Agent': 'Mozilla/5.0',
+            'Content-Type': 'application/json',
+            'Origin': 'https://www.tradingview.com',
+            'Referer': 'https://www.tradingview.com/'
+        }
+        payload = {"from": from_time, "to": to_time, "countries": ["US"]}
+        
+        r = requests.post(url, headers=headers, json=payload, timeout=10)
+        if r.status_code != 200:
+            raise ValueError(f"Status {r.status_code}")
+            
+        data = r.json()
+        events = data.get('result', [])
         
         all_events = []
         seen_events = set()
+        keywords = ['Fed', 'FOMC', 'CPI', 'GDP', 'Nonfarm', 'Unemployment', 'PPI', 'Rate', 'Retail', 'Sentiment', 'Confidence', 'Manufacturing', 'Services', 'Home', 'Job', 'Permits', 'Inventories']
         
-        today = datetime.date.today()
-        
-        # Scanăm până la 6 săptămâni în avans până găsim ceva
-        for w in range(6):
-            target_date = today + datetime.timedelta(weeks=w)
-            url = f"https://finance.yahoo.com/calendar/economic?day={target_date}"
+        for item in events:
+            title = item.get('title', '')
+            date_raw = item.get('date', '') # format: 2026-02-15T00:00:00.000Z
             
-            try:
-                r = requests.get(url, headers=headers, timeout=5)
-                if r.status_code != 200: continue
-                
-                dfs = pd.read_html(StringIO(r.text))
-                if not dfs: continue
-                
-                df = dfs[0]
-                
-                # Filtrare SUA
-                if 'Country' in df.columns:
-                    us_df = df[df['Country'].astype(str).str.contains('US', case=False, na=False)]
-                else:
-                    continue 
-                
-                # Colectare
-                keywords = ['Fed', 'FOMC', 'CPI', 'GDP', 'Nonfarm', 'Unemployment', 'PPI', 'Rate', 'Retail', 'Sentiment', 'Confidence', 'Manufacturing', 'Services', 'Home', 'Job', 'Permits', 'Inventories']
-                
-                for idx, row in us_df.iterrows():
-                    evt = str(row['Event'])
-                    # Acceptăm mai multe evenimente dacă lista e goală
-                    is_major = any(k.lower() in evt.lower() for k in keywords) or (len(all_events) == 0 and w > 0)
-                    
-                    if is_major:
-                        evt_time = str(row['Event Time'])
-                        unique_id = f"{evt}_{evt_time}_{w}"
-                        
-                        if unique_id not in seen_events:
-                            seen_events.add(unique_id)
-                            # Data info
-                            date_str = target_date.strftime('%d %b')
-                            
-                            # Adăugăm obiect complet
-                            all_events.append({
-                                'name': evt,
-                                'time': evt_time,
-                                'week': f"Săpt. {date_str}",
-                                'desc': get_event_impact(evt)
-                            })
+            is_major = any(k.lower() in title.lower() for k in keywords)
             
-                if len(all_events) >= 6:
-                    break
+            if is_major and date_raw:
+                try:
+                    event_date_obj = datetime.datetime.strptime(date_raw[:10], '%Y-%m-%d')
+                    date_display = event_date_obj.strftime('%d %b')
+                    time_str = date_raw[11:16] # HH:MM
                     
-            except Exception as e:
-                print(f"Sub-request error: {e}")
-                continue
-        
-        return all_events[:8]
+                    unique_id = f"{title}_{date_raw}"
+                    
+                    if unique_id not in seen_events:
+                        seen_events.add(unique_id)
+                        all_events.append({
+                            'name': title,
+                            'time': time_str,
+                            'week': f"({date_display})",
+                            'desc': get_event_impact(title)
+                        })
+                except Exception as e:
+                    continue
+                    
+        if all_events:
+            return all_events[:8]
+            
     except Exception as e:
-        print(f"Calendar error: {e}")
-        # Fallback Mock Calendar (dacă Yahoo eșuează)
-        return [
-            {'name': 'Building Permits', 'week': 'Săpt. Curentă', 'desc': 'Mock Data'},
-            {'name': 'CPI Index', 'week': 'Săpt. Viitoare', 'desc': 'Mock Data'},
-            {'name': 'Fed Interest Rate Decision', 'week': 'Următoarea Ședință', 'desc': 'Mock Data'},
-            {'name': 'Nonfarm Payrolls', 'week': 'Luna Viitoare', 'desc': 'Mock Data'}
-        ]
+        pass # Silently fail
+        
+    return []
 
 import os
 import xml.etree.ElementTree as ET
