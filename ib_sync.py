@@ -479,8 +479,10 @@ def sync_ibkr():
                 if mask.any():
                     if t_stop > 0:
                         new_df.loc[mask, 'Trail_Stop_IBKR'] = t_stop
-                        # Putem actualiza si 'Trail_Stop' generic daca vrem sa suprascriem manualul? 
-                        # Mai bine lasam Trail_Stop_IBKR separat si il decidem la afisare sau merge.
+                        # Sync live stop to Trail_Stop so P/L la Stop uses the real value
+                        if 'Trail_Stop' not in new_df.columns:
+                            new_df['Trail_Stop'] = 0
+                        new_df.loc[mask, 'Trail_Stop'] = t_stop
                     if t_pct > 0:
                         new_df.loc[mask, 'Trail_Pct'] = t_pct
         except Exception as e:
@@ -493,7 +495,7 @@ def sync_ibkr():
              try:
                 print("Îmbinare cu preferințele locale...")
                 old_df = pd.read_csv(PORTFOLIO_FILE)
-                manual_cols = ['Symbol', 'Target', 'Max_Profit', 'Trail_Pct', 'Trail_Stop', 'Entry_Date'] # Toate manualele + Entry_Date persistă
+                manual_cols = ['Symbol', 'Target', 'Max_Profit', 'Trail_Pct', 'Entry_Date'] # Trail_Stop excluded: it's now synced live from IBKR
                 existing_cols = [c for c in manual_cols if c in old_df.columns]
                 
                 if existing_cols:

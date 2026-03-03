@@ -2395,13 +2395,19 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     portfolio_df['Max_Profit'] = pd.to_numeric(portfolio_df['Max_Profit'], errors='coerce').fillna(0)
     total_max_profit = portfolio_df['Max_Profit'].sum() if not portfolio_df.empty else 0
     
-    # Calc P/L la Stop
+    # Calc P/L la Stop (use effective stop: prefer Trail_Stop_IBKR if available)
     total_pl_at_stop = 0
     total_pos_stop_profit = 0
+    has_ibkr_stop = 'Trail_Stop_IBKR' in portfolio_df.columns if not portfolio_df.empty else False
     if not portfolio_df.empty:
         for _, r in portfolio_df.iterrows():
-            if r['Trail_Stop'] and r['Trail_Stop'] > 0:
-                 diff = (r['Trail_Stop'] - r['Buy_Price']) * r['Shares']
+            eff_stop = 0
+            if has_ibkr_stop and pd.notna(r.get('Trail_Stop_IBKR', 0)) and r.get('Trail_Stop_IBKR', 0) > 0:
+                eff_stop = r['Trail_Stop_IBKR']
+            elif r['Trail_Stop'] and r['Trail_Stop'] > 0:
+                eff_stop = r['Trail_Stop']
+            if eff_stop > 0:
+                 diff = (eff_stop - r['Buy_Price']) * r['Shares']
                  total_pl_at_stop += diff
                  if diff > 0:
                      total_pos_stop_profit += 1
@@ -2793,11 +2799,16 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         # Save sparkline data for JS
         sparkline_data[sparkline_id] = row['Sparkline']
         
-        # P/L la Stop Calc
+        # P/L la Stop Calc (use effective stop: prefer Trail_Stop_IBKR if available)
         pl_at_stop_display = "-"
         pl_at_stop_class = ""
-        if row['Trail_Stop'] and pd.notna(row['Trail_Stop']) and row['Trail_Stop'] > 0:
-            pl_at_stop = (row['Trail_Stop'] - row['Buy_Price']) * row['Shares']
+        eff_stop_row = 0
+        if 'Trail_Stop_IBKR' in row.index and pd.notna(row.get('Trail_Stop_IBKR', 0)) and row.get('Trail_Stop_IBKR', 0) > 0:
+            eff_stop_row = row['Trail_Stop_IBKR']
+        elif row['Trail_Stop'] and pd.notna(row['Trail_Stop']) and row['Trail_Stop'] > 0:
+            eff_stop_row = row['Trail_Stop']
+        if eff_stop_row > 0:
+            pl_at_stop = (eff_stop_row - row['Buy_Price']) * row['Shares']
             pl_at_stop_display = f"€{pl_at_stop:,.2f}"
             pl_at_stop_class = "positive" if pl_at_stop > 0 else "negative"
         
@@ -2805,7 +2816,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         if isinstance(target_val, (int, float)): target_val = f"{target_val:.2f}"
         
         trail_pct_val = row['Trail_Pct'] if pd.notna(row['Trail_Pct']) else 0
-        trail_stop_val = row['Trail_Stop'] if row['Trail_Stop'] and pd.notna(row['Trail_Stop']) and row['Trail_Stop'] > 0 else ""
+        # Display effective stop value
+        trail_stop_val = eff_stop_row if eff_stop_row > 0 else ""
         if isinstance(trail_stop_val, (int, float)): trail_stop_val = f"{trail_stop_val:.2f}"
 
         # RSI Tooltip Logic (Matches Watchlist)
