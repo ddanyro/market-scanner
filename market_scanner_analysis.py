@@ -1577,6 +1577,10 @@ def generate_swing_trading_html(data=None):
                  spx_verdict = "WAIT DIP"
                  spx_verdict_color = "#ff9800"
                  spx_verdict_text = "Bull Market + Frică în creștere (Falling Knife). Așteaptă stabilizare."
+            elif not spx_timing_ok:
+                 spx_verdict = "WAIT DIP"
+                 spx_verdict_color = "#ff9800"
+                 spx_verdict_text = f"Bull + Frică (Stabilizare), dar sub SMA10. Așteaptă revenire peste SMA10."
             else:
                  spx_verdict = "BUY"
                  spx_verdict_color = "#4caf50"
@@ -1633,6 +1637,10 @@ def generate_swing_trading_html(data=None):
                 ndx_verdict = "WAIT TECH"
                 ndx_verdict_color = "#ff9800"
                 ndx_verdict_text = "Tech Bullish + Frică în creștere. Risc de corecție mai adâncă."
+            elif not ndx_timing_ok:
+                ndx_verdict = "WAIT TECH"
+                ndx_verdict_color = "#ff9800"
+                ndx_verdict_text = f"Nasdaq bullish + Frică (Stabilizare), dar sub SMA10. Așteaptă revenire."
             else:
                 ndx_verdict = "BUY TECH"
                 ndx_verdict_color = "#4caf50"
