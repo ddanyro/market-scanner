@@ -4065,10 +4065,12 @@ def update_portfolio_data(state, rates, vix_val):
     
     # === TWS Merge Logic (Moved from main) ===
     # Runs AFTER ib_sync to ensure TWS Prices override Flex Prices if available
-    if os.path.exists('tws_positions.csv'):
+    import time
+    tws_file = 'tws_positions.csv'
+    if os.path.exists(tws_file) and (time.time() - os.path.getmtime(tws_file) < 300):
          print("Merging TWS Positions (Shares/AvgPrice) into portfolio.csv...")
          try:
-             pos_df = pd.read_csv('tws_positions.csv')
+             pos_df = pd.read_csv(tws_file)
              # Load portfolio again to be fresh (explicit read to match TWS logic expectations)
              p_df = pd.read_csv('portfolio.csv') if os.path.exists('portfolio.csv') else pd.DataFrame(columns=['Symbol', 'Shares', 'Buy_Price', 'Currency', 'Trail_Pct', 'Trail_Stop'])
              
