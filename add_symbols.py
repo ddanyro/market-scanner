@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 new_symbols = [
-    "TEM", "ABSI", "CRDO", "POET", "GPCR", "ALT", "ATI", "IOSP", "GPS", "HBI", "LEVI", "BTDR"
+    "AXSM", "INTR", "CYTK", "IRDM", "GSAT", "FOUR", "BILL", "TOST", "BRBR", "COTY", "FLR", "AMRC"
 ]
 
 # Remove internal duplicates while preserving order for logging
