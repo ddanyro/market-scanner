@@ -312,18 +312,25 @@ def sync_ibkr():
             except Exception as e:
                 print(f"Eroare conexiune API: {e}")
 
-    # === Enrich TWS Positions with Flex Metadata (Entry Dates) ===
-    if use_tws_primary and flex_enrichment_map:
-        print(f"  -> Enriching {len(positions)} TWS positions with Dates from Flex...")
-        count_enriched = 0
-        for p in positions:
-            sym = p['Symbol']
-            # Try exact match or suffix robust match?
-            # TWS might have 'ACHV', Flex 'ACHV'. 
-            if sym in flex_enrichment_map:
-                p['Entry_Date'] = flex_enrichment_map[sym]
-                count_enriched += 1
-        print(f"  -> Enriched {count_enriched} positions with Entry Date.")
+    # === Enrich TWS Positions with Flex Metadata (Entry Dates & Trail Stops) ===
+    if use_tws_primary:
+        if flex_enrichment_map:
+            print(f"  -> Enriching {len(positions)} TWS positions with Dates from Flex...")
+            count_enriched = 0
+            for p in positions:
+                sym = p['Symbol']
+                if sym in flex_enrichment_map:
+                    p['Entry_Date'] = flex_enrichment_map[sym]
+                    count_enriched += 1
+            print(f"  -> Enriched {count_enriched} positions with Entry Date.")
+            
+        if orders_map:
+            print(f"  -> Enriching TWS positions with Trail Stops from Flex...")
+            for p in positions:
+                sym = p['Symbol']
+                if sym in orders_map:
+                    p['Trail_Pct'] = orders_map[sym].get('trail_pct', 0)
+                    p['Trail_Stop_IBKR'] = orders_map[sym].get('trail_stop', 0)
 
     # === Integrare Portofoliu Manual (Tradeville/Altele) ===
     MANUAL_FILE = 'tradeville_portfolio.csv'
