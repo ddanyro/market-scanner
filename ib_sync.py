@@ -1,3 +1,10 @@
+import warnings
+try:
+    import urllib3
+    warnings.filterwarnings('ignore', category=urllib3.exceptions.NotOpenSSLWarning)
+except Exception:
+    pass
+
 import requests
 import xml.etree.ElementTree as ET
 import pandas as pd

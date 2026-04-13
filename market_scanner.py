@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+import warnings
+try:
+    import urllib3
+    warnings.filterwarnings('ignore', category=urllib3.exceptions.NotOpenSSLWarning)
+except Exception:
+    pass
+
 import yfinance as yf
 import pandas as pd
 import argparse
