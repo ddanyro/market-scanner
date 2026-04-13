@@ -443,7 +443,7 @@ def sync_ibkr():
             # Ensure columns exist
             for col in agg_rules:
                 if col not in df_proxy.columns:
-                    df_proxy[col] = 0 if col != 'Entry_Date' else ''
+                    df_proxy[col] = 0.0 if col != 'Entry_Date' else ''
 
             # Group
             grouped = df_proxy.groupby('Symbol', as_index=False).agg(agg_rules)
@@ -488,7 +488,7 @@ def sync_ibkr():
                         new_df.loc[mask, 'Trail_Stop_IBKR'] = t_stop
                         # Sync live stop to Trail_Stop so P/L la Stop uses the real value
                         if 'Trail_Stop' not in new_df.columns:
-                            new_df['Trail_Stop'] = 0
+                            new_df['Trail_Stop'] = 0.0
                         new_df.loc[mask, 'Trail_Stop'] = t_stop
                     if t_pct > 0:
                         new_df.loc[mask, 'Trail_Pct'] = t_pct
