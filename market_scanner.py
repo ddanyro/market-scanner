@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 import warnings
-try:
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
     import urllib3
-    warnings.filterwarnings('ignore', category=urllib3.exceptions.NotOpenSSLWarning)
-except Exception:
-    pass
+    import requests
 
 import yfinance as yf
 import pandas as pd

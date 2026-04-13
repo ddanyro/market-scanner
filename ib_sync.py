@@ -1,9 +1,8 @@
 import warnings
-try:
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
     import urllib3
-    warnings.filterwarnings('ignore', category=urllib3.exceptions.NotOpenSSLWarning)
-except Exception:
-    pass
+    import requests
 
 import requests
 import xml.etree.ElementTree as ET
@@ -473,6 +472,9 @@ def sync_ibkr():
     
     # Creare DataFrame
     new_df = pd.DataFrame(positions)
+    for col in ['Trail_Pct', 'Trail_Stop_IBKR', 'Trail_Stop']:
+        if col in new_df.columns:
+            new_df[col] = new_df[col].astype(float)
     
     # === Integrare TWS Orders (Live Stops) ===
     TWS_ORDERS_FILE = 'tws_orders.csv'
