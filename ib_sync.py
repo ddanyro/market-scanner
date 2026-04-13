@@ -502,7 +502,7 @@ def sync_ibkr():
              try:
                 print("Îmbinare cu preferințele locale...")
                 old_df = pd.read_csv(PORTFOLIO_FILE)
-                manual_cols = ['Symbol', 'Target', 'Max_Profit', 'Trail_Pct', 'Entry_Date'] # Trail_Stop excluded: it's now synced live from IBKR
+                manual_cols = ['Symbol', 'Target', 'Max_Profit', 'Entry_Date'] # Trail_Pct and Trail_Stop excluded: they are synced live from IBKR
                 existing_cols = [c for c in manual_cols if c in old_df.columns]
                 
                 if existing_cols:

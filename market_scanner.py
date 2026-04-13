@@ -4063,72 +4063,9 @@ def update_portfolio_data(state, rates, vix_val):
         
     portfolio_data = load_portfolio()
     
-    # === TWS Merge Logic (Moved from main) ===
-    # Runs AFTER ib_sync to ensure TWS Prices override Flex Prices if available
-    import time
-    tws_file = 'tws_positions.csv'
-    if os.path.exists(tws_file) and (time.time() - os.path.getmtime(tws_file) < 300):
-         print("Merging TWS Positions (Shares/AvgPrice) into portfolio.csv...")
-         try:
-             pos_df = pd.read_csv(tws_file)
-             # Load portfolio again to be fresh (explicit read to match TWS logic expectations)
-             p_df = pd.read_csv('portfolio.csv') if os.path.exists('portfolio.csv') else pd.DataFrame(columns=['Symbol', 'Shares', 'Buy_Price', 'Currency', 'Trail_Pct', 'Trail_Stop'])
-             
-             p_changed = False
-             
-             # 1. Update Existing & Add New
-             for _, row in pos_df.iterrows():
-                 sym = str(row.get('Symbol', ''))
-                 shares = float(row.get('Shares', 0))
-                 price = float(row.get('Buy_Price', 0))
-                 curr = str(row.get('Currency', 'USD'))
-                 
-                 if shares == 0: continue # Ignore closed
-                 
-                 mask = p_df['Symbol'] == sym
-                 
-                 if mask.any():
-                     # Update existing
-                     current_shares = float(p_df.loc[mask, 'Shares'].values[0])
-                     current_price = float(p_df.loc[mask, 'Buy_Price'].values[0])
-                     
-                     # Update only if different
-                     if abs(current_shares - shares) > 0.0001 or abs(current_price - price) > 0.01:
-                          p_df.loc[mask, 'Shares'] = shares
-                          p_df.loc[mask, 'Buy_Price'] = price
-                          p_df.loc[mask, 'Currency'] = curr 
-                          p_changed = True
-                          print(f"  Updated {sym}: {shares} shares @ {price}")
-                 else:
-                     # Add New Position
-                     new_row = {
-                         'Symbol': sym, 
-                         'Shares': shares, 
-                         'Buy_Price': price, 
-                         'Currency': curr,
-                         'Trail_Pct': 15,    
-                         'Trail_Stop': 0, 
-                         'Investment': shares * price 
-                     }
-                     # Align columns
-                     for col in p_df.columns:
-                         if col not in new_row: new_row[col] = 0
-                         
-                     p_df = pd.concat([p_df, pd.DataFrame([new_row])], ignore_index=True)
-                     p_changed = True
-                     print(f"  Added New Pos {sym}: {shares} shares @ {price}")
-
-             if p_changed:
-                 p_df.to_csv('portfolio.csv', index=False)
-                 print("Portfolio CSV positions synchronized (TWS Priority).")
-                 
-                 # Reload for analysis
-                 portfolio_data = load_portfolio() 
-                 
-         except Exception as e:
-             print(f"Error merging TWS positions: {e}")
-             
-    # End TWS Merge
+    
+    # === Legacy TWS Merge Logic Removed ===
+    # ib_sync.py now handles all synchronization and writes the clean portfolio.csv directly
 
     portfolio_results = []
     
