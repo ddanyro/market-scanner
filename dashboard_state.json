@@ -3,7 +3,7 @@
     "EUR": 1.0,
     "USD": 0.8549000064714134,
     "RON": 0.19175454856003413,
-    "GBP": 1.1585069408359774
+    "GBP": 1.1584398266719584
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 17.64,
-      "change": -0.65,
+      "value": 17.59,
+      "change": -0.7,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         16.889999389648438,
         16.989999771118164,
         18.290000915527344,
-        17.639999389648438
+        17.59000015258789
       ]
     },
     "VIX1D": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 17.639999389648438,
+  "vix_val": 17.59000015258789,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -609,7 +609,7 @@
         360.15,
         356.07
       ],
-      "Date": "2026-05-05 15:23"
+      "Date": "2026-05-05 15:27"
     },
     {
       "Symbol": "CHDN",
@@ -673,7 +673,7 @@
         84.34,
         78.39
       ],
-      "Date": "2026-05-05 15:23"
+      "Date": "2026-05-05 15:27"
     },
     {
       "Symbol": "CRSP",
@@ -737,7 +737,7 @@
         44.14,
         45.81
       ],
-      "Date": "2026-05-05 15:23"
+      "Date": "2026-05-05 15:27"
     },
     {
       "Symbol": "CVS",
@@ -801,7 +801,7 @@
         70.18,
         70.11
       ],
-      "Date": "2026-05-05 15:23"
+      "Date": "2026-05-05 15:27"
     },
     {
       "Symbol": "CYTK",
@@ -865,38 +865,38 @@
         54.16,
         56.47
       ],
-      "Date": "2026-05-05 15:23"
+      "Date": "2026-05-05 15:27"
     },
     {
       "Symbol": "LQQ.PA",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 12,
-      "Current_Price": 1735.0,
-      "Price_Native": 1735.0,
+      "Current_Price": 1738.0,
+      "Price_Native": 1738.0,
       "Buy_Price": 1487.57,
-      "Target": 1846.81,
+      "Target": 1850.46,
       "Trail_Stop": 0,
-      "Suggested_Stop": 1660.46,
+      "Suggested_Stop": 1663.03,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
       "Investment": 17850.83,
       "Entry_Date": "-",
-      "Current_Value": 20820.0,
-      "Profit": 2969.17,
-      "Profit_Pct": 16.63,
-      "Max_Profit": 4310.94,
+      "Current_Value": 20856.0,
+      "Profit": 3005.17,
+      "Profit_Pct": 16.83,
+      "Max_Profit": 4354.65,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
-      "RSI": 77.46,
+      "RSI": 77.64,
       "RSI_Status": "Overbought",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 1735.0 > SMA200 1428.4), RSI 77",
-      "RS_vs_SPX": 19.63,
+      "Sell_Reason": "Trend UP (P 1738.0 > SMA200 1428.4), RSI 78",
+      "RS_vs_SPX": 19.85,
       "Sparkline": [
         1327.4,
         1333.2,
@@ -927,40 +927,40 @@
         1652.0,
         1662.6,
         1706.8,
-        1735.0
+        1738.0
       ],
-      "Date": "2026-05-05 15:23"
+      "Date": "2026-05-05 15:27"
     },
     {
       "Symbol": "TVBETETF.RO",
       "Company_Name": "ETF BET Tradeville",
       "Shares": 1886,
-      "Current_Price": 8.97,
-      "Price_Native": 46.79,
+      "Current_Price": 8.95,
+      "Price_Native": 46.7,
       "Buy_Price": 5.05,
-      "Target": 9.57,
+      "Target": 9.56,
       "Trail_Stop": 0,
-      "Suggested_Stop": 8.57,
+      "Suggested_Stop": 8.55,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
       "Investment": 9529.45,
       "Entry_Date": "-",
-      "Current_Value": 16923.37,
-      "Profit": 7393.91,
-      "Profit_Pct": 77.59,
-      "Max_Profit": 8528.46,
+      "Current_Value": 16889.01,
+      "Profit": 7359.56,
+      "Profit_Pct": 77.23,
+      "Max_Profit": 8504.18,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 46.25,
+      "RSI": 45.56,
       "RSI_Status": "Neutral",
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Normal",
       "Sell_Decision": "REDUCE",
-      "Sell_Reason": "Structure Fail (Sub SMA50: 46.79 < 47.00); ",
-      "RS_vs_SPX": -1.83,
+      "Sell_Reason": "Structure Fail (Sub SMA50: 46.70 < 47.00); ",
+      "RS_vs_SPX": -2.04,
       "Sparkline": [
         8.92,
         8.84,
@@ -991,9 +991,9 @@
         9.05,
         9.0,
         8.98,
-        8.97
+        8.95
       ],
-      "Date": "2026-05-05 15:23"
+      "Date": "2026-05-05 15:27"
     },
     {
       "Symbol": "WPM",
@@ -1057,7 +1057,7 @@
         107.58,
         106.13
       ],
-      "Date": "2026-05-05 15:23"
+      "Date": "2026-05-05 15:27"
     }
   ],
   "watchlist": [
