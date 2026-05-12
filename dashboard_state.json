@@ -2,8 +2,8 @@
   "rates": {
     "EUR": 1.0,
     "USD": 0.850999974232436,
-    "RON": 0.19194595662244268,
-    "GBP": 1.152432179652089
+    "RON": 0.19205654203677455,
+    "GBP": 1.152844042761807
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 18.89,
-      "change": 0.51,
+      "value": 18.85,
+      "change": 0.47,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         17.079999923706055,
         17.190000534057617,
         18.3799991607666,
-        18.889999389648438
+        18.850000381469727
       ]
     },
     "VIX1D": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 18.889999389648438,
+  "vix_val": 18.850000381469727,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -609,7 +609,7 @@
         35.1,
         37.95
       ],
-      "Date": "2026-05-12 12:40"
+      "Date": "2026-05-12 13:26"
     },
     {
       "Symbol": "AVGO",
@@ -673,7 +673,7 @@
         365.93,
         364.59
       ],
-      "Date": "2026-05-12 12:40"
+      "Date": "2026-05-12 13:26"
     },
     {
       "Symbol": "CRSP",
@@ -737,7 +737,7 @@
         46.66,
         45.96
       ],
-      "Date": "2026-05-12 12:40"
+      "Date": "2026-05-12 13:26"
     },
     {
       "Symbol": "CVS",
@@ -801,7 +801,7 @@
         77.06,
         78.48
       ],
-      "Date": "2026-05-12 12:40"
+      "Date": "2026-05-12 13:27"
     },
     {
       "Symbol": "CYTK",
@@ -865,38 +865,38 @@
         65.45,
         63.45
       ],
-      "Date": "2026-05-12 12:40"
+      "Date": "2026-05-12 13:27"
     },
     {
       "Symbol": "LQQ.PA",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 12,
-      "Current_Price": 1883.4,
-      "Price_Native": 1883.4,
+      "Current_Price": 1884.2,
+      "Price_Native": 1884.2,
       "Buy_Price": 1487.57,
-      "Target": 1999.16,
+      "Target": 1999.96,
       "Trail_Stop": 0,
-      "Suggested_Stop": 1806.23,
+      "Suggested_Stop": 1807.03,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
       "Investment": 17850.83,
       "Entry_Date": "-",
-      "Current_Value": 22600.8,
-      "Profit": 4749.97,
-      "Profit_Pct": 26.61,
-      "Max_Profit": 6139.06,
+      "Current_Value": 22610.4,
+      "Profit": 4759.57,
+      "Profit_Pct": 26.66,
+      "Max_Profit": 6148.65,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
-      "RSI": 84.48,
+      "RSI": 84.51,
       "RSI_Status": "Overbought",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 1883.4 > SMA200 1440.2), RSI 84",
-      "RS_vs_SPX": 28.3,
+      "Sell_Reason": "Trend UP (P 1884.2 > SMA200 1440.2), RSI 85",
+      "RS_vs_SPX": 28.36,
       "Sparkline": [
         1300.0,
         1244.4,
@@ -927,9 +927,9 @@
         1803.6,
         1840.6,
         1879.0,
-        1883.4
+        1884.2
       ],
-      "Date": "2026-05-12 12:40"
+      "Date": "2026-05-12 13:27"
     },
     {
       "Symbol": "NVDA",
@@ -993,7 +993,7 @@
         183.14,
         186.74
       ],
-      "Date": "2026-05-12 12:40"
+      "Date": "2026-05-12 13:27"
     },
     {
       "Symbol": "ORCL",
@@ -1057,7 +1057,7 @@
         166.75,
         164.96
       ],
-      "Date": "2026-05-12 12:40"
+      "Date": "2026-05-12 13:27"
     },
     {
       "Symbol": "RBRK",
@@ -1067,12 +1067,12 @@
       "Price_Native": 62.17,
       "Buy_Price": 52.4,
       "Target": 70.17,
-      "Trail_Stop": 44.75,
+      "Trail_Stop": 45.32,
       "Suggested_Stop": 47.99,
       "Finviz_ATR": 3.02,
       "Vol_W": 4.2,
       "Vol_M": 5.07,
-      "Trail_Pct": 16.29,
+      "Trail_Pct": 15.2,
       "Investment": 2619.8,
       "Entry_Date": "-",
       "Current_Value": 2645.33,
@@ -1087,7 +1087,7 @@
       "Trend": "Bearish Rally",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Recovery (P 62.2 > SMA50 52.7), RSI 68, Risk 15.4%",
+      "Sell_Reason": "Recovery (P 62.2 > SMA50 52.7), RSI 68, Risk 14.3%",
       "RS_vs_SPX": 5.53,
       "Sparkline": [
         38.79,
@@ -1121,7 +1121,7 @@
         53.05,
         52.91
       ],
-      "Date": "2026-05-12 12:40"
+      "Date": "2026-05-12 13:27"
     },
     {
       "Symbol": "RDZN",
@@ -1131,12 +1131,12 @@
       "Price_Native": 1.75,
       "Buy_Price": 1.56,
       "Target": 4.25,
-      "Trail_Stop": 0.84,
+      "Trail_Stop": 1.01,
       "Suggested_Stop": 1.02,
       "Finviz_ATR": 0.21,
       "Vol_W": 10.67,
       "Vol_M": 13.7,
-      "Trail_Pct": 51.2,
+      "Trail_Pct": 41.1,
       "Investment": 1561.59,
       "Entry_Date": "-",
       "Current_Value": 1489.25,
@@ -1151,7 +1151,7 @@
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 1.8 > SMA200 1.4), RSI 57, Risk 43.4%",
+      "Sell_Reason": "Trend UP (P 1.8 > SMA200 1.4), RSI 57, Risk 32.0%",
       "RS_vs_SPX": 41.14,
       "Sparkline": [
         0.91,
@@ -1185,7 +1185,7 @@
         1.53,
         1.49
       ],
-      "Date": "2026-05-12 12:40"
+      "Date": "2026-05-12 13:27"
     },
     {
       "Symbol": "S",
@@ -1249,7 +1249,7 @@
         14.12,
         13.9
       ],
-      "Date": "2026-05-12 12:40"
+      "Date": "2026-05-12 13:27"
     },
     {
       "Symbol": "TSM",
@@ -1259,7 +1259,7 @@
       "Price_Native": 404.54,
       "Buy_Price": 342.53,
       "Target": 388.06,
-      "Trail_Stop": 311.87,
+      "Trail_Stop": 305.05,
       "Suggested_Stop": 317.59,
       "Finviz_ATR": 14.03,
       "Vol_W": 3.51,
@@ -1313,71 +1313,71 @@
         350.34,
         344.26
       ],
-      "Date": "2026-05-12 12:40"
+      "Date": "2026-05-12 13:27"
     },
     {
       "Symbol": "TVBETETF.RO",
       "Company_Name": "ETF BET Tradeville",
       "Shares": 1886,
-      "Current_Price": 9.51,
-      "Price_Native": 49.52,
+      "Current_Price": 9.55,
+      "Price_Native": 49.7,
       "Buy_Price": 5.06,
-      "Target": 10.05,
+      "Target": 10.09,
       "Trail_Stop": 0,
-      "Suggested_Stop": 9.14,
+      "Suggested_Stop": 9.18,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
-      "Investment": 9538.97,
+      "Investment": 9544.46,
       "Entry_Date": "-",
-      "Current_Value": 17926.74,
-      "Profit": 8387.77,
-      "Profit_Pct": 87.93,
-      "Max_Profit": 9411.36,
+      "Current_Value": 18002.27,
+      "Profit": 8457.81,
+      "Profit_Pct": 88.61,
+      "Max_Profit": 9493.62,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 64.41,
+      "RSI": 65.38,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 49.5 > SMA200 40.7), RSI 64",
-      "RS_vs_SPX": -1.73,
+      "Sell_Reason": "Trend UP (P 49.7 > SMA200 40.8), RSI 65",
+      "RS_vs_SPX": -1.35,
       "Sparkline": [
         8.89,
         8.64,
         8.8,
+        8.92,
+        8.9,
+        8.9,
         8.91,
-        8.9,
-        8.89,
-        8.9,
-        9.0,
+        9.01,
         9.11,
         9.13,
         9.18,
-        9.31,
-        9.41,
-        9.33,
+        9.32,
+        9.42,
+        9.34,
         9.15,
-        9.01,
+        9.02,
         9.08,
         9.27,
-        9.36,
+        9.37,
         9.24,
         9.03,
-        9.06,
+        9.07,
+        9.01,
         9.0,
-        8.99,
-        9.17,
+        9.18,
         9.2,
-        9.35,
-        9.43,
+        9.36,
+        9.44,
         9.47,
-        9.51
+        9.55
       ],
-      "Date": "2026-05-12 12:40"
+      "Date": "2026-05-12 13:27"
     },
     {
       "Symbol": "WPM",
@@ -1441,7 +1441,7 @@
         118.16,
         122.37
       ],
-      "Date": "2026-05-12 12:40"
+      "Date": "2026-05-12 13:27"
     }
   ],
   "watchlist": [
