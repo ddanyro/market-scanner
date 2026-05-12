@@ -489,17 +489,22 @@ def sync_ibkr():
                 t_sym = str(row.get('Symbol', ''))
                 t_stop = float(row.get('Calculated_Stop', 0))
                 t_pct = float(row.get('Trail_Pct', 0))
+                t_action = str(row.get('Action', ''))
+                
+                # Ignorăm ordinele de BUY (cum ar fi Limit Buy) care raportează "1.797e+308" ca valoare goală pentru Stop
+                if t_action != 'SELL':
+                    continue
                 
                 # Căutăm în new_df și updatăm
                 mask = new_df['Symbol'] == t_sym
                 if mask.any():
-                    if t_stop > 0:
+                    if t_stop > 0 and t_stop < 1e100:
                         new_df.loc[mask, 'Trail_Stop_IBKR'] = t_stop
                         # Sync live stop to Trail_Stop so P/L la Stop uses the real value
                         if 'Trail_Stop' not in new_df.columns:
                             new_df['Trail_Stop'] = 0.0
                         new_df.loc[mask, 'Trail_Stop'] = t_stop
-                    if t_pct > 0:
+                    if t_pct > 0 and t_pct < 1e100:
                         new_df.loc[mask, 'Trail_Pct'] = t_pct
         except Exception as e:
             print(f"Eroare procesare TWS Orders: {e}")
