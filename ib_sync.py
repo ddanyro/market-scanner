@@ -368,6 +368,7 @@ def sync_ibkr():
                          'Profit_Pct': 0.0,
                          'Investment': qty * bp,
                          'Trail_Pct': float(row.get('Trail_Pct', 0)),
+                         'Trail_Stop': float(row.get('Trail_Stop', 0)),
                          'Trail_Stop_IBKR': 0 # Manual nu are IBKR Stop
                      }
                      positions.append(item)
@@ -443,6 +444,7 @@ def sync_ibkr():
                 'Currency': 'first',
                 'Trail_Pct': 'max',
                 'Trail_Stop_IBKR': 'max',
+                'Trail_Stop': 'max',
                 'Entry_Date': get_earliest_date
             }
             
