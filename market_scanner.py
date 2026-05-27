@@ -2788,7 +2788,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         status_cls = row['Status']
         profit_cls = 'positive' if row['Profit'] >= 0 else 'negative'
         
-        if row['Target'] and pd.notna(row['Target']):
+        if row['Target'] and pd.notna(row['Target']) and row['Current_Price'] > 0:
             pct_to_target = ((row['Target'] - row['Current_Price']) / row['Current_Price']) * 100
             target_display = f"€{row['Target']:.2f}"
             pct_display = f"{pct_to_target:.1f}%"
