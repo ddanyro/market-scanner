@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 new_symbols = [
-    "CEG", "CCJ", "ETN", "GEV"
+    "NVT", "MOD", "PH", "KEY", "WAL"
 ]
 
 # Remove internal duplicates while preserving order for logging
