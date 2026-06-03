@@ -3264,6 +3264,28 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Min R:R</label>
                     <input type="number" id="filter-rr" placeholder="0" step="0.1" style="padding: 10px 14px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); width: 80px; font-size: 14px;">
                 </div>
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Strategie</label>
+                    <select id="filter-strategy" style="padding: 10px 14px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); width: 180px; font-size: 14px; cursor: pointer;">
+                        <option value="">All</option>
+                        <option value="Pullback">Pullback</option>
+                        <option value="Deep Pullback">Deep Pullback</option>
+                        <option value="Breakout">Breakout</option>
+                        <option value="Strong Breakout">Strong Breakout</option>
+                        <option value="Reversal">Reversal (Oversold)</option>
+                        <option value="Range">Range / Consolidation</option>
+                        <option value="Normal">Normal</option>
+                        <option value="N/A">N/A</option>
+                    </select>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Min RS vs SPX</label>
+                    <input type="number" id="filter-rs-spx" placeholder="0" step="0.1" style="padding: 10px 14px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); width: 120px; font-size: 14px;">
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Sector</label>
+                    <input type="text" id="filter-sector" list="sector-list" placeholder="All Sectors" style="padding: 10px 14px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); width: 180px; font-size: 14px;">
+                </div>
             </div>
 
 
@@ -3863,6 +3885,23 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     searching: true,
                     order: [] 
                 });
+
+                // Populate Sector datalist dynamically
+                var sectors = {};
+                var wlTable = $('#watchlist-table').DataTable();
+                wlTable.column(8).data().each(function(val) {
+                    if (val) {
+                        var cleanVal = val.trim();
+                        if (cleanVal) {
+                            sectors[cleanVal] = true;
+                        }
+                    }
+                });
+                var datalist = $('<datalist id="sector-list"></datalist>');
+                Object.keys(sectors).sort().forEach(function(sec) {
+                    datalist.append($('<option>').attr('value', sec));
+                });
+                $('body').append(datalist);
                 
                 // Custom filtering function
                 $.fn.dataTable.ext.search.push(
@@ -3875,6 +3914,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         var trend = $('#filter-trend').val();
                         var status = $('#filter-status').val();
                         var decision = $('#filter-decision').val();
+                        var strategy = $('#filter-strategy').val();
+                        var minRsSpx = parseFloat($('#filter-rs-spx').val());
+                        var sector = $('#filter-sector').val() ? $('#filter-sector').val().toLowerCase().trim() : "";
 
                         // Indices Updated for new columns (R:R at 5, Strategy at 13)
                         var rowTargetPct = parseFloat(data[4].replace('%', '')) || -9999;
@@ -3883,6 +3925,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         var rowDecision = data[9] || "";        // Was 8
                         var rowTrend = data[12] || "";          // Was 11
                         var rowStatus = data[17] || "";         // Was 15
+                        var rowStrategy = data[13] || "";
+                        var rowRsSpx = parseFloat(data[11].replace('%', '').replace('+', ''));
+                        if (isNaN(rowRsSpx)) rowRsSpx = -9999;
+                        var rowSector = data[8] ? data[8].toLowerCase().trim() : "";
 
                         if (consensus && !rowConsensus.includes(consensus)) return false;
                         if (!isNaN(minAnalysts) && rowAnalysts < minAnalysts) return false;
@@ -3890,6 +3936,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         if (trend && !rowTrend.includes(trend)) return false;
                         if (status && !rowStatus.includes(status)) return false;
                         if (decision && !rowDecision.includes(decision)) return false;
+                        if (strategy && !rowStrategy.includes(strategy)) return false;
+                        if (!isNaN(minRsSpx) && rowRsSpx < minRsSpx) return false;
+                        if (sector && !rowSector.includes(sector)) return false;
 
                         var minVol = parseFloat($('#filter-volume').val());
                         var minRsi = parseFloat($('#filter-rsi-min').val());
@@ -3915,11 +3964,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 );
 
                 // Event listener to redraw on input change
-                $('#filter-consensus, #filter-analysts, #filter-target-pct, #filter-trend, #filter-status, #filter-decision, #filter-volume, #filter-rsi-min, #filter-rsi-max, #filter-rr').change(function() {
+                $('#filter-consensus, #filter-analysts, #filter-target-pct, #filter-trend, #filter-status, #filter-decision, #filter-volume, #filter-rsi-min, #filter-rsi-max, #filter-rr, #filter-strategy, #filter-rs-spx, #filter-sector').change(function() {
                     table.draw();
                 });
-                $('#filter-analysts, #filter-target-pct, #filter-volume, #filter-rsi-min, #filter-rsi-max, #filter-rr').keyup(function() {
+                $('#filter-analysts, #filter-target-pct, #filter-volume, #filter-rsi-min, #filter-rsi-max, #filter-rr, #filter-rs-spx, #filter-sector').keyup(function() {
                      table.draw();
+                });
+                $('#filter-sector').on('input', function() {
+                    table.draw();
                 });
             });
 
