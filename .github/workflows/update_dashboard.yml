@@ -4,7 +4,8 @@ on:
   push:
     branches: [ "main" ]
   schedule:
-    - cron: '*/30 * * * *'  # Rulează la fiecare 30 de minute
+    - cron: '*/30 * * * *'  # Rulează la fiecare 30 de minute (mod: portfolio)
+    - cron: '0 2 * * *'     # Rulează zilnic la 02:00 UTC (mod: all)
   workflow_dispatch:      # Permite rularea manuală din buton
 
 jobs:
@@ -35,8 +36,13 @@ jobs:
         IBKR_QUERY_ID: ${{ secrets.IBKR_QUERY_ID }}
         PORTFOLIO_PASSWORD: ${{ secrets.PORTFOLIO_PASSWORD }}
       run: |
+        MODE="portfolio"
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event.schedule }}" = "0 2 * * *" ]; then
+          MODE="all"
+        fi
+        echo "Running market scanner in mode: $MODE"
         python update_sp500_json.py
-        python market_scanner.py --mode all
+        python market_scanner.py --mode $MODE
 
     - name: Commit and Push changes
       run: |
@@ -44,4 +50,5 @@ jobs:
         git config --global user.email 'action@github.com'
         git add index.html dashboard_state.json portfolio.csv watchlist.csv sp500_tickers.json
         git commit -m "Auto-update Dashboard [skip ci]" || echo "No changes to commit"
-        git push
+        git pull --rebase origin main || (git checkout --theirs index.html dashboard_state.json && git add index.html dashboard_state.json && GIT_EDITOR=true git rebase --continue)
+        git push origin main
