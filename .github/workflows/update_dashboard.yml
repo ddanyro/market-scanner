@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
   schedule:
     - cron: '*/30 * * * *'  # Rulează la fiecare 30 de minute (mod: portfolio)
-    - cron: '0 6 * * *'     # Rulează zilnic la 06:00 UTC (ora 09:00 RO în timpul verii) (mod: all)
+    - cron: '0 */5 * * *'   # Rulează la fiecare 5 ore (mod: all)
   workflow_dispatch:      # Permite rularea manuală din buton
 
 jobs:
@@ -37,7 +37,7 @@ jobs:
         PORTFOLIO_PASSWORD: ${{ secrets.PORTFOLIO_PASSWORD }}
       run: |
         MODE="portfolio"
-        if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event.schedule }}" = "0 6 * * *" ]; then
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event.schedule }}" = "0 */5 * * *" ]; then
           MODE="all"
         fi
         echo "Running market scanner in mode: $MODE"
