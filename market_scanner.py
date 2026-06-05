@@ -186,6 +186,8 @@ def get_vix_data():
     try:
         vix = yf.Ticker("^VIX")
         hist = vix.history(period="5d")
+        if not hist.empty:
+            hist = hist.dropna(subset=['Close'])
         if hist.empty:
             return None
         current_vix = hist['Close'].iloc[-1]
@@ -275,6 +277,8 @@ def calculate_historical_monthly_returns(cache_file=HISTORICAL_RETURNS_FILE, ttl
             
             # Get historical data from 1950 to today
             hist = data.history(start="1950-01-01", end=datetime.datetime.now().strftime('%Y-%m-%d'))
+            if not hist.empty:
+                hist = hist.dropna(subset=['Close'])
             
             if hist.empty:
                 print(f"    ⚠️  Nu există date pentru {name}")
@@ -373,6 +377,8 @@ def get_market_indicators():
             data = yf.Ticker(ticker)
             # Încercăm să luăm istoric scurt pentru update, sau lung dacă nu avem local
             hist = data.history(period="35d")
+            if not hist.empty:
+                hist = hist.dropna(subset=['Close'])
             
             current_val = None
             
@@ -624,6 +630,13 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         else:
             time.sleep(2)
             df = yf.download(ticker, period="1y", auto_adjust=True, progress=False)
+            if not df.empty:
+                if isinstance(df.columns, pd.MultiIndex):
+                    try:
+                        df.columns = df.columns.droplevel(1)
+                    except:
+                        pass
+                df = df.dropna(subset=['Close'])
             
             # Retry with European suffixes if base ticker fails (common for IBKR ETFs like SXRZ)
             # Retry with European suffixes if base ticker fails (common for IBKR ETFs like SXRZ)
@@ -634,12 +647,19 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                     alt_ticker = f"{ticker}{s}"
                     # Check cache for alt ticker too
                     if alt_ticker in ticker_cache and ticker_cache[alt_ticker] is not None:
-                         # print(f"  [Cache] Used cached data for {alt_ticker}")
-                         df_alt = ticker_cache[alt_ticker]
+                        # print(f"  [Cache] Used cached data for {alt_ticker}")
+                        df_alt = ticker_cache[alt_ticker]
                     else:
                         print(f"    Trying {alt_ticker}...")
                         time.sleep(1)
                         df_alt = yf.download(alt_ticker, period="1y", auto_adjust=True, progress=False)
+                        if not df_alt.empty:
+                            if isinstance(df_alt.columns, pd.MultiIndex):
+                                try:
+                                    df_alt.columns = df_alt.columns.droplevel(1)
+                                except:
+                                    pass
+                            df_alt = df_alt.dropna(subset=['Close'])
                         if not df_alt.empty:
                              ticker_cache[alt_ticker] = df_alt # Cache successful alt
                     
@@ -723,6 +743,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 df.columns = df.columns.droplevel(1)
             except:
                 pass
+        df = df.dropna(subset=['Close'])
         
         # Fetch detailed info from Yahoo (Consensus) - Inserted Logic
         consensus = "-"
@@ -1282,6 +1303,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
                 df.columns = df.columns.droplevel(1)
             except:
                 pass
+        df = df.dropna(subset=['Close'])
             
         df['ATR'] = calculate_atr(df)
         df['RSI'] = calculate_rsi(df)
@@ -1378,6 +1400,13 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         rs_status = "Neutral"
         try:
             spx_df = yf.download("^GSPC", period="3mo", auto_adjust=True, progress=False)
+            if not spx_df.empty:
+                if isinstance(spx_df.columns, pd.MultiIndex):
+                    try:
+                        spx_df.columns = spx_df.columns.droplevel(1)
+                    except:
+                        pass
+                spx_df = spx_df.dropna(subset=['Close'])
             if not spx_df.empty and len(df) >= 60:
                 # Calculate 60-day RS (Medium Term)
                 stock_ret_60 = (df['Close'].iloc[-1] / df['Close'].iloc[-60] - 1) * 100
@@ -1638,6 +1667,8 @@ def determine_economic_cycle():
         # 1. Market Trend (SP500)
         spx = yf.Ticker("^GSPC")
         hist = spx.history(period="1y")
+        if not hist.empty:
+            hist = hist.dropna(subset=['Close'])
         if hist.empty: return "Expansion", "Slowdown" # Default safe
         
         price = hist['Close'].iloc[-1]
@@ -1650,6 +1681,10 @@ def determine_economic_cycle():
         # ^IRX = 13 Week Yield (index format)
         tnx = yf.Ticker("^TNX").history(period="5d")
         irx = yf.Ticker("^IRX").history(period="5d")
+        if not tnx.empty:
+            tnx = tnx.dropna(subset=['Close'])
+        if not irx.empty:
+            irx = irx.dropna(subset=['Close'])
         
         if not tnx.empty and not irx.empty:
             y10 = tnx['Close'].iloc[-1]
@@ -4135,6 +4170,7 @@ def update_portfolio_data(state, rates, vix_val):
     try:
         if isinstance(spx_df.columns, pd.MultiIndex):
             spx_df.columns = spx_df.columns.droplevel(1)
+        spx_df = spx_df.dropna(subset=['Close'])
             
         # Calculate SPX SMA200 for Rule #1
         if len(spx_df) >= 200:

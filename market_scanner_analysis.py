@@ -831,6 +831,7 @@ def get_swing_trading_data(data=None):
         spx = yf.Ticker("^GSPC")
         hist = spx.history(period="2y") 
         if not hist.empty:
+            hist = hist.dropna(subset=['Close'])
             current_price = hist['Close'].iloc[-1]
             hist['SMA10'] = hist['Close'].rolling(window=10).mean()
             hist['SMA50'] = hist['Close'].rolling(window=50).mean()
@@ -888,6 +889,7 @@ def get_swing_trading_data(data=None):
         ndx = yf.Ticker("^NDX")
         hist_ndx = ndx.history(period="2y")
         if not hist_ndx.empty:
+            hist_ndx = hist_ndx.dropna(subset=['Close'])
             ndx_price = hist_ndx['Close'].iloc[-1]
             hist_ndx['SMA10'] = hist_ndx['Close'].rolling(window=10).mean()
             hist_ndx['SMA50'] = hist_ndx['Close'].rolling(window=50).mean()
@@ -939,6 +941,7 @@ def get_swing_trading_data(data=None):
         vix = yf.Ticker("^VIX")
         hist_vix = vix.history(period="6mo")
         if not hist_vix.empty:
+            hist_vix = hist_vix.dropna(subset=['Close'])
             vix_current = hist_vix['Close'].iloc[-1]
             data['VIX_Current'] = vix_current
             data['VIX_SMA20'] = hist_vix['Close'].rolling(window=20).mean().iloc[-1]
@@ -963,6 +966,7 @@ def get_swing_trading_data(data=None):
         skew_ticker = yf.Ticker("^SKEW")
         hist_skew = skew_ticker.history(period="3mo")
         if not hist_skew.empty:
+            hist_skew = hist_skew.dropna(subset=['Close'])
             skew_current = hist_skew['Close'].iloc[-1]
             data['SKEW_Current'] = skew_current
             data['SKEW_SMA20'] = hist_skew['Close'].rolling(window=20).mean().iloc[-1]
@@ -1119,6 +1123,7 @@ def get_swing_trading_data(data=None):
                 try:
                     temp = yf.Ticker(t).history(period="3mo")
                     if not temp.empty:
+                        temp = temp.dropna(subset=['Close'])
                         data['PCR_Value'] = temp['Close'].iloc[-1]
                         data['Chart_PCR'] = temp['Close'].iloc[-60:].tolist()
                         pcr_found = True
