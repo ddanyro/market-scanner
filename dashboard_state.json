@@ -3,7 +3,7 @@
     "EUR": 1.0,
     "USD": 0.8662999857486012,
     "RON": 0.19098913544565183,
-    "GBP": 1.1581044524011186
+    "GBP": 1.1581848797414072
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 18.22,
-      "change": -0.7,
+      "value": 18.19,
+      "change": -0.73,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         15.399999618530273,
         21.510000228881836,
         18.920000076293945,
-        18.219999313354492
+        18.190000534057617
       ]
     },
     "VIX1D": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 18.229999542236328,
+  "vix_val": 18.190000534057617,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -609,38 +609,38 @@
         980.15,
         995.51
       ],
-      "Date": "2026-06-09 10:32"
+      "Date": "2026-06-09 10:33"
     },
     {
       "Symbol": "LQQ.PA",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 10,
-      "Current_Price": 1969.6,
-      "Price_Native": 1969.6,
+      "Current_Price": 1972.2,
+      "Price_Native": 1972.2,
       "Buy_Price": 1921.96,
       "Target": 2120.5,
       "Trail_Stop": 1679.0,
-      "Suggested_Stop": 1872.46,
+      "Suggested_Stop": 1875.06,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 15.0,
       "Investment": 19219.6,
       "Entry_Date": "2026-06-05",
-      "Current_Value": 19696.0,
-      "Profit": 476.39,
-      "Profit_Pct": 2.48,
+      "Current_Value": 19722.0,
+      "Profit": 502.39,
+      "Profit_Pct": 2.61,
       "Max_Profit": 1985.4,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 56.23,
+      "RSI": 56.49,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 1969.6 > SMA200 1511.1), RSI 56, Risk 14.8%",
-      "RS_vs_SPX": 30.53,
+      "Sell_Reason": "Trend UP (P 1972.2 > SMA200 1511.1), RSI 56, Risk 14.9%",
+      "RS_vs_SPX": 30.71,
       "Sparkline": [
         1617.8,
         1652.0,
@@ -671,9 +671,9 @@
         2069.5,
         1980.0,
         1963.2,
-        1969.6
+        1972.2
       ],
-      "Date": "2026-06-09 10:32"
+      "Date": "2026-06-09 10:33"
     },
     {
       "Symbol": "NBIX",
@@ -737,7 +737,7 @@
         141.97,
         141.31
       ],
-      "Date": "2026-06-09 10:32"
+      "Date": "2026-06-09 10:33"
     },
     {
       "Symbol": "TVBETETF.RO",
@@ -801,7 +801,7 @@
         9.68,
         9.77
       ],
-      "Date": "2026-06-09 10:32"
+      "Date": "2026-06-09 10:33"
     }
   ],
   "watchlist": [
