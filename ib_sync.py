@@ -369,7 +369,8 @@ def sync_ibkr():
                          'Investment': qty * bp,
                          'Trail_Pct': float(row.get('Trail_Pct', 0)),
                          'Trail_Stop': float(row.get('Trail_Stop', 0)),
-                         'Trail_Stop_IBKR': 0 # Manual nu are IBKR Stop
+                         'Trail_Stop_IBKR': 0, # Manual nu are IBKR Stop
+                         'Entry_Date': str(row.get('Entry_Date', '')).strip() if 'Entry_Date' in row and not pd.isna(row.get('Entry_Date')) else ''
                      }
                      positions.append(item)
                  except: pass

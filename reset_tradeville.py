@@ -4,7 +4,7 @@ import os
 
 PORTFOLIO_FILE = '/Users/danieldragomir/antigravity/portfolio.csv'
 
-updates = ['TVBETETF.RO']
+updates = ['LQQ.PA', 'TVBETETF.RO']
 
 if os.path.exists(PORTFOLIO_FILE):
     df = pd.read_csv(PORTFOLIO_FILE)
