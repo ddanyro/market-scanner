@@ -2,8 +2,8 @@
   "rates": {
     "EUR": 1.0,
     "USD": 0.8655999618618792,
-    "RON": 0.1909563021301603,
-    "GBP": 1.1590574263176916
+    "RON": 0.19097819554986578,
+    "GBP": 1.159138066165018
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,12 +45,11 @@
       ]
     },
     "VIX": {
-      "value": 20.76,
-      "change": 0.89,
+      "value": 20.97,
+      "change": 0.21,
       "status": "Tension",
       "description": "20 teama 30",
       "sparkline": [
-        16.889999389648438,
         16.989999771118164,
         18.290000915527344,
         17.3799991607666,
@@ -79,7 +78,8 @@
         21.510000228881836,
         18.920000076293945,
         19.8700008392334,
-        20.760000228881836
+        20.760000228881836,
+        20.969999313354492
       ]
     },
     "VIX1D": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 19.8700008392334,
+  "vix_val": 20.969999313354492,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -573,7 +573,7 @@
       "RSI": 69.33,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
-      "VIX_Tag": "Normal",
+      "VIX_Tag": "Ridicat",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 1144.7 > SMA200 949.3), RSI 69, Risk 5.8%",
       "RS_vs_SPX": 5.67,
@@ -609,38 +609,38 @@
         994.7,
         990.84
       ],
-      "Date": "2026-06-11 10:22"
+      "Date": "2026-06-11 10:38"
     },
     {
       "Symbol": "LQQ.PA",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 10,
-      "Current_Price": 1855.4,
-      "Price_Native": 1855.4,
+      "Current_Price": 1862.0,
+      "Price_Native": 1862.0,
       "Buy_Price": 1921.96,
       "Target": 2120.5,
       "Trail_Stop": 1689.8,
-      "Suggested_Stop": 1744.29,
+      "Suggested_Stop": 1750.6,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 15.0,
       "Investment": 19219.6,
       "Entry_Date": "2026-06-05",
-      "Current_Value": 18554.0,
-      "Profit": -665.6,
-      "Profit_Pct": -3.46,
+      "Current_Value": 18620.0,
+      "Profit": -599.6,
+      "Profit_Pct": -3.12,
       "Max_Profit": 1985.4,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 44.26,
+      "RSI": 45.05,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
-      "VIX_Tag": "Normal",
-      "Sell_Decision": "EXIT",
-      "Sell_Reason": "Momentum Fail (RSI 44.3 < 45); ",
-      "RS_vs_SPX": 21.2,
+      "VIX_Tag": "Ridicat",
+      "Sell_Decision": "HOLD",
+      "Sell_Reason": "Trend UP (P 1862.0 > SMA200 1516.1), RSI 45, Risk 9.2%",
+      "RS_vs_SPX": 21.67,
       "Sparkline": [
         1662.6,
         1706.8,
@@ -671,40 +671,40 @@
         1963.2,
         1862.6,
         1855.6,
-        1855.4
+        1862.0
       ],
-      "Date": "2026-06-11 10:22"
+      "Date": "2026-06-11 10:38"
     },
     {
       "Symbol": "LQQ.PA",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 3,
-      "Current_Price": 1855.4,
-      "Price_Native": 1855.4,
+      "Current_Price": 1862.0,
+      "Price_Native": 1862.0,
       "Buy_Price": 1948.09,
       "Target": 2120.5,
       "Trail_Stop": 1679.0,
-      "Suggested_Stop": 1744.29,
+      "Suggested_Stop": 1750.6,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
       "Investment": 5844.27,
       "Entry_Date": "2026-06-08",
-      "Current_Value": 5566.2,
-      "Profit": -278.07,
-      "Profit_Pct": -4.76,
+      "Current_Value": 5586.0,
+      "Profit": -258.27,
+      "Profit_Pct": -4.42,
       "Max_Profit": 517.23,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 44.26,
+      "RSI": 45.05,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
-      "VIX_Tag": "Normal",
-      "Sell_Decision": "EXIT",
-      "Sell_Reason": "Momentum Fail (RSI 44.3 < 45); ",
-      "RS_vs_SPX": 21.2,
+      "VIX_Tag": "Ridicat",
+      "Sell_Decision": "HOLD",
+      "Sell_Reason": "Trend UP (P 1862.0 > SMA200 1516.1), RSI 45, Risk 9.8%",
+      "RS_vs_SPX": 21.67,
       "Sparkline": [
         1662.6,
         1706.8,
@@ -735,9 +735,9 @@
         1963.2,
         1862.6,
         1855.6,
-        1855.4
+        1862.0
       ],
-      "Date": "2026-06-11 10:22"
+      "Date": "2026-06-11 10:38"
     },
     {
       "Symbol": "NBIX",
@@ -765,7 +765,7 @@
       "RSI": 65.66,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
-      "VIX_Tag": "Normal",
+      "VIX_Tag": "Ridicat",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 165.2 > SMA200 140.5), RSI 66, Risk 3.3%",
       "RS_vs_SPX": 17.0,
@@ -801,7 +801,7 @@
         141.2,
         143.03
       ],
-      "Date": "2026-06-11 10:22"
+      "Date": "2026-06-11 10:39"
     },
     {
       "Symbol": "NVDA",
@@ -829,7 +829,7 @@
       "RSI": 46.55,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
-      "VIX_Tag": "Normal",
+      "VIX_Tag": "Ridicat",
       "Sell_Decision": "REDUCE",
       "Sell_Reason": "RS Fail (Falling); ",
       "RS_vs_SPX": 3.5,
@@ -865,38 +865,38 @@
         180.6,
         180.21
       ],
-      "Date": "2026-06-11 10:22"
+      "Date": "2026-06-11 10:39"
     },
     {
       "Symbol": "TVBETETF.RO",
       "Company_Name": "ETF BET Tradeville",
       "Shares": 1886,
       "Current_Price": 9.76,
-      "Price_Native": 51.09,
+      "Price_Native": 51.1,
       "Buy_Price": 5.03,
-      "Target": 10.15,
+      "Target": 10.16,
       "Trail_Stop": 9.38,
       "Suggested_Stop": 9.49,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
-      "Investment": 9489.78,
+      "Investment": 9490.87,
       "Entry_Date": "-",
-      "Current_Value": 18399.74,
-      "Profit": 8909.95,
-      "Profit_Pct": 93.89,
-      "Max_Profit": 9658.54,
+      "Current_Value": 18405.45,
+      "Profit": 8914.58,
+      "Profit_Pct": 93.93,
+      "Max_Profit": 9663.25,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 60.5,
+      "RSI": 60.59,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
-      "VIX_Tag": "Normal",
+      "VIX_Tag": "Ridicat",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 51.1 > SMA200 42.6), RSI 60, Risk 3.9%",
-      "RS_vs_SPX": -1.38,
+      "Sell_Reason": "Trend UP (P 51.1 > SMA200 42.6), RSI 61, Risk 3.9%",
+      "RS_vs_SPX": -1.36,
       "Sparkline": [
         9.01,
         8.96,
@@ -913,7 +913,7 @@
         9.84,
         9.83,
         9.86,
-        9.91,
+        9.92,
         9.93,
         9.82,
         9.84,
@@ -929,7 +929,7 @@
         9.68,
         9.76
       ],
-      "Date": "2026-06-11 10:22"
+      "Date": "2026-06-11 10:39"
     }
   ],
   "watchlist": [
