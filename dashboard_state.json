@@ -3,7 +3,7 @@
     "EUR": 1.0,
     "USD": 0.8679999937915802,
     "RON": 0.19087975810907118,
-    "GBP": 1.1578496530498528
+    "GBP": 1.1577960379828398
   },
   "market_indicators": {
     "VIX3M": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 22.329999923706055,
+  "vix_val": 22.34000015258789,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -576,7 +576,7 @@
       "VIX_Tag": "Ridicat",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 1168.1 > SMA200 953.8), RSI 71, Risk 7.7%",
-      "RS_vs_SPX": 17.46,
+      "RS_vs_SPX": 17.45,
       "Sparkline": [
         809.84,
         834.73,
@@ -768,7 +768,7 @@
       "VIX_Tag": "Ridicat",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 162.6 > SMA200 140.8), RSI 60, Risk 1.7%",
-      "RS_vs_SPX": 14.43,
+      "RS_vs_SPX": 14.42,
       "Sparkline": [
         114.29,
         114.39,
@@ -807,32 +807,32 @@
       "Symbol": "NVDA",
       "Company_Name": "NVIDIA Corporation",
       "Shares": 5,
-      "Current_Price": 174.77,
-      "Price_Native": 201.35,
+      "Current_Price": 174.75,
+      "Price_Native": 201.32,
       "Buy_Price": 173.77,
       "Target": 269.02,
       "Trail_Stop": 157.79,
-      "Suggested_Stop": 160.24,
+      "Suggested_Stop": 160.22,
       "Finviz_ATR": 8.2,
       "Vol_W": 4.41,
       "Vol_M": 3.68,
       "Trail_Pct": 12.72,
       "Investment": 868.87,
       "Entry_Date": "2026-06-09",
-      "Current_Value": 873.84,
-      "Profit": 4.97,
-      "Profit_Pct": 0.57,
+      "Current_Value": 873.73,
+      "Profit": 4.86,
+      "Profit_Pct": 0.56,
       "Max_Profit": 476.23,
       "Consensus": "Strong Buy",
       "Analysts": 59,
       "Status": "Neutral",
-      "RSI": 42.07,
+      "RSI": 42.05,
       "RSI_Status": "Neutral",
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Ridicat",
       "Sell_Decision": "REDUCE",
-      "Sell_Reason": "Structure Fail (Sub SMA50: 201.35 < 206.04); Momentum Fail (RSI 42.1 < 45); RS Fail (Falling); ",
-      "RS_vs_SPX": 1.74,
+      "Sell_Reason": "Structure Fail (Sub SMA50: 201.32 < 206.04); Momentum Fail (RSI 42.1 < 45); RS Fail (Falling); ",
+      "RS_vs_SPX": 1.72,
       "Sparkline": [
         173.03,
         172.05,
@@ -863,7 +863,7 @@
         181.1,
         180.71,
         173.96,
-        174.77
+        174.75
       ],
       "Date": "2026-06-11 18:14"
     },
