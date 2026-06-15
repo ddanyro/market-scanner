@@ -3,7 +3,7 @@
     "EUR": 1.0,
     "USD": 0.8605999859449628,
     "RON": 0.19100372972189705,
-    "GBP": 1.1569119860386234
+    "GBP": 1.1569922478310726
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 16.3,
-      "change": -1.38,
+      "value": 16.29,
+      "change": -1.39,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         22.219999313354492,
         19.440000534057617,
         17.68000030517578,
-        16.299999237060547
+        16.290000915527344
       ]
     },
     "VIX1D": {
@@ -387,12 +387,11 @@
       ]
     },
     "SPX": {
-      "value": 7431.46,
-      "change": 37.16,
+      "value": 7531.95,
+      "change": 100.49,
       "status": "Normal",
       "description": "",
       "sparkline": [
-        7230.1201171875,
         7200.75,
         7259.22021484375,
         7365.1201171875,
@@ -421,16 +420,16 @@
         7386.64990234375,
         7266.990234375,
         7394.2998046875,
-        7431.4599609375
+        7431.4599609375,
+        7531.9501953125
       ]
     },
     "NASDAQ": {
-      "value": 25888.84,
-      "change": 79.18,
+      "value": 26471.14,
+      "change": 582.3,
       "status": "Normal",
       "description": "",
       "sparkline": [
-        25114.439453125,
         25067.80078125,
         25326.130859375,
         25838.939453125,
@@ -459,7 +458,8 @@
         25678.8203125,
         25169.5,
         25809.66015625,
-        25888.83984375
+        25888.83984375,
+        26471.140625
       ]
     },
     "Crypto Fear": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 16.299999237060547,
+  "vix_val": 16.290000915527344,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -551,34 +551,33 @@
       "Symbol": "LLY",
       "Company_Name": "Eli Lilly and Company",
       "Shares": 3,
-      "Current_Price": 975.06,
-      "Price_Native": 1133.0,
+      "Current_Price": 975.84,
+      "Price_Native": 1133.91,
       "Buy_Price": 915.97,
       "Target": 1082.92,
       "Trail_Stop": 928.17,
-      "Suggested_Stop": 905.04,
+      "Suggested_Stop": 908.29,
       "Finviz_ATR": 37.16,
       "Vol_W": 3.36,
       "Vol_M": 3.08,
       "Trail_Pct": 8.79,
       "Investment": 2747.9,
       "Entry_Date": "2026-06-05",
-      "Current_Value": 2925.18,
-      "Profit": 177.28,
-      "Profit_Pct": 6.45,
+      "Current_Value": 2927.52,
+      "Profit": 179.62,
+      "Profit_Pct": 6.54,
       "Max_Profit": 500.86,
       "Consensus": "Buy",
       "Analysts": 29,
       "Status": "Neutral",
-      "RSI": 62.81,
+      "RSI": 62.94,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 1133.0 > SMA200 955.7), RSI 63, Risk 4.8%",
-      "RS_vs_SPX": 11.21,
+      "Sell_Reason": "Trend UP (P 1133.9 > SMA200 957.8), RSI 63, Risk 4.9%",
+      "RS_vs_SPX": 9.52,
       "Sparkline": [
-        827.62,
         831.57,
         849.56,
         848.0,
@@ -607,9 +606,10 @@
         985.11,
         977.96,
         999.11,
-        975.06
+        975.06,
+        975.84
       ],
-      "Date": "2026-06-15 16:29"
+      "Date": "2026-06-15 16:30"
     },
     {
       "Symbol": "LQQ.PA",
@@ -638,9 +638,9 @@
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
-      "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 2040.5 > SMA200 1523.1), RSI 61, Risk 11.6%",
-      "RS_vs_SPX": 38.77,
+      "Sell_Decision": "REDUCE",
+      "Sell_Reason": "RS Fail (Falling); ",
+      "RS_vs_SPX": 35.51,
       "Sparkline": [
         1754.2,
         1803.6,
@@ -673,7 +673,7 @@
         1968.8,
         2040.5
       ],
-      "Date": "2026-06-15 16:29"
+      "Date": "2026-06-15 16:30"
     },
     {
       "Symbol": "LQQ.PA",
@@ -702,9 +702,9 @@
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
-      "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 2040.5 > SMA200 1523.1), RSI 61, Risk 11.7%",
-      "RS_vs_SPX": 38.77,
+      "Sell_Decision": "REDUCE",
+      "Sell_Reason": "RS Fail (Falling); ",
+      "RS_vs_SPX": 35.51,
       "Sparkline": [
         1754.2,
         1803.6,
@@ -737,40 +737,39 @@
         1968.8,
         2040.5
       ],
-      "Date": "2026-06-15 16:29"
+      "Date": "2026-06-15 16:30"
     },
     {
       "Symbol": "NVDA",
       "Company_Name": "NVIDIA Corporation",
       "Shares": 5,
-      "Current_Price": 176.59,
-      "Price_Native": 205.19,
+      "Current_Price": 179.97,
+      "Price_Native": 209.12,
       "Buy_Price": 172.29,
       "Target": 266.73,
       "Trail_Stop": 168.77,
-      "Suggested_Stop": 162.25,
+      "Suggested_Stop": 165.9,
       "Finviz_ATR": 8.03,
       "Vol_W": 3.34,
       "Vol_M": 3.58,
       "Trail_Pct": 5.9,
       "Investment": 861.46,
       "Entry_Date": "2026-06-09",
-      "Current_Value": 882.93,
-      "Profit": 21.47,
-      "Profit_Pct": 2.49,
+      "Current_Value": 899.83,
+      "Profit": 38.37,
+      "Profit_Pct": 4.45,
       "Max_Profit": 472.17,
       "Consensus": "Strong Buy",
       "Analysts": 59,
       "Status": "Neutral",
-      "RSI": 45.38,
+      "RSI": 48.81,
       "RSI_Status": "Neutral",
-      "Trend": "Bullish Pullback",
+      "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "REDUCE",
-      "Sell_Reason": "Structure Fail (Sub SMA50: 205.19 < 206.70); RS Fail (Falling); ",
-      "RS_vs_SPX": 2.56,
+      "Sell_Reason": "RS Fail (Falling); ",
+      "RS_vs_SPX": 5.47,
       "Sparkline": [
-        170.59,
         170.61,
         168.91,
         178.65,
@@ -799,9 +798,10 @@
         179.17,
         172.48,
         176.31,
-        176.59
+        176.59,
+        179.97
       ],
-      "Date": "2026-06-15 16:29"
+      "Date": "2026-06-15 16:30"
     },
     {
       "Symbol": "SXRZ.DE",
@@ -832,7 +832,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 380.4 > SMA200 299.3), RSI 67, Risk 9.6%",
-      "RS_vs_SPX": 17.55,
+      "RS_vs_SPX": 14.28,
       "Sparkline": [
         334.9,
         343.5,
@@ -865,7 +865,7 @@
         370.45,
         380.35
       ],
-      "Date": "2026-06-15 16:29"
+      "Date": "2026-06-15 16:31"
     },
     {
       "Symbol": "TVBETETF.RO",
@@ -896,7 +896,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 51.6 > SMA200 42.7), RSI 66, Risk 4.9%",
-      "RS_vs_SPX": -2.37,
+      "RS_vs_SPX": -5.64,
       "Sparkline": [
         8.95,
         9.13,
@@ -929,7 +929,7 @@
         9.77,
         9.86
       ],
-      "Date": "2026-06-15 16:29"
+      "Date": "2026-06-15 16:31"
     }
   ],
   "watchlist": [
