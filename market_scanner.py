@@ -208,7 +208,8 @@ def get_next_earnings_date(ticker_symbol):
     Folosește yfinance calendar.
     """
     try:
-        t = yf.Ticker(ticker_symbol)
+        lookup_symbol = ticker_symbol[:-3] if ticker_symbol.endswith('.US') else ticker_symbol
+        t = yf.Ticker(lookup_symbol)
         cal = t.calendar
         if cal and isinstance(cal, dict) and 'Earnings Date' in cal:
             dates = cal['Earnings Date']
@@ -567,6 +568,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
     """Procesează un ticker din portofoliu cu date de ownership (Conversie EUR)."""
     try:
         ticker = row.get('symbol', 'UNKNOWN').upper()
+        download_ticker = ticker[:-3] if ticker.endswith('.US') else ticker
         shares = float(row.get('shares', 0))
         buy_price_native = float(row.get('buy_price', 0))
         # Default trail_pct to 15 if missing
@@ -603,7 +605,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         buy_price = buy_price_native * rate
         
         # Ia target-ul DOAR de pe Finviz (USD usually)
-        finviz_data = market_data.get_finviz_data(ticker)
+        finviz_data = market_data.get_finviz_data(download_ticker)
         target_usd = finviz_data.get('Target')
         
         target = None
@@ -624,12 +626,12 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         if ticker_cache is None: ticker_cache = {}
         
         # --- CACHED DOWNLOAD ---
-        if ticker in ticker_cache and ticker_cache[ticker] is not None:
-             df = ticker_cache[ticker]
-             # print(f"  [Cache] Used cached data for {ticker}")
+        if download_ticker in ticker_cache and ticker_cache[download_ticker] is not None:
+             df = ticker_cache[download_ticker]
+             # print(f"  [Cache] Used cached data for {download_ticker}")
         else:
             time.sleep(2)
-            df = yf.download(ticker, period="1y", auto_adjust=True, progress=False)
+            df = yf.download(download_ticker, period="1y", auto_adjust=True, progress=False)
             if not df.empty:
                 if isinstance(df.columns, pd.MultiIndex):
                     try:
@@ -642,9 +644,9 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             # Retry with European suffixes if base ticker fails (common for IBKR ETFs like SXRZ)
             if df.empty:
                 suffixes = ['.DE', '.PA', '.L', '.AS', '.MI', '.MC']
-                print(f"  ⚠️ Ticker {ticker} not found. Trying suffixes...")
+                print(f"  ⚠️ Ticker {download_ticker} not found. Trying suffixes...")
                 for s in suffixes:
-                    alt_ticker = f"{ticker}{s}"
+                    alt_ticker = f"{download_ticker}{s}"
                     # Check cache for alt ticker too
                     if alt_ticker in ticker_cache and ticker_cache[alt_ticker] is not None:
                         # print(f"  [Cache] Used cached data for {alt_ticker}")
@@ -686,14 +688,14 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
 
         company_name = ""
         try:
-             yt = yf.Ticker(ticker)
+             yt = yf.Ticker(download_ticker)
              info = yt.info
              company_name = info.get('longName') or info.get('shortName') or ""
         except:
              pass
 
         if not df.empty:
-                ticker_cache[ticker] = df
+                ticker_cache[download_ticker] = df
         
         if df.empty:
             print(f"  ⚠️ Nu există date Yahoo Finance pentru {ticker} (nici cu sufixe) - folosim date parțiale din IBKR")
@@ -749,7 +751,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         consensus = "-"
         analysts_count = 0
         try:
-           yt = yf.Ticker(ticker)
+           yt = yf.Ticker(download_ticker)
            info = yt.info
            # Dacă info e gol sau fail
            if info:
@@ -1259,7 +1261,8 @@ def process_watchlist_ticker(ticker, vix_value, rates):
     def get_company_name(symbol, finviz_data=None):
         try:
             # 1. Try yfinance
-            t = yf.Ticker(symbol)
+            lookup_symbol = symbol[:-3] if symbol.endswith('.US') else symbol
+            t = yf.Ticker(lookup_symbol)
             info = t.info
             name = info.get('longName') or info.get('shortName')
             if name: return name
@@ -1292,10 +1295,11 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         rate = rates.get(currency, rates['USD'])
         if currency == 'EUR': rate = 1.0
         
-        df = yf.download(ticker, period="1y", auto_adjust=True, progress=False)
+        download_ticker = ticker[:-3] if ticker.endswith('.US') else ticker
+        df = yf.download(download_ticker, period="1y", auto_adjust=True, progress=False)
         
         if df.empty:
-            print(f"Nu există date pentru {ticker}")
+            print(f"Nu există date pentru {download_ticker}")
             return None
         
         if isinstance(df.columns, pd.MultiIndex):
