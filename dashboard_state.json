@@ -3,7 +3,7 @@
     "EUR": 1.0,
     "USD": 0.8722000358295598,
     "RON": 0.19093808172941493,
-    "GBP": 1.1580910222836291
+    "GBP": 1.1579300450025025
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 17.13,
-      "change": -0.05,
+      "value": 17.11,
+      "change": -0.07,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         18.440000534057617,
         16.399999618530273,
         17.18000030517578,
-        17.1299991607666
+        17.110000610351562
       ]
     },
     "VIX1D": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 17.1299991607666,
+  "vix_val": 17.110000610351562,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -609,7 +609,7 @@
         446.99,
         468.69
       ],
-      "Date": "2026-06-22 15:43"
+      "Date": "2026-06-22 15:45"
     },
     {
       "Symbol": "LQQ.PA",
@@ -673,7 +673,7 @@
         2077.5,
         2094.0
       ],
-      "Date": "2026-06-22 15:44"
+      "Date": "2026-06-22 15:45"
     },
     {
       "Symbol": "LQQ.PA",
@@ -737,7 +737,7 @@
         2077.5,
         2094.0
       ],
-      "Date": "2026-06-22 15:44"
+      "Date": "2026-06-22 15:45"
     },
     {
       "Symbol": "NVDA",
@@ -801,7 +801,7 @@
         178.5,
         183.76
       ],
-      "Date": "2026-06-22 15:44"
+      "Date": "2026-06-22 15:45"
     },
     {
       "Symbol": "NVDA.US",
@@ -865,38 +865,38 @@
         178.5,
         183.76
       ],
-      "Date": "2026-06-22 15:44"
+      "Date": "2026-06-22 15:45"
     },
     {
       "Symbol": "SXRZ.DE",
       "Company_Name": "",
       "Shares": 40,
-      "Current_Price": 404.0,
-      "Price_Native": 404.0,
+      "Current_Price": 404.2,
+      "Price_Native": 404.2,
       "Buy_Price": 376.59,
-      "Target": 428.06,
+      "Target": 428.31,
       "Trail_Stop": 388.2,
-      "Suggested_Stop": 387.96,
+      "Suggested_Stop": 388.13,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 4.0,
       "Investment": 15063.75,
       "Entry_Date": "2026-06-12",
-      "Current_Value": 16160.0,
-      "Profit": 1096.25,
-      "Profit_Pct": 7.28,
-      "Max_Profit": 2058.82,
+      "Current_Value": 16168.0,
+      "Profit": 1104.25,
+      "Profit_Pct": 7.33,
+      "Max_Profit": 2068.53,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
-      "RSI": 75.67,
+      "RSI": 75.73,
       "RSI_Status": "Overbought",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 404.0 > SMA200 302.9), RSI 76, Risk 3.9%",
-      "RS_vs_SPX": 24.64,
+      "Sell_Reason": "Trend UP (P 404.2 > SMA200 302.9), RSI 76, Risk 4.0%",
+      "RS_vs_SPX": 24.71,
       "Sparkline": [
         342.1,
         349.35,
@@ -927,16 +927,16 @@
         388.0,
         396.05,
         397.15,
-        404.0
+        404.2
       ],
-      "Date": "2026-06-22 15:44"
+      "Date": "2026-06-22 15:45"
     },
     {
       "Symbol": "TVBETETF.RO",
       "Company_Name": "ETF BET Tradeville",
       "Shares": 1886,
-      "Current_Price": 10.01,
-      "Price_Native": 52.4,
+      "Current_Price": 10.0,
+      "Price_Native": 52.37,
       "Buy_Price": 5.03,
       "Target": 10.41,
       "Trail_Stop": 9.38,
@@ -947,20 +947,20 @@
       "Trail_Pct": 0.0,
       "Investment": 9488.88,
       "Entry_Date": "-",
-      "Current_Value": 18869.72,
-      "Profit": 9380.85,
-      "Profit_Pct": 98.86,
-      "Max_Profit": 10151.74,
+      "Current_Value": 18858.92,
+      "Profit": 9370.04,
+      "Profit_Pct": 98.75,
+      "Max_Profit": 10140.93,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 69.32,
+      "RSI": 69.09,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 52.4 > SMA200 43.2), RSI 69, Risk 6.3%",
-      "RS_vs_SPX": -1.46,
+      "Sell_Reason": "Trend UP (P 52.4 > SMA200 43.2), RSI 69, Risk 6.2%",
+      "RS_vs_SPX": -1.52,
       "Sparkline": [
         9.42,
         9.45,
@@ -991,9 +991,9 @@
         9.91,
         10.01,
         9.94,
-        10.01
+        10.0
       ],
-      "Date": "2026-06-22 15:44"
+      "Date": "2026-06-22 15:45"
     },
     {
       "Symbol": "WD",
@@ -1057,7 +1057,7 @@
         44.48,
         45.32
       ],
-      "Date": "2026-06-22 15:44"
+      "Date": "2026-06-22 15:45"
     }
   ],
   "watchlist": [
