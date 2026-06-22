@@ -9,7 +9,7 @@ PORTFOLIO_FILE = '/Users/danieldragomir/antigravity/portfolio.csv'
 # Assuming 1 RON = 0.20 EUR. 8 / 0.2 = 40.
 
 updates = {
-    'LQQ.PA': 1977.40,
+    'LQQ.PA': 1982.60,
     'NVDA.US': 200.58,
     'TVBETETF.RO': 49.35,
 }
