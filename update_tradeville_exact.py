@@ -11,7 +11,7 @@ PORTFOLIO_FILE = '/Users/danieldragomir/antigravity/portfolio.csv'
 updates = {
     'LQQ.PA': 1977.40,
     'NVDA.US': 200.58,
-    'TVBETETF.RO': 40.00 # RON
+    'TVBETETF.RO': 49.35,
 }
 
 if os.path.exists(PORTFOLIO_FILE):
