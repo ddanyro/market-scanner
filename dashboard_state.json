@@ -1,14 +1,14 @@
 {
   "rates": {
     "EUR": 1.0,
-    "USD": 0.8802000095904208,
-    "RON": 0.19107671716272095,
-    "GBP": 1.1592590069264437
+    "USD": 0.8806000075162602,
+    "RON": 0.19105845637049498,
+    "GBP": 1.1594606576642665
   },
   "market_indicators": {
     "VIX3M": {
-      "value": 21.06,
-      "change": 0.17,
+      "value": 20.64,
+      "change": -0.25,
       "status": "Tension",
       "description": "20 tensiune 30",
       "sparkline": [
@@ -41,12 +41,12 @@
         19.56999969482422,
         19.760000228881836,
         20.889999389648438,
-        21.059999465942383
+        20.639999389648438
       ]
     },
     "VIX": {
-      "value": 19.71,
-      "change": 0.22,
+      "value": 19.18,
+      "change": -0.31,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,12 +79,12 @@
         17.18000030517578,
         17.280000686645508,
         19.489999771118164,
-        19.709999084472656
+        19.18000030517578
       ]
     },
     "VIX1D": {
-      "value": 17.46,
-      "change": 4.08,
+      "value": 17.72,
+      "change": 4.34,
       "status": "Normal",
       "description": "12 normal 30",
       "sparkline": [
@@ -117,12 +117,12 @@
         15.680000305175781,
         12.420000076293945,
         13.380000114440918,
-        17.459999084472656
+        17.719999313354492
       ]
     },
     "VIX9D": {
-      "value": 19.73,
-      "change": 0.46,
+      "value": 18.86,
+      "change": -0.41,
       "status": "Tension",
       "description": "18 teama 25",
       "sparkline": [
@@ -155,12 +155,12 @@
         13.930000305175781,
         16.290000915527344,
         19.270000457763672,
-        19.729999542236328
+        18.860000610351562
       ]
     },
     "VXN": {
-      "value": 32.52,
-      "change": 0.15,
+      "value": 31.46,
+      "change": -0.91,
       "status": "Tension",
       "description": "25 teama 35",
       "sparkline": [
@@ -193,12 +193,12 @@
         26.309999465942383,
         27.670000076293945,
         32.369998931884766,
-        32.52000045776367
+        31.459999084472656
       ]
     },
     "LTV": {
-      "value": 11.86,
-      "change": 0.35,
+      "value": 11.36,
+      "change": -0.15,
       "status": "Normal",
       "description": "10 normal 13",
       "sparkline": [
@@ -231,7 +231,7 @@
         10.079999923706055,
         9.779999732971191,
         11.510000228881836,
-        11.859999656677246
+        11.359999656677246
       ]
     },
     "SKEW": {
@@ -273,12 +273,11 @@
       ]
     },
     "MOVE": {
-      "value": 70.01,
-      "change": 4.62,
+      "value": 68.78,
+      "change": -1.24,
       "status": "Perfect",
       "description": "perfect 80",
       "sparkline": [
-        67.25,
         70.73999786376953,
         71.68000030517578,
         70.23999786376953,
@@ -307,12 +306,13 @@
         67.27999877929688,
         70.66000366210938,
         65.38999938964844,
-        70.01499938964844
+        70.01499938964844,
+        68.77980041503906
       ]
     },
     "GVZ": {
-      "value": 32.5,
-      "change": 5.09,
+      "value": 31.62,
+      "change": 4.21,
       "status": "Panic",
       "description": "22 panica",
       "sparkline": [
@@ -345,12 +345,12 @@
         27.899999618530273,
         26.149999618530273,
         27.40999984741211,
-        32.5
+        31.6200008392334
       ]
     },
     "OVX": {
-      "value": 48.21,
-      "change": 1.61,
+      "value": 47.62,
+      "change": 1.02,
       "status": "Panic",
       "description": "35 panica",
       "sparkline": [
@@ -383,12 +383,12 @@
         51.540000915527344,
         50.70000076293945,
         46.599998474121094,
-        48.209999084472656
+        47.619998931884766
       ]
     },
     "SPX": {
-      "value": 7370.78,
-      "change": 5.32,
+      "value": 7358.22,
+      "change": -7.24,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -421,12 +421,12 @@
         7500.580078125,
         7472.7900390625,
         7365.4599609375,
-        7370.77978515625
+        7358.22021484375
       ]
     },
     "NASDAQ": {
-      "value": 25550.6,
-      "change": -36.44,
+      "value": 25476.63,
+      "change": -110.4,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -459,7 +459,7 @@
         26517.9296875,
         26166.599609375,
         25587.0390625,
-        25550.603515625
+        25476.634765625
       ]
     },
     "Crypto Fear": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 19.719999313354492,
+  "vix_val": 19.18000030517578,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -551,71 +551,71 @@
       "Symbol": "NVDA",
       "Company_Name": "NVIDIA Corporation",
       "Shares": 5,
-      "Current_Price": 174.66,
-      "Price_Native": 198.43,
-      "Buy_Price": 175.32,
-      "Target": 273.41,
+      "Current_Price": 175.24,
+      "Price_Native": 199.0,
+      "Buy_Price": 175.4,
+      "Target": 273.53,
       "Trail_Stop": 0,
-      "Suggested_Stop": 161.43,
-      "Finviz_ATR": 7.36,
+      "Suggested_Stop": 161.91,
+      "Finviz_ATR": 7.41,
       "Vol_W": 2.46,
       "Vol_M": 3.24,
       "Trail_Pct": 0.0,
-      "Investment": 876.59,
+      "Investment": 876.99,
       "Entry_Date": "-",
-      "Current_Value": 873.29,
-      "Profit": -3.3,
-      "Profit_Pct": -0.38,
-      "Max_Profit": 490.45,
+      "Current_Value": 876.2,
+      "Profit": -0.79,
+      "Profit_Pct": -0.09,
+      "Max_Profit": 490.67,
       "Consensus": "Strong Buy",
       "Analysts": 59,
       "Status": "Neutral",
-      "RSI": 41.49,
+      "RSI": 41.87,
       "RSI_Status": "Neutral",
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Normal",
       "Sell_Decision": "EXIT",
-      "Sell_Reason": "Structure Fail (Sub SMA50: 198.43 < 210.04); Momentum Fail (RSI 41.5 < 45); RS Fail (Falling); ",
-      "RS_vs_SPX": 4.08,
+      "Sell_Reason": "Structure Fail (Sub SMA50: 199.00 < 210.05); Momentum Fail (RSI 41.9 < 45); RS Fail (Falling); ",
+      "RS_vs_SPX": 4.63,
       "Sparkline": [
-        194.1,
-        198.54,
-        207.26,
-        198.1,
-        195.46,
-        193.95,
-        196.47,
-        192.99,
-        189.31,
-        188.9,
-        186.91,
-        188.36,
-        185.63,
-        197.25,
-        195.9,
-        188.8,
-        192.46,
-        180.53,
-        183.64,
-        183.25,
-        176.41,
-        180.33,
-        180.61,
+        194.19,
+        198.63,
+        207.35,
+        198.19,
+        195.55,
+        194.04,
+        196.56,
+        193.08,
+        189.4,
+        188.99,
         187.0,
-        182.56,
-        180.13,
-        185.45,
-        183.65,
-        176.08,
-        174.66
+        188.45,
+        185.71,
+        197.34,
+        195.99,
+        188.89,
+        192.55,
+        180.61,
+        183.73,
+        183.33,
+        176.49,
+        180.41,
+        180.69,
+        187.08,
+        182.65,
+        180.21,
+        185.53,
+        183.74,
+        176.16,
+        175.24
       ],
-      "Date": "2026-06-24 21:28"
+      "Date": "2026-06-24 23:16"
     },
     {
       "Symbol": "TVBETETF.RO",
       "Company_Name": "ETF BET Tradeville",
       "Shares": 1886,
-      "Current_Price": 10.07,
+      "Current_Price": 10.06,
       "Price_Native": 52.68,
       "Buy_Price": 5.03,
       "Target": 10.44,
@@ -625,12 +625,12 @@
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
-      "Investment": 9495.77,
+      "Investment": 9494.86,
       "Entry_Date": "-",
-      "Current_Value": 18984.33,
-      "Profit": 9488.56,
+      "Current_Value": 18982.51,
+      "Profit": 9487.65,
       "Profit_Pct": 99.92,
-      "Max_Profit": 10202.09,
+      "Max_Profit": 10201.12,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
@@ -640,7 +640,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 52.7 > SMA200 43.4), RSI 72, Risk 6.3%",
-      "RS_vs_SPX": -2.39,
+      "RS_vs_SPX": -2.19,
       "Sparkline": [
         9.49,
         9.58,
@@ -670,74 +670,74 @@
         10.01,
         9.95,
         9.99,
-        10.04,
-        10.07
+        10.03,
+        10.06
       ],
-      "Date": "2026-06-24 21:28"
+      "Date": "2026-06-24 23:16"
     },
     {
       "Symbol": "WD",
       "Company_Name": "Walker & Dunlop, Inc.",
       "Shares": 50,
-      "Current_Price": 46.4,
-      "Price_Native": 52.71,
-      "Buy_Price": 44.82,
-      "Target": 59.26,
-      "Trail_Stop": 43.42,
-      "Suggested_Stop": 42.64,
-      "Finviz_ATR": 2.05,
+      "Current_Price": 46.67,
+      "Price_Native": 53.0,
+      "Buy_Price": 44.84,
+      "Target": 59.29,
+      "Trail_Stop": 43.44,
+      "Suggested_Stop": 42.89,
+      "Finviz_ATR": 2.06,
       "Vol_W": 3.8,
       "Vol_M": 3.89,
       "Trail_Pct": 5.99,
-      "Investment": 2240.99,
+      "Investment": 2242.01,
       "Entry_Date": "2026-06-19",
-      "Current_Value": 2319.77,
-      "Profit": 78.78,
-      "Profit_Pct": 3.52,
-      "Max_Profit": 722.2,
+      "Current_Value": 2333.59,
+      "Profit": 91.58,
+      "Profit_Pct": 4.08,
+      "Max_Profit": 722.53,
       "Consensus": "Buy",
       "Analysts": 3,
       "Status": "Neutral",
-      "RSI": 55.56,
+      "RSI": 56.42,
       "RSI_Status": "Neutral",
       "Trend": "Bearish Rally",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Recovery (P 52.7 > SMA50 50.8), RSI 56, Risk 6.4%",
-      "RS_vs_SPX": 6.69,
+      "Sell_Reason": "Recovery (P 53.0 > SMA50 50.8), RSI 56, Risk 6.9%",
+      "RS_vs_SPX": 7.56,
       "Sparkline": [
-        47.91,
-        46.74,
-        45.99,
+        47.93,
+        46.76,
+        46.01,
+        44.38,
+        43.75,
+        42.07,
+        43.19,
+        44.5,
         44.36,
-        43.73,
-        42.05,
-        43.17,
-        44.48,
-        44.34,
-        44.08,
-        44.54,
-        44.72,
-        44.18,
-        42.54,
-        43.84,
-        42.53,
-        45.5,
-        45.11,
-        45.59,
-        46.55,
-        44.95,
-        46.07,
-        46.88,
-        45.14,
-        45.64,
-        44.89,
-        45.74,
-        45.4,
-        45.02,
-        46.4
+        44.1,
+        44.56,
+        44.74,
+        44.2,
+        42.56,
+        43.86,
+        42.55,
+        45.52,
+        45.13,
+        45.61,
+        46.57,
+        44.97,
+        46.09,
+        46.9,
+        45.16,
+        45.66,
+        44.91,
+        45.76,
+        45.42,
+        45.04,
+        46.67
       ],
-      "Date": "2026-06-24 21:28"
+      "Date": "2026-06-24 23:16"
     }
   ],
   "watchlist": [
