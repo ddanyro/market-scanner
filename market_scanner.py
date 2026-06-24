@@ -2607,11 +2607,19 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     if ($.fn.DataTable.isDataTable('#portfolio-table')) {
                         $('#portfolio-table').DataTable().destroy();
                     }
+                    if ($.fn.DataTable.isDataTable('#buying-orders-table')) {
+                        $('#buying-orders-table').DataTable().destroy();
+                    }
                 }
                 
-                // 2. Populate Table Body
+                // 2. Populate Table Bodies
                 const tbody = document.getElementById('portfolio-rows-body');
                 if (tbody) tbody.innerHTML = data.html;
+                
+                const tbodyBuy = document.getElementById('buying-orders-rows-body');
+                if (tbodyBuy) {
+                    tbodyBuy.innerHTML = data.buying_orders_html || '<tr><td colspan="15" style="text-align:center;">Niciun ordin de cumpărare activ în IBKR.</td></tr>';
+                }
                 
                 // 3. Init Charts
                 initCharts(data.sparklines);
@@ -2625,6 +2633,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                             searching: true,
                             info: false,
                             order: [] // Preserve order from Python
+                        });
+                        
+                        $('#buying-orders-table').DataTable({
+                            destroy: true,
+                            paging: false,
+                            searching: true,
+                            info: false,
+                            order: []
                         });
                     } catch(e) { console.error("DataTable Init Error: ", e); }
                 }
@@ -2978,9 +2994,179 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     </tr>
         """
         
+    # Build lookup for all technical metrics from watchlist & portfolio
+    ticker_lookup = {}
+    if not watchlist_df.empty and 'Ticker' in watchlist_df.columns:
+        for _, r in watchlist_df.iterrows():
+            ticker_lookup[str(r['Ticker']).upper()] = r
+            
+    if not portfolio_df.empty and 'Symbol' in portfolio_df.columns:
+        for _, r in portfolio_df.iterrows():
+            ticker_lookup[str(r['Symbol']).upper()] = r
+
+    def find_ticker_data(symbol):
+        symbol = str(symbol).upper()
+        if symbol in ticker_lookup:
+            return ticker_lookup[symbol]
+        for k, v in ticker_lookup.items():
+            k_base = k.split('.')[0]
+            sym_base = symbol.split('.')[0]
+            if k_base == sym_base:
+                return v
+        return None
+
+    buying_rows_html = ""
+    if os.path.exists('tws_orders.csv'):
+        try:
+            orders_df = pd.read_csv('tws_orders.csv')
+            if not orders_df.empty and 'Action' in orders_df.columns:
+                buy_orders = orders_df[orders_df['Action'].str.upper() == 'BUY']
+                
+                rates = {}
+                if full_state:
+                    rates = full_state.get('rates', {})
+                if not rates:
+                    rates = {'EUR': 1.0, 'USD': 0.92, 'RON': 0.20, 'GBP': 1.18}
+                
+                for _, r_order in buy_orders.iterrows():
+                    symbol = str(r_order.get('Symbol', ''))
+                    order_type = str(r_order.get('OrderType', ''))
+                    qty = float(r_order.get('Total_Qty', 0))
+                    
+                    limit_price = float(r_order.get('Limit_Price', 0)) if 'Limit_Price' in r_order else 0.0
+                    if limit_price == 0.0 and order_type == 'LMT':
+                        aux_price_raw = float(r_order.get('Aux_Price', 0))
+                        stop_price_raw = float(r_order.get('Stop_Price', 0))
+                        if aux_price_raw > 0 and aux_price_raw < 1e10:
+                            limit_price = aux_price_raw
+                        elif stop_price_raw > 0 and stop_price_raw < 1e10:
+                            limit_price = stop_price_raw
+                    
+                    stop_price = float(r_order.get('Stop_Price', 0)) if 'Stop_Price' in r_order else 0.0
+                    if stop_price > 1e10:
+                        stop_price = 0.0
+                    trail_pct_order = float(r_order.get('Trail_Pct', 0)) if 'Trail_Pct' in r_order else 0.0
+                    if trail_pct_order > 1e10:
+                        trail_pct_order = 0.0
+                    
+                    t_data = find_ticker_data(symbol)
+                    
+                    if t_data is not None:
+                        m_symbol = t_data.get('Symbol', t_data.get('Ticker', symbol))
+                        company_name = t_data.get('Company_Name', '').replace("'", "\\'")
+                        curr_price = float(t_data.get('Price', t_data.get('Current_Price', 0)))
+                        
+                        spark_id = f"spark_buy_{chart_id}"
+                        chart_id += 1
+                        sparkline_data[spark_id] = t_data.get('Sparkline', [])
+                        
+                        target_val = t_data.get('Target', None)
+                        pct_to_target = t_data.get('Pct_To_Target', t_data.get('Percent_To_Target', None))
+                        if target_val and pd.notna(target_val) and curr_price > 0:
+                            target_val = float(target_val)
+                            if not pct_to_target or pd.isna(pct_to_target):
+                                pct_to_target = ((target_val - curr_price) / curr_price) * 100
+                        
+                        suggested_stop = t_data.get('Stop_Loss', t_data.get('Suggested_Stop', 0))
+                        
+                        trend_val = t_data.get('Trend', 'Neutral')
+                        trend_cls = trend_val.replace(' ', '-')
+                        rsi_val = t_data.get('RSI', 0.0)
+                        rsi_status = t_data.get('RSI_Status', 'Neutral')
+                        rs_vs_spx = t_data.get('RS_vs_SPX', None)
+                        consensus = t_data.get('Consensus', '-')
+                        currency = t_data.get('Currency', 'USD')
+                    else:
+                        m_symbol = symbol
+                        company_name = ""
+                        curr_price = 0.0
+                        spark_id = ""
+                        target_val = None
+                        pct_to_target = None
+                        suggested_stop = 0.0
+                        trend_val = "Neutral"
+                        trend_cls = "Neutral"
+                        rsi_val = 0.0
+                        rsi_status = "Neutral"
+                        rs_vs_spx = None
+                        consensus = "-"
+                        currency = 'USD'
+                        if '.RO' in symbol: currency = 'RON'
+                        elif '.PA' in symbol or '.DE' in symbol or '.AS' in symbol: currency = 'EUR'
+                        elif '.L' in symbol: currency = 'GBP'
+                    
+                    rate = rates.get(currency, rates.get('USD', 0.92))
+                    if currency == 'EUR':
+                        rate = 1.0
+                    
+                    order_price_native = limit_price if order_type == 'LMT' else stop_price
+                    if order_price_native <= 0:
+                        order_price_native = float(r_order.get('Calculated_Stop', 0))
+                    
+                    order_price_eur = order_price_native * rate
+                    
+                    if limit_price > 0:
+                        est_inv = qty * limit_price * rate
+                    elif curr_price > 0:
+                        est_inv = qty * curr_price
+                    else:
+                        est_inv = qty * order_price_eur
+                    
+                    order_price_display = f"€{order_price_eur:.2f}" if order_price_eur > 0 else "-"
+                    curr_price_display = f"€{curr_price:.2f}" if curr_price > 0 else "-"
+                    target_display = f"€{target_val:.2f}" if target_val and pd.notna(target_val) else "N/A"
+                    pct_display = f"{pct_to_target:.1f}%" if pct_to_target is not None and pd.notna(pct_to_target) else "N/A"
+                    suggested_stop_display = f"€{suggested_stop:.2f}" if suggested_stop and pd.notna(suggested_stop) and suggested_stop > 0 else "-"
+                    est_inv_display = f"€{est_inv:,.2f}" if est_inv > 0 else "-"
+                    
+                    cons_style = ""
+                    if 'Buy' in str(consensus):
+                        cons_style = 'color: #4caf50; font-weight: bold;'
+                    elif 'Sell' in str(consensus):
+                        cons_style = 'color: #f44336; font-weight: bold;'
+                    
+                    rsi_tooltip = ""
+                    if rsi_val >= 70:
+                        rsi_tooltip = "<strong>RSI: Overbought (>70)</strong><br>Supra-cumpărat. Prețul a crescut foarte rapid.<br>⚠️ <strong>Acțiune:</strong> Risc crescut de corecție (scădere). Nu cumpăra la vârf."
+                    elif 50 <= rsi_val < 70:
+                        rsi_tooltip = "<strong>RSI: Bullish (50-70)</strong><br>Momentum pozitiv. Cumpărătorii controlează piața.<br>✅ <strong>Acțiune:</strong> Zonă bună pentru trend following."
+                    elif 30 <= rsi_val < 50:
+                        rsi_tooltip = "<strong>RSI: Bearish (30-50)</strong><br>Momentum negativ sau neutru-sláb.<br>⛔ <strong>Acțiune:</strong> Prudență. Trendul poate fi descendent."
+                    elif rsi_val > 0:
+                        rsi_tooltip = "<strong>RSI: Oversold (<30)</strong><br>Supra-vândut. Prețul a scăzut extrem.<br>🔄 <strong>Acțiune:</strong> Posibilă revenire (Bounce) iminentă."
+                    
+                    spark_cell = f'<canvas id="{spark_id}" class="sparkline-container"></canvas>' if spark_id else "-"
+                    
+                    buying_rows_html += f"""
+                    <tr id="buy-row-{symbol}">
+                        <td><strong style="cursor: help; color: #4dabf7; text-decoration: underline;" onmousemove="showTooltip(event, \'{company_name}\')" onmouseout="hideTooltip()">{m_symbol}</strong></td>
+                        <td>{order_type}</td>
+                        <td>{qty:.0f}</td>
+                        <td>{order_price_display}</td>
+                        <td>{f"{trail_pct_order:.1f}%" if trail_pct_order > 0 else "-"}</td>
+                        <td>{curr_price_display}</td>
+                        <td>{spark_cell}</td>
+                        <td>{target_display}</td>
+                        <td class="{'positive' if pct_to_target and pct_to_target > 0 else 'negative' if pct_to_target else ''}">{pct_display}</td>
+                        <td style="{cons_style}">{consensus}</td>
+                        <td>{suggested_stop_display}</td>
+                        <td>{est_inv_display}</td>
+                        <td class="trend-{trend_cls}">{trend_val}</td>
+                        <td style="font-weight: bold; cursor: help;" onmousemove="showTooltip(event, \'{rsi_tooltip}\')" onmouseout="hideTooltip()">{f"{rsi_val:.0f}" if rsi_val > 0 else "-"}</td>
+                        <td style="color: {'#4caf50' if rs_vs_spx and rs_vs_spx > 0 else '#f44336'}; font-weight: bold;">{f"{rs_vs_spx:.1f}%" if rs_vs_spx is not None else "-"}%</td>
+                    </tr>
+                    """
+        except Exception as ex:
+            print(f"Error parsing tws_orders.csv for buying section: {ex}")
+            buying_rows_html = f'<tr><td colspan="15" style="text-align:center; color: var(--error-red);">Eroare la procesarea ordinelor active.</td></tr>'
+
+    if not buying_rows_html:
+        buying_rows_html = '<tr><td colspan="15" style="text-align:center;">Niciun ordin de cumpărare activ în IBKR.</td></tr>'
+
     # Encrypt Data
     full_pf_data = {
         "html": portfolio_rows_html,
+        "buying_orders_html": buying_rows_html,
         "sparklines": sparkline_data
     }
     # Use password variable (should be defined)
@@ -2990,6 +3176,34 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     encrypted_blob = market_security.encrypt_for_js(json.dumps(full_pf_data), password)
     
     html_head += f"""
+                </tbody>
+            </table>
+            </div> <!-- End table-container -->
+            
+            <h3 style="margin-top: 45px; margin-bottom: 15px; color: var(--text-primary);">Ordine Active de Cumpărare (IBKR)</h3>
+            <div class="table-container">
+            <table id="buying-orders-table" class="display hover" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Simbol</th>
+                        <th>Tip Ordin</th>
+                        <th>Cantitate</th>
+                        <th>Preț Ordin</th>
+                        <th>Trail % (Ordin)</th>
+                        <th>Preț Curent</th>
+                        <th>Grafic</th>
+                        <th>Target</th>
+                        <th>% Mid</th>
+                        <th>Consensus</th>
+                        <th>Suggested Stop</th>
+                        <th>Investiție Est.</th>
+                        <th>Trend</th>
+                        <th onmousemove="showTooltip(event, \'<strong>RSI (Relative Strength Index)</strong><br>măsoară viteza și schimbarea prețurilor.<br>Valori: >70 (Overbought), <30 (Oversold).\')" onmouseout="hideTooltip()">RSI</th>
+                        <th onmousemove="showTooltip(event, \'<strong>RS vs SPX (Relative Strength vs S&P 500) pe 60 de zile.</strong>\')" onmouseout="hideTooltip()">RS vs SPX</th>
+                    </tr>
+                </thead>
+                <tbody id="buying-orders-rows-body">
+                    <!-- Injected by JS after decryption -->
                 </tbody>
             </table>
             </div> <!-- End table-container -->
@@ -3917,7 +4131,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
         <script>
             $(document).ready(function() {
-                var table = $('#portfolio-table, #watchlist-table').DataTable({
+                var table = $('#portfolio-table, #watchlist-table, #buying-orders-table').DataTable({
                     paging: false,
                     ordering: true,
                     info: false,

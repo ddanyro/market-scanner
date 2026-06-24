@@ -69,29 +69,37 @@ def fetch_active_orders(output_file='tws_orders.csv'):
                     # Poate un sufix?
                     pass
                 
+                def clean_val(v):
+                    if v is None or v > 1e20:
+                        return 0.0
+                    return float(v)
+
+                lmt_price = clean_val(order.lmtPrice)
+                aux_price = clean_val(order.auxPrice)
+                trail_stop_price = clean_val(order.trailStopPrice)
+                trail_pct = clean_val(order.trailingPercent)
+
                 # Extragere date
                 data = {
                     'Symbol': sym,
                     'OrderType': order.orderType,
                     'Action': order.action, # BUY/SELL
                     'Total_Qty': order.totalQuantity,
-                    'Aux_Price': order.auxPrice, # Trail amount sau Stop offset
-                    'Stop_Price': order.trailStopPrice if order.trailStopPrice else order.lmtPrice if order.lmtPrice else 0
+                    'Aux_Price': aux_price,
+                    'Limit_Price': lmt_price,
+                    'Stop_Price': trail_stop_price if order.orderType == 'TRAIL' else (aux_price if order.orderType in ['STP', 'STP LMT'] else 0.0),
+                    'Trail_Pct': trail_pct,
                 }
-                
-                # Dacă e Trail, avem trailingPercent?
-                if order.trailingPercent:
-                    data['Trail_Pct'] = order.trailingPercent
                 
                 # Corecție Stop Price
                 # La Trail, 'trailStopPrice' e prețul trigger curent calculat de server.
                 # Dacă e STP simplu, e 'auxPrice'.
                 
-                calc_stop = 0
+                calc_stop = 0.0
                 if order.orderType == 'TRAIL':
-                    calc_stop = order.trailStopPrice
+                    calc_stop = trail_stop_price
                 elif order.orderType in ['STP', 'STP LMT']:
-                    calc_stop = order.auxPrice
+                    calc_stop = aux_price
                 
                 data['Calculated_Stop'] = calc_stop
                 
