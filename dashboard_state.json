@@ -1,9 +1,9 @@
 {
   "rates": {
     "EUR": 1.0,
-    "USD": 0.8802999519060293,
+    "USD": 0.8802000095904208,
     "RON": 0.19066867667981977,
-    "GBP": 1.1619260228948491
+    "GBP": 1.1617099995928493
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 19.31,
-      "change": -0.18,
+      "value": 19.28,
+      "change": -0.21,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         17.18000030517578,
         17.280000686645508,
         19.489999771118164,
-        19.309999465942383
+        19.280000686645508
       ]
     },
     "VIX1D": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 19.309999465942383,
+  "vix_val": 19.280000686645508,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -551,32 +551,32 @@
       "Symbol": "TVBETETF.RO",
       "Company_Name": "ETF BET Tradeville",
       "Shares": 1886,
-      "Current_Price": 10.05,
-      "Price_Native": 52.7,
+      "Current_Price": 10.04,
+      "Price_Native": 52.64,
       "Buy_Price": 5.02,
-      "Target": 10.42,
+      "Target": 10.41,
       "Trail_Stop": 9.41,
-      "Suggested_Stop": 9.8,
+      "Suggested_Stop": 9.79,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
       "Investment": 9475.49,
       "Entry_Date": "-",
-      "Current_Value": 18950.98,
-      "Profit": 9475.49,
-      "Profit_Pct": 100.0,
-      "Max_Profit": 10175.94,
+      "Current_Value": 18929.4,
+      "Profit": 9453.91,
+      "Profit_Pct": 99.77,
+      "Max_Profit": 10154.36,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
-      "RSI": 71.66,
+      "RSI": 71.22,
       "RSI_Status": "Overbought",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 52.7 > SMA200 43.4), RSI 72, Risk 6.4%",
-      "RS_vs_SPX": -1.8,
+      "Sell_Reason": "Trend UP (P 52.6 > SMA200 43.4), RSI 71, Risk 6.2%",
+      "RS_vs_SPX": -1.93,
       "Sparkline": [
         9.47,
         9.56,
@@ -607,30 +607,30 @@
         9.93,
         9.97,
         10.01,
-        10.05
+        10.04
       ],
-      "Date": "2026-06-24 10:52"
+      "Date": "2026-06-24 10:53"
     },
     {
       "Symbol": "WD",
       "Company_Name": "Walker & Dunlop, Inc.",
       "Shares": 50,
-      "Current_Price": 45.03,
+      "Current_Price": 45.02,
       "Price_Native": 51.15,
       "Buy_Price": 44.82,
-      "Target": 59.27,
-      "Trail_Stop": 43.43,
+      "Target": 59.26,
+      "Trail_Stop": 43.42,
       "Suggested_Stop": 41.2,
       "Finviz_ATR": 2.06,
       "Vol_W": 3.8,
       "Vol_M": 3.89,
       "Trail_Pct": 5.99,
-      "Investment": 2241.24,
+      "Investment": 2240.99,
       "Entry_Date": "2026-06-19",
-      "Current_Value": 2251.37,
+      "Current_Value": 2251.11,
       "Profit": 10.12,
       "Profit_Pct": 0.45,
-      "Max_Profit": 722.29,
+      "Max_Profit": 722.2,
       "Consensus": "Buy",
       "Analysts": 3,
       "Status": "Neutral",
@@ -644,36 +644,36 @@
       "Sparkline": [
         46.72,
         47.91,
-        46.75,
+        46.74,
         45.99,
-        44.37,
+        44.36,
         43.73,
-        42.06,
-        43.18,
+        42.05,
+        43.17,
         44.48,
         44.34,
-        44.09,
+        44.08,
         44.54,
-        44.73,
+        44.72,
         44.18,
         42.54,
-        43.85,
-        42.54,
+        43.84,
+        42.53,
         45.5,
-        45.12,
+        45.11,
         45.59,
-        46.56,
-        44.96,
+        46.55,
+        44.95,
         46.07,
         46.88,
         45.14,
         45.64,
-        44.9,
+        44.89,
         45.74,
-        45.41,
-        45.03
+        45.4,
+        45.02
       ],
-      "Date": "2026-06-24 10:52"
+      "Date": "2026-06-24 10:53"
     }
   ],
   "watchlist": [
