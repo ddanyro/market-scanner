@@ -118,6 +118,17 @@ def fetch_active_orders(output_file='tws_orders.csv'):
         positions = ib.positions()
         print(f"Găsite {len(positions)} poziții deschise în TWS.")
         
+        # Încercăm să obținem prețurile curente din portofoliul live
+        prices_map = {}
+        try:
+            portfolio = ib.portfolio()
+            for item in portfolio:
+                if item.contract and item.contract.conId:
+                    prices_map[item.contract.conId] = clean_val(item.marketPrice)
+            print(f"  -> Extrase prețuri live pentru {len(prices_map)} poziții din portofoliu TWS.")
+        except Exception as p_ex:
+            print(f"  -> Avertisment la citirea prețurilor live din portofoliu TWS: {p_ex}")
+            
         pos_data = []
         for p in positions:
             if p.position == 0: continue
@@ -126,13 +137,16 @@ def fetch_active_orders(output_file='tws_orders.csv'):
             # Convert Symbol (ex: BRK B -> BRK.B)
             sym = c.symbol.replace(' ', '.')
             
+            current_price = prices_map.get(c.conId, 0.0)
+            
             pos_data.append({
                 'Symbol': sym,
                 'Shares': p.position,
                 'Buy_Price': p.avgCost,
+                'Current_Price': current_price,
                 'Currency': c.currency
             })
-            print(f"  -> Pos: {sym} x {p.position}")
+            print(f"  -> Pos: {sym} x {p.position} (Preț curent TWS: {current_price})")
             
         if pos_data:
             pdf = pd.DataFrame(pos_data)

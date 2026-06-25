@@ -58,15 +58,21 @@ def sync_ibkr():
              for _, r in tdf.iterrows():
                   sym = str(r['Symbol'])
                   tws_symbols.add(sym)  # Track TWS symbols
-                  invest = float(r['Shares']) * float(r['Buy_Price'])
+                  shares = float(r['Shares'])
+                  buy_price = float(r['Buy_Price'])
+                  current_price = float(r.get('Current_Price', buy_price))
+                  if current_price <= 0:
+                      current_price = buy_price
+                  invest = shares * buy_price
+                  current_value = shares * current_price
                   positions.append({
                       'Symbol': sym,
-                      'Shares': float(r['Shares']),
-                      'Buy_Price': float(r['Buy_Price']), 
-                      'Current_Price': float(r['Buy_Price']), 
-                      'Current_Value': invest,
-                      'Profit': 0, # Calculat mai târziu în market scanner
-                      'Profit_Pct': 0,
+                      'Shares': shares,
+                      'Buy_Price': buy_price, 
+                      'Current_Price': current_price, 
+                      'Current_Value': current_value,
+                      'Profit': current_value - invest,
+                      'Profit_Pct': ((current_price - buy_price) / buy_price * 100) if buy_price > 0 else 0,
                       'Investment': invest,
                       'Trail_Pct': 0,
                       'Trail_Stop_IBKR': 0,

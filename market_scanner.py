@@ -701,11 +701,34 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         if df.empty:
             print(f"  ⚠️ Nu există date Yahoo Finance pentru {ticker} (nici cu sufixe) - folosim date parțiale din IBKR")
             # Returnăm date parțiale bazate pe informațiile din IBKR
-            current_price = buy_price  # Fallback: presupunem că prețul curent = buy price
+            
+            # Verificăm dacă avem prețul live din TWS (tws_positions.csv)
+            tws_price_avail = False
+            tws_price_native = 0.0
+            tws_file = 'tws_positions.csv'
+            if os.path.exists(tws_file):
+                mtime = os.path.getmtime(tws_file)
+                if time.time() - mtime < 300:  # 5 minute
+                    try:
+                        tpos_df = pd.read_csv(tws_file)
+                        matching_pos = tpos_df[tpos_df['Symbol'] == ticker]
+                        if not matching_pos.empty:
+                            tws_price_native = float(matching_pos.iloc[0].get('Current_Price', 0.0))
+                            if tws_price_native > 0:
+                                tws_price_avail = True
+                    except:
+                        pass
+                        
+            if tws_price_avail:
+                current_price = tws_price_native * rate
+                print(f"    [TWS API] Fallback to live TWS price for {ticker}: {tws_price_native}")
+            else:
+                current_price = buy_price  # Fallback standard
+                
             investment = buy_price * shares
             current_value = current_price * shares
-            profit = 0.0
-            profit_pct = 0.0
+            profit = current_value - investment
+            profit_pct = ((current_price - buy_price) / buy_price * 100) if buy_price > 0 else 0.0
             
             # Target și profit maxim
             if target:
@@ -770,7 +793,29 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         
         last_row = df.iloc[-1]
         
-        current_price_native = market_data.get_scalar(last_row['Close'])
+        # Verificăm dacă avem prețul live din TWS (tws_positions.csv)
+        tws_price_avail = False
+        tws_price_native = 0.0
+        tws_file = 'tws_positions.csv'
+        if os.path.exists(tws_file):
+            mtime = os.path.getmtime(tws_file)
+            if time.time() - mtime < 300:  # 5 minute
+                try:
+                    tpos_df = pd.read_csv(tws_file)
+                    matching_pos = tpos_df[tpos_df['Symbol'] == ticker]
+                    if not matching_pos.empty:
+                        tws_price_native = float(matching_pos.iloc[0].get('Current_Price', 0.0))
+                        if tws_price_native > 0:
+                            tws_price_avail = True
+                except:
+                    pass
+
+        if tws_price_avail:
+            current_price_native = tws_price_native
+            print(f"  [TWS API] Using live TWS price for {ticker}: {current_price_native}")
+        else:
+            current_price_native = market_data.get_scalar(last_row['Close'])
+            
         current_price = current_price_native * rate # EUR
         
         # Convert ATR for stops
