@@ -1,9 +1,9 @@
 {
   "rates": {
     "EUR": 1.0,
-    "USD": 0.8798000057893944,
+    "USD": 0.8798999495782964,
     "RON": 0.1911424605370012,
-    "GBP": 1.1607526606091336
+    "GBP": 1.1608200430363456
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 18.51,
-      "change": -0.12,
+      "value": 18.46,
+      "change": -0.17,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         17.280000686645508,
         19.489999771118164,
         18.6299991607666,
-        18.510000228881836
+        18.459999084472656
       ]
     },
     "VIX1D": {
@@ -121,8 +121,8 @@
       ]
     },
     "VIX9D": {
-      "value": 17.66,
-      "change": -1.14,
+      "value": 17.59,
+      "change": -1.21,
       "status": "Normal",
       "description": "12 normal 18",
       "sparkline": [
@@ -155,12 +155,12 @@
         16.290000915527344,
         19.270000457763672,
         18.799999237060547,
-        17.65999984741211
+        17.59000015258789
       ]
     },
     "VXN": {
-      "value": 30.16,
-      "change": -0.02,
+      "value": 30.1,
+      "change": -0.08,
       "status": "Tension",
       "description": "25 teama 35",
       "sparkline": [
@@ -193,12 +193,12 @@
         27.670000076293945,
         32.369998931884766,
         30.18000030517578,
-        30.15999984741211
+        30.100000381469727
       ]
     },
     "LTV": {
-      "value": 10.43,
-      "change": -0.24,
+      "value": 10.35,
+      "change": -0.32,
       "status": "Normal",
       "description": "10 normal 13",
       "sparkline": [
@@ -231,7 +231,7 @@
         9.779999732971191,
         11.510000228881836,
         10.670000076293945,
-        10.430000305175781
+        10.350000381469727
       ]
     },
     "SKEW": {
@@ -311,8 +311,8 @@
       ]
     },
     "GVZ": {
-      "value": 29.32,
-      "change": -2.28,
+      "value": 29.29,
+      "change": -2.31,
       "status": "Panic",
       "description": "22 panica",
       "sparkline": [
@@ -345,12 +345,12 @@
         26.149999618530273,
         27.40999984741211,
         31.600000381469727,
-        29.31999969482422
+        29.290000915527344
       ]
     },
     "OVX": {
-      "value": 46.95,
-      "change": -0.66,
+      "value": 46.94,
+      "change": -0.67,
       "status": "Panic",
       "description": "35 panica",
       "sparkline": [
@@ -383,12 +383,12 @@
         50.70000076293945,
         46.599998474121094,
         47.61000061035156,
-        46.95000076293945
+        46.939998626708984
       ]
     },
     "SPX": {
-      "value": 7337.78,
-      "change": -20.44,
+      "value": 7334.94,
+      "change": -23.28,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -421,12 +421,12 @@
         7472.7900390625,
         7365.4599609375,
         7358.22021484375,
-        7337.77978515625
+        7334.93994140625
       ]
     },
     "NASDAQ": {
-      "value": 25216.22,
-      "change": -260.42,
+      "value": 25204.32,
+      "change": -272.32,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -459,7 +459,7 @@
         26166.599609375,
         25587.0390625,
         25476.640625,
-        25216.216796875
+        25204.318359375
       ]
     },
     "Crypto Fear": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 18.510000228881836,
+  "vix_val": 18.459999084472656,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -551,33 +551,33 @@
       "Symbol": "LQQ",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 35,
-      "Current_Price": 1983.0,
-      "Price_Native": 1983.0,
+      "Current_Price": 1989.0,
+      "Price_Native": 1989.0,
       "Currency": "EUR",
       "Buy_Price": 1990.09,
-      "Target": 2203.24,
+      "Target": 2209.24,
       "Trail_Stop": 1790.8,
-      "Suggested_Stop": 1836.17,
+      "Suggested_Stop": 1842.17,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 12.0,
       "Investment": 69653.27,
       "Entry_Date": "-",
-      "Current_Value": 69405.0,
-      "Profit": -248.27,
-      "Profit_Pct": -0.36,
-      "Max_Profit": 7460.23,
+      "Current_Value": 69615.0,
+      "Profit": -38.27,
+      "Profit_Pct": -0.05,
+      "Max_Profit": 7670.23,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 51.83,
+      "RSI": 52.39,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 1983.0 > SMA200 1552.1), RSI 52, Risk 9.7%",
-      "RS_vs_SPX": 46.79,
+      "Sell_Reason": "Trend UP (P 1989.0 > SMA200 1552.1), RSI 52, Risk 10.0%",
+      "RS_vs_SPX": 47.27,
       "Sparkline": [
         1921.0,
         1875.8,
@@ -608,7 +608,7 @@
         2070.5,
         1969.0,
         1972.6,
-        1983.0
+        1989.0
       ],
       "Date": "2026-06-25 16:57"
     },
@@ -616,33 +616,33 @@
       "Symbol": "LQQ.PA",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 25,
-      "Current_Price": 1983.0,
-      "Price_Native": 1983.0,
+      "Current_Price": 1989.0,
+      "Price_Native": 1989.0,
       "Currency": "EUR",
       "Buy_Price": 2025.5,
-      "Target": 2203.24,
+      "Target": 2209.24,
       "Trail_Stop": 1786.0,
-      "Suggested_Stop": 1836.17,
+      "Suggested_Stop": 1842.17,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
       "Investment": 50637.5,
       "Entry_Date": "2026-06-25",
-      "Current_Value": 49575.0,
-      "Profit": -1062.5,
-      "Profit_Pct": -2.1,
-      "Max_Profit": 4443.57,
+      "Current_Value": 49725.0,
+      "Profit": -912.5,
+      "Profit_Pct": -1.8,
+      "Max_Profit": 4593.57,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 51.83,
+      "RSI": 52.39,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 1983.0 > SMA200 1552.1), RSI 52, Risk 9.9%",
-      "RS_vs_SPX": 46.79,
+      "Sell_Reason": "Trend UP (P 1989.0 > SMA200 1552.1), RSI 52, Risk 10.2%",
+      "RS_vs_SPX": 47.27,
       "Sparkline": [
         1921.0,
         1875.8,
@@ -673,7 +673,7 @@
         2070.5,
         1969.0,
         1972.6,
-        1983.0
+        1989.0
       ],
       "Date": "2026-06-25 16:57"
     },
@@ -811,23 +811,23 @@
       "Symbol": "WD",
       "Company_Name": "Walker & Dunlop, Inc.",
       "Shares": 50,
-      "Current_Price": 47.39,
+      "Current_Price": 47.4,
       "Price_Native": 53.87,
       "Currency": "USD",
       "Buy_Price": 44.8,
       "Target": 59.24,
-      "Trail_Stop": 44.56,
-      "Suggested_Stop": 43.92,
+      "Trail_Stop": 44.65,
+      "Suggested_Stop": 43.93,
       "Finviz_ATR": 1.98,
       "Vol_W": 4.09,
       "Vol_M": 3.96,
       "Trail_Pct": 5.99,
-      "Investment": 2239.97,
+      "Investment": 2240.23,
       "Entry_Date": "2026-06-19",
-      "Current_Value": 2369.74,
-      "Profit": 129.77,
+      "Current_Value": 2370.01,
+      "Profit": 129.79,
       "Profit_Pct": 5.79,
-      "Max_Profit": 721.88,
+      "Max_Profit": 721.96,
       "Consensus": "Buy",
       "Analysts": 3,
       "Status": "Neutral",
@@ -836,39 +836,39 @@
       "Trend": "Bearish Rally",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Recovery (P 53.9 > SMA50 50.9), RSI 59, Risk 6.0%",
+      "Sell_Reason": "Recovery (P 53.9 > SMA50 50.9), RSI 59, Risk 5.8%",
       "RS_vs_SPX": 10.68,
       "Sparkline": [
-        46.72,
+        46.73,
         45.97,
-        44.34,
+        44.35,
         43.71,
-        42.03,
-        43.15,
+        42.04,
+        43.16,
         44.46,
         44.32,
-        44.06,
+        44.07,
         44.52,
-        44.7,
+        44.71,
         44.16,
+        42.53,
+        43.83,
         42.52,
-        43.82,
-        42.51,
         45.48,
         45.09,
-        45.56,
-        46.53,
-        44.93,
+        45.57,
+        46.54,
+        44.94,
         46.05,
         46.86,
         45.12,
         45.62,
         44.87,
-        45.71,
-        45.38,
-        45.0,
+        45.72,
+        45.39,
+        45.01,
         46.63,
-        47.39
+        47.4
       ],
       "Date": "2026-06-25 16:57"
     }
