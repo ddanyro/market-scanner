@@ -3,7 +3,7 @@
     "EUR": 1.0,
     "USD": 0.8802000095904208,
     "RON": 0.1911826602875664,
-    "GBP": 1.1604563189999881
+    "GBP": 1.1604293498732792
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 17.88,
-      "change": -0.75,
+      "value": 17.85,
+      "change": -0.78,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         17.280000686645508,
         19.489999771118164,
         18.6299991607666,
-        17.8799991607666
+        17.850000381469727
       ]
     },
     "VIX1D": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 17.8799991607666,
+  "vix_val": 17.8700008392334,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -551,32 +551,32 @@
       "Symbol": "LQQ.PA",
       "Company_Name": "",
       "Shares": 17,
-      "Current_Price": 2029.5,
-      "Price_Native": 2029.5,
+      "Current_Price": 2030.0,
+      "Price_Native": 2030.0,
       "Buy_Price": 2018.31,
-      "Target": 2249.74,
+      "Target": 2250.24,
       "Trail_Stop": 1790.8,
-      "Suggested_Stop": 1882.67,
+      "Suggested_Stop": 1883.17,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 12.0,
       "Investment": 34311.27,
       "Entry_Date": "-",
-      "Current_Value": 34501.5,
-      "Profit": 190.23,
-      "Profit_Pct": 0.55,
-      "Max_Profit": 3934.36,
+      "Current_Value": 34510.0,
+      "Profit": 198.73,
+      "Profit_Pct": 0.58,
+      "Max_Profit": 3942.86,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 55.84,
+      "RSI": 55.88,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 2029.5 > SMA200 1552.3), RSI 56, Risk 11.8%",
-      "RS_vs_SPX": 46.92,
+      "Sell_Reason": "Trend UP (P 2030.0 > SMA200 1552.3), RSI 56, Risk 11.8%",
+      "RS_vs_SPX": 46.96,
       "Sparkline": [
         1921.0,
         1875.8,
@@ -607,40 +607,40 @@
         2070.5,
         1969.0,
         1972.6,
-        2029.5
+        2030.0
       ],
-      "Date": "2026-06-25 15:54"
+      "Date": "2026-06-25 15:55"
     },
     {
       "Symbol": "LQQ.PA",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 25,
-      "Current_Price": 2029.5,
-      "Price_Native": 2029.5,
+      "Current_Price": 2030.0,
+      "Price_Native": 2030.0,
       "Buy_Price": 2025.5,
-      "Target": 2249.74,
+      "Target": 2250.24,
       "Trail_Stop": 1786.0,
-      "Suggested_Stop": 1882.67,
+      "Suggested_Stop": 1883.17,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
       "Investment": 50637.5,
       "Entry_Date": "2026-06-25",
-      "Current_Value": 50737.5,
-      "Profit": 100.0,
-      "Profit_Pct": 0.2,
-      "Max_Profit": 5606.07,
+      "Current_Value": 50750.0,
+      "Profit": 112.5,
+      "Profit_Pct": 0.22,
+      "Max_Profit": 5618.57,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 55.84,
+      "RSI": 55.88,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 2029.5 > SMA200 1552.3), RSI 56, Risk 12.0%",
-      "RS_vs_SPX": 46.92,
+      "Sell_Reason": "Trend UP (P 2030.0 > SMA200 1552.3), RSI 56, Risk 12.0%",
+      "RS_vs_SPX": 46.96,
       "Sparkline": [
         1921.0,
         1875.8,
@@ -671,9 +671,9 @@
         2070.5,
         1969.0,
         1972.6,
-        2029.5
+        2030.0
       ],
-      "Date": "2026-06-25 15:54"
+      "Date": "2026-06-25 15:55"
     },
     {
       "Symbol": "NVDA",
@@ -737,7 +737,7 @@
         176.08,
         175.16
       ],
-      "Date": "2026-06-25 15:54"
+      "Date": "2026-06-25 15:55"
     },
     {
       "Symbol": "NVDA.US",
@@ -801,38 +801,38 @@
         176.08,
         175.16
       ],
-      "Date": "2026-06-25 15:54"
+      "Date": "2026-06-25 15:55"
     },
     {
       "Symbol": "SXRZ.DE",
       "Company_Name": "",
       "Shares": 20,
-      "Current_Price": 402.45,
-      "Price_Native": 402.45,
+      "Current_Price": 402.75,
+      "Price_Native": 402.75,
       "Buy_Price": 402.55,
-      "Target": 431.43,
+      "Target": 431.73,
       "Trail_Stop": 370.75,
-      "Suggested_Stop": 383.13,
+      "Suggested_Stop": 383.43,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 8.0,
       "Investment": 8051.02,
       "Entry_Date": "-",
-      "Current_Value": 8049.0,
-      "Profit": -2.02,
-      "Profit_Pct": -0.03,
-      "Max_Profit": 577.62,
+      "Current_Value": 8055.0,
+      "Profit": 3.98,
+      "Profit_Pct": 0.05,
+      "Max_Profit": 583.62,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 66.69,
+      "RSI": 66.79,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 402.5 > SMA200 305.0), RSI 67, Risk 7.9%",
-      "RS_vs_SPX": 23.26,
+      "Sell_Reason": "Trend UP (P 402.8 > SMA200 305.0), RSI 67, Risk 7.9%",
+      "RS_vs_SPX": 23.37,
       "Sparkline": [
         343.25,
         338.05,
@@ -863,16 +863,16 @@
         403.9,
         383.5,
         387.25,
-        402.45
+        402.75
       ],
-      "Date": "2026-06-25 15:54"
+      "Date": "2026-06-25 15:55"
     },
     {
       "Symbol": "TVBETETF.RO",
       "Company_Name": "ETF BET Tradeville",
       "Shares": 2061,
       "Current_Price": 10.36,
-      "Price_Native": 54.21,
+      "Price_Native": 54.2,
       "Buy_Price": 5.49,
       "Target": 10.78,
       "Trail_Stop": 9.43,
@@ -883,20 +883,20 @@
       "Trail_Pct": 0.0,
       "Investment": 11312.53,
       "Entry_Date": "-",
-      "Current_Value": 21360.23,
-      "Profit": 10047.7,
-      "Profit_Pct": 88.82,
-      "Max_Profit": 10900.49,
+      "Current_Value": 21356.29,
+      "Profit": 10043.76,
+      "Profit_Pct": 88.78,
+      "Max_Profit": 10896.55,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
-      "RSI": 79.98,
+      "RSI": 79.94,
       "RSI_Status": "Overbought",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 54.2 > SMA200 43.5), RSI 80, Risk 9.0%",
-      "RS_vs_SPX": 4.47,
+      "Sell_Reason": "Trend UP (P 54.2 > SMA200 43.5), RSI 80, Risk 8.9%",
+      "RS_vs_SPX": 4.45,
       "Sparkline": [
         9.58,
         9.78,
@@ -929,7 +929,7 @@
         10.07,
         10.36
       ],
-      "Date": "2026-06-25 15:54"
+      "Date": "2026-06-25 15:55"
     },
     {
       "Symbol": "WD",
@@ -993,7 +993,7 @@
         45.02,
         46.65
       ],
-      "Date": "2026-06-25 15:54"
+      "Date": "2026-06-25 15:55"
     }
   ],
   "watchlist": [
