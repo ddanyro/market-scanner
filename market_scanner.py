@@ -3037,21 +3037,30 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         for _, r_order in orders_df_subset.iterrows():
             symbol = str(r_order.get('Symbol', ''))
             order_type = str(r_order.get('OrderType', ''))
-            qty = float(r_order.get('Total_Qty', 0))
             
-            limit_price = float(r_order.get('Limit_Price', 0)) if 'Limit_Price' in r_order else 0.0
+            def get_val(col, default=0.0):
+                val = r_order.get(col, default)
+                if pd.isna(val) or val is None:
+                    return default
+                try:
+                    return float(val)
+                except (ValueError, TypeError):
+                    return default
+            
+            qty = get_val('Total_Qty', 0.0)
+            limit_price = get_val('Limit_Price', 0.0)
             if limit_price == 0.0 and order_type == 'LMT':
-                aux_price_raw = float(r_order.get('Aux_Price', 0))
-                stop_price_raw = float(r_order.get('Stop_Price', 0))
+                aux_price_raw = get_val('Aux_Price', 0.0)
+                stop_price_raw = get_val('Stop_Price', 0.0)
                 if aux_price_raw > 0 and aux_price_raw < 1e10:
                     limit_price = aux_price_raw
                 elif stop_price_raw > 0 and stop_price_raw < 1e10:
                     limit_price = stop_price_raw
             
-            stop_price = float(r_order.get('Stop_Price', 0)) if 'Stop_Price' in r_order else 0.0
+            stop_price = get_val('Stop_Price', 0.0)
             if stop_price > 1e10:
                 stop_price = 0.0
-            trail_pct_order = float(r_order.get('Trail_Pct', 0)) if 'Trail_Pct' in r_order else 0.0
+            trail_pct_order = get_val('Trail_Pct', 0.0)
             if trail_pct_order > 1e10:
                 trail_pct_order = 0.0
             
@@ -3107,7 +3116,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             
             order_price_native = limit_price if order_type == 'LMT' else stop_price
             if order_price_native <= 0:
-                order_price_native = float(r_order.get('Calculated_Stop', 0))
+                order_price_native = get_val('Calculated_Stop', 0.0)
             
             order_price_eur = order_price_native * rate
             
@@ -3166,9 +3175,23 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
     buying_rows_html = ""
     selling_rows_html = ""
+    
+    orders_list = []
     if os.path.exists('tws_orders.csv'):
         try:
-            orders_df = pd.read_csv('tws_orders.csv')
+            orders_list.append(pd.read_csv('tws_orders.csv'))
+        except Exception as e:
+            print(f"Error reading tws_orders.csv: {e}")
+            
+    if os.path.exists('tradeville_orders.csv'):
+        try:
+            orders_list.append(pd.read_csv('tradeville_orders.csv'))
+        except Exception as e:
+            print(f"Error reading tradeville_orders.csv: {e}")
+            
+    if orders_list:
+        try:
+            orders_df = pd.concat(orders_list, ignore_index=True)
             if not orders_df.empty and 'Action' in orders_df.columns:
                 buy_orders = orders_df[orders_df['Action'].str.upper() == 'BUY']
                 sell_orders = orders_df[orders_df['Action'].str.upper() == 'SELL']
@@ -3182,14 +3205,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 buying_rows_html = render_order_rows(buy_orders, rates, 'buy')
                 selling_rows_html = render_order_rows(sell_orders, rates, 'sell')
         except Exception as ex:
-            print(f"Error parsing tws_orders.csv: {ex}")
+            print(f"Error parsing concatenated orders: {ex}")
             buying_rows_html = f'<tr><td colspan="15" style="text-align:center; color: var(--error-red);">Eroare la procesarea ordinelor active.</td></tr>'
             selling_rows_html = f'<tr><td colspan="15" style="text-align:center; color: var(--error-red);">Eroare la procesarea ordinelor active.</td></tr>'
 
     if not buying_rows_html:
-        buying_rows_html = '<tr><td colspan="15" style="text-align:center;">Niciun ordin de cumpărare activ în IBKR.</td></tr>'
+        buying_rows_html = '<tr><td colspan="15" style="text-align:center;">Niciun ordin de cumpărare activ în IBKR / Tradeville.</td></tr>'
     if not selling_rows_html:
-        selling_rows_html = '<tr><td colspan="15" style="text-align:center;">Niciun ordin de vânzare activ în IBKR.</td></tr>'
+        selling_rows_html = '<tr><td colspan="15" style="text-align:center;">Niciun ordin de vânzare activ în IBKR / Tradeville.</td></tr>'
 
     # Encrypt Data
     full_pf_data = {
@@ -3208,7 +3231,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             </table>
             </div> <!-- End table-container -->
             
-            <h3 style="margin-top: 45px; margin-bottom: 15px; color: var(--text-primary);">Ordine Active de Cumpărare (IBKR)</h3>
+            <h3 style="margin-top: 45px; margin-bottom: 15px; color: var(--text-primary);">Ordine Active de Cumpărare (IBKR / Tradeville)</h3>
             <div class="table-container">
             <table id="buying-orders-table" class="display hover" style="width:100%;">
                 <thead>
@@ -3236,7 +3259,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             </table>
             </div> <!-- End table-container -->
             
-            <h3 style="margin-top: 45px; margin-bottom: 15px; color: var(--text-primary);">Ordine Active de Vânzare (IBKR)</h3>
+            <h3 style="margin-top: 45px; margin-bottom: 15px; color: var(--text-primary);">Ordine Active de Vânzare (IBKR / Tradeville)</h3>
             <div class="table-container">
             <table id="selling-orders-table" class="display hover" style="width:100%;">
                 <thead>
