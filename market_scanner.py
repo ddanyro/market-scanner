@@ -569,6 +569,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
     try:
         ticker = row.get('symbol', 'UNKNOWN').upper()
         download_ticker = ticker[:-3] if ticker.endswith('.US') else ticker
+        actual_download_ticker = download_ticker
         shares = float(row.get('shares', 0))
         buy_price_native = float(row.get('buy_price', 0))
         # Default trail_pct to 15 if missing
@@ -668,7 +669,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                     if not df_alt.empty:
                         print(f"    ✅ Found data for {alt_ticker}!")
                         df = df_alt
-                        ticker = alt_ticker # Update ticker to use the working suffix for metadata
+                        actual_download_ticker = alt_ticker
 
                         
                         # Update currency based on new suffix
@@ -688,7 +689,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
 
         company_name = ""
         try:
-             yt = yf.Ticker(download_ticker)
+             yt = yf.Ticker(actual_download_ticker)
              info = yt.info
              company_name = info.get('longName') or info.get('shortName') or ""
         except:
@@ -721,6 +722,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 'Shares': int(shares),
                 'Current_Price': round(current_price, 2),
                 'Buy_Price': round(buy_price, 2),
+                'Currency': currency,
                 'Target': target_display,
                 'Trail_Stop': round(buy_price * 0.85, 2),  # Default 15% trailing
                 'Suggested_Stop': round(buy_price * 0.90, 2),  # Conservative
@@ -751,7 +753,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         consensus = "-"
         analysts_count = 0
         try:
-           yt = yf.Ticker(download_ticker)
+           yt = yf.Ticker(actual_download_ticker)
            info = yt.info
            # Dacă info e gol sau fail
            if info:
@@ -1221,7 +1223,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             'Shares': int(shares),
             'Current_Price': round(current_price, 2),
             'Price_Native': round(current_price_native, 2),
-
+            'Currency': currency,
             'Buy_Price': round(buy_price, 2),
             'Target': target_display,  # None dacă nu există
             'Trail_Stop': round(trail_stop_price, 2),
