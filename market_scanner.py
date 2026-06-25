@@ -3090,7 +3090,12 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 rsi_status = t_data.get('RSI_Status', 'Neutral')
                 rs_vs_spx = t_data.get('RS_vs_SPX', None)
                 consensus = t_data.get('Consensus', '-')
-                currency = t_data.get('Currency', 'USD')
+                currency = t_data.get('Currency')
+                if not currency or pd.isna(currency):
+                    currency = 'USD'
+                    if '.RO' in symbol: currency = 'RON'
+                    elif '.PA' in symbol or '.DE' in symbol or '.AS' in symbol: currency = 'EUR'
+                    elif '.L' in symbol: currency = 'GBP'
             else:
                 m_symbol = symbol
                 company_name = ""
