@@ -1,9 +1,9 @@
 {
   "rates": {
     "EUR": 1.0,
-    "USD": 0.8764999884019495,
+    "USD": 0.8763999913912583,
     "RON": 0.1908032754280844,
-    "GBP": 1.1592455500178613
+    "GBP": 1.1592590069264437
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 18.48,
-      "change": 0.07,
+      "value": 18.5,
+      "change": 0.09,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         18.6299991607666,
         18.889999389648438,
         18.40999984741211,
-        18.479999542236328
+        18.5
       ]
     },
     "VIX1D": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 18.479999542236328,
+  "vix_val": 18.5,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -571,13 +571,13 @@
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 48.4,
+      "RSI": 48.24,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 1949.3 > SMA200 1557.8), RSI 48, Risk 8.1%",
-      "RS_vs_SPX": 36.26,
+      "RS_vs_SPX": 36.15,
       "Sparkline": [
         1851.6,
         1917.6,
@@ -608,41 +608,41 @@
         1972.6,
         1951.0,
         1940.0,
-        1946.6
+        1945.2
       ],
-      "Date": "2026-06-29 10:45"
+      "Date": "2026-06-29 10:47"
     },
     {
       "Symbol": "LQQ.PA",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 25,
-      "Current_Price": 1946.6,
-      "Price_Native": 1946.6,
+      "Current_Price": 1945.2,
+      "Price_Native": 1945.2,
       "Currency": "EUR",
       "Buy_Price": 2025.5,
-      "Target": 2152.83,
+      "Target": 2151.43,
       "Trail_Stop": 1786.0,
-      "Suggested_Stop": 1809.11,
+      "Suggested_Stop": 1807.71,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
       "Investment": 50637.5,
       "Entry_Date": "2026-06-25",
-      "Current_Value": 48665.0,
-      "Profit": -1972.5,
-      "Profit_Pct": -3.9,
-      "Max_Profit": 3183.21,
+      "Current_Value": 48630.0,
+      "Profit": -2007.5,
+      "Profit_Pct": -3.96,
+      "Max_Profit": 3148.21,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 48.4,
+      "RSI": 48.24,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 1946.6 > SMA200 1557.8), RSI 48, Risk 8.3%",
-      "RS_vs_SPX": 36.26,
+      "Sell_Reason": "Trend UP (P 1945.2 > SMA200 1557.8), RSI 48, Risk 8.2%",
+      "RS_vs_SPX": 36.15,
       "Sparkline": [
         1851.6,
         1917.6,
@@ -673,9 +673,9 @@
         1972.6,
         1951.0,
         1940.0,
-        1946.6
+        1945.2
       ],
-      "Date": "2026-06-29 10:45"
+      "Date": "2026-06-29 10:47"
     },
     {
       "Symbol": "SXRZ",
@@ -740,7 +740,7 @@
         386.9,
         384.65
       ],
-      "Date": "2026-06-29 10:45"
+      "Date": "2026-06-29 10:47"
     },
     {
       "Symbol": "TVBETETF.RO",
@@ -805,29 +805,29 @@
         10.35,
         10.42
       ],
-      "Date": "2026-06-29 10:45"
+      "Date": "2026-06-29 10:47"
     },
     {
       "Symbol": "WD",
       "Company_Name": "Walker & Dunlop, Inc.",
       "Shares": 50,
-      "Current_Price": 47.92,
+      "Current_Price": 47.91,
       "Price_Native": 54.67,
       "Currency": "USD",
       "Buy_Price": 44.63,
       "Target": 59.01,
-      "Trail_Stop": 45.31,
+      "Trail_Stop": 45.3,
       "Suggested_Stop": 44.28,
       "Finviz_ATR": 2.04,
       "Vol_W": 3.73,
       "Vol_M": 4.08,
       "Trail_Pct": 5.99,
-      "Investment": 2231.57,
+      "Investment": 2231.31,
       "Entry_Date": "2026-06-19",
-      "Current_Value": 2395.91,
-      "Profit": 164.34,
+      "Current_Value": 2395.64,
+      "Profit": 164.32,
       "Profit_Pct": 7.36,
-      "Max_Profit": 719.17,
+      "Max_Profit": 719.09,
       "Consensus": "Buy",
       "Analysts": 3,
       "Status": "Neutral",
@@ -840,37 +840,37 @@
       "RS_vs_SPX": 13.45,
       "Sparkline": [
         45.79,
-        44.18,
-        43.55,
-        41.88,
+        44.17,
+        43.54,
+        41.87,
         42.99,
-        44.29,
-        44.15,
-        43.9,
+        44.28,
+        44.14,
+        43.89,
         44.35,
         44.53,
         43.99,
         42.36,
-        43.66,
+        43.65,
         42.35,
-        45.31,
+        45.3,
         44.92,
         45.39,
-        46.36,
+        46.35,
         44.76,
-        45.88,
+        45.87,
         46.68,
-        44.95,
-        45.45,
+        44.94,
+        45.44,
         44.7,
         45.54,
-        45.21,
+        45.2,
         44.83,
         46.45,
         46.45,
         47.96
       ],
-      "Date": "2026-06-29 10:45"
+      "Date": "2026-06-29 10:47"
     }
   ],
   "watchlist": [
