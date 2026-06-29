@@ -7,8 +7,8 @@
   },
   "market_indicators": {
     "VIX3M": {
-      "value": 19.5,
-      "change": -0.63,
+      "value": 19.51,
+      "change": -0.62,
       "status": "Normal",
       "description": "14 normal 20",
       "sparkline": [
@@ -41,12 +41,12 @@
         20.3700008392334,
         20.329999923706055,
         20.1299991607666,
-        19.5
+        19.510000228881836
       ]
     },
     "VIX": {
-      "value": 17.66,
-      "change": -0.75,
+      "value": 17.68,
+      "change": -0.73,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,12 +79,12 @@
         18.6299991607666,
         18.889999389648438,
         18.40999984741211,
-        17.65999984741211
+        17.68000030517578
       ]
     },
     "VIX1D": {
-      "value": 12.38,
-      "change": -5.18,
+      "value": 12.4,
+      "change": -5.16,
       "status": "Normal",
       "description": "12 normal 30",
       "sparkline": [
@@ -117,12 +117,12 @@
         16.68000030517578,
         15.970000267028809,
         17.559999465942383,
-        12.380000114440918
+        12.399999618530273
       ]
     },
     "VIX9D": {
-      "value": 15.7,
-      "change": -1.1,
+      "value": 15.72,
+      "change": -1.08,
       "status": "Normal",
       "description": "12 normal 18",
       "sparkline": [
@@ -155,7 +155,7 @@
         18.06999969482422,
         17.920000076293945,
         16.799999237060547,
-        15.699999809265137
+        15.720000267028809
       ]
     },
     "VXN": {
@@ -387,8 +387,8 @@
       ]
     },
     "SPX": {
-      "value": 7431.89,
-      "change": 77.87,
+      "value": 7430.93,
+      "change": 76.91,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -421,12 +421,12 @@
         7358.22021484375,
         7357.490234375,
         7354.02001953125,
-        7431.89013671875
+        7430.93017578125
       ]
     },
     "NASDAQ": {
-      "value": 25748.68,
-      "change": 451.06,
+      "value": 25743.33,
+      "change": 445.71,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -459,7 +459,7 @@
         25476.640625,
         25358.599609375,
         25297.619140625,
-        25748.6796875
+        25743.328125
       ]
     },
     "Crypto Fear": {
@@ -551,23 +551,23 @@
       "Symbol": "LQQ",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 35,
-      "Current_Price": 1974.4,
-      "Price_Native": 1974.4,
+      "Current_Price": 1990.4,
+      "Price_Native": 1990.4,
       "Currency": "EUR",
       "Buy_Price": 1990.09,
-      "Target": 2193.61,
+      "Target": 2209.61,
       "Trail_Stop": 1790.8,
-      "Suggested_Stop": 1828.26,
+      "Suggested_Stop": 1844.26,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 12.0,
       "Investment": 69653.27,
       "Entry_Date": "-",
-      "Current_Value": 69104.0,
-      "Profit": -549.27,
-      "Profit_Pct": -0.79,
-      "Max_Profit": 7123.23,
+      "Current_Value": 69664.0,
+      "Profit": 10.73,
+      "Profit_Pct": 0.02,
+      "Max_Profit": 7683.23,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
@@ -575,9 +575,9 @@
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
-      "Sell_Decision": "EXIT",
+      "Sell_Decision": "REDUCE",
       "Sell_Reason": "RS Fail (Falling); ",
-      "RS_vs_SPX": 36.0,
+      "RS_vs_SPX": 36.02,
       "Sparkline": [
         1851.6,
         1917.6,
@@ -642,7 +642,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "EXIT",
       "Sell_Reason": "RS Fail (Falling); ",
-      "RS_vs_SPX": 36.0,
+      "RS_vs_SPX": 36.02,
       "Sparkline": [
         1851.6,
         1917.6,
@@ -681,23 +681,23 @@
       "Symbol": "SXRZ",
       "Company_Name": "iShares VII PLC - iShares Nikkei 225 ETF JPY Acc",
       "Shares": 40,
-      "Current_Price": 387.7,
-      "Price_Native": 387.7,
+      "Current_Price": 389.05,
+      "Price_Native": 389.05,
       "Currency": "EUR",
       "Buy_Price": 399.2,
-      "Target": 417.11,
+      "Target": 418.46,
       "Trail_Stop": 360.65,
-      "Suggested_Stop": 368.09,
+      "Suggested_Stop": 369.44,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 7.0,
       "Investment": 15967.98,
       "Entry_Date": "-",
-      "Current_Value": 15508.0,
-      "Profit": -459.98,
-      "Profit_Pct": -2.88,
-      "Max_Profit": 716.45,
+      "Current_Value": 15562.0,
+      "Profit": -405.98,
+      "Profit_Pct": -2.54,
+      "Max_Profit": 770.45,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
@@ -706,8 +706,8 @@
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 387.7 > SMA200 306.3), RSI 58, Risk 7.0%",
-      "RS_vs_SPX": 17.66,
+      "Sell_Reason": "Trend UP (P 389.0 > SMA200 306.3), RSI 58, Risk 7.3%",
+      "RS_vs_SPX": 17.68,
       "Sparkline": [
         333.75,
         338.8,
@@ -772,7 +772,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 54.3 > SMA200 43.7), RSI 80, Risk 6.3%",
-      "RS_vs_SPX": 4.04,
+      "RS_vs_SPX": 4.05,
       "Sparkline": [
         9.84,
         9.82,
@@ -811,22 +811,22 @@
       "Symbol": "WD",
       "Company_Name": "Walker & Dunlop, Inc.",
       "Shares": 50,
-      "Current_Price": 47.15,
-      "Price_Native": 53.89,
+      "Current_Price": 47.49,
+      "Price_Native": 54.29,
       "Currency": "USD",
       "Buy_Price": 44.54,
       "Target": 58.9,
       "Trail_Stop": 45.22,
-      "Suggested_Stop": 43.56,
+      "Suggested_Stop": 43.9,
       "Finviz_ATR": 1.99,
       "Vol_W": 3.73,
       "Vol_M": 4.08,
       "Trail_Pct": 5.99,
       "Investment": 2227.24,
       "Entry_Date": "-",
-      "Current_Value": 2357.28,
-      "Profit": 130.03,
-      "Profit_Pct": 5.84,
+      "Current_Value": 2374.53,
+      "Profit": 147.29,
+      "Profit_Pct": 6.61,
       "Max_Profit": 717.77,
       "Consensus": "None",
       "Analysts": 3,
@@ -836,8 +836,8 @@
       "Trend": "Bearish Rally",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Recovery (P 53.9 > SMA50 51.1), RSI 59, Risk 4.1%",
-      "RS_vs_SPX": 10.86,
+      "Sell_Reason": "Recovery (P 54.3 > SMA50 51.1), RSI 59, Risk 4.8%",
+      "RS_vs_SPX": 10.88,
       "Sparkline": [
         44.09,
         43.46,
