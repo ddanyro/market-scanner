@@ -1,9 +1,9 @@
 {
   "rates": {
     "EUR": 1.0,
-    "USD": 0.8768000247509773,
+    "USD": 0.8766999592721493,
     "RON": 0.19081784131238946,
-    "GBP": 1.160348530266019
+    "GBP": 1.160321646397551
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 18.28,
-      "change": -0.13,
+      "value": 18.32,
+      "change": -0.09,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         18.6299991607666,
         18.889999389648438,
         18.40999984741211,
-        18.280000686645508
+        18.31999969482422
       ]
     },
     "VIX1D": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 18.280000686645508,
+  "vix_val": 18.31999969482422,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -571,13 +571,13 @@
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 49.41,
+      "RSI": 49.07,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 1949.5 > SMA200 1557.8), RSI 49, Risk 8.1%",
-      "RS_vs_SPX": 36.97,
+      "RS_vs_SPX": 36.73,
       "Sparkline": [
         1851.6,
         1917.6,
@@ -608,41 +608,41 @@
         1972.6,
         1951.0,
         1940.0,
-        1956.0
+        1952.8
       ],
-      "Date": "2026-06-29 15:52"
+      "Date": "2026-06-29 15:54"
     },
     {
       "Symbol": "LQQ.PA",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 25,
-      "Current_Price": 1956.0,
-      "Price_Native": 1956.0,
+      "Current_Price": 1952.8,
+      "Price_Native": 1952.8,
       "Currency": "EUR",
       "Buy_Price": 2025.5,
-      "Target": 2164.16,
+      "Target": 2160.96,
       "Trail_Stop": 1790.8,
-      "Suggested_Stop": 1817.23,
+      "Suggested_Stop": 1814.03,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
       "Investment": 50637.5,
       "Entry_Date": "2026-06-25",
-      "Current_Value": 48900.0,
-      "Profit": -1737.5,
-      "Profit_Pct": -3.43,
-      "Max_Profit": 3466.43,
+      "Current_Value": 48820.0,
+      "Profit": -1817.5,
+      "Profit_Pct": -3.59,
+      "Max_Profit": 3386.43,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 49.41,
+      "RSI": 49.07,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 1956.0 > SMA200 1557.8), RSI 49, Risk 8.4%",
-      "RS_vs_SPX": 36.97,
+      "Sell_Reason": "Trend UP (P 1952.8 > SMA200 1557.8), RSI 49, Risk 8.3%",
+      "RS_vs_SPX": 36.73,
       "Sparkline": [
         1851.6,
         1917.6,
@@ -673,9 +673,9 @@
         1972.6,
         1951.0,
         1940.0,
-        1956.0
+        1952.8
       ],
-      "Date": "2026-06-29 15:52"
+      "Date": "2026-06-29 15:54"
     },
     {
       "Symbol": "SXRZ",
@@ -740,7 +740,7 @@
         386.9,
         386.2
       ],
-      "Date": "2026-06-29 15:52"
+      "Date": "2026-06-29 15:54"
     },
     {
       "Symbol": "TVBETETF.RO",
@@ -805,7 +805,7 @@
         10.35,
         10.45
       ],
-      "Date": "2026-06-29 15:53"
+      "Date": "2026-06-29 15:54"
     },
     {
       "Symbol": "WD",
@@ -814,20 +814,20 @@
       "Current_Price": 47.93,
       "Price_Native": 54.67,
       "Currency": "USD",
-      "Buy_Price": 44.65,
+      "Buy_Price": 44.64,
       "Target": 59.03,
       "Trail_Stop": 45.32,
-      "Suggested_Stop": 44.3,
+      "Suggested_Stop": 44.29,
       "Finviz_ATR": 2.04,
       "Vol_W": 3.73,
       "Vol_M": 4.08,
       "Trail_Pct": 5.99,
-      "Investment": 2232.33,
+      "Investment": 2232.08,
       "Entry_Date": "2026-06-19",
-      "Current_Value": 2396.73,
-      "Profit": 164.4,
+      "Current_Value": 2396.46,
+      "Profit": 164.38,
       "Profit_Pct": 7.36,
-      "Max_Profit": 719.41,
+      "Max_Profit": 719.33,
       "Consensus": "Buy",
       "Analysts": 3,
       "Status": "Neutral",
@@ -839,38 +839,38 @@
       "Sell_Reason": "Recovery (P 54.7 > SMA50 51.0), RSI 62, Risk 5.5%",
       "RS_vs_SPX": 13.45,
       "Sparkline": [
-        45.81,
+        45.8,
         44.19,
         43.56,
         41.89,
-        43.01,
+        43.0,
         44.3,
         44.16,
         43.91,
-        44.37,
+        44.36,
         44.55,
-        44.01,
-        42.38,
-        43.67,
+        44.0,
         42.37,
+        43.67,
+        42.36,
         45.32,
-        44.94,
-        45.41,
+        44.93,
+        45.4,
         46.37,
-        44.78,
+        44.77,
         45.89,
-        46.7,
+        46.69,
         44.96,
         45.46,
-        44.72,
-        45.56,
-        45.23,
-        44.85,
+        44.71,
+        45.55,
+        45.22,
+        44.84,
         46.47,
         46.47,
-        47.98
+        47.97
       ],
-      "Date": "2026-06-29 15:53"
+      "Date": "2026-06-29 15:54"
     }
   ],
   "watchlist": [
