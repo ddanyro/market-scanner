@@ -2,8 +2,8 @@
   "rates": {
     "EUR": 1.0,
     "USD": 0.8763999913912583,
-    "RON": 0.1908032754280844,
-    "GBP": 1.1592590069264437
+    "RON": 0.19078872912438596,
+    "GBP": 1.1592320934216964
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 18.5,
-      "change": 0.09,
+      "value": 18.53,
+      "change": 0.12,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         18.6299991607666,
         18.889999389648438,
         18.40999984741211,
-        18.5
+        18.530000686645508
       ]
     },
     "VIX1D": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 18.5,
+  "vix_val": 18.510000228881836,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -551,33 +551,33 @@
       "Symbol": "LQQ",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 35,
-      "Current_Price": 1949.29,
-      "Price_Native": 1949.29,
+      "Current_Price": 1950.84,
+      "Price_Native": 1950.84,
       "Currency": "EUR",
       "Buy_Price": 1990.09,
-      "Target": 2155.52,
+      "Target": 2157.07,
       "Trail_Stop": 1790.8,
-      "Suggested_Stop": 1811.81,
+      "Suggested_Stop": 1813.35,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 12.0,
       "Investment": 69653.27,
       "Entry_Date": "2026-06-26",
-      "Current_Value": 68225.19,
-      "Profit": -1428.08,
-      "Profit_Pct": -2.05,
-      "Max_Profit": 5789.92,
+      "Current_Value": 68279.28,
+      "Profit": -1373.99,
+      "Profit_Pct": -1.97,
+      "Max_Profit": 5844.01,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 48.24,
+      "RSI": 48.26,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 1949.3 > SMA200 1557.8), RSI 48, Risk 8.1%",
-      "RS_vs_SPX": 36.15,
+      "Sell_Reason": "Trend UP (P 1950.8 > SMA200 1557.8), RSI 48, Risk 8.2%",
+      "RS_vs_SPX": 36.16,
       "Sparkline": [
         1851.6,
         1917.6,
@@ -608,41 +608,41 @@
         1972.6,
         1951.0,
         1940.0,
-        1945.2
+        1945.4
       ],
-      "Date": "2026-06-29 10:47"
+      "Date": "2026-06-29 10:49"
     },
     {
       "Symbol": "LQQ.PA",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 25,
-      "Current_Price": 1945.2,
-      "Price_Native": 1945.2,
+      "Current_Price": 1945.4,
+      "Price_Native": 1945.4,
       "Currency": "EUR",
       "Buy_Price": 2025.5,
-      "Target": 2151.43,
-      "Trail_Stop": 1786.0,
-      "Suggested_Stop": 1807.71,
+      "Target": 2151.63,
+      "Trail_Stop": 1790.8,
+      "Suggested_Stop": 1807.91,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
       "Investment": 50637.5,
       "Entry_Date": "2026-06-25",
-      "Current_Value": 48630.0,
-      "Profit": -2007.5,
-      "Profit_Pct": -3.96,
-      "Max_Profit": 3148.21,
+      "Current_Value": 48635.0,
+      "Profit": -2002.5,
+      "Profit_Pct": -3.95,
+      "Max_Profit": 3153.21,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
-      "RSI": 48.24,
+      "RSI": 48.26,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 1945.2 > SMA200 1557.8), RSI 48, Risk 8.2%",
-      "RS_vs_SPX": 36.15,
+      "Sell_Reason": "Trend UP (P 1945.4 > SMA200 1557.8), RSI 48, Risk 7.9%",
+      "RS_vs_SPX": 36.16,
       "Sparkline": [
         1851.6,
         1917.6,
@@ -673,31 +673,31 @@
         1972.6,
         1951.0,
         1940.0,
-        1945.2
+        1945.4
       ],
-      "Date": "2026-06-29 10:47"
+      "Date": "2026-06-29 10:50"
     },
     {
       "Symbol": "SXRZ",
       "Company_Name": "iShares VII PLC - iShares Nikkei 225 ETF JPY Acc",
       "Shares": 40,
-      "Current_Price": 385.42,
-      "Price_Native": 385.42,
+      "Current_Price": 385.21,
+      "Price_Native": 385.21,
       "Currency": "EUR",
       "Buy_Price": 399.2,
-      "Target": 413.82,
+      "Target": 413.61,
       "Trail_Stop": 360.65,
-      "Suggested_Stop": 366.48,
+      "Suggested_Stop": 366.27,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 7.0,
       "Investment": 15967.98,
       "Entry_Date": "2026-06-26",
-      "Current_Value": 15416.8,
-      "Profit": -551.18,
-      "Profit_Pct": -3.45,
-      "Max_Profit": 584.96,
+      "Current_Value": 15408.24,
+      "Profit": -559.74,
+      "Profit_Pct": -3.51,
+      "Max_Profit": 576.41,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Neutral",
@@ -706,7 +706,7 @@
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 385.4 > SMA200 306.3), RSI 57, Risk 6.4%",
+      "Sell_Reason": "Trend UP (P 385.2 > SMA200 306.3), RSI 57, Risk 6.4%",
       "RS_vs_SPX": 18.28,
       "Sparkline": [
         333.75,
@@ -740,7 +740,7 @@
         386.9,
         384.65
       ],
-      "Date": "2026-06-29 10:47"
+      "Date": "2026-06-29 10:50"
     },
     {
       "Symbol": "TVBETETF.RO",
@@ -757,12 +757,12 @@
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
-      "Investment": 11290.08,
+      "Investment": 11289.22,
       "Entry_Date": "-",
-      "Current_Value": 21483.0,
-      "Profit": 10192.93,
+      "Current_Value": 21481.37,
+      "Profit": 10192.15,
       "Profit_Pct": 90.28,
-      "Max_Profit": 11074.36,
+      "Max_Profit": 11073.51,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
@@ -778,19 +778,19 @@
         9.82,
         9.85,
         9.91,
-        9.93,
+        9.92,
         9.81,
         9.83,
         9.78,
         9.74,
-        9.61,
+        9.6,
         9.68,
         9.63,
         9.62,
         9.66,
         9.67,
         9.69,
-        9.68,
+        9.67,
         9.7,
         9.76,
         9.76,
@@ -798,14 +798,14 @@
         9.9,
         10.0,
         9.94,
-        9.98,
+        9.97,
         10.02,
         10.05,
         10.31,
-        10.35,
+        10.34,
         10.42
       ],
-      "Date": "2026-06-29 10:47"
+      "Date": "2026-06-29 10:50"
     },
     {
       "Symbol": "WD",
@@ -870,7 +870,7 @@
         46.45,
         47.96
       ],
-      "Date": "2026-06-29 10:47"
+      "Date": "2026-06-29 10:50"
     }
   ],
   "watchlist": [
