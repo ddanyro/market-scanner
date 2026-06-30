@@ -1,9 +1,9 @@
 {
   "rates": {
     "EUR": 1.0,
-    "USD": 0.8769999491903812,
+    "USD": 0.8771999648225226,
     "RON": 0.19073776513197105,
-    "GBP": 1.1597026189435056
+    "GBP": 1.1596892318949763
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 17.58,
-      "change": -0.07,
+      "value": 17.6,
+      "change": -0.05,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         18.889999389648438,
         18.40999984741211,
         17.649999618530273,
-        17.579999923706055
+        17.600000381469727
       ]
     },
     "VIX1D": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 17.579999923706055,
+  "vix_val": 17.59000015258789,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -610,7 +610,7 @@
         1957.2,
         1998.8
       ],
-      "Date": "2026-06-30 15:59"
+      "Date": "2026-06-30 16:00"
     },
     {
       "Symbol": "LQQ.PA",
@@ -675,7 +675,7 @@
         1957.2,
         1998.8
       ],
-      "Date": "2026-06-30 15:59"
+      "Date": "2026-06-30 16:00"
     },
     {
       "Symbol": "SXRZ",
@@ -740,39 +740,39 @@
         385.95,
         386.55
       ],
-      "Date": "2026-06-30 15:59"
+      "Date": "2026-06-30 16:00"
     },
     {
       "Symbol": "TVBETETF.RO",
       "Company_Name": "ETF BET Tradeville",
       "Shares": 2061,
-      "Current_Price": 10.57,
-      "Price_Native": 55.44,
+      "Current_Price": 10.58,
+      "Price_Native": 55.49,
       "Currency": "RON",
       "Buy_Price": 5.48,
-      "Target": 11.03,
+      "Target": 11.04,
       "Trail_Stop": 9.94,
-      "Suggested_Stop": 10.27,
+      "Suggested_Stop": 10.28,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
       "Investment": 11286.2,
       "Entry_Date": "-",
-      "Current_Value": 21794.05,
-      "Profit": 10507.84,
-      "Profit_Pct": 93.1,
-      "Max_Profit": 11447.1,
+      "Current_Value": 21813.7,
+      "Profit": 10527.5,
+      "Profit_Pct": 93.28,
+      "Max_Profit": 11466.75,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
-      "RSI": 84.59,
+      "RSI": 84.73,
       "RSI_Status": "Overbought",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 55.4 > SMA200 43.8), RSI 85, Risk 6.0%",
-      "RS_vs_SPX": 6.54,
+      "Sell_Reason": "Trend UP (P 55.5 > SMA200 43.8), RSI 85, Risk 6.1%",
+      "RS_vs_SPX": 6.65,
       "Sparkline": [
         9.82,
         9.85,
@@ -803,31 +803,31 @@
         10.31,
         10.34,
         10.36,
-        10.57
+        10.58
       ],
-      "Date": "2026-06-30 15:59"
+      "Date": "2026-06-30 16:00"
     },
     {
       "Symbol": "WD",
       "Company_Name": "Walker & Dunlop, Inc.",
       "Shares": 50,
-      "Current_Price": 47.17,
+      "Current_Price": 47.18,
       "Price_Native": 53.78,
       "Currency": "USD",
-      "Buy_Price": 44.66,
-      "Target": 59.05,
-      "Trail_Stop": 45.33,
-      "Suggested_Stop": 43.57,
+      "Buy_Price": 44.67,
+      "Target": 59.06,
+      "Trail_Stop": 45.34,
+      "Suggested_Stop": 43.58,
       "Finviz_ATR": 1.99,
       "Vol_W": 3.3,
       "Vol_M": 4.05,
       "Trail_Pct": 5.99,
-      "Investment": 2232.84,
+      "Investment": 2233.35,
       "Entry_Date": "2026-06-18",
-      "Current_Value": 2358.25,
-      "Profit": 125.41,
+      "Current_Value": 2358.79,
+      "Profit": 125.44,
       "Profit_Pct": 5.62,
-      "Max_Profit": 719.58,
+      "Max_Profit": 719.74,
       "Consensus": "None",
       "Analysts": 3,
       "Status": "Neutral",
@@ -839,38 +839,38 @@
       "Sell_Reason": "Recovery (P 53.8 > SMA50 51.1), RSI 58, Risk 3.9%",
       "RS_vs_SPX": 9.78,
       "Sparkline": [
-        44.2,
-        43.57,
-        41.9,
-        43.02,
-        44.31,
-        44.17,
-        43.92,
-        44.38,
-        44.56,
-        44.02,
+        44.21,
+        43.58,
+        41.91,
+        43.03,
+        44.32,
+        44.18,
+        43.93,
+        44.39,
+        44.57,
+        44.03,
+        42.4,
+        43.69,
         42.39,
-        43.68,
-        42.38,
-        45.33,
-        44.95,
-        45.42,
-        46.38,
-        44.79,
-        45.9,
-        46.71,
-        44.97,
-        45.47,
-        44.73,
-        45.57,
-        45.24,
-        44.86,
-        46.48,
-        46.48,
-        47.99,
-        47.21
+        45.34,
+        44.96,
+        45.43,
+        46.4,
+        44.8,
+        45.91,
+        46.72,
+        44.98,
+        45.48,
+        44.74,
+        45.58,
+        45.25,
+        44.87,
+        46.49,
+        46.49,
+        48.0,
+        47.22
       ],
-      "Date": "2026-06-30 15:59"
+      "Date": "2026-06-30 16:00"
     }
   ],
   "watchlist": [
