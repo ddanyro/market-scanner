@@ -209,6 +209,8 @@ def get_next_earnings_date(ticker_symbol):
     """
     try:
         lookup_symbol = ticker_symbol[:-3] if ticker_symbol.endswith('.US') else ticker_symbol
+        if lookup_symbol in ['LQQ.FR', 'FR.LQQ']:
+            lookup_symbol = 'LQQ.PA'
         t = yf.Ticker(lookup_symbol)
         cal = t.calendar
         if cal and isinstance(cal, dict) and 'Earnings Date' in cal:
@@ -569,6 +571,8 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
     try:
         ticker = row.get('symbol', 'UNKNOWN').upper()
         download_ticker = ticker[:-3] if ticker.endswith('.US') else ticker
+        if download_ticker in ['LQQ.FR', 'FR.LQQ']:
+            download_ticker = 'LQQ.PA'
         actual_download_ticker = download_ticker
         shares = float(row.get('shares', 0))
         buy_price_native = float(row.get('buy_price', 0))
@@ -585,7 +589,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         else:
              currency = 'USD' # Default
              if '.RO' in ticker: currency = 'RON'
-             elif '.PA' in ticker or '.DE' in ticker or '.AS' in ticker: currency = 'EUR'
+             elif '.PA' in ticker or '.DE' in ticker or '.AS' in ticker or '.FR' in ticker or 'LQQ' in ticker: currency = 'EUR'
              elif '.L' in ticker: currency = 'GBP'
         
         rate = rates.get(currency, rates['USD'])
@@ -1309,6 +1313,8 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         try:
             # 1. Try yfinance
             lookup_symbol = symbol[:-3] if symbol.endswith('.US') else symbol
+            if lookup_symbol in ['LQQ.FR', 'FR.LQQ']:
+                lookup_symbol = 'LQQ.PA'
             t = yf.Ticker(lookup_symbol)
             info = t.info
             name = info.get('longName') or info.get('shortName')
@@ -1336,13 +1342,15 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         # Detect Currency
         currency = 'USD'
         if '.RO' in ticker: currency = 'RON'
-        elif '.PA' in ticker or '.DE' in ticker or '.AS' in ticker: currency = 'EUR'
+        elif '.PA' in ticker or '.DE' in ticker or '.AS' in ticker or '.FR' in ticker or 'LQQ' in ticker: currency = 'EUR'
         elif '.L' in ticker: currency = 'GBP'
         
         rate = rates.get(currency, rates['USD'])
         if currency == 'EUR': rate = 1.0
         
         download_ticker = ticker[:-3] if ticker.endswith('.US') else ticker
+        if download_ticker in ['LQQ.FR', 'FR.LQQ']:
+            download_ticker = 'LQQ.PA'
         df = yf.download(download_ticker, period="1y", auto_adjust=True, progress=False)
         
         if df.empty:
@@ -1431,7 +1439,10 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         
         try:
            # Folosim yf.Ticker pentru info detaliat
-           yt = yf.Ticker(ticker)
+           yt_ticker = ticker
+           if yt_ticker in ['LQQ.FR', 'FR.LQQ']:
+               yt_ticker = 'LQQ.PA'
+           yt = yf.Ticker(yt_ticker)
            info = yt.info
            consensus = info.get('recommendationKey', '-').replace('_', ' ').title() # ex: Strong Buy
            analysts_count = info.get('numberOfAnalystOpinions', 0)

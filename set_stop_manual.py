@@ -6,7 +6,7 @@ PORTFOLIO_FILE = '/Users/danieldragomir/antigravity/portfolio.csv'
 
 # Manual current prices
 updates = {
-    'LQQ.PA': 1760.78,
+    'LQQ.FR': 1760.78,
     'TVBETETF.RO': 9.24
 }
 

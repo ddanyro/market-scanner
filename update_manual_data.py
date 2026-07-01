@@ -28,7 +28,7 @@ updates = {
     'UUUU': {'pct': 28.00, 'stop': 11.97},
     # Tradeville symbols in CSV might be with suffix or without depending on how they are stored
     'TVBETETF.RO': {'pct': 0.00, 'stop': 9.2392},
-    'LQQ.PA': {'pct': 20.00, 'stop': 1664.8575}
+    'LQQ.FR': {'pct': 20.00, 'stop': 1664.8575}
 }
 
 if os.path.exists(PORTFOLIO_FILE):
