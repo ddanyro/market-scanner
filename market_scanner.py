@@ -715,7 +715,10 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 if time.time() - mtime < 300:  # 5 minute
                     try:
                         tpos_df = pd.read_csv(tws_file)
-                        matching_pos = tpos_df[tpos_df['Symbol'] == ticker]
+                        lookup_tws_symbol = ticker
+                        if lookup_tws_symbol in ['LQQ.FR', 'FR.LQQ']:
+                            lookup_tws_symbol = 'LQQ'
+                        matching_pos = tpos_df[tpos_df['Symbol'] == lookup_tws_symbol]
                         if not matching_pos.empty:
                             tws_price_native = float(matching_pos.iloc[0].get('Current_Price', 0.0))
                             if tws_price_native > 0:
@@ -806,7 +809,10 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             if time.time() - mtime < 300:  # 5 minute
                 try:
                     tpos_df = pd.read_csv(tws_file)
-                    matching_pos = tpos_df[tpos_df['Symbol'] == ticker]
+                    lookup_tws_symbol = ticker
+                    if lookup_tws_symbol in ['LQQ.FR', 'FR.LQQ']:
+                        lookup_tws_symbol = 'LQQ'
+                    matching_pos = tpos_df[tpos_df['Symbol'] == lookup_tws_symbol]
                     if not matching_pos.empty:
                         tws_price_native = float(matching_pos.iloc[0].get('Current_Price', 0.0))
                         if tws_price_native > 0:
