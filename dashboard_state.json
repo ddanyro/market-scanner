@@ -3,7 +3,7 @@
     "EUR": 1.0,
     "USD": 0.874499998019278,
     "RON": 0.191084012010541,
-    "GBP": 1.1731581350235394
+    "GBP": 1.1731856990525478
   },
   "market_indicators": {
     "VIX3M": {
@@ -83,8 +83,8 @@
       ]
     },
     "VIX1D": {
-      "value": 9.8,
-      "change": -1.8,
+      "value": 9.85,
+      "change": -1.75,
       "status": "Perfect",
       "description": "perfect 12",
       "sparkline": [
@@ -117,12 +117,12 @@
         7.079999923706055,
         8.5600004196167,
         11.600000381469727,
-        9.800000190734863
+        9.850000381469727
       ]
     },
     "VIX9D": {
-      "value": 12.98,
-      "change": -2.33,
+      "value": 12.99,
+      "change": -2.32,
       "status": "Normal",
       "description": "12 normal 18",
       "sparkline": [
@@ -155,7 +155,7 @@
         13.069999694824219,
         13.029999732971191,
         15.3100004196167,
-        12.979999542236328
+        12.989999771118164
       ]
     },
     "VXN": {
@@ -349,8 +349,8 @@
       ]
     },
     "OVX": {
-      "value": 46.63,
-      "change": -3.82,
+      "value": 46.65,
+      "change": -3.8,
       "status": "Panic",
       "description": "35 panica",
       "sparkline": [
@@ -383,12 +383,12 @@
         40.33000183105469,
         47.59000015258789,
         50.45000076293945,
-        46.630001068115234
+        46.650001525878906
       ]
     },
     "SPX": {
-      "value": 7539.97,
-      "change": 57.26,
+      "value": 7539.07,
+      "change": 56.36,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -421,12 +421,12 @@
         7537.43017578125,
         7503.85009765625,
         7482.7099609375,
-        7539.97021484375
+        7539.06982421875
       ]
     },
     "NASDAQ": {
-      "value": 26193.92,
-      "change": 323.27,
+      "value": 26186.47,
+      "change": 315.82,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -459,7 +459,7 @@
         26121.16015625,
         25818.689453125,
         25870.650390625,
-        26193.923828125
+        26186.470703125
       ]
     },
     "Crypto Fear": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 16.030000686645508,
+  "vix_val": 16.049999237060547,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -577,7 +577,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "EXIT",
       "Sell_Reason": "Structure Fail (Sub SMA50: 9.94 < 1912.67); Momentum Fail (RSI 9.1 < 45); RS Fail (Falling); ",
-      "RS_vs_SPX": -107.58,
+      "RS_vs_SPX": -107.57,
       "Sparkline": [
         2053.5,
         2082.5,
@@ -610,7 +610,7 @@
         1881.8,
         9.88
       ],
-      "Date": "2026-07-09 21:38"
+      "Date": "2026-07-09 21:39"
     },
     {
       "Symbol": "LQQ.FR",
@@ -642,7 +642,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "EXIT",
       "Sell_Reason": "Structure Fail (Sub SMA50: 9.94 < 1912.67); Momentum Fail (RSI 9.1 < 45); RS Fail (Falling); ",
-      "RS_vs_SPX": -107.58,
+      "RS_vs_SPX": -107.57,
       "Sparkline": [
         2053.5,
         2082.5,
@@ -675,7 +675,7 @@
         1881.8,
         9.88
       ],
-      "Date": "2026-07-09 21:38"
+      "Date": "2026-07-09 21:39"
     },
     {
       "Symbol": "NVDA",
@@ -701,13 +701,13 @@
       "Consensus": "Strong Buy",
       "Analysts": 58,
       "Status": "Neutral",
-      "RSI": 51.0,
+      "RSI": 50.74,
       "RSI_Status": "Neutral",
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Normal",
       "Sell_Decision": "REDUCE",
       "Sell_Reason": "Structure Fail (Sub SMA50: 203.83 < 209.27); ",
-      "RS_vs_SPX": -4.33,
+      "RS_vs_SPX": -4.46,
       "Sparkline": [
         185.92,
         187.36,
@@ -738,9 +738,9 @@
         171.01,
         172.22,
         178.5,
-        178.52
+        178.29
       ],
-      "Date": "2026-07-09 21:38"
+      "Date": "2026-07-09 21:40"
     },
     {
       "Symbol": "TVBETETF.RO",
@@ -772,7 +772,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 58.0 > SMA200 44.6), RSI 78, Risk 4.5%",
-      "RS_vs_SPX": 11.3,
+      "RS_vs_SPX": 11.31,
       "Sparkline": [
         9.76,
         9.62,
@@ -805,7 +805,7 @@
         10.92,
         11.08
       ],
-      "Date": "2026-07-09 21:38"
+      "Date": "2026-07-09 21:40"
     }
   ],
   "watchlist": [
