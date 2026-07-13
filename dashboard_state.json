@@ -3,7 +3,7 @@
     "EUR": 1.0,
     "USD": 0.8751000038076818,
     "RON": 0.19110957448805574,
-    "GBP": 1.1720856211600055
+    "GBP": 1.1721817608015643
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 16.39,
-      "change": 1.36,
+      "value": 16.38,
+      "change": 1.35,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         16.899999618530273,
         15.84000015258789,
         15.029999732971191,
-        16.389999389648438
+        16.3799991607666
       ]
     },
     "VIX1D": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 16.389999389648438,
+  "vix_val": 16.3799991607666,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -551,22 +551,22 @@
       "Symbol": "LQQ",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 7000,
-      "Current_Price": 9.81,
-      "Price_Native": 9.81,
+      "Current_Price": 9.77,
+      "Price_Native": 9.77,
       "Currency": "EUR",
       "Buy_Price": 9.95,
       "Target": 2120.5,
       "Trail_Stop": 9.25,
-      "Suggested_Stop": -372.26,
+      "Suggested_Stop": -372.3,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 10.0,
       "Investment": 69653.27,
       "Entry_Date": "-",
-      "Current_Value": 68690.3,
-      "Profit": -962.97,
-      "Profit_Pct": -1.38,
+      "Current_Value": 68424.32,
+      "Profit": -1228.95,
+      "Profit_Pct": -1.76,
       "Max_Profit": 14773846.73,
       "Consensus": "-",
       "Analysts": 0,
@@ -576,7 +576,7 @@
       "Trend": "Strong Bearish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "EXIT",
-      "Sell_Reason": "Structure Fail (Sub SMA50: 9.81 < 1845.68); Momentum Fail (RSI 9.1 < 45); ",
+      "Sell_Reason": "Structure Fail (Sub SMA50: 9.77 < 1845.68); Momentum Fail (RSI 9.1 < 45); ",
       "RS_vs_SPX": -107.24,
       "Sparkline": [
         2098.5,
@@ -610,28 +610,28 @@
         9.96,
         9.8
       ],
-      "Date": "2026-07-13 15:23"
+      "Date": "2026-07-13 15:25"
     },
     {
       "Symbol": "LQQ.FR",
       "Company_Name": "Amundi Nasdaq-100 Daily (2x) Leveraged UCITS ETF Acc",
       "Shares": 5000,
-      "Current_Price": 9.81,
-      "Price_Native": 9.81,
+      "Current_Price": 9.77,
+      "Price_Native": 9.77,
       "Currency": "EUR",
       "Buy_Price": 10.15,
       "Target": 2120.5,
       "Trail_Stop": 9.25,
-      "Suggested_Stop": -372.26,
+      "Suggested_Stop": -372.3,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
       "Investment": 50738.75,
       "Entry_Date": "2026-06-25",
-      "Current_Value": 49064.5,
-      "Profit": -1674.25,
-      "Profit_Pct": -3.3,
+      "Current_Value": 48874.52,
+      "Profit": -1864.23,
+      "Profit_Pct": -3.67,
       "Max_Profit": 10551761.25,
       "Consensus": "-",
       "Analysts": 0,
@@ -641,7 +641,7 @@
       "Trend": "Strong Bearish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "EXIT",
-      "Sell_Reason": "Structure Fail (Sub SMA50: 9.81 < 1845.68); Momentum Fail (RSI 9.1 < 45); ",
+      "Sell_Reason": "Structure Fail (Sub SMA50: 9.77 < 1845.68); Momentum Fail (RSI 9.1 < 45); ",
       "RS_vs_SPX": -107.24,
       "Sparkline": [
         2098.5,
@@ -675,28 +675,28 @@
         9.96,
         9.8
       ],
-      "Date": "2026-07-13 15:23"
+      "Date": "2026-07-13 15:25"
     },
     {
       "Symbol": "NVDA",
       "Company_Name": "NVIDIA Corporation",
       "Shares": 45,
-      "Current_Price": 182.34,
-      "Price_Native": 208.36,
+      "Current_Price": 182.04,
+      "Price_Native": 208.02,
       "Currency": "USD",
       "Buy_Price": 173.34,
       "Target": 274.25,
       "Trail_Stop": 172.46,
-      "Suggested_Stop": 170.43,
+      "Suggested_Stop": 170.13,
       "Finviz_ATR": 7.01,
       "Vol_W": 3.63,
       "Vol_M": 3.04,
       "Trail_Pct": 6.6,
       "Investment": 7800.15,
       "Entry_Date": "-",
-      "Current_Value": 8205.11,
-      "Profit": 404.97,
-      "Profit_Pct": 5.19,
+      "Current_Value": 8191.72,
+      "Profit": 391.58,
+      "Profit_Pct": 5.02,
       "Max_Profit": 4540.99,
       "Consensus": "Strong Buy",
       "Analysts": 58,
@@ -706,7 +706,7 @@
       "Trend": "Bullish Pullback",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 208.4 > SMA200 191.5), RSI 57, Risk 5.4%",
+      "Sell_Reason": "Trend UP (P 208.0 > SMA200 191.5), RSI 57, Risk 5.3%",
       "RS_vs_SPX": -1.66,
       "Sparkline": [
         187.27,
@@ -740,39 +740,39 @@
         177.45,
         184.61
       ],
-      "Date": "2026-07-13 15:23"
+      "Date": "2026-07-13 15:25"
     },
     {
       "Symbol": "TVBETETF.RO",
       "Company_Name": "ETF BET Tradeville",
       "Shares": 2061,
-      "Current_Price": 11.37,
-      "Price_Native": 59.51,
+      "Current_Price": 11.36,
+      "Price_Native": 59.44,
       "Currency": "RON",
       "Buy_Price": 5.49,
-      "Target": 12.09,
+      "Target": 12.07,
       "Trail_Stop": 10.58,
-      "Suggested_Stop": 10.9,
+      "Suggested_Stop": 10.88,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
       "Investment": 11308.2,
       "Entry_Date": "-",
-      "Current_Value": 23439.61,
-      "Profit": 12131.41,
-      "Profit_Pct": 107.28,
-      "Max_Profit": 13604.22,
+      "Current_Value": 23412.04,
+      "Profit": 12103.83,
+      "Profit_Pct": 107.04,
+      "Max_Profit": 13576.65,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
-      "RSI": 81.96,
+      "RSI": 81.79,
       "RSI_Status": "Overbought",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 59.5 > SMA200 44.8), RSI 82, Risk 7.0%",
-      "RS_vs_SPX": 14.54,
+      "Sell_Reason": "Trend UP (P 59.4 > SMA200 44.8), RSI 82, Risk 6.9%",
+      "RS_vs_SPX": 14.4,
       "Sparkline": [
         9.69,
         9.64,
@@ -803,9 +803,9 @@
         10.93,
         11.08,
         11.24,
-        11.37
+        11.36
       ],
-      "Date": "2026-07-13 15:23"
+      "Date": "2026-07-13 15:25"
     }
   ],
   "watchlist": [
