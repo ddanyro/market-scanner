@@ -62,6 +62,40 @@ def save_state(state):
         with open("watchlist_compact.json", "w") as f:
             json.dump(compact_watchlist, f, indent=2)
             
+        # 5. Watchlist-uri segmentate alfabetic (pentru a evita ResponseTooLargeError în ChatGPT)
+        groups = {
+            "A_D": ("A", "B", "C", "D"),
+            "E_H": ("E", "F", "G", "H"),
+            "I_L": ("I", "J", "K", "L"),
+            "M_P": ("M", "N", "O", "P"),
+            "Q_T": ("Q", "R", "S", "T"),
+            "U_Z": ("U", "V", "W", "X", "Y", "Z")
+        }
+        grouped_watchlists = {g: [] for g in groups}
+        
+        for item in state.get("watchlist", []):
+            ticker = str(item.get("Ticker", "")).upper()
+            if not ticker:
+                continue
+            first_letter = ticker[0]
+            placed = False
+            for group_name, letters in groups.items():
+                if first_letter in letters:
+                    item_copy = dict(item)
+                    item_copy.pop("Sparkline", None)
+                    grouped_watchlists[group_name].append(item_copy)
+                    placed = True
+                    break
+            if not placed:
+                item_copy = dict(item)
+                item_copy.pop("Sparkline", None)
+                grouped_watchlists["A_D"].append(item_copy)
+                
+        for group_name, watchlist_subset in grouped_watchlists.items():
+            filename = f"watchlist_{group_name.lower()}.json"
+            with open(filename, "w") as f:
+                json.dump(watchlist_subset, f, indent=2)
+            
     except Exception as e:
         print(f"⚠️ Eroare la salvarea fișierelor secționate JSON: {e}")
 
