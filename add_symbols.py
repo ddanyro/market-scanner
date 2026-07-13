@@ -41,5 +41,15 @@ if os.path.exists(csv_file):
             print(f"Added to watchlist.csv ({len(missing_csv)} symbols): {missing_csv}")
         else:
             print("All symbols already in watchlist.csv")
+            
+        try:
+            import json
+            json_file = csv_file.replace('.csv', '.json')
+            records = df[['symbol']].to_dict(orient='records')
+            with open(json_file, 'w') as f:
+                json.dump(records, f, indent=2)
+            print(f"Successfully updated JSON watchlist: {json_file}")
+        except Exception as json_err:
+            print(f"Error saving JSON watchlist: {json_err}")
     else:
         print("No 'symbol' column in watchlist.csv")

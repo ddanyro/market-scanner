@@ -122,6 +122,19 @@ def sync_watchlist_from_remote(url="https://betty333ro.github.io/market-scanner/
             print(f"  ✅ Watchlist actualizat: {len(df)} simboluri total")
         else:
             print(f"  ✅ Watchlist la zi ({len(remote_symbols)} simboluri)")
+            if os.path.exists(filepath):
+                df = pd.read_csv(filepath)
+            else:
+                df = pd.DataFrame(columns=['symbol'])
+                
+        try:
+            import json
+            json_file = filepath.replace('.csv', '.json')
+            records = df[['symbol']].to_dict(orient='records')
+            with open(json_file, 'w') as f:
+                json.dump(records, f, indent=2)
+        except Exception as json_err:
+            print(f"⚠️ Eroare la generare watchlist JSON: {json_err}")
             
     except Exception as e:
         print(f"⚠️  Eroare la sincronizare watchlist: {e}")
@@ -136,6 +149,15 @@ def load_watchlist(filename='watchlist.csv'):
         df = pd.read_csv(filename)
         if 'symbol' in df.columns:
             tickers = df['symbol'].str.upper().tolist()
+            try:
+                import json
+                json_file = filename.replace('.csv', '.json')
+                unique_tickers = sorted(list(set(tickers)))
+                records = [{'symbol': s} for s in unique_tickers]
+                with open(json_file, 'w') as f:
+                    json.dump(records, f, indent=2)
+            except Exception as json_err:
+                print(f"⚠️ Eroare la generare watchlist JSON: {json_err}")
             return list(set(tickers))  # Remove duplicates
         else:
             print(f"Coloana 'symbol' nu a fost găsită în {filename}")

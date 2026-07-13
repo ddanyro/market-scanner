@@ -93,6 +93,16 @@ def add_symbols_to_watchlist(new_symbols, filepath='watchlist.csv'):
         df.to_csv(filepath, index=False)
         print(f"✅ Successfully added {len(new_symbols)} symbols to {filepath}")
         
+        try:
+            import json
+            json_filepath = filepath.replace('.csv', '.json')
+            records = df[['symbol']].to_dict(orient='records')
+            with open(json_filepath, 'w') as f:
+                json.dump(records, f, indent=2)
+            print(f"✅ Successfully updated JSON watchlist: {json_filepath}")
+        except Exception as json_err:
+            print(f"❌ Error saving JSON watchlist: {json_err}")
+        
         if duplicates_removed > 0:
             print(f"🧹 Removed {duplicates_removed} duplicate(s)")
         
@@ -132,6 +142,19 @@ def main():
         add_symbols_to_watchlist(missing_symbols)
     else:
         print("\n✅ Local watchlist is up to date!")
+        
+    try:
+        import json
+        filepath = 'watchlist.csv'
+        if os.path.exists(filepath):
+            df = pd.read_csv(filepath)
+            json_filepath = filepath.replace('.csv', '.json')
+            records = df[['symbol']].to_dict(orient='records')
+            with open(json_filepath, 'w') as f:
+                json.dump(records, f, indent=2)
+            print(f"✅ Watchlist JSON synced: {json_filepath}")
+    except Exception as json_err:
+        print(f"❌ Error syncing JSON watchlist: {json_err}")
     
     print("\n" + "=" * 60)
     print("✨ Sync complete!")
