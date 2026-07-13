@@ -1,9 +1,9 @@
 {
   "rates": {
     "EUR": 1.0,
-    "USD": 0.8748999408327656,
-    "RON": 0.19111688926175904,
-    "GBP": 1.1722230385359955
+    "USD": 0.8748000348726668,
+    "RON": 0.19110227768838955,
+    "GBP": 1.1723329628714765
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 16.43,
-      "change": 1.4,
+      "value": 16.48,
+      "change": 1.45,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         16.899999618530273,
         15.84000015258789,
         15.029999732971191,
-        16.43000030517578
+        16.479999542236328
       ]
     },
     "VIX1D": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 16.43000030517578,
+  "vix_val": 16.479999542236328,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -608,9 +608,9 @@
         1881.8,
         9.88,
         9.96,
-        9.78
+        9.76
       ],
-      "Date": "2026-07-13 15:37"
+      "Date": "2026-07-13 15:43"
     },
     {
       "Symbol": "LQQ.FR",
@@ -673,31 +673,31 @@
         1881.8,
         9.88,
         9.96,
-        9.78
+        9.76
       ],
-      "Date": "2026-07-13 15:37"
+      "Date": "2026-07-13 15:43"
     },
     {
       "Symbol": "NVDA",
       "Company_Name": "NVIDIA Corporation",
       "Shares": 45,
-      "Current_Price": 181.55,
+      "Current_Price": 181.53,
       "Price_Native": 207.51,
       "Currency": "USD",
-      "Buy_Price": 173.3,
-      "Target": 274.18,
-      "Trail_Stop": 172.42,
-      "Suggested_Stop": 169.65,
+      "Buy_Price": 173.28,
+      "Target": 274.15,
+      "Trail_Stop": 172.4,
+      "Suggested_Stop": 169.63,
       "Finviz_ATR": 7.01,
       "Vol_W": 3.63,
       "Vol_M": 3.04,
       "Trail_Pct": 6.6,
-      "Investment": 7798.36,
+      "Investment": 7797.47,
       "Entry_Date": "-",
-      "Current_Value": 8169.77,
-      "Profit": 371.41,
+      "Current_Value": 8168.84,
+      "Profit": 371.37,
       "Profit_Pct": 4.76,
-      "Max_Profit": 4539.96,
+      "Max_Profit": 4539.44,
       "Consensus": "Strong Buy",
       "Analysts": 58,
       "Status": "Neutral",
@@ -709,72 +709,72 @@
       "Sell_Reason": "Trend UP (P 207.5 > SMA200 191.5), RSI 57, Risk 5.0%",
       "RS_vs_SPX": -1.66,
       "Sparkline": [
-        187.23,
-        184.51,
-        196.06,
-        194.72,
-        187.67,
-        191.31,
-        179.44,
-        182.54,
-        182.15,
-        175.35,
-        179.24,
-        179.52,
-        185.87,
-        181.46,
-        179.05,
-        184.33,
-        182.55,
-        175.01,
-        174.11,
-        171.25,
-        168.44,
-        170.58,
-        175.06,
-        172.86,
-        170.46,
-        171.09,
-        172.29,
-        178.58,
-        177.41,
-        184.57
+        187.21,
+        184.49,
+        196.04,
+        194.7,
+        187.64,
+        191.28,
+        179.42,
+        182.52,
+        182.12,
+        175.33,
+        179.22,
+        179.5,
+        185.85,
+        181.44,
+        179.03,
+        184.31,
+        182.53,
+        174.99,
+        174.09,
+        171.23,
+        168.43,
+        170.56,
+        175.04,
+        172.84,
+        170.44,
+        171.07,
+        172.27,
+        178.56,
+        177.39,
+        184.55
       ],
-      "Date": "2026-07-13 15:37"
+      "Date": "2026-07-13 15:43"
     },
     {
       "Symbol": "TVBETETF.RO",
       "Company_Name": "ETF BET Tradeville",
       "Shares": 2061,
-      "Current_Price": 11.33,
-      "Price_Native": 59.28,
+      "Current_Price": 11.3,
+      "Price_Native": 59.12,
       "Currency": "RON",
       "Buy_Price": 5.49,
-      "Target": 12.04,
+      "Target": 12.01,
       "Trail_Stop": 10.58,
-      "Suggested_Stop": 10.85,
+      "Suggested_Stop": 10.82,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
-      "Investment": 11308.64,
+      "Investment": 11307.77,
       "Entry_Date": "-",
-      "Current_Value": 23349.91,
-      "Profit": 12041.28,
-      "Profit_Pct": 106.48,
-      "Max_Profit": 13514.15,
+      "Current_Value": 23285.11,
+      "Profit": 11977.34,
+      "Profit_Pct": 105.92,
+      "Max_Profit": 13450.1,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
-      "RSI": 81.4,
+      "RSI": 81.0,
       "RSI_Status": "Overbought",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 59.3 > SMA200 44.8), RSI 81, Risk 6.6%",
-      "RS_vs_SPX": 14.07,
+      "Sell_Reason": "Trend UP (P 59.1 > SMA200 44.8), RSI 81, Risk 6.4%",
+      "RS_vs_SPX": 13.74,
       "Sparkline": [
-        9.7,
+        9.69,
         9.64,
         9.64,
         9.68,
@@ -783,9 +783,9 @@
         9.69,
         9.72,
         9.77,
-        9.78,
+        9.77,
         9.82,
-        9.92,
+        9.91,
         10.01,
         9.95,
         9.99,
@@ -802,10 +802,10 @@
         10.98,
         10.93,
         11.08,
-        11.24,
-        11.33
+        11.23,
+        11.3
       ],
-      "Date": "2026-07-13 15:37"
+      "Date": "2026-07-13 15:43"
     }
   ],
   "watchlist": [
