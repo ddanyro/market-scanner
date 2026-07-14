@@ -166,6 +166,34 @@ def load_watchlist(filename='watchlist.csv'):
         print(f"Eroare la citirea {filename}: {e}")
         return []
 
+def adjust_for_unadjusted_splits(df, ticker):
+    """Detectează și corectează split-urile neajustate în datele istorice yfinance."""
+    if df.empty or len(df) < 2:
+        return df
+    try:
+        for i in range(1, len(df)):
+            ratio = df['Close'].iloc[i-1] / df['Close'].iloc[i]
+            if ratio > 50:
+                split_factor = 1.0
+                if 170 <= ratio <= 230:
+                    split_factor = 200.0
+                elif 80 <= ratio <= 120:
+                    split_factor = 100.0
+                elif 8 <= ratio <= 12:
+                    split_factor = 10.0
+                else:
+                    split_factor = float(round(ratio))
+                
+                print(f"  [Split Alert] Corecție split pentru {ticker} la data {df.index[i].strftime('%Y-%m-%d')} (factor: {split_factor}x)")
+                cols = ['Open', 'High', 'Low', 'Close']
+                df.iloc[:i, df.columns.get_indexer(cols)] /= split_factor
+                if 'Volume' in df.columns:
+                    df.iloc[:i, df.columns.get_indexer(['Volume'])] *= split_factor
+                break
+    except Exception as e:
+        print(f"⚠️ Eroare la ajustare split pentru {ticker}: {e}")
+    return df
+
 def calculate_atr(df, period=14):
     """Calculează Average True Range (ATR)."""
     if len(df) < period + 1:
@@ -722,6 +750,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
              pass
 
         if not df.empty:
+                df = adjust_for_unadjusted_splits(df, actual_download_ticker)
                 ticker_cache[download_ticker] = df
         
         if df.empty:
@@ -1391,6 +1420,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             except:
                 pass
         df = df.dropna(subset=['Close'])
+        df = adjust_for_unadjusted_splits(df, download_ticker)
             
         df['ATR'] = calculate_atr(df)
         df['RSI'] = calculate_rsi(df)
