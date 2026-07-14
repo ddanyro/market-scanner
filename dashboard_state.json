@@ -1,9 +1,9 @@
 {
   "rates": {
     "EUR": 1.0,
-    "USD": 0.8773000527304037,
-    "RON": 0.19069412814680475,
-    "GBP": 1.173736512732887
+    "USD": 0.8766999592721493,
+    "RON": 0.1906395926553534,
+    "GBP": 1.1737227176119804
   },
   "market_indicators": {
     "VIX3M": {
@@ -45,8 +45,8 @@
       ]
     },
     "VIX": {
-      "value": 17.39,
-      "change": 0.23,
+      "value": 17.31,
+      "change": 0.15,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         15.84000015258789,
         15.029999732971191,
         17.15999984741211,
-        17.389999389648438
+        17.309999465942383
       ]
     },
     "VIX1D": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 17.399999618530273,
+  "vix_val": 17.309999465942383,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -608,9 +608,9 @@
         9.88,
         9.96,
         9.8,
-        9.72
+        9.73
       ],
-      "Date": "2026-07-14 12:45"
+      "Date": "2026-07-14 12:56"
     },
     {
       "Symbol": "LQQ.FR",
@@ -673,31 +673,31 @@
         9.88,
         9.96,
         9.8,
-        9.72
+        9.73
       ],
-      "Date": "2026-07-14 12:45"
+      "Date": "2026-07-14 12:56"
     },
     {
       "Symbol": "NVDA",
       "Company_Name": "NVIDIA Corporation",
       "Shares": 45,
-      "Current_Price": 179.47,
+      "Current_Price": 179.35,
       "Price_Native": 204.57,
       "Currency": "USD",
-      "Buy_Price": 173.77,
-      "Target": 275.24,
-      "Trail_Stop": 172.89,
-      "Suggested_Stop": 167.32,
+      "Buy_Price": 173.65,
+      "Target": 275.06,
+      "Trail_Stop": 172.77,
+      "Suggested_Stop": 167.21,
       "Finviz_ATR": 6.84,
       "Vol_W": 4.01,
       "Vol_M": 3.05,
       "Trail_Pct": 6.6,
-      "Investment": 7819.76,
+      "Investment": 7814.41,
       "Entry_Date": "-",
-      "Current_Value": 8076.12,
-      "Profit": 256.36,
+      "Current_Value": 8070.59,
+      "Profit": 256.19,
       "Profit_Pct": 3.28,
-      "Max_Profit": 4566.23,
+      "Max_Profit": 4563.1,
       "Consensus": "Strong Buy",
       "Analysts": 58,
       "Status": "Neutral",
@@ -709,60 +709,60 @@
       "Sell_Reason": "Trend UP (P 204.6 > SMA200 191.6), RSI 50, Risk 3.7%",
       "RS_vs_SPX": -4.0,
       "Sparkline": [
-        185.02,
-        196.6,
-        195.25,
-        188.18,
-        191.83,
-        179.93,
-        183.04,
-        182.65,
-        175.83,
-        179.73,
-        180.01,
-        186.38,
-        181.96,
-        179.54,
-        184.84,
-        183.05,
-        175.5,
-        174.58,
-        171.72,
-        168.91,
-        171.05,
-        175.54,
-        173.34,
-        170.92,
-        171.56,
-        172.77,
-        179.07,
-        177.9,
-        185.08,
-        178.56
+        184.89,
+        196.47,
+        195.12,
+        188.05,
+        191.7,
+        179.81,
+        182.91,
+        182.52,
+        175.71,
+        179.61,
+        179.89,
+        186.25,
+        181.84,
+        179.42,
+        184.71,
+        182.92,
+        175.38,
+        174.46,
+        171.61,
+        168.79,
+        170.93,
+        175.42,
+        173.22,
+        170.81,
+        171.44,
+        172.65,
+        178.95,
+        177.78,
+        184.95,
+        178.43
       ],
-      "Date": "2026-07-14 12:45"
+      "Date": "2026-07-14 12:56"
     },
     {
       "Symbol": "TVBETETF.RO",
       "Company_Name": "ETF BET Tradeville",
       "Shares": 2061,
-      "Current_Price": 11.16,
+      "Current_Price": 11.15,
       "Price_Native": 58.5,
       "Currency": "RON",
       "Buy_Price": 5.47,
-      "Target": 11.91,
-      "Trail_Stop": 10.56,
+      "Target": 11.9,
+      "Trail_Stop": 10.55,
       "Suggested_Stop": 10.65,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
-      "Investment": 11283.62,
+      "Investment": 11280.39,
       "Entry_Date": "-",
-      "Current_Value": 22991.7,
-      "Profit": 11708.08,
+      "Current_Value": 22985.13,
+      "Profit": 11704.74,
       "Profit_Pct": 103.76,
-      "Max_Profit": 13258.55,
+      "Max_Profit": 13254.76,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
@@ -788,24 +788,24 @@
         9.99,
         9.93,
         9.97,
-        10.02,
-        10.05,
+        10.01,
+        10.04,
         10.3,
         10.34,
         10.35,
-        10.52,
-        10.71,
-        10.98,
+        10.51,
+        10.7,
+        10.97,
         11.15,
         11.09,
         10.96,
         10.9,
         11.06,
         11.21,
-        11.09,
-        11.16
+        11.08,
+        11.15
       ],
-      "Date": "2026-07-14 12:45"
+      "Date": "2026-07-14 12:56"
     }
   ],
   "watchlist": [
