@@ -2614,14 +2614,6 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
         <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
         
-        <script type="application/javascript">
-            let openAIChat = {{
-                url: 'https://testing.wally.ro/iframe/48efa5abf9eda1b9',
-                iconCSS: 'width: 60px;height:60px;background-size:42px;',
-            }}
-        </script>
-        <script async src="https://testing.wally.ro/openAIChat.dev.js"></script>
-        
         {css}
         <style>
             /* DataTables Dark Mode Overrides */
