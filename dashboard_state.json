@@ -3,12 +3,12 @@
     "EUR": 1.0,
     "USD": 0.8761000457130659,
     "RON": 0.19087975810907118,
-    "GBP": 1.1757928141951695
+    "GBP": 1.175806575615542
   },
   "market_indicators": {
     "VIX3M": {
-      "value": 19.73,
-      "change": -0.81,
+      "value": 19.74,
+      "change": -0.8,
       "status": "Normal",
       "description": "14 normal 20",
       "sparkline": [
@@ -41,12 +41,12 @@
         18.90999984741211,
         19.5,
         20.540000915527344,
-        19.729999542236328
+        19.739999771118164
       ]
     },
     "VIX": {
-      "value": 17.55,
-      "change": -1.22,
+      "value": 17.56,
+      "change": -1.21,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,7 +79,7 @@
         15.670000076293945,
         16.729999542236328,
         18.770000457763672,
-        17.549999237060547
+        17.559999465942383
       ]
     },
     "VIX1D": {
@@ -121,8 +121,8 @@
       ]
     },
     "VIX9D": {
-      "value": 16.34,
-      "change": -0.51,
+      "value": 16.35,
+      "change": -0.5,
       "status": "Normal",
       "description": "12 normal 18",
       "sparkline": [
@@ -155,12 +155,12 @@
         12.0600004196167,
         13.979999542236328,
         16.850000381469727,
-        16.34000015258789
+        16.350000381469727
       ]
     },
     "VXN": {
-      "value": 27.55,
-      "change": -1.48,
+      "value": 27.56,
+      "change": -1.47,
       "status": "Tension",
       "description": "25 teama 35",
       "sparkline": [
@@ -193,7 +193,7 @@
         25.649999618530273,
         27.34000015258789,
         29.030000686645508,
-        27.549999237060547
+        27.559999465942383
       ]
     },
     "LTV": {
@@ -387,8 +387,8 @@
       ]
     },
     "SPX": {
-      "value": 7481.85,
-      "change": 24.16,
+      "value": 7481.34,
+      "change": 23.65,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -421,12 +421,12 @@
         7572.39990234375,
         7533.77001953125,
         7457.68994140625,
-        7481.85009765625
+        7481.33984375
       ]
     },
     "NASDAQ": {
-      "value": 25692.08,
-      "change": 171.84,
+      "value": 25691.17,
+      "change": 170.93,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -459,7 +459,7 @@
         26269.23046875,
         25881.94921875,
         25520.240234375,
-        25692.078125
+        25691.166015625
       ]
     },
     "Crypto Fear": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 17.549999237060547,
+  "vix_val": 17.559999465942383,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -551,22 +551,22 @@
       "Symbol": "RGEN",
       "Company_Name": "Repligen Corporation",
       "Shares": 10,
-      "Current_Price": 128.82,
-      "Price_Native": 147.03,
+      "Current_Price": 128.4,
+      "Price_Native": 146.56,
       "Currency": "USD",
       "Buy_Price": 127.12,
       "Target": 154.44,
-      "Trail_Stop": 0,
-      "Suggested_Stop": 120.31,
+      "Trail_Stop": 112.12,
+      "Suggested_Stop": 119.9,
       "Finviz_ATR": 5.49,
       "Vol_W": 2.92,
       "Vol_M": 4.32,
-      "Trail_Pct": 0.0,
+      "Trail_Pct": 12.95,
       "Investment": 1271.22,
       "Entry_Date": "-",
-      "Current_Value": 1288.15,
-      "Profit": 16.93,
-      "Profit_Pct": 1.33,
+      "Current_Value": 1284.04,
+      "Profit": 12.82,
+      "Profit_Pct": 1.01,
       "Max_Profit": 273.17,
       "Consensus": "Strong Buy",
       "Analysts": 20,
@@ -576,8 +576,8 @@
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 147.0 > SMA200 140.2), RSI 63",
-      "RS_vs_SPX": 23.61,
+      "Sell_Reason": "Trend UP (P 146.6 > SMA200 140.2), RSI 63, Risk 12.7%",
+      "RS_vs_SPX": 23.62,
       "Sparkline": [
         107.16,
         109.8,
@@ -681,33 +681,33 @@
       "Symbol": "UPBD",
       "Company_Name": "Upbound Group, Inc.",
       "Shares": 100,
-      "Current_Price": 19.23,
-      "Price_Native": 21.95,
+      "Current_Price": 19.14,
+      "Price_Native": 21.84,
       "Currency": "USD",
       "Buy_Price": 19.06,
       "Target": 25.09,
       "Trail_Stop": 17.59,
-      "Suggested_Stop": 17.55,
+      "Suggested_Stop": 17.46,
       "Finviz_ATR": 0.91,
       "Vol_W": 4.16,
       "Vol_M": 4.94,
       "Trail_Pct": 8.87,
       "Investment": 1906.39,
       "Entry_Date": "-",
-      "Current_Value": 1922.6,
-      "Profit": 16.21,
-      "Profit_Pct": 0.85,
+      "Current_Value": 1913.75,
+      "Profit": 7.36,
+      "Profit_Pct": 0.39,
       "Max_Profit": 602.76,
       "Consensus": "Strong Buy",
       "Analysts": 7,
       "Status": "Neutral",
-      "RSI": 62.04,
+      "RSI": 61.86,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 21.9 > SMA200 18.6), RSI 62, Risk 8.5%",
-      "RS_vs_SPX": 9.1,
+      "Sell_Reason": "Trend UP (P 21.8 > SMA200 18.6), RSI 62, Risk 8.1%",
+      "RS_vs_SPX": 9.01,
       "Sparkline": [
         15.67,
         16.08,
@@ -738,7 +738,7 @@
         19.24,
         19.94,
         19.41,
-        19.17
+        19.15
       ],
       "Date": "2026-07-20 19:44"
     }
