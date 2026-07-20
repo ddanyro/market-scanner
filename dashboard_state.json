@@ -1,14 +1,14 @@
 {
   "rates": {
     "EUR": 1.0,
-    "USD": 0.8758999825626258,
+    "USD": 0.8761000457130659,
     "RON": 0.19087975810907118,
-    "GBP": 1.1758481090409338
+    "GBP": 1.1757928141951695
   },
   "market_indicators": {
     "VIX3M": {
-      "value": 19.74,
-      "change": -0.8,
+      "value": 19.73,
+      "change": -0.81,
       "status": "Normal",
       "description": "14 normal 20",
       "sparkline": [
@@ -41,12 +41,12 @@
         18.90999984741211,
         19.5,
         20.540000915527344,
-        19.739999771118164
+        19.729999542236328
       ]
     },
     "VIX": {
-      "value": 17.57,
-      "change": -1.2,
+      "value": 17.55,
+      "change": -1.22,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,12 +79,12 @@
         15.670000076293945,
         16.729999542236328,
         18.770000457763672,
-        17.56999969482422
+        17.549999237060547
       ]
     },
     "VIX1D": {
-      "value": 9.84,
-      "change": -6.85,
+      "value": 9.86,
+      "change": -6.83,
       "status": "Perfect",
       "description": "perfect 12",
       "sparkline": [
@@ -117,12 +117,12 @@
         9.510000228881836,
         12.720000267028809,
         16.690000534057617,
-        9.84000015258789
+        9.859999656677246
       ]
     },
     "VIX9D": {
-      "value": 16.36,
-      "change": -0.49,
+      "value": 16.34,
+      "change": -0.51,
       "status": "Normal",
       "description": "12 normal 18",
       "sparkline": [
@@ -155,7 +155,7 @@
         12.0600004196167,
         13.979999542236328,
         16.850000381469727,
-        16.360000610351562
+        16.34000015258789
       ]
     },
     "VXN": {
@@ -311,8 +311,8 @@
       ]
     },
     "GVZ": {
-      "value": 25.6,
-      "change": 0.0,
+      "value": 25.59,
+      "change": -0.01,
       "status": "Panic",
       "description": "22 panica",
       "sparkline": [
@@ -345,12 +345,12 @@
         24.8799991607666,
         26.649999618530273,
         25.600000381469727,
-        25.600000381469727
+        25.59000015258789
       ]
     },
     "OVX": {
-      "value": 61.31,
-      "change": 1.29,
+      "value": 61.34,
+      "change": 1.32,
       "status": "Panic",
       "description": "35 panica",
       "sparkline": [
@@ -383,12 +383,12 @@
         58.959999084472656,
         55.90999984741211,
         60.02000045776367,
-        61.310001373291016
+        61.34000015258789
       ]
     },
     "SPX": {
-      "value": 7481.04,
-      "change": 23.35,
+      "value": 7481.85,
+      "change": 24.16,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -421,12 +421,12 @@
         7572.39990234375,
         7533.77001953125,
         7457.68994140625,
-        7481.0400390625
+        7481.85009765625
       ]
     },
     "NASDAQ": {
-      "value": 25693.0,
-      "change": 172.76,
+      "value": 25692.08,
+      "change": 171.84,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -459,7 +459,7 @@
         26269.23046875,
         25881.94921875,
         25520.240234375,
-        25693.00390625
+        25692.078125
       ]
     },
     "Crypto Fear": {
@@ -543,10 +543,75 @@
       }
     }
   },
-  "vix_val": 17.559999465942383,
+  "vix_val": 17.549999237060547,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
+    {
+      "Symbol": "RGEN",
+      "Company_Name": "Repligen Corporation",
+      "Shares": 10,
+      "Current_Price": 128.82,
+      "Price_Native": 147.03,
+      "Currency": "USD",
+      "Buy_Price": 127.12,
+      "Target": 154.44,
+      "Trail_Stop": 0,
+      "Suggested_Stop": 120.31,
+      "Finviz_ATR": 5.49,
+      "Vol_W": 2.92,
+      "Vol_M": 4.32,
+      "Trail_Pct": 0.0,
+      "Investment": 1271.22,
+      "Entry_Date": "-",
+      "Current_Value": 1288.15,
+      "Profit": 16.93,
+      "Profit_Pct": 1.33,
+      "Max_Profit": 273.17,
+      "Consensus": "Strong Buy",
+      "Analysts": 20,
+      "Status": "Neutral",
+      "RSI": 62.96,
+      "RSI_Status": "Neutral",
+      "Trend": "Strong Bullish",
+      "VIX_Tag": "Normal",
+      "Sell_Decision": "HOLD",
+      "Sell_Reason": "Trend UP (P 147.0 > SMA200 140.2), RSI 63",
+      "RS_vs_SPX": 23.61,
+      "Sparkline": [
+        107.16,
+        109.8,
+        114.01,
+        114.56,
+        116.81,
+        114.41,
+        114.66,
+        115.37,
+        117.0,
+        115.66,
+        110.89,
+        110.71,
+        121.25,
+        127.24,
+        128.8,
+        120.03,
+        119.54,
+        121.77,
+        124.76,
+        123.93,
+        122.51,
+        120.38,
+        126.11,
+        126.37,
+        126.93,
+        128.9,
+        129.72,
+        130.14,
+        129.01,
+        128.77
+      ],
+      "Date": "2026-07-20 19:44"
+    },
     {
       "Symbol": "TVBETETF.RO",
       "Company_Name": "ETF BET Tradeville",
@@ -577,7 +642,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 59.5 > SMA200 45.4), RSI 75, Risk 7.0%",
-      "RS_vs_SPX": 16.85,
+      "RS_vs_SPX": 16.84,
       "Sparkline": [
         9.7,
         9.68,
@@ -610,7 +675,72 @@
         11.33,
         11.37
       ],
-      "Date": "2026-07-20 19:42"
+      "Date": "2026-07-20 19:44"
+    },
+    {
+      "Symbol": "UPBD",
+      "Company_Name": "Upbound Group, Inc.",
+      "Shares": 100,
+      "Current_Price": 19.23,
+      "Price_Native": 21.95,
+      "Currency": "USD",
+      "Buy_Price": 19.06,
+      "Target": 25.09,
+      "Trail_Stop": 17.59,
+      "Suggested_Stop": 17.55,
+      "Finviz_ATR": 0.91,
+      "Vol_W": 4.16,
+      "Vol_M": 4.94,
+      "Trail_Pct": 8.87,
+      "Investment": 1906.39,
+      "Entry_Date": "-",
+      "Current_Value": 1922.6,
+      "Profit": 16.21,
+      "Profit_Pct": 0.85,
+      "Max_Profit": 602.76,
+      "Consensus": "Strong Buy",
+      "Analysts": 7,
+      "Status": "Neutral",
+      "RSI": 62.04,
+      "RSI_Status": "Neutral",
+      "Trend": "Strong Bullish",
+      "VIX_Tag": "Normal",
+      "Sell_Decision": "HOLD",
+      "Sell_Reason": "Trend UP (P 21.9 > SMA200 18.6), RSI 62, Risk 8.5%",
+      "RS_vs_SPX": 9.1,
+      "Sparkline": [
+        15.67,
+        16.08,
+        16.2,
+        15.51,
+        15.95,
+        16.25,
+        16.06,
+        16.55,
+        15.3,
+        16.05,
+        16.05,
+        16.37,
+        17.16,
+        17.38,
+        17.91,
+        18.28,
+        18.59,
+        18.16,
+        17.43,
+        17.99,
+        17.97,
+        17.39,
+        17.8,
+        18.54,
+        18.53,
+        18.47,
+        19.24,
+        19.94,
+        19.41,
+        19.17
+      ],
+      "Date": "2026-07-20 19:44"
     }
   ],
   "watchlist": [
