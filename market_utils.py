@@ -42,11 +42,12 @@ def save_state(state):
         with open("market_indicators.json", "w") as f:
             json.dump(indicators, f, indent=2)
             
-        # 3. Watchlist cu decizii active de BUY
+        # 3. Watchlist cu decizii active de BUY și Consens Buy / Strong Buy
         buy_watchlist = []
         for item in state.get("watchlist", []):
             decision = str(item.get("Decision", "")).upper()
-            if "BUY" in decision:
+            consensus = str(item.get("Consensus", "")).upper()
+            if "BUY" in decision and "BUY" in consensus:
                 item_copy = dict(item)
                 item_copy.pop("Sparkline", None)
                 buy_watchlist.append(item_copy)
