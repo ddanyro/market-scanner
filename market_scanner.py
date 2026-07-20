@@ -2421,17 +2421,6 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 font-size: 28px;
             }
         }
-
-        /* Prevent Chatbot Widget Overlap */
-        body {
-            transition: padding-right 0.3s ease;
-            padding-bottom: 80px;
-        }
-        @media screen and (min-width: 769px) {
-            body.chatOpen {
-                padding-right: 375px !important;
-            }
-        }
     </style>
     """
     
@@ -2621,15 +2610,6 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
         <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
         <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-        
-        <script type="application/javascript">
-            let openAIChat = {{
-                url: 'https://testing.wally.ro/iframe/c5b95cbaf5aa4146',
-                iconCSS: 'width: 60px;height:60px;background-size:42px;',
-                zIndex: 9999
-            }}
-        </script>
-        <script async src="https://testing.wally.ro/openAIChat.dev.js"></script>
         
         {css}
         <style>
