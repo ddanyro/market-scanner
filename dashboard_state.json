@@ -3,12 +3,12 @@
     "EUR": 1.0,
     "USD": 0.875800030966078,
     "RON": 0.19085790462128419,
-    "GBP": 1.1766643744321283
+    "GBP": 1.176650510402496
   },
   "market_indicators": {
     "VIX3M": {
-      "value": 20.4,
-      "change": -0.14,
+      "value": 20.39,
+      "change": -0.15,
       "status": "Tension",
       "description": "20 tensiune 30",
       "sparkline": [
@@ -41,12 +41,12 @@
         18.90999984741211,
         19.5,
         20.540000915527344,
-        20.399999618530273
+        20.389999389648438
       ]
     },
     "VIX": {
-      "value": 18.65,
-      "change": -0.12,
+      "value": 18.64,
+      "change": -0.13,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,12 +79,12 @@
         15.670000076293945,
         16.729999542236328,
         18.770000457763672,
-        18.649999618530273
+        18.639999389648438
       ]
     },
     "VIX1D": {
-      "value": 13.35,
-      "change": -3.34,
+      "value": 13.33,
+      "change": -3.36,
       "status": "Normal",
       "description": "12 normal 30",
       "sparkline": [
@@ -117,12 +117,12 @@
         9.510000228881836,
         12.720000267028809,
         16.690000534057617,
-        13.350000381469727
+        13.329999923706055
       ]
     },
     "VIX9D": {
-      "value": 17.78,
-      "change": 0.93,
+      "value": 17.77,
+      "change": 0.92,
       "status": "Normal",
       "description": "12 normal 18",
       "sparkline": [
@@ -155,7 +155,7 @@
         12.0600004196167,
         13.979999542236328,
         16.850000381469727,
-        17.780000686645508
+        17.770000457763672
       ]
     },
     "VXN": {
@@ -549,19 +549,19 @@
   "portfolio": [
     {
       "Symbol": "JPM",
-      "Company_Name": "JP Morgan Chase & Co.",
+      "Company_Name": "JPMorgan Chase & Co.",
       "Shares": 4,
       "Current_Price": 297.05,
       "Price_Native": 339.17,
       "Currency": "USD",
       "Buy_Price": 296.24,
       "Target": 326.03,
-      "Trail_Stop": 0,
+      "Trail_Stop": 286.71,
       "Suggested_Stop": 283.09,
       "Finviz_ATR": 7.91,
       "Vol_W": 3.08,
       "Vol_M": 2.32,
-      "Trail_Pct": 0.0,
+      "Trail_Pct": 3.48,
       "Investment": 1184.96,
       "Entry_Date": "-",
       "Current_Value": 1188.18,
@@ -576,7 +576,7 @@
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 339.2 > SMA200 307.1), RSI 58",
+      "Sell_Reason": "Trend UP (P 339.2 > SMA200 307.1), RSI 58, Risk 3.5%",
       "RS_vs_SPX": 4.5,
       "Sparkline": [
         272.35,
