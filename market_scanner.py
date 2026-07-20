@@ -2406,9 +2406,6 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 right: 16px;
                 min-width: auto;
             }
-                right: 16px;
-                min-width: auto;
-            }
 
             /* Mobile adjustments */
             .container { width: 95%; padding: 10px; }
@@ -2422,6 +2419,17 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             
             .summary-card .value {
                 font-size: 28px;
+            }
+        }
+
+        /* Prevent Chatbot Widget Overlap */
+        body {
+            transition: padding-right 0.3s ease;
+            padding-bottom: 80px;
+        }
+        @media screen and (min-width: 769px) {
+            body.chatOpen {
+                padding-right: 375px !important;
             }
         }
     </style>
@@ -2618,6 +2626,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             let openAIChat = {{
                 url: 'https://testing.wally.ro/iframe/c5b95cbaf5aa4146',
                 iconCSS: 'width: 60px;height:60px;background-size:42px;',
+                zIndex: 9999
             }}
         </script>
         <script async src="https://testing.wally.ro/openAIChat.dev.js"></script>
