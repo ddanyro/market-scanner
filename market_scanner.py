@@ -3631,6 +3631,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     # Save new AI text to state if successfully generated
     if new_ai_text:
          full_state['last_ai_summary'] = new_ai_text
+         # generate_html_dashboard este apelată după salvarea inițială a stării.
+         # Persistăm imediat rezumatul, altfel cache-ul AI se pierde între rulări.
+         market_utils.save_state(full_state)
          print("  -> Rezumat AI salvat în cache (dashboard_state).")
     
     html_head += market_analysis_html

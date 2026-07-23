@@ -7,95 +7,502 @@ import numpy as np
 import json
 import os
 import re
+import html
+import hashlib
+import tempfile
 from bs4 import BeautifulSoup
 
-# Dicționar de interpretare a evenimentelor
+ECONOMIC_CALENDAR_CACHE = os.path.join(tempfile.gettempdir(), "antigravity_economic_calendar_cache.json")
+AI_CALENDAR_CACHE = os.path.join(tempfile.gettempdir(), "antigravity_ai_calendar_cache.json")
+BVB_CALENDAR_URL = "https://www.bvb.ro/FinancialInstruments/SelectedData/FinancialCalendar"
+CALENDAR_SOURCE_URL = "https://economic-calendar.tradingview.com/events"
+
+EVENT_RULES = {
+    'inflation': {
+        'keys': ('cpi', 'ppi', 'inflation', 'inflaț', 'hicp'),
+        'what': 'Măsoară inflația și presiunile asupra prețurilor, influențând așteptările privind dobânzile.',
+        'higher': 'bearish',
+        'sectors': 'Tech și companiile cu evaluări ridicate sunt sensibile; băncile pot beneficia doar dacă economia rămâne solidă.'
+    },
+    'rates': {
+        'keys': ('fomc', 'fed ', 'ecb', 'interest rate', 'deposit facility', 'bnr', 'dobând'),
+        'what': 'Decizia și tonul băncii centrale schimbă costul capitalului și evaluarea activelor.',
+        'higher': 'bearish',
+        'sectors': 'Tech, imobiliarele și utilitățile sunt sensibile la randamente; băncile au un impact mixt.'
+    },
+    'growth': {
+        'keys': ('gdp', 'pib', 'retail', 'industrial production', 'producția industrială', 'durable goods'),
+        'what': 'Arată ritmul activității economice și cererea pentru bunuri și servicii.',
+        'higher': 'bullish',
+        'sectors': 'Industria, consumul și energia tind să reacționeze mai puternic la surprize de creștere.'
+    },
+    'jobs': {
+        'keys': ('nonfarm', 'payroll', 'unemployment', 'șomaj', 'jobless', 'claims', 'employment'),
+        'what': 'Descrie rezistența pieței muncii, consumul viitor și presiunile salariale.',
+        'higher': 'mixed',
+        'sectors': 'Consumul beneficiază de ocupare solidă, dar dobânzile pot apăsa sectoarele de creștere.'
+    },
+    'activity': {
+        'keys': ('pmi', 'ism', 'manufacturing', 'services', 'confidence', 'sentiment'),
+        'what': 'Este un indicator rapid al expansiunii, comenzilor și încrederii din economie.',
+        'higher': 'bullish',
+        'sectors': 'Industria, transporturile și consumul ciclic sunt de regulă cele mai expuse.'
+    },
+    'fiscal_fx': {
+        'keys': ('deficit', 'rating', 'eur/ron', 'ron', 'bond', 'randament', 'treasury'),
+        'what': 'Afectează prima de risc, costul finanțării statului și fluxurile de capital.',
+        'higher': 'bearish',
+        'sectors': 'Băncile și companiile îndatorate sunt sensibile la randamente; importatorii sunt sensibili la un leu mai slab.'
+    },
+    'corporate': {
+        'keys': ('rezultate financiare', 'raport anual', 'dividend', 'ex-data', 'aga', 'teleconferinta', 'teleconferința'),
+        'what': 'Este un eveniment al emitentului și poate schimba așteptările privind profitul sau distribuțiile.',
+        'higher': 'mixed',
+        'sectors': 'Impactul este în primul rând asupra emitentului, nu automat asupra întregului indice BET.'
+    }
+}
+
 EVENT_DESCRIPTIONS = {
-    'CPI': '🔥 Măsoară inflația la consumator. 🔴 Peste așteptări = Frică de dobânzi (Acțiuni Jos). 🟢 Sub așteptări = Speranță de tăiere (Raliu).',
-    'PPI': '🏭 Inflația la producător. Semnal timpuriu pentru CPI. Trend crescător = Presiune inflaționistă.',
-    'Fed': '🏦 Intervenție a Băncii Centrale. Urmăriți tonul: "Hawkish" (Rău pt burse) vs "Dovish" (Bun pt burse).',
-    'FOMC': '🏛️ Decizia de dobândă. Eveniment critic. Dobânzi Sus = Rău pentru Tech/Growth.',
-    'GDP': '📈 Produsul Intern Brut. Arată sănătatea economiei. Scădere (negativ) = Recesiune.',
-    'Nonfarm': '👥 NFP (Joburi). 🟢 Peste așteptări = Economie puternică (USD Sus, Gold Jos). 🔴 Sub așteptări = Risc recesiune.',
-    'Unemployment': '📉 Rata șomajului. Creșterea șomajului este semnalul final de recesiune.',
-    'Retail': '🛒 Vânzările Retail. Consumul reprezintă 70% din PIB-ul SUA. Scădere = Pericol economic.',
-    'Confidence': '🧠 Încrederea consumatorului. Optimismul duce la cheltuieli viitoare.',
-    'Claims': '🙏 Cererile de șomaj săptămânale. Indicator "high-frequency" pentru piața muncii.',
-    'Services': '🏨 ISM/PMI Servicii. Sectorul dominant. Sub 50 = Contracție economică.',
-    'Manufacturing': '🏭 ISM/PMI Producție. Indică expansiunea sau contracția industrială.',
-    'Home': '🏠 Vânzări Case. Foarte sensibile la dobânzi hipotecare mari.',
-    'Permits': '🏗️ Building Permits (Autorizații). Indicator anticipativ major. Scădere = Constructorii prevăd cerere slabă.',
-    'Inventories': '🛢️ Stocuri Petrol/Bunuri. Impact specific pe sectoare (Energy/Retail).'
+    'CPI': EVENT_RULES['inflation']['what'],
+    'FOMC': EVENT_RULES['rates']['what'],
+    'GDP': EVENT_RULES['growth']['what'],
+    'Nonfarm': EVENT_RULES['jobs']['what'],
+    'Unemployment': EVENT_RULES['jobs']['what'],
+    'PMI': EVENT_RULES['activity']['what'],
+    'BNR': EVENT_RULES['rates']['what'],
 }
 
 def get_event_impact(event_name):
-    for key, desc in EVENT_DESCRIPTIONS.items():
-        if key.lower() in event_name.lower():
-            return desc
+    rule = _event_rule(event_name)
+    if rule:
+        return rule['what']
     return "Indicator economic. Poate genera volatilitate intraday."
 
-def get_economic_events():
-    """Fetches high-impact US economic events from TradingView API."""
+def _event_rule(event_name):
+    lowered = (event_name or '').lower()
+    for rule in EVENT_RULES.values():
+        if any(key in lowered for key in rule['keys']):
+            return rule
+    return None
+
+def _parse_event_date(value):
+    if not value:
+        return None
     try:
-        import datetime
-        import requests
-        
-        today = datetime.datetime.utcnow()
-        from_time = today.strftime("%Y-%m-%dT00:00:00.000Z")
-        to_time = (today + datetime.timedelta(days=10)).strftime("%Y-%m-%dT00:00:00.000Z")
-        
-        url = "https://economic-calendar.tradingview.com/events"
+        clean = str(value).replace('Z', '+00:00')
+        parsed = datetime.datetime.fromisoformat(clean)
+        if parsed.tzinfo:
+            parsed = parsed.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+        return parsed
+    except (TypeError, ValueError):
+        try:
+            return datetime.datetime.strptime(str(value)[:10], '%Y-%m-%d')
+        except (TypeError, ValueError):
+            return None
+
+def _country_label(item):
+    raw = str(item.get('country') or item.get('countryCode') or item.get('currency') or '').upper()
+    title = str(item.get('title', '')).lower()
+    if raw in ('RO', 'ROU', 'RON', 'ROMANIA') or any(x in title for x in ('romania', 'romanian', 'bnr')):
+        return 'România'
+    if raw in ('US', 'USA', 'USD', 'UNITED STATES'):
+        return 'SUA'
+    return 'Europa'
+
+def _normalise_macro_event(item, now):
+    title = str(item.get('title') or item.get('name') or '').strip()
+    event_dt = _parse_event_date(item.get('date') or item.get('datetime'))
+    if not title or not event_dt:
+        return None
+    rule = _event_rule(title)
+    importance = item.get('importance') or item.get('impact') or 'medie'
+    return {
+        'id': str(item.get('id') or f"macro:{title}:{event_dt.isoformat()}"),
+        'name': title,
+        'country': _country_label(item),
+        'category': next((name for name, candidate in EVENT_RULES.items() if candidate is rule), 'macro'),
+        'datetime': event_dt.isoformat(),
+        'time': event_dt.strftime('%H:%M'),
+        'timezone': 'UTC',
+        'week': event_dt.strftime('%d %b %Y'),
+        'importance': str(importance),
+        'actual': item.get('actual'),
+        'forecast': item.get('forecast'),
+        'previous': item.get('previous'),
+        'status': 'past' if event_dt <= now else 'upcoming',
+        'source': 'TradingView Economic Calendar',
+        'source_url': CALENDAR_SOURCE_URL,
+        'desc': rule['what'] if rule else get_event_impact(title),
+    }
+
+_MONTHS_RO = {
+    'ianuarie': 1, 'februarie': 2, 'martie': 3, 'aprilie': 4, 'mai': 5, 'iunie': 6,
+    'iulie': 7, 'august': 8, 'septembrie': 9, 'octombrie': 10, 'noiembrie': 11, 'decembrie': 12
+}
+
+def _parse_bvb_calendar_html(content, now):
+    """Parsează calendarul public BVB fără să inventeze evenimente lipsă."""
+    soup = BeautifulSoup(content, 'html.parser')
+    lines = [re.sub(r'\s+', ' ', value).strip() for value in soup.stripped_strings]
+    date_re = re.compile(r'^(\d{1,2})\s+(' + '|'.join(_MONTHS_RO) + r')\s+(\d{4})$', re.I)
+    events = []
+    current_date = None
+    skip = {'calendar financiar', 'toate evenimentele viitoare', 'toate', 'segment bursa'}
+    for line in lines:
+        match = date_re.match(line)
+        if match:
+            current_date = datetime.datetime(
+                int(match.group(3)), _MONTHS_RO[match.group(2).lower()], int(match.group(1)), 9, 0
+            )
+            continue
+        if not current_date or line.lower() in skip or ' - ' not in line:
+            continue
+        symbol, description = line.split(' - ', 1)
+        symbol = symbol.strip().split()[0] if symbol.strip() else 'BVB'
+        if len(symbol) > 12 or len(description) < 4:
+            continue
+        name = f"{symbol} — {description.strip()}"
+        events.append({
+            'id': f"bvb:{symbol}:{current_date.date().isoformat()}:{description[:40]}",
+            'name': name,
+            'country': 'România',
+            'category': 'corporate',
+            'datetime': current_date.isoformat(),
+            'time': '09:00',
+            'timezone': 'Europe/Bucharest',
+            'week': current_date.strftime('%d %b %Y'),
+            'importance': 'companie',
+            'actual': None,
+            'forecast': None,
+            'previous': None,
+            'status': 'past' if current_date <= now else 'upcoming',
+            'source': 'Bursa de Valori București',
+            'source_url': BVB_CALENDAR_URL,
+            'desc': EVENT_RULES['corporate']['what'],
+        })
+        current_date = None
+    return events
+
+def _load_calendar_cache(now):
+    try:
+        with open(ECONOMIC_CALENDAR_CACHE, 'r', encoding='utf-8') as handle:
+            payload = json.load(handle)
+        events = payload.get('events', [])
+        valid_events = [
+            event for event in events
+            if now - datetime.timedelta(days=7) <= _parse_event_date(event.get('datetime')) <= now + datetime.timedelta(days=10)
+        ]
+        return _select_calendar_events(valid_events)
+    except (OSError, ValueError, TypeError):
+        return []
+
+def _save_calendar_cache(events):
+    try:
+        temp_path = ECONOMIC_CALENDAR_CACHE + '.tmp'
+        with open(temp_path, 'w', encoding='utf-8') as handle:
+            json.dump({'updated_at': datetime.datetime.utcnow().isoformat(), 'events': events}, handle, ensure_ascii=False)
+        os.replace(temp_path, ECONOMIC_CALENDAR_CACHE)
+    except OSError:
+        pass
+
+def _importance_rank(event):
+    value = str(event.get('importance', '')).lower()
+    if value in ('high', '3', '1', '1.0') or 'ridicat' in value:
+        return 3
+    if value in ('medium', 'medie', '2', '0') or 'mediu' in value:
+        return 2
+    if event.get('category') == 'corporate':
+        return 1
+    return 0
+
+def _select_calendar_events(events):
+    """Păstrează calendarul lizibil și echilibrat între regiuni și perioade."""
+    selected = []
+    for status in ('past', 'upcoming'):
+        for country in ('România', 'SUA', 'Europa'):
+            candidates = [
+                event for event in events
+                if event.get('status') == status and event.get('country') == country
+                and event.get('category') != 'corporate'
+            ]
+            candidates.sort(key=lambda event: (-_importance_rank(event), event['datetime']))
+            selected.extend(candidates[:3])
+        corporate = [
+            event for event in events
+            if event.get('status') == status and event.get('category') == 'corporate'
+        ]
+        corporate.sort(key=lambda event: event['datetime'])
+        selected.extend(corporate[:3])
+    return sorted(selected, key=lambda event: event['datetime'])
+
+def get_economic_events(now=None, request_session=requests):
+    """Evenimente reale SUA/Europa/România și calendar corporativ BVB, pe intervalul -7/+10 zile."""
+    now = now or datetime.datetime.utcnow()
+    start = now - datetime.timedelta(days=7)
+    end = now + datetime.timedelta(days=10)
+    fetched = []
+    try:
         headers = {
             'User-Agent': 'Mozilla/5.0',
             'Content-Type': 'application/json',
             'Origin': 'https://www.tradingview.com',
             'Referer': 'https://www.tradingview.com/'
         }
-        payload = {"from": from_time, "to": to_time, "countries": ["US"]}
-        
-        r = requests.post(url, headers=headers, json=payload, timeout=10)
-        if r.status_code != 200:
-            raise ValueError(f"Status {r.status_code}")
-            
-        data = r.json()
-        events = data.get('result', [])
-        
-        all_events = []
-        seen_events = set()
-        keywords = ['Fed', 'FOMC', 'CPI', 'GDP', 'Nonfarm', 'Unemployment', 'PPI', 'Rate', 'Retail', 'Sentiment', 'Confidence', 'Manufacturing', 'Services', 'Home', 'Job', 'Permits', 'Inventories']
-        
-        for item in events:
-            title = item.get('title', '')
-            date_raw = item.get('date', '') # format: 2026-02-15T00:00:00.000Z
-            
-            is_major = any(k.lower() in title.lower() for k in keywords)
-            
-            if is_major and date_raw:
-                try:
-                    event_date_obj = datetime.datetime.strptime(date_raw[:10], '%Y-%m-%d')
-                    date_display = event_date_obj.strftime('%d %b')
-                    time_str = date_raw[11:16] # HH:MM
-                    
-                    unique_id = f"{title}_{date_raw}"
-                    
-                    if unique_id not in seen_events:
-                        seen_events.add(unique_id)
-                        all_events.append({
-                            'name': title,
-                            'time': time_str,
-                            'week': f"({date_display})",
-                            'desc': get_event_impact(title)
-                        })
-                except Exception as e:
-                    continue
-                    
-        if all_events:
-            return all_events[:8]
-            
-    except Exception as e:
-        pass # Silently fail
-        
-    return []
+        payload = {
+            'from': start.strftime("%Y-%m-%dT00:00:00.000Z"),
+            'to': end.strftime("%Y-%m-%dT23:59:59.000Z"),
+            'countries': ['US', 'EU', 'RO']
+        }
+        response = request_session.post(CALENDAR_SOURCE_URL, headers=headers, json=payload, timeout=10)
+        response.raise_for_status()
+        for item in response.json().get('result', []):
+            event = _normalise_macro_event(item, now)
+            if event and _event_rule(event['name']):
+                fetched.append(event)
+    except (requests.RequestException, ValueError, TypeError, AttributeError):
+        pass
+
+    try:
+        response = request_session.get(BVB_CALENDAR_URL, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
+        response.raise_for_status()
+        fetched.extend(_parse_bvb_calendar_html(response.text, now))
+    except (requests.RequestException, ValueError, TypeError, AttributeError):
+        pass
+
+    unique = {}
+    for event in fetched:
+        event_dt = _parse_event_date(event.get('datetime'))
+        if event_dt and start <= event_dt <= end:
+            unique[event['id']] = event
+    events = _select_calendar_events(list(unique.values()))
+    if events:
+        _save_calendar_cache(events)
+        return events
+    return _load_calendar_cache(now)
+
+def _number(value):
+    if value is None or value == '':
+        return None
+    match = re.search(r'-?\d+(?:[.,]\d+)?', str(value).replace(' ', ''))
+    return float(match.group(0).replace(',', '.')) if match else None
+
+def _deterministic_event_analysis(event):
+    rule = _event_rule(event.get('name')) or EVENT_RULES.get(event.get('category'))
+    base = {
+        'verdict': 'Date insuficiente',
+        'confidence': 'scăzută',
+        'mechanism': event.get('desc') or get_event_impact(event.get('name', '')),
+        'us_impact': 'Impactul depinde de abaterea față de consens și de regimul dobânzilor.',
+        'eu_impact': 'Impactul depinde de reacția dobânzilor, monedei euro și apetitului global pentru risc.',
+        'bvb_impact': 'Impactul se poate transmite prin sentiment, EUR/RON, randamente și fluxuri de capital.',
+        'sectors': rule['sectors'] if rule else 'Sensibilitatea diferă între sectoare.',
+        'horizon': 'intraday–câteva zile',
+        'reversal': 'Verdictul se poate inversa dacă piața anticipase deja rezultatul.',
+    }
+    if event.get('category') == 'corporate':
+        base.update({
+            'verdict': 'Neutru',
+            'confidence': 'scăzută',
+            'us_impact': 'Nesemnificativ pentru indicii SUA.',
+            'eu_impact': 'Nesemnificativ pentru indicii europeni.',
+            'bvb_impact': 'Impact în primul rând asupra emitentului; efectul asupra BET depinde de ponderea sa.',
+        })
+        return base
+    actual, forecast = _number(event.get('actual')), _number(event.get('forecast'))
+    if event.get('status') == 'upcoming':
+        base.update({
+            'verdict': 'Mixt',
+            'confidence': 'scăzută',
+            'mechanism': f"{base['mechanism']} Peste, conform sau sub estimări pot produce reacții diferite.",
+        })
+        return base
+    if actual is None or forecast is None or not rule:
+        return base
+    higher = actual > forecast
+    direction = rule['higher']
+    if direction == 'mixed':
+        verdict = 'Mixt'
+    elif (direction == 'bullish' and higher) or (direction == 'bearish' and not higher):
+        verdict = 'Bullish probabil'
+    else:
+        verdict = 'Bearish probabil'
+    base['verdict'] = verdict
+    base['confidence'] = 'medie'
+    base['mechanism'] += f" Valoarea actuală este {'peste' if higher else 'sub'} consens."
+    return base
+
+def _event_fingerprint(event):
+    relevant = {
+        key: event.get(key) for key in
+        ('id', 'name', 'datetime', 'status', 'actual', 'forecast', 'previous')
+    }
+    encoded = json.dumps(relevant, sort_keys=True, ensure_ascii=False).encode('utf-8')
+    return hashlib.sha256(encoded).hexdigest()
+
+def _load_ai_calendar_cache():
+    try:
+        with open(AI_CALENDAR_CACHE, 'r', encoding='utf-8') as handle:
+            payload = json.load(handle)
+        return payload if isinstance(payload, dict) else {}
+    except (OSError, ValueError, TypeError):
+        return {}
+
+def _save_ai_calendar_cache(cache):
+    try:
+        temp_path = AI_CALENDAR_CACHE + '.tmp'
+        with open(temp_path, 'w', encoding='utf-8') as handle:
+            json.dump(cache, handle, ensure_ascii=False)
+        os.replace(temp_path, AI_CALENDAR_CACHE)
+    except OSError:
+        pass
+
+def _enrich_events_with_ai(events, indicators):
+    """O singură cerere JSON pentru calendar; eșecul păstrează analiza deterministă."""
+    analyses = {event['id']: _deterministic_event_analysis(event) for event in events}
+    ai_cache = _load_ai_calendar_cache()
+    pending = []
+    for event in events:
+        cached = ai_cache.get(_event_fingerprint(event))
+        if isinstance(cached, dict) and cached.get('verdict') in {
+            'Bullish probabil', 'Bearish probabil', 'Mixt', 'Neutru', 'Date insuficiente'
+        }:
+            analyses[event['id']].update(cached)
+        else:
+            pending.append(event)
+    openai_key = os.environ.get('OPENAI_API_KEY', '')
+    if not openai_key and os.path.exists('openai_key.txt'):
+        try:
+            with open('openai_key.txt', 'r') as handle:
+                openai_key = handle.read().strip()
+        except OSError:
+            pass
+    if not openai_key or not pending:
+        return analyses
+    compact_events = [{
+        key: event.get(key) for key in
+        ('id', 'name', 'country', 'category', 'datetime', 'status', 'actual', 'forecast', 'previous')
+    } for event in pending[:24]]
+    prompt = {
+        'language': 'ro',
+        'instruction': (
+            'Analizează prudent evenimentele. Nu inventa date. Separă impactul probabil asupra '
+            'SUA, Europei și BVB. Pentru evenimente viitoare explică scenariile peste/conform/sub consens. '
+            'Pentru evenimente corporative BVB nu generaliza la întreaga piață.'
+        ),
+        'allowed_verdicts': ['Bullish probabil', 'Bearish probabil', 'Mixt', 'Neutru', 'Date insuficiente'],
+        'required_fields': ['id', 'verdict', 'confidence', 'mechanism', 'us_impact', 'eu_impact',
+                            'bvb_impact', 'sectors', 'horizon', 'reversal'],
+        'context': {
+            'VIX': indicators.get('VIX', {}).get('value'),
+            'SPX': indicators.get('SPX', {}).get('value'),
+            'NASDAQ': indicators.get('NASDAQ', {}).get('value'),
+        },
+        'events': compact_events,
+    }
+    try:
+        response = requests.post(
+            'https://api.openai.com/v1/chat/completions',
+            headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {openai_key}'},
+            json={
+                'model': 'gpt-4o',
+                'response_format': {'type': 'json_object'},
+                'messages': [
+                    {'role': 'system', 'content': 'Ești un analist macro prudent. Răspunzi exclusiv JSON: {"events": [...]}.'},
+                    {'role': 'user', 'content': json.dumps(prompt, ensure_ascii=False)}
+                ],
+                'temperature': 0.2,
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+        parsed = json.loads(response.json()['choices'][0]['message']['content'])
+        allowed = {'Bullish probabil', 'Bearish probabil', 'Mixt', 'Neutru', 'Date insuficiente'}
+        for item in parsed.get('events', []):
+            event_id = str(item.get('id', ''))
+            if event_id not in analyses or item.get('verdict') not in allowed:
+                continue
+            clean = analyses[event_id].copy()
+            for field in clean:
+                value = item.get(field)
+                if isinstance(value, str) and value.strip():
+                    clean[field] = value.strip()[:1200]
+            analyses[event_id] = clean
+        for event in pending[:24]:
+            ai_cache[_event_fingerprint(event)] = analyses[event['id']]
+        _save_ai_calendar_cache(ai_cache)
+    except (requests.RequestException, ValueError, KeyError, TypeError, AttributeError):
+        pass
+    return analyses
+
+def _render_event_value(label, value):
+    shown = '—' if value is None or value == '' else html.escape(str(value))
+    return f"<span style='margin-right:12px;'><b>{label}:</b> {shown}</span>"
+
+def _render_calendar(events, indicators):
+    if not events:
+        return (
+            "<div style='margin-top:32px;border-top:2px solid var(--border-light);padding-top:24px;'>"
+            "<h4 style='color:var(--primary-purple);font-size:18px;font-weight:700;'>CALENDAR ECONOMIC — SUA, EUROPA ȘI BVB</h4>"
+            "<div style='background:var(--light-purple-bg);padding:16px 20px;border-radius:var(--radius-sm);"
+            "color:var(--text-secondary);'>Datele calendarului nu sunt disponibile momentan. Nu au fost generate evenimente fictive.</div></div>"
+        )
+    analyses = _enrich_events_with_ai(events, indicators)
+    groups = [('past', 'Ultimele 7 zile'), ('upcoming', 'Următoarele 10 zile')]
+    colors = {
+        'Bullish probabil': '#2e7d32', 'Bearish probabil': '#c62828',
+        'Mixt': '#ef6c00', 'Neutru': '#546e7a', 'Date insuficiente': '#757575'
+    }
+    output = (
+        "<div style='margin-top:32px;border-top:2px solid var(--border-light);padding-top:24px;'>"
+        "<h4 style='color:var(--primary-purple);font-size:18px;font-weight:700;margin-bottom:20px;"
+        "text-transform:uppercase;letter-spacing:.5px;'>Calendar economic — SUA, Europa și BVB</h4>"
+    )
+    for status, title in groups:
+        selected = [event for event in events if event.get('status') == status]
+        output += f"<h5 style='font-size:16px;color:var(--text-primary);margin:18px 0 10px;'>{title}</h5>"
+        if not selected:
+            output += "<div style='color:var(--text-secondary);padding:10px 0;'>Niciun eveniment disponibil în interval.</div>"
+            continue
+        output += "<div style='display:grid;gap:12px;'>"
+        for event in selected:
+            analysis = analyses[event['id']]
+            verdict = analysis['verdict']
+            event_name = html.escape(event['name'])
+            country = html.escape(event['country'])
+            source_url = html.escape(event['source_url'], quote=True)
+            source = html.escape(event['source'])
+            values = (
+                _render_event_value('Actual', event.get('actual')) +
+                _render_event_value('Estimare', event.get('forecast')) +
+                _render_event_value('Anterior', event.get('previous'))
+            )
+            details = ''.join(
+                f"<p style='margin:7px 0;'><b>{label}:</b> {html.escape(str(analysis[field]))}</p>"
+                for label, field in (
+                    ('Mecanism', 'mechanism'), ('SUA — S&P 500 / Nasdaq', 'us_impact'),
+                    ('Europa — STOXX 600 / DAX', 'eu_impact'), ('România — BET / BET-TR', 'bvb_impact'),
+                    ('Sectoare', 'sectors'), ('Orizont', 'horizon'), ('Ce poate inversa verdictul', 'reversal')
+                )
+            )
+            output += f"""
+            <div style="background:var(--light-purple-bg);border-left:4px solid {colors[verdict]};padding:16px 20px;border-radius:var(--radius-sm);">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+                    <div><strong style="color:var(--text-primary);font-size:15px;">{event_name}</strong>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">{country} · {html.escape(event['week'])} {html.escape(event['time'])} {html.escape(event.get('timezone', 'UTC'))} · impact {html.escape(event['importance'])}</div></div>
+                    <span style="color:white;background:{colors[verdict]};padding:4px 9px;border-radius:12px;font-size:12px;font-weight:700;">{verdict} · încredere {html.escape(analysis['confidence'])}</span>
+                </div>
+                <div style="font-size:13px;color:var(--text-secondary);margin-top:10px;">{values}</div>
+                <details style="margin-top:10px;color:var(--text-secondary);font-size:13px;line-height:1.5;">
+                    <summary style="cursor:pointer;color:var(--primary-purple);font-weight:700;">Explicație și scenarii</summary>
+                    <div style="padding-top:8px;">{details}
+                    <p style="margin:7px 0;"><b>Sursă:</b> <a href="{source_url}" target="_blank" rel="noopener noreferrer">{source}</a></p></div>
+                </details>
+            </div>"""
+        output += "</div>"
+    return output + (
+        "<p style='font-size:11px;color:var(--text-secondary);margin-top:12px;'>"
+        "Interpretări probabilistice, nu recomandări de tranzacționare.</p></div>"
+    )
 
 import os
 import xml.etree.ElementTree as ET
@@ -422,72 +829,9 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
         </div>
         """
 
-        # 4. Calendar logic (Forced Fallback if Empty)
+        # 4. Calendar economic real: ultimele 7 zile + următoarele 10 zile.
         events_list = get_economic_events()
-        
-        # DYNAMIC FALLBACK if scraper returns empty list
-        if not events_list:
-            from datetime import datetime, timedelta
-            
-            # Calculate next week's dates dynamically
-            today = datetime.now()
-            
-            # Find next Monday
-            days_until_monday = (7 - today.weekday()) % 7
-            if days_until_monday == 0:
-                days_until_monday = 7  # If today is Monday, get next Monday
-            next_monday = today + timedelta(days=days_until_monday)
-            
-            # Generate events for next week (Monday-Friday)
-            events_list = []
-            days_ro = ['Lun', 'Mar', 'Mie', 'Joi', 'Vin']
-            
-            event_templates = [
-                {'name': 'Consumer Confidence (US)', 'desc': 'Încrederea consumatorilor. Impact retail și spending.'},
-                {'name': 'New Home Sales (US)', 'desc': 'Vânzări case noi. Indicator sănătate piață imobiliară.'},
-                {'name': 'Durable Goods Orders', 'desc': 'Comenzi bunuri durabile. Indicator activitate industrială.'},
-                {'name': 'Initial Jobless Claims', 'desc': 'Cereri șomaj săptămânale. Impact piață muncă.'},
-                {'name': 'Pending Home Sales', 'desc': 'Vânzări case în așteptare. Indicator anticipativ imobiliare.'}
-            ]
-            
-            for i, template in enumerate(event_templates):
-                event_date = next_monday + timedelta(days=i)
-                month_names = {
-                    1: 'Ian', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'Mai', 6: 'Iun',
-                    7: 'Iul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
-                }
-                date_str = f"{days_ro[i]} {event_date.day} {month_names[event_date.month]}"
-                
-                events_list.append({
-                    'name': template['name'],
-                    'week': date_str,
-                    'desc': template['desc']
-                })
-
-        events_html = "<div style='margin-top: 32px; border-top: 2px solid var(--border-light); padding-top: 24px;'>"
-        events_html += "<h4 style='color: var(--primary-purple); font-size: 18px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px;'>Evenimente Majore Următoare</h4>"
-        
-        events_html += "<div style='display: grid; gap: 12px;'>"
-        for ev in events_list:
-            name = ev['name']
-            name_ro = name.replace('Fed', 'Fed').replace('CPI', 'Inflația CPI').replace('GDP', 'PIB').replace('Unemployment', 'Șomaj')
-            
-            # Try to get better desc
-            desc = get_event_impact(name)
-            if desc == "Indicator economic. Poate genera volatilitate intraday." and ev.get('desc') != 'Mock Data':
-                 # Keep existing desc if specific impact not found
-                 desc = ev.get('desc', desc)
-            
-            events_html += f"""
-            <div style="background: var(--light-purple-bg); border-left: 4px solid var(--primary-purple); padding: 16px 20px; border-radius: var(--radius-sm); transition: all 0.2s ease;">
-                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
-                    <strong style="color: var(--text-primary); font-size: 15px; font-weight: 600;">{name_ro}</strong>
-                    <span style="color: var(--text-secondary); font-size: 13px; font-weight: 500; white-space: nowrap; margin-left: 12px;">{ev['week']}</span>
-                </div>
-                <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">{desc}</div>
-            </div>
-            """
-        events_html += "</div></div>"
+        events_html = _render_calendar(events_list, indicators)
 
         # Formatare HTML Final 
         html = f"""
