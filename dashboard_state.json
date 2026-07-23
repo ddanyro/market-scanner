@@ -2,13 +2,13 @@
   "rates": {
     "EUR": 1.0,
     "USD": 0.8785999642426935,
-    "RON": 0.1910986207907702,
-    "GBP": 1.1705078789019596
+    "RON": 0.19113150306968485,
+    "GBP": 1.1710972971293931
   },
   "market_indicators": {
     "VIX3M": {
-      "value": 20.77,
-      "change": 0.99,
+      "value": 20.6,
+      "change": 0.82,
       "status": "Tension",
       "description": "20 tensiune 30",
       "sparkline": [
@@ -41,12 +41,12 @@
         20.540000915527344,
         20.389999389648438,
         19.780000686645508,
-        20.770000457763672
+        20.600000381469727
       ]
     },
     "VIX": {
-      "value": 18.91,
-      "change": 2.27,
+      "value": 18.7,
+      "change": 2.06,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,12 +79,12 @@
         18.649999618530273,
         17.049999237060547,
         16.639999389648438,
-        18.90999984741211
+        18.700000762939453
       ]
     },
     "VIX1D": {
-      "value": 14.99,
-      "change": 6.28,
+      "value": 14.71,
+      "change": 6.0,
       "status": "Normal",
       "description": "12 normal 30",
       "sparkline": [
@@ -117,12 +117,12 @@
         16.690000534057617,
         13.329999923706055,
         8.710000038146973,
-        14.989999771118164
+        14.710000038146973
       ]
     },
     "VIX9D": {
-      "value": 18.48,
-      "change": 1.98,
+      "value": 18.15,
+      "change": 1.65,
       "status": "Tension",
       "description": "18 teama 25",
       "sparkline": [
@@ -155,12 +155,12 @@
         16.850000381469727,
         17.770000457763672,
         16.5,
-        18.479999542236328
+        18.149999618530273
       ]
     },
     "VXN": {
-      "value": 29.04,
-      "change": 2.3,
+      "value": 28.06,
+      "change": 1.32,
       "status": "Tension",
       "description": "25 teama 35",
       "sparkline": [
@@ -193,12 +193,12 @@
         28.530000686645508,
         26.65999984741211,
         26.739999771118164,
-        29.040000915527344
+        28.059999465942383
       ]
     },
     "LTV": {
-      "value": 11.79,
-      "change": 1.46,
+      "value": 11.6,
+      "change": 1.27,
       "status": "Normal",
       "description": "10 normal 13",
       "sparkline": [
@@ -231,16 +231,15 @@
         11.6899995803833,
         10.539999961853027,
         10.329999923706055,
-        11.789999961853027
+        11.600000381469727
       ]
     },
     "SKEW": {
-      "value": 150.19,
-      "change": -1.47,
-      "status": "Panic",
-      "description": "150 panica",
+      "value": 145.95,
+      "change": -4.24,
+      "status": "Tension",
+      "description": "135 teama 150",
       "sparkline": [
-        141.97000122070312,
         143.0800018310547,
         142.97999572753906,
         142.60000610351562,
@@ -269,14 +268,15 @@
         147.27999877929688,
         146.0500030517578,
         151.66000366210938,
-        150.19000244140625
+        150.19000244140625,
+        145.9499969482422
       ]
     },
     "MOVE": {
-      "value": 76.31,
-      "change": 5.43,
-      "status": "Perfect",
-      "description": "perfect 80",
+      "value": 80.08,
+      "change": 9.2,
+      "status": "Normal",
+      "description": "80 moderat 120",
       "sparkline": [
         76.9800033569336,
         77.02999877929688,
@@ -307,7 +307,7 @@
         68.16000366210938,
         70.87999725341797,
         70.87770080566406,
-        76.30500030517578
+        80.07830047607422
       ]
     },
     "GVZ": {
@@ -349,8 +349,8 @@
       ]
     },
     "OVX": {
-      "value": 69.22,
-      "change": 3.91,
+      "value": 68.97,
+      "change": 3.66,
       "status": "Panic",
       "description": "35 panica",
       "sparkline": [
@@ -383,7 +383,7 @@
         62.06999969482422,
         63.779998779296875,
         65.30999755859375,
-        69.22000122070312
+        68.97000122070312
       ]
     },
     "SPX": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 18.90999984741211,
+  "vix_val": 18.700000762939453,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -571,13 +571,13 @@
       "Consensus": "Buy",
       "Analysts": 20,
       "Status": "Neutral",
-      "RSI": 66.3,
+      "RSI": 66.39,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 349.7 > SMA200 307.8), RSI 66, Risk 3.7%",
-      "RS_vs_SPX": 9.03,
+      "RS_vs_SPX": 9.08,
       "Sparkline": [
         270.39,
         274.2,
@@ -608,47 +608,47 @@
         297.73,
         303.32,
         305.94,
-        307.3
+        307.42
       ],
-      "Date": "2026-07-23 23:14"
+      "Date": "2026-07-24 00:33"
     },
     {
       "Symbol": "TVBETETF.RO",
       "Company_Name": "ETF BET Tradeville",
       "Shares": 2061,
-      "Current_Price": 11.84,
-      "Price_Native": 61.97,
+      "Current_Price": 11.91,
+      "Price_Native": 62.32,
       "Currency": "RON",
       "Buy_Price": 5.49,
-      "Target": 12.54,
+      "Target": 12.61,
       "Trail_Stop": 11.18,
-      "Suggested_Stop": 11.38,
+      "Suggested_Stop": 11.45,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
-      "Investment": 11307.56,
+      "Investment": 11309.5,
       "Entry_Date": "-",
-      "Current_Value": 24407.15,
-      "Profit": 13099.59,
-      "Profit_Pct": 115.85,
-      "Max_Profit": 14532.66,
+      "Current_Value": 24549.22,
+      "Profit": 13239.72,
+      "Profit_Pct": 117.07,
+      "Max_Profit": 14673.03,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
-      "RSI": 81.87,
+      "RSI": 82.62,
       "RSI_Status": "Overbought",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 62.0 > SMA200 45.8), RSI 82, Risk 5.6%",
-      "RS_vs_SPX": 27.52,
+      "Sell_Reason": "Trend UP (P 62.3 > SMA200 45.8), RSI 83, Risk 6.1%",
+      "RS_vs_SPX": 28.26,
       "Sparkline": [
         9.77,
-        9.77,
-        9.81,
-        9.91,
-        10.01,
+        9.78,
+        9.82,
+        9.92,
+        10.02,
         9.95,
         9.99,
         10.04,
@@ -659,12 +659,12 @@
         10.54,
         10.73,
         11.0,
-        11.17,
+        11.18,
         11.12,
         10.98,
         10.93,
         11.08,
-        11.23,
+        11.24,
         11.11,
         11.03,
         11.16,
@@ -673,9 +673,9 @@
         11.38,
         11.64,
         11.84,
-        11.84
+        11.91
       ],
-      "Date": "2026-07-23 23:14"
+      "Date": "2026-07-24 00:33"
     },
     {
       "Symbol": "UPBD",
@@ -688,7 +688,7 @@
       "Target": 25.16,
       "Trail_Stop": 17.77,
       "Suggested_Stop": 17.23,
-      "Finviz_ATR": 0.86,
+      "Finviz_ATR": 0.88,
       "Vol_W": 3.99,
       "Vol_M": 4.54,
       "Trail_Pct": 8.87,
@@ -740,7 +740,7 @@
         18.82,
         18.52
       ],
-      "Date": "2026-07-23 23:14"
+      "Date": "2026-07-24 00:33"
     }
   ],
   "watchlist": [
@@ -94039,5 +94039,5 @@
       "_cached_at": 1784777888.0223176
     }
   ],
-  "last_ai_summary": "SENTIMENT_SCORE: 55  \nREZUMAT_HTML: <p><b>Analiz\u0103 Sentiment:</b></p><ul><li><b>Indicatori Tehnici:</b> VIX la 18.91 sugereaz\u0103 volatilitate moderat\u0103, iar SPX la 7408.3 indic\u0103 o pia\u021b\u0103 relativ stabil\u0103.</li><li><b>\u0218tiri Pozitive:</b> Absen\u021ba cre\u0219terii pre\u021bului petrolului reduce presiunile infla\u021bioniste. Expedia exploreaz\u0103 noi oportunit\u0103\u021bi, semnal\u00e2nd \u00eencredere \u00een cre\u0219tere.</li><li><b>\u0218tiri Negative:</b> Reducerile de personal la Oracle \u0219i obstacolele financiare sugereaz\u0103 dificult\u0103\u021bi \u00een sectorul tehnologic. Totu\u0219i, investi\u021biile \u00een AI pot genera beneficii pe termen lung.</li><li><b>Oportunit\u0103\u021bi:</b> Cre\u0219terea valorii ac\u021biunilor TVAL poate atrage investitori interesa\u021bi de ac\u021biuni de valoare.</li><li><b>Riscuri:</b> Problemele financiare ale Oracle pot afecta sentimentul \u00een sectorul tehnologic. Impactul economic al deciziilor companiilor mari trebuie monitorizat.</li></ul>"
+  "last_ai_summary": "SENTIMENT_SCORE: 65  \nREZUMAT_HTML: <p><b>Sentimentul pie\u021bei este u\u0219or optimist.</b> VIX la 18.7 sugereaz\u0103 o volatilitate moderat\u0103, iar SPX la 7408.3 indic\u0103 o performan\u021b\u0103 solid\u0103 a pie\u021bei. Absen\u021ba unei cre\u0219teri semnificative a pre\u021bului petrolului elimin\u0103 un risc major pentru pie\u021bele globale. Extinderea Kraken \u00een domeniul ac\u021biunilor tokenizate aduce oportunit\u0103\u021bi de diversificare pe pie\u021bele din U.K. \u0219i Asia, semnal\u00e2nd un interes crescut pentru activele digitale. Cre\u0219terea exponen\u021bial\u0103 a Arista Networks datorit\u0103 AI este un indicator pozitiv pentru sectorul tehnologic. Totu\u0219i, tranzi\u021bia de leadership la USA Rare Earth poate introduce incertitudini pe termen scurt. Raportul analistului despre Texas Instruments va oferi claritate suplimentar\u0103 asupra performan\u021bei acestui gigant tehnologic. \u00cen ansamblu, perspectivele sunt favorabile, dar investitorii ar trebui s\u0103 monitorizeze evolu\u021biile din sectorul tehnologic \u0219i schimb\u0103rile de leadership.</p>"
 }
