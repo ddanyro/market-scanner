@@ -3,12 +3,12 @@
     "EUR": 1.0,
     "USD": 0.8788999668917191,
     "RON": 0.191084012010541,
-    "GBP": 1.1706449265507741
+    "GBP": 1.170946495336724
   },
   "market_indicators": {
     "VIX3M": {
-      "value": 21.04,
-      "change": 1.26,
+      "value": 21.13,
+      "change": 1.35,
       "status": "Tension",
       "description": "20 tensiune 30",
       "sparkline": [
@@ -41,12 +41,12 @@
         20.540000915527344,
         20.389999389648438,
         19.780000686645508,
-        21.040000915527344
+        21.1299991607666
       ]
     },
     "VIX": {
-      "value": 19.48,
-      "change": 2.84,
+      "value": 19.58,
+      "change": 2.94,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,12 +79,12 @@
         18.649999618530273,
         17.049999237060547,
         16.639999389648438,
-        19.479999542236328
+        19.579999923706055
       ]
     },
     "VIX1D": {
-      "value": 12.85,
-      "change": 4.14,
+      "value": 14.23,
+      "change": 5.52,
       "status": "Normal",
       "description": "12 normal 30",
       "sparkline": [
@@ -117,12 +117,12 @@
         16.690000534057617,
         13.329999923706055,
         8.710000038146973,
-        12.850000381469727
+        14.229999542236328
       ]
     },
     "VIX9D": {
-      "value": 19.36,
-      "change": 2.86,
+      "value": 19.35,
+      "change": 2.85,
       "status": "Tension",
       "description": "18 teama 25",
       "sparkline": [
@@ -155,12 +155,12 @@
         16.850000381469727,
         17.770000457763672,
         16.5,
-        19.360000610351562
+        19.350000381469727
       ]
     },
     "VXN": {
-      "value": 29.57,
-      "change": 2.83,
+      "value": 29.47,
+      "change": 2.73,
       "status": "Tension",
       "description": "25 teama 35",
       "sparkline": [
@@ -193,12 +193,12 @@
         28.530000686645508,
         26.65999984741211,
         26.739999771118164,
-        29.56999969482422
+        29.469999313354492
       ]
     },
     "LTV": {
-      "value": 12.14,
-      "change": 1.81,
+      "value": 12.21,
+      "change": 1.88,
       "status": "Normal",
       "description": "10 normal 13",
       "sparkline": [
@@ -231,7 +231,7 @@
         11.6899995803833,
         10.539999961853027,
         10.329999923706055,
-        12.140000343322754
+        12.210000038146973
       ]
     },
     "SKEW": {
@@ -311,8 +311,8 @@
       ]
     },
     "GVZ": {
-      "value": 25.44,
-      "change": 1.42,
+      "value": 25.26,
+      "change": 1.24,
       "status": "Panic",
       "description": "22 panica",
       "sparkline": [
@@ -345,12 +345,12 @@
         25.3700008392334,
         23.940000534057617,
         24.020000457763672,
-        25.440000534057617
+        25.260000228881836
       ]
     },
     "OVX": {
-      "value": 69.99,
-      "change": 4.68,
+      "value": 70.49,
+      "change": 5.18,
       "status": "Panic",
       "description": "35 panica",
       "sparkline": [
@@ -383,12 +383,12 @@
         62.06999969482422,
         63.779998779296875,
         65.30999755859375,
-        69.98999786376953
+        70.48999786376953
       ]
     },
     "SPX": {
-      "value": 7408.21,
-      "change": -90.75,
+      "value": 7405.88,
+      "change": -93.08,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -421,12 +421,12 @@
         7443.27978515625,
         7509.2001953125,
         7498.9599609375,
-        7408.2099609375
+        7405.8798828125
       ]
     },
     "NASDAQ": {
-      "value": 25136.67,
-      "change": -554.23,
+      "value": 25146.16,
+      "change": -544.74,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -459,7 +459,7 @@
         25508.0703125,
         25837.2109375,
         25690.900390625,
-        25136.671875
+        25146.15625
       ]
     },
     "Crypto Fear": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 19.479999542236328,
+  "vix_val": 19.579999923706055,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -571,13 +571,13 @@
       "Consensus": "Buy",
       "Analysts": 20,
       "Status": "Neutral",
-      "RSI": 64.9,
+      "RSI": 64.67,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 349.7 > SMA200 307.8), RSI 65, Risk 3.7%",
-      "RS_vs_SPX": 8.45,
+      "RS_vs_SPX": 8.43,
       "Sparkline": [
         270.48,
         274.29,
@@ -608,9 +608,9 @@
         297.83,
         303.42,
         306.04,
-        305.81
+        305.66
       ],
-      "Date": "2026-07-23 19:19"
+      "Date": "2026-07-23 20:53"
     },
     {
       "Symbol": "TVBETETF.RO",
@@ -642,7 +642,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 62.0 > SMA200 45.8), RSI 82, Risk 5.6%",
-      "RS_vs_SPX": 27.52,
+      "RS_vs_SPX": 27.55,
       "Sparkline": [
         9.77,
         9.77,
@@ -675,7 +675,7 @@
         11.84,
         11.84
       ],
-      "Date": "2026-07-23 19:19"
+      "Date": "2026-07-23 20:53"
     },
     {
       "Symbol": "UPBD",
@@ -701,13 +701,13 @@
       "Consensus": "Strong Buy",
       "Analysts": 7,
       "Status": "Neutral",
-      "RSI": 54.16,
+      "RSI": 53.79,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 21.4 > SMA200 18.6), RSI 54, Risk 5.6%",
-      "RS_vs_SPX": 9.15,
+      "RS_vs_SPX": 8.94,
       "Sparkline": [
         15.56,
         16.0,
@@ -738,9 +738,9 @@
         19.06,
         19.26,
         18.83,
-        18.52
+        18.48
       ],
-      "Date": "2026-07-23 19:19"
+      "Date": "2026-07-23 20:53"
     }
   ],
   "watchlist": [
@@ -94039,5 +94039,5 @@
       "_cached_at": 1784777888.0223176
     }
   ],
-  "last_ai_summary": "SENTIMENT_SCORE: 45  \nREZUMAT_HTML: <p><b>Analiz\u0103 Sentiment:</b> Sentimentul general al pie\u021bei este u\u0219or negativ. Indicele VIX la 19.48 sugereaz\u0103 o volatilitate moderat\u0103, iar SPX la 7408.21 indic\u0103 un nivel decent al pie\u021bei, dar nu suficient de optimist. Cre\u0219terea ratelor ipotecare la 6.58% ridic\u0103 \u00eengrijor\u0103ri privind accesibilitatea locuin\u021belor \u0219i presiunea infla\u021bionist\u0103 cauzat\u0103 de cre\u0219terea pre\u021burilor la petrol. De\u0219i temerile legate de o cre\u0219tere masiv\u0103 a pre\u021bului petrolului nu s-au materializat, acest context continu\u0103 s\u0103 influen\u021beze negativ percep\u021bia investitorilor. \u00cen sectorul telecomunica\u021biilor, rezultatele T-Mobile sunt mixte, cu c\u00e2\u0219tiguri bune, dar venituri sub a\u0219tept\u0103ri \u0219i o respingere a unei extinderi a acordului cu Starlink, ceea ce poate limita oportunit\u0103\u021bile de cre\u0219tere. \u00cen concluzie, exist\u0103 un echilibru delicat \u00eentre riscuri \u0219i oportunit\u0103\u021bi, pie\u021bele fiind atente la evolu\u021biile viitoare ale c\u00e2\u0219tigurilor corporative.</p>"
+  "last_ai_summary": "SENTIMENT_SCORE: 35  \nREZUMAT_HTML: <p><b>Sentimentul general al pie\u021bei este unul de pruden\u021b\u0103 \u0219i pesimism moderat.</b></p>  \n<ul>  \n<li>Indicele VIX la 19.58 sugereaz\u0103 volatilitate moderat\u0103, indic\u00e2nd o oarecare incertitudine \u00een pia\u021b\u0103.</li>  \n<li>\u0218tirile despre cre\u0219terea pre\u021bului petrolului peste 100 USD, din cauza atacurilor asupra tancurilor saudite, accentueaz\u0103 \u00eengrijor\u0103rile legate de aprovizionarea cu energie.</li>  \n<li>Sc\u0103derile semnificative ale indicilor bursieri Nasdaq, Dow \u0219i S&P 500, mai ales \u00een sectorul Big Tech, subliniaz\u0103 un sentiment negativ \u00een r\u00e2ndul investitorilor.</li>  \n<li>Pe de alt\u0103 parte, calmul pie\u021bei \u00een privin\u021ba raport\u0103rilor financiare \u0219i eforturile Blackstone de a aborda preocup\u0103rile comunit\u0103\u021bii privind AI ar putea oferi stabilitate pe termen scurt.</li>  \n</ul>"
 }
