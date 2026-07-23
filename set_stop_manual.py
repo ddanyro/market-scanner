@@ -6,7 +6,7 @@ PORTFOLIO_FILE = '/Users/danieldragomir/antigravity/portfolio.csv'
 
 # Manual current prices
 updates = {
-    'TVBETETF.RO': 57.73
+    'TVBETETF.RO': 58.5
 }
 
 if os.path.exists(PORTFOLIO_FILE):
