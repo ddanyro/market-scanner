@@ -1,14 +1,14 @@
 {
   "rates": {
     "EUR": 1.0,
-    "USD": 0.8787000037290716,
-    "RON": 0.19123748953376635,
-    "GBP": 1.1718383837960522
+    "USD": 0.8792999820337275,
+    "RON": 0.19118996322708914,
+    "GBP": 1.172154325820473
   },
   "market_indicators": {
     "VIX3M": {
-      "value": 20.09,
-      "change": 0.31,
+      "value": 20.63,
+      "change": 0.85,
       "status": "Tension",
       "description": "20 tensiune 30",
       "sparkline": [
@@ -41,12 +41,12 @@
         20.540000915527344,
         20.389999389648438,
         19.780000686645508,
-        20.09000015258789
+        20.6299991607666
       ]
     },
     "VIX": {
-      "value": 17.78,
-      "change": -0.92,
+      "value": 18.84,
+      "change": 0.14,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
@@ -79,14 +79,14 @@
         17.049999237060547,
         16.639999389648438,
         18.700000762939453,
-        17.780000686645508
+        18.84000015258789
       ]
     },
     "VIX1D": {
-      "value": 11.66,
-      "change": 2.95,
-      "status": "Perfect",
-      "description": "perfect 12",
+      "value": 15.52,
+      "change": 6.81,
+      "status": "Normal",
+      "description": "12 normal 30",
       "sparkline": [
         20.600000381469727,
         23.850000381469727,
@@ -117,14 +117,14 @@
         16.690000534057617,
         13.329999923706055,
         8.710000038146973,
-        11.65999984741211
+        15.520000457763672
       ]
     },
     "VIX9D": {
-      "value": 16.52,
-      "change": 0.02,
-      "status": "Normal",
-      "description": "12 normal 18",
+      "value": 18.19,
+      "change": 1.69,
+      "status": "Tension",
+      "description": "18 teama 25",
       "sparkline": [
         22.139999389648438,
         25.670000076293945,
@@ -155,12 +155,12 @@
         16.850000381469727,
         17.770000457763672,
         16.5,
-        16.520000457763672
+        18.190000534057617
       ]
     },
     "VXN": {
-      "value": 27.88,
-      "change": -0.18,
+      "value": 28.5,
+      "change": 0.44,
       "status": "Tension",
       "description": "25 teama 35",
       "sparkline": [
@@ -193,12 +193,12 @@
         26.65999984741211,
         26.739999771118164,
         28.059999465942383,
-        27.8799991607666
+        28.5
       ]
     },
     "LTV": {
-      "value": 11.09,
-      "change": 0.76,
+      "value": 11.95,
+      "change": 1.62,
       "status": "Normal",
       "description": "10 normal 13",
       "sparkline": [
@@ -231,7 +231,7 @@
         11.6899995803833,
         10.539999961853027,
         10.329999923706055,
-        11.09000015258789
+        11.949999809265137
       ]
     },
     "SKEW": {
@@ -311,8 +311,8 @@
       ]
     },
     "GVZ": {
-      "value": 24.24,
-      "change": -0.9,
+      "value": 24.5,
+      "change": -0.64,
       "status": "Panic",
       "description": "22 panica",
       "sparkline": [
@@ -345,12 +345,12 @@
         23.940000534057617,
         24.020000457763672,
         25.139999389648438,
-        24.239999771118164
+        24.5
       ]
     },
     "OVX": {
-      "value": 65.69,
-      "change": -3.28,
+      "value": 67.17,
+      "change": -1.8,
       "status": "Panic",
       "description": "35 panica",
       "sparkline": [
@@ -383,12 +383,12 @@
         63.779998779296875,
         65.30999755859375,
         68.97000122070312,
-        65.69000244140625
+        67.16999816894531
       ]
     },
     "SPX": {
-      "value": 7436.97,
-      "change": 28.67,
+      "value": 7407.92,
+      "change": -0.38,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -421,12 +421,12 @@
         7509.2001953125,
         7498.9599609375,
         7408.2998046875,
-        7436.97021484375
+        7407.919921875
       ]
     },
     "NASDAQ": {
-      "value": 25119.79,
-      "change": -17.89,
+      "value": 24990.34,
+      "change": -147.35,
       "status": "Normal",
       "description": "",
       "sparkline": [
@@ -459,7 +459,7 @@
         25837.2109375,
         25690.900390625,
         25137.689453125,
-        25119.794921875
+        24990.3359375
       ]
     },
     "Crypto Fear": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 17.790000915527344,
+  "vix_val": 18.84000015258789,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -551,66 +551,66 @@
       "Symbol": "JPM",
       "Company_Name": "JPMorgan Chase & Co.",
       "Shares": 4,
-      "Current_Price": 307.28,
+      "Current_Price": 307.49,
       "Price_Native": 349.7,
       "Currency": "USD",
-      "Buy_Price": 297.22,
-      "Target": 328.29,
-      "Trail_Stop": 296.05,
-      "Suggested_Stop": 293.99,
+      "Buy_Price": 297.42,
+      "Target": 328.52,
+      "Trail_Stop": 296.25,
+      "Suggested_Stop": 294.19,
       "Finviz_ATR": 7.38,
       "Vol_W": 2.11,
       "Vol_M": 2.17,
       "Trail_Pct": 3.48,
-      "Investment": 1188.88,
+      "Investment": 1189.69,
       "Entry_Date": "-",
-      "Current_Value": 1229.13,
-      "Profit": 40.24,
+      "Current_Value": 1229.96,
+      "Profit": 40.27,
       "Profit_Pct": 3.39,
-      "Max_Profit": 124.28,
+      "Max_Profit": 124.37,
       "Consensus": "Buy",
       "Analysts": 20,
       "Status": "Neutral",
-      "RSI": 68.27,
+      "RSI": 67.95,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 349.7 > SMA200 308.0), RSI 68, Risk 3.7%",
-      "RS_vs_SPX": 10.35,
+      "RS_vs_SPX": 10.59,
       "Sparkline": [
-        274.23,
-        280.55,
-        279.4,
-        289.67,
-        291.7,
-        284.49,
-        289.97,
-        292.29,
-        291.69,
-        293.15,
-        287.84,
-        288.14,
-        286.33,
-        292.23,
-        292.58,
-        296.75,
-        298.07,
-        290.52,
-        294.78,
-        295.66,
-        293.95,
-        301.3,
-        304.83,
-        301.53,
-        299.72,
-        297.77,
-        303.35,
-        305.97,
-        307.46,
-        309.93
+        274.42,
+        280.74,
+        279.59,
+        289.87,
+        291.9,
+        284.68,
+        290.16,
+        292.49,
+        291.89,
+        293.35,
+        288.04,
+        288.33,
+        286.53,
+        292.43,
+        292.78,
+        296.96,
+        298.28,
+        290.71,
+        294.98,
+        295.86,
+        294.15,
+        301.5,
+        305.04,
+        301.73,
+        299.93,
+        297.97,
+        303.56,
+        306.18,
+        307.67,
+        309.7
       ],
-      "Date": "2026-07-24 20:01"
+      "Date": "2026-07-24 21:53"
     },
     {
       "Symbol": "TVBETETF.RO",
@@ -621,18 +621,18 @@
       "Currency": "RON",
       "Buy_Price": 5.49,
       "Target": 12.44,
-      "Trail_Stop": 11.19,
+      "Trail_Stop": 11.18,
       "Suggested_Stop": 11.28,
       "Finviz_ATR": null,
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
-      "Investment": 11315.77,
+      "Investment": 11312.96,
       "Entry_Date": "-",
-      "Current_Value": 24204.17,
-      "Profit": 12888.39,
+      "Current_Value": 24198.15,
+      "Profit": 12885.19,
       "Profit_Pct": 113.9,
-      "Max_Profit": 14325.88,
+      "Max_Profit": 14322.32,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
@@ -642,7 +642,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 61.4 > SMA200 46.0), RSI 76, Risk 4.7%",
-      "RS_vs_SPX": 26.69,
+      "RS_vs_SPX": 27.1,
       "Sparkline": [
         9.78,
         9.82,
@@ -655,11 +655,11 @@
         10.33,
         10.37,
         10.38,
-        10.55,
-        10.74,
-        11.01,
+        10.54,
+        10.73,
+        11.0,
         11.18,
-        11.13,
+        11.12,
         10.99,
         10.93,
         11.09,
@@ -675,72 +675,72 @@
         11.85,
         11.74
       ],
-      "Date": "2026-07-24 20:01"
+      "Date": "2026-07-24 21:53"
     },
     {
       "Symbol": "UPBD",
       "Company_Name": "Upbound Group, Inc.",
       "Shares": 100,
-      "Current_Price": 18.81,
+      "Current_Price": 18.83,
       "Price_Native": 21.41,
       "Currency": "USD",
-      "Buy_Price": 19.12,
-      "Target": 25.17,
-      "Trail_Stop": 17.77,
-      "Suggested_Stop": 17.29,
+      "Buy_Price": 19.13,
+      "Target": 25.18,
+      "Trail_Stop": 17.78,
+      "Suggested_Stop": 17.3,
       "Finviz_ATR": 0.85,
       "Vol_W": 3.55,
       "Vol_M": 4.42,
       "Trail_Pct": 8.87,
-      "Investment": 1912.05,
+      "Investment": 1913.36,
       "Entry_Date": "-",
-      "Current_Value": 1881.3,
-      "Profit": -30.75,
+      "Current_Value": 1882.58,
+      "Profit": -30.78,
       "Profit_Pct": -1.61,
-      "Max_Profit": 604.55,
+      "Max_Profit": 604.96,
       "Consensus": "Strong Buy",
       "Analysts": 7,
       "Status": "Neutral",
-      "RSI": 55.44,
+      "RSI": 54.07,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 21.4 > SMA200 18.6), RSI 55, Risk 5.6%",
-      "RS_vs_SPX": 10.37,
+      "Sell_Reason": "Trend UP (P 21.4 > SMA200 18.6), RSI 54, Risk 5.6%",
+      "RS_vs_SPX": 9.77,
       "Sparkline": [
-        15.99,
-        16.3,
+        16.01,
+        16.31,
+        16.12,
+        16.61,
+        15.35,
         16.11,
-        16.6,
-        15.34,
-        16.1,
-        16.1,
-        16.42,
-        17.21,
-        17.43,
-        17.96,
-        18.33,
-        18.65,
-        18.22,
-        17.48,
-        18.04,
-        18.02,
-        17.44,
-        17.86,
-        18.59,
-        18.58,
-        18.52,
-        19.3,
-        20.0,
-        19.47,
-        19.06,
-        19.25,
-        18.82,
-        18.52,
-        18.67
+        16.11,
+        16.43,
+        17.23,
+        17.45,
+        17.97,
+        18.34,
+        18.66,
+        18.23,
+        17.49,
+        18.05,
+        18.03,
+        17.45,
+        17.87,
+        18.61,
+        18.6,
+        18.54,
+        19.31,
+        20.01,
+        19.49,
+        19.07,
+        19.27,
+        18.83,
+        18.54,
+        18.52
       ],
-      "Date": "2026-07-24 20:01"
+      "Date": "2026-07-24 21:53"
     }
   ],
   "watchlist": [
@@ -94039,5 +94039,5 @@
       "_cached_at": 1784777888.0223176
     }
   ],
-  "last_ai_summary": "SENTIMENT_SCORE: 60  \nREZUMAT_HTML: <p><b>Sentiment general: Moderat optimist</b></p>  \n<p>Indicatorul VIX la 17.78 sugereaz\u0103 o volatilitate moderat\u0103, indic\u00e2nd un sentiment u\u0219or optimist. Cre\u0219terea Nasdaq \u0219i performan\u021ba pozitiv\u0103 a Murphy USA \u0219i Twist Bioscience subliniaz\u0103 oportunit\u0103\u021bi de investi\u021bii \u00een sectoarele de tehnologie \u0219i energie. Totu\u0219i, semnalele de v\u00e2nzare de la American Express \u0219i revizuirea negativ\u0103 a prognozei de v\u00e2nz\u0103ri de c\u0103tre Volkswagen indic\u0103 riscuri \u00een sectoarele financiar \u0219i auto. Predic\u021bia optimist\u0103 pentru XRP adaug\u0103 un sentiment pozitiv pe pia\u021ba criptomonedelor. \u00cen ansamblu, pia\u021ba arat\u0103 un optimism prudent, cu poten\u021bial de cre\u0219tere \u00een anumite sectoare, dar \u0219i cu riscuri semnificative care necesit\u0103 aten\u021bie.</p>"
+  "last_ai_summary": "SENTIMENT_SCORE: 65  \nREZUMAT_HTML: <p><b>Sentimentul pie\u021bei este moderat optimist</b>, indicat de un VIX relativ sc\u0103zut de 18.84, suger\u00e2nd volatilitate redus\u0103 \u0219i \u00eencredere \u00een pia\u021b\u0103. Indicele SPX la 7407.92 reflect\u0103 o performan\u021b\u0103 solid\u0103. \u0218tirile recente sus\u021bin acest optimism: CSX \u0219i-a \u00eembun\u0103t\u0103\u021bit perspectivele datorit\u0103 volumului \u0219i veniturilor crescute, iar Google Cloud devine un motor de profit pentru Alphabet, subliniind poten\u021bialul de cre\u0219tere \u00een sectorul tehnologic. \u00cen plus, debutul CXMT eviden\u021biaz\u0103 strategia Chinei de a-\u0219i consolida pozi\u021bia tehnologic\u0103, ceea ce poate aduce noi oportunit\u0103\u021bi de investi\u021bii. Totu\u0219i, exist\u0103 riscuri legate de complexitatea implement\u0103rii unui Backdoor Roth IRA \u0219i de concuren\u021ba din sectorul tehnologic. Investitorii ar trebui s\u0103 fie aten\u021bi la evolu\u021biile macroeconomice \u0219i la eventualele schimb\u0103ri \u00een politica monetar\u0103.</p>"
 }
