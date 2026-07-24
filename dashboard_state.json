@@ -1,17 +1,18 @@
 {
   "rates": {
     "EUR": 1.0,
-    "USD": 0.8780000215611463,
-    "RON": 0.19112784505348776,
-    "GBP": 1.1702202485603135
+    "USD": 0.8784000455712915,
+    "RON": 0.19113150306968485,
+    "GBP": 1.1697684736081053
   },
   "market_indicators": {
     "VIX3M": {
-      "value": 20.6,
-      "change": 0.82,
-      "status": "Tension",
-      "description": "20 tensiune 30",
+      "value": 19.78,
+      "change": -0.61,
+      "status": "Normal",
+      "description": "14 normal 20",
       "sparkline": [
+        20.790000915527344,
         21.309999465942383,
         22.889999389648438,
         21.420000076293945,
@@ -40,8 +41,7 @@
         19.5,
         20.540000915527344,
         20.389999389648438,
-        19.780000686645508,
-        20.600000381469727
+        19.780000686645508
       ]
     },
     "VIX": {
@@ -83,11 +83,12 @@
       ]
     },
     "VIX1D": {
-      "value": 14.71,
-      "change": 6.0,
-      "status": "Normal",
-      "description": "12 normal 30",
+      "value": 8.71,
+      "change": -4.62,
+      "status": "Perfect",
+      "description": "perfect 12",
       "sparkline": [
+        16.020000457763672,
         20.600000381469727,
         23.850000381469727,
         21.09000015258789,
@@ -116,16 +117,16 @@
         12.720000267028809,
         16.690000534057617,
         13.329999923706055,
-        8.710000038146973,
-        14.710000038146973
+        8.710000038146973
       ]
     },
     "VIX9D": {
-      "value": 18.15,
-      "change": 1.65,
-      "status": "Tension",
-      "description": "18 teama 25",
+      "value": 16.5,
+      "change": -1.27,
+      "status": "Normal",
+      "description": "12 normal 18",
       "sparkline": [
+        19.690000534057617,
         22.139999389648438,
         25.670000076293945,
         20.65999984741211,
@@ -154,8 +155,7 @@
         13.979999542236328,
         16.850000381469727,
         17.770000457763672,
-        16.5,
-        18.149999618530273
+        16.5
       ]
     },
     "VXN": {
@@ -273,11 +273,12 @@
       ]
     },
     "MOVE": {
-      "value": 80.08,
-      "change": 9.2,
-      "status": "Normal",
-      "description": "80 moderat 120",
+      "value": 70.88,
+      "change": -0.0,
+      "status": "Perfect",
+      "description": "perfect 80",
       "sparkline": [
+        75.19999694824219,
         76.9800033569336,
         77.02999877929688,
         73.94999694824219,
@@ -306,8 +307,7 @@
         68.4800033569336,
         68.16000366210938,
         70.87999725341797,
-        70.87770080566406,
-        80.07830047607422
+        70.87770080566406
       ]
     },
     "GVZ": {
@@ -459,7 +459,7 @@
         25508.0703125,
         25837.2109375,
         25690.900390625,
-        25137.693359375
+        25137.689453125
       ]
     },
     "Crypto Fear": {
@@ -551,23 +551,23 @@
       "Symbol": "JPM",
       "Company_Name": "JPMorgan Chase & Co.",
       "Shares": 4,
-      "Current_Price": 307.04,
+      "Current_Price": 307.18,
       "Price_Native": 349.7,
       "Currency": "USD",
-      "Buy_Price": 296.98,
-      "Target": 327.99,
-      "Trail_Stop": 295.82,
-      "Suggested_Stop": 293.64,
+      "Buy_Price": 297.12,
+      "Target": 328.14,
+      "Trail_Stop": 295.95,
+      "Suggested_Stop": 293.78,
       "Finviz_ATR": 7.5,
       "Vol_W": 2.11,
       "Vol_M": 2.17,
       "Trail_Pct": 3.48,
-      "Investment": 1187.93,
+      "Investment": 1188.48,
       "Entry_Date": "-",
-      "Current_Value": 1228.15,
-      "Profit": 40.21,
+      "Current_Value": 1228.71,
+      "Profit": 40.23,
       "Profit_Pct": 3.39,
-      "Max_Profit": 124.04,
+      "Max_Profit": 124.1,
       "Consensus": "Buy",
       "Analysts": 20,
       "Status": "Neutral",
@@ -579,38 +579,38 @@
       "Sell_Reason": "Trend UP (P 349.7 > SMA200 307.8), RSI 66, Risk 3.7%",
       "RS_vs_SPX": 9.08,
       "Sparkline": [
-        270.21,
-        274.01,
-        280.33,
-        279.18,
-        289.44,
-        291.46,
-        284.26,
-        289.73,
-        292.06,
-        291.46,
-        292.92,
-        287.61,
-        287.91,
-        286.11,
-        292.0,
-        292.35,
-        296.52,
-        297.84,
-        290.28,
-        294.54,
-        295.42,
-        293.72,
-        301.06,
-        304.59,
-        301.29,
-        299.49,
-        297.53,
-        303.11,
-        305.73,
-        307.21
+        270.33,
+        274.13,
+        280.46,
+        279.3,
+        289.57,
+        291.6,
+        284.39,
+        289.87,
+        292.19,
+        291.59,
+        293.05,
+        287.74,
+        288.04,
+        286.24,
+        292.13,
+        292.48,
+        296.65,
+        297.97,
+        290.42,
+        294.68,
+        295.56,
+        293.85,
+        301.19,
+        304.73,
+        301.42,
+        299.62,
+        297.66,
+        303.25,
+        305.87,
+        307.35
       ],
-      "Date": "2026-07-24 04:50"
+      "Date": "2026-07-24 08:12"
     },
     {
       "Symbol": "TVBETETF.RO",
@@ -627,12 +627,12 @@
       "Vol_W": null,
       "Vol_M": null,
       "Trail_Pct": 0.0,
-      "Investment": 11309.28,
+      "Investment": 11309.5,
       "Entry_Date": "-",
-      "Current_Value": 24410.88,
-      "Profit": 13101.6,
+      "Current_Value": 24411.35,
+      "Profit": 13101.85,
       "Profit_Pct": 115.85,
-      "Max_Profit": 14534.88,
+      "Max_Profit": 14535.16,
       "Consensus": "-",
       "Analysts": 0,
       "Status": "Overbought",
@@ -675,29 +675,29 @@
         11.84,
         11.84
       ],
-      "Date": "2026-07-24 04:50"
+      "Date": "2026-07-24 08:12"
     },
     {
       "Symbol": "UPBD",
       "Company_Name": "Upbound Group, Inc.",
       "Shares": 100,
-      "Current_Price": 18.8,
+      "Current_Price": 18.81,
       "Price_Native": 21.41,
       "Currency": "USD",
       "Buy_Price": 19.11,
-      "Target": 25.15,
-      "Trail_Stop": 17.75,
-      "Suggested_Stop": 17.22,
+      "Target": 25.16,
+      "Trail_Stop": 17.76,
+      "Suggested_Stop": 17.23,
       "Finviz_ATR": 0.88,
       "Vol_W": 3.55,
       "Vol_M": 4.42,
       "Trail_Pct": 8.87,
-      "Investment": 1910.53,
+      "Investment": 1911.4,
       "Entry_Date": "-",
-      "Current_Value": 1879.8,
-      "Profit": -30.73,
+      "Current_Value": 1880.65,
+      "Profit": -30.74,
       "Profit_Pct": -1.61,
-      "Max_Profit": 604.06,
+      "Max_Profit": 604.34,
       "Consensus": "Strong Buy",
       "Analysts": 7,
       "Status": "Neutral",
@@ -709,38 +709,38 @@
       "Sell_Reason": "Trend UP (P 21.4 > SMA200 18.6), RSI 54, Risk 5.6%",
       "RS_vs_SPX": 9.18,
       "Sparkline": [
-        15.54,
-        15.98,
-        16.28,
-        16.09,
+        15.55,
+        15.99,
+        16.29,
+        16.1,
         16.59,
-        15.33,
-        16.08,
-        16.08,
-        16.41,
-        17.2,
-        17.42,
+        15.34,
+        16.09,
+        16.09,
+        16.42,
+        17.21,
+        17.43,
         17.95,
         18.32,
-        18.63,
-        18.2,
-        17.46,
+        18.64,
+        18.21,
+        17.47,
         18.03,
-        18.01,
-        17.43,
-        17.84,
+        18.02,
+        17.44,
+        17.85,
+        18.59,
         18.58,
-        18.57,
-        18.51,
-        19.28,
-        19.98,
-        19.46,
-        19.04,
-        19.24,
-        18.81,
-        18.51
+        18.52,
+        19.29,
+        19.99,
+        19.47,
+        19.05,
+        19.25,
+        18.82,
+        18.52
       ],
-      "Date": "2026-07-24 04:50"
+      "Date": "2026-07-24 08:12"
     }
   ],
   "watchlist": [
@@ -94039,5 +94039,5 @@
       "_cached_at": 1784777888.0223176
     }
   ],
-  "last_ai_summary": "SENTIMENT_SCORE: 65  \nREZUMAT_HTML: <p><b>Analiz\u0103 Sentiment Financiar:</b></p><ul><li>Indicele VIX la 18.7 sugereaz\u0103 o volatilitate moderat\u0103, indic\u00e2nd o pia\u021b\u0103 relativ stabil\u0103.</li><li>SPX la 7408.3 arat\u0103 o performan\u021b\u0103 pozitiv\u0103 a pie\u021bei.</li><li>\u0218tirile recente relev\u0103 o lips\u0103 a cre\u0219terii pre\u021burilor petrolului, ceea ce este pozitiv pentru costurile de produc\u021bie \u0219i consum.</li><li>Interesul \u00een cre\u0219tere pentru tranzac\u021bionarea op\u021biunilor poate indica o pia\u021b\u0103 dinamic\u0103 \u0219i oportunit\u0103\u021bi de profit.</li><li>Riscurile tehnologice sunt eviden\u021biate de impactul AI asupra fluxului de numerar al companiilor mari precum Microsoft \u0219i Oracle, dar \u0219i asupra Jack Henry.</li><li>C\u00e2\u0219tigurile Supermicro sugereaz\u0103 performan\u021be puternice \u00een sectorul tehnologic.</li></ul><p>Per ansamblu, sentimentul este pozitiv, cu oportunit\u0103\u021bi \u00een tehnologie \u0219i riscuri legate de AI.</p>"
+  "last_ai_summary": "SENTIMENT_SCORE: 65  \nREZUMAT_HTML: <p>Sentimentul general al pie\u021bei este pozitiv, influen\u021bat de mai mul\u021bi factori. <b>VIX</b> la 18.7 sugereaz\u0103 o volatilitate moderat\u0103, ceea ce indic\u0103 un sentiment de \u00eencredere relativ \u00een pia\u021b\u0103. <b>SPX</b> la 7408.3 arat\u0103 o performan\u021b\u0103 solid\u0103 a pie\u021bei de ac\u021biuni. \u0218tirile recente sunt \u00een mare parte optimiste: cre\u0219terea ac\u021biunilor Rocket Lab \u0219i ratingul pozitiv pentru CoreWeave indic\u0103 un interes crescut al investitorilor. Op\u021biunile neobi\u0219nuite pentru Nvidia sugereaz\u0103 specula\u021bii pozitive. Totu\u0219i, absen\u021ba unei cre\u0219teri a pre\u021bului petrolului este un semn de stabilitate economic\u0103. Oportunit\u0103\u021bile sunt evidente \u00een sectorul tehnologic \u0219i al inova\u021biei, dar riscurile pot ap\u0103rea din volatilitatea pie\u021bei op\u021biunilor \u0219i poten\u021bialele schimb\u0103ri rapide \u00een sentimentele investitorilor.</p>"
 }
