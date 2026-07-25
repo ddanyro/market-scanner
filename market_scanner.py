@@ -4041,7 +4041,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             # Change % logic
             change = 0.0
             spark_data = row.get('Sparkline', [])
-            if isinstance(spark_data, list) and len(spark_data) > 1:
+            if (
+                isinstance(spark_data, list)
+                and len(spark_data) > 1
+                and spark_data[-2] != 0
+            ):
                 change = ((spark_data[-1] - spark_data[-2]) / spark_data[-2]) * 100
                 
             change_color = '#aaa'
