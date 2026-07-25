@@ -45,12 +45,11 @@
       ]
     },
     "VIX": {
-      "value": 18.7,
-      "change": 2.06,
+      "value": 18.58,
+      "change": -0.12,
       "status": "Normal",
       "description": "15 normal 20",
       "sparkline": [
-        17.68000030517578,
         16.200000762939453,
         16.40999984741211,
         18.440000534057617,
@@ -79,7 +78,8 @@
         18.649999618530273,
         17.049999237060547,
         16.639999389648438,
-        18.700000762939453
+        18.700000762939453,
+        18.579999923706055
       ]
     },
     "VIX1D": {
@@ -159,12 +159,11 @@
       ]
     },
     "VXN": {
-      "value": 28.06,
-      "change": 1.32,
+      "value": 28.39,
+      "change": 0.33,
       "status": "Tension",
       "description": "25 teama 35",
       "sparkline": [
-        32.68000030517578,
         30.440000534057617,
         27.270000457763672,
         25.920000076293945,
@@ -193,7 +192,8 @@
         28.530000686645508,
         26.65999984741211,
         26.739999771118164,
-        28.059999465942383
+        28.059999465942383,
+        28.389999389648438
       ]
     },
     "LTV": {
@@ -235,12 +235,11 @@
       ]
     },
     "SKEW": {
-      "value": 145.95,
-      "change": -4.24,
+      "value": 147.28,
+      "change": 1.33,
       "status": "Tension",
       "description": "135 teama 150",
       "sparkline": [
-        143.0800018310547,
         142.97999572753906,
         142.60000610351562,
         144.32000732421875,
@@ -269,7 +268,8 @@
         146.0500030517578,
         151.66000366210938,
         150.19000244140625,
-        145.9499969482422
+        145.9499969482422,
+        147.27999877929688
       ]
     },
     "MOVE": {
@@ -311,12 +311,11 @@
       ]
     },
     "GVZ": {
-      "value": 25.14,
-      "change": 1.12,
+      "value": 24.33,
+      "change": -0.81,
       "status": "Panic",
       "description": "22 panica",
       "sparkline": [
-        32.18000030517578,
         28.329999923706055,
         26.850000381469727,
         26.469999313354492,
@@ -345,16 +344,16 @@
         25.3700008392334,
         23.940000534057617,
         24.020000457763672,
-        25.139999389648438
+        25.139999389648438,
+        24.329999923706055
       ]
     },
     "OVX": {
-      "value": 68.97,
-      "change": 3.66,
+      "value": 68.0,
+      "change": -0.97,
       "status": "Panic",
       "description": "35 panica",
       "sparkline": [
-        60.279998779296875,
         56.29999923706055,
         54.099998474121094,
         47.75,
@@ -383,16 +382,16 @@
         62.06999969482422,
         63.779998779296875,
         65.30999755859375,
-        68.97000122070312
+        68.97000122070312,
+        68.0
       ]
     },
     "SPX": {
-      "value": 7408.3,
-      "change": -90.66,
+      "value": 7411.98,
+      "change": 3.68,
       "status": "Normal",
       "description": "",
       "sparkline": [
-        7266.990234375,
         7394.2998046875,
         7431.4599609375,
         7554.2900390625,
@@ -421,16 +420,16 @@
         7443.27978515625,
         7509.2001953125,
         7498.9599609375,
-        7408.2998046875
+        7408.2998046875,
+        7411.97998046875
       ]
     },
     "NASDAQ": {
-      "value": 25137.69,
-      "change": -553.21,
+      "value": 24975.82,
+      "change": -161.87,
       "status": "Normal",
       "description": "",
       "sparkline": [
-        25169.5,
         25809.66015625,
         25888.83984375,
         26683.939453125,
@@ -459,7 +458,8 @@
         25508.0703125,
         25837.2109375,
         25690.900390625,
-        25137.689453125
+        25137.689453125,
+        24975.8203125
       ]
     },
     "Crypto Fear": {
@@ -543,7 +543,7 @@
       }
     }
   },
-  "vix_val": 18.700000762939453,
+  "vix_val": 18.579999923706055,
   "eco_phase": "Expansion",
   "eco_next_phase": "Slowdown",
   "portfolio": [
@@ -557,7 +557,7 @@
       "Buy_Price": 321.34,
       "Target": 354.93,
       "Trail_Stop": 323.98,
-      "Suggested_Stop": 321.12,
+      "Suggested_Stop": 321.24,
       "Finviz_ATR": 7.38,
       "Vol_W": 1.79,
       "Vol_M": 2.18,
@@ -571,15 +571,14 @@
       "Consensus": "Buy",
       "Analysts": 20,
       "Status": "Neutral",
-      "RSI": 66.39,
+      "RSI": 68.58,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 353.3 > SMA200 307.8), RSI 66, Risk 3.5%",
-      "RS_vs_SPX": 9.08,
+      "Sell_Reason": "Trend UP (P 353.3 > SMA200 308.0), RSI 69, Risk 3.5%",
+      "RS_vs_SPX": 10.86,
       "Sparkline": [
-        292.37,
         296.48,
         303.32,
         302.07,
@@ -608,9 +607,10 @@
         321.93,
         327.97,
         330.8,
-        332.4
+        332.4,
+        335.55
       ],
-      "Date": "2026-07-25 10:17"
+      "Date": "2026-07-25 10:31"
     },
     {
       "Symbol": "TVBETETF.RO",
@@ -642,7 +642,7 @@
       "VIX_Tag": "Normal",
       "Sell_Decision": "HOLD",
       "Sell_Reason": "Trend UP (P 61.4 > SMA200 46.0), RSI 76, Risk 4.7%",
-      "RS_vs_SPX": 27.14,
+      "RS_vs_SPX": 27.04,
       "Sparkline": [
         10.23,
         10.27,
@@ -675,7 +675,7 @@
         12.39,
         12.28
       ],
-      "Date": "2026-07-25 10:17"
+      "Date": "2026-07-25 10:31"
     },
     {
       "Symbol": "UPBD",
@@ -687,7 +687,7 @@
       "Buy_Price": 20.67,
       "Target": 27.21,
       "Trail_Stop": 19.21,
-      "Suggested_Stop": 17.77,
+      "Suggested_Stop": 17.76,
       "Finviz_ATR": 0.89,
       "Vol_W": 3.58,
       "Vol_M": 4.45,
@@ -701,15 +701,14 @@
       "Consensus": "Strong Buy",
       "Analysts": 7,
       "Status": "Neutral",
-      "RSI": 54.2,
+      "RSI": 49.2,
       "RSI_Status": "Neutral",
       "Trend": "Strong Bullish",
       "VIX_Tag": "Normal",
-      "Sell_Decision": "HOLD",
-      "Sell_Reason": "Trend UP (P 20.5 > SMA200 18.6), RSI 54, Risk 1.4%",
-      "RS_vs_SPX": 9.18,
+      "Sell_Decision": "EXIT",
+      "Sell_Reason": "RS Fail (Falling); ",
+      "RS_vs_SPX": 6.46,
       "Sparkline": [
-        16.82,
         17.29,
         17.62,
         17.41,
@@ -738,9 +737,10 @@
         20.61,
         20.81,
         20.35,
-        20.03
+        20.03,
+        19.44
       ],
-      "Date": "2026-07-25 10:17"
+      "Date": "2026-07-25 10:31"
     }
   ],
   "watchlist": [
@@ -94039,5 +94039,5 @@
       "_cached_at": 1784777888.0223176
     }
   ],
-  "last_ai_summary": "SENTIMENT_SCORE: 62\n\nREZUMAT_HTML: <p><b>Sentimentul general al pie\u021bei este moderat pozitiv.</b></p><ul><li>Indicele VIX la 18.7 sugereaz\u0103 o volatilitate relativ sc\u0103zut\u0103, indic\u00e2nd o pia\u021b\u0103 stabil\u0103.</li><li>Indicele SPX la 7408.3 reflect\u0103 o performan\u021b\u0103 solid\u0103 a pie\u021bei de ac\u021biuni.</li><li>\u0218tirea despre falimentul unui mare retailer outdoor indic\u0103 riscuri \u00een sectorul de retail tradi\u021bional.</li><li>Un semnal bullish pentru un metal rar poate sugera oportunit\u0103\u021bi \u00een sectorul materiilor prime.</li><li>Uniswap introduce fonduri tokenizate, ceea ce ar putea stimula inova\u021bia \u00een sectorul DeFi.</li><li>Banca Japoniei men\u021bine un ton precaut, f\u0103r\u0103 a semnala riscuri majore, ceea ce poate men\u021bine stabilitatea pie\u021belor asiatice.</li><li>Achizi\u021bia Matador \u0219i cre\u0219terea IMAX pe baza rezultatelor financiare pozitive sunt semnale pozitive pentru sectoarele energetice \u0219i de divertisment.</li></ul>"
+  "last_ai_summary": "SENTIMENT_SCORE: 65  \nREZUMAT_HTML: <p><b>Sentimentul general al pie\u021bei este moderat pozitiv.</b></p>  \n<ul>  \n<li>Indicele VIX la 18.58 sugereaz\u0103 o volatilitate relativ sc\u0103zut\u0103, indic\u00e2nd \u00eencredere \u00een pia\u021b\u0103.</li>  \n<li>SPX la 7411.98 arat\u0103 o performan\u021b\u0103 solid\u0103 a pie\u021bei de ac\u021biuni.</li>  \n<li>\u0218tirile negative includ falimentul retailerului de outdoor, ceea ce poate semnala sl\u0103biciuni \u00een sectorul de retail.</li>  \n<li>Pe de alt\u0103 parte, semnalele pozitive vin din partea metalelor \u0219i a deciziilor de politic\u0103 monetar\u0103 a BOJ, care nu prevede riscuri majore.</li>  \n<li>Performan\u021bele financiare ale companiilor precum Thermo Fisher \u0219i IMAX, care au raportat c\u00e2\u0219tiguri solide, contribuie la optimism.</li>  \n<li>De asemenea, inova\u021biile din sectorul DeFi, cum ar fi Uniswap, indic\u0103 oportunit\u0103\u021bi de cre\u0219tere \u00een pie\u021bele financiare descentralizate.</li>  \n</ul>"
 }
