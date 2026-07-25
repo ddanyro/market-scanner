@@ -55,5 +55,17 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("getElementById('res-atr-pct')", content, "JS should use correct ID res-atr-pct")
         self.assertNotIn("getElementById('res-atr').innerText", content, "JS should NOT use incorrect ID res-atr")
 
+    def test_market_indicators_open_detail_window_with_real_ohlc(self):
+        """Indicatorii trebuie să păstreze tabelul și să deschidă detalii într-o filă nouă."""
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        self.assertIn("onclick=\"openIndicatorDetail('", content)
+        self.assertIn("window.open('', '_blank')", content)
+        self.assertIn("'ohlc': ohlc_data", content)
+        self.assertIn("drawCandles(canvas, detail.ohlc.slice(-count))", content)
+        self.assertIn("Sursa acestui indicator nu publică OHLC", content)
+
 if __name__ == '__main__':
     unittest.main()

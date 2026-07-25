@@ -429,7 +429,7 @@ def get_market_indicators():
             time.sleep(0.5)
             data = yf.Ticker(ticker)
             # Încercăm să luăm istoric scurt pentru update, sau lung dacă nu avem local
-            hist = data.history(period="35d")
+            hist = data.history(period="6mo")
             if not hist.empty:
                 hist = hist.dropna(subset=['Close'])
             
@@ -469,6 +469,19 @@ def get_market_indicators():
                     change = 0.0
                 
                 sparkline_data = data_points[-30:] # Last 30 points
+                ohlc_data = []
+                if not hist.empty and all(col in hist.columns for col in ('Open', 'High', 'Low', 'Close')):
+                    for date_idx, row in hist.tail(90).iterrows():
+                        values = [row['Open'], row['High'], row['Low'], row['Close']]
+                        if any(pd.isna(value) for value in values):
+                            continue
+                        ohlc_data.append({
+                            'date': date_idx.strftime('%Y-%m-%d'),
+                            'open': round(float(row['Open']), 4),
+                            'high': round(float(row['High']), 4),
+                            'low': round(float(row['Low']), 4),
+                            'close': round(float(row['Close']), 4)
+                        })
                 
                 # Logică Status/Descriere
                 if name in threshold_levels:
@@ -494,7 +507,9 @@ def get_market_indicators():
                     'change': round(change, 2),
                     'status': status,
                     'description': description,
-                    'sparkline': sparkline_data
+                    'sparkline': sparkline_data,
+                    'ohlc': ohlc_data,
+                    'ticker': ticker
                 }
             else:
                 print(f"  ⚠ {name}: Nu există date (nici Yahoo, nici Local)")
@@ -547,7 +562,9 @@ def get_market_indicators():
                     'change': change,
                     'status': status,
                     'description': description,
-                    'sparkline': sparkline_data
+                    'sparkline': sparkline_data,
+                    'ohlc': [],
+                    'ticker': 'alternative.me'
                 }
     except Exception as e:
         print(f"  ⚠ Eroare Crypto Fear: {str(e)[:40]}")
@@ -3433,12 +3450,19 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         'VIX9D': 'VIX 9D'
     }
     
+    def indicator_click_attrs(name):
+        return (
+            f"""onclick="openIndicatorDetail('{name}')" role="button" tabindex="0" """
+            f"""onkeydown="if(event.key==='Enter'||event.key===' '){{event.preventDefault();openIndicatorDetail('{name}');}}" """
+            f"""title="Deschide graficul și detaliile pentru {display_map.get(name, name)}" """
+        )
+
     # Header row
     for name in indicator_order:
         if name in market_indicators:
             disp_name = display_map.get(name, name)
             html_head += f"""
-                            <th style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem;">{disp_name}</th>"""
+                            <th {indicator_click_attrs(name)}style="min-width: 80px; text-align: center; padding: 8px; font-size: 0.75rem; cursor: pointer;">{disp_name}</th>"""
     
     html_head += """
                         </tr>
@@ -3450,7 +3474,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         if name in market_indicators:
             desc = market_indicators[name].get('description', '')
             html_head += f"""
-                            <th style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal;">{desc}</th>"""
+                            <th {indicator_click_attrs(name)}style="text-align: center; padding: 5px; font-size: 0.65rem; color: #888; font-weight: normal; cursor: pointer;">{desc}</th>"""
     
     html_head += """
                         </tr>
@@ -3464,7 +3488,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         if name in market_indicators:
             spark_id = f"spark_ind_{name}"
             html_head += f"""
-                            <td style="text-align: center; padding: 5px; height: 50px;"><canvas id="{spark_id}" style="width: 100%; height: 100%;"></canvas></td>"""
+                            <td {indicator_click_attrs(name)}style="text-align: center; padding: 5px; height: 50px; cursor: pointer;"><canvas id="{spark_id}" style="width: 100%; height: 100%; pointer-events: none;"></canvas></td>"""
     
     html_head += """
                         </tr>
@@ -3490,7 +3514,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 color = 'var(--text-secondary)'
             
             html_head += f"""
-                            <td style="text-align: center; padding: 10px; font-size: 18px; font-weight: 700; color: {color};">{value}</td>"""
+                            <td {indicator_click_attrs(name)}style="text-align: center; padding: 10px; font-size: 18px; font-weight: 700; color: {color}; cursor: pointer;">{value}</td>"""
     
     html_head += """
                         </tr>
@@ -3526,7 +3550,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     arrow = ''
             
             html_head += f"""
-                            <td style="text-align: center; padding: 5px; font-size: 0.75rem; color: {change_color};">{arrow} {abs(change):.2f}</td>"""
+                            <td {indicator_click_attrs(name)}style="text-align: center; padding: 5px; font-size: 0.75rem; color: {change_color}; cursor: pointer;">{arrow} {abs(change):.2f}</td>"""
     
     html_head += """
                         </tr>
@@ -4488,8 +4512,168 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 '{spark_id}': {spark_values},
             """
     
+    indicator_explanations = {
+        'VIX3M': 'Așteptările pieței privind volatilitatea S&P 500 pe aproximativ trei luni.',
+        'VIX': 'Volatilitatea implicită a opțiunilor S&P 500 pe aproximativ 30 de zile; este numit frecvent indicele fricii.',
+        'VIX1D': 'Volatilitatea implicită estimată pentru următoarea zi de tranzacționare.',
+        'VIX9D': 'Volatilitatea implicită pe termen foarte scurt, aproximativ nouă zile.',
+        'VXN': 'Volatilitatea implicită a indicelui Nasdaq-100, sensibilă la sectorul tehnologic.',
+        'LTV': 'Indicator CBOE pentru riscul perceput în coada stângă a distribuției, asociat mișcărilor extreme negative.',
+        'SKEW': 'Măsoară cât de scumpe sunt protecțiile împotriva mișcărilor extreme față de opțiunile obișnuite.',
+        'MOVE': 'Indice al volatilității implicite pe piața obligațiunilor de stat americane.',
+        'Crypto Fear': 'Indice compozit de sentiment pentru piața crypto, de la frică extremă la lăcomie extremă.',
+        'GVZ': 'Volatilitatea implicită a aurului, derivată din opțiunile pe ETF-ul GLD.',
+        'OVX': 'Volatilitatea implicită a petrolului, derivată din opțiunile pe ETF-ul USO.',
+        'SPX': 'Indicele S&P 500, reper pentru acțiunile americane cu capitalizare mare.',
+        'NASDAQ': 'Nasdaq Composite, reper cu expunere ridicată la tehnologie și companii de creștere.'
+    }
+    indicator_detail_data = {}
+    for name in indicator_order:
+        if name not in market_indicators:
+            continue
+        indicator = market_indicators[name]
+        indicator_detail_data[name] = {
+            'name': display_map.get(name, name),
+            'ticker': indicator.get('ticker', ''),
+            'value': indicator.get('value'),
+            'change': indicator.get('change', 0),
+            'status': indicator.get('status', 'Normal'),
+            'rangeDescription': indicator.get('description', ''),
+            'explanation': indicator_explanations.get(name, ''),
+            'ohlc': indicator.get('ohlc', []),
+            'series': indicator.get('sparkline', [])
+        }
+    indicator_detail_json = json.dumps(indicator_detail_data, ensure_ascii=False).replace('</', '<\\/')
+
+    html_footer += f"""
+            }};
+            const indicatorDetailData = {indicator_detail_json};
+    """
+
     html_footer += """
-            };
+            function openIndicatorDetail(indicatorName) {
+                const detail = indicatorDetailData[indicatorName];
+                if (!detail) return;
+                const popup = window.open('', '_blank');
+                if (!popup) {
+                    alert('Browserul a blocat fereastra nouă. Permite pop-up-uri pentru acest site.');
+                    return;
+                }
+                const payload = JSON.stringify(detail).replace(/</g, '\\u003c');
+                popup.document.open();
+                popup.document.write(`<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escapeIndicatorText(detail.name)} — Detalii</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f6f7fb;color:#121827;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.page{max-width:1500px;margin:0 auto;padding:28px}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:22px}
+h1{margin:0 0 6px;font-size:clamp(28px,4vw,44px)}.ticker{color:#7760f9;font-weight:700}.close{border:1px solid #dfe3ea;background:#fff;color:#374151;padding:10px 16px;border-radius:10px;cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:14px;margin-bottom:18px}.stat,.panel{background:#fff;border:1px solid #e1e5ec;border-radius:16px;box-shadow:0 4px 18px rgba(15,23,42,.05)}
+.stat{padding:18px}.label{font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.06em}.num{font-size:25px;font-weight:750;margin-top:6px}
+.panel{padding:20px;margin-bottom:18px}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.buttons{display:flex;gap:8px}.range{border:1px solid #dfe3ea;background:#fff;color:#4b5563;padding:7px 12px;border-radius:8px;cursor:pointer;font-weight:650}.range.active{background:#7760f9;color:#fff;border-color:#7760f9}
+.chart-wrap{height:min(68vh,680px);min-height:420px;position:relative}canvas{display:block;width:100%;height:100%}.details{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.details h2{margin:0 0 10px;font-size:18px}.details p{margin:0;color:#4b5563;line-height:1.65}.note{font-size:12px;color:#6b7280;margin-top:10px}
+@media(max-width:760px){.page{padding:16px}.stats,.details{grid-template-columns:1fr 1fr}.chart-wrap{min-height:360px;height:55vh}}@media(max-width:480px){.stats,.details{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main class="page">
+<div class="top"><div><h1>${escapeIndicatorText(detail.name)}</h1><div class="ticker">${escapeIndicatorText(detail.ticker || indicatorName)}</div></div><button class="close" onclick="window.close()">Închide</button></div>
+<section class="stats">
+<div class="stat"><div class="label">Valoare curentă</div><div class="num">${formatIndicatorNumber(detail.value)}</div></div>
+<div class="stat"><div class="label">Schimbare zilnică</div><div class="num" style="color:${Number(detail.change)>=0?'#ef4444':'#16a34a'}">${Number(detail.change)>=0?'↑':'↓'} ${formatIndicatorNumber(Math.abs(Number(detail.change)||0))}</div></div>
+<div class="stat"><div class="label">Status</div><div class="num">${escapeIndicatorText(detail.status)}</div></div>
+<div class="stat"><div class="label">Interval</div><div class="num" style="font-size:18px">${escapeIndicatorText(detail.rangeDescription || '—')}</div></div>
+</section>
+<section class="panel"><div class="toolbar"><strong id="chartTitle">Grafic zilnic</strong><div class="buttons"><button class="range" data-count="22">1L</button><button class="range active" data-count="66">3L</button><button class="range" data-count="9999">Tot</button></div></div>
+<div class="chart-wrap"><canvas id="indicatorChart"></canvas></div><div class="note" id="chartNote"></div></section>
+<section class="details"><div class="panel"><h2>Ce măsoară</h2><p>${escapeIndicatorText(detail.explanation || 'Detalii indisponibile.')}</p></div>
+<div class="panel"><h2>Cum se interpretează</h2><p>${escapeIndicatorText(indicatorInterpretation(indicatorName))}</p></div></section>
+</main><script>
+const detail=${payload};
+${drawIndicatorDetail.toString()}
+${drawCandles.toString()}
+${drawLineSeries.toString()}
+${formatIndicatorNumber.toString()}
+document.querySelectorAll('.range').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('.range').forEach(x=>x.classList.remove('active'));button.classList.add('active');drawIndicatorDetail(detail,Number(button.dataset.count));}));
+window.addEventListener('resize',()=>{const active=document.querySelector('.range.active');drawIndicatorDetail(detail,Number(active.dataset.count));});
+drawIndicatorDetail(detail,66);
+<\\/script></body></html>`);
+                popup.document.close();
+            }
+
+            function escapeIndicatorText(value) {
+                return String(value == null ? '' : value)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function formatIndicatorNumber(value) {
+                const number = Number(value);
+                return Number.isFinite(number)
+                    ? number.toLocaleString('ro-RO', {maximumFractionDigits: 2})
+                    : '—';
+            }
+
+            function indicatorInterpretation(name) {
+                if (name === 'SPX' || name === 'NASDAQ') {
+                    return 'Creșterea indicelui indică aprecierea pieței. Direcția trebuie evaluată împreună cu trendul, volatilitatea și participarea acțiunilor.';
+                }
+                if (name === 'Crypto Fear') {
+                    return 'Valorile mici indică frică, iar valorile mari lăcomie. Extremele pot persista și nu reprezintă singure un semnal de cumpărare sau vânzare.';
+                }
+                return 'În general, creșterea indică risc sau volatilitate mai mare, iar scăderea relaxarea tensiunii. Nivelul și trendul sunt mai importante decât o singură variație zilnică.';
+            }
+
+            function drawIndicatorDetail(detail, count) {
+                const canvas = document.getElementById('indicatorChart');
+                if (!canvas) return;
+                if (detail.ohlc && detail.ohlc.length) {
+                    drawCandles(canvas, detail.ohlc.slice(-count));
+                    document.getElementById('chartNote').textContent = 'Lumânări OHLC zilnice reale, furnizate de Yahoo Finance.';
+                } else {
+                    drawLineSeries(canvas, (detail.series || []).slice(-count));
+                    document.getElementById('chartNote').textContent = 'Sursa acestui indicator nu publică OHLC; este afișată seria zilnică reală, fără lumânări artificiale.';
+                }
+            }
+
+            function drawCandles(canvas, candles) {
+                const rect = canvas.getBoundingClientRect();
+                const ratio = window.devicePixelRatio || 1;
+                canvas.width = Math.max(1, Math.floor(rect.width * ratio));
+                canvas.height = Math.max(1, Math.floor(rect.height * ratio));
+                const ctx = canvas.getContext('2d');
+                ctx.scale(ratio, ratio);
+                const width = rect.width, height = rect.height;
+                const pad = {left:66,right:18,top:18,bottom:34};
+                const chartW = width-pad.left-pad.right, chartH = height-pad.top-pad.bottom;
+                ctx.clearRect(0,0,width,height);
+                if (!candles.length) return;
+                const lows = candles.map(x=>Number(x.low)), highs = candles.map(x=>Number(x.high));
+                let min = Math.min(...lows), max = Math.max(...highs);
+                const extra = Math.max((max-min)*.06, .001); min-=extra; max+=extra;
+                const y = value => pad.top + (max-value)/(max-min)*chartH;
+                ctx.font='12px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';
+                for(let i=0;i<=5;i++){const value=max-(max-min)*i/5;const py=pad.top+chartH*i/5;ctx.strokeStyle='#e8ebf1';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.left,py);ctx.lineTo(width-pad.right,py);ctx.stroke();ctx.fillStyle='#6b7280';ctx.fillText(formatIndicatorNumber(value),pad.left-8,py);}
+                const step=chartW/candles.length, body=Math.max(2,Math.min(13,step*.62));
+                candles.forEach((item,index)=>{const x=pad.left+step*(index+.5);const open=Number(item.open),close=Number(item.close),high=Number(item.high),low=Number(item.low);const color=close>=open?'#16a34a':'#ef4444';ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(x,y(high));ctx.lineTo(x,y(low));ctx.stroke();const top=Math.min(y(open),y(close));const h=Math.max(1.5,Math.abs(y(open)-y(close)));ctx.fillRect(x-body/2,top,body,h);});
+                const labelEvery=Math.max(1,Math.ceil(candles.length/7));ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle='#6b7280';
+                candles.forEach((item,index)=>{if(index%labelEvery===0||index===candles.length-1){const x=pad.left+step*(index+.5);ctx.fillText(String(item.date).slice(5),x,height-pad.bottom+9);}});
+            }
+
+            function drawLineSeries(canvas, series) {
+                const rect=canvas.getBoundingClientRect(),ratio=window.devicePixelRatio||1;
+                canvas.width=Math.max(1,Math.floor(rect.width*ratio));canvas.height=Math.max(1,Math.floor(rect.height*ratio));
+                const ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);const width=rect.width,height=rect.height,pad=38;
+                ctx.clearRect(0,0,width,height);if(!series.length)return;
+                let min=Math.min(...series),max=Math.max(...series);const extra=Math.max((max-min)*.1,1);min-=extra;max+=extra;
+                ctx.strokeStyle='#e8ebf1';for(let i=0;i<5;i++){const py=pad+(height-pad*2)*i/4;ctx.beginPath();ctx.moveTo(pad,py);ctx.lineTo(width-pad,py);ctx.stroke();}
+                ctx.strokeStyle='#7760f9';ctx.lineWidth=3;ctx.beginPath();series.forEach((value,index)=>{const x=pad+(width-pad*2)*(index/Math.max(1,series.length-1));const y=pad+(max-value)/(max-min)*(height-pad*2);index?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
+            }
             
             // Create sparkline charts
             window.addEventListener('load', function() {
