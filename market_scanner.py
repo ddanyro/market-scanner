@@ -1748,6 +1748,9 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'Decision_Color': decision_color,
             'Checks_Passed': checks_passed,
             'Smart_Entry': round(s_entry, 2) if s_entry else None,
+            'Smart_Entry_EUR': round(s_entry * rate, 2) if s_entry else None,
+            'Smart_Type': s_type if s_entry else None,
+            'Smart_Reason': s_reason if s_entry else None,
             # New Fields
             'Strategy': analysis.classify_strategy({
                 'Price': last_close,
@@ -4745,6 +4748,30 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             )
             stop_value = row.get('Stop_Loss', 0)
             watchlist_levels = []
+            entry_value = row.get('Smart_Entry_EUR', 0)
+            if (
+                row.get('Decision') == 'BUY'
+                and (pd.isna(entry_value) or not entry_value)
+                and pd.notna(row.get('Smart_Entry'))
+                and row.get('Smart_Entry')
+            ):
+                native_price = row.get('Price_Native', 0)
+                conversion_rate = (
+                    float(row.get('Price', 0)) / float(native_price)
+                    if pd.notna(native_price) and float(native_price) > 0 else 1.0
+                )
+                entry_value = float(row.get('Smart_Entry')) * conversion_rate
+            if (
+                row.get('Decision') == 'BUY'
+                and pd.notna(entry_value)
+                and float(entry_value) > 0
+            ):
+                entry_type = row.get('Smart_Type') or 'LIMIT'
+                watchlist_levels.append({
+                    'label': f'Entry recomandat · {entry_type}',
+                    'value': float(entry_value),
+                    'color': '#2563eb'
+                })
             if pd.notna(stop_value) and float(stop_value) > 0:
                 watchlist_levels.append({
                     'label': 'Stop recomandat',

@@ -112,6 +112,9 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("detail.kind === 'watchlist'", content)
         self.assertIn("'label': 'Stop recomandat'", content)
         self.assertIn("'levels': watchlist_levels", content)
+        self.assertIn("'Smart_Entry_EUR': round(s_entry * rate, 2)", content)
+        self.assertIn("row.get('Decision') == 'BUY'", content)
+        self.assertIn("'label': f'Entry recomandat · {entry_type}'", content)
         self.assertIn("and spark_data[-2] != 0", content)
 
 if __name__ == '__main__':
