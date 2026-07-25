@@ -509,6 +509,7 @@ def get_market_indicators():
                     'description': description,
                     'sparkline': sparkline_data,
                     'history': data_points[-60:],
+                    'history_dates': [x['date'] for x in history_db[name]][-60:],
                     'ohlc': ohlc_data,
                     'ticker': ticker
                 }
@@ -557,6 +558,7 @@ def get_market_indicators():
                 # Sparkline data (ultimele 30 zile, inversat pentru cronologie vechi->nou)
                 sparkline_raw = data['data'][:30]
                 sparkline_data = [int(item['value']) for item in sparkline_raw][::-1]
+                history_raw = data['data'][:35][::-1]
                 
                 indicators['Crypto Fear'] = {
                     'value': value,
@@ -564,6 +566,13 @@ def get_market_indicators():
                     'status': status,
                     'description': description,
                     'sparkline': sparkline_data,
+                    'history': [int(item['value']) for item in history_raw],
+                    'history_dates': [
+                        datetime.datetime.fromtimestamp(
+                            int(item['timestamp']), datetime.timezone.utc
+                        ).strftime('%Y-%m-%d')
+                        for item in history_raw
+                    ],
                     'ohlc': [],
                     'ticker': 'alternative.me'
                 }
@@ -4542,7 +4551,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'rangeDescription': indicator.get('description', ''),
             'explanation': indicator_explanations.get(name, ''),
             'ohlc': indicator.get('ohlc', []),
-            'series': indicator.get('history', indicator.get('sparkline', []))
+            'series': indicator.get('history', indicator.get('sparkline', [])),
+            'seriesDates': indicator.get('history_dates', [])
         }
     indicator_detail_json = json.dumps(indicator_detail_data, ensure_ascii=False).replace('</', '<\\/')
 
@@ -4638,7 +4648,11 @@ drawIndicatorDetail(detail,66);
                     drawCandles(canvas, detail.ohlc.slice(-count));
                     document.getElementById('chartNote').textContent = 'Lumânări OHLC zilnice reale, furnizate de Yahoo Finance.';
                 } else {
-                    drawLineSeries(canvas, (detail.series || []).slice(-count));
+                    drawLineSeries(
+                        canvas,
+                        (detail.series || []).slice(-count),
+                        (detail.seriesDates || []).slice(-count)
+                    );
                     document.getElementById('chartNote').textContent = 'Istoric zilnic real afișat liniar: sursa nu oferă suficiente date OHLC utile pentru lumânări.';
                 }
             }
@@ -4679,14 +4693,19 @@ drawIndicatorDetail(detail,66);
                 candles.forEach((item,index)=>{if(index%labelEvery===0||index===candles.length-1){const x=pad.left+step*(index+.5);ctx.fillText(String(item.date).slice(5),x,height-pad.bottom+9);}});
             }
 
-            function drawLineSeries(canvas, series) {
+            function drawLineSeries(canvas, series, dates) {
                 const rect=canvas.getBoundingClientRect(),ratio=window.devicePixelRatio||1;
                 canvas.width=Math.max(1,Math.floor(rect.width*ratio));canvas.height=Math.max(1,Math.floor(rect.height*ratio));
-                const ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);const width=rect.width,height=rect.height,pad=38;
+                const ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);const width=rect.width,height=rect.height;
+                const pad={left:66,right:18,top:18,bottom:40};
+                const chartW=width-pad.left-pad.right,chartH=height-pad.top-pad.bottom;
                 ctx.clearRect(0,0,width,height);if(!series.length)return;
                 let min=Math.min(...series),max=Math.max(...series);const extra=Math.max((max-min)*.1,1);min-=extra;max+=extra;
-                ctx.strokeStyle='#e8ebf1';for(let i=0;i<5;i++){const py=pad+(height-pad*2)*i/4;ctx.beginPath();ctx.moveTo(pad,py);ctx.lineTo(width-pad,py);ctx.stroke();}
-                ctx.strokeStyle='#7760f9';ctx.lineWidth=3;ctx.beginPath();series.forEach((value,index)=>{const x=pad+(width-pad*2)*(index/Math.max(1,series.length-1));const y=pad+(max-value)/(max-min)*(height-pad*2);index?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
+                ctx.font='12px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';
+                for(let i=0;i<=5;i++){const value=max-(max-min)*i/5;const py=pad.top+chartH*i/5;ctx.strokeStyle='#e8ebf1';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.left,py);ctx.lineTo(width-pad.right,py);ctx.stroke();ctx.fillStyle='#6b7280';ctx.fillText(formatIndicatorNumber(value),pad.left-8,py);}
+                ctx.strokeStyle='#7760f9';ctx.lineWidth=3;ctx.beginPath();series.forEach((value,index)=>{const x=pad.left+chartW*(index/Math.max(1,series.length-1));const y=pad.top+(max-value)/(max-min)*chartH;index?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
+                const labelEvery=Math.max(1,Math.ceil(series.length/7));ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle='#6b7280';
+                series.forEach((value,index)=>{if(index%labelEvery===0||index===series.length-1){const x=pad.left+chartW*(index/Math.max(1,series.length-1));const label=dates&&dates[index]?String(dates[index]).slice(5):String(index+1);ctx.fillText(label,x,height-pad.bottom+10);}});
             }
             
             // Create sparkline charts

@@ -65,10 +65,14 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("window.open('', '_blank')", content)
         self.assertIn("'ohlc': ohlc_data", content)
         self.assertIn("'history': data_points[-60:]", content)
+        self.assertIn("'history_dates': [x['date'] for x in history_db[name]][-60:]", content)
         self.assertIn("hasUsableIndicatorOhlc(detail.ohlc)", content)
         self.assertIn("candles.length < 5", content)
         self.assertIn("nonFlat.length / valid.length >= 0.2", content)
         self.assertIn("drawCandles(canvas, detail.ohlc.slice(-count))", content)
+        self.assertIn("drawLineSeries(canvas, series, dates)", content)
+        self.assertIn("ctx.fillText(formatIndicatorNumber(value),pad.left-8,py)", content)
+        self.assertIn("String(dates[index]).slice(5)", content)
         self.assertIn("Istoric zilnic real afișat liniar", content)
 
 if __name__ == '__main__':
