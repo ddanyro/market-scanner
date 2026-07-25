@@ -110,6 +110,7 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("function openWatchlistDetail(symbol)", content)
         self.assertIn("openMarketDetailWindow(detail, symbol)", content)
         self.assertIn("detail.kind === 'watchlist'", content)
+        self.assertIn("and spark_data[-2] != 0", content)
 
 if __name__ == '__main__':
     unittest.main()
