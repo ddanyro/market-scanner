@@ -1685,6 +1685,35 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             decision_color = "#f44336"
             s_entry, s_type, s_reason = None, None, None
 
+        watch_chart_df = df.tail(90)
+        watch_chart_history = [
+            round(float(value) * rate, 4)
+            for value in watch_chart_df['Close'].tolist()
+            if not pd.isna(value)
+        ]
+        watch_chart_dates = [
+            date_idx.strftime('%Y-%m-%d')
+            for date_idx, value in zip(watch_chart_df.index, watch_chart_df['Close'])
+            if not pd.isna(value)
+        ]
+        watch_chart_ohlc = []
+        if all(column in watch_chart_df.columns for column in ('Open', 'High', 'Low', 'Close')):
+            for date_idx, chart_row in watch_chart_df.iterrows():
+                values = [chart_row['Open'], chart_row['High'], chart_row['Low'], chart_row['Close']]
+                if any(pd.isna(value) for value in values):
+                    continue
+                watch_chart_ohlc.append({
+                    'date': date_idx.strftime('%Y-%m-%d'),
+                    'open': round(float(chart_row['Open']) * rate, 4),
+                    'high': round(float(chart_row['High']) * rate, 4),
+                    'low': round(float(chart_row['Low']) * rate, 4),
+                    'close': round(float(chart_row['Close']) * rate, 4)
+                })
+        watch_daily_change = (
+            watch_chart_history[-1] - watch_chart_history[-2]
+            if len(watch_chart_history) >= 2 else 0.0
+        )
+
         result = {
             'Ticker': ticker,
             'Currency': currency,
@@ -1709,6 +1738,10 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'SMA_200': round(sma_200, 2),
             'VIX_Tag': vix_regime,
             'Sparkline': sparkline_data,
+            'Chart_History': watch_chart_history,
+            'Chart_Dates': watch_chart_dates,
+            'Chart_OHLC': watch_chart_ohlc,
+            'Daily_Change': round(watch_daily_change, 4),
             'RS_vs_SPX': round(rs_vs_spx, 2) if rs_vs_spx is not None else None,
             'RS_Status': rs_status,
             'Decision': decision,
@@ -4084,7 +4117,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     <tr data-volume="{row.get('Volume', 0)}" data-avgvol="{row.get('Avg_Volume', 0)}" data-rsi="{row['RSI']}" data-rr="{rr_val}">
                         <td><strong style="cursor: help; color: #4dabf7; text-decoration: underline;" onmousemove="showTooltip(event, '{row.get('Company_Name', '')}')" onmouseout="hideTooltip()" onclick="goToVolatility('{row['Ticker']}')">{row['Ticker']}</strong>{bomb_html}</td>
                         <td>€{row['Price']:.2f}</td>
-                        <td><canvas id="{spark_wl_id}" class="sparkline-container"></canvas></td>
+                        <td><canvas id="{spark_wl_id}" class="sparkline-container" role="button" tabindex="0" title="Deschide graficul și detaliile pentru {row['Ticker']}" style="cursor:pointer;" onclick="openWatchlistDetail('{row['Ticker']}')" onkeydown="if(event.key==='Enter'||event.key===' '){{event.preventDefault();openWatchlistDetail('{row['Ticker']}');}}"></canvas></td>
                         <td>{target_display}</td>
                         <td class="{pct_class}">{pct_display}</td>
                         <td style="color: {rr_color}; font-weight: 600;">{rr_display}</td>
@@ -4697,10 +4730,39 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'seriesDates': indicator.get('history_dates', [])
         }
     indicator_detail_json = json.dumps(indicator_detail_data, ensure_ascii=False).replace('</', '<\\/')
+    watchlist_detail_data = {}
+    if not watchlist_df.empty:
+        for _, row in watchlist_df.iterrows():
+            ticker = str(row['Ticker'])
+            target_value = row.get('Target')
+            target_description = (
+                f"€{float(target_value):.2f}"
+                if pd.notna(target_value) and target_value else "indisponibil"
+            )
+            watchlist_detail_data[ticker] = {
+                'kind': 'watchlist',
+                'name': row.get('Company_Name', ticker),
+                'ticker': ticker,
+                'value': row.get('Price'),
+                'change': row.get('Daily_Change', 0),
+                'status': row.get('Decision', '—'),
+                'rangeDescription': row.get('Trend', '—'),
+                'explanation': (
+                    f"Acțiune din watchlist. RSI {float(row.get('RSI', 0)):.1f}; "
+                    f"consens {row.get('Consensus', '—')}; "
+                    f"target {target_description}."
+                ),
+                'ohlc': row.get('Chart_OHLC', []),
+                'series': row.get('Chart_History', row.get('Sparkline', [])),
+                'seriesDates': row.get('Chart_Dates', []),
+                'levels': []
+            }
+    watchlist_detail_json = json.dumps(watchlist_detail_data, ensure_ascii=False).replace('</', '<\\/')
 
     html_footer += f"""
             }};
             const indicatorDetailData = {indicator_detail_json};
+            const watchlistDetailData = {watchlist_detail_json};
     """
 
     html_footer += """
@@ -4711,6 +4773,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
             function openPortfolioDetail(symbol) {
                 const detail = portfolioDetailData[symbol];
+                openMarketDetailWindow(detail, symbol);
+            }
+
+            function openWatchlistDetail(symbol) {
+                const detail = watchlistDetailData[symbol];
                 openMarketDetailWindow(detail, symbol);
             }
 
@@ -4787,6 +4854,9 @@ drawIndicatorDetail(detail,66);
             function indicatorInterpretation(name, detail) {
                 if (detail && detail.kind === 'portfolio') {
                     return 'Lumânările arată evoluția zilnică a prețului. Compară trendul cu prețul de cumpărare, targetul, stop-ul și riscul poziției; graficul singur nu reprezintă o recomandare de tranzacționare.';
+                }
+                if (detail && detail.kind === 'watchlist') {
+                    return 'Lumânările arată evoluția zilnică a prețului. Evaluează trendul împreună cu RSI, targetul, consensul și raportul risc-randament; includerea în watchlist nu reprezintă o recomandare de cumpărare.';
                 }
                 if (name === 'SPX' || name === 'NASDAQ') {
                     return 'Creșterea indicelui indică aprecierea pieței. Direcția trebuie evaluată împreună cu trendul, volatilitatea și participarea acțiunilor.';

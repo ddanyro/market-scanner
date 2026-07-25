@@ -97,5 +97,19 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("drawHorizontalLevels(ctx,width,pad,min,max,levels)", content)
         self.assertIn("ctx.setLineDash([7,5])", content)
 
+    def test_watchlist_mini_chart_opens_detail_window(self):
+        """Mini-graficul watchlistului deschide aceeași fereastră OHLC, fără a schimba click-ul simbolului."""
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        self.assertIn("onclick=\"openWatchlistDetail('", content)
+        self.assertIn("'Chart_OHLC': watch_chart_ohlc", content)
+        self.assertIn("'Chart_History': watch_chart_history", content)
+        self.assertIn("const watchlistDetailData =", content)
+        self.assertIn("function openWatchlistDetail(symbol)", content)
+        self.assertIn("openMarketDetailWindow(detail, symbol)", content)
+        self.assertIn("detail.kind === 'watchlist'", content)
+
 if __name__ == '__main__':
     unittest.main()
