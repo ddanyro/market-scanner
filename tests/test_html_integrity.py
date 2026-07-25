@@ -88,6 +88,7 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("portfolioDetailData = data.chart_details || {}", content)
         self.assertIn("function openPortfolioDetail(symbol)", content)
         self.assertIn("openMarketDetailWindow(detail, symbol)", content)
+        self.assertIn("if(event.key==='Escape'){event.preventDefault();window.close();}", content)
         self.assertIn('"Stop activ" if len(active_stops) == 1', content)
         self.assertIn("for price_column in ('Calculated_Stop', 'Stop_Price', 'Aux_Price')", content)
         self.assertIn('"label": "Stop propus"', content)

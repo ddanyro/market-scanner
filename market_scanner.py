@@ -4764,6 +4764,7 @@ ${drawHorizontalLevels.toString()}
 ${formatIndicatorNumber.toString()}
 document.querySelectorAll('.range').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('.range').forEach(x=>x.classList.remove('active'));button.classList.add('active');drawIndicatorDetail(detail,Number(button.dataset.count));}));
 window.addEventListener('resize',()=>{const active=document.querySelector('.range.active');drawIndicatorDetail(detail,Number(active.dataset.count));});
+window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();window.close();}});
 drawIndicatorDetail(detail,66);
 <\\/script></body></html>`);
                 popup.document.close();
