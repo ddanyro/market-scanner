@@ -3356,6 +3356,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     selling_rows_html = ""
     
     orders_list = []
+    orders_df = pd.DataFrame()
     if os.path.exists('tws_orders.csv'):
         try:
             orders_list.append(pd.read_csv('tws_orders.csv'))
@@ -3404,9 +3405,6 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             float(value) for value in raw_buy_levels
             if pd.notna(value) and float(value) > 0
         ]
-        stop_loss = row.get('Trail_Stop_IBKR', 0)
-        if pd.isna(stop_loss) or float(stop_loss) <= 0:
-            stop_loss = row.get('Trail_Stop', 0)
         chart_levels = [
             {
                 "label": "Cumpărare" if len(buy_levels) == 1 else f"Cumpărare {index + 1}",
@@ -3415,12 +3413,75 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             }
             for index, value in enumerate(buy_levels)
         ]
-        if pd.notna(stop_loss) and float(stop_loss) > 0:
+
+        # Toate ordinele SELL cu un preț stop valid sunt păstrate separat.
+        active_stops = []
+        if not orders_df.empty and 'Symbol' in orders_df.columns:
+            symbol_orders = orders_df[
+                orders_df['Symbol'].astype(str).str.upper() == symbol.upper()
+            ]
+            if 'Action' in symbol_orders.columns:
+                symbol_orders = symbol_orders[
+                    symbol_orders['Action'].astype(str).str.upper() == 'SELL'
+                ]
+            conversion_rate = 1.0
+            price_native = row.get('Price_Native', 0)
+            if pd.notna(price_native) and float(price_native) > 0:
+                conversion_rate = float(row.get('Current_Price', 0)) / float(price_native)
+            for _, order in symbol_orders.iterrows():
+                stop_price_native = 0.0
+                for price_column in ('Calculated_Stop', 'Stop_Price', 'Aux_Price'):
+                    candidate = order.get(price_column, 0)
+                    if pd.notna(candidate) and 0 < float(candidate) < 1e10:
+                        stop_price_native = float(candidate)
+                        break
+                if stop_price_native <= 0:
+                    continue
+                quantity = order.get('Total_Qty', order.get('Quantity', 0))
+                quantity = float(quantity) if pd.notna(quantity) else 0.0
+                stop_value = round(stop_price_native * conversion_rate, 4)
+                duplicate = any(
+                    abs(item['value'] - stop_value) < 0.005
+                    and abs(item['quantity'] - quantity) < 0.001
+                    for item in active_stops
+                )
+                if not duplicate:
+                    active_stops.append({'value': stop_value, 'quantity': quantity})
+
+        # Fallback la stopul agregat din portofoliu când nu există ordine detaliate.
+        if not active_stops:
+            stop_loss = row.get('Trail_Stop_IBKR', 0)
+            if pd.isna(stop_loss) or float(stop_loss) <= 0:
+                stop_loss = row.get('Trail_Stop', 0)
+            if pd.notna(stop_loss) and float(stop_loss) > 0:
+                active_stops.append({
+                    'value': float(stop_loss),
+                    'quantity': float(row.get('Shares', 0))
+                })
+
+        for index, stop in enumerate(sorted(active_stops, key=lambda item: item['value'], reverse=True)):
+            quantity_label = (
+                f" · {stop['quantity']:g} acț."
+                if stop['quantity'] > 0 else ""
+            )
             chart_levels.append({
-                "label": "Stop loss",
-                "value": float(stop_loss),
+                "label": (
+                    "Stop activ" if len(active_stops) == 1
+                    else f"Stop activ {index + 1}"
+                ) + quantity_label,
+                "value": stop['value'],
                 "color": "#dc2626"
             })
+
+        suggested_stop = row.get('Suggested_Stop', 0)
+        if pd.notna(suggested_stop) and float(suggested_stop) > 0:
+            suggested_value = float(suggested_stop)
+            if not any(abs(stop['value'] - suggested_value) < 0.005 for stop in active_stops):
+                chart_levels.append({
+                    "label": "Stop propus",
+                    "value": suggested_value,
+                    "color": "#f59e0b"
+                })
         portfolio_detail_data[symbol] = {
             "kind": "portfolio",
             "name": row.get('Company_Name', symbol),
