@@ -75,5 +75,19 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("String(dates[index]).slice(5)", content)
         self.assertIn("Istoric zilnic real afișat liniar", content)
 
+    def test_portfolio_mini_chart_opens_encrypted_candlestick_details(self):
+        """Doar mini-graficul portofoliului deschide istoricul mare, păstrat în payload-ul criptat."""
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        self.assertIn("onclick=\"openPortfolioDetail('", content)
+        self.assertIn('"chart_details": portfolio_detail_data', content)
+        self.assertIn("'Chart_OHLC': chart_ohlc", content)
+        self.assertIn("'Chart_History': chart_history", content)
+        self.assertIn("portfolioDetailData = data.chart_details || {}", content)
+        self.assertIn("function openPortfolioDetail(symbol)", content)
+        self.assertIn("openMarketDetailWindow(detail, symbol)", content)
+
 if __name__ == '__main__':
     unittest.main()

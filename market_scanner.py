@@ -846,6 +846,10 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 'Trend': 'No Data',
                 'VIX_Tag': 'Normal',
                 'Sparkline': [],
+                'Chart_History': [],
+                'Chart_Dates': [],
+                'Chart_OHLC': [],
+                'Daily_Change': 0.0,
                 'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
             }
             return result
@@ -925,6 +929,31 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         # Sparkline e doar vizual, nu contează scara, dar hai să convertim pt consistență dacă afișăm tooltip
         sparkline_data = df['Close'].tail(30).tolist()
         sparkline_data = [round(float(x) * rate, 2) for x in sparkline_data if not pd.isna(x)]
+        chart_df = df.tail(90)
+        chart_history = [
+            round(float(value) * rate, 4)
+            for value in chart_df['Close'].tolist()
+            if not pd.isna(value)
+        ]
+        chart_dates = [
+            date_idx.strftime('%Y-%m-%d')
+            for date_idx, value in zip(chart_df.index, chart_df['Close'])
+            if not pd.isna(value)
+        ]
+        chart_ohlc = []
+        if all(column in chart_df.columns for column in ('Open', 'High', 'Low', 'Close')):
+            for date_idx, chart_row in chart_df.iterrows():
+                values = [chart_row['Open'], chart_row['High'], chart_row['Low'], chart_row['Close']]
+                if any(pd.isna(value) for value in values):
+                    continue
+                chart_ohlc.append({
+                    'date': date_idx.strftime('%Y-%m-%d'),
+                    'open': round(float(chart_row['Open']) * rate, 4),
+                    'high': round(float(chart_row['High']) * rate, 4),
+                    'low': round(float(chart_row['Low']) * rate, 4),
+                    'close': round(float(chart_row['Close']) * rate, 4)
+                })
+        daily_change = chart_history[-1] - chart_history[-2] if len(chart_history) >= 2 else 0.0
         
         # Calcule pentru portofoliu (Toate în EUR)
         current_value = current_price * shares
@@ -1382,6 +1411,10 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             'Sell_Reason': sell_reason,
             'RS_vs_SPX': round(rs_vs_spx, 2) if rs_vs_spx is not None else None,
             'Sparkline': sparkline_data,
+            'Chart_History': chart_history,
+            'Chart_Dates': chart_dates,
+            'Chart_OHLC': chart_ohlc,
+            'Daily_Change': round(daily_change, 4),
             'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         }
         return result
@@ -2690,7 +2723,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         <script>
             // Variabila cu datele criptate va fi injectată aici de Python
             // const ENCRYPTED_DATA = { ... }; 
-            
+            let portfolioDetailData = {};
 
 
             function unlockPortfolio() {
@@ -2771,6 +2804,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 
                 // 3. Init Charts
                 initCharts(data.sparklines);
+                portfolioDetailData = data.chart_details || {};
                 
                 // 4. Re-Init DataTables
                 if (typeof $ !== 'undefined' && $.fn.DataTable) {
@@ -3107,7 +3141,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         <td>{row['Shares']}</td>
                         <td>€{row['Buy_Price']:.2f}</td>
                         <td>€{row['Current_Price']:.2f}</td>
-                        <td><canvas id="{sparkline_id}" class="sparkline-container"></canvas></td>
+                        <td><canvas id="{sparkline_id}" class="sparkline-container" role="button" tabindex="0" title="Deschide graficul și detaliile pentru {row['Symbol']}" style="cursor:pointer;" onclick="openPortfolioDetail('{row['Symbol']}')" onkeydown="if(event.key==='Enter'||event.key===' '){{event.preventDefault();openPortfolioDetail('{row['Symbol']}');}}"></canvas></td>
                         
                         <!-- TARGET -->
                         <td>{target_display}</td>
@@ -3360,11 +3394,33 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         selling_rows_html = '<tr><td colspan="15" style="text-align:center;">Niciun ordin de vânzare activ în IBKR / Tradeville.</td></tr>'
 
     # Encrypt Data
+    portfolio_detail_data = {}
+    for _, row in portfolio_df.iterrows():
+        symbol = str(row['Symbol'])
+        portfolio_detail_data[symbol] = {
+            "kind": "portfolio",
+            "name": row.get('Company_Name', symbol),
+            "ticker": symbol,
+            "value": row.get('Current_Price'),
+            "change": row.get('Daily_Change', 0),
+            "status": row.get('Sell_Decision', 'HOLD'),
+            "rangeDescription": row.get('Trend', '—'),
+            "explanation": (
+                f"Poziție în portofoliu: {int(row.get('Shares', 0))} acțiuni. "
+                f"Preț mediu de cumpărare €{float(row.get('Buy_Price', 0)):.2f}; "
+                f"profit/pierdere {float(row.get('Profit_Pct', 0)):.2f}%."
+            ),
+            "ohlc": row.get('Chart_OHLC', []),
+            "series": row.get('Chart_History', row.get('Sparkline', [])),
+            "seriesDates": row.get('Chart_Dates', [])
+        }
+
     full_pf_data = {
         "html": portfolio_rows_html,
         "buying_orders_html": buying_rows_html,
         "selling_orders_html": selling_rows_html,
-        "sparklines": sparkline_data
+        "sparklines": sparkline_data,
+        "chart_details": portfolio_detail_data
     }
     # Use password variable (should be defined)
     if not password: password = "1234" # Fallback
@@ -4564,6 +4620,15 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     html_footer += """
             function openIndicatorDetail(indicatorName) {
                 const detail = indicatorDetailData[indicatorName];
+                openMarketDetailWindow(detail, indicatorName);
+            }
+
+            function openPortfolioDetail(symbol) {
+                const detail = portfolioDetailData[symbol];
+                openMarketDetailWindow(detail, symbol);
+            }
+
+            function openMarketDetailWindow(detail, indicatorName) {
                 if (!detail) return;
                 const popup = window.open('', '_blank');
                 if (!popup) {
@@ -4602,7 +4667,7 @@ h1{margin:0 0 6px;font-size:clamp(28px,4vw,44px)}.ticker{color:#7760f9;font-weig
 <section class="panel"><div class="toolbar"><strong id="chartTitle">Grafic zilnic</strong><div class="buttons"><button class="range" data-count="22">1L</button><button class="range active" data-count="66">3L</button><button class="range" data-count="9999">Tot</button></div></div>
 <div class="chart-wrap"><canvas id="indicatorChart"></canvas></div><div class="note" id="chartNote"></div></section>
 <section class="details"><div class="panel"><h2>Ce măsoară</h2><p>${escapeIndicatorText(detail.explanation || 'Detalii indisponibile.')}</p></div>
-<div class="panel"><h2>Cum se interpretează</h2><p>${escapeIndicatorText(indicatorInterpretation(indicatorName))}</p></div></section>
+<div class="panel"><h2>Cum se interpretează</h2><p>${escapeIndicatorText(indicatorInterpretation(indicatorName, detail))}</p></div></section>
 </main><script>
 const detail=${payload};
 ${drawIndicatorDetail.toString()}
@@ -4631,7 +4696,10 @@ drawIndicatorDetail(detail,66);
                     : '—';
             }
 
-            function indicatorInterpretation(name) {
+            function indicatorInterpretation(name, detail) {
+                if (detail && detail.kind === 'portfolio') {
+                    return 'Lumânările arată evoluția zilnică a prețului. Compară trendul cu prețul de cumpărare, targetul, stop-ul și riscul poziției; graficul singur nu reprezintă o recomandare de tranzacționare.';
+                }
                 if (name === 'SPX' || name === 'NASDAQ') {
                     return 'Creșterea indicelui indică aprecierea pieței. Direcția trebuie evaluată împreună cu trendul, volatilitatea și participarea acțiunilor.';
                 }
