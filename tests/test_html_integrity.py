@@ -69,8 +69,8 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("hasUsableIndicatorOhlc(detail.ohlc)", content)
         self.assertIn("candles.length < 5", content)
         self.assertIn("nonFlat.length / valid.length >= 0.2", content)
-        self.assertIn("drawCandles(canvas, detail.ohlc.slice(-count))", content)
-        self.assertIn("drawLineSeries(canvas, series, dates)", content)
+        self.assertIn("drawCandles(canvas, detail.ohlc.slice(-count), detail.levels || [])", content)
+        self.assertIn("drawLineSeries(canvas, series, dates, levels)", content)
         self.assertIn("ctx.fillText(formatIndicatorNumber(value),pad.left-8,py)", content)
         self.assertIn("String(dates[index]).slice(5)", content)
         self.assertIn("Istoric zilnic real afișat liniar", content)
@@ -88,6 +88,10 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("portfolioDetailData = data.chart_details || {}", content)
         self.assertIn("function openPortfolioDetail(symbol)", content)
         self.assertIn("openMarketDetailWindow(detail, symbol)", content)
+        self.assertIn('"label": "Stop loss"', content)
+        self.assertIn('"color": "#2563eb"', content)
+        self.assertIn("drawHorizontalLevels(ctx,width,pad,min,max,levels)", content)
+        self.assertIn("ctx.setLineDash([7,5])", content)
 
 if __name__ == '__main__':
     unittest.main()

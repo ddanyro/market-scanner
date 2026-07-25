@@ -3397,6 +3397,30 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     portfolio_detail_data = {}
     for _, row in portfolio_df.iterrows():
         symbol = str(row['Symbol'])
+        raw_buy_levels = row.get('Buy_Levels', [])
+        if not isinstance(raw_buy_levels, list) or not raw_buy_levels:
+            raw_buy_levels = [row.get('Buy_Price', 0)]
+        buy_levels = [
+            float(value) for value in raw_buy_levels
+            if pd.notna(value) and float(value) > 0
+        ]
+        stop_loss = row.get('Trail_Stop_IBKR', 0)
+        if pd.isna(stop_loss) or float(stop_loss) <= 0:
+            stop_loss = row.get('Trail_Stop', 0)
+        chart_levels = [
+            {
+                "label": "Cumpărare" if len(buy_levels) == 1 else f"Cumpărare {index + 1}",
+                "value": value,
+                "color": "#2563eb"
+            }
+            for index, value in enumerate(buy_levels)
+        ]
+        if pd.notna(stop_loss) and float(stop_loss) > 0:
+            chart_levels.append({
+                "label": "Stop loss",
+                "value": float(stop_loss),
+                "color": "#dc2626"
+            })
         portfolio_detail_data[symbol] = {
             "kind": "portfolio",
             "name": row.get('Company_Name', symbol),
@@ -3412,7 +3436,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             ),
             "ohlc": row.get('Chart_OHLC', []),
             "series": row.get('Chart_History', row.get('Sparkline', [])),
-            "seriesDates": row.get('Chart_Dates', [])
+            "seriesDates": row.get('Chart_Dates', []),
+            "levels": chart_levels
         }
 
     full_pf_data = {
@@ -4674,6 +4699,7 @@ ${drawIndicatorDetail.toString()}
 ${hasUsableIndicatorOhlc.toString()}
 ${drawCandles.toString()}
 ${drawLineSeries.toString()}
+${drawHorizontalLevels.toString()}
 ${formatIndicatorNumber.toString()}
 document.querySelectorAll('.range').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('.range').forEach(x=>x.classList.remove('active'));button.classList.add('active');drawIndicatorDetail(detail,Number(button.dataset.count));}));
 window.addEventListener('resize',()=>{const active=document.querySelector('.range.active');drawIndicatorDetail(detail,Number(active.dataset.count));});
@@ -4713,13 +4739,14 @@ drawIndicatorDetail(detail,66);
                 const canvas = document.getElementById('indicatorChart');
                 if (!canvas) return;
                 if (hasUsableIndicatorOhlc(detail.ohlc)) {
-                    drawCandles(canvas, detail.ohlc.slice(-count));
+                    drawCandles(canvas, detail.ohlc.slice(-count), detail.levels || []);
                     document.getElementById('chartNote').textContent = 'Lumânări OHLC zilnice reale, furnizate de Yahoo Finance.';
                 } else {
                     drawLineSeries(
                         canvas,
                         (detail.series || []).slice(-count),
-                        (detail.seriesDates || []).slice(-count)
+                        (detail.seriesDates || []).slice(-count),
+                        detail.levels || []
                     );
                     document.getElementById('chartNote').textContent = 'Istoric zilnic real afișat liniar: sursa nu oferă suficiente date OHLC utile pentru lumânări.';
                 }
@@ -4737,7 +4764,7 @@ drawIndicatorDetail(detail,66);
                 return nonFlat.length / valid.length >= 0.2;
             }
 
-            function drawCandles(canvas, candles) {
+            function drawCandles(canvas, candles, levels) {
                 const rect = canvas.getBoundingClientRect();
                 const ratio = window.devicePixelRatio || 1;
                 canvas.width = Math.max(1, Math.floor(rect.width * ratio));
@@ -4745,11 +4772,12 @@ drawIndicatorDetail(detail,66);
                 const ctx = canvas.getContext('2d');
                 ctx.scale(ratio, ratio);
                 const width = rect.width, height = rect.height;
-                const pad = {left:66,right:18,top:18,bottom:34};
+                const pad = {left:66,right:levels.length?155:18,top:18,bottom:34};
                 const chartW = width-pad.left-pad.right, chartH = height-pad.top-pad.bottom;
                 ctx.clearRect(0,0,width,height);
                 if (!candles.length) return;
-                const lows = candles.map(x=>Number(x.low)), highs = candles.map(x=>Number(x.high));
+                const levelValues=levels.map(x=>Number(x.value)).filter(Number.isFinite);
+                const lows = candles.map(x=>Number(x.low)).concat(levelValues), highs = candles.map(x=>Number(x.high)).concat(levelValues);
                 let min = Math.min(...lows), max = Math.max(...highs);
                 const extra = Math.max((max-min)*.06, .001); min-=extra; max+=extra;
                 const y = value => pad.top + (max-value)/(max-min)*chartH;
@@ -4759,21 +4787,41 @@ drawIndicatorDetail(detail,66);
                 candles.forEach((item,index)=>{const x=pad.left+step*(index+.5);const open=Number(item.open),close=Number(item.close),high=Number(item.high),low=Number(item.low);const color=close>=open?'#16a34a':'#ef4444';ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(x,y(high));ctx.lineTo(x,y(low));ctx.stroke();const top=Math.min(y(open),y(close));const h=Math.max(1.5,Math.abs(y(open)-y(close)));ctx.fillRect(x-body/2,top,body,h);});
                 const labelEvery=Math.max(1,Math.ceil(candles.length/7));ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle='#6b7280';
                 candles.forEach((item,index)=>{if(index%labelEvery===0||index===candles.length-1){const x=pad.left+step*(index+.5);ctx.fillText(String(item.date).slice(5),x,height-pad.bottom+9);}});
+                drawHorizontalLevels(ctx,width,pad,min,max,levels);
             }
 
-            function drawLineSeries(canvas, series, dates) {
+            function drawLineSeries(canvas, series, dates, levels) {
                 const rect=canvas.getBoundingClientRect(),ratio=window.devicePixelRatio||1;
                 canvas.width=Math.max(1,Math.floor(rect.width*ratio));canvas.height=Math.max(1,Math.floor(rect.height*ratio));
                 const ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);const width=rect.width,height=rect.height;
-                const pad={left:66,right:18,top:18,bottom:40};
+                const pad={left:66,right:levels.length?155:18,top:18,bottom:40};
                 const chartW=width-pad.left-pad.right,chartH=height-pad.top-pad.bottom;
                 ctx.clearRect(0,0,width,height);if(!series.length)return;
-                let min=Math.min(...series),max=Math.max(...series);const extra=Math.max((max-min)*.1,1);min-=extra;max+=extra;
+                const levelValues=levels.map(x=>Number(x.value)).filter(Number.isFinite);
+                let min=Math.min(...series,...levelValues),max=Math.max(...series,...levelValues);const extra=Math.max((max-min)*.1,1);min-=extra;max+=extra;
                 ctx.font='12px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';
                 for(let i=0;i<=5;i++){const value=max-(max-min)*i/5;const py=pad.top+chartH*i/5;ctx.strokeStyle='#e8ebf1';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.left,py);ctx.lineTo(width-pad.right,py);ctx.stroke();ctx.fillStyle='#6b7280';ctx.fillText(formatIndicatorNumber(value),pad.left-8,py);}
                 ctx.strokeStyle='#7760f9';ctx.lineWidth=3;ctx.beginPath();series.forEach((value,index)=>{const x=pad.left+chartW*(index/Math.max(1,series.length-1));const y=pad.top+(max-value)/(max-min)*chartH;index?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
                 const labelEvery=Math.max(1,Math.ceil(series.length/7));ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle='#6b7280';
                 series.forEach((value,index)=>{if(index%labelEvery===0||index===series.length-1){const x=pad.left+chartW*(index/Math.max(1,series.length-1));const label=dates&&dates[index]?String(dates[index]).slice(5):String(index+1);ctx.fillText(label,x,height-pad.bottom+10);}});
+                drawHorizontalLevels(ctx,width,pad,min,max,levels);
+            }
+
+            function drawHorizontalLevels(ctx, width, pad, min, max, levels) {
+                if (!levels || !levels.length || max <= min) return;
+                const chartH=ctx.canvas.getBoundingClientRect().height-pad.top-pad.bottom;
+                levels.forEach(level=>{
+                    const value=Number(level.value);
+                    if (!Number.isFinite(value)) return;
+                    const py=pad.top+(max-value)/(max-min)*chartH;
+                    ctx.save();
+                    ctx.strokeStyle=level.color||'#2563eb';ctx.lineWidth=1.5;ctx.setLineDash([7,5]);
+                    ctx.beginPath();ctx.moveTo(pad.left,py);ctx.lineTo(width-pad.right,py);ctx.stroke();
+                    ctx.setLineDash([]);ctx.fillStyle=level.color||'#2563eb';ctx.font='bold 12px sans-serif';
+                    ctx.textAlign='left';ctx.textBaseline='middle';
+                    ctx.fillText(`${level.label}: €${formatIndicatorNumber(value)}`,width-pad.right+8,py);
+                    ctx.restore();
+                });
             }
             
             // Create sparkline charts
