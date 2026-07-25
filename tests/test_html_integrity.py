@@ -64,8 +64,12 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("onclick=\"openIndicatorDetail('", content)
         self.assertIn("window.open('', '_blank')", content)
         self.assertIn("'ohlc': ohlc_data", content)
+        self.assertIn("'history': data_points[-60:]", content)
+        self.assertIn("hasUsableIndicatorOhlc(detail.ohlc)", content)
+        self.assertIn("candles.length < 5", content)
+        self.assertIn("nonFlat.length / valid.length >= 0.2", content)
         self.assertIn("drawCandles(canvas, detail.ohlc.slice(-count))", content)
-        self.assertIn("Sursa acestui indicator nu publică OHLC", content)
+        self.assertIn("Istoric zilnic real afișat liniar", content)
 
 if __name__ == '__main__':
     unittest.main()

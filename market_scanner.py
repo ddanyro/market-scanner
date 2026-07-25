@@ -508,6 +508,7 @@ def get_market_indicators():
                     'status': status,
                     'description': description,
                     'sparkline': sparkline_data,
+                    'history': data_points[-60:],
                     'ohlc': ohlc_data,
                     'ticker': ticker
                 }
@@ -4541,7 +4542,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'rangeDescription': indicator.get('description', ''),
             'explanation': indicator_explanations.get(name, ''),
             'ohlc': indicator.get('ohlc', []),
-            'series': indicator.get('sparkline', [])
+            'series': indicator.get('history', indicator.get('sparkline', []))
         }
     indicator_detail_json = json.dumps(indicator_detail_data, ensure_ascii=False).replace('</', '<\\/')
 
@@ -4595,6 +4596,7 @@ h1{margin:0 0 6px;font-size:clamp(28px,4vw,44px)}.ticker{color:#7760f9;font-weig
 </main><script>
 const detail=${payload};
 ${drawIndicatorDetail.toString()}
+${hasUsableIndicatorOhlc.toString()}
 ${drawCandles.toString()}
 ${drawLineSeries.toString()}
 ${formatIndicatorNumber.toString()}
@@ -4632,13 +4634,25 @@ drawIndicatorDetail(detail,66);
             function drawIndicatorDetail(detail, count) {
                 const canvas = document.getElementById('indicatorChart');
                 if (!canvas) return;
-                if (detail.ohlc && detail.ohlc.length) {
+                if (hasUsableIndicatorOhlc(detail.ohlc)) {
                     drawCandles(canvas, detail.ohlc.slice(-count));
                     document.getElementById('chartNote').textContent = 'Lumânări OHLC zilnice reale, furnizate de Yahoo Finance.';
                 } else {
                     drawLineSeries(canvas, (detail.series || []).slice(-count));
-                    document.getElementById('chartNote').textContent = 'Sursa acestui indicator nu publică OHLC; este afișată seria zilnică reală, fără lumânări artificiale.';
+                    document.getElementById('chartNote').textContent = 'Istoric zilnic real afișat liniar: sursa nu oferă suficiente date OHLC utile pentru lumânări.';
                 }
+            }
+
+            function hasUsableIndicatorOhlc(candles) {
+                if (!Array.isArray(candles) || candles.length < 5) return false;
+                const valid = candles.filter(item =>
+                    ['open', 'high', 'low', 'close'].every(key => Number.isFinite(Number(item[key])))
+                );
+                if (valid.length < 5) return false;
+                const nonFlat = valid.filter(item =>
+                    Math.abs(Number(item.high) - Number(item.low)) > 0.000001
+                );
+                return nonFlat.length / valid.length >= 0.2;
             }
 
             function drawCandles(canvas, candles) {
