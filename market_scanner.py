@@ -4743,6 +4743,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 f"€{float(target_value):.2f}"
                 if pd.notna(target_value) and target_value else "indisponibil"
             )
+            stop_value = row.get('Stop_Loss', 0)
+            watchlist_levels = []
+            if pd.notna(stop_value) and float(stop_value) > 0:
+                watchlist_levels.append({
+                    'label': 'Stop recomandat',
+                    'value': float(stop_value),
+                    'color': '#dc2626'
+                })
             watchlist_detail_data[ticker] = {
                 'kind': 'watchlist',
                 'name': row.get('Company_Name', ticker),
@@ -4759,7 +4767,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 'ohlc': row.get('Chart_OHLC', []),
                 'series': row.get('Chart_History', row.get('Sparkline', [])),
                 'seriesDates': row.get('Chart_Dates', []),
-                'levels': []
+                'levels': watchlist_levels
             }
     watchlist_detail_json = json.dumps(watchlist_detail_data, ensure_ascii=False).replace('</', '<\\/')
 
