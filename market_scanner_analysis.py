@@ -536,7 +536,7 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
-PORTFOLIO_AI_CACHE_VERSION = 9
+PORTFOLIO_AI_CACHE_VERSION = 10
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
 SEC_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK{cik:010d}.json'
@@ -762,9 +762,79 @@ def build_portfolio_market_context(portfolio_df, market_indicators=None):
     return markets
 
 
+def build_us_market_regime(market_indicators=None, economic_phase=None):
+    """Clasifică trendul SUA și ciclul fără să completeze date inexistente."""
+    indicators = market_indicators or {}
+    benchmarks = []
+    for key in ('SPX', 'NASDAQ'):
+        values = [
+            _safe_number(value, None)
+            for value in indicators.get(key, {}).get('history', [])
+        ]
+        values = [value for value in values if value is not None and value > 0]
+        if len(values) < 50:
+            continue
+        latest = values[-1]
+        sma50 = sum(values[-50:]) / 50
+        long_window = min(len(values), 200)
+        long_average = sum(values[-long_window:]) / long_window
+        benchmarks.append({
+            'symbol': key, 'latest': latest, 'sma50': sma50,
+            'long_average': long_average, 'long_window_days': long_window,
+            'above_sma50': latest >= sma50,
+            'above_long_average': latest >= long_average,
+        })
+    vix = _safe_number(indicators.get('VIX', {}).get('value'), None)
+    phase = str(economic_phase or 'Date insuficiente')
+    if not benchmarks:
+        trend, trend_factor = 'date insuficiente', 0.6
+    elif all(
+        item['above_sma50'] and item['above_long_average']
+        for item in benchmarks
+    ):
+        trend, trend_factor = 'creștere confirmată', 1.0
+    elif all(item['above_long_average'] for item in benchmarks):
+        trend, trend_factor = 'corecție într-un trend ascendent', 0.75
+    elif all(not item['above_long_average'] for item in benchmarks):
+        trend, trend_factor = 'trend descendent', 0.45
+    else:
+        trend, trend_factor = 'piață mixtă', 0.65
+    phase_factor = {
+        'Recovery': 0.9, 'Expansion': 1.0, 'Slowdown': 0.7,
+        'Recession': 0.45,
+    }.get(phase, 0.6)
+    if vix is not None and vix >= 30:
+        trend_factor = min(trend_factor, 0.4)
+    favored = {
+        'Recovery': {'Financial Services', 'Industrials', 'Consumer Cyclical', 'Technology'},
+        'Expansion': {'Technology', 'Industrials', 'Consumer Cyclical', 'Communication Services'},
+        'Slowdown': {'Healthcare', 'Consumer Defensive', 'Utilities'},
+        'Recession': {'Healthcare', 'Consumer Defensive', 'Utilities'},
+    }.get(phase, set())
+    unfavored = {
+        'Slowdown': {'Consumer Cyclical', 'Industrials'},
+        'Recession': {'Financial Services', 'Consumer Cyclical', 'Industrials'},
+    }.get(phase, set())
+    return {
+        'economic_phase': phase,
+        'market_stage': trend,
+        'size_factor': round(min(trend_factor, phase_factor), 2),
+        'vix': vix,
+        'benchmarks': benchmarks,
+        'sector_fit': {
+            sector: (
+                'favorizat' if sector in favored
+                else 'nefavorizat' if sector in unfavored
+                else 'neutru'
+            )
+            for sector in US_SECTOR_ETFS
+        },
+    }
+
+
 def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=None,
                                   market_context=None, etf_holdings=None,
-                                  sector_rotation=None):
+                                  sector_rotation=None, us_market_regime=None):
     """Normalizează numai datele necesare evaluării riscului, fără valori inventate."""
     if portfolio_df is None or portfolio_df.empty:
         return {
@@ -913,6 +983,7 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
         'account_liquidity': _normalize_tws_account_data(account_data),
         'market_context': market_context or {},
         'us_sector_rotation': sector_rotation or {},
+        'us_market_regime': us_market_regime or {},
         'positions': positions,
     }
     if isinstance(etf_holdings, dict) and etf_holdings.get('holdings'):
@@ -975,6 +1046,7 @@ def _portfolio_snapshot_fingerprint(snapshot):
         'economic_calendar': snapshot.get('economic_calendar', []),
         'tvbetetf_lookthrough': snapshot.get('tvbetetf_lookthrough', {}),
         'us_sector_rotation': snapshot.get('us_sector_rotation', {}),
+        'us_market_regime': snapshot.get('us_market_regime', {}),
     }
     return hashlib.sha256(
         json.dumps(stable, sort_keys=True, ensure_ascii=False).encode('utf-8')
@@ -998,6 +1070,7 @@ def _size_buy_candidates(snapshot):
         for item in snapshot.get('positions', [])
     }
     sector_rotation = snapshot.get('us_sector_rotation', {}).get('sectors', {})
+    us_market_regime = snapshot.get('us_market_regime', {})
     direct_sector_values = {}
     direct_industry_values = {}
     for position in snapshot.get('positions', []):
@@ -1068,6 +1141,18 @@ def _size_buy_candidates(snapshot):
                         str(candidate.get('industry') or 'Necunoscut'), 0
                     ),
                     2,
+                ),
+                'us_market_stage': us_market_regime.get(
+                    'market_stage', 'date insuficiente'
+                ),
+                'us_economic_phase': us_market_regime.get(
+                    'economic_phase', 'Date insuficiente'
+                ),
+                'market_regime_size_factor': _safe_number(
+                    us_market_regime.get('size_factor')
+                ) or 0.6,
+                'cycle_fit': us_market_regime.get('sector_fit', {}).get(
+                    sector, candidate.get('cycle_fit', 'neutru')
                 ),
             })
     liquidity = snapshot.get('account_liquidity', {})
@@ -1156,6 +1241,12 @@ def _size_buy_candidates(snapshot):
                 conditional_amount *= _safe_number(
                     candidate.get('sector_rotation_size_factor')
                 ) or 0.6
+                conditional_amount *= _safe_number(
+                    candidate.get('market_regime_size_factor')
+                ) or 0.6
+                conditional_amount *= {
+                    'favorizat': 1.0, 'neutru': 0.8, 'nefavorizat': 0.55,
+                }.get(candidate.get('cycle_fit'), 0.8)
             preliminary.append((candidate, conditional_amount, stop_risk_pct))
 
         aggregate_cap = min(usable_cash * 0.15, net_liquidation * 0.12)
@@ -1792,7 +1883,8 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
 
 
 def render_buy_recommendations_html(
-    result, candidates, evidence_cache=None, bvb_universe_stats=None
+    result, candidates, evidence_cache=None, bvb_universe_stats=None,
+    us_universe_stats=None,
 ):
     """Carduri BUY stricte, validate AI cu știri, piață și calendar."""
     candidates_by_symbol = {
@@ -1952,6 +2044,10 @@ def render_buy_recommendations_html(
                     )
                     + f". Expunere existentă în sector: "
                     f"€{float(candidate.get('existing_sector_exposure_eur') or 0):,.2f}."
+                    f"<br><b>Regim SUA:</b> "
+                    f"{html.escape(str(candidate.get('us_market_stage') or 'date insuficiente'))}"
+                    f" · ciclu {html.escape(str(candidate.get('us_economic_phase') or 'date insuficiente'))}"
+                    f" · sector {html.escape(str(candidate.get('cycle_fit') or 'neutru'))}."
                     "</div>"
                 )
             cards.append(
@@ -2011,6 +2107,16 @@ def render_buy_recommendations_html(
             f"lot rotativ/rulare: {int(bvb_universe_stats.get('batch_size') or 0)}."
             "</p>"
         )
+    us_coverage_html = ''
+    if us_universe_stats:
+        us_coverage_html = (
+            "<p style='margin:0 0 15px;color:var(--text-secondary);font-size:13px;'>"
+            f"Univers SUA descoperit: <b>{int(us_universe_stats.get('discovered') or 0)}</b> "
+            f"simboluri · analiză profundă disponibilă pentru "
+            f"<b>{int(us_universe_stats.get('deep_scanned') or 0)}</b> · "
+            f"lot rotativ/rulare: {int(us_universe_stats.get('batch_size') or 0)}."
+            "</p>"
+        )
     return (
         "<section style='margin:28px 0;background:var(--light-purple-bg);"
         "border:1px solid var(--border-light);border-radius:var(--radius-md);padding:22px;'>"
@@ -2023,14 +2129,14 @@ def render_buy_recommendations_html(
         "LQQ este monitorizat obligatoriu la fiecare rulare și dimensionat separat "
         "pentru IBKR și Tradeville când devine eligibil. "
         "Validarea AI ține cont de știri, piață și calendar; nu reprezintă ordin de tranzacționare.</p>"
-        + bvb_coverage_html + body + "</section>"
+        + bvb_coverage_html + us_coverage_html + body + "</section>"
     )
 
 
 def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, cached_evidence=None,
                                    request_session=None, account_data=None, market_context=None,
                                    buy_candidates=None, etf_holdings=None,
-                                   sector_rotation=None):
+                                   sector_rotation=None, us_market_regime=None):
     """Generează o analiză structurată și cache-uibilă, apoi returnează HTML sigur."""
     snapshot = build_portfolio_risk_snapshot(
         portfolio_df,
@@ -2039,6 +2145,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
         market_context=market_context,
         etf_holdings=etf_holdings,
         sector_rotation=sector_rotation,
+        us_market_regime=us_market_regime,
     )
     snapshot['buy_candidates'] = list(buy_candidates or [])
     snapshot['buy_candidates'] = _size_buy_candidates(snapshot)
@@ -2156,6 +2263,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Pentru buy_candidates verifică dacă știrile, piața și calendarul economic susțin intrarea acum; filtrele tehnice singure nu sunt suficiente.',
             'Pentru candidații BVB folosește tvbetetf_weight_pct, indirect_exposure_eur, direct_exposure_eur și overlap_risk. Preferă diversificarea și cere dovezi mai puternice înainte de a dubla componentele dominante ale TVBETETF.',
             'Pentru candidații SUA folosește us_sector_rotation și câmpurile sector_rotation_status, relative față de SPY și existing_sector_exposure_eur. Preferă liderii confirmați și cere dovezi mai puternice pentru sectoarele în deteriorare.',
+            'Pentru candidații SUA folosește și us_market_regime: market_stage, economic_phase, cycle_fit și size_factor. Explică simplu dacă piața este în creștere, corecție, încetinire sau recesiune și nu contrazice dimensionarea deterministă.',
             'Nu concentra recomandările SUA: limita deterministă este maximum două idei pe sector, maximum o idee pe industrie cunoscută, maximum 10% din NAV IBKR pe sector și 5% pe industrie după includerea expunerii existente.',
             'Calendarul candidaților este validat determinist: evenimentele trecute nu pot fi descrise ca riscuri viitoare de publicare.',
             'Nu recomanda și nu inventa simboluri care nu există în buy_candidates.',

@@ -551,6 +551,41 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(technology['status'], 'lider')
         self.assertGreater(technology['relative_3m_vs_spy_pct'], 2)
 
+    def test_us_market_regime_combines_trend_cycle_and_vix(self):
+        rising = list(np.linspace(100, 140, 220))
+        regime = market_scanner_analysis.build_us_market_regime(
+            {
+                'SPX': {'history': rising},
+                'NASDAQ': {'history': rising},
+                'VIX': {'value': 16},
+            },
+            'Expansion',
+        )
+        self.assertEqual(regime['market_stage'], 'creștere confirmată')
+        self.assertEqual(regime['size_factor'], 1.0)
+        self.assertEqual(regime['sector_fit']['Technology'], 'favorizat')
+
+        recession = market_scanner_analysis.build_us_market_regime(
+            {
+                'SPX': {'history': list(reversed(rising))},
+                'NASDAQ': {'history': list(reversed(rising))},
+                'VIX': {'value': 35},
+            },
+            'Recession',
+        )
+        self.assertEqual(recession['market_stage'], 'trend descendent')
+        self.assertLessEqual(recession['size_factor'], 0.4)
+        self.assertEqual(
+            recession['sector_fit']['Consumer Cyclical'], 'nefavorizat'
+        )
+
+    def test_complete_us_universe_uses_sp500_file(self):
+        symbols = market_scanner.load_complete_us_equity_universe(
+            'sp500_tickers.json'
+        )
+        self.assertGreaterEqual(len(symbols), 500)
+        self.assertIn('AAPL', symbols)
+
     def test_us_sector_sizing_penalizes_weak_rotation_and_caps_sector(self):
         snapshot = {
             'portfolio': {'total_value_eur': 100000},
