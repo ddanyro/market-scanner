@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import market_scanner_analysis
+import market_security
 
 
 class TestMarketAnalysis(unittest.TestCase):
@@ -150,6 +151,51 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         position = snapshot['positions'][0]
         self.assertEqual(position['stop_coverage_pct'], 40)
         self.assertTrue(any('40 din 100' in flag for flag in position['data_flags']))
+
+    def test_snapshot_includes_tws_cash_margin_and_freshness(self):
+        account_data = {
+            'fetched_at': datetime.now().astimezone().isoformat(),
+            'accounts': [{
+                'label': 'Cont 1',
+                'base_currency': 'EUR',
+                'summary': {
+                    'NetLiquidation': 100000,
+                    'TotalCashValue': 4000,
+                    'AvailableFunds': 12000,
+                    'BuyingPower': 24000,
+                    'ExcessLiquidity': 15000,
+                    'MaintMarginReq': 20000,
+                    'Cushion': 0.2,
+                },
+                'cash_by_currency': {'EUR': 2500, 'USD': 1800},
+            }],
+        }
+        snapshot = market_scanner_analysis.build_portfolio_risk_snapshot(
+            self.portfolio, pd.DataFrame(), account_data=account_data
+        )
+        liquidity = snapshot['account_liquidity']
+        self.assertFalse(liquidity['stale'])
+        self.assertEqual(liquidity['accounts'][0]['cash_pct_of_net_liquidation'], 4)
+        self.assertEqual(liquidity['accounts'][0]['maintenance_margin_pct'], 20)
+        self.assertIn('Cash-ul de bază este sub 5%', ' '.join(liquidity['risk_flags']))
+
+    def test_missing_tws_account_data_is_explicit(self):
+        snapshot = market_scanner_analysis.build_portfolio_risk_snapshot(
+            self.portfolio, pd.DataFrame(), account_data=None
+        )
+        self.assertIn(
+            'Sumarul cash/marjă TWS nu este disponibil',
+            snapshot['account_liquidity']['risk_flags'],
+        )
+
+    def test_tws_account_encryption_round_trip(self):
+        payload = '{"accounts":[{"label":"Cont 1","summary":{"NetLiquidation":1000}}]}'
+        encrypted = market_security.encrypt_for_js(payload, 'test-password')
+        self.assertNotIn('NetLiquidation', encrypted)
+        self.assertEqual(
+            market_security.decrypt_from_js(encrypted, 'test-password'),
+            payload,
+        )
 
     @patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key'})
     @patch('market_scanner_analysis.requests.post')

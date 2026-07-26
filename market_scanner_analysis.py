@@ -395,10 +395,93 @@ def _safe_number(value, default=0.0):
         return default
 
 
-def build_portfolio_risk_snapshot(portfolio_df, orders_df=None):
+def _normalize_tws_account_data(account_data, now=None):
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    result = {
+        'source': 'TWS / IBKR API',
+        'fetched_at': None,
+        'age_hours': None,
+        'stale': True,
+        'accounts': [],
+        'risk_flags': [],
+    }
+    if not isinstance(account_data, dict):
+        result['risk_flags'].append('Sumarul cash/marjă TWS nu este disponibil')
+        return result
+    fetched_at = account_data.get('fetched_at')
+    result['fetched_at'] = fetched_at
+    try:
+        fetched = datetime.datetime.fromisoformat(str(fetched_at).replace('Z', '+00:00'))
+        if fetched.tzinfo is None:
+            fetched = fetched.replace(tzinfo=datetime.timezone.utc)
+        age_hours = max((now - fetched.astimezone(datetime.timezone.utc)).total_seconds() / 3600, 0)
+        result['age_hours'] = round(age_hours, 2)
+        result['stale'] = age_hours > 24
+    except (TypeError, ValueError):
+        result['risk_flags'].append('Timestampul sumarului TWS este invalid')
+
+    for raw_account in account_data.get('accounts', []):
+        if not isinstance(raw_account, dict):
+            continue
+        raw_summary = raw_account.get('summary', {})
+        summary = {
+            key: _safe_number(raw_summary.get(key), None)
+            for key in (
+                'NetLiquidation', 'TotalCashValue', 'SettledCash', 'AvailableFunds',
+                'BuyingPower', 'ExcessLiquidity', 'InitMarginReq', 'MaintMarginReq',
+                'GrossPositionValue', 'Cushion',
+            )
+        }
+        summary = {key: value for key, value in summary.items() if value is not None}
+        cash_by_currency = {
+            str(currency): _safe_number(value)
+            for currency, value in raw_account.get('cash_by_currency', {}).items()
+            if _safe_number(value, None) is not None
+        }
+        net_liquidation = summary.get('NetLiquidation', 0)
+        total_cash = summary.get('TotalCashValue', 0)
+        margin_requirement = summary.get('MaintMarginReq', 0)
+        result['accounts'].append({
+            'label': str(raw_account.get('label', f"Cont {len(result['accounts']) + 1}")),
+            'base_currency': str(raw_account.get('base_currency', 'BASE')),
+            'summary': summary,
+            'cash_by_currency': cash_by_currency,
+            'cash_pct_of_net_liquidation': (
+                round(total_cash / net_liquidation * 100, 2) if net_liquidation > 0 else None
+            ),
+            'maintenance_margin_pct': (
+                round(margin_requirement / net_liquidation * 100, 2)
+                if net_liquidation > 0 else None
+            ),
+        })
+        if summary.get('AvailableFunds', 1) <= 0:
+            result['risk_flags'].append('Available Funds este zero sau negativ')
+        if summary.get('ExcessLiquidity', 1) <= 0:
+            result['risk_flags'].append('Excess Liquidity este zero sau negativ')
+        if summary.get('Cushion') is not None and summary['Cushion'] < 0.15:
+            result['risk_flags'].append('Cushion TWS este sub 15%')
+        if net_liquidation > 0 and margin_requirement / net_liquidation > 0.5:
+            result['risk_flags'].append('Marja de menținere depășește 50% din Net Liquidation')
+        if net_liquidation > 0 and total_cash / net_liquidation < 0.05:
+            result['risk_flags'].append('Cash-ul de bază este sub 5% din Net Liquidation')
+
+    if result['stale']:
+        result['risk_flags'].append('Datele cash/marjă TWS sunt mai vechi de 24 de ore')
+    if not result['accounts']:
+        result['risk_flags'].append('TWS nu a returnat un sumar de cont utilizabil')
+    result['risk_flags'] = list(dict.fromkeys(result['risk_flags']))
+    return result
+
+
+def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=None):
     """Normalizează numai datele necesare evaluării riscului, fără valori inventate."""
     if portfolio_df is None or portfolio_df.empty:
-        return {'as_of': datetime.datetime.now().isoformat(timespec='seconds'), 'positions': [], 'portfolio': {}}
+        return {
+            'as_of': datetime.datetime.now().isoformat(timespec='seconds'),
+            'positions': [],
+            'portfolio': {},
+            'account_liquidity': _normalize_tws_account_data(account_data),
+        }
 
     orders_df = orders_df if orders_df is not None else pd.DataFrame()
     total_value = sum(max(_safe_number(row.get('Current_Value')), 0) for _, row in portfolio_df.iterrows())
@@ -528,6 +611,7 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None):
                 for item in positions
             ),
         },
+        'account_liquidity': _normalize_tws_account_data(account_data),
         'positions': positions,
     }
 
@@ -853,9 +937,9 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
 
 
 def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, cached_evidence=None,
-                                   request_session=None):
+                                   request_session=None, account_data=None):
     """Generează o analiză structurată și cache-uibilă, apoi returnează HTML sigur."""
-    snapshot = build_portfolio_risk_snapshot(portfolio_df, orders_df)
+    snapshot = build_portfolio_risk_snapshot(portfolio_df, orders_df, account_data=account_data)
     evidence_cache = collect_portfolio_evidence(
         snapshot, cached=cached_evidence, request_session=request_session
     )
@@ -912,6 +996,10 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Nu considera automat stopul propus corect și nu recomanda mutarea stopului în jos pentru a evita o ieșire.',
             'Semnalează contradicțiile dintre HOLD/REDUCE/EXIT, trend, momentum și protecția activă.',
             'Evaluează concentrarea și raportul recompensă/risc numai când există date suficiente.',
+            'Evaluează cash-ul, Available Funds, Buying Power, Excess Liquidity, Cushion și marja TWS.',
+            'Nu trata un sold într-o monedă ca fiind direct comparabil cu altă monedă și nu face conversii nesupuse.',
+            'Dacă datele TWS sunt mai vechi de 24 de ore, menționează vechimea și nu formula o acțiune executabilă.',
+            'Semnalează riscul de cash negativ, buffer redus, marjă ridicată sau putere de cumpărare insuficientă.',
             'Separă controlul de preț de invalidarea tezei și cere reevaluare la catalizatori.',
             'Folosește știrile și rapoartele numai când sunt relevante pentru risc sau teză.',
             'Acordă prioritate surselor oficiale; nu prezenta o știre de presă drept declarație a companiei.',

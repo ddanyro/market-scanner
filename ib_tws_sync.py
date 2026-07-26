@@ -1,4 +1,7 @@
 import asyncio
+import datetime
+import json
+import os
 import pandas as pd
 import sys
 
@@ -154,6 +157,113 @@ def fetch_active_orders(output_file='tws_orders.csv'):
             print(f"Salvat tws_positions.csv cu {len(pos_data)} poziții.")
         else:
             print("Nicio poziție deschisă găsită.")
+
+        # === Extragere sumar cont (cash, lichiditate și marjă) ===
+        try:
+            summary_tags = {
+                'NetLiquidation', 'TotalCashValue', 'SettledCash', 'AvailableFunds',
+                'BuyingPower', 'ExcessLiquidity', 'InitMarginReq', 'MaintMarginReq',
+                'GrossPositionValue', 'Cushion',
+            }
+            summary_rows = ib.accountSummary()
+            value_rows = ib.accountValues()
+            account_ids = sorted({
+                str(item.account) for item in list(summary_rows) + list(value_rows)
+                if getattr(item, 'account', None)
+            })
+            accounts = []
+
+            def parse_account_value(value):
+                try:
+                    number = float(value)
+                    return number if abs(number) < 1e100 else None
+                except (TypeError, ValueError):
+                    return None
+
+            for account_index, account_id in enumerate(account_ids, start=1):
+                base_values = {}
+                base_currency = None
+                for item in value_rows:
+                    if (
+                        str(getattr(item, 'account', '')) == account_id
+                        and str(getattr(item, 'tag', '')) == 'BaseCurrency'
+                    ):
+                        candidate = str(getattr(item, 'value', '')).strip()
+                        if candidate:
+                            base_currency = candidate
+                            break
+                if base_currency is None:
+                    for item in summary_rows:
+                        if (
+                            str(getattr(item, 'account', '')) == account_id
+                            and str(getattr(item, 'tag', '')) == 'NetLiquidation'
+                        ):
+                            candidate = str(getattr(item, 'currency', '')).strip()
+                            if candidate not in ('', 'BASE'):
+                                base_currency = candidate
+                                break
+                for item in summary_rows:
+                    if str(getattr(item, 'account', '')) != account_id:
+                        continue
+                    tag = str(getattr(item, 'tag', ''))
+                    currency = str(getattr(item, 'currency', ''))
+                    if tag not in summary_tags:
+                        continue
+                    value = parse_account_value(getattr(item, 'value', None))
+                    if value is None:
+                        continue
+                    if currency in ('BASE', '', base_currency) or tag == 'Cushion':
+                        base_values[tag] = value
+
+                cash_by_currency = {}
+                for item in value_rows:
+                    if str(getattr(item, 'account', '')) != account_id:
+                        continue
+                    tag = str(getattr(item, 'tag', ''))
+                    currency = str(getattr(item, 'currency', ''))
+                    if tag not in ('CashBalance', 'TotalCashBalance') or currency in ('BASE', ''):
+                        continue
+                    value = parse_account_value(getattr(item, 'value', None))
+                    if value is not None:
+                        cash_by_currency[currency] = value
+
+                if base_values or cash_by_currency:
+                    accounts.append({
+                        'label': f'Cont {len(accounts) + 1}',
+                        'base_currency': base_currency or 'BASE',
+                        'summary': base_values,
+                        'cash_by_currency': cash_by_currency,
+                    })
+
+            account_payload = {
+                'fetched_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                'source': 'TWS / IBKR API',
+                'accounts': accounts,
+            }
+            with open('tws_account.json', 'w', encoding='utf-8') as handle:
+                json.dump(account_payload, handle, ensure_ascii=False, indent=2)
+            print(f"Salvat tws_account.json cu sumar pentru {len(accounts)} cont(uri).")
+
+            portfolio_password = os.environ.get('PORTFOLIO_PASSWORD', '')
+            if not portfolio_password and os.path.exists('password.txt'):
+                try:
+                    with open('password.txt', 'r', encoding='utf-8') as handle:
+                        portfolio_password = handle.read().strip()
+                except OSError:
+                    portfolio_password = ''
+            if portfolio_password:
+                import market_security
+                encrypted_account = market_security.encrypt_for_js(
+                    json.dumps(account_payload, ensure_ascii=False),
+                    portfolio_password,
+                )
+                with open('tws_account.enc.json', 'w', encoding='utf-8') as handle:
+                    handle.write(encrypted_account)
+                print("Salvat tws_account.enc.json (snapshot criptat pentru sincronizare).")
+            else:
+                print("  -> Snapshotul TWS nu a fost criptat: PORTFOLIO_PASSWORD indisponibil.")
+        except Exception as account_ex:
+            print(f"  -> Avertisment la citirea sumarului de cont TWS: {account_ex}")
 
     except Exception as e:
         print(f"Eroare extragere ordine TWS: {e}")

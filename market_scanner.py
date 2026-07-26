@@ -3443,6 +3443,23 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         selling_rows_html = '<tr><td colspan="15" style="text-align:center;">Niciun ordin de vânzare activ în IBKR / Tradeville.</td></tr>'
 
     # Encrypt Data
+    tws_account_data = None
+    if os.path.exists('tws_account.json'):
+        try:
+            with open('tws_account.json', 'r', encoding='utf-8') as handle:
+                tws_account_data = json.load(handle)
+        except (OSError, ValueError, TypeError):
+            tws_account_data = None
+    elif os.path.exists('tws_account.enc.json') and password:
+        try:
+            with open('tws_account.enc.json', 'r', encoding='utf-8') as handle:
+                encrypted_account_payload = json.load(handle)
+            decrypted_account = market_security.decrypt_from_js(
+                encrypted_account_payload, password
+            )
+            tws_account_data = json.loads(decrypted_account)
+        except (OSError, ValueError, TypeError, KeyError):
+            tws_account_data = None
     cached_portfolio_ai = full_state.get('last_portfolio_ai_analysis')
     cached_portfolio_evidence = full_state.get('last_portfolio_ai_evidence')
     portfolio_ai_html, new_portfolio_ai_cache, new_portfolio_evidence, portfolio_ai_diagnostic = generate_portfolio_ai_analysis(
@@ -3450,6 +3467,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         orders_df,
         cached=cached_portfolio_ai,
         cached_evidence=cached_portfolio_evidence,
+        account_data=tws_account_data,
     )
     full_state['last_portfolio_ai_diagnostic'] = portfolio_ai_diagnostic
     if new_portfolio_ai_cache and new_portfolio_ai_cache != cached_portfolio_ai:

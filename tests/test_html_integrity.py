@@ -107,6 +107,10 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("portfolioAi.innerHTML = data.portfolio_ai_html || ''", content)
         self.assertIn('"portfolio_ai_html": portfolio_ai_html', content)
         self.assertIn('generate_portfolio_ai_analysis(', content)
+        self.assertIn("with open('tws_account.json', 'r'", content)
+        self.assertIn("with open('tws_account.enc.json', 'r'", content)
+        self.assertIn('market_security.decrypt_from_js(', content)
+        self.assertIn('account_data=tws_account_data', content)
 
     def test_watchlist_mini_chart_opens_detail_window(self):
         """Mini-graficul watchlistului deschide aceeași fereastră OHLC, fără a schimba click-ul simbolului."""
