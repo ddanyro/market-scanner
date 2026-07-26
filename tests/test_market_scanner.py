@@ -279,6 +279,12 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = {'output_text': '''{
           "portfolio_overview": "Riscul principal este lipsa protecției.",
+          "market_read": "Piața SUA este neutră; poziția trebuie urmărită individual.",
+          "position_actions": [{
+            "symbol": "TEST", "broker": "IBKR", "action": "Urmărește atent",
+            "plain_reason": "Poziția nu are încă o protecție clară.",
+            "next_check": "Confirmarea unui ordin stop activ."
+          }],
           "priorities": [{
             "symbol": "TEST", "severity": "ridicat",
             "issue": "Lipsă stop", "evidence": "Nu există ordin stop activ.",
@@ -311,12 +317,36 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(request_json['text']['format']['type'], 'json_schema')
         self.assertTrue(request_json['text']['format']['strict'])
         self.assertIn('TEST · Lipsă stop', html_result)
+        self.assertIn('TEST · IBKR', html_result)
+        self.assertIn('Ce fac piețele relevante', html_result)
         self.assertIn('Depunere SEC 10-Q', html_result)
         self.assertIn('oficial', html_result)
         self.assertNotIn('SURSA-INVENTATA', html_result)
         self.assertEqual(cache['result']['priorities'][0]['symbol'], 'TEST')
         self.assertEqual(returned_evidence['items'][0]['source_id'], 'TEST-sec-1')
         self.assertEqual(diagnostic['status'], 'success')
+
+    def test_portfolio_positions_map_to_broker_and_relevant_market(self):
+        portfolio = pd.DataFrame([
+            {'Symbol': 'JPM', 'Shares': 1, 'Current_Value': 100},
+            {'Symbol': 'TVBETETF.RO', 'Shares': 1, 'Current_Value': 100},
+        ])
+        context = {
+            'SUA': {'benchmarks': [{'label': 'S&P 500'}], 'applies_to': ['JPM']},
+            'România / BVB': {
+                'benchmarks': [{'label': 'TVBETETF (proxy BET-TR)'}],
+                'applies_to': ['TVBETETF.RO'],
+            },
+        }
+        snapshot = market_scanner_analysis.build_portfolio_risk_snapshot(
+            portfolio, market_context=context
+        )
+        positions = {item['symbol']: item for item in snapshot['positions']}
+        self.assertEqual(positions['JPM']['broker'], 'IBKR')
+        self.assertEqual(positions['JPM']['market'], 'SUA')
+        self.assertEqual(positions['TVBETETF.RO']['broker'], 'Tradeville')
+        self.assertEqual(positions['TVBETETF.RO']['market'], 'România / BVB')
+        self.assertEqual(snapshot['market_context'], context)
 
     @patch.dict(os.environ, {}, clear=True)
     def test_portfolio_ai_falls_back_to_deterministic_alerts(self):

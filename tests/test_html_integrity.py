@@ -123,7 +123,12 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("Solduri brute brokeri", analysis_content)
         self.assertIn("('NetLiquidation', 'Valoare totală / NAV')", analysis_content)
         self.assertIn("('TotalCashValue', 'Cash total')", analysis_content)
+        self.assertIn("'broker': str(row.get('Broker', '')).strip()", analysis_content)
+        self.assertIn("'Tradeville' if symbol.endswith('.RO') else 'IBKR'", analysis_content)
+        self.assertIn("TVBETETF (proxy BET-TR)", analysis_content)
+        self.assertIn("Ce fac piețele relevante", analysis_content)
         self.assertIn('account_data=tws_account_data', content)
+        self.assertIn('market_context=analysis.build_portfolio_market_context(', content)
 
     def test_empty_order_tables_do_not_trigger_datatables_column_warning(self):
         """Rândurile cu colspan pentru liste goale nu trebuie trimise către DataTables."""
