@@ -106,6 +106,88 @@ class TestMarketAnalysis(unittest.TestCase):
         # NASDAQ should be processed
         self.assertIsInstance(html, str)
         self.assertIsInstance(score, (int, float))
+
+
+class TestPortfolioAIAnalysis(unittest.TestCase):
+    def setUp(self):
+        self.portfolio = pd.DataFrame([{
+            'Symbol': 'TEST',
+            'Shares': 100,
+            'Current_Price': 50,
+            'Price_Native': 50,
+            'Buy_Price': 45,
+            'Current_Value': 5000,
+            'Profit_Pct': 11.11,
+            'Target': 60,
+            'Suggested_Stop': 46,
+            'Finviz_ATR': 2,
+            'Vol_W': 3,
+            'Vol_M': 4,
+            'Sell_Decision': 'HOLD',
+            'Sell_Reason': 'Trend pozitiv',
+            'Trend': 'Bullish',
+            'RSI': 58,
+            'RS_vs_SPX': 4,
+        }])
+
+    def test_snapshot_flags_missing_stop_without_inventing_one(self):
+        snapshot = market_scanner_analysis.build_portfolio_risk_snapshot(
+            self.portfolio, pd.DataFrame()
+        )
+        position = snapshot['positions'][0]
+        self.assertEqual(position['active_stops'], [])
+        self.assertIsNone(position['primary_stop_eur'])
+        self.assertIn('Fără ordin stop activ identificat', position['data_flags'])
+
+    def test_snapshot_detects_partial_stop_coverage(self):
+        orders = pd.DataFrame([{
+            'Symbol': 'TEST', 'Action': 'SELL', 'OrderType': 'STP',
+            'Total_Qty': 40, 'Stop_Price': 47,
+        }])
+        snapshot = market_scanner_analysis.build_portfolio_risk_snapshot(
+            self.portfolio, orders
+        )
+        position = snapshot['positions'][0]
+        self.assertEqual(position['stop_coverage_pct'], 40)
+        self.assertTrue(any('40 din 100' in flag for flag in position['data_flags']))
+
+    @patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key'})
+    @patch('market_scanner_analysis.requests.post')
+    def test_portfolio_ai_uses_structured_responses_and_validates_symbols(self, mock_post):
+        mock_response = Mock()
+        mock_response.raise_for_status.return_value = None
+        mock_response.json.return_value = {'output_text': '''{
+          "portfolio_overview": "Riscul principal este lipsa protecției.",
+          "priorities": [{
+            "symbol": "TEST", "severity": "ridicat",
+            "issue": "Lipsă stop", "evidence": "Nu există ordin stop activ.",
+            "action": "Verifică și plasează un stop adecvat.",
+            "why": "Pierderile nu sunt limitate procedural.",
+            "review_trigger": "La modificarea ATR sau a tezei.",
+            "confidence": "ridicată, ordinul lipsește"
+          }]
+        }'''}
+        mock_post.return_value = mock_response
+
+        html_result, cache = market_scanner_analysis.generate_portfolio_ai_analysis(
+            self.portfolio, pd.DataFrame()
+        )
+
+        request_json = mock_post.call_args.kwargs['json']
+        self.assertEqual(request_json['model'], market_scanner_analysis.OPENAI_ANALYSIS_MODEL)
+        self.assertEqual(request_json['reasoning'], {'effort': 'max', 'mode': 'pro'})
+        self.assertEqual(request_json['text']['format']['type'], 'json_object')
+        self.assertIn('TEST · Lipsă stop', html_result)
+        self.assertEqual(cache['result']['priorities'][0]['symbol'], 'TEST')
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_portfolio_ai_falls_back_to_deterministic_alerts(self):
+        with patch('market_scanner_analysis.os.path.exists', return_value=False):
+            html_result, cache = market_scanner_analysis.generate_portfolio_ai_analysis(
+                self.portfolio, pd.DataFrame()
+            )
+        self.assertIn('Fără ordin stop activ identificat', html_result)
+        self.assertIsNone(cache)
         
     def test_nasdaq_affects_probability_calculation(self):
         """Test that NASDAQ affects probability direction calculation."""

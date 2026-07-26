@@ -9,6 +9,7 @@ import os
 import re
 import html
 import hashlib
+import math
 import tempfile
 from bs4 import BeautifulSoup
 
@@ -358,6 +359,7 @@ def _save_ai_calendar_cache(cache):
 
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
+PORTFOLIO_AI_CACHE_VERSION = 1
 
 
 def _extract_openai_response_text(payload):
@@ -378,6 +380,337 @@ def _extract_openai_response_text(payload):
         return payload['choices'][0]['message']['content']
     except (KeyError, IndexError, TypeError):
         raise ValueError('Răspuns OpenAI fără text utilizabil')
+
+
+def _safe_number(value, default=0.0):
+    try:
+        number = float(value)
+        return number if math.isfinite(number) else default
+    except (TypeError, ValueError):
+        return default
+
+
+def build_portfolio_risk_snapshot(portfolio_df, orders_df=None):
+    """Normalizează numai datele necesare evaluării riscului, fără valori inventate."""
+    if portfolio_df is None or portfolio_df.empty:
+        return {'as_of': datetime.datetime.now().isoformat(timespec='seconds'), 'positions': [], 'portfolio': {}}
+
+    orders_df = orders_df if orders_df is not None else pd.DataFrame()
+    total_value = sum(max(_safe_number(row.get('Current_Value')), 0) for _, row in portfolio_df.iterrows())
+    positions = []
+
+    for _, row in portfolio_df.iterrows():
+        symbol = str(row.get('Symbol', '')).strip().upper()
+        shares = max(_safe_number(row.get('Shares')), 0)
+        price = _safe_number(row.get('Current_Price'))
+        buy_price = _safe_number(row.get('Buy_Price'))
+        target = _safe_number(row.get('Target'))
+        suggested_stop = _safe_number(row.get('Suggested_Stop'))
+        current_value = max(_safe_number(row.get('Current_Value')), 0)
+        price_native = _safe_number(row.get('Price_Native'))
+        atr_native = _safe_number(row.get('Finviz_ATR'))
+        atr_pct = (atr_native / price_native * 100) if price_native > 0 and atr_native > 0 else 0
+        volatility_candidates = [
+            value for value in (atr_pct, _safe_number(row.get('Vol_W')), _safe_number(row.get('Vol_M')))
+            if value > 0
+        ]
+        volatility_reference_pct = max(volatility_candidates) if volatility_candidates else 0
+
+        active_stops = []
+        if not orders_df.empty and 'Symbol' in orders_df.columns:
+            symbol_orders = orders_df[
+                orders_df['Symbol'].astype(str).str.upper() == symbol
+            ]
+            if 'Action' in symbol_orders.columns:
+                symbol_orders = symbol_orders[
+                    symbol_orders['Action'].astype(str).str.upper() == 'SELL'
+                ]
+            conversion_rate = 1.0
+            if price_native > 0 and price > 0:
+                conversion_rate = price / price_native
+            for _, order in symbol_orders.iterrows():
+                stop_native = 0.0
+                for column in ('Calculated_Stop', 'Stop_Price', 'Aux_Price'):
+                    candidate = _safe_number(order.get(column))
+                    if 0 < candidate < 1e10:
+                        stop_native = candidate
+                        break
+                if stop_native <= 0:
+                    continue
+                quantity = max(_safe_number(order.get('Total_Qty', order.get('Quantity'))), 0)
+                active_stops.append({
+                    'value': round(stop_native * conversion_rate, 4),
+                    'quantity': quantity,
+                    'order_type': str(order.get('OrderType', 'necunoscut')),
+                })
+
+        if not active_stops:
+            fallback_stop = _safe_number(row.get('Trail_Stop_IBKR'))
+            if fallback_stop <= 0:
+                fallback_stop = _safe_number(row.get('Trail_Stop'))
+            if fallback_stop > 0:
+                active_stops.append({
+                    'value': fallback_stop,
+                    'quantity': shares,
+                    'order_type': 'agregat',
+                })
+
+        covered_quantity = min(sum(item['quantity'] for item in active_stops), shares) if shares > 0 else 0
+        primary_stop = max((item['value'] for item in active_stops), default=0)
+        stop_distance_pct = ((price - primary_stop) / price * 100) if price > 0 and primary_stop > 0 else None
+        suggested_distance_pct = ((price - suggested_stop) / price * 100) if price > 0 and suggested_stop > 0 else None
+        target_upside_pct = ((target - price) / price * 100) if price > 0 and target > 0 else None
+        reward_risk = None
+        if target > price and primary_stop > 0 and primary_stop < price:
+            reward_risk = (target - price) / (price - primary_stop)
+
+        flags = []
+        if not active_stops:
+            flags.append('Fără ordin stop activ identificat')
+        elif shares > 0 and covered_quantity + 1e-9 < shares:
+            flags.append(f"Stopurile acoperă doar {covered_quantity:g} din {shares:g} acțiuni")
+        if primary_stop >= price > 0:
+            flags.append('Stopul este la sau peste prețul curent; ordinul trebuie verificat')
+        if stop_distance_pct is not None and volatility_reference_pct > 0:
+            if stop_distance_pct < volatility_reference_pct:
+                flags.append('Stop posibil prea strâns față de volatilitatea observată')
+            elif stop_distance_pct > volatility_reference_pct * 3:
+                flags.append('Stop posibil prea larg față de volatilitatea observată')
+        if reward_risk is not None and reward_risk < 1.5:
+            flags.append('Raport recompensă/risc sub 1,5 la stopul activ')
+        if str(row.get('Sell_Decision', '')).upper() in {'EXIT', 'REDUCE'}:
+            flags.append(f"Decizia existentă este {str(row.get('Sell_Decision')).upper()}")
+        if bool(row.get('Earnings_Danger')):
+            flags.append('Catalizator de rezultate apropiat; stopul poate să nu limiteze un gap')
+        weight_pct = (current_value / total_value * 100) if total_value > 0 else None
+        if weight_pct is not None and weight_pct > 25:
+            flags.append('Concentrare peste 25% din valoarea portofoliului')
+
+        positions.append({
+            'symbol': symbol,
+            'shares': shares,
+            'current_price_eur': price or None,
+            'buy_price_eur': buy_price or None,
+            'profit_pct': _safe_number(row.get('Profit_Pct')),
+            'portfolio_weight_pct': round(weight_pct, 2) if weight_pct is not None else None,
+            'active_stops': active_stops,
+            'stop_coverage_pct': round(covered_quantity / shares * 100, 2) if shares > 0 else None,
+            'primary_stop_eur': primary_stop or None,
+            'suggested_stop_eur': suggested_stop or None,
+            'stop_distance_pct': round(stop_distance_pct, 2) if stop_distance_pct is not None else None,
+            'suggested_stop_distance_pct': round(suggested_distance_pct, 2) if suggested_distance_pct is not None else None,
+            'volatility_reference_pct': round(volatility_reference_pct, 2) if volatility_reference_pct > 0 else None,
+            'target_eur': target or None,
+            'target_upside_pct': round(target_upside_pct, 2) if target_upside_pct is not None else None,
+            'reward_risk_to_target': round(reward_risk, 2) if reward_risk is not None else None,
+            'decision': str(row.get('Sell_Decision', 'HOLD')),
+            'decision_reason': str(row.get('Sell_Reason', ''))[:600],
+            'trend': str(row.get('Trend', '')),
+            'rsi': _safe_number(row.get('RSI')) or None,
+            'relative_strength_vs_spx_pct': _safe_number(row.get('RS_vs_SPX')) or None,
+            'earnings_risk': bool(row.get('Earnings_Danger')),
+            'data_flags': flags,
+        })
+
+    return {
+        'as_of': datetime.datetime.now().isoformat(timespec='seconds'),
+        'portfolio': {
+            'position_count': len(positions),
+            'total_value_eur': round(total_value, 2),
+            'positions_without_stop': sum(not item['active_stops'] for item in positions),
+            'positions_with_incomplete_stop_coverage': sum(
+                item['stop_coverage_pct'] is not None and item['stop_coverage_pct'] < 100
+                for item in positions
+            ),
+        },
+        'positions': positions,
+    }
+
+
+def _portfolio_snapshot_fingerprint(snapshot):
+    stable = {
+        'version': PORTFOLIO_AI_CACHE_VERSION,
+        'portfolio': snapshot.get('portfolio', {}),
+        'positions': snapshot.get('positions', []),
+    }
+    return hashlib.sha256(
+        json.dumps(stable, sort_keys=True, ensure_ascii=False).encode('utf-8')
+    ).hexdigest()
+
+
+def _validate_portfolio_ai_result(result, symbols):
+    allowed_severity = {'critic', 'ridicat', 'mediu', 'scăzut', 'informativ'}
+    clean_items = []
+    for raw in result.get('priorities', [])[:12]:
+        if not isinstance(raw, dict):
+            continue
+        symbol = str(raw.get('symbol', '')).strip().upper()
+        severity = str(raw.get('severity', '')).strip().lower()
+        if symbol not in symbols or severity not in allowed_severity:
+            continue
+        item = {'symbol': symbol, 'severity': severity}
+        for field in ('issue', 'evidence', 'action', 'why', 'review_trigger', 'confidence'):
+            value = raw.get(field)
+            if not isinstance(value, str) or not value.strip():
+                break
+            item[field] = value.strip()[:900]
+        else:
+            clean_items.append(item)
+    if not clean_items:
+        raise ValueError('Răspuns AI fără priorități valide')
+    overview = str(result.get('portfolio_overview', '')).strip()[:1600]
+    if not overview:
+        raise ValueError('Răspuns AI fără rezumat valid')
+    return {'portfolio_overview': overview, 'priorities': clean_items}
+
+
+def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de risc'):
+    severity_colors = {
+        'critic': '#b91c1c', 'ridicat': '#dc2626', 'mediu': '#d97706',
+        'scăzut': '#2563eb', 'informativ': '#64748b',
+    }
+    if result:
+        cards = []
+        for item in result['priorities']:
+            color = severity_colors[item['severity']]
+            cards.append(
+                "<details style='background:var(--bg-white);border:1px solid var(--border-light);"
+                f"border-left:4px solid {color};border-radius:var(--radius-sm);padding:14px 16px;'>"
+                f"<summary style='cursor:pointer;font-weight:700;color:var(--text-primary);'>"
+                f"{html.escape(item['symbol'])} · {html.escape(item['issue'])}"
+                f"<span style='float:right;color:{color};font-size:12px;text-transform:uppercase;'>"
+                f"{html.escape(item['severity'])}</span></summary>"
+                f"<p style='margin:10px 0 5px;color:var(--text-secondary);'><b>Dovezi:</b> {html.escape(item['evidence'])}</p>"
+                f"<p style='margin:5px 0;color:var(--text-secondary);'><b>Acțiune de verificat:</b> {html.escape(item['action'])}</p>"
+                f"<p style='margin:5px 0;color:var(--text-secondary);'><b>De ce:</b> {html.escape(item['why'])}</p>"
+                f"<p style='margin:5px 0;color:var(--text-secondary);'><b>Reevaluare:</b> {html.escape(item['review_trigger'])}</p>"
+                f"<p style='margin:5px 0;color:var(--text-secondary);'><b>Încredere:</b> {html.escape(item['confidence'])}</p>"
+                "</details>"
+            )
+        overview = html.escape(result['portfolio_overview'])
+    else:
+        cards = []
+        for position in snapshot.get('positions', []):
+            for flag in position.get('data_flags', []):
+                cards.append(
+                    "<div style='background:var(--bg-white);border:1px solid var(--border-light);"
+                    "border-left:4px solid #d97706;border-radius:var(--radius-sm);padding:14px 16px;'>"
+                    f"<b>{html.escape(position['symbol'])}</b> · {html.escape(flag)}</div>"
+                )
+        overview = (
+            'Analiza AI nu este disponibilă momentan. Sunt afișate controalele deterministe '
+            'calculate exclusiv din datele portofoliului și ordinele active.'
+        )
+    if not cards:
+        cards.append(
+            "<div style='color:var(--text-secondary);padding:12px 0;'>"
+            "Nu au fost identificate alerte din datele disponibile. Absența alertelor nu elimină riscul.</div>"
+        )
+    summary = snapshot.get('portfolio', {})
+    return (
+        "<section id='portfolio-ai-analysis' style='margin:30px 0;background:var(--light-purple-bg);"
+        "border:1px solid var(--border-light);border-radius:var(--radius-md);padding:22px;'>"
+        "<div style='display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;'>"
+        "<div><h3 style='margin:0;color:var(--primary-purple);'>Analiză AI — controlul riscului pentru swing trading</h3>"
+        f"<p style='margin:8px 0 0;color:var(--text-secondary);line-height:1.55;'>{overview}</p></div>"
+        f"<span style='font-size:12px;color:var(--text-secondary);'>Sursă analiză: {html.escape(source_label)}</span></div>"
+        "<div style='display:flex;gap:10px;flex-wrap:wrap;margin:16px 0;'>"
+        f"<span style='background:var(--bg-white);padding:7px 10px;border-radius:14px;'>Poziții: <b>{int(summary.get('position_count', 0))}</b></span>"
+        f"<span style='background:var(--bg-white);padding:7px 10px;border-radius:14px;'>Fără stop: <b>{int(summary.get('positions_without_stop', 0))}</b></span>"
+        f"<span style='background:var(--bg-white);padding:7px 10px;border-radius:14px;'>Acoperire incompletă: <b>{int(summary.get('positions_with_incomplete_stop_coverage', 0))}</b></span>"
+        "</div><div style='display:grid;gap:10px;'>" + ''.join(cards) + "</div>"
+        "<p style='font-size:11px;color:var(--text-secondary);margin:14px 0 0;'>"
+        "Instrument de control, nu promisiune de randament și nu recomandare personalizată. "
+        "Stopurile nu garantează prețul de execuție, în special la gap-uri sau lichiditate redusă.</p></section>"
+    )
+
+
+def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None):
+    """Generează o analiză structurată și cache-uibilă, apoi returnează HTML sigur."""
+    snapshot = build_portfolio_risk_snapshot(portfolio_df, orders_df)
+    fingerprint = _portfolio_snapshot_fingerprint(snapshot)
+    if isinstance(cached, dict) and cached.get('fingerprint') == fingerprint:
+        try:
+            result = _validate_portfolio_ai_result(
+                cached.get('result', {}),
+                {item['symbol'] for item in snapshot['positions']},
+            )
+            return _render_portfolio_ai_html(snapshot, result, 'OpenAI · cache'), cached
+        except (ValueError, TypeError):
+            pass
+
+    openai_key = os.environ.get('OPENAI_API_KEY', '')
+    if not openai_key and os.path.exists('openai_key.txt'):
+        try:
+            with open('openai_key.txt', 'r') as handle:
+                openai_key = handle.read().strip()
+        except OSError:
+            pass
+    if not openai_key or not snapshot['positions']:
+        return _render_portfolio_ai_html(snapshot), cached
+
+    request_payload = {
+        'as_of': snapshot['as_of'],
+        'objective': (
+            'Audit de risc pentru un portofoliu long de swing trading. Prioritizează protecția '
+            'capitalului și disciplina procesului; nu promite randamente și nu inventa date.'
+        ),
+        'rules': [
+            'Verifică existența și acoperirea cantitativă a ordinelor stop.',
+            'Evaluează stopurile în contextul ATR/volatilității, trendului, targetului și riscului de gap.',
+            'Nu considera automat stopul propus corect și nu recomanda mutarea stopului în jos pentru a evita o ieșire.',
+            'Semnalează contradicțiile dintre HOLD/REDUCE/EXIT, trend, momentum și protecția activă.',
+            'Evaluează concentrarea și raportul recompensă/risc numai când există date suficiente.',
+            'Separă controlul de preț de invalidarea tezei și cere reevaluare la catalizatori.',
+            'Acțiunile trebuie formulate ca verificări: plasează/revizuiește/menține/strânge doar condiționat.',
+        ],
+        'required_json': {
+            'portfolio_overview': 'rezumat prudent în română',
+            'priorities': [{
+                'symbol': 'un simbol existent',
+                'severity': 'critic|ridicat|mediu|scăzut|informativ',
+                'issue': 'problema',
+                'evidence': 'valorile exacte disponibile sau date lipsă',
+                'action': 'acțiune de verificat',
+                'why': 'mecanismul riscului',
+                'review_trigger': 'condiție observabilă de reevaluare',
+                'confidence': 'ridicată|medie|scăzută și motiv',
+            }],
+        },
+        'data': snapshot,
+    }
+    try:
+        response = requests.post(
+            'https://api.openai.com/v1/responses',
+            headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {openai_key}'},
+            json={
+                'model': OPENAI_ANALYSIS_MODEL,
+                'reasoning': OPENAI_ANALYSIS_REASONING,
+                'text': {'format': {'type': 'json_object'}, 'verbosity': 'medium'},
+                'input': [
+                    {'role': 'system', 'content': (
+                        'Ești un risk manager pentru swing trading long. Răspunzi exclusiv JSON valid, '
+                        'în română. Folosești numai datele primite și explici explicit orice lipsă.'
+                    )},
+                    {'role': 'user', 'content': json.dumps(request_payload, ensure_ascii=False)},
+                ],
+            },
+            timeout=180,
+        )
+        response.raise_for_status()
+        result = _validate_portfolio_ai_result(
+            json.loads(_extract_openai_response_text(response.json())),
+            {item['symbol'] for item in snapshot['positions']},
+        )
+        new_cache = {
+            'version': PORTFOLIO_AI_CACHE_VERSION,
+            'fingerprint': fingerprint,
+            'generated_at': snapshot['as_of'],
+            'result': result,
+        }
+        return _render_portfolio_ai_html(snapshot, result, f'OpenAI · {OPENAI_ANALYSIS_MODEL}'), new_cache
+    except (requests.RequestException, ValueError, KeyError, TypeError, json.JSONDecodeError):
+        return _render_portfolio_ai_html(snapshot), cached
 
 
 def _enrich_events_with_ai(events, indicators):
