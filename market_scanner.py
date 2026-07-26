@@ -166,6 +166,8 @@ def _external_research_score(item):
     score += 2 if 'bullish' in trend else 0
     rsi = float(item.get('RSI') or 0)
     score += 2 if 35 <= rsi <= 68 else -2 if rsi > 72 else 0
+    relative_strength = float(item.get('RS_vs_SPX') or 0)
+    score += 2 if relative_strength > 10 else 1 if relative_strength > 0 else 0
     score -= 1 if item.get('Earnings_Danger') else 0
     return score
 

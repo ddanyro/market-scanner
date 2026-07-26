@@ -510,6 +510,18 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(selected[0]['Candidate_Source'], 'external_research')
         self.assertFalse(selected[0]['Requires_Watchlist_Filters'])
 
+    def test_external_research_rewards_verified_relative_strength(self):
+        base = {
+            'Decision': 'WAIT', 'Consensus': 'None', 'RR_Ratio': 0,
+            'Trend': 'Strong Bullish', 'RSI': 69,
+        }
+        strong = dict(base, RS_vs_SPX=16.8)
+        weak = dict(base, RS_vs_SPX=-5)
+        self.assertGreater(
+            market_scanner._external_research_score(strong),
+            market_scanner._external_research_score(weak),
+        )
+
     @patch('market_scanner.os.path.exists', return_value=True)
     @patch('market_scanner.pd.read_csv')
     def test_removed_bvb_symbols_migrate_from_state_to_external_research(
