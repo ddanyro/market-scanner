@@ -1249,6 +1249,13 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
             verdict = item['verdict']
             represented_markets.add(str(item.get('market', '')))
             color = '#16a34a' if verdict == 'Candidat valid' else '#d97706'
+            entry_value = float(candidate.get('entry_eur') or 0)
+            why_now = (
+                f"Scannerul confirmă BUY, consensus {candidate.get('consensus')}, "
+                f"R:R {float(candidate.get('rr_ratio') or 0):.2f} și un nivel de "
+                f"intrare urmărit de €{entry_value:.2f}. Verdictul AI este "
+                f"{verdict.lower()} după verificarea contextului."
+            )
             source_links = []
             for source_id in item.get('source_ids', []):
                 source = evidence_lookup.get(str(source_id))
@@ -1272,10 +1279,10 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
                 f"<span><b>Piață:</b> {html.escape(item['market'])}</span>"
                 f"<span><b>Consensus:</b> {html.escape(str(candidate.get('consensus')))}</span>"
                 f"<span><b>R:R:</b> {float(candidate.get('rr_ratio') or 0):.2f}</span>"
-                f"<span><b>Entry:</b> €{float(candidate.get('entry_eur') or 0):.2f}</span>"
+                f"<span><b>Entry:</b> €{entry_value:.2f}</span>"
                 f"<span><b>Stop:</b> €{float(candidate.get('stop_eur') or 0):.2f}</span>"
                 f"<span><b>Target:</b> €{float(candidate.get('target_eur') or 0):.2f}</span></div>"
-                f"<p style='margin:6px 0;'><b>De ce acum:</b> {html.escape(item['why_now'])}</p>"
+                f"<p style='margin:6px 0;'><b>De ce acum:</b> {html.escape(why_now)}</p>"
                 f"<p style='margin:6px 0;'><b>Piața:</b> {html.escape(item['market_effect'])}</p>"
                 f"<p style='margin:6px 0;'><b>Știri:</b> {html.escape(item['news_effect'])}</p>"
                 f"<p style='margin:6px 0;'><b>Calendar:</b> {html.escape(item['calendar_effect'])}</p>"
