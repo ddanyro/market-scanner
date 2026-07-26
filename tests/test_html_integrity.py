@@ -168,6 +168,8 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('nu afirma că lipsesc semnalul BUY sau nivelul de intrare', analysis_content)
         self.assertIn('Scannerul confirmă BUY, consensus', analysis_content)
         self.assertIn('universul local a fost cercetat și adăugat în watchlist', analysis_content)
+        self.assertIn("economic_calendar și piața poziției", analysis_content)
+        self.assertIn("<b>Calendar:</b>", analysis_content)
         self.assertIn("'economic_calendar': snapshot.get('economic_calendar', [])", analysis_content)
 
     def test_watchlist_mini_chart_opens_detail_window(self):

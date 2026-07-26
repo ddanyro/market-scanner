@@ -361,7 +361,7 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
-PORTFOLIO_AI_CACHE_VERSION = 3
+PORTFOLIO_AI_CACHE_VERSION = 4
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
 SEC_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK{cik:010d}.json'
@@ -1001,13 +1001,15 @@ def _validate_portfolio_ai_result(result, symbols, evidence_ids=None, candidate_
         if symbol not in symbols or action not in allowed_actions:
             continue
         plain_reason = str(raw.get('plain_reason', '')).strip()[:500]
+        calendar_effect = str(raw.get('calendar_effect', '')).strip()[:500]
         next_check = str(raw.get('next_check', '')).strip()[:400]
-        if plain_reason and next_check:
+        if plain_reason and calendar_effect and next_check:
             position_actions.append({
                 'symbol': symbol,
                 'broker': str(raw.get('broker', '')).strip()[:40],
                 'action': action,
                 'plain_reason': plain_reason,
+                'calendar_effect': calendar_effect,
                 'next_check': next_check,
             })
     if not position_actions:
@@ -1109,6 +1111,8 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
                 f"<b>{html.escape(item['symbol'])} · {html.escape(item['broker'])}</b>"
                 f"<span style='color:{action_color};font-weight:700;'>{html.escape(item['action'])}</span></div>"
                 f"<p style='margin:8px 0 5px;color:var(--text-secondary);'>{html.escape(item['plain_reason'])}</p>"
+                f"<p style='margin:5px 0;font-size:12px;color:var(--text-secondary);'><b>Calendar:</b> "
+                f"{html.escape(item['calendar_effect'])}</p>"
                 f"<p style='margin:0;font-size:12px;color:var(--text-secondary);'><b>Urmărește:</b> "
                 f"{html.escape(item['next_check'])}</p></div>"
             )
@@ -1349,6 +1353,10 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 'importance': event.get('importance'),
                 'status': event.get('status'),
                 'category': event.get('category'),
+                'actual': event.get('actual'),
+                'forecast': event.get('forecast'),
+                'previous': event.get('previous'),
+                'expected_impact': _deterministic_event_analysis(event),
             }
             for event in events
             if str(event.get('importance', '')).lower() in {'high', 'ridicat'}
@@ -1408,6 +1416,9 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Evită jargonul precum NAV, Cushion, ATR, R/R sau Excess Liquidity în rezumatul principal; aceste noțiuni pot apărea numai în detalii.',
             'Verifică existența și acoperirea cantitativă a ordinelor stop.',
             'Evaluează stopurile în contextul ATR/volatilității, trendului, targetului și riscului de gap.',
+            'Pentru fiecare position_action folosește economic_calendar și piața poziției: SUA pentru acțiunile americane, România/BVB plus evenimente europene pentru acțiunile românești.',
+            'Explică separat în calendar_effect dacă evenimentele apropiate susțin păstrarea stopului, cer prudență, justifică reducerea înaintea unui gap sau nu sunt disponibile.',
+            'Nu lărgi stopul doar pentru că urmează un eveniment. Dacă riscul de gap este ridicat, preferă reducerea expunerii, protejarea profitului sau așteptarea confirmării.',
             'Nu considera automat stopul propus corect și nu recomanda mutarea stopului în jos pentru a evita o ieșire.',
             'Semnalează contradicțiile dintre HOLD/REDUCE/EXIT, trend, momentum și protecția activă.',
             'Evaluează concentrarea și raportul recompensă/risc numai când există date suficiente.',
@@ -1439,6 +1450,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 'broker': 'brokerul exact din poziție',
                 'action': 'Menține|Protejează profitul|Redu|Ieși|Urmărește atent',
                 'plain_reason': 'motiv practic, fără jargon',
+                'calendar_effect': 'efectul evenimentelor economice apropiate asupra acțiunii și stopului',
                 'next_check': 'un singur prag sau eveniment observabil',
             }],
             'buy_recommendations': [{
@@ -1490,10 +1502,12 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                             ],
                         },
                         'plain_reason': {'type': 'string'},
+                        'calendar_effect': {'type': 'string'},
                         'next_check': {'type': 'string'},
                     },
                     'required': [
-                        'symbol', 'broker', 'action', 'plain_reason', 'next_check',
+                        'symbol', 'broker', 'action', 'plain_reason',
+                        'calendar_effect', 'next_check',
                     ],
                 },
             },
