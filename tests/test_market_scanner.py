@@ -10,7 +10,7 @@ import tempfile
 from unittest.mock import Mock, patch, MagicMock
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -329,7 +329,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         mock_post.return_value = mock_response
 
         evidence_cache = {
-            'fetched_at': datetime.utcnow().isoformat(),
+            'fetched_at': datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
             'symbols': ['TEST'],
             'items': [{
                 'source_id': 'TEST-sec-1', 'symbol': 'TEST',
@@ -912,7 +912,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             html_result, cache, evidence, diagnostic = market_scanner_analysis.generate_portfolio_ai_analysis(
                 self.portfolio, pd.DataFrame(),
                 cached_evidence={
-                    'fetched_at': datetime.utcnow().isoformat(),
+                    'fetched_at': datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
                     'symbols': ['TEST'], 'items': [],
                 },
             )
@@ -958,7 +958,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
                 pd.DataFrame(),
                 cached=cached,
                 cached_evidence={
-                    'fetched_at': datetime.utcnow().isoformat(),
+                    'fetched_at': datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
                     'symbols': ['TEST'],
                     'items': [],
                 },
