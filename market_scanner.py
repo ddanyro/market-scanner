@@ -2854,31 +2854,35 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 
                 // 4. Re-Init DataTables
                 if (typeof $ !== 'undefined' && $.fn.DataTable) {
-                    try {
-                        $('#portfolio-table').DataTable({
+                    const initPortfolioDataTable = function(selector) {
+                        const tableElement = document.querySelector(selector);
+                        if (!tableElement) return;
+
+                        // DataTables nu acceptă colspan/rowspan în tbody. Rândurile
+                        // informative pentru liste goale rămân tabele HTML normale.
+                        const columnCount = tableElement.querySelectorAll('thead th').length;
+                        const rows = tableElement.querySelectorAll('tbody tr');
+                        const hasUnsupportedRow = Array.from(rows).some(function(row) {
+                            return row.querySelector('[colspan], [rowspan]') ||
+                                row.children.length !== columnCount;
+                        });
+                        if (hasUnsupportedRow) return;
+
+                        $(selector).DataTable({
                             destroy: true,
                             paging: false,
                             searching: true,
                             info: false,
                             order: [] // Preserve order from Python
                         });
-                        
-                        $('#buying-orders-table').DataTable({
-                            destroy: true,
-                            paging: false,
-                            searching: true,
-                            info: false,
-                            order: []
-                        });
-                        
-                        $('#selling-orders-table').DataTable({
-                            destroy: true,
-                            paging: false,
-                            searching: true,
-                            info: false,
-                            order: []
-                        });
-                    } catch(e) { console.error("DataTable Init Error: ", e); }
+                    };
+
+                    try { initPortfolioDataTable('#portfolio-table'); }
+                    catch(e) { console.error("Portfolio DataTable Init Error: ", e); }
+                    try { initPortfolioDataTable('#buying-orders-table'); }
+                    catch(e) { console.error("Buying Orders DataTable Init Error: ", e); }
+                    try { initPortfolioDataTable('#selling-orders-table'); }
+                    catch(e) { console.error("Selling Orders DataTable Init Error: ", e); }
                 }
             }
             
