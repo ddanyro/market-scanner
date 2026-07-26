@@ -168,7 +168,7 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('BUY + consensus Buy/Strong Buy + R:R ≥ 3', analysis_content)
         self.assertIn('nu afirma că lipsesc semnalul BUY sau nivelul de intrare', analysis_content)
         self.assertIn('Scannerul confirmă BUY, consensus', analysis_content)
-        self.assertIn('universul local a fost cercetat și adăugat în watchlist', analysis_content)
+        self.assertIn('universul local este cercetat separat de watchlist', analysis_content)
         self.assertIn('sumă orientativă acum:', analysis_content)
         self.assertIn("['IBKR', 'Tradeville']", content)
         self.assertIn('sizing_by_broker', analysis_content)

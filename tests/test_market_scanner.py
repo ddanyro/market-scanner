@@ -6,6 +6,7 @@ import unittest
 import copy
 import sys
 import os
+import tempfile
 from unittest.mock import Mock, patch, MagicMock
 import pandas as pd
 import numpy as np
@@ -208,10 +209,12 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
                 'source': 'Tradeville / snapshot manual',
                 'base_currency': 'EUR',
                 'summary': {
-                    'NetLiquidation': 121216.95,
+                    'NetLiquidation': 72778.09,
                     'TotalCashValue': 48438.86,
                     'AvailableFunds': 48438.86,
-                    'GrossPositionValue': 72778.09,
+                    'GrossPositionValue': 24339.23,
+                    'CostBasis': 11306.92,
+                    'RelativeProfit': 12983.64,
                 },
                 'cash_by_currency': {'EUR': 47729.35, 'RON': 37.02, 'USD': 799.83},
             }],
@@ -219,8 +222,10 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         normalized = market_scanner_analysis._normalize_tws_account_data(account_data)
         tradeville = normalized['accounts'][0]
         self.assertEqual(tradeville['source'], 'Tradeville / snapshot manual')
-        self.assertEqual(tradeville['cash_pct_of_net_liquidation'], 39.96)
+        self.assertEqual(tradeville['cash_pct_of_net_liquidation'], 66.56)
         self.assertEqual(set(tradeville['cash_by_currency']), {'EUR', 'RON', 'USD'})
+        self.assertEqual(tradeville['summary']['CostBasis'], 11306.92)
+        self.assertEqual(tradeville['summary']['RelativeProfit'], 12983.64)
         self.assertNotIn('BuyingPower', tradeville['summary'])
 
     def test_portfolio_ai_cache_changes_with_broker_snapshot_not_age(self):
@@ -488,6 +493,61 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIn('IBKR — sumă orientativă acum:</b> €0.00', html_result)
         self.assertIn('Tradeville — sumă orientativă acum:</b> €0.00', html_result)
         self.assertIn('Așteaptă', html_result)
+
+    def test_external_research_does_not_use_watchlist_filters(self):
+        watchlist = pd.DataFrame([{
+            'Ticker': 'WATCH', 'Decision': 'WAIT', 'Consensus': '-',
+            'RR_Ratio': 0,
+        }])
+        external = [{
+            'Ticker': 'TLV.RO', 'Decision': 'HOLD', 'Consensus': '-',
+            'RR_Ratio': 1.5, 'Trend': 'Bullish', 'RSI': 52,
+        }]
+        selected = market_scanner.select_strict_buy_candidates(
+            watchlist, external_research=external
+        )
+        self.assertEqual([item['Ticker'] for item in selected], ['TLV.RO'])
+        self.assertEqual(selected[0]['Candidate_Source'], 'external_research')
+        self.assertFalse(selected[0]['Requires_Watchlist_Filters'])
+
+    def test_correct_tradeville_snapshot_does_not_double_count_cash(self):
+        incorrect = {
+            'fetched_at': '2026-07-26T00:00:00+03:00',
+            'accounts': [{
+                'label': 'Tradeville', 'source': 'Tradeville manual',
+                'summary': {
+                    'NetLiquidation': 121216.95,
+                    'TotalCashValue': 48438.86,
+                    'GrossPositionValue': 72778.09,
+                },
+            }],
+        }
+        corrected = market_scanner._correct_tradeville_manual_snapshot(incorrect)
+        summary = corrected['accounts'][0]['summary']
+        self.assertEqual(summary['NetLiquidation'], 72778.09)
+        self.assertEqual(summary['GrossPositionValue'], 24339.23)
+        self.assertEqual(summary['CostBasis'], 11306.92)
+        self.assertEqual(incorrect['accounts'][0]['summary']['NetLiquidation'], 121216.95)
+
+    def test_only_validated_external_candidates_are_promoted(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'watchlist.csv')
+            pd.DataFrame({'symbol': ['EXISTING']}).to_csv(path, index=False)
+            added = market_scanner._promote_validated_external_candidates(
+                {'buy_recommendations': [
+                    {'symbol': 'TLV.RO', 'verdict': 'Candidat valid'},
+                    {'symbol': 'SNP.RO', 'verdict': 'Așteaptă'},
+                ]},
+                [
+                    {'symbol': 'TLV.RO', 'candidate_source': 'external_research'},
+                    {'symbol': 'SNP.RO', 'candidate_source': 'external_research'},
+                ],
+                filepath=path,
+            )
+            self.assertEqual(added, ['TLV.RO'])
+            self.assertEqual(
+                pd.read_csv(path)['symbol'].tolist(), ['EXISTING', 'TLV.RO']
+            )
 
     @patch.dict(os.environ, {}, clear=True)
     def test_portfolio_ai_falls_back_to_deterministic_alerts(self):
