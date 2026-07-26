@@ -279,7 +279,8 @@ def _external_research_score(item):
 
 
 def select_strict_buy_candidates(
-    watchlist_df, external_research=None, limit_per_market=4, etf_holdings=None
+    watchlist_df, external_research=None, limit_per_market=4, etf_holdings=None,
+    sector_rotation=None,
 ):
     """Aplică filtrele doar watchlistului și triază separat cercetarea externă."""
     candidates = []
@@ -287,6 +288,21 @@ def select_strict_buy_candidates(
         str(item.get('symbol', '')).upper(): float(item.get('weight_pct') or 0)
         for item in (etf_holdings or {}).get('holdings', [])
     }
+    rotation_by_sector = (sector_rotation or {}).get('sectors', {})
+
+    def apply_us_rotation(item):
+        if item.get('Market') != 'SUA':
+            return
+        rotation = rotation_by_sector.get(str(item.get('Sector') or ''), {})
+        status = rotation.get('status', 'date insuficiente')
+        item['Sector_Rotation_Status'] = status
+        item['Sector_ETF'] = rotation.get('etf')
+        item['_research_score'] += {
+            'lider': 2.0,
+            'neutru': 0.0,
+            'în deteriorare': -3.0,
+            'date insuficiente': -1.0,
+        }.get(status, -1.0)
     all_watchlist_symbols = set()
     if watchlist_df is not None and not watchlist_df.empty:
         for _, row in watchlist_df.iterrows():
@@ -305,6 +321,7 @@ def select_strict_buy_candidates(
             if symbol.endswith('.RO'):
                 item['TVBETETF_Weight_Pct'] = etf_weights.get(symbol, 0)
                 item['_research_score'] -= etf_weights.get(symbol, 0) / 4
+            apply_us_rotation(item)
             candidates.append(item)
     for raw_item in external_research or []:
         item = dict(raw_item)
@@ -322,6 +339,7 @@ def select_strict_buy_candidates(
             # O idee care dublează o componentă dominantă trebuie să fie net
             # mai bună pentru a ocupa unul dintre locurile limitate BVB.
             item['_research_score'] -= etf_weights.get(symbol, 0) / 4
+        apply_us_rotation(item)
         candidates.append(item)
     candidates.sort(
         key=lambda item: (
@@ -332,14 +350,33 @@ def select_strict_buy_candidates(
     )
     selected = []
     market_counts = {}
+    us_sector_counts = {}
+    us_industry_counts = {}
     for item in candidates:
         source = item.get('Candidate_Source', 'watchlist')
         count_key = (item['Market'], source)
         source_limit = 10 if source == 'external_research' else limit_per_market
         if market_counts.get(count_key, 0) >= source_limit:
             continue
+        if item['Market'] == 'SUA':
+            sector = str(item.get('Sector') or 'Necunoscut')
+            if us_sector_counts.get(sector, 0) >= 2:
+                continue
+            industry = str(item.get('Industry') or '').strip()
+            if (
+                industry
+                and industry not in {'-', 'N/A', 'Unknown'}
+                and us_industry_counts.get(industry, 0) >= 1
+            ):
+                continue
         selected.append(item)
         market_counts[count_key] = market_counts.get(count_key, 0) + 1
+        if item['Market'] == 'SUA':
+            us_sector_counts[sector] = us_sector_counts.get(sector, 0) + 1
+            if industry and industry not in {'-', 'N/A', 'Unknown'}:
+                us_industry_counts[industry] = (
+                    us_industry_counts.get(industry, 0) + 1
+                )
     return selected
 
 
@@ -3989,10 +4026,16 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     )
     if tvbetetf_holdings:
         full_state['tvbetetf_holdings'] = tvbetetf_holdings
+    us_sector_rotation = analysis.fetch_us_sector_rotation(
+        cached=(full_state or {}).get('us_sector_rotation')
+    )
+    if us_sector_rotation:
+        full_state['us_sector_rotation'] = us_sector_rotation
     strict_buy_candidates = select_strict_buy_candidates(
         watchlist_df,
         (full_state or {}).get('external_buy_research', []),
         etf_holdings=tvbetetf_holdings,
+        sector_rotation=us_sector_rotation,
     )
     buy_candidate_payload = [
         {
@@ -4000,6 +4043,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'market': item.get('Market'),
             'company_name': item.get('Company_Name'),
             'sector': item.get('Sector'),
+            'industry': item.get('Industry'),
             'price_eur': item.get('Price'),
             # A BUY decision means the scanner considers the setup actionable
             # now. If there is no separate pullback entry, use the current
@@ -4039,6 +4083,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         account_data=tws_account_data,
         market_context=portfolio_market_context,
         etf_holdings=tvbetetf_holdings,
+        sector_rotation=us_sector_rotation,
     )
     sizing_snapshot['buy_candidates'] = buy_candidate_payload
     buy_candidate_payload = analysis._size_buy_candidates(sizing_snapshot)
@@ -4051,6 +4096,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         market_context=portfolio_market_context,
         buy_candidates=buy_candidate_payload,
         etf_holdings=tvbetetf_holdings,
+        sector_rotation=us_sector_rotation,
     )
     portfolio_ai_result = (
         (new_portfolio_ai_cache or cached_portfolio_ai or {}).get('result', {})
