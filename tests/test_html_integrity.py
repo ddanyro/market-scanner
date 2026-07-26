@@ -113,6 +113,19 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("with open('tws_account_risk.json', 'r'", content)
         self.assertIn('account_data=tws_account_data', content)
 
+    def test_empty_order_tables_do_not_trigger_datatables_column_warning(self):
+        """Rândurile cu colspan pentru liste goale nu trebuie trimise către DataTables."""
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        self.assertIn("const initPortfolioDataTable = function(selector)", content)
+        self.assertIn("row.querySelector('[colspan], [rowspan]')", content)
+        self.assertIn("row.children.length !== columnCount", content)
+        self.assertIn("if (hasUnsupportedRow) return", content)
+        self.assertIn("initPortfolioDataTable('#buying-orders-table')", content)
+        self.assertIn("initPortfolioDataTable('#selling-orders-table')", content)
+
     def test_watchlist_mini_chart_opens_detail_window(self):
         """Mini-graficul watchlistului deschide aceeași fereastră OHLC, fără a schimba click-ul simbolului."""
         file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
