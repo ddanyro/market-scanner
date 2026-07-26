@@ -197,6 +197,30 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             payload,
         )
 
+    def test_manual_tradeville_snapshot_keeps_broker_source_and_ratios(self):
+        account_data = {
+            'fetched_at': datetime.now().astimezone().isoformat(),
+            'source': 'IBKR TWS + Tradeville manual',
+            'accounts': [{
+                'label': 'Tradeville',
+                'source': 'Tradeville / snapshot manual',
+                'base_currency': 'EUR',
+                'summary': {
+                    'NetLiquidation': 121216.95,
+                    'TotalCashValue': 48438.86,
+                    'AvailableFunds': 48438.86,
+                    'GrossPositionValue': 72778.09,
+                },
+                'cash_by_currency': {'EUR': 47729.35, 'RON': 37.02, 'USD': 799.83},
+            }],
+        }
+        normalized = market_scanner_analysis._normalize_tws_account_data(account_data)
+        tradeville = normalized['accounts'][0]
+        self.assertEqual(tradeville['source'], 'Tradeville / snapshot manual')
+        self.assertEqual(tradeville['cash_pct_of_net_liquidation'], 39.96)
+        self.assertEqual(set(tradeville['cash_by_currency']), {'EUR', 'RON', 'USD'})
+        self.assertNotIn('BuyingPower', tradeville['summary'])
+
     def test_sanitized_tws_bands_feed_risk_without_exact_balances(self):
         account_data = {
             'fetched_at': datetime.now().astimezone().isoformat(),
