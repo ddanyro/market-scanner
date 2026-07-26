@@ -250,12 +250,18 @@ def get_economic_events(now=None, request_session=requests):
             'Origin': 'https://www.tradingview.com',
             'Referer': 'https://www.tradingview.com/'
         }
-        payload = {
+        params = {
             'from': start.strftime("%Y-%m-%dT00:00:00.000Z"),
             'to': end.strftime("%Y-%m-%dT23:59:59.000Z"),
-            'countries': ['US', 'EU', 'RO']
+            'countries': ','.join(['US', 'EU', 'RO']),
+            'minImportance': 1,
         }
-        response = request_session.post(CALENDAR_SOURCE_URL, headers=headers, json=payload, timeout=10)
+        response = request_session.get(
+            CALENDAR_SOURCE_URL,
+            headers=headers,
+            params=params,
+            timeout=10,
+        )
         response.raise_for_status()
         for item in response.json().get('result', []):
             event = _normalise_macro_event(item, now)
@@ -1143,10 +1149,26 @@ def _validate_portfolio_ai_result(result, symbols, evidence_ids=None, candidate_
         if symbol not in symbols or action not in allowed_actions:
             continue
         plain_reason = str(raw.get('plain_reason', '')).strip()[:500]
-        calendar_effect = str(
-            raw.get('calendar_effect', '')
-            or (calendar_effects or {}).get(symbol, '')
-        ).strip()[:500]
+        raw_calendar_effect = str(raw.get('calendar_effect', '')).strip()
+        deterministic_calendar_effect = str(
+            (calendar_effects or {}).get(symbol, '')
+        ).strip()
+        unavailable_calendar_claim = any(
+            phrase in raw_calendar_effect.lower()
+            for phrase in (
+                'calendarul economic nu este disponibil',
+                'calendarul economic este indisponibil',
+                'calendarul economic lipsește',
+                'calendarul economic lipseste',
+                'nu sunt disponibile evenimente',
+                'calendarul bvb și european nu este disponibil',
+            )
+        )
+        calendar_effect = (
+            deterministic_calendar_effect
+            if deterministic_calendar_effect and unavailable_calendar_claim
+            else raw_calendar_effect or deterministic_calendar_effect
+        )[:500]
         next_check = str(raw.get('next_check', '')).strip()[:400]
         if plain_reason and calendar_effect and next_check:
             position_actions.append({
@@ -1609,7 +1631,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 'expected_impact': _deterministic_event_analysis(event),
             }
             for event in events
-            if str(event.get('importance', '')).lower() in {'high', 'ridicat'}
+            if _importance_rank(event) == 3
         ][:20]
     except (requests.RequestException, OSError, ValueError, TypeError, KeyError):
         snapshot['economic_calendar'] = []
