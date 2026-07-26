@@ -283,6 +283,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
           "position_actions": [{
             "symbol": "TEST", "broker": "IBKR", "action": "Urmărește atent",
             "plain_reason": "Poziția nu are încă o protecție clară.",
+            "calendar_effect": "Decizia Fed apropiată poate amplifica volatilitatea; stopul nu trebuie lărgit.",
             "next_check": "Confirmarea unui ordin stop activ."
           }],
           "priorities": [{
