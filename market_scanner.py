@@ -27,6 +27,8 @@ from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
 from base64 import b64encode
 import json
+import unicodedata
+from io import StringIO
 from market_scanner_analysis import (
     generate_market_analysis,
     generate_portfolio_ai_analysis,
@@ -54,6 +56,110 @@ BUY_RESEARCH_UNIVERSES = {
     'Europa / Nasdaq-100': ['LQQ.PA'],
 }
 ALWAYS_RESEARCH_SYMBOLS = {'LQQ.PA'}
+BVB_SHARES_CSV_URL = (
+    'https://www.bvb.ro/FinancialInstruments/Markets/'
+    'SharesListForDownload.ashx?filetype=csv'
+)
+BVB_DEEP_SCAN_BATCH = 30
+
+
+def _normalized_column_name(value):
+    text = unicodedata.normalize('NFKD', str(value))
+    return ''.join(char for char in text if not unicodedata.combining(char)).lower()
+
+
+def _parse_bvb_equity_universe_csv(content):
+    """Normalizează exportul oficial BVB pentru Piața Reglementată și AeRO."""
+    frame = pd.read_csv(StringIO(content), sep=';', dtype=str)
+    normalized_columns = {
+        column: _normalized_column_name(column) for column in frame.columns
+    }
+
+    def find_column(*needles):
+        return next(
+            (
+                column for column, normalized in normalized_columns.items()
+                if any(needle in normalized for needle in needles)
+            ),
+            None,
+        )
+
+    symbol_column = find_column('simbol')
+    if not symbol_column:
+        return []
+    isin_column = find_column('isin')
+    company_column = find_column('societate', 'emitent', 'denumire')
+    segment_column = find_column('segment', 'piata')
+    category_column = find_column('categorie')
+    date_column = find_column('data')
+    volume_column = find_column('volum')
+    turnover_column = find_column('valoare tranz', 'rulaj')
+    price_column = find_column('pret')
+
+    records = []
+    for _, row in frame.iterrows():
+        raw_symbol = str(row.get(symbol_column, '')).strip().upper()
+        if not re.fullmatch(r'[A-Z0-9]{1,12}', raw_symbol):
+            continue
+        raw_date = str(row.get(date_column, '')).strip() if date_column else ''
+        parsed_date = pd.to_datetime(raw_date, dayfirst=True, errors='coerce')
+        last_trade = (
+            parsed_date.date().isoformat() if pd.notna(parsed_date) else None
+        )
+        price_text = str(row.get(price_column, '')) if price_column else ''
+        volume_text = str(row.get(volume_column, '')) if volume_column else ''
+        turnover_text = str(row.get(turnover_column, '')) if turnover_column else ''
+        records.append({
+            'symbol': f'{raw_symbol}.RO',
+            'bvb_symbol': raw_symbol,
+            'isin': str(row.get(isin_column, '')).strip() if isin_column else '',
+            'company': str(row.get(company_column, '')).strip() if company_column else '',
+            'segment': str(row.get(segment_column, '')).strip() if segment_column else '',
+            'category': str(row.get(category_column, '')).strip() if category_column else '',
+            'last_trade': last_trade,
+            'price_ron': _parse_bvb_number(price_text),
+            'volume': _parse_bvb_number(volume_text),
+            'turnover_ron': _parse_bvb_number(turnover_text),
+            'source': 'Bursa de Valori București',
+            'source_url': BVB_SHARES_CSV_URL,
+        })
+    unique = {item['symbol']: item for item in records}
+    return sorted(unique.values(), key=lambda item: item['symbol'])
+
+
+def _safe_float_text(value):
+    try:
+        number = float(value)
+        return number if math.isfinite(number) else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _parse_bvb_number(value):
+    text = str(value).strip().replace(' ', '')
+    if ',' in text and '.' in text:
+        text = text.replace('.', '').replace(',', '.')
+    elif ',' in text:
+        text = text.replace(',', '.')
+    return _safe_float_text(text)
+
+
+def fetch_complete_bvb_equity_universe(state, request_session=requests):
+    """Încarcă universul complet BVB/AeRO; la eroare păstrează ultimul cache valid."""
+    cached = list((state or {}).get('bvb_equity_universe', []))
+    try:
+        response = request_session.get(
+            BVB_SHARES_CSV_URL,
+            headers={'User-Agent': 'Mozilla/5.0'},
+            timeout=30,
+        )
+        response.raise_for_status()
+        records = _parse_bvb_equity_universe_csv(response.text)
+        if records:
+            return records
+    except (requests.RequestException, ValueError, TypeError, pd.errors.ParserError):
+        pass
+    return cached
 
 
 def _buy_candidate_market(symbol):
@@ -225,6 +331,20 @@ def select_strict_buy_candidates(watchlist_df, external_research=None, limit_per
 
 def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False):
     """Cercetează separat universuri externe, fără a le confunda cu watchlistul."""
+    bvb_universe = (
+        fetch_complete_bvb_equity_universe(state)
+        if refresh_missing
+        else list(state.get('bvb_equity_universe', []))
+    )
+    if bvb_universe:
+        state['bvb_equity_universe'] = bvb_universe
+    research_universes = {
+        market: list(symbols) for market, symbols in BUY_RESEARCH_UNIVERSES.items()
+    }
+    if bvb_universe:
+        research_universes['România / BVB'] = [
+            item['symbol'] for item in bvb_universe
+        ]
     state_watchlist = list(state.get('watchlist', []))
     watchlist_symbols = set()
     if os.path.exists('watchlist.csv'):
@@ -243,11 +363,15 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
         for item in state_watchlist
         if (
             str(item.get('Ticker', '')).upper() not in watchlist_symbols
-            and str(item.get('Ticker', '')).upper() in {
+            and (
+                str(item.get('Ticker', '')).upper().endswith('.RO')
+                or str(item.get('Ticker', '')).upper() in {
                 symbol.upper()
-                for symbols in BUY_RESEARCH_UNIVERSES.values()
+                for symbols in research_universes.values()
                 for symbol in symbols
-            }
+                }
+            )
+            and str(item.get('Ticker', '')).upper() != 'TVBETETF.RO'
         )
     ]
     # CSV-ul este sursa autoritară pentru apartenența la watchlist. Elimină din
@@ -266,8 +390,11 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
         for item in existing_results if _is_strict_buy_candidate(item)
     }
     markets_to_research = [
-        market for market in BUY_RESEARCH_UNIVERSES
-        if market not in eligible_markets or market == 'Europa / Nasdaq-100'
+        market for market in research_universes
+        if (
+            market not in eligible_markets
+            or market in {'Europa / Nasdaq-100', 'România / BVB'}
+        )
     ]
     if not markets_to_research:
         return state
@@ -279,9 +406,32 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
         str(item.get('Ticker', '')).upper(): item
         for item in list(state.get('external_buy_research', [])) + migrated_external
     }
+    bvb_metadata = {
+        item['symbol']: item for item in bvb_universe
+    }
     for market in markets_to_research:
         print(f"  -> Cercetare BUY pentru {market}...")
-        for symbol in BUY_RESEARCH_UNIVERSES[market]:
+        symbols = list(research_universes[market])
+        if market == 'România / BVB':
+            def bvb_priority(symbol):
+                metadata = bvb_metadata.get(symbol, {})
+                cached = by_symbol.get(symbol.upper(), {})
+                freshness = float(cached.get('_cached_at') or 0)
+                trade_date = metadata.get('last_trade') or ''
+                try:
+                    recency = -datetime.date.fromisoformat(trade_date).toordinal()
+                except (TypeError, ValueError):
+                    recency = 0
+                liquidity = float(
+                    metadata.get('turnover_ron')
+                    or metadata.get('volume')
+                    or 0
+                )
+                return (freshness, -liquidity, recency, symbol)
+
+            symbols.sort(key=bvb_priority)
+            symbols = symbols[:BVB_DEEP_SCAN_BATCH]
+        for symbol in symbols:
             if symbol.upper() in watchlist_symbols and symbol.upper() not in ALWAYS_RESEARCH_SYMBOLS:
                 continue
             cached = by_symbol.get(symbol.upper())
@@ -295,8 +445,20 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
                 continue
             data['_cached_at'] = time.time()
             data['Candidate_Source'] = 'external_research'
+            if symbol in bvb_metadata:
+                data['BVB_Metadata'] = bvb_metadata[symbol]
             by_symbol[symbol.upper()] = data
     state['external_buy_research'] = list(by_symbol.values())
+    state['bvb_universe_stats'] = {
+        'discovered': len(bvb_universe),
+        'deep_scanned': sum(
+            str(item.get('Ticker', '')).upper().endswith('.RO')
+            for item in by_symbol.values()
+        ),
+        'batch_size': BVB_DEEP_SCAN_BATCH,
+        'source': BVB_SHARES_CSV_URL,
+        'updated_at': datetime.datetime.now().isoformat(timespec='seconds'),
+    }
     return state
 
 # Cache settings for long-horizon historical returns (slow to compute)
@@ -3839,6 +4001,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'volume': item.get('Volume'),
             'strategy': item.get('Strategy'),
             'relative_strength': item.get('RS_vs_SPX'),
+            'bvb_metadata': item.get('BVB_Metadata'),
             'strict_eligible': bool(item.get('Strict_Eligible')),
             'candidate_source': item.get('Candidate_Source', 'watchlist'),
             'requires_watchlist_filters': bool(
@@ -3882,6 +4045,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         portfolio_ai_result,
         buy_candidate_payload,
         new_portfolio_evidence or cached_portfolio_evidence,
+        (full_state or {}).get('bvb_universe_stats'),
     )
     full_state['last_portfolio_ai_diagnostic'] = portfolio_ai_diagnostic
     if new_portfolio_ai_cache and new_portfolio_ai_cache != cached_portfolio_ai:
