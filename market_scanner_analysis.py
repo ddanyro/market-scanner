@@ -361,7 +361,7 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
-PORTFOLIO_AI_CACHE_VERSION = 1
+PORTFOLIO_AI_CACHE_VERSION = 2
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
 SEC_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK{cik:010d}.json'
@@ -969,6 +969,62 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
             "Nu au fost identificate alerte din datele disponibile. Absența alertelor nu elimină riscul.</div>"
         )
     summary = snapshot.get('portfolio', {})
+    liquidity = snapshot.get('account_liquidity', {})
+    account_cards = []
+    balance_labels = (
+        ('NetLiquidation', 'Valoare totală / NAV'),
+        ('GrossPositionValue', 'Valoare dețineri'),
+        ('TotalCashValue', 'Cash total'),
+        ('SettledCash', 'Cash decontat'),
+        ('AvailableFunds', 'Fonduri disponibile'),
+        ('BuyingPower', 'Putere de cumpărare'),
+        ('ExcessLiquidity', 'Exces de lichiditate'),
+        ('InitMarginReq', 'Marjă inițială'),
+        ('MaintMarginReq', 'Marjă de menținere'),
+    )
+    if liquidity.get('privacy_mode') == 'exact':
+        for account in liquidity.get('accounts', []):
+            base_currency = html.escape(str(account.get('base_currency', '')))
+            raw_summary = account.get('summary', {})
+            balance_rows = []
+            for key, label in balance_labels:
+                if key not in raw_summary:
+                    continue
+                balance_rows.append(
+                    "<div style='display:flex;justify-content:space-between;gap:18px;'>"
+                    f"<span>{html.escape(label)}</span>"
+                    f"<b>{_safe_number(raw_summary.get(key)):,.2f} {base_currency}</b></div>"
+                )
+            if 'Cushion' in raw_summary:
+                balance_rows.append(
+                    "<div style='display:flex;justify-content:space-between;gap:18px;'>"
+                    "<span>Cushion</span>"
+                    f"<b>{_safe_number(raw_summary.get('Cushion')) * 100:.2f}%</b></div>"
+                )
+            cash_rows = [
+                "<div style='display:flex;justify-content:space-between;gap:18px;'>"
+                f"<span>Cash {html.escape(str(currency))}</span>"
+                f"<b>{_safe_number(value):,.2f} {html.escape(str(currency))}</b></div>"
+                for currency, value in account.get('cash_by_currency', {}).items()
+            ]
+            account_cards.append(
+                "<div style='background:var(--bg-white);border:1px solid var(--border-light);"
+                "border-radius:var(--radius-sm);padding:14px 16px;min-width:280px;flex:1;'>"
+                f"<b>{html.escape(str(account.get('label', 'Cont broker')))}</b>"
+                f"<div style='font-size:11px;color:var(--text-secondary);margin:3px 0 10px;'>"
+                f"{html.escape(str(account.get('source', liquidity.get('source', ''))))} · "
+                f"{html.escape(str(liquidity.get('fetched_at', 'dată indisponibilă')))}</div>"
+                "<div style='display:grid;gap:5px;color:var(--text-secondary);font-size:13px;'>"
+                + ''.join(balance_rows + cash_rows) + "</div></div>"
+            )
+    accounts_html = (
+        "<details open style='margin:16px 0;'>"
+        "<summary style='cursor:pointer;font-weight:700;color:var(--text-primary);'>"
+        "Solduri brute brokeri</summary>"
+        "<div style='display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;'>"
+        + ''.join(account_cards) + "</div></details>"
+        if account_cards else ''
+    )
     return (
         "<section id='portfolio-ai-analysis' style='margin:30px 0;background:var(--light-purple-bg);"
         "border:1px solid var(--border-light);border-radius:var(--radius-md);padding:22px;'>"
@@ -980,7 +1036,8 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
         f"<span style='background:var(--bg-white);padding:7px 10px;border-radius:14px;'>Poziții: <b>{int(summary.get('position_count', 0))}</b></span>"
         f"<span style='background:var(--bg-white);padding:7px 10px;border-radius:14px;'>Fără stop: <b>{int(summary.get('positions_without_stop', 0))}</b></span>"
         f"<span style='background:var(--bg-white);padding:7px 10px;border-radius:14px;'>Acoperire incompletă: <b>{int(summary.get('positions_with_incomplete_stop_coverage', 0))}</b></span>"
-        "</div><div style='display:grid;gap:10px;'>" + ''.join(cards) + "</div>"
+        "</div>" + accounts_html
+        + "<div style='display:grid;gap:10px;'>" + ''.join(cards) + "</div>"
         "<p style='font-size:11px;color:var(--text-secondary);margin:14px 0 0;'>"
         "Instrument de control, nu promisiune de randament și nu recomandare personalizată. "
         "Stopurile nu garantează prețul de execuție, în special la gap-uri sau lichiditate redusă.</p></section>"
@@ -1054,7 +1111,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Dacă datele TWS sunt mai vechi de 24 de ore, menționează vechimea și nu formula o acțiune executabilă.',
             'Când privacy_mode=bands_only, folosește numai intervalele furnizate și nu estima soldurile exacte.',
             'Când privacy_mode=exact, folosește valorile TWS pentru a calcula și evalua cash/NAV, expunere/NAV, marjă/NAV și bufferul contului.',
-            'Nu reproduce soldurile TWS brute în răspuns; exprimă concluziile prin procente calculate, suficiență și praguri de risc.',
+            'Poți reproduce soldurile brute ale brokerilor când sunt relevante; păstrează obligatoriu moneda fiecărei valori.',
             'Nu afirma că NAV sau expunerea nu pot fi evaluate dacă privacy_mode=exact și valorile necesare există.',
             'Semnalează riscul de cash negativ, buffer redus, marjă ridicată sau putere de cumpărare insuficientă.',
             'Separă controlul de preț de invalidarea tezei și cere reevaluare la catalizatori.',

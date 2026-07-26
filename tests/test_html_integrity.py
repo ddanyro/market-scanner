@@ -47,7 +47,6 @@ class TestHtmlIntegrity(unittest.TestCase):
         file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
-            
         # Check that res-day is populated (was missing before)
         self.assertIn("getElementById('res-day').innerText", content, "JS should populate res-day")
         
@@ -102,6 +101,11 @@ class TestHtmlIntegrity(unittest.TestCase):
         file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
+        analysis_path = os.path.join(
+            os.path.dirname(__file__), '..', 'market_scanner_analysis.py'
+        )
+        with open(analysis_path, 'r', encoding='utf-8') as f:
+            analysis_content = f.read()
 
         self.assertIn('id="portfolio-ai-container"', content)
         self.assertIn("portfolioAi.innerHTML = data.portfolio_ai_html || ''", content)
@@ -114,6 +118,9 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("os.environ.get('TWS_ACCOUNT_PASSWORD', '') or password", content)
         self.assertIn("with open('tradeville_account.enc.json', 'r'", content)
         self.assertIn("'IBKR TWS + Tradeville manual'", content)
+        self.assertIn("Solduri brute brokeri", analysis_content)
+        self.assertIn("('NetLiquidation', 'Valoare totală / NAV')", analysis_content)
+        self.assertIn("('TotalCashValue', 'Cash total')", analysis_content)
         self.assertIn('account_data=tws_account_data', content)
 
     def test_empty_order_tables_do_not_trigger_datatables_column_warning(self):
