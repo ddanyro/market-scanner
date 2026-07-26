@@ -155,6 +155,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
     @patch('market_scanner_analysis.requests.post')
     def test_portfolio_ai_uses_structured_responses_and_validates_symbols(self, mock_post):
         mock_response = Mock()
+        mock_response.status_code = 200
         mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = {'output_text': '''{
           "portfolio_overview": "Riscul principal este lipsa protecției.",
@@ -180,25 +181,27 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
                 'source_type': 'raport oficial 10-Q', 'official': True,
             }],
         }
-        html_result, cache, returned_evidence = market_scanner_analysis.generate_portfolio_ai_analysis(
+        html_result, cache, returned_evidence, diagnostic = market_scanner_analysis.generate_portfolio_ai_analysis(
             self.portfolio, pd.DataFrame(), cached_evidence=evidence_cache
         )
 
         request_json = mock_post.call_args.kwargs['json']
         self.assertEqual(request_json['model'], market_scanner_analysis.OPENAI_ANALYSIS_MODEL)
-        self.assertEqual(request_json['reasoning'], {'effort': 'max', 'mode': 'pro'})
-        self.assertEqual(request_json['text']['format']['type'], 'json_object')
+        self.assertEqual(request_json['reasoning'], {'effort': 'high'})
+        self.assertEqual(request_json['text']['format']['type'], 'json_schema')
+        self.assertTrue(request_json['text']['format']['strict'])
         self.assertIn('TEST · Lipsă stop', html_result)
         self.assertIn('Depunere SEC 10-Q', html_result)
         self.assertIn('oficial', html_result)
         self.assertNotIn('SURSA-INVENTATA', html_result)
         self.assertEqual(cache['result']['priorities'][0]['symbol'], 'TEST')
         self.assertEqual(returned_evidence['items'][0]['source_id'], 'TEST-sec-1')
+        self.assertEqual(diagnostic['status'], 'success')
 
     @patch.dict(os.environ, {}, clear=True)
     def test_portfolio_ai_falls_back_to_deterministic_alerts(self):
         with patch('market_scanner_analysis.os.path.exists', return_value=False):
-            html_result, cache, evidence = market_scanner_analysis.generate_portfolio_ai_analysis(
+            html_result, cache, evidence, diagnostic = market_scanner_analysis.generate_portfolio_ai_analysis(
                 self.portfolio, pd.DataFrame(),
                 cached_evidence={
                     'fetched_at': datetime.utcnow().isoformat(),
@@ -208,6 +211,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIn('Fără ordin stop activ identificat', html_result)
         self.assertIsNone(cache)
         self.assertEqual(evidence['items'], [])
+        self.assertEqual(diagnostic['status'], 'missing_key')
 
     def test_portfolio_evidence_prefers_official_sec_filings_and_keeps_links(self):
         class FakeResponse:

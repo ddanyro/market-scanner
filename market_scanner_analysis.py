@@ -360,6 +360,7 @@ def _save_ai_calendar_cache(cache):
 
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
+OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
 PORTFOLIO_AI_CACHE_VERSION = 1
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
@@ -874,7 +875,12 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 {item['symbol'] for item in snapshot['positions']},
                 evidence_ids,
             )
-            return _render_portfolio_ai_html(snapshot, result, 'OpenAI · cache'), cached, evidence_cache
+            return (
+                _render_portfolio_ai_html(snapshot, result, 'OpenAI · cache'),
+                cached,
+                evidence_cache,
+                {'status': 'cache_valid', 'message': 'Analiză AI validă preluată din cache.'},
+            )
         except (ValueError, TypeError):
             pass
 
@@ -886,7 +892,13 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
         except OSError:
             pass
     if not openai_key or not snapshot['positions']:
-        return _render_portfolio_ai_html(snapshot), cached, evidence_cache
+        reason = 'missing_key' if not openai_key else 'empty_portfolio'
+        return (
+            _render_portfolio_ai_html(snapshot),
+            cached,
+            evidence_cache,
+            {'status': reason, 'message': 'Cheia OpenAI sau pozițiile nu sunt disponibile.'},
+        )
 
     request_payload = {
         'as_of': snapshot['as_of'],
@@ -922,43 +934,126 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
         },
         'data': snapshot,
     }
-    try:
-        response = requests.post(
-            'https://api.openai.com/v1/responses',
-            headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {openai_key}'},
-            json={
-                'model': OPENAI_ANALYSIS_MODEL,
-                'reasoning': OPENAI_ANALYSIS_REASONING,
-                'text': {'format': {'type': 'json_object'}, 'verbosity': 'medium'},
-                'input': [
-                    {'role': 'system', 'content': (
-                        'Ești un risk manager pentru swing trading long. Răspunzi exclusiv JSON valid, '
-                        'în română. Folosești numai datele primite și explici explicit orice lipsă.'
-                    )},
-                    {'role': 'user', 'content': json.dumps(request_payload, ensure_ascii=False)},
-                ],
+    output_schema = {
+        'type': 'object',
+        'additionalProperties': False,
+        'properties': {
+            'portfolio_overview': {'type': 'string'},
+            'priorities': {
+                'type': 'array',
+                'minItems': 1,
+                'maxItems': 12,
+                'items': {
+                    'type': 'object',
+                    'additionalProperties': False,
+                    'properties': {
+                        'symbol': {'type': 'string'},
+                        'severity': {
+                            'type': 'string',
+                            'enum': ['critic', 'ridicat', 'mediu', 'scăzut', 'informativ'],
+                        },
+                        'issue': {'type': 'string'},
+                        'evidence': {'type': 'string'},
+                        'action': {'type': 'string'},
+                        'why': {'type': 'string'},
+                        'review_trigger': {'type': 'string'},
+                        'confidence': {'type': 'string'},
+                        'source_ids': {'type': 'array', 'items': {'type': 'string'}},
+                    },
+                    'required': [
+                        'symbol', 'severity', 'issue', 'evidence', 'action', 'why',
+                        'review_trigger', 'confidence', 'source_ids',
+                    ],
+                },
             },
-            timeout=180,
-        )
-        response.raise_for_status()
-        result = _validate_portfolio_ai_result(
-            json.loads(_extract_openai_response_text(response.json())),
-            {item['symbol'] for item in snapshot['positions']},
-            evidence_ids,
-        )
-        new_cache = {
-            'version': PORTFOLIO_AI_CACHE_VERSION,
-            'fingerprint': fingerprint,
-            'generated_at': snapshot['as_of'],
-            'result': result,
-        }
-        return (
-            _render_portfolio_ai_html(snapshot, result, f'OpenAI · {OPENAI_ANALYSIS_MODEL}'),
-            new_cache,
-            evidence_cache,
-        )
-    except (requests.RequestException, ValueError, KeyError, TypeError, json.JSONDecodeError):
-        return _render_portfolio_ai_html(snapshot), cached, evidence_cache
+        },
+        'required': ['portfolio_overview', 'priorities'],
+    }
+    attempts = [
+        {'reasoning': OPENAI_PORTFOLIO_REASONING, 'timeout': 150, 'verbosity': 'medium'},
+        {'reasoning': {'effort': 'medium'}, 'timeout': 90, 'verbosity': 'low'},
+    ]
+    diagnostics = []
+    for attempt_number, attempt in enumerate(attempts, start=1):
+        try:
+            response = requests.post(
+                'https://api.openai.com/v1/responses',
+                headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {openai_key}'},
+                json={
+                    'model': OPENAI_ANALYSIS_MODEL,
+                    'reasoning': attempt['reasoning'],
+                    'max_output_tokens': 5000,
+                    'text': {
+                        'format': {
+                            'type': 'json_schema',
+                            'name': 'portfolio_risk_analysis',
+                            'strict': True,
+                            'schema': output_schema,
+                        },
+                        'verbosity': attempt['verbosity'],
+                    },
+                    'input': [
+                        {'role': 'system', 'content': (
+                            'Ești un risk manager pentru swing trading long. Răspunzi în română. '
+                            'Folosești numai datele primite și explici explicit orice lipsă.'
+                        )},
+                        {'role': 'user', 'content': json.dumps(request_payload, ensure_ascii=False)},
+                    ],
+                },
+                timeout=attempt['timeout'],
+            )
+            if response.status_code >= 400:
+                diagnostics.append({
+                    'attempt': attempt_number,
+                    'type': 'http_error',
+                    'http_status': response.status_code,
+                })
+                continue
+            result = _validate_portfolio_ai_result(
+                json.loads(_extract_openai_response_text(response.json())),
+                {item['symbol'] for item in snapshot['positions']},
+                evidence_ids,
+            )
+            new_cache = {
+                'version': PORTFOLIO_AI_CACHE_VERSION,
+                'fingerprint': fingerprint,
+                'generated_at': snapshot['as_of'],
+                'result': result,
+            }
+            diagnostic = {
+                'status': 'success',
+                'attempt': attempt_number,
+                'model': OPENAI_ANALYSIS_MODEL,
+                'reasoning': attempt['reasoning'],
+            }
+            return (
+                _render_portfolio_ai_html(snapshot, result, f'OpenAI · {OPENAI_ANALYSIS_MODEL}'),
+                new_cache,
+                evidence_cache,
+                diagnostic,
+            )
+        except requests.Timeout:
+            diagnostics.append({'attempt': attempt_number, 'type': 'timeout'})
+        except requests.RequestException as error:
+            diagnostics.append({
+                'attempt': attempt_number,
+                'type': 'connection_error',
+                'error_class': type(error).__name__,
+            })
+        except (ValueError, KeyError, TypeError, json.JSONDecodeError) as error:
+            diagnostics.append({
+                'attempt': attempt_number,
+                'type': 'invalid_response',
+                'error_class': type(error).__name__,
+            })
+
+    diagnostic = {
+        'status': 'failed',
+        'model': OPENAI_ANALYSIS_MODEL,
+        'attempts': diagnostics,
+        'message': 'Apelurile OpenAI au eșuat; este afișat fallback-ul determinist.',
+    }
+    return _render_portfolio_ai_html(snapshot), cached, evidence_cache, diagnostic
 
 
 def _enrich_events_with_ai(events, indicators):
