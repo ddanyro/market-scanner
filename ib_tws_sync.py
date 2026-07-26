@@ -229,7 +229,8 @@ def fetch_active_orders(output_file='tws_orders.csv'):
 
                 if base_values or cash_by_currency:
                     accounts.append({
-                        'label': f'Cont {len(accounts) + 1}',
+                        'label': f'IBKR {len(accounts) + 1}',
+                        'source': 'IBKR TWS',
                         'base_currency': base_currency or 'BASE',
                         'summary': base_values,
                         'cash_by_currency': cash_by_currency,

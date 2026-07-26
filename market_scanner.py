@@ -3500,8 +3500,18 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         else:
             tws_account_data = dict(tws_account_data)
             tws_account_data['source'] = 'IBKR TWS + Tradeville manual'
+            ibkr_accounts = []
+            for index, raw_account in enumerate(tws_account_data.get('accounts', []), start=1):
+                ibkr_account = dict(raw_account)
+                old_label = str(ibkr_account.get('label', '')).strip()
+                ibkr_account['label'] = (
+                    'IBKR' if len(tws_account_data.get('accounts', [])) == 1
+                    else f'IBKR {index}'
+                ) if not old_label or old_label.lower().startswith('cont ') else old_label
+                ibkr_account['source'] = 'IBKR TWS'
+                ibkr_accounts.append(ibkr_account)
             tws_account_data['accounts'] = (
-                list(tws_account_data.get('accounts', []))
+                ibkr_accounts
                 + list(tradeville_account_data.get('accounts', []))
             )
             timestamps = [

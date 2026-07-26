@@ -118,6 +118,8 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("os.environ.get('TWS_ACCOUNT_PASSWORD', '') or password", content)
         self.assertIn("with open('tradeville_account.enc.json', 'r'", content)
         self.assertIn("'IBKR TWS + Tradeville manual'", content)
+        self.assertIn("ibkr_account['source'] = 'IBKR TWS'", content)
+        self.assertIn("'IBKR' if len(tws_account_data.get('accounts', [])) == 1", content)
         self.assertIn("Solduri brute brokeri", analysis_content)
         self.assertIn("('NetLiquidation', 'Valoare totală / NAV')", analysis_content)
         self.assertIn("('TotalCashValue', 'Cash total')", analysis_content)
