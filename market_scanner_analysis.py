@@ -43,6 +43,19 @@ TVBETETF_ISSUER_SYMBOLS = {
     'TERAPLAST': 'TRP.RO',
     'SPHERA FRANCHISE GROUP': 'SFG.RO',
 }
+US_SECTOR_ETFS = {
+    'Technology': 'XLK',
+    'Financial Services': 'XLF',
+    'Energy': 'XLE',
+    'Healthcare': 'XLV',
+    'Industrials': 'XLI',
+    'Consumer Cyclical': 'XLY',
+    'Consumer Defensive': 'XLP',
+    'Utilities': 'XLU',
+    'Real Estate': 'XLRE',
+    'Basic Materials': 'XLB',
+    'Communication Services': 'XLC',
+}
 
 EVENT_RULES = {
     'inflation': {
@@ -273,6 +286,74 @@ def fetch_tvbetetf_holdings(cached=None, request_session=requests):
         pass
     return cached if isinstance(cached, dict) else None
 
+
+def fetch_us_sector_rotation(cached=None, ticker_factory=yf.Ticker):
+    """Măsoară rotația SUA față de SPY; păstrează cache-ul dacă datele lipsesc."""
+    try:
+        histories = {}
+        for ticker in ['SPY'] + list(US_SECTOR_ETFS.values()):
+            history = ticker_factory(ticker).history(
+                period='6mo', interval='1d', auto_adjust=True
+            )
+            if history is None or history.empty or 'Close' not in history:
+                raise ValueError(f'Istoric indisponibil pentru {ticker}')
+            histories[ticker] = history['Close'].dropna().astype(float)
+        spy = histories['SPY']
+
+        def period_return(series, sessions):
+            if len(series) <= sessions:
+                return None
+            return (float(series.iloc[-1]) / float(series.iloc[-sessions - 1]) - 1) * 100
+
+        spy_1m = period_return(spy, 21)
+        spy_3m = period_return(spy, 63)
+        if spy_1m is None or spy_3m is None:
+            raise ValueError('Istoric SPY insuficient')
+        sectors = {}
+        for sector, ticker in US_SECTOR_ETFS.items():
+            close = histories[ticker]
+            return_1m = period_return(close, 21)
+            return_3m = period_return(close, 63)
+            if return_1m is None or return_3m is None:
+                continue
+            sma50 = float(close.tail(50).mean())
+            above_sma50 = float(close.iloc[-1]) >= sma50
+            relative_1m = return_1m - spy_1m
+            relative_3m = return_3m - spy_3m
+            if above_sma50 and relative_1m > 1 and relative_3m > 2:
+                status = 'lider'
+                size_factor = 1.0
+            elif (not above_sma50) or (
+                relative_1m < -1 and relative_3m < 0
+            ):
+                status = 'în deteriorare'
+                size_factor = 0.5
+            else:
+                status = 'neutru'
+                size_factor = 0.8
+            sectors[sector] = {
+                'etf': ticker,
+                'status': status,
+                'return_1m_pct': round(return_1m, 2),
+                'return_3m_pct': round(return_3m, 2),
+                'relative_1m_vs_spy_pct': round(relative_1m, 2),
+                'relative_3m_vs_spy_pct': round(relative_3m, 2),
+                'above_sma50': above_sma50,
+                'size_factor': size_factor,
+            }
+        if not sectors:
+            raise ValueError('Niciun sector valid')
+        return {
+            'as_of': datetime.datetime.now().isoformat(timespec='seconds'),
+            'benchmark': 'SPY',
+            'benchmark_return_1m_pct': round(spy_1m, 2),
+            'benchmark_return_3m_pct': round(spy_3m, 2),
+            'sectors': sectors,
+            'source': 'Yahoo Finance market data',
+        }
+    except Exception:
+        return cached if isinstance(cached, dict) else None
+
 def _load_calendar_cache(now):
     try:
         with open(ECONOMIC_CALENDAR_CACHE, 'r', encoding='utf-8') as handle:
@@ -455,7 +536,7 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
-PORTFOLIO_AI_CACHE_VERSION = 8
+PORTFOLIO_AI_CACHE_VERSION = 9
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
 SEC_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK{cik:010d}.json'
@@ -682,7 +763,8 @@ def build_portfolio_market_context(portfolio_df, market_indicators=None):
 
 
 def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=None,
-                                  market_context=None, etf_holdings=None):
+                                  market_context=None, etf_holdings=None,
+                                  sector_rotation=None):
     """Normalizează numai datele necesare evaluării riscului, fără valori inventate."""
     if portfolio_df is None or portfolio_df.empty:
         return {
@@ -790,6 +872,8 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
                 'Tradeville' if symbol.endswith('.RO') else 'IBKR'
             ),
             'market': 'România / BVB' if symbol.endswith('.RO') else 'SUA',
+            'sector': str(row.get('Sector', '')).strip() or None,
+            'industry': str(row.get('Industry', '')).strip() or None,
             'shares': shares,
             'current_price_eur': price or None,
             'buy_price_eur': buy_price or None,
@@ -828,6 +912,7 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
         },
         'account_liquidity': _normalize_tws_account_data(account_data),
         'market_context': market_context or {},
+        'us_sector_rotation': sector_rotation or {},
         'positions': positions,
     }
     if isinstance(etf_holdings, dict) and etf_holdings.get('holdings'):
@@ -889,6 +974,7 @@ def _portfolio_snapshot_fingerprint(snapshot):
         'buy_candidates': snapshot.get('buy_candidates', []),
         'economic_calendar': snapshot.get('economic_calendar', []),
         'tvbetetf_lookthrough': snapshot.get('tvbetetf_lookthrough', {}),
+        'us_sector_rotation': snapshot.get('us_sector_rotation', {}),
     }
     return hashlib.sha256(
         json.dumps(stable, sort_keys=True, ensure_ascii=False).encode('utf-8')
@@ -911,6 +997,22 @@ def _size_buy_candidates(snapshot):
         )
         for item in snapshot.get('positions', [])
     }
+    sector_rotation = snapshot.get('us_sector_rotation', {}).get('sectors', {})
+    direct_sector_values = {}
+    direct_industry_values = {}
+    for position in snapshot.get('positions', []):
+        if position.get('market') != 'SUA':
+            continue
+        sector = str(position.get('sector') or 'Necunoscut')
+        direct_sector_values[sector] = (
+            direct_sector_values.get(sector, 0)
+            + _safe_number(position.get('current_value_eur'))
+        )
+        industry = str(position.get('industry') or 'Necunoscut')
+        direct_industry_values[industry] = (
+            direct_industry_values.get(industry, 0)
+            + _safe_number(position.get('current_value_eur'))
+        )
     for candidate in candidates:
         symbol = str(candidate.get('symbol', '')).upper()
         overlap = lookthrough_by_symbol.get(symbol, {})
@@ -941,6 +1043,33 @@ def _size_buy_candidates(snapshot):
         else:
             candidate['overlap_size_factor'] = 1.0
             candidate['overlap_risk'] = 'redus'
+        if candidate.get('market') == 'SUA':
+            sector = str(candidate.get('sector') or 'Necunoscut')
+            rotation = sector_rotation.get(sector, {})
+            candidate.update({
+                'sector_rotation_status': rotation.get(
+                    'status', 'date insuficiente'
+                ),
+                'sector_etf': rotation.get('etf'),
+                'sector_relative_1m_vs_spy_pct': rotation.get(
+                    'relative_1m_vs_spy_pct'
+                ),
+                'sector_relative_3m_vs_spy_pct': rotation.get(
+                    'relative_3m_vs_spy_pct'
+                ),
+                'sector_rotation_size_factor': _safe_number(
+                    rotation.get('size_factor')
+                ) or 0.6,
+                'existing_sector_exposure_eur': round(
+                    direct_sector_values.get(sector, 0), 2
+                ),
+                'existing_industry_exposure_eur': round(
+                    direct_industry_values.get(
+                        str(candidate.get('industry') or 'Necunoscut'), 0
+                    ),
+                    2,
+                ),
+            })
     liquidity = snapshot.get('account_liquidity', {})
     if liquidity.get('privacy_mode') != 'exact':
         for candidate in candidates:
@@ -1023,16 +1152,51 @@ def _size_buy_candidates(snapshot):
             conditional_amount *= _safe_number(
                 candidate.get('overlap_size_factor')
             ) or 1.0
+            if candidate.get('market') == 'SUA':
+                conditional_amount *= _safe_number(
+                    candidate.get('sector_rotation_size_factor')
+                ) or 0.6
             preliminary.append((candidate, conditional_amount, stop_risk_pct))
 
         aggregate_cap = min(usable_cash * 0.15, net_liquidation * 0.12)
         preliminary_total = sum(amount for _, amount, _ in preliminary)
         scale = min(1.0, aggregate_cap / preliminary_total) if preliminary_total > 0 else 0
+        sector_allocated = {}
+        industry_allocated = {}
         for candidate, amount, stop_risk_pct in preliminary:
             entry = _safe_number(candidate.get('entry_eur'))
             amount *= scale
+            if candidate.get('market') == 'SUA':
+                sector = str(candidate.get('sector') or 'Necunoscut')
+                existing_sector = direct_sector_values.get(sector, 0)
+                sector_cap = net_liquidation * 0.10
+                remaining_sector_capacity = max(
+                    sector_cap
+                    - existing_sector
+                    - sector_allocated.get(sector, 0),
+                    0,
+                )
+                amount = min(amount, remaining_sector_capacity)
+                industry = str(candidate.get('industry') or 'Necunoscut')
+                if industry != 'Necunoscut':
+                    industry_cap = net_liquidation * 0.05
+                    remaining_industry_capacity = max(
+                        industry_cap
+                        - direct_industry_values.get(industry, 0)
+                        - industry_allocated.get(industry, 0),
+                        0,
+                    )
+                    amount = min(amount, remaining_industry_capacity)
             units = int(amount / entry) if entry > 0 else 0
             amount = units * entry
+            if candidate.get('market') == 'SUA':
+                sector_allocated[sector] = (
+                    sector_allocated.get(sector, 0) + amount
+                )
+                if industry != 'Necunoscut':
+                    industry_allocated[industry] = (
+                        industry_allocated.get(industry, 0) + amount
+                    )
             candidate['sizing_by_broker'].append({
                 'broker': broker,
                 'broker_available_cash_eur': round(usable_cash, 2),
@@ -1330,8 +1494,26 @@ def _position_calendar_effects(snapshot):
     return effects
 
 
+def _candidate_calendar_effects(snapshot):
+    """Aplică aceeași validare temporală și candidaților de cumpărare."""
+    candidate_snapshot = {
+        'as_of': snapshot.get('as_of'),
+        'economic_calendar': snapshot.get('economic_calendar', []),
+        'positions': [
+            {
+                'symbol': candidate.get('symbol'),
+                'market': candidate.get('market'),
+            }
+            for candidate in snapshot.get('buy_candidates', [])
+            if candidate.get('symbol')
+        ],
+    }
+    return _position_calendar_effects(candidate_snapshot)
+
+
 def _validate_portfolio_ai_result(result, symbols, evidence_ids=None, candidate_symbols=None,
-                                  calendar_effects=None):
+                                  calendar_effects=None,
+                                  candidate_calendar_effects=None):
     allowed_severity = {'critic', 'ridicat', 'mediu', 'scăzut', 'informativ'}
     evidence_ids = evidence_ids or set()
     clean_items = []
@@ -1413,6 +1595,11 @@ def _validate_portfolio_ai_result(result, symbols, evidence_ids=None, candidate_
             'calendar_effect', 'main_risk',
         ):
             value = raw.get(field)
+            if (
+                field == 'calendar_effect'
+                and (candidate_calendar_effects or {}).get(symbol)
+            ):
+                value = candidate_calendar_effects[symbol]
             if not isinstance(value, str) or not value.strip():
                 break
             item[field] = value.strip()[:700]
@@ -1748,6 +1935,25 @@ def render_buy_recommendations_html(
                     f" · suprapunere {html.escape(str(candidate.get('overlap_risk') or 'necunoscută'))}."
                     "</div>"
                 )
+            elif candidate.get('market') == 'SUA':
+                relative_1m = candidate.get('sector_relative_1m_vs_spy_pct')
+                relative_3m = candidate.get('sector_relative_3m_vs_spy_pct')
+                overlap_html = (
+                    "<div style='background:#eff6ff;border-radius:var(--radius-sm);"
+                    "padding:9px 12px;margin:8px 0;font-size:13px;'>"
+                    f"<b>Rotație sectorială:</b> "
+                    f"{html.escape(str(candidate.get('sector') or 'Sector necunoscut'))} · "
+                    f"{html.escape(str(candidate.get('sector_rotation_status') or 'date insuficiente'))}"
+                    + (
+                        f" · vs SPY: {float(relative_1m):+.2f}% la 1 lună, "
+                        f"{float(relative_3m):+.2f}% la 3 luni"
+                        if relative_1m is not None and relative_3m is not None
+                        else ''
+                    )
+                    + f". Expunere existentă în sector: "
+                    f"€{float(candidate.get('existing_sector_exposure_eur') or 0):,.2f}."
+                    "</div>"
+                )
             cards.append(
                 "<details style='background:var(--bg-white);border:1px solid var(--border-light);"
                 f"border-left:4px solid {color};border-radius:var(--radius-sm);padding:14px 16px;'>"
@@ -1823,7 +2029,8 @@ def render_buy_recommendations_html(
 
 def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, cached_evidence=None,
                                    request_session=None, account_data=None, market_context=None,
-                                   buy_candidates=None, etf_holdings=None):
+                                   buy_candidates=None, etf_holdings=None,
+                                   sector_rotation=None):
     """Generează o analiză structurată și cache-uibilă, apoi returnează HTML sigur."""
     snapshot = build_portfolio_risk_snapshot(
         portfolio_df,
@@ -1831,6 +2038,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
         account_data=account_data,
         market_context=market_context,
         etf_holdings=etf_holdings,
+        sector_rotation=sector_rotation,
     )
     snapshot['buy_candidates'] = list(buy_candidates or [])
     snapshot['buy_candidates'] = _size_buy_candidates(snapshot)
@@ -1870,6 +2078,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
         evidence['source_id'] for evidence in evidence_cache.get('items', [])
     }
     calendar_effects = _position_calendar_effects(snapshot)
+    candidate_calendar_effects = _candidate_calendar_effects(snapshot)
     fingerprint = _portfolio_snapshot_fingerprint(snapshot)
     if isinstance(cached, dict) and cached.get('fingerprint') == fingerprint:
         try:
@@ -1879,6 +2088,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 evidence_ids,
                 {item['symbol'] for item in snapshot['buy_candidates']},
                 calendar_effects,
+                candidate_calendar_effects,
             )
             return (
                 _render_portfolio_ai_html(snapshot, result, 'OpenAI · cache'),
@@ -1945,6 +2155,9 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Acțiunile trebuie formulate ca verificări: plasează/revizuiește/menține/strânge doar condiționat.',
             'Pentru buy_candidates verifică dacă știrile, piața și calendarul economic susțin intrarea acum; filtrele tehnice singure nu sunt suficiente.',
             'Pentru candidații BVB folosește tvbetetf_weight_pct, indirect_exposure_eur, direct_exposure_eur și overlap_risk. Preferă diversificarea și cere dovezi mai puternice înainte de a dubla componentele dominante ale TVBETETF.',
+            'Pentru candidații SUA folosește us_sector_rotation și câmpurile sector_rotation_status, relative față de SPY și existing_sector_exposure_eur. Preferă liderii confirmați și cere dovezi mai puternice pentru sectoarele în deteriorare.',
+            'Nu concentra recomandările SUA: limita deterministă este maximum două idei pe sector, maximum o idee pe industrie cunoscută, maximum 10% din NAV IBKR pe sector și 5% pe industrie după includerea expunerii existente.',
+            'Calendarul candidaților este validat determinist: evenimentele trecute nu pot fi descrise ca riscuri viitoare de publicare.',
             'Nu recomanda și nu inventa simboluri care nu există în buy_candidates.',
             'Pentru candidate_source=watchlist, strict_eligible arată dacă instrumentul a trecut BUY + Buy/Strong Buy + R:R minimum 3; dacă este false, verdictul trebuie să fie Așteaptă.',
             'Pentru candidate_source=external_research, nu aplica filtrul watchlistului. Evaluează independent calitatea, catalizatorii, știrile, piața, calendarul, entry/stop/target și riscul; recomandă numai dacă aceste dovezi susțin intrarea.',
@@ -2136,6 +2349,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 evidence_ids,
                 {item['symbol'] for item in snapshot['buy_candidates']},
                 calendar_effects,
+                candidate_calendar_effects,
             )
             new_cache = {
                 'version': PORTFOLIO_AI_CACHE_VERSION,
@@ -2184,6 +2398,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 evidence_ids,
                 {item['symbol'] for item in snapshot['buy_candidates']},
                 calendar_effects,
+                candidate_calendar_effects,
             )
             diagnostic.update({
                 'status': 'fallback_cache',

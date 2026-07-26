@@ -533,6 +533,62 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(by_symbol['TLV.RO']['overlap_risk'], 'ridicat')
         self.assertLess(tlv_amount, iarv_amount)
 
+    def test_us_sector_rotation_measures_relative_strength_vs_spy(self):
+        class FakeTicker:
+            def __init__(self, symbol):
+                self.symbol = symbol
+
+            def history(self, **_kwargs):
+                base = np.linspace(100, 110, 80)
+                if self.symbol == 'XLK':
+                    base = np.linspace(100, 130, 80)
+                return pd.DataFrame({'Close': base})
+
+        rotation = market_scanner_analysis.fetch_us_sector_rotation(
+            ticker_factory=FakeTicker
+        )
+        technology = rotation['sectors']['Technology']
+        self.assertEqual(technology['status'], 'lider')
+        self.assertGreater(technology['relative_3m_vs_spy_pct'], 2)
+
+    def test_us_sector_sizing_penalizes_weak_rotation_and_caps_sector(self):
+        snapshot = {
+            'portfolio': {'total_value_eur': 100000},
+            'positions': [{
+                'symbol': 'OLD', 'market': 'SUA', 'sector': 'Technology',
+                'current_value_eur': 9500, 'broker': 'IBKR',
+                'portfolio_weight_pct': 9.5,
+            }],
+            'account_liquidity': {
+                'privacy_mode': 'exact',
+                'accounts': [{
+                    'label': 'IBKR',
+                    'summary': {
+                        'NetLiquidation': 100000,
+                        'AvailableFunds': 50000,
+                        'TotalCashValue': 50000,
+                    },
+                }],
+            },
+            'us_sector_rotation': {'sectors': {
+                'Technology': {
+                    'status': 'în deteriorare', 'etf': 'XLK',
+                    'relative_1m_vs_spy_pct': -2,
+                    'relative_3m_vs_spy_pct': -3,
+                    'size_factor': 0.5,
+                },
+            }},
+            'buy_candidates': [{
+                'symbol': 'NEW', 'market': 'SUA', 'sector': 'Technology',
+                'eligible_brokers': ['IBKR'], 'entry_eur': 100,
+                'stop_eur': 90,
+            }],
+        }
+        candidate = market_scanner_analysis._size_buy_candidates(snapshot)[0]
+        sizing = candidate['sizing_by_broker'][0]
+        self.assertEqual(candidate['sector_rotation_status'], 'în deteriorare')
+        self.assertLessEqual(sizing['conditional_amount_eur'], 500)
+
     def test_buy_sizing_uses_separate_broker_cash_and_stop_risk(self):
         snapshot = {
             'account_liquidity': {
@@ -711,6 +767,49 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             },
         )
         self.assertEqual(selected[0]['Ticker'], 'IARV.RO')
+
+    def test_us_selection_limits_two_candidates_per_sector(self):
+        external = [
+            {
+                'Ticker': ticker, 'Decision': 'BUY', 'Consensus': 'Buy',
+                'RR_Ratio': 3, 'Trend': 'Bullish', 'RSI': 50,
+                'Sector': sector,
+            }
+            for ticker, sector in [
+                ('A', 'Technology'), ('B', 'Technology'),
+                ('C', 'Technology'), ('D', 'Healthcare'),
+            ]
+        ]
+        selected = market_scanner.select_strict_buy_candidates(
+            pd.DataFrame(),
+            external_research=external,
+            sector_rotation={'sectors': {
+                'Technology': {'status': 'lider', 'etf': 'XLK'},
+                'Healthcare': {'status': 'neutru', 'etf': 'XLV'},
+            }},
+        )
+        technology_count = sum(
+            item.get('Sector') == 'Technology' for item in selected
+        )
+        self.assertEqual(technology_count, 2)
+        self.assertTrue(any(item.get('Sector') == 'Healthcare' for item in selected))
+
+    def test_us_selection_limits_one_candidate_per_known_industry(self):
+        external = [
+            {
+                'Ticker': ticker, 'Decision': 'BUY', 'Consensus': 'Buy',
+                'RR_Ratio': 3, 'Trend': 'Bullish', 'RSI': 50,
+                'Sector': sector, 'Industry': 'Semiconductors',
+            }
+            for ticker, sector in [
+                ('CHIP1', 'Technology'),
+                ('CHIP2', 'Technology'),
+            ]
+        ]
+        selected = market_scanner.select_strict_buy_candidates(
+            pd.DataFrame(), external_research=external
+        )
+        self.assertEqual(len(selected), 1)
 
     @patch('market_scanner.os.path.exists', return_value=True)
     @patch('market_scanner.pd.read_csv')
@@ -1274,6 +1373,43 @@ class TestDynamicEvents(unittest.TestCase):
         self.assertIn(
             'Fed Interest Rate Decision',
             validated['position_actions'][0]['calendar_effect'],
+        )
+
+    def test_buy_calendar_text_is_overridden_by_validated_future_events(self):
+        result = {
+            'portfolio_overview': 'Rezumat valid.',
+            'market_read': 'Context SUA valid.',
+            'priorities': [{
+                'symbol': 'JPM', 'severity': 'mediu', 'issue': 'Stop',
+                'evidence': 'Stop activ.', 'action': 'Menține.',
+                'why': 'Protejează profitul.', 'review_trigger': 'După Fed.',
+                'confidence': 'medie', 'source_ids': [],
+            }],
+            'position_actions': [{
+                'symbol': 'JPM', 'broker': 'IBKR', 'action': 'Menține',
+                'plain_reason': 'Trend favorabil.', 'calendar_effect': 'Neutru.',
+                'next_check': 'După Fed.',
+            }],
+            'buy_recommendations': [{
+                'symbol': 'MSFT', 'market': 'SUA',
+                'verdict': 'Pregătit la trigger', 'why_now': 'Trend bun.',
+                'market_effect': 'Piață stabilă.', 'news_effect': 'Neutru.',
+                'calendar_effect': 'Calendar indisponibil.',
+                'main_risk': 'Sub stop.', 'source_ids': [],
+            }],
+        }
+        validated = market_scanner_analysis._validate_portfolio_ai_result(
+            result,
+            {'JPM'},
+            candidate_symbols={'MSFT'},
+            calendar_effects={'JPM': 'Fed viitor.'},
+            candidate_calendar_effects={
+                'MSFT': 'Evenimente viitoare relevante: Fed Rate Decision.',
+            },
+        )
+        self.assertIn(
+            'Fed Rate Decision',
+            validated['buy_recommendations'][0]['calendar_effect'],
         )
 
     def test_invalid_ai_response_keeps_deterministic_analysis(self):
