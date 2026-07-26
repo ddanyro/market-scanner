@@ -38,6 +38,115 @@ import market_utils
 import market_security
 import market_data
 
+BUY_RESEARCH_UNIVERSES = {
+    'SUA': [
+        'MSFT', 'NVDA', 'AMZN', 'GOOGL', 'META', 'AVGO', 'V', 'MA',
+        'COST', 'LLY', 'XOM', 'SCHW', 'ET', 'RELY',
+    ],
+    'România / BVB': [
+        'TLV.RO', 'SNP.RO', 'SNG.RO', 'H2O.RO', 'TGN.RO', 'BRD.RO',
+        'DIGI.RO', 'EL.RO', 'M.RO', 'SNN.RO', 'TEL.RO', 'FP.RO', 'PE.RO',
+        'ONE.RO', 'AQ.RO', 'TRP.RO', 'TTS.RO', 'ATB.RO', 'CFH.RO', 'SFG.RO',
+    ],
+}
+
+
+def _buy_candidate_market(symbol):
+    return 'România / BVB' if str(symbol).upper().endswith('.RO') else 'SUA'
+
+
+def _is_strict_buy_candidate(item):
+    consensus = str(item.get('Consensus', '')).strip().lower()
+    return (
+        str(item.get('Decision', '')).strip().upper() == 'BUY'
+        and consensus in {'buy', 'strong buy'}
+        and float(item.get('RR_Ratio') or 0) >= 3
+    )
+
+
+def select_strict_buy_candidates(watchlist_df, limit_per_market=4):
+    """Filtrul unic folosit de watchlist și recomandările din portofoliu."""
+    if watchlist_df is None or watchlist_df.empty:
+        return []
+    candidates = []
+    for _, row in watchlist_df.iterrows():
+        item = row.to_dict()
+        if not _is_strict_buy_candidate(item):
+            continue
+        item['Market'] = _buy_candidate_market(item.get('Ticker'))
+        candidates.append(item)
+    candidates.sort(
+        key=lambda item: (
+            item['Market'],
+            -float(item.get('RR_Ratio') or 0),
+            str(item.get('Ticker', '')),
+        )
+    )
+    selected = []
+    market_counts = {}
+    for item in candidates:
+        market = item['Market']
+        if market_counts.get(market, 0) >= limit_per_market:
+            continue
+        selected.append(item)
+        market_counts[market] = market_counts.get(market, 0) + 1
+    return selected
+
+
+def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False):
+    """Completează watchlistul cu universuri lichide și scanează doar piețele fără idei eligibile."""
+    existing_results = list(state.get('watchlist', []))
+    eligible_markets = {
+        _buy_candidate_market(item.get('Ticker'))
+        for item in existing_results if _is_strict_buy_candidate(item)
+    }
+    markets_to_research = [
+        market for market in BUY_RESEARCH_UNIVERSES if market not in eligible_markets
+    ]
+    if not markets_to_research:
+        return state
+
+    watchlist_path = 'watchlist.csv'
+    watchlist_file = pd.read_csv(watchlist_path) if os.path.exists(watchlist_path) else pd.DataFrame(columns=['symbol'])
+    if 'symbol' not in watchlist_file.columns:
+        watchlist_file['symbol'] = ''
+    existing_symbols = {
+        str(symbol).upper() for symbol in watchlist_file['symbol'].dropna().tolist()
+    }
+    additions = [
+        symbol
+        for market in markets_to_research
+        for symbol in BUY_RESEARCH_UNIVERSES[market]
+        if symbol.upper() not in existing_symbols
+    ]
+    if additions:
+        watchlist_file = pd.concat(
+            [watchlist_file, pd.DataFrame({'symbol': additions})], ignore_index=True
+        )
+        watchlist_file = watchlist_file.drop_duplicates(subset=['symbol'], keep='first')
+        watchlist_file.to_csv(watchlist_path, index=False)
+        print(f"  -> Cercetare BUY: adăugate {len(additions)} simboluri în watchlist.")
+
+    if not refresh_missing:
+        return state
+
+    by_symbol = {
+        str(item.get('Ticker', '')).upper(): item for item in existing_results
+    }
+    for market in markets_to_research:
+        print(f"  -> Cercetare BUY pentru {market}...")
+        for symbol in BUY_RESEARCH_UNIVERSES[market]:
+            cached = by_symbol.get(symbol.upper())
+            if cached and market_data.is_fresh(cached, ttl_hours=5):
+                continue
+            data = process_watchlist_ticker(symbol, vix_val, rates)
+            if not data:
+                continue
+            data['_cached_at'] = time.time()
+            by_symbol[symbol.upper()] = data
+    state['watchlist'] = list(by_symbol.values())
+    return state
+
 # Cache settings for long-horizon historical returns (slow to compute)
 HISTORICAL_RETURNS_FILE = "historical_returns.json"
 HISTORICAL_RETURNS_TTL_DAYS = 30
@@ -1549,11 +1658,6 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             else:
                 trend = "Bearish Rally"
 
-        if target_val and last_close > 0:
-            pct_to_target = ((target_val - last_close) / last_close) * 100
-        else:
-            pct_to_target = None
-
         # Fetch detailed info from Yahoo
         consensus = "-"
         analysts_count = 0
@@ -1572,19 +1676,36 @@ def process_watchlist_ticker(ticker, vix_value, rates):
            industry = info.get('industry', '-')
            sector = info.get('sector', '-')
            avg_vol_3m = info.get('averageVolume', 0)
+           yahoo_target_native = info.get('targetMeanPrice')
+           if (
+               yahoo_target_native is not None
+               and not pd.isna(yahoo_target_native)
+               and float(yahoo_target_native) > last_close_native
+           ):
+               # Finviz does not cover most BVB tickers. Yahoo's target is in
+               # the instrument's native currency, so convert it consistently
+               # with the current price and stop displayed by the dashboard.
+               target_val = float(yahoo_target_native) * rate
 
            # Scurtăm industria dacă e prea lungă
            if len(industry) > 20: industry = industry[:17] + "..."
         except:
            avg_vol_3m = 0
 
+        if target_val and last_close > 0:
+            pct_to_target = ((target_val - last_close) / last_close) * 100
+        else:
+            pct_to_target = None
 
-        # Calculate RS (Relative Strength) vs S&P 500
+        # BVB names must be judged against their local market rather than SPX.
+        # TVBETETF tracks the BET family with dividends and has reliable Yahoo
+        # history, making it a practical benchmark proxy for Romanian shares.
+        rs_benchmark = 'TVBETETF.RO' if ticker.upper().endswith('.RO') else '^GSPC'
         rs_vs_spx = None
         rs_trend_up = False
         rs_status = "Neutral"
         try:
-            spx_df = yf.download("^GSPC", period="3mo", auto_adjust=True, progress=False)
+            spx_df = yf.download(rs_benchmark, period="3mo", auto_adjust=True, progress=False)
             if not spx_df.empty:
                 if isinstance(spx_df.columns, pd.MultiIndex):
                     try:
@@ -1748,6 +1869,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'Chart_OHLC': watch_chart_ohlc,
             'Daily_Change': round(watch_daily_change, 4),
             'RS_vs_SPX': round(rs_vs_spx, 2) if rs_vs_spx is not None else None,
+            'RS_Benchmark': rs_benchmark,
             'RS_Status': rs_status,
             'Decision': decision,
             'Decision_Color': decision_color,
@@ -2847,6 +2969,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 if (portfolioAi) {
                     portfolioAi.innerHTML = data.portfolio_ai_html || '';
                 }
+                const buyRecommendations = document.getElementById('buy-recommendations-container');
+                if (buyRecommendations) {
+                    buyRecommendations.innerHTML = data.buy_recommendations_html || '';
+                }
                 
                 // 3. Init Charts
                 initCharts(data.sparklines);
@@ -3524,6 +3650,27 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 tws_account_data['fetched_at'] = min(timestamps)
     cached_portfolio_ai = full_state.get('last_portfolio_ai_analysis')
     cached_portfolio_evidence = full_state.get('last_portfolio_ai_evidence')
+    strict_buy_candidates = select_strict_buy_candidates(watchlist_df)
+    buy_candidate_payload = [
+        {
+            'symbol': str(item.get('Ticker', '')).upper(),
+            'market': item.get('Market'),
+            'company_name': item.get('Company_Name'),
+            'sector': item.get('Sector'),
+            'price_eur': item.get('Price'),
+            'entry_eur': item.get('Smart_Entry_EUR') or item.get('Smart_Entry'),
+            'stop_eur': item.get('Stop_Loss'),
+            'target_eur': item.get('Target'),
+            'rr_ratio': item.get('RR_Ratio'),
+            'consensus': item.get('Consensus'),
+            'analysts': item.get('Analysts'),
+            'trend': item.get('Trend'),
+            'rsi': item.get('RSI'),
+            'earnings_risk': bool(item.get('Earnings_Danger')),
+            'entry_reason': item.get('Smart_Reason'),
+        }
+        for item in strict_buy_candidates
+    ]
     portfolio_ai_html, new_portfolio_ai_cache, new_portfolio_evidence, portfolio_ai_diagnostic = generate_portfolio_ai_analysis(
         portfolio_df,
         orders_df,
@@ -3533,6 +3680,12 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         market_context=analysis.build_portfolio_market_context(
             portfolio_df, full_state.get('market_indicators', {})
         ),
+        buy_candidates=buy_candidate_payload,
+    )
+    buy_recommendations_html = analysis.render_buy_recommendations_html(
+        (new_portfolio_ai_cache or cached_portfolio_ai or {}).get('result', {}),
+        buy_candidate_payload,
+        new_portfolio_evidence or cached_portfolio_evidence,
     )
     full_state['last_portfolio_ai_diagnostic'] = portfolio_ai_diagnostic
     if new_portfolio_ai_cache and new_portfolio_ai_cache != cached_portfolio_ai:
@@ -3657,6 +3810,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         "buying_orders_html": buying_rows_html,
         "selling_orders_html": selling_rows_html,
         "portfolio_ai_html": portfolio_ai_html,
+        "buy_recommendations_html": buy_recommendations_html,
         "sparklines": sparkline_data,
         "chart_details": portfolio_detail_data
     }
@@ -3666,34 +3820,6 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     encrypted_blob = market_security.encrypt_for_js(json.dumps(full_pf_data), password)
     
     html_head += f"""
-                </tbody>
-            </table>
-            </div> <!-- End table-container -->
-            
-            <h3 style="margin-top: 45px; margin-bottom: 15px; color: var(--text-primary);">Ordine Active de Cumpărare (IBKR / Tradeville)</h3>
-            <div class="table-container">
-            <table id="buying-orders-table" class="display hover" style="width:100%;">
-                <thead>
-                    <tr>
-                        <th style="width: 80px;">Simbol</th>
-                        <th>Tip Ordin</th>
-                        <th>Cantitate</th>
-                        <th>Preț Ordin</th>
-                        <th>Trail % (Ordin)</th>
-                        <th>Preț Curent</th>
-                        <th>Grafic</th>
-                        <th>Target</th>
-                        <th>% Mid</th>
-                        <th>Consensus</th>
-                        <th>Suggested Stop</th>
-                        <th>Investiție Est.</th>
-                        <th>Trend</th>
-                        <th onmousemove="showTooltip(event, \'<strong>RSI (Relative Strength Index)</strong><br>măsoară viteza și schimbarea prețurilor.<br>Valori: >70 (Overbought), <30 (Oversold).\')" onmouseout="hideTooltip()">RSI</th>
-                        <th onmousemove="showTooltip(event, \'<strong>RS vs SPX (Relative Strength vs S&P 500) pe 60 de zile.</strong>\')" onmouseout="hideTooltip()">RS vs SPX</th>
-                    </tr>
-                </thead>
-                <tbody id="buying-orders-rows-body">
-                    <!-- Injected by JS after decryption -->
                 </tbody>
             </table>
             </div> <!-- End table-container -->
@@ -3725,6 +3851,36 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 </tbody>
             </table>
             </div> <!-- End table-container -->
+            
+            <h3 style="margin-top: 45px; margin-bottom: 15px; color: var(--text-primary);">Ordine Active de Cumpărare (IBKR / Tradeville)</h3>
+            <div class="table-container">
+            <table id="buying-orders-table" class="display hover" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Simbol</th>
+                        <th>Tip Ordin</th>
+                        <th>Cantitate</th>
+                        <th>Preț Ordin</th>
+                        <th>Trail % (Ordin)</th>
+                        <th>Preț Curent</th>
+                        <th>Grafic</th>
+                        <th>Target</th>
+                        <th>% Mid</th>
+                        <th>Consensus</th>
+                        <th>Suggested Stop</th>
+                        <th>Investiție Est.</th>
+                        <th>Trend</th>
+                        <th onmousemove="showTooltip(event, \'<strong>RSI (Relative Strength Index)</strong><br>măsoară viteza și schimbarea prețurilor.<br>Valori: >70 (Overbought), <30 (Oversold).\')" onmouseout="hideTooltip()">RSI</th>
+                        <th onmousemove="showTooltip(event, \'<strong>RS vs SPX (Relative Strength vs S&P 500) pe 60 de zile.</strong>\')" onmouseout="hideTooltip()">RS vs SPX</th>
+                    </tr>
+                </thead>
+                <tbody id="buying-orders-rows-body">
+                    <!-- Injected by JS after decryption -->
+                </tbody>
+            </table>
+            </div> <!-- End table-container -->
+
+            <div id="buy-recommendations-container"></div>
             
             <!-- Encrypted Data Injection -->
             <script>
@@ -5514,11 +5670,23 @@ def main():
         state['eco_next_phase'] = next_phase
     
     # 3. Actualizări Secționale
+    # Dacă o piață nu are candidați eligibili, extindem universul de cercetare.
+    # În modul complet noile simboluri vor fi procesate de update_watchlist_data.
+    state = ensure_buy_research_candidates(
+        state, rates, vix_val, refresh_missing=False
+    )
+
     if args.mode in ['all', 'portfolio']:
         state = update_portfolio_data(state, rates, vix_val)
         
     if args.mode in ['all', 'watchlist']:
         state = update_watchlist_data(state, rates, vix_val)
+    elif args.mode == 'portfolio':
+        # Rularea frecventă a portofoliului procesează numai universul pieței
+        # pentru care nu există nicio oportunitate strict eligibilă.
+        state = ensure_buy_research_candidates(
+            state, rates, vix_val, refresh_missing=True
+        )
         
     # 4. Salvare Stare
     # Deduplicate Watchlist in State BEFORE saving
