@@ -959,7 +959,37 @@ def collect_portfolio_evidence(snapshot, cached=None, request_session=None, now=
     }
 
 
-def _validate_portfolio_ai_result(result, symbols, evidence_ids=None, candidate_symbols=None):
+def _position_calendar_effects(snapshot):
+    """Produce un context minim verificabil chiar dacă modelul omite calendarul."""
+    events = snapshot.get('economic_calendar', [])
+    effects = {}
+    for position in snapshot.get('positions', []):
+        symbol = position['symbol']
+        market = position.get('market')
+        relevant_countries = {'SUA'} if market == 'SUA' else {'România', 'Europa'}
+        relevant = [
+            event for event in events
+            if event.get('country') in relevant_countries
+        ][:3]
+        if not relevant:
+            effects[symbol] = (
+                "Nu sunt disponibile evenimente economice relevante în fereastra calendarului; "
+                "stopul se evaluează din preț, volatilitate și știrile companiei."
+            )
+            continue
+        labels = [
+            f"{event.get('name', 'Eveniment')} ({event.get('datetime', 'dată indisponibilă')})"
+            for event in relevant
+        ]
+        effects[symbol] = (
+            "Evenimente relevante: " + "; ".join(labels)
+            + ". Pot crește riscul de gap; nu lărgi stopul înaintea publicării."
+        )
+    return effects
+
+
+def _validate_portfolio_ai_result(result, symbols, evidence_ids=None, candidate_symbols=None,
+                                  calendar_effects=None):
     allowed_severity = {'critic', 'ridicat', 'mediu', 'scăzut', 'informativ'}
     evidence_ids = evidence_ids or set()
     clean_items = []
@@ -1001,7 +1031,10 @@ def _validate_portfolio_ai_result(result, symbols, evidence_ids=None, candidate_
         if symbol not in symbols or action not in allowed_actions:
             continue
         plain_reason = str(raw.get('plain_reason', '')).strip()[:500]
-        calendar_effect = str(raw.get('calendar_effect', '')).strip()[:500]
+        calendar_effect = str(
+            raw.get('calendar_effect', '')
+            or (calendar_effects or {}).get(symbol, '')
+        ).strip()[:500]
         next_check = str(raw.get('next_check', '')).strip()[:400]
         if plain_reason and calendar_effect and next_check:
             position_actions.append({
@@ -1366,6 +1399,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
     evidence_ids = {
         evidence['source_id'] for evidence in evidence_cache.get('items', [])
     }
+    calendar_effects = _position_calendar_effects(snapshot)
     fingerprint = _portfolio_snapshot_fingerprint(snapshot)
     if isinstance(cached, dict) and cached.get('fingerprint') == fingerprint:
         try:
@@ -1374,6 +1408,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 {item['symbol'] for item in snapshot['positions']},
                 evidence_ids,
                 {item['symbol'] for item in snapshot['buy_candidates']},
+                calendar_effects,
             )
             return (
                 _render_portfolio_ai_html(snapshot, result, 'OpenAI · cache'),
@@ -1617,6 +1652,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 {item['symbol'] for item in snapshot['positions']},
                 evidence_ids,
                 {item['symbol'] for item in snapshot['buy_candidates']},
+                calendar_effects,
             )
             new_cache = {
                 'version': PORTFOLIO_AI_CACHE_VERSION,

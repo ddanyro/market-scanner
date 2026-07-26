@@ -320,6 +320,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIn('TEST · Lipsă stop', html_result)
         self.assertIn('TEST · IBKR', html_result)
         self.assertIn('Ce fac piețele relevante', html_result)
+        self.assertIn('<b>Calendar:</b>', html_result)
         self.assertIn('Depunere SEC 10-Q', html_result)
         self.assertIn('oficial', html_result)
         self.assertNotIn('SURSA-INVENTATA', html_result)
@@ -348,6 +349,23 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(positions['TVBETETF.RO']['broker'], 'Tradeville')
         self.assertEqual(positions['TVBETETF.RO']['market'], 'România / BVB')
         self.assertEqual(snapshot['market_context'], context)
+
+    def test_position_calendar_fallback_is_market_specific(self):
+        snapshot = {
+            'positions': [
+                {'symbol': 'JPM', 'market': 'SUA'},
+                {'symbol': 'TVBETETF.RO', 'market': 'România / BVB'},
+            ],
+            'economic_calendar': [
+                {'name': 'Fed Rate Decision', 'country': 'SUA', 'datetime': '2026-07-29'},
+                {'name': 'BNR Rate Decision', 'country': 'România', 'datetime': '2026-08-07'},
+            ],
+        }
+        effects = market_scanner_analysis._position_calendar_effects(snapshot)
+        self.assertIn('Fed Rate Decision', effects['JPM'])
+        self.assertNotIn('BNR Rate Decision', effects['JPM'])
+        self.assertIn('BNR Rate Decision', effects['TVBETETF.RO'])
+        self.assertNotIn('Fed Rate Decision', effects['TVBETETF.RO'])
 
     @patch.dict(os.environ, {}, clear=True)
     def test_portfolio_ai_falls_back_to_deterministic_alerts(self):
