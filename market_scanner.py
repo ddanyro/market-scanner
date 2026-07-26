@@ -278,9 +278,15 @@ def _external_research_score(item):
     return score
 
 
-def select_strict_buy_candidates(watchlist_df, external_research=None, limit_per_market=4):
+def select_strict_buy_candidates(
+    watchlist_df, external_research=None, limit_per_market=4, etf_holdings=None
+):
     """Aplică filtrele doar watchlistului și triază separat cercetarea externă."""
     candidates = []
+    etf_weights = {
+        str(item.get('symbol', '')).upper(): float(item.get('weight_pct') or 0)
+        for item in (etf_holdings or {}).get('holdings', [])
+    }
     all_watchlist_symbols = set()
     if watchlist_df is not None and not watchlist_df.empty:
         for _, row in watchlist_df.iterrows():
@@ -296,6 +302,9 @@ def select_strict_buy_candidates(watchlist_df, external_research=None, limit_per
             item['Candidate_Source'] = 'watchlist'
             item['Requires_Watchlist_Filters'] = True
             item['_research_score'] = float(item.get('RR_Ratio') or 0)
+            if symbol.endswith('.RO'):
+                item['TVBETETF_Weight_Pct'] = etf_weights.get(symbol, 0)
+                item['_research_score'] -= etf_weights.get(symbol, 0) / 4
             candidates.append(item)
     for raw_item in external_research or []:
         item = dict(raw_item)
@@ -308,6 +317,11 @@ def select_strict_buy_candidates(watchlist_df, external_research=None, limit_per
         item['Candidate_Source'] = 'external_research'
         item['Requires_Watchlist_Filters'] = False
         item['_research_score'] = _external_research_score(item)
+        if symbol.endswith('.RO'):
+            item['TVBETETF_Weight_Pct'] = etf_weights.get(symbol, 0)
+            # O idee care dublează o componentă dominantă trebuie să fie net
+            # mai bună pentru a ocupa unul dintre locurile limitate BVB.
+            item['_research_score'] -= etf_weights.get(symbol, 0) / 4
         candidates.append(item)
     candidates.sort(
         key=lambda item: (
@@ -3970,9 +3984,15 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     portfolio_market_context = analysis.build_portfolio_market_context(
         portfolio_df, full_state.get('market_indicators', {})
     )
+    tvbetetf_holdings = analysis.fetch_tvbetetf_holdings(
+        cached=(full_state or {}).get('tvbetetf_holdings')
+    )
+    if tvbetetf_holdings:
+        full_state['tvbetetf_holdings'] = tvbetetf_holdings
     strict_buy_candidates = select_strict_buy_candidates(
         watchlist_df,
         (full_state or {}).get('external_buy_research', []),
+        etf_holdings=tvbetetf_holdings,
     )
     buy_candidate_payload = [
         {
@@ -4018,6 +4038,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         orders_df,
         account_data=tws_account_data,
         market_context=portfolio_market_context,
+        etf_holdings=tvbetetf_holdings,
     )
     sizing_snapshot['buy_candidates'] = buy_candidate_payload
     buy_candidate_payload = analysis._size_buy_candidates(sizing_snapshot)
@@ -4029,6 +4050,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         account_data=tws_account_data,
         market_context=portfolio_market_context,
         buy_candidates=buy_candidate_payload,
+        etf_holdings=tvbetetf_holdings,
     )
     portfolio_ai_result = (
         (new_portfolio_ai_cache or cached_portfolio_ai or {}).get('result', {})
