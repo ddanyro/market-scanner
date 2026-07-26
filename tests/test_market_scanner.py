@@ -1070,6 +1070,56 @@ class TestDynamicEvents(unittest.TestCase):
             events = market_scanner_analysis.get_economic_events(self.now, session)
         self.assertEqual(events, cached)
 
+    def test_tradingview_calendar_uses_get_query_filters(self):
+        macro_response = Mock()
+        macro_response.raise_for_status.return_value = None
+        macro_response.json.return_value = {'result': [{
+            'id': 'fed-1', 'title': 'Fed Interest Rate Decision',
+            'country': 'US', 'date': '2026-07-29T18:00:00Z',
+            'importance': 1, 'forecast': '4.25%', 'previous': '4.50%',
+        }]}
+        bvb_response = Mock()
+        bvb_response.raise_for_status.return_value = None
+        bvb_response.text = '<html></html>'
+        session = Mock()
+        session.get.side_effect = [macro_response, bvb_response]
+
+        events = market_scanner_analysis.get_economic_events(self.now, session)
+
+        self.assertEqual(events[0]['country'], 'SUA')
+        first_call = session.get.call_args_list[0]
+        self.assertEqual(first_call.args[0], market_scanner_analysis.CALENDAR_SOURCE_URL)
+        self.assertEqual(first_call.kwargs['params']['countries'], 'US,EU,RO')
+        self.assertEqual(first_call.kwargs['params']['minImportance'], 1)
+
+    def test_ai_unavailable_calendar_claim_is_replaced_by_known_event(self):
+        result = {
+            'portfolio_overview': 'Rezumat valid.',
+            'market_read': 'Context SUA valid.',
+            'priorities': [{
+                'symbol': 'JPM', 'severity': 'mediu', 'issue': 'Stop',
+                'evidence': 'Stop activ.', 'action': 'Menține.',
+                'why': 'Protejează profitul.', 'review_trigger': 'După Fed.',
+                'confidence': 'medie', 'source_ids': [],
+            }],
+            'position_actions': [{
+                'symbol': 'JPM', 'broker': 'IBKR', 'action': 'Menține',
+                'plain_reason': 'Trend favorabil.',
+                'calendar_effect': 'Calendarul economic nu este disponibil.',
+                'next_check': 'Reevaluează după Fed.',
+            }],
+            'buy_recommendations': [],
+        }
+        validated = market_scanner_analysis._validate_portfolio_ai_result(
+            result, {'JPM'}, calendar_effects={
+                'JPM': 'Evenimente relevante: Fed Interest Rate Decision (2026-07-29).',
+            }
+        )
+        self.assertIn(
+            'Fed Interest Rate Decision',
+            validated['position_actions'][0]['calendar_effect'],
+        )
+
     def test_invalid_ai_response_keeps_deterministic_analysis(self):
         event = market_scanner_analysis._normalise_macro_event({
             'id': 'ecb-1', 'title': 'ECB Interest Rate Decision', 'country': 'EU',
