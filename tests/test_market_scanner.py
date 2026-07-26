@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import market_scanner_analysis
+import market_scanner
 import market_security
 
 
@@ -414,6 +415,10 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(sized['TLV.RO']['broker_available_cash_eur'], 18000)
         self.assertGreater(sized['TEST']['conditional_amount_eur'], 0)
         self.assertGreater(sized['TLV.RO']['conditional_amount_eur'], 0)
+
+    def test_buy_candidate_entry_uses_eur_price_when_smart_entry_is_nan(self):
+        item = {'Smart_Entry_EUR': float('nan'), 'Smart_Entry': 110, 'Price': 100}
+        self.assertEqual(market_scanner._buy_candidate_entry_eur(item), 100)
 
     @patch.dict(os.environ, {}, clear=True)
     def test_portfolio_ai_falls_back_to_deterministic_alerts(self):
