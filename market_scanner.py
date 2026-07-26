@@ -3658,7 +3658,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'company_name': item.get('Company_Name'),
             'sector': item.get('Sector'),
             'price_eur': item.get('Price'),
-            'entry_eur': item.get('Smart_Entry_EUR') or item.get('Smart_Entry'),
+            # A BUY decision means the scanner considers the setup actionable
+            # now. If there is no separate pullback entry, use the current
+            # price instead of sending an unusable zero entry to the AI.
+            'entry_eur': (
+                item.get('Smart_Entry_EUR')
+                or item.get('Smart_Entry')
+                or item.get('Price')
+            ),
             'stop_eur': item.get('Stop_Loss'),
             'target_eur': item.get('Target'),
             'rr_ratio': item.get('RR_Ratio'),
