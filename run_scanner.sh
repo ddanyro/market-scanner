@@ -66,7 +66,7 @@ git checkout origin/main -- dashboard_state.json index.html market_history.json 
 git pull origin main >> dashboard.log 2>&1 || true
 
 # Adaugă fișierele TWS + portfolio actualizat
-git add tws_orders.csv tws_positions.csv portfolio.csv 2>/dev/null
+git add tws_orders.csv tws_positions.csv tws_account.enc.json portfolio.csv 2>/dev/null
 
 # Commit doar dacă sunt modificări
 if ! git diff --cached --quiet; then
