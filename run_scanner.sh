@@ -7,6 +7,10 @@
 # ===========================================
 
 cd /Users/danieldragomir/antigravity
+PYTHON_BIN=".venv/bin/python"
+if [ ! -x "$PYTHON_BIN" ]; then
+    PYTHON_BIN="/usr/local/bin/python3.13"
+fi
 
 # Verifică dacă TWS e deschis (verifică portul 7497)
 if ! nc -z 127.0.0.1 7497 2>/dev/null; then
@@ -17,7 +21,7 @@ fi
 echo "=== $(date '+%Y-%m-%d %H:%M:%S') - Sincronizare TWS ===" >> dashboard.log
 
 # Sincronizare TWS (ordine active + poziții) + Merge în portfolio.csv
-/usr/bin/python3 -c "
+"$PYTHON_BIN" -c "
 import sys
 import os
 import pandas as pd

@@ -14,6 +14,12 @@ import tempfile
 import urllib.parse
 from bs4 import BeautifulSoup
 
+
+def _utc_now_naive():
+    """UTC fără timezone pentru compatibilitate cu cache-urile istorice naive."""
+    return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
+
 ECONOMIC_CALENDAR_CACHE = os.path.join(tempfile.gettempdir(), "antigravity_economic_calendar_cache.json")
 AI_CALENDAR_CACHE = os.path.join(tempfile.gettempdir(), "antigravity_ai_calendar_cache.json")
 BVB_CALENDAR_URL = "https://www.bvb.ro/FinancialInstruments/SelectedData/FinancialCalendar"
@@ -371,7 +377,7 @@ def _save_calendar_cache(events):
     try:
         temp_path = ECONOMIC_CALENDAR_CACHE + '.tmp'
         with open(temp_path, 'w', encoding='utf-8') as handle:
-            json.dump({'updated_at': datetime.datetime.utcnow().isoformat(), 'events': events}, handle, ensure_ascii=False)
+            json.dump({'updated_at': _utc_now_naive().isoformat(), 'events': events}, handle, ensure_ascii=False)
         os.replace(temp_path, ECONOMIC_CALENDAR_CACHE)
     except OSError:
         pass
@@ -408,7 +414,7 @@ def _select_calendar_events(events):
 
 def get_economic_events(now=None, request_session=requests):
     """Evenimente reale SUA/Europa/România și calendar corporativ BVB, pe intervalul -7/+10 zile."""
-    now = now or datetime.datetime.utcnow()
+    now = now or _utc_now_naive()
     start = now - datetime.timedelta(days=7)
     end = now + datetime.timedelta(days=10)
     fetched = []
@@ -1338,7 +1344,7 @@ def _evidence_cache_is_fresh(cached):
         fetched = datetime.datetime.fromisoformat(cached['fetched_at'].replace('Z', '+00:00'))
         if fetched.tzinfo is not None:
             fetched = fetched.astimezone(datetime.timezone.utc).replace(tzinfo=None)
-        return datetime.datetime.utcnow() - fetched < datetime.timedelta(hours=PORTFOLIO_EVIDENCE_CACHE_HOURS)
+        return _utc_now_naive() - fetched < datetime.timedelta(hours=PORTFOLIO_EVIDENCE_CACHE_HOURS)
     except (TypeError, ValueError):
         return False
 
@@ -1448,7 +1454,7 @@ def _bvb_calendar_evidence(symbol, calendar_events):
 
 def collect_portfolio_evidence(snapshot, cached=None, request_session=None, now=None):
     """Colectează metadate verificabile; la eroare păstrează ultimul cache valid."""
-    now = now or datetime.datetime.utcnow()
+    now = now or _utc_now_naive()
     symbols = [
         item['symbol']
         for item in (
