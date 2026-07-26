@@ -3460,6 +3460,12 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             tws_account_data = json.loads(decrypted_account)
         except (OSError, ValueError, TypeError, KeyError):
             tws_account_data = None
+    if tws_account_data is None and os.path.exists('tws_account_risk.json'):
+        try:
+            with open('tws_account_risk.json', 'r', encoding='utf-8') as handle:
+                tws_account_data = json.load(handle)
+        except (OSError, ValueError, TypeError):
+            tws_account_data = None
     cached_portfolio_ai = full_state.get('last_portfolio_ai_analysis')
     cached_portfolio_evidence = full_state.get('last_portfolio_ai_evidence')
     portfolio_ai_html, new_portfolio_ai_cache, new_portfolio_evidence, portfolio_ai_diagnostic = generate_portfolio_ai_analysis(

@@ -110,6 +110,7 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("with open('tws_account.json', 'r'", content)
         self.assertIn("with open('tws_account.enc.json', 'r'", content)
         self.assertIn('market_security.decrypt_from_js(', content)
+        self.assertIn("with open('tws_account_risk.json', 'r'", content)
         self.assertIn('account_data=tws_account_data', content)
 
     def test_watchlist_mini_chart_opens_detail_window(self):

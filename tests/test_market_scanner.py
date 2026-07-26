@@ -197,6 +197,30 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             payload,
         )
 
+    def test_sanitized_tws_bands_feed_risk_without_exact_balances(self):
+        account_data = {
+            'fetched_at': datetime.now().astimezone().isoformat(),
+            'privacy_mode': 'bands_only',
+            'sanitized_accounts': [{
+                'label': 'Cont 1', 'base_currency': 'EUR',
+                'cash_currencies': ['EUR', 'USD'],
+                'cash_pct_band': '5-15%',
+                'maintenance_margin_pct_band': 'peste 50%',
+                'available_funds_status': 'pozitiv',
+                'buying_power_status': 'pozitiv',
+                'excess_liquidity_status': 'pozitiv',
+                'cushion_band': '15-30%',
+            }],
+        }
+        normalized = market_scanner_analysis._normalize_tws_account_data(account_data)
+        self.assertEqual(normalized['privacy_mode'], 'bands_only')
+        self.assertEqual(normalized['accounts'][0]['cash_pct_band'], '5-15%')
+        self.assertNotIn('summary', normalized['accounts'][0])
+        self.assertIn(
+            'Marja de menținere depășește 50%',
+            ' '.join(normalized['risk_flags']),
+        )
+
     @patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key'})
     @patch('market_scanner_analysis.requests.post')
     def test_portfolio_ai_uses_structured_responses_and_validates_symbols(self, mock_post):

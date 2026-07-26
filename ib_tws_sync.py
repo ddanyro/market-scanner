@@ -262,6 +262,57 @@ def fetch_active_orders(output_file='tws_orders.csv'):
                 print("Salvat tws_account.enc.json (snapshot criptat pentru sincronizare).")
             else:
                 print("  -> Snapshotul TWS nu a fost criptat: PORTFOLIO_PASSWORD indisponibil.")
+
+            def ratio_band(numerator, denominator):
+                if denominator is None or denominator <= 0 or numerator is None:
+                    return 'indisponibil'
+                ratio_pct = numerator / denominator * 100
+                if ratio_pct < 5:
+                    return 'sub 5%'
+                if ratio_pct < 15:
+                    return '5-15%'
+                if ratio_pct < 30:
+                    return '15-30%'
+                if ratio_pct < 50:
+                    return '30-50%'
+                return 'peste 50%'
+
+            sanitized_accounts = []
+            for account in accounts:
+                summary = account.get('summary', {})
+                net_liquidation = summary.get('NetLiquidation')
+                sanitized_accounts.append({
+                    'label': account.get('label'),
+                    'base_currency': account.get('base_currency'),
+                    'cash_currencies': sorted(account.get('cash_by_currency', {}).keys()),
+                    'cash_pct_band': ratio_band(summary.get('TotalCashValue'), net_liquidation),
+                    'maintenance_margin_pct_band': ratio_band(
+                        summary.get('MaintMarginReq'), net_liquidation
+                    ),
+                    'available_funds_status': (
+                        'pozitiv' if summary.get('AvailableFunds', 0) > 0 else 'zero/negativ'
+                    ),
+                    'buying_power_status': (
+                        'pozitiv' if summary.get('BuyingPower', 0) > 0 else 'zero/negativ'
+                    ),
+                    'excess_liquidity_status': (
+                        'pozitiv' if summary.get('ExcessLiquidity', 0) > 0 else 'zero/negativ'
+                    ),
+                    'cushion_band': (
+                        'sub 15%' if summary.get('Cushion', 0) < 0.15
+                        else '15-30%' if summary.get('Cushion', 0) < 0.30
+                        else 'peste 30%'
+                    ),
+                })
+            sanitized_payload = {
+                'fetched_at': account_payload['fetched_at'],
+                'source': 'TWS / IBKR API',
+                'privacy_mode': 'bands_only',
+                'sanitized_accounts': sanitized_accounts,
+            }
+            with open('tws_account_risk.json', 'w', encoding='utf-8') as handle:
+                json.dump(sanitized_payload, handle, ensure_ascii=False, indent=2)
+            print("Salvat tws_account_risk.json (categorii fără solduri exacte).")
         except Exception as account_ex:
             print(f"  -> Avertisment la citirea sumarului de cont TWS: {account_ex}")
 

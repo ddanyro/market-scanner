@@ -404,10 +404,13 @@ def _normalize_tws_account_data(account_data, now=None):
         'stale': True,
         'accounts': [],
         'risk_flags': [],
+        'privacy_mode': 'exact',
     }
     if not isinstance(account_data, dict):
         result['risk_flags'].append('Sumarul cash/marjă TWS nu este disponibil')
         return result
+    if account_data.get('privacy_mode') == 'bands_only':
+        result['privacy_mode'] = 'bands_only'
     fetched_at = account_data.get('fetched_at')
     result['fetched_at'] = fetched_at
     try:
@@ -420,8 +423,49 @@ def _normalize_tws_account_data(account_data, now=None):
     except (TypeError, ValueError):
         result['risk_flags'].append('Timestampul sumarului TWS este invalid')
 
-    for raw_account in account_data.get('accounts', []):
+    raw_accounts = account_data.get('accounts', [])
+    if result['privacy_mode'] == 'bands_only':
+        raw_accounts = account_data.get('sanitized_accounts', [])
+    for raw_account in raw_accounts:
         if not isinstance(raw_account, dict):
+            continue
+        if result['privacy_mode'] == 'bands_only':
+            sanitized = {
+                'label': str(raw_account.get('label', f"Cont {len(result['accounts']) + 1}")),
+                'base_currency': str(raw_account.get('base_currency', 'BASE')),
+                'cash_currencies': [
+                    str(currency) for currency in raw_account.get('cash_currencies', [])
+                ],
+                'cash_pct_band': str(raw_account.get('cash_pct_band', 'indisponibil')),
+                'maintenance_margin_pct_band': str(
+                    raw_account.get('maintenance_margin_pct_band', 'indisponibil')
+                ),
+                'available_funds_status': str(
+                    raw_account.get('available_funds_status', 'indisponibil')
+                ),
+                'buying_power_status': str(
+                    raw_account.get('buying_power_status', 'indisponibil')
+                ),
+                'excess_liquidity_status': str(
+                    raw_account.get('excess_liquidity_status', 'indisponibil')
+                ),
+                'cushion_band': str(raw_account.get('cushion_band', 'indisponibil')),
+            }
+            result['accounts'].append(sanitized)
+            if sanitized['available_funds_status'] == 'zero/negativ':
+                result['risk_flags'].append('Available Funds este zero sau negativ')
+            if sanitized['excess_liquidity_status'] == 'zero/negativ':
+                result['risk_flags'].append('Excess Liquidity este zero sau negativ')
+            if sanitized['cushion_band'] == 'sub 15%':
+                result['risk_flags'].append('Cushion TWS este sub 15%')
+            if sanitized['maintenance_margin_pct_band'] == 'peste 50%':
+                result['risk_flags'].append(
+                    'Marja de menținere depășește 50% din Net Liquidation'
+                )
+            if sanitized['cash_pct_band'] == 'sub 5%':
+                result['risk_flags'].append(
+                    'Cash-ul de bază este sub 5% din Net Liquidation'
+                )
             continue
         raw_summary = raw_account.get('summary', {})
         summary = {
@@ -999,6 +1043,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Evaluează cash-ul, Available Funds, Buying Power, Excess Liquidity, Cushion și marja TWS.',
             'Nu trata un sold într-o monedă ca fiind direct comparabil cu altă monedă și nu face conversii nesupuse.',
             'Dacă datele TWS sunt mai vechi de 24 de ore, menționează vechimea și nu formula o acțiune executabilă.',
+            'Când privacy_mode=bands_only, folosește numai intervalele furnizate și nu estima soldurile exacte.',
             'Semnalează riscul de cash negativ, buffer redus, marjă ridicată sau putere de cumpărare insuficientă.',
             'Separă controlul de preț de invalidarea tezei și cere reevaluare la catalizatori.',
             'Folosește știrile și rapoartele numai când sunt relevante pentru risc sau teză.',

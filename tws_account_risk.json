@@ -1,0 +1,21 @@
+{
+  "fetched_at": "2026-07-26T06:08:26.126232+00:00",
+  "source": "TWS / IBKR API",
+  "privacy_mode": "bands_only",
+  "sanitized_accounts": [
+    {
+      "label": "Cont 1",
+      "base_currency": "EUR",
+      "cash_currencies": [
+        "EUR",
+        "USD"
+      ],
+      "cash_pct_band": "peste 50%",
+      "maintenance_margin_pct_band": "sub 5%",
+      "available_funds_status": "pozitiv",
+      "buying_power_status": "pozitiv",
+      "excess_liquidity_status": "pozitiv",
+      "cushion_band": "peste 30%"
+    }
+  ]
+}
