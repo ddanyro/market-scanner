@@ -162,8 +162,10 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("float(item.get('RR_Ratio') or 0) >= 3", content)
         self.assertIn("'TLV.RO', 'SNP.RO', 'SNG.RO', 'H2O.RO'", content)
         self.assertIn("or item.get('Price')", content)
+        self.assertIn("'decision': item.get('Decision')", content)
         self.assertIn('render_buy_recommendations_html(', analysis_content)
         self.assertIn('BUY + consensus Buy/Strong Buy + R:R ≥ 3', analysis_content)
+        self.assertIn('nu afirma că lipsesc semnalul BUY sau nivelul de intrare', analysis_content)
         self.assertIn('universul local a fost cercetat și adăugat în watchlist', analysis_content)
         self.assertIn("'economic_calendar': snapshot.get('economic_calendar', [])", analysis_content)
 
