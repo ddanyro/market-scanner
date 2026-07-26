@@ -473,9 +473,29 @@ class TestDynamicEvents(unittest.TestCase):
         response.raise_for_status.return_value = None
         response.json.return_value = {'choices': [{'message': {'content': 'not-json'}}]}
         with patch.dict('os.environ', {'OPENAI_API_KEY': 'test-key'}), \
-             patch('market_scanner_analysis.requests.post', return_value=response):
+             patch('market_scanner_analysis.requests.post', return_value=response) as post:
             analyses = market_scanner_analysis._enrich_events_with_ai([event], {})
         self.assertEqual(analyses[event['id']]['verdict'], 'Mixt')
+        request = post.call_args
+        self.assertEqual(request.args[0], 'https://api.openai.com/v1/responses')
+        self.assertEqual(request.kwargs['json']['model'], 'gpt-5.6-sol')
+        self.assertEqual(
+            request.kwargs['json']['reasoning'],
+            {'effort': 'max', 'mode': 'pro'}
+        )
+        self.assertNotIn('temperature', request.kwargs['json'])
+
+    def test_extracts_text_from_responses_api(self):
+        payload = {
+            'output': [{
+                'type': 'message',
+                'content': [{'type': 'output_text', 'text': '{"events": []}'}]
+            }]
+        }
+        self.assertEqual(
+            market_scanner_analysis._extract_openai_response_text(payload),
+            '{"events": []}'
+        )
 
     def test_calendar_rendering_has_past_future_and_bvb(self):
         past = market_scanner_analysis._normalise_macro_event({

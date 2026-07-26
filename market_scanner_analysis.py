@@ -356,6 +356,30 @@ def _save_ai_calendar_cache(cache):
     except OSError:
         pass
 
+OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
+OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
+
+
+def _extract_openai_response_text(payload):
+    """Extrage textul din Responses API; acceptă și forma veche pentru cache/teste."""
+    output_text = payload.get('output_text')
+    if isinstance(output_text, str) and output_text.strip():
+        return output_text.strip()
+    for output_item in payload.get('output', []):
+        if not isinstance(output_item, dict):
+            continue
+        for content_item in output_item.get('content', []):
+            if not isinstance(content_item, dict):
+                continue
+            text = content_item.get('text')
+            if isinstance(text, str) and text.strip():
+                return text.strip()
+    try:
+        return payload['choices'][0]['message']['content']
+    except (KeyError, IndexError, TypeError):
+        raise ValueError('Răspuns OpenAI fără text utilizabil')
+
+
 def _enrich_events_with_ai(events, indicators):
     """O singură cerere JSON pentru calendar; eșecul păstrează analiza deterministă."""
     analyses = {event['id']: _deterministic_event_analysis(event) for event in events}
@@ -401,21 +425,21 @@ def _enrich_events_with_ai(events, indicators):
     }
     try:
         response = requests.post(
-            'https://api.openai.com/v1/chat/completions',
+            'https://api.openai.com/v1/responses',
             headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {openai_key}'},
             json={
-                'model': 'gpt-4o',
-                'response_format': {'type': 'json_object'},
-                'messages': [
+                'model': OPENAI_ANALYSIS_MODEL,
+                'reasoning': OPENAI_ANALYSIS_REASONING,
+                'text': {'format': {'type': 'json_object'}, 'verbosity': 'medium'},
+                'input': [
                     {'role': 'system', 'content': 'Ești un analist macro prudent. Răspunzi exclusiv JSON: {"events": [...]}.'},
                     {'role': 'user', 'content': json.dumps(prompt, ensure_ascii=False)}
                 ],
-                'temperature': 0.2,
             },
-            timeout=30,
+            timeout=180,
         )
         response.raise_for_status()
-        parsed = json.loads(response.json()['choices'][0]['message']['content'])
+        parsed = json.loads(_extract_openai_response_text(response.json()))
         allowed = {'Bullish probabil', 'Bearish probabil', 'Mixt', 'Neutru', 'Date insuficiente'}
         for item in parsed.get('events', []):
             event_id = str(item.get('id', ''))
@@ -576,19 +600,20 @@ def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=No
                 )
                 
                 # OpenAI Request logic
-                url = "https://api.openai.com/v1/chat/completions"
+                url = "https://api.openai.com/v1/responses"
                 headers = {"Content-Type": "application/json", "Authorization": f"Bearer {openai_key}"}
                 payload = {
-                    "model": "gpt-4o", 
-                    "messages": [{"role": "system", "content": "Ești un analist financiar expert. Răspunde strict în formatul cerut."}, {"role": "user", "content": prompt}],
-                    "temperature": 0.5
+                    "model": OPENAI_ANALYSIS_MODEL,
+                    "reasoning": OPENAI_ANALYSIS_REASONING,
+                    "text": {"verbosity": "medium"},
+                    "input": [{"role": "system", "content": "Ești un analist financiar expert. Răspunde strict în formatul cerut."}, {"role": "user", "content": prompt}]
                 }
                 
-                resp = requests.post(url, headers=headers, json=payload, timeout=20)
+                resp = requests.post(url, headers=headers, json=payload, timeout=180)
                 
                 if resp.status_code == 200:
                     data = resp.json()
-                    content = data['choices'][0]['message']['content']
+                    content = _extract_openai_response_text(data)
                     ai_raw_text = content
                     
                     # Parsing Response
