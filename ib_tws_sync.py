@@ -244,24 +244,30 @@ def fetch_active_orders(output_file='tws_orders.csv'):
                 json.dump(account_payload, handle, ensure_ascii=False, indent=2)
             print(f"Salvat tws_account.json cu sumar pentru {len(accounts)} cont(uri).")
 
-            portfolio_password = os.environ.get('PORTFOLIO_PASSWORD', '')
-            if not portfolio_password and os.path.exists('password.txt'):
+            account_password = (
+                os.environ.get('TWS_ACCOUNT_PASSWORD', '')
+                or os.environ.get('PORTFOLIO_PASSWORD', '')
+            )
+            if not account_password and os.path.exists('password.txt'):
                 try:
                     with open('password.txt', 'r', encoding='utf-8') as handle:
-                        portfolio_password = handle.read().strip()
+                        account_password = handle.read().strip()
                 except OSError:
-                    portfolio_password = ''
-            if portfolio_password:
+                    account_password = ''
+            if account_password:
                 import market_security
                 encrypted_account = market_security.encrypt_for_js(
                     json.dumps(account_payload, ensure_ascii=False),
-                    portfolio_password,
+                    account_password,
                 )
                 with open('tws_account.enc.json', 'w', encoding='utf-8') as handle:
                     handle.write(encrypted_account)
                 print("Salvat tws_account.enc.json (snapshot criptat pentru sincronizare).")
             else:
-                print("  -> Snapshotul TWS nu a fost criptat: PORTFOLIO_PASSWORD indisponibil.")
+                print(
+                    "  -> Snapshotul TWS nu a fost criptat: "
+                    "TWS_ACCOUNT_PASSWORD/PORTFOLIO_PASSWORD indisponibil."
+                )
 
             def ratio_band(numerator, denominator):
                 if denominator is None or denominator <= 0 or numerator is None:

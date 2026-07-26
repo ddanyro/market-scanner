@@ -3458,8 +3458,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         try:
             with open('tws_account.enc.json', 'r', encoding='utf-8') as handle:
                 encrypted_account_payload = json.load(handle)
+            account_password = os.environ.get('TWS_ACCOUNT_PASSWORD', '') or password
             decrypted_account = market_security.decrypt_from_js(
-                encrypted_account_payload, password
+                encrypted_account_payload, account_password
             )
             tws_account_data = json.loads(decrypted_account)
         except (OSError, ValueError, TypeError, KeyError):
