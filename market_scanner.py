@@ -3445,12 +3445,13 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     # Encrypt Data
     cached_portfolio_ai = full_state.get('last_portfolio_ai_analysis')
     cached_portfolio_evidence = full_state.get('last_portfolio_ai_evidence')
-    portfolio_ai_html, new_portfolio_ai_cache, new_portfolio_evidence = generate_portfolio_ai_analysis(
+    portfolio_ai_html, new_portfolio_ai_cache, new_portfolio_evidence, portfolio_ai_diagnostic = generate_portfolio_ai_analysis(
         portfolio_df,
         orders_df,
         cached=cached_portfolio_ai,
         cached_evidence=cached_portfolio_evidence,
     )
+    full_state['last_portfolio_ai_diagnostic'] = portfolio_ai_diagnostic
     if new_portfolio_ai_cache and new_portfolio_ai_cache != cached_portfolio_ai:
         full_state['last_portfolio_ai_analysis'] = new_portfolio_ai_cache
         market_utils.save_state(full_state)
@@ -3459,6 +3460,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         full_state['last_portfolio_ai_evidence'] = new_portfolio_evidence
         market_utils.save_state(full_state)
         print("  -> Sursele recente ale portofoliului au fost salvate în cache.")
+    if portfolio_ai_diagnostic.get('status') == 'failed':
+        print(f"  ⚠ Analiza AI portofoliu indisponibilă: {portfolio_ai_diagnostic}")
 
     portfolio_detail_data = {}
     for _, row in portfolio_df.iterrows():
