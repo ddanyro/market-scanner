@@ -64,6 +64,20 @@ def _is_strict_buy_candidate(item):
     )
 
 
+def _buy_candidate_entry_eur(item):
+    smart_entry_eur = item.get('Smart_Entry_EUR')
+    try:
+        if smart_entry_eur is not None and pd.notna(smart_entry_eur) and float(smart_entry_eur) > 0:
+            return float(smart_entry_eur)
+    except (TypeError, ValueError):
+        pass
+    price_eur = item.get('Price')
+    try:
+        return float(price_eur) if pd.notna(price_eur) and float(price_eur) > 0 else None
+    except (TypeError, ValueError):
+        return None
+
+
 def select_strict_buy_candidates(watchlist_df, limit_per_market=4):
     """Filtrul unic folosit de watchlist și recomandările din portofoliu."""
     if watchlist_df is None or watchlist_df.empty:
@@ -3664,11 +3678,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             # A BUY decision means the scanner considers the setup actionable
             # now. If there is no separate pullback entry, use the current
             # price instead of sending an unusable zero entry to the AI.
-            'entry_eur': (
-                item.get('Smart_Entry_EUR')
-                or item.get('Smart_Entry')
-                or item.get('Price')
-            ),
+            'entry_eur': _buy_candidate_entry_eur(item),
             'stop_eur': item.get('Stop_Loss'),
             'target_eur': item.get('Target'),
             'rr_ratio': item.get('RR_Ratio'),

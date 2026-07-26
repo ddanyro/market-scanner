@@ -162,7 +162,7 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("consensus in {'buy', 'strong buy'}", content)
         self.assertIn("float(item.get('RR_Ratio') or 0) >= 3", content)
         self.assertIn("'TLV.RO', 'SNP.RO', 'SNG.RO', 'H2O.RO'", content)
-        self.assertIn("or item.get('Price')", content)
+        self.assertIn("'entry_eur': _buy_candidate_entry_eur(item)", content)
         self.assertIn("'decision': item.get('Decision')", content)
         self.assertIn('render_buy_recommendations_html(', analysis_content)
         self.assertIn('BUY + consensus Buy/Strong Buy + R:R ≥ 3', analysis_content)
