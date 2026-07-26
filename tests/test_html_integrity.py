@@ -112,6 +112,8 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('market_security.decrypt_from_js(', content)
         self.assertIn("with open('tws_account_risk.json', 'r'", content)
         self.assertIn("os.environ.get('TWS_ACCOUNT_PASSWORD', '') or password", content)
+        self.assertIn("with open('tradeville_account.enc.json', 'r'", content)
+        self.assertIn("'IBKR TWS + Tradeville manual'", content)
         self.assertIn('account_data=tws_account_data', content)
 
     def test_empty_order_tables_do_not_trigger_datatables_column_warning(self):

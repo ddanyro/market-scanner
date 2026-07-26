@@ -487,6 +487,7 @@ def _normalize_tws_account_data(account_data, now=None):
         margin_requirement = summary.get('MaintMarginReq', 0)
         result['accounts'].append({
             'label': str(raw_account.get('label', f"Cont {len(result['accounts']) + 1}")),
+            'source': str(raw_account.get('source', account_data.get('source', result['source']))),
             'base_currency': str(raw_account.get('base_currency', 'BASE')),
             'summary': summary,
             'cash_by_currency': cash_by_currency,
@@ -1040,7 +1041,9 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Nu considera automat stopul propus corect și nu recomanda mutarea stopului în jos pentru a evita o ieșire.',
             'Semnalează contradicțiile dintre HOLD/REDUCE/EXIT, trend, momentum și protecția activă.',
             'Evaluează concentrarea și raportul recompensă/risc numai când există date suficiente.',
-            'Evaluează cash-ul, Available Funds, Buying Power, Excess Liquidity, Cushion și marja TWS.',
+            'Evaluează separat cash-ul, expunerea, Available Funds, Buying Power, Excess Liquidity, Cushion și marja fiecărui cont de broker.',
+            'Pentru snapshotul manual Tradeville folosește numai câmpurile disponibile și menționează data lui; nu presupune marjă sau Buying Power dacă lipsesc.',
+            'Nu dubla expunerea: reconciliază pozițiile cu brokerul lor înainte de a compara portofoliul cu NAV.',
             'Nu trata un sold într-o monedă ca fiind direct comparabil cu altă monedă și nu face conversii nesupuse.',
             'Dacă datele TWS sunt mai vechi de 24 de ore, menționează vechimea și nu formula o acțiune executabilă.',
             'Când privacy_mode=bands_only, folosește numai intervalele furnizate și nu estima soldurile exacte.',

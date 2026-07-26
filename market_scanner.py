@@ -3447,6 +3447,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         selling_rows_html = '<tr><td colspan="15" style="text-align:center;">Niciun ordin de vânzare activ în IBKR / Tradeville.</td></tr>'
 
     # Encrypt Data
+    account_password = os.environ.get('TWS_ACCOUNT_PASSWORD', '') or password
     tws_account_data = None
     if os.path.exists('tws_account.json'):
         try:
@@ -3458,7 +3459,6 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         try:
             with open('tws_account.enc.json', 'r', encoding='utf-8') as handle:
                 encrypted_account_payload = json.load(handle)
-            account_password = os.environ.get('TWS_ACCOUNT_PASSWORD', '') or password
             decrypted_account = market_security.decrypt_from_js(
                 encrypted_account_payload, account_password
             )
@@ -3471,6 +3471,47 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 tws_account_data = json.load(handle)
         except (OSError, ValueError, TypeError):
             tws_account_data = None
+
+    tradeville_account_data = None
+    if os.path.exists('tradeville_account.json'):
+        try:
+            with open('tradeville_account.json', 'r', encoding='utf-8') as handle:
+                tradeville_account_data = json.load(handle)
+        except (OSError, ValueError, TypeError):
+            tradeville_account_data = None
+    elif os.path.exists('tradeville_account.enc.json') and account_password:
+        try:
+            with open('tradeville_account.enc.json', 'r', encoding='utf-8') as handle:
+                encrypted_tradeville_payload = json.load(handle)
+            decrypted_tradeville = market_security.decrypt_from_js(
+                encrypted_tradeville_payload, account_password
+            )
+            tradeville_account_data = json.loads(decrypted_tradeville)
+        except (OSError, ValueError, TypeError, KeyError):
+            tradeville_account_data = None
+
+    # Snapshoturile exacte pot fi analizate împreună, dar conturile rămân
+    # distincte. Nu amestecăm un fallback pe benzi cu valori exacte.
+    if tradeville_account_data and (
+        tws_account_data is None or tws_account_data.get('privacy_mode') != 'bands_only'
+    ):
+        if tws_account_data is None:
+            tws_account_data = tradeville_account_data
+        else:
+            tws_account_data = dict(tws_account_data)
+            tws_account_data['source'] = 'IBKR TWS + Tradeville manual'
+            tws_account_data['accounts'] = (
+                list(tws_account_data.get('accounts', []))
+                + list(tradeville_account_data.get('accounts', []))
+            )
+            timestamps = [
+                value for value in (
+                    tws_account_data.get('fetched_at'),
+                    tradeville_account_data.get('fetched_at'),
+                ) if value
+            ]
+            if timestamps:
+                tws_account_data['fetched_at'] = min(timestamps)
     cached_portfolio_ai = full_state.get('last_portfolio_ai_analysis')
     cached_portfolio_evidence = full_state.get('last_portfolio_ai_evidence')
     portfolio_ai_html, new_portfolio_ai_cache, new_portfolio_evidence, portfolio_ai_diagnostic = generate_portfolio_ai_analysis(
