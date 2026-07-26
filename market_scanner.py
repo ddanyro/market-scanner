@@ -3669,6 +3669,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'stop_eur': item.get('Stop_Loss'),
             'target_eur': item.get('Target'),
             'rr_ratio': item.get('RR_Ratio'),
+            'decision': item.get('Decision'),
             'consensus': item.get('Consensus'),
             'analysts': item.get('Analysts'),
             'trend': item.get('Trend'),

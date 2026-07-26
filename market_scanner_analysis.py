@@ -1421,6 +1421,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Acțiunile trebuie formulate ca verificări: plasează/revizuiește/menține/strânge doar condiționat.',
             'Pentru buy_candidates verifică dacă știrile, piața și calendarul economic susțin intrarea acum; filtrele tehnice singure nu sunt suficiente.',
             'Nu recomanda și nu inventa simboluri care nu există în buy_candidates. Un simbol cercetat intră mai întâi în watchlist și trebuie să treacă BUY + Buy/Strong Buy + R:R minimum 3.',
+            'Toate elementele din buy_candidates au trecut deja filtrul tehnic și au decision=BUY. Dacă entry_eur este pozitiv, nu afirma că lipsesc semnalul BUY sau nivelul de intrare.',
             'Dacă riscul de rezultate, știrile sau un eveniment economic apropiat pot produce gap, verdictul este Așteaptă.',
         ],
         'required_json': {
