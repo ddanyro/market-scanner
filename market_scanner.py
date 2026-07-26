@@ -3530,6 +3530,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         cached=cached_portfolio_ai,
         cached_evidence=cached_portfolio_evidence,
         account_data=tws_account_data,
+        market_context=analysis.build_portfolio_market_context(
+            portfolio_df, full_state.get('market_indicators', {})
+        ),
     )
     full_state['last_portfolio_ai_diagnostic'] = portfolio_ai_diagnostic
     if new_portfolio_ai_cache and new_portfolio_ai_cache != cached_portfolio_ai:

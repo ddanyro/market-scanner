@@ -361,7 +361,7 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
-PORTFOLIO_AI_CACHE_VERSION = 2
+PORTFOLIO_AI_CACHE_VERSION = 3
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
 SEC_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK{cik:010d}.json'
@@ -518,7 +518,77 @@ def _normalize_tws_account_data(account_data, now=None):
     return result
 
 
-def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=None):
+def _market_series_summary(label, series, source):
+    """Rezumat compact al direcției pieței, fără a inventa perioade lipsă."""
+    values = [
+        _safe_number(value, None) for value in (series or [])
+        if _safe_number(value, None) is not None and _safe_number(value, None) > 0
+    ]
+    if not values:
+        return None
+
+    def period_return(offset):
+        if len(values) <= offset or values[-offset - 1] <= 0:
+            return None
+        return round((values[-1] / values[-offset - 1] - 1) * 100, 2)
+
+    return {
+        'label': label,
+        'source': source,
+        'latest': round(values[-1], 2),
+        'change_1d_pct': period_return(1),
+        'change_1m_pct': period_return(20),
+        'change_3m_pct': period_return(min(59, len(values) - 1)),
+    }
+
+
+def build_portfolio_market_context(portfolio_df, market_indicators=None):
+    """Contextul piețelor relevante pozițiilor: SUA și România/BVB."""
+    market_indicators = market_indicators or {}
+    markets = {}
+    spx = _market_series_summary(
+        'S&P 500', market_indicators.get('SPX', {}).get('history', []),
+        'Indice SUA',
+    )
+    nasdaq = _market_series_summary(
+        'Nasdaq Composite', market_indicators.get('NASDAQ', {}).get('history', []),
+        'Indice SUA',
+    )
+    us_benchmarks = [item for item in (spx, nasdaq) if item]
+    if us_benchmarks:
+        markets['SUA'] = {
+            'benchmarks': us_benchmarks,
+            'applies_to': [
+                str(row.get('Symbol', '')).upper()
+                for _, row in portfolio_df.iterrows()
+                if not str(row.get('Symbol', '')).upper().endswith('.RO')
+            ],
+        }
+
+    if portfolio_df is not None and not portfolio_df.empty:
+        bvb_rows = portfolio_df[
+            portfolio_df['Symbol'].astype(str).str.upper().str.endswith('.RO')
+        ] if 'Symbol' in portfolio_df.columns else pd.DataFrame()
+        if not bvb_rows.empty:
+            proxy_row = bvb_rows.iloc[0]
+            bvb_proxy = _market_series_summary(
+                'TVBETETF (proxy BET-TR)',
+                proxy_row.get('Chart_History', proxy_row.get('Sparkline', [])),
+                'ETF care urmărește piața principală BVB; folosit ca proxy, nu ca indice oficial',
+            )
+            if bvb_proxy:
+                markets['România / BVB'] = {
+                    'benchmarks': [bvb_proxy],
+                    'applies_to': [
+                        str(row.get('Symbol', '')).upper()
+                        for _, row in bvb_rows.iterrows()
+                    ],
+                }
+    return markets
+
+
+def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=None,
+                                  market_context=None):
     """Normalizează numai datele necesare evaluării riscului, fără valori inventate."""
     if portfolio_df is None or portfolio_df.empty:
         return {
@@ -526,6 +596,7 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
             'positions': [],
             'portfolio': {},
             'account_liquidity': _normalize_tws_account_data(account_data),
+            'market_context': market_context or {},
         }
 
     orders_df = orders_df if orders_df is not None else pd.DataFrame()
@@ -621,6 +692,10 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
 
         positions.append({
             'symbol': symbol,
+            'broker': str(row.get('Broker', '')).strip() or (
+                'Tradeville' if symbol.endswith('.RO') else 'IBKR'
+            ),
+            'market': 'România / BVB' if symbol.endswith('.RO') else 'SUA',
             'shares': shares,
             'current_price_eur': price or None,
             'buy_price_eur': buy_price or None,
@@ -657,6 +732,7 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
             ),
         },
         'account_liquidity': _normalize_tws_account_data(account_data),
+        'market_context': market_context or {},
         'positions': positions,
     }
 
@@ -672,6 +748,7 @@ def _portfolio_snapshot_fingerprint(snapshot):
             'fetched_at': account_liquidity.get('fetched_at'),
             'accounts': account_liquidity.get('accounts', []),
         },
+        'market_context': snapshot.get('market_context', {}),
     }
     return hashlib.sha256(
         json.dumps(stable, sort_keys=True, ensure_ascii=False).encode('utf-8')
@@ -901,7 +978,36 @@ def _validate_portfolio_ai_result(result, symbols, evidence_ids=None):
     overview = str(result.get('portfolio_overview', '')).strip()[:1600]
     if not overview:
         raise ValueError('Răspuns AI fără rezumat valid')
-    return {'portfolio_overview': overview, 'priorities': clean_items}
+    market_read = str(result.get('market_read', '')).strip()[:1200]
+    if not market_read:
+        raise ValueError('Răspuns AI fără context de piață')
+    allowed_actions = {'Menține', 'Protejează profitul', 'Redu', 'Ieși', 'Urmărește atent'}
+    position_actions = []
+    for raw in result.get('position_actions', []):
+        if not isinstance(raw, dict):
+            continue
+        symbol = str(raw.get('symbol', '')).strip().upper()
+        action = str(raw.get('action', '')).strip()
+        if symbol not in symbols or action not in allowed_actions:
+            continue
+        plain_reason = str(raw.get('plain_reason', '')).strip()[:500]
+        next_check = str(raw.get('next_check', '')).strip()[:400]
+        if plain_reason and next_check:
+            position_actions.append({
+                'symbol': symbol,
+                'broker': str(raw.get('broker', '')).strip()[:40],
+                'action': action,
+                'plain_reason': plain_reason,
+                'next_check': next_check,
+            })
+    if not position_actions:
+        raise ValueError('Răspuns AI fără acțiuni clare pe poziții')
+    return {
+        'portfolio_overview': overview,
+        'market_read': market_read,
+        'position_actions': position_actions,
+        'priorities': clean_items,
+    }
 
 
 def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de risc'):
@@ -950,8 +1056,31 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
                 "</details>"
             )
         overview = html.escape(result['portfolio_overview'])
+        market_read_html = html.escape(result['market_read'])
+        action_colors = {
+            'Menține': '#2563eb',
+            'Protejează profitul': '#16a34a',
+            'Redu': '#d97706',
+            'Ieși': '#dc2626',
+            'Urmărește atent': '#7c3aed',
+        }
+        position_action_cards = []
+        for item in result['position_actions']:
+            action_color = action_colors.get(item['action'], '#64748b')
+            position_action_cards.append(
+                "<div style='background:var(--bg-white);border:1px solid var(--border-light);"
+                f"border-top:4px solid {action_color};border-radius:var(--radius-sm);padding:13px 15px;flex:1;min-width:240px;'>"
+                f"<div style='display:flex;justify-content:space-between;gap:10px;'>"
+                f"<b>{html.escape(item['symbol'])} · {html.escape(item['broker'])}</b>"
+                f"<span style='color:{action_color};font-weight:700;'>{html.escape(item['action'])}</span></div>"
+                f"<p style='margin:8px 0 5px;color:var(--text-secondary);'>{html.escape(item['plain_reason'])}</p>"
+                f"<p style='margin:0;font-size:12px;color:var(--text-secondary);'><b>Urmărește:</b> "
+                f"{html.escape(item['next_check'])}</p></div>"
+            )
     else:
         cards = []
+        market_read_html = 'Contextul pieței nu este disponibil momentan.'
+        position_action_cards = []
         for position in snapshot.get('positions', []):
             for flag in position.get('data_flags', []):
                 cards.append(
@@ -1032,6 +1161,12 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
         "<div><h3 style='margin:0;color:var(--primary-purple);'>Analiză AI — controlul riscului pentru swing trading</h3>"
         f"<p style='margin:8px 0 0;color:var(--text-secondary);line-height:1.55;'>{overview}</p></div>"
         f"<span style='font-size:12px;color:var(--text-secondary);'>Sursă analiză: {html.escape(source_label)}</span></div>"
+        "<div style='background:var(--bg-white);border-left:4px solid var(--primary-purple);"
+        "border-radius:var(--radius-sm);padding:13px 15px;margin:16px 0;'>"
+        "<b>Ce fac piețele relevante</b>"
+        f"<p style='margin:6px 0 0;color:var(--text-secondary);line-height:1.5;'>{market_read_html}</p></div>"
+        "<div style='display:flex;gap:12px;flex-wrap:wrap;margin:16px 0;'>"
+        + ''.join(position_action_cards) + "</div>"
         "<div style='display:flex;gap:10px;flex-wrap:wrap;margin:16px 0;'>"
         f"<span style='background:var(--bg-white);padding:7px 10px;border-radius:14px;'>Poziții: <b>{int(summary.get('position_count', 0))}</b></span>"
         f"<span style='background:var(--bg-white);padding:7px 10px;border-radius:14px;'>Fără stop: <b>{int(summary.get('positions_without_stop', 0))}</b></span>"
@@ -1045,9 +1180,11 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
 
 
 def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, cached_evidence=None,
-                                   request_session=None, account_data=None):
+                                   request_session=None, account_data=None, market_context=None):
     """Generează o analiză structurată și cache-uibilă, apoi returnează HTML sigur."""
-    snapshot = build_portfolio_risk_snapshot(portfolio_df, orders_df, account_data=account_data)
+    snapshot = build_portfolio_risk_snapshot(
+        portfolio_df, orders_df, account_data=account_data, market_context=market_context
+    )
     evidence_cache = collect_portfolio_evidence(
         snapshot, cached=cached_evidence, request_session=request_session
     )
@@ -1095,10 +1232,17 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
     request_payload = {
         'as_of': snapshot['as_of'],
         'objective': (
-            'Audit de risc pentru un portofoliu long de swing trading. Prioritizează protecția '
-            'capitalului și disciplina procesului; nu promite randamente și nu inventa date.'
+            'Recomandare practică pentru un portofoliu long de swing trading. Spune clar ce merită '
+            'făcut acum și ce trebuie urmărit; nu promite randamente și nu inventa date.'
         ),
         'rules': [
+            'Scrie rezumatul principal în limbaj simplu, maximum 4 propoziții; nu repeta soldurile, ponderile, stopurile și indicatorii care sunt deja afișați în detalii.',
+            'Rezumatul principal trebuie să răspundă la: care este riscul cel mai important acum, ce acțiune generală este prudentă și ce ar schimba recomandarea.',
+            'Folosește market_context pentru a explica separat dacă piața SUA și piața România/BVB ajută sau încurcă pozițiile aferente.',
+            'TVBETETF este doar proxy pentru BET-TR; spune asta clar și nu îl prezenta drept indice oficial.',
+            'Respectă maparea position.broker și position.market. Nu asocia JPM sau UPBD cu Tradeville și nu asocia TVBETETF.RO cu IBKR.',
+            'Pentru fiecare poziție dă o singură acțiune clară și un singur lucru observabil de urmărit.',
+            'Evită jargonul precum NAV, Cushion, ATR, R/R sau Excess Liquidity în rezumatul principal; aceste noțiuni pot apărea numai în detalii.',
             'Verifică existența și acoperirea cantitativă a ordinelor stop.',
             'Evaluează stopurile în contextul ATR/volatilității, trendului, targetului și riscului de gap.',
             'Nu considera automat stopul propus corect și nu recomanda mutarea stopului în jos pentru a evita o ieșire.',
@@ -1121,7 +1265,15 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Acțiunile trebuie formulate ca verificări: plasează/revizuiește/menține/strânge doar condiționat.',
         ],
         'required_json': {
-            'portfolio_overview': 'rezumat prudent în română',
+            'portfolio_overview': 'maximum 4 propoziții clare, fără repetarea detaliilor tehnice',
+            'market_read': 'context separat și clar pentru SUA și România/BVB și efectul asupra pozițiilor',
+            'position_actions': [{
+                'symbol': 'un simbol existent',
+                'broker': 'brokerul exact din poziție',
+                'action': 'Menține|Protejează profitul|Redu|Ieși|Urmărește atent',
+                'plain_reason': 'motiv practic, fără jargon',
+                'next_check': 'un singur prag sau eveniment observabil',
+            }],
             'priorities': [{
                 'symbol': 'un simbol existent',
                 'severity': 'critic|ridicat|mediu|scăzut|informativ',
@@ -1141,6 +1293,32 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
         'additionalProperties': False,
         'properties': {
             'portfolio_overview': {'type': 'string'},
+            'market_read': {'type': 'string'},
+            'position_actions': {
+                'type': 'array',
+                'minItems': 1,
+                'maxItems': 12,
+                'items': {
+                    'type': 'object',
+                    'additionalProperties': False,
+                    'properties': {
+                        'symbol': {'type': 'string'},
+                        'broker': {'type': 'string'},
+                        'action': {
+                            'type': 'string',
+                            'enum': [
+                                'Menține', 'Protejează profitul', 'Redu', 'Ieși',
+                                'Urmărește atent',
+                            ],
+                        },
+                        'plain_reason': {'type': 'string'},
+                        'next_check': {'type': 'string'},
+                    },
+                    'required': [
+                        'symbol', 'broker', 'action', 'plain_reason', 'next_check',
+                    ],
+                },
+            },
             'priorities': {
                 'type': 'array',
                 'minItems': 1,
@@ -1169,7 +1347,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 },
             },
         },
-        'required': ['portfolio_overview', 'priorities'],
+        'required': ['portfolio_overview', 'market_read', 'position_actions', 'priorities'],
     }
     attempts = [
         {'reasoning': OPENAI_PORTFOLIO_REASONING, 'timeout': 150, 'verbosity': 'medium'},
@@ -1196,7 +1374,8 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                     },
                     'input': [
                         {'role': 'system', 'content': (
-                            'Ești un risk manager pentru swing trading long. Răspunzi în română. '
+                            'Ești un consilier de risc pentru swing trading long. Răspunzi în română '
+                            'clară, directă și ușor de înțeles. Pui concluzia înaintea detaliilor. '
                             'Folosești numai datele primite și explici explicit orice lipsă.'
                         )},
                         {'role': 'user', 'content': json.dumps(request_payload, ensure_ascii=False)},
