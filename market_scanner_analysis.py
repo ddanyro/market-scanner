@@ -662,10 +662,16 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
 
 
 def _portfolio_snapshot_fingerprint(snapshot):
+    account_liquidity = snapshot.get('account_liquidity', {})
     stable = {
         'version': PORTFOLIO_AI_CACHE_VERSION,
         'portfolio': snapshot.get('portfolio', {}),
         'positions': snapshot.get('positions', []),
+        'account_liquidity': {
+            'privacy_mode': account_liquidity.get('privacy_mode'),
+            'fetched_at': account_liquidity.get('fetched_at'),
+            'accounts': account_liquidity.get('accounts', []),
+        },
     }
     return hashlib.sha256(
         json.dumps(stable, sort_keys=True, ensure_ascii=False).encode('utf-8')

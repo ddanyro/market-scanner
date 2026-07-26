@@ -3,6 +3,7 @@ Unit tests for Market Scanner application - Updated version.
 Tests actual functions that exist in the codebase.
 """
 import unittest
+import copy
 import sys
 import os
 from unittest.mock import Mock, patch, MagicMock
@@ -220,6 +221,31 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(tradeville['cash_pct_of_net_liquidation'], 39.96)
         self.assertEqual(set(tradeville['cash_by_currency']), {'EUR', 'RON', 'USD'})
         self.assertNotIn('BuyingPower', tradeville['summary'])
+
+    def test_portfolio_ai_cache_changes_with_broker_snapshot_not_age(self):
+        base = {
+            'portfolio': {'position_count': 1},
+            'positions': [{'symbol': 'TEST'}],
+            'account_liquidity': {
+                'privacy_mode': 'exact',
+                'fetched_at': '2026-07-26T00:00:00+00:00',
+                'age_hours': 1.0,
+                'accounts': [{'label': 'Tradeville', 'summary': {'NetLiquidation': 100}}],
+            },
+        }
+        later_age = copy.deepcopy(base)
+        later_age['account_liquidity']['age_hours'] = 2.0
+        changed_cash = copy.deepcopy(base)
+        changed_cash['account_liquidity']['accounts'][0]['summary']['NetLiquidation'] = 120
+
+        self.assertEqual(
+            market_scanner_analysis._portfolio_snapshot_fingerprint(base),
+            market_scanner_analysis._portfolio_snapshot_fingerprint(later_age),
+        )
+        self.assertNotEqual(
+            market_scanner_analysis._portfolio_snapshot_fingerprint(base),
+            market_scanner_analysis._portfolio_snapshot_fingerprint(changed_cash),
+        )
 
     def test_sanitized_tws_bands_feed_risk_without_exact_balances(self):
         account_data = {
