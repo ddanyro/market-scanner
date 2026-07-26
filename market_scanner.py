@@ -160,13 +160,13 @@ def _external_research_score(item):
     decision = str(item.get('Decision', '')).upper()
     consensus = str(item.get('Consensus', '')).lower()
     trend = str(item.get('Trend', '')).lower()
-    score += {'BUY': 4, 'HOLD': 2, 'WAIT': 1}.get(decision, 0)
-    score += 2 if consensus in {'buy', 'strong buy'} else 0
-    score += min(max(float(item.get('RR_Ratio') or 0), 0), 5)
-    score += 1.5 if 'bullish' in trend else 0
+    score += {'BUY': 3, 'HOLD': 2, 'WAIT': 2, 'AVOID': -2}.get(decision, 0)
+    score += 2 if consensus in {'buy', 'strong buy'} else 0.5 if consensus == 'hold' else 0
+    score += min(max(float(item.get('RR_Ratio') or 0), 0), 3) * 0.5
+    score += 2 if 'bullish' in trend else 0
     rsi = float(item.get('RSI') or 0)
-    score += 1 if 35 <= rsi <= 68 else 0
-    score -= 2 if item.get('Earnings_Danger') else 0
+    score += 2 if 35 <= rsi <= 68 else -2 if rsi > 72 else 0
+    score -= 1 if item.get('Earnings_Danger') else 0
     return score
 
 
@@ -211,17 +211,54 @@ def select_strict_buy_candidates(watchlist_df, external_research=None, limit_per
     selected = []
     market_counts = {}
     for item in candidates:
-        market = item['Market']
-        if market_counts.get(market, 0) >= limit_per_market:
+        source = item.get('Candidate_Source', 'watchlist')
+        count_key = (item['Market'], source)
+        source_limit = 10 if source == 'external_research' else limit_per_market
+        if market_counts.get(count_key, 0) >= source_limit:
             continue
         selected.append(item)
-        market_counts[market] = market_counts.get(market, 0) + 1
+        market_counts[count_key] = market_counts.get(count_key, 0) + 1
     return selected
 
 
 def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False):
     """Cercetează separat universuri externe, fără a le confunda cu watchlistul."""
-    existing_results = list(state.get('watchlist', []))
+    state_watchlist = list(state.get('watchlist', []))
+    watchlist_symbols = set()
+    if os.path.exists('watchlist.csv'):
+        watchlist_file = pd.read_csv('watchlist.csv')
+        if 'symbol' in watchlist_file.columns:
+            watchlist_symbols = {
+                str(symbol).upper()
+                for symbol in watchlist_file['symbol'].dropna().tolist()
+            }
+    existing_results = [
+        item for item in state_watchlist
+        if str(item.get('Ticker', '')).upper() in watchlist_symbols
+    ]
+    migrated_external = [
+        dict(item, Candidate_Source='external_research')
+        for item in state_watchlist
+        if (
+            str(item.get('Ticker', '')).upper() not in watchlist_symbols
+            and str(item.get('Ticker', '')).upper() in {
+                symbol.upper()
+                for symbols in BUY_RESEARCH_UNIVERSES.values()
+                for symbol in symbols
+            }
+        )
+    ]
+    # CSV-ul este sursa autoritară pentru apartenența la watchlist. Elimină din
+    # starea veche simbolurile mutate în cercetarea externă.
+    state['watchlist'] = existing_results
+    if migrated_external:
+        external_by_symbol = {
+            str(item.get('Ticker', '')).upper(): item
+            for item in state.get('external_buy_research', [])
+        }
+        for item in migrated_external:
+            external_by_symbol[str(item.get('Ticker', '')).upper()] = item
+        state['external_buy_research'] = list(external_by_symbol.values())
     eligible_markets = {
         _buy_candidate_market(item.get('Ticker'))
         for item in existing_results if _is_strict_buy_candidate(item)
@@ -236,12 +273,9 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
     if not refresh_missing:
         return state
 
-    watchlist_symbols = {
-        str(item.get('Ticker', '')).upper() for item in existing_results
-    }
     by_symbol = {
         str(item.get('Ticker', '')).upper(): item
-        for item in state.get('external_buy_research', [])
+        for item in list(state.get('external_buy_research', [])) + migrated_external
     }
     for market in markets_to_research:
         print(f"  -> Cercetare BUY pentru {market}...")
@@ -3797,6 +3831,12 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'rsi': item.get('RSI'),
             'earnings_risk': bool(item.get('Earnings_Danger')),
             'entry_reason': item.get('Smart_Reason'),
+            'price_native': item.get('Price_Native'),
+            'currency': item.get('Currency'),
+            'atr_eur': item.get('ATR_14'),
+            'volume': item.get('Volume'),
+            'strategy': item.get('Strategy'),
+            'relative_strength': item.get('RS_vs_SPX'),
             'strict_eligible': bool(item.get('Strict_Eligible')),
             'candidate_source': item.get('Candidate_Source', 'watchlist'),
             'requires_watchlist_filters': bool(

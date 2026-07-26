@@ -510,6 +510,27 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(selected[0]['Candidate_Source'], 'external_research')
         self.assertFalse(selected[0]['Requires_Watchlist_Filters'])
 
+    @patch('market_scanner.os.path.exists', return_value=True)
+    @patch('market_scanner.pd.read_csv')
+    def test_removed_bvb_symbols_migrate_from_state_to_external_research(
+        self, mock_read_csv, _mock_exists
+    ):
+        mock_read_csv.return_value = pd.DataFrame({'symbol': ['AAPL']})
+        state = {
+            'watchlist': [
+                {'Ticker': 'AAPL', 'Decision': 'WAIT'},
+                {'Ticker': 'DIGI.RO', 'Decision': 'WAIT', 'Trend': 'Strong Bullish'},
+            ],
+        }
+        result = market_scanner.ensure_buy_research_candidates(
+            state, {'EUR': 1}, 15, refresh_missing=False
+        )
+        self.assertEqual([item['Ticker'] for item in result['watchlist']], ['AAPL'])
+        self.assertEqual(
+            [item['Ticker'] for item in result['external_buy_research']],
+            ['DIGI.RO'],
+        )
+
     def test_correct_tradeville_snapshot_does_not_double_count_cash(self):
         incorrect = {
             'fetched_at': '2026-07-26T00:00:00+03:00',

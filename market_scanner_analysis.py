@@ -1166,7 +1166,11 @@ def _validate_portfolio_ai_result(result, symbols, evidence_ids=None, candidate_
             continue
         symbol = str(raw.get('symbol', '')).strip().upper()
         verdict = str(raw.get('verdict', '')).strip()
-        if symbol not in candidate_symbols or verdict not in {'Candidat valid', 'Așteaptă'}:
+        allowed_buy_verdicts = {
+            'Candidat valid', 'Pregătit la trigger', 'Foarte aproape',
+            'Urmărește', 'Evită', 'Așteaptă',
+        }
+        if symbol not in candidate_symbols or verdict not in allowed_buy_verdicts:
             continue
         item = {'symbol': symbol, 'verdict': verdict}
         for field in (
@@ -1419,7 +1423,12 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
             candidate = candidates_by_symbol[symbol]
             verdict = item['verdict']
             represented_markets.add(str(candidate.get('market') or item.get('market', '')))
-            color = '#16a34a' if verdict == 'Candidat valid' else '#d97706'
+            color = (
+                '#16a34a' if verdict == 'Candidat valid'
+                else '#2563eb' if verdict == 'Pregătit la trigger'
+                else '#d97706' if verdict in {'Foarte aproape', 'Urmărește', 'Așteaptă'}
+                else '#dc2626'
+            )
             entry_value = float(candidate.get('entry_eur') or 0)
             sizing_rows = candidate.get('sizing_by_broker') or [{
                 key: candidate.get(key) for key in (
@@ -1671,6 +1680,8 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Nu recomanda și nu inventa simboluri care nu există în buy_candidates.',
             'Pentru candidate_source=watchlist, strict_eligible arată dacă instrumentul a trecut BUY + Buy/Strong Buy + R:R minimum 3; dacă este false, verdictul trebuie să fie Așteaptă.',
             'Pentru candidate_source=external_research, nu aplica filtrul watchlistului. Evaluează independent calitatea, catalizatorii, știrile, piața, calendarul, entry/stop/target și riscul; recomandă numai dacă aceste dovezi susțin intrarea.',
+            'Pentru cercetarea externă folosește trepte clare: Candidat valid numai pentru intrare imediată; Pregătit la trigger când există un prag apropiat; Foarte aproape când mai lipsește o confirmare; Urmărește pentru o idee utilă dar prematură; Evită când riscul domină.',
+            'Pentru verdicturile diferite de Candidat valid, investiția acum este zero. În why_now spune în limbaj simplu triggerul sau confirmarea necesară folosind exclusiv nivelurile primite.',
             'Dacă strict_eligible=true și entry_eur este pozitiv, nu afirma că lipsesc semnalul BUY sau nivelul de intrare.',
             'Dimensionarea din buy_candidates este calculată determinist și separat pe broker în sizing_by_broker. Nu modifica și nu inventa sumele, unitățile sau cash-ul brokerilor.',
             'Un verdict Așteaptă înseamnă investiție acum zero; suma condițională poate fi folosită numai după dispariția riscului menționat și reconfirmarea semnalului.',
@@ -1691,7 +1702,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'buy_recommendations': [{
                 'symbol': 'un simbol existent în buy_candidates',
                 'market': 'SUA, România / BVB sau Europa / Nasdaq-100',
-                'verdict': 'Candidat valid|Așteaptă',
+                'verdict': 'Candidat valid|Pregătit la trigger|Foarte aproape|Urmărește|Evită|Așteaptă',
                 'why_now': 'de ce merită analizat acum',
                 'market_effect': 'cum ajută sau încurcă piața relevantă',
                 'news_effect': 'efectul știrilor/rapoartelor disponibile sau lipsa lor',
@@ -1758,7 +1769,10 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                         'market': {'type': 'string'},
                         'verdict': {
                             'type': 'string',
-                            'enum': ['Candidat valid', 'Așteaptă'],
+                            'enum': [
+                                'Candidat valid', 'Pregătit la trigger',
+                                'Foarte aproape', 'Urmărește', 'Evită', 'Așteaptă',
+                            ],
                         },
                         'why_now': {'type': 'string'},
                         'market_effect': {'type': 'string'},
