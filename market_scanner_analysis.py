@@ -18,6 +18,31 @@ ECONOMIC_CALENDAR_CACHE = os.path.join(tempfile.gettempdir(), "antigravity_econo
 AI_CALENDAR_CACHE = os.path.join(tempfile.gettempdir(), "antigravity_ai_calendar_cache.json")
 BVB_CALENDAR_URL = "https://www.bvb.ro/FinancialInstruments/SelectedData/FinancialCalendar"
 CALENDAR_SOURCE_URL = "https://economic-calendar.tradingview.com/events"
+TVBETETF_HOLDINGS_URL = (
+    "https://www.patriafonduri.ro/fonduri/patria-etfbet/investitiile-fondului"
+)
+TVBETETF_ISSUER_SYMBOLS = {
+    'BANCA TRANSILVANIA': 'TLV.RO',
+    'OMV PETROM': 'SNP.RO',
+    'S.N.G.N. ROMGAZ': 'SNG.RO',
+    'S.P.E.E.H. HIDROELECTRICA': 'H2O.RO',
+    'BRD - GROUPE SOCIETE GENERALE': 'BRD.RO',
+    'S.N.T.G.N. TRANSGAZ': 'TGN.RO',
+    'SOCIETATEA ENERGETICA ELECTRICA': 'EL.RO',
+    'DIGI COMMUNICATIONS': 'DIGI.RO',
+    'MEDLIFE': 'M.RO',
+    'S.N. NUCLEARELECTRICA': 'SNN.RO',
+    'C.N.T.E.E. TRANSELECTRICA': 'TEL.RO',
+    'PREMIER ENERGY': 'PE.RO',
+    'ONE UNITED PROPERTIES': 'ONE.RO',
+    'FONDUL PROPRIETATEA': 'FP.RO',
+    'AQUILA PART PROD COM': 'AQ.RO',
+    'CRIS-TIM FAMILY HOLDING': 'CFH.RO',
+    'TRANSPORT TRADE SERVICES': 'TTS.RO',
+    'ANTIBIOTICE': 'ATB.RO',
+    'TERAPLAST': 'TRP.RO',
+    'SPHERA FRANCHISE GROUP': 'SFG.RO',
+}
 
 EVENT_RULES = {
     'inflation': {
@@ -184,6 +209,69 @@ def _parse_bvb_calendar_html(content, now):
         })
         current_date = None
     return events
+
+
+def _parse_tvbetetf_holdings_html(content):
+    """Extrage coșul zilnic publicat de Patria, fără ponderi presupuse."""
+    soup = BeautifulSoup(content, 'html.parser')
+    text = ' '.join(soup.stripped_strings)
+    date_match = re.search(
+        r'Co[sș]\s+de\s+emitere-rascumparare\s+la\s+data\s+de\s+(\d{2}-\d{2}-\d{4})',
+        text,
+        re.I,
+    )
+    as_of = None
+    if date_match:
+        try:
+            as_of = datetime.datetime.strptime(
+                date_match.group(1), '%d-%m-%Y'
+            ).date().isoformat()
+        except ValueError:
+            pass
+    holdings = []
+    for row in soup.select('tr'):
+        cells = [
+            re.sub(r'\s+', ' ', cell.get_text(' ', strip=True)).strip()
+            for cell in row.select('th,td')
+        ]
+        if len(cells) < 3:
+            continue
+        issuer = cells[0].upper()
+        symbol = TVBETETF_ISSUER_SYMBOLS.get(issuer)
+        weight_match = re.search(r'(\d+(?:[.,]\d+)?)\s*%', cells[-1])
+        if not symbol or not weight_match:
+            continue
+        holdings.append({
+            'symbol': symbol,
+            'issuer': cells[0],
+            'weight_pct': float(weight_match.group(1).replace(',', '.')),
+        })
+    return {
+        'as_of': as_of,
+        'source': 'Patria Asset Management',
+        'source_url': TVBETETF_HOLDINGS_URL,
+        'holdings': holdings,
+    } if holdings else None
+
+
+def fetch_tvbetetf_holdings(cached=None, request_session=requests):
+    """Preia structura efectivă TVBETETF sau păstrează ultimul cache valid."""
+    try:
+        response = request_session.get(
+            TVBETETF_HOLDINGS_URL,
+            headers={'User-Agent': 'Mozilla/5.0'},
+            timeout=15,
+        )
+        response.raise_for_status()
+        parsed = _parse_tvbetetf_holdings_html(response.text)
+        if parsed:
+            parsed['fetched_at'] = datetime.datetime.now().isoformat(
+                timespec='seconds'
+            )
+            return parsed
+    except (requests.RequestException, ValueError, TypeError, AttributeError):
+        pass
+    return cached if isinstance(cached, dict) else None
 
 def _load_calendar_cache(now):
     try:
@@ -594,7 +682,7 @@ def build_portfolio_market_context(portfolio_df, market_indicators=None):
 
 
 def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=None,
-                                  market_context=None):
+                                  market_context=None, etf_holdings=None):
     """Normalizează numai datele necesare evaluării riscului, fără valori inventate."""
     if portfolio_df is None or portfolio_df.empty:
         return {
@@ -706,6 +794,7 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
             'current_price_eur': price or None,
             'buy_price_eur': buy_price or None,
             'profit_pct': _safe_number(row.get('Profit_Pct')),
+            'current_value_eur': round(current_value, 2),
             'portfolio_weight_pct': round(weight_pct, 2) if weight_pct is not None else None,
             'active_stops': active_stops,
             'stop_coverage_pct': round(covered_quantity / shares * 100, 2) if shares > 0 else None,
@@ -726,7 +815,7 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
             'data_flags': flags,
         })
 
-    return {
+    snapshot = {
         'as_of': datetime.datetime.now().isoformat(timespec='seconds'),
         'portfolio': {
             'position_count': len(positions),
@@ -741,6 +830,48 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
         'market_context': market_context or {},
         'positions': positions,
     }
+    if isinstance(etf_holdings, dict) and etf_holdings.get('holdings'):
+        etf_position = next(
+            (
+                item for item in positions
+                if item['symbol'] in {'TVBETETF', 'TVBETETF.RO'}
+            ),
+            None,
+        )
+        etf_value = _safe_number(
+            (etf_position or {}).get('current_value_eur')
+        )
+        direct_values = {
+            item['symbol']: _safe_number(item.get('current_value_eur'))
+            for item in positions
+        }
+        lookthrough = []
+        for holding in etf_holdings['holdings']:
+            symbol = str(holding.get('symbol', '')).upper()
+            weight_pct = _safe_number(holding.get('weight_pct'))
+            indirect_value = etf_value * weight_pct / 100
+            direct_value = direct_values.get(symbol, 0)
+            lookthrough.append({
+                'symbol': symbol,
+                'issuer': holding.get('issuer'),
+                'etf_weight_pct': round(weight_pct, 4),
+                'indirect_exposure_eur': round(indirect_value, 2),
+                'direct_exposure_eur': round(direct_value, 2),
+                'combined_exposure_eur': round(
+                    indirect_value + direct_value, 2
+                ),
+                'combined_portfolio_weight_pct': round(
+                    (indirect_value + direct_value) / total_value * 100, 2
+                ) if total_value > 0 else None,
+            })
+        snapshot['tvbetetf_lookthrough'] = {
+            'as_of': etf_holdings.get('as_of'),
+            'source': etf_holdings.get('source'),
+            'source_url': etf_holdings.get('source_url'),
+            'etf_position_value_eur': round(etf_value, 2),
+            'holdings': lookthrough,
+        }
+    return snapshot
 
 
 def _portfolio_snapshot_fingerprint(snapshot):
@@ -757,6 +888,7 @@ def _portfolio_snapshot_fingerprint(snapshot):
         'market_context': snapshot.get('market_context', {}),
         'buy_candidates': snapshot.get('buy_candidates', []),
         'economic_calendar': snapshot.get('economic_calendar', []),
+        'tvbetetf_lookthrough': snapshot.get('tvbetetf_lookthrough', {}),
     }
     return hashlib.sha256(
         json.dumps(stable, sort_keys=True, ensure_ascii=False).encode('utf-8')
@@ -766,6 +898,49 @@ def _portfolio_snapshot_fingerprint(snapshot):
 def _size_buy_candidates(snapshot):
     """Dimensionare prudentă, separată pentru fiecare broker eligibil."""
     candidates = [dict(item) for item in snapshot.get('buy_candidates', [])]
+    total_portfolio_value = _safe_number(
+        snapshot.get('portfolio', {}).get('total_value_eur')
+    )
+    lookthrough_by_symbol = {
+        str(item.get('symbol', '')).upper(): item
+        for item in snapshot.get('tvbetetf_lookthrough', {}).get('holdings', [])
+    }
+    direct_values = {
+        str(item.get('symbol', '')).upper(): _safe_number(
+            item.get('current_value_eur')
+        )
+        for item in snapshot.get('positions', [])
+    }
+    for candidate in candidates:
+        symbol = str(candidate.get('symbol', '')).upper()
+        overlap = lookthrough_by_symbol.get(symbol, {})
+        etf_weight = _safe_number(overlap.get('etf_weight_pct'))
+        indirect = _safe_number(overlap.get('indirect_exposure_eur'))
+        direct = direct_values.get(symbol, 0)
+        candidate.update({
+            'tvbetetf_weight_pct': round(etf_weight, 4),
+            'indirect_exposure_eur': round(indirect, 2),
+            'direct_exposure_eur': round(direct, 2),
+            'combined_pretrade_exposure_eur': round(indirect + direct, 2),
+            'combined_pretrade_portfolio_weight_pct': round(
+                (indirect + direct) / total_portfolio_value * 100, 2
+            ) if total_portfolio_value > 0 else None,
+            'lookthrough_source_date': snapshot.get(
+                'tvbetetf_lookthrough', {}
+            ).get('as_of'),
+        })
+        if etf_weight >= 12:
+            candidate['overlap_size_factor'] = 0.35
+            candidate['overlap_risk'] = 'ridicat'
+        elif etf_weight >= 6:
+            candidate['overlap_size_factor'] = 0.55
+            candidate['overlap_risk'] = 'mediu'
+        elif etf_weight >= 3:
+            candidate['overlap_size_factor'] = 0.75
+            candidate['overlap_risk'] = 'moderat'
+        else:
+            candidate['overlap_size_factor'] = 1.0
+            candidate['overlap_risk'] = 'redus'
     liquidity = snapshot.get('account_liquidity', {})
     if liquidity.get('privacy_mode') != 'exact':
         for candidate in candidates:
@@ -845,6 +1020,9 @@ def _size_buy_candidates(snapshot):
                 conditional_amount *= 0.5
             if 'bearish' in str(candidate.get('trend', '')).lower():
                 conditional_amount *= 0.6
+            conditional_amount *= _safe_number(
+                candidate.get('overlap_size_factor')
+            ) or 1.0
             preliminary.append((candidate, conditional_amount, stop_risk_pct))
 
         aggregate_cap = min(usable_cash * 0.15, net_liquidation * 0.12)
@@ -1522,6 +1700,19 @@ def render_buy_recommendations_html(
                 + " | ".join(source_links) + "</p>"
                 if source_links else ''
             )
+            overlap_html = ''
+            if candidate.get('market') == 'România / BVB':
+                overlap_html = (
+                    "<div style='background:#fff7ed;border-radius:var(--radius-sm);"
+                    "padding:9px 12px;margin:8px 0;font-size:13px;'>"
+                    "<b>Expunere înainte de cumpărare:</b> "
+                    f"€{float(candidate.get('direct_exposure_eur') or 0):,.2f} direct + "
+                    f"€{float(candidate.get('indirect_exposure_eur') or 0):,.2f} prin TVBETETF"
+                    f" · total €{float(candidate.get('combined_pretrade_exposure_eur') or 0):,.2f}. "
+                    f"Pondere în ETF: {float(candidate.get('tvbetetf_weight_pct') or 0):.2f}%"
+                    f" · suprapunere {html.escape(str(candidate.get('overlap_risk') or 'necunoscută'))}."
+                    "</div>"
+                )
             cards.append(
                 "<details style='background:var(--bg-white);border:1px solid var(--border-light);"
                 f"border-left:4px solid {color};border-radius:var(--radius-sm);padding:14px 16px;'>"
@@ -1536,6 +1727,7 @@ def render_buy_recommendations_html(
                 f"<span><b>Entry:</b> €{entry_value:.2f}</span>"
                 f"<span><b>Stop:</b> €{float(candidate.get('stop_eur') or 0):.2f}</span>"
                 f"<span><b>Target:</b> €{float(candidate.get('target_eur') or 0):.2f}</span></div>"
+                + overlap_html
                 + ''.join(sizing_html)
                 + f"<p style='margin:6px 0;'><b>De ce acum:</b> {html.escape(why_now)}</p>"
                 f"<p style='margin:6px 0;'><b>Piața:</b> {html.escape(item['market_effect'])}</p>"
@@ -1596,10 +1788,14 @@ def render_buy_recommendations_html(
 
 def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, cached_evidence=None,
                                    request_session=None, account_data=None, market_context=None,
-                                   buy_candidates=None):
+                                   buy_candidates=None, etf_holdings=None):
     """Generează o analiză structurată și cache-uibilă, apoi returnează HTML sigur."""
     snapshot = build_portfolio_risk_snapshot(
-        portfolio_df, orders_df, account_data=account_data, market_context=market_context
+        portfolio_df,
+        orders_df,
+        account_data=account_data,
+        market_context=market_context,
+        etf_holdings=etf_holdings,
     )
     snapshot['buy_candidates'] = list(buy_candidates or [])
     snapshot['buy_candidates'] = _size_buy_candidates(snapshot)
@@ -1685,6 +1881,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Rezumatul principal trebuie să răspundă la: care este riscul cel mai important acum, ce acțiune generală este prudentă și ce ar schimba recomandarea.',
             'Folosește market_context pentru a explica separat dacă piața SUA și piața România/BVB ajută sau încurcă pozițiile aferente.',
             'TVBETETF este doar proxy pentru BET-TR; spune asta clar și nu îl prezenta drept indice oficial.',
+            'Folosește tvbetetf_lookthrough pentru expunerea indirectă la fiecare emitent BVB și evaluează expunerea combinată directă plus cea prin ETF.',
             'Respectă maparea position.broker și position.market. Nu asocia JPM sau UPBD cu Tradeville și nu asocia TVBETETF.RO cu IBKR.',
             'Pentru fiecare poziție dă o singură acțiune clară și un singur lucru observabil de urmărit.',
             'Evită jargonul precum NAV, Cushion, ATR, R/R sau Excess Liquidity în rezumatul principal; aceste noțiuni pot apărea numai în detalii.',
@@ -1712,6 +1909,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Citează exclusiv source_id existente în date și menționează conflictele dintre surse.',
             'Acțiunile trebuie formulate ca verificări: plasează/revizuiește/menține/strânge doar condiționat.',
             'Pentru buy_candidates verifică dacă știrile, piața și calendarul economic susțin intrarea acum; filtrele tehnice singure nu sunt suficiente.',
+            'Pentru candidații BVB folosește tvbetetf_weight_pct, indirect_exposure_eur, direct_exposure_eur și overlap_risk. Preferă diversificarea și cere dovezi mai puternice înainte de a dubla componentele dominante ale TVBETETF.',
             'Nu recomanda și nu inventa simboluri care nu există în buy_candidates.',
             'Pentru candidate_source=watchlist, strict_eligible arată dacă instrumentul a trecut BUY + Buy/Strong Buy + R:R minimum 3; dacă este false, verdictul trebuie să fie Așteaptă.',
             'Pentru candidate_source=external_research, nu aplica filtrul watchlistului. Evaluează independent calitatea, catalizatorii, știrile, piața, calendarul, entry/stop/target și riscul; recomandă numai dacă aceste dovezi susțin intrarea.',

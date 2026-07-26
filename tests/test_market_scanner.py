@@ -397,6 +397,94 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIn('BNR Rate Decision', effects['TVBETETF.RO'])
         self.assertNotIn('Fed Rate Decision', effects['TVBETETF.RO'])
 
+    def test_tvbetetf_parser_reads_official_daily_basket(self):
+        payload = market_scanner_analysis._parse_tvbetetf_holdings_html("""
+            <h3>Cos de emitere-rascumparare la data de 23-07-2026</h3>
+            <table>
+              <tr><th>Denumire/Issuer Name</th><th>Cantitate</th><th>Pondere</th></tr>
+              <tr><td>BANCA TRANSILVANIA</td><td>3017</td><td>18.48%</td></tr>
+              <tr><td>S.N.G.N. ROMGAZ</td><td>4763</td><td>14,41%</td></tr>
+              <tr><td>LEI</td><td>1488.26</td><td>0.17%</td></tr>
+            </table>
+        """)
+        self.assertEqual(payload['as_of'], '2026-07-23')
+        self.assertEqual(
+            [item['symbol'] for item in payload['holdings']],
+            ['TLV.RO', 'SNG.RO'],
+        )
+        self.assertEqual(payload['holdings'][1]['weight_pct'], 14.41)
+
+    def test_snapshot_calculates_tvbetetf_indirect_exposure(self):
+        portfolio = pd.DataFrame([
+            {
+                'Symbol': 'TVBETETF.RO', 'Shares': 100,
+                'Current_Value': 10000, 'Current_Price': 100,
+            },
+            {
+                'Symbol': 'TLV.RO', 'Shares': 10,
+                'Current_Value': 500, 'Current_Price': 50,
+            },
+        ])
+        holdings = {
+            'as_of': '2026-07-23',
+            'source': 'Patria Asset Management',
+            'source_url': 'https://example.test',
+            'holdings': [{
+                'symbol': 'TLV.RO', 'issuer': 'BANCA TRANSILVANIA',
+                'weight_pct': 18.48,
+            }],
+        }
+        snapshot = market_scanner_analysis.build_portfolio_risk_snapshot(
+            portfolio, etf_holdings=holdings
+        )
+        tlv = snapshot['tvbetetf_lookthrough']['holdings'][0]
+        self.assertEqual(tlv['indirect_exposure_eur'], 1848)
+        self.assertEqual(tlv['direct_exposure_eur'], 500)
+        self.assertEqual(tlv['combined_exposure_eur'], 2348)
+
+    def test_buy_sizing_reduces_dominant_tvbetetf_overlap(self):
+        base = {
+            'portfolio': {'total_value_eur': 50000},
+            'positions': [],
+            'account_liquidity': {
+                'privacy_mode': 'exact',
+                'accounts': [{
+                    'label': 'Tradeville',
+                    'summary': {
+                        'NetLiquidation': 100000,
+                        'AvailableFunds': 50000,
+                        'TotalCashValue': 50000,
+                    },
+                }],
+            },
+            'buy_candidates': [
+                {
+                    'symbol': 'TLV.RO', 'market': 'România / BVB',
+                    'eligible_brokers': ['Tradeville'],
+                    'entry_eur': 10, 'stop_eur': 9,
+                },
+                {
+                    'symbol': 'IARV.RO', 'market': 'România / BVB',
+                    'eligible_brokers': ['Tradeville'],
+                    'entry_eur': 10, 'stop_eur': 9,
+                },
+            ],
+            'tvbetetf_lookthrough': {'holdings': [{
+                'symbol': 'TLV.RO', 'etf_weight_pct': 18.48,
+                'indirect_exposure_eur': 4500,
+            }]},
+        }
+        sized = market_scanner_analysis._size_buy_candidates(base)
+        by_symbol = {item['symbol']: item for item in sized}
+        tlv_amount = by_symbol['TLV.RO']['sizing_by_broker'][0][
+            'conditional_amount_eur'
+        ]
+        iarv_amount = by_symbol['IARV.RO']['sizing_by_broker'][0][
+            'conditional_amount_eur'
+        ]
+        self.assertEqual(by_symbol['TLV.RO']['overlap_risk'], 'ridicat')
+        self.assertLess(tlv_amount, iarv_amount)
+
     def test_buy_sizing_uses_separate_broker_cash_and_stop_risk(self):
         snapshot = {
             'account_liquidity': {
@@ -555,6 +643,26 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             market_scanner._external_research_score(strong),
             market_scanner._external_research_score(weak),
         )
+
+    def test_bvb_candidate_ranking_penalizes_large_tvbetetf_overlap(self):
+        external = [
+            {
+                'Ticker': 'TLV.RO', 'Decision': 'BUY', 'Consensus': 'Buy',
+                'RR_Ratio': 3, 'Trend': 'Bullish', 'RSI': 50,
+            },
+            {
+                'Ticker': 'IARV.RO', 'Decision': 'BUY', 'Consensus': 'Buy',
+                'RR_Ratio': 3, 'Trend': 'Bullish', 'RSI': 50,
+            },
+        ]
+        selected = market_scanner.select_strict_buy_candidates(
+            pd.DataFrame(),
+            external_research=external,
+            etf_holdings={
+                'holdings': [{'symbol': 'TLV.RO', 'weight_pct': 18.48}],
+            },
+        )
+        self.assertEqual(selected[0]['Ticker'], 'IARV.RO')
 
     @patch('market_scanner.os.path.exists', return_value=True)
     @patch('market_scanner.pd.read_csv')
