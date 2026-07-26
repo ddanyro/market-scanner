@@ -749,6 +749,8 @@ def _portfolio_snapshot_fingerprint(snapshot):
             'accounts': account_liquidity.get('accounts', []),
         },
         'market_context': snapshot.get('market_context', {}),
+        'buy_candidates': snapshot.get('buy_candidates', []),
+        'economic_calendar': snapshot.get('economic_calendar', []),
     }
     return hashlib.sha256(
         json.dumps(stable, sort_keys=True, ensure_ascii=False).encode('utf-8')
@@ -896,7 +898,15 @@ def _bvb_calendar_evidence(symbol, calendar_events):
 def collect_portfolio_evidence(snapshot, cached=None, request_session=None, now=None):
     """Colectează metadate verificabile; la eroare păstrează ultimul cache valid."""
     now = now or datetime.datetime.utcnow()
-    symbols = [item['symbol'] for item in snapshot.get('positions', []) if item.get('symbol')]
+    symbols = [
+        item['symbol']
+        for item in (
+            list(snapshot.get('positions', []))
+            + list(snapshot.get('buy_candidates', []))
+        )
+        if item.get('symbol')
+    ]
+    symbols = list(dict.fromkeys(symbols))
     if _evidence_cache_is_fresh(cached):
         cached_symbols = set(cached.get('symbols', []))
         if cached_symbols == set(symbols):
@@ -942,14 +952,14 @@ def collect_portfolio_evidence(snapshot, cached=None, request_session=None, now=
     return {
         'fetched_at': now.isoformat(timespec='seconds'),
         'symbols': symbols,
-        'items': list(unique.values())[:30],
+        'items': list(unique.values())[:60],
         'status': 'actualizat' if items and items != previous_items else (
             'cache păstrat' if items else 'indisponibil'
         ),
     }
 
 
-def _validate_portfolio_ai_result(result, symbols, evidence_ids=None):
+def _validate_portfolio_ai_result(result, symbols, evidence_ids=None, candidate_symbols=None):
     allowed_severity = {'critic', 'ridicat', 'mediu', 'scăzut', 'informativ'}
     evidence_ids = evidence_ids or set()
     clean_items = []
@@ -1002,11 +1012,36 @@ def _validate_portfolio_ai_result(result, symbols, evidence_ids=None):
             })
     if not position_actions:
         raise ValueError('Răspuns AI fără acțiuni clare pe poziții')
+    candidate_symbols = candidate_symbols or set()
+    buy_recommendations = []
+    for raw in result.get('buy_recommendations', []):
+        if not isinstance(raw, dict):
+            continue
+        symbol = str(raw.get('symbol', '')).strip().upper()
+        verdict = str(raw.get('verdict', '')).strip()
+        if symbol not in candidate_symbols or verdict not in {'Candidat valid', 'Așteaptă'}:
+            continue
+        item = {'symbol': symbol, 'verdict': verdict}
+        for field in (
+            'market', 'why_now', 'market_effect', 'news_effect',
+            'calendar_effect', 'main_risk',
+        ):
+            value = raw.get(field)
+            if not isinstance(value, str) or not value.strip():
+                break
+            item[field] = value.strip()[:700]
+        else:
+            item['source_ids'] = [
+                str(source_id) for source_id in raw.get('source_ids', [])
+                if str(source_id) in evidence_ids
+            ][:5]
+            buy_recommendations.append(item)
     return {
         'portfolio_overview': overview,
         'market_read': market_read,
         'position_actions': position_actions,
         'priorities': clean_items,
+        'buy_recommendations': buy_recommendations,
     }
 
 
@@ -1179,12 +1214,93 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
     )
 
 
+def render_buy_recommendations_html(result, candidates, evidence_cache=None):
+    """Carduri BUY stricte, validate AI cu știri, piață și calendar."""
+    candidates_by_symbol = {
+        str(item.get('symbol', '')).upper(): item for item in (candidates or [])
+    }
+    recommendations = [
+        item for item in (result or {}).get('buy_recommendations', [])
+        if str(item.get('symbol', '')).upper() in candidates_by_symbol
+    ]
+    evidence_lookup = {
+        str(item.get('source_id')): item
+        for item in (evidence_cache or {}).get('items', [])
+    }
+    if not candidates_by_symbol:
+        body = (
+            "<p style='color:var(--text-secondary);margin:0;'>"
+            "Nu există momentan acțiuni care să treacă simultan filtrele BUY, "
+            "consensus Buy/Strong Buy și R:R de minimum 3. Universurile SUA și BVB "
+            "rămân în cercetare și vor fi adăugate în watchlist numai după scanare.</p>"
+        )
+    elif not recommendations:
+        body = (
+            "<p style='color:var(--text-secondary);margin:0;'>"
+            "Candidații tehnici există, dar validarea prin știri, context de piață și "
+            "calendar economic nu este disponibilă momentan. Nu sunt prezentați ca intrări.</p>"
+        )
+    else:
+        cards = []
+        for item in recommendations:
+            symbol = str(item['symbol']).upper()
+            candidate = candidates_by_symbol[symbol]
+            verdict = item['verdict']
+            color = '#16a34a' if verdict == 'Candidat valid' else '#d97706'
+            source_links = []
+            for source_id in item.get('source_ids', []):
+                source = evidence_lookup.get(str(source_id))
+                if source:
+                    source_links.append(
+                        f"<a href='{html.escape(source['url'], quote=True)}' target='_blank' "
+                        f"rel='noopener noreferrer'>{html.escape(source['title'])}</a>"
+                    )
+            sources_html = (
+                "<p style='margin:7px 0 0;font-size:12px;'><b>Surse:</b> "
+                + " | ".join(source_links) + "</p>"
+                if source_links else ''
+            )
+            cards.append(
+                "<details style='background:var(--bg-white);border:1px solid var(--border-light);"
+                f"border-left:4px solid {color};border-radius:var(--radius-sm);padding:14px 16px;'>"
+                f"<summary style='cursor:pointer;font-weight:700;'>{html.escape(symbol)} · "
+                f"{html.escape(str(candidate.get('company_name') or ''))}"
+                f"<span style='float:right;color:{color};'>{html.escape(verdict)}</span></summary>"
+                "<div style='display:flex;gap:12px;flex-wrap:wrap;margin:10px 0;font-size:13px;'>"
+                f"<span><b>Piață:</b> {html.escape(item['market'])}</span>"
+                f"<span><b>Consensus:</b> {html.escape(str(candidate.get('consensus')))}</span>"
+                f"<span><b>R:R:</b> {float(candidate.get('rr_ratio') or 0):.2f}</span>"
+                f"<span><b>Entry:</b> €{float(candidate.get('entry_eur') or 0):.2f}</span>"
+                f"<span><b>Stop:</b> €{float(candidate.get('stop_eur') or 0):.2f}</span>"
+                f"<span><b>Target:</b> €{float(candidate.get('target_eur') or 0):.2f}</span></div>"
+                f"<p style='margin:6px 0;'><b>De ce acum:</b> {html.escape(item['why_now'])}</p>"
+                f"<p style='margin:6px 0;'><b>Piața:</b> {html.escape(item['market_effect'])}</p>"
+                f"<p style='margin:6px 0;'><b>Știri:</b> {html.escape(item['news_effect'])}</p>"
+                f"<p style='margin:6px 0;'><b>Calendar:</b> {html.escape(item['calendar_effect'])}</p>"
+                f"<p style='margin:6px 0;'><b>Risc principal:</b> {html.escape(item['main_risk'])}</p>"
+                f"{sources_html}</details>"
+            )
+        body = "<div style='display:grid;gap:10px;'>" + ''.join(cards) + "</div>"
+    return (
+        "<section style='margin:28px 0;background:var(--light-purple-bg);"
+        "border:1px solid var(--border-light);border-radius:var(--radius-md);padding:22px;'>"
+        "<h3 style='margin:0 0 8px;color:var(--primary-purple);'>"
+        "Candidați de cumpărare — SUA și BVB</h3>"
+        "<p style='margin:0 0 15px;color:var(--text-secondary);'>"
+        "Filtru obligatoriu: BUY + consensus Buy/Strong Buy + R:R ≥ 3. "
+        "Validarea AI ține cont de știri, piață și calendar; nu reprezintă ordin de tranzacționare.</p>"
+        + body + "</section>"
+    )
+
+
 def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, cached_evidence=None,
-                                   request_session=None, account_data=None, market_context=None):
+                                   request_session=None, account_data=None, market_context=None,
+                                   buy_candidates=None):
     """Generează o analiză structurată și cache-uibilă, apoi returnează HTML sigur."""
     snapshot = build_portfolio_risk_snapshot(
         portfolio_df, orders_df, account_data=account_data, market_context=market_context
     )
+    snapshot['buy_candidates'] = list(buy_candidates or [])
     evidence_cache = collect_portfolio_evidence(
         snapshot, cached=cached_evidence, request_session=request_session
     )
@@ -1193,6 +1309,26 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
         evidence_by_symbol.setdefault(evidence['symbol'], []).append(evidence)
     for position in snapshot['positions']:
         position['evidence'] = evidence_by_symbol.get(position['symbol'], [])
+    for candidate in snapshot['buy_candidates']:
+        candidate['evidence'] = evidence_by_symbol.get(candidate['symbol'], [])
+    try:
+        events = get_economic_events(
+            now=datetime.datetime.now(), request_session=request_session or requests
+        )
+        snapshot['economic_calendar'] = [
+            {
+                'name': event.get('name'),
+                'country': event.get('country'),
+                'datetime': event.get('datetime'),
+                'importance': event.get('importance'),
+                'status': event.get('status'),
+                'category': event.get('category'),
+            }
+            for event in events
+            if str(event.get('importance', '')).lower() in {'high', 'ridicat'}
+        ][:20]
+    except (requests.RequestException, OSError, ValueError, TypeError, KeyError):
+        snapshot['economic_calendar'] = []
     evidence_ids = {
         evidence['source_id'] for evidence in evidence_cache.get('items', [])
     }
@@ -1203,6 +1339,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 cached.get('result', {}),
                 {item['symbol'] for item in snapshot['positions']},
                 evidence_ids,
+                {item['symbol'] for item in snapshot['buy_candidates']},
             )
             return (
                 _render_portfolio_ai_html(snapshot, result, 'OpenAI · cache'),
@@ -1263,6 +1400,9 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Acordă prioritate surselor oficiale; nu prezenta o știre de presă drept declarație a companiei.',
             'Citează exclusiv source_id existente în date și menționează conflictele dintre surse.',
             'Acțiunile trebuie formulate ca verificări: plasează/revizuiește/menține/strânge doar condiționat.',
+            'Pentru buy_candidates verifică dacă știrile, piața și calendarul economic susțin intrarea acum; filtrele tehnice singure nu sunt suficiente.',
+            'Nu recomanda și nu inventa simboluri care nu există în buy_candidates. Un simbol cercetat intră mai întâi în watchlist și trebuie să treacă BUY + Buy/Strong Buy + R:R minimum 3.',
+            'Dacă riscul de rezultate, știrile sau un eveniment economic apropiat pot produce gap, verdictul este Așteaptă.',
         ],
         'required_json': {
             'portfolio_overview': 'maximum 4 propoziții clare, fără repetarea detaliilor tehnice',
@@ -1273,6 +1413,17 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 'action': 'Menține|Protejează profitul|Redu|Ieși|Urmărește atent',
                 'plain_reason': 'motiv practic, fără jargon',
                 'next_check': 'un singur prag sau eveniment observabil',
+            }],
+            'buy_recommendations': [{
+                'symbol': 'un simbol existent în buy_candidates',
+                'market': 'SUA sau România / BVB',
+                'verdict': 'Candidat valid|Așteaptă',
+                'why_now': 'de ce merită analizat acum',
+                'market_effect': 'cum ajută sau încurcă piața relevantă',
+                'news_effect': 'efectul știrilor/rapoartelor disponibile sau lipsa lor',
+                'calendar_effect': 'riscul/opțiunea din calendarul economic',
+                'main_risk': 'prima condiție care invalidează ideea',
+                'source_ids': ['surse exacte din buy_candidates[].evidence'],
             }],
             'priorities': [{
                 'symbol': 'un simbol existent',
@@ -1319,6 +1470,33 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                     ],
                 },
             },
+            'buy_recommendations': {
+                'type': 'array',
+                'minItems': 0,
+                'maxItems': 8,
+                'items': {
+                    'type': 'object',
+                    'additionalProperties': False,
+                    'properties': {
+                        'symbol': {'type': 'string'},
+                        'market': {'type': 'string'},
+                        'verdict': {
+                            'type': 'string',
+                            'enum': ['Candidat valid', 'Așteaptă'],
+                        },
+                        'why_now': {'type': 'string'},
+                        'market_effect': {'type': 'string'},
+                        'news_effect': {'type': 'string'},
+                        'calendar_effect': {'type': 'string'},
+                        'main_risk': {'type': 'string'},
+                        'source_ids': {'type': 'array', 'items': {'type': 'string'}},
+                    },
+                    'required': [
+                        'symbol', 'market', 'verdict', 'why_now', 'market_effect',
+                        'news_effect', 'calendar_effect', 'main_risk', 'source_ids',
+                    ],
+                },
+            },
             'priorities': {
                 'type': 'array',
                 'minItems': 1,
@@ -1347,7 +1525,10 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 },
             },
         },
-        'required': ['portfolio_overview', 'market_read', 'position_actions', 'priorities'],
+        'required': [
+            'portfolio_overview', 'market_read', 'position_actions',
+            'buy_recommendations', 'priorities',
+        ],
     }
     attempts = [
         {'reasoning': OPENAI_PORTFOLIO_REASONING, 'timeout': 150, 'verbosity': 'medium'},
@@ -1394,6 +1575,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 json.loads(_extract_openai_response_text(response.json())),
                 {item['symbol'] for item in snapshot['positions']},
                 evidence_ids,
+                {item['symbol'] for item in snapshot['buy_candidates']},
             )
             new_cache = {
                 'version': PORTFOLIO_AI_CACHE_VERSION,

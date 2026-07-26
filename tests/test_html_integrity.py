@@ -143,6 +143,28 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("initPortfolioDataTable('#buying-orders-table')", content)
         self.assertIn("initPortfolioDataTable('#selling-orders-table')", content)
 
+    def test_buy_orders_are_last_and_followed_by_market_recommendations(self):
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        analysis_path = os.path.join(
+            os.path.dirname(__file__), '..', 'market_scanner_analysis.py'
+        )
+        with open(analysis_path, 'r', encoding='utf-8') as f:
+            analysis_content = f.read()
+
+        sell_title = 'Ordine Active de Vânzare (IBKR / Tradeville)'
+        buy_title = 'Ordine Active de Cumpărare (IBKR / Tradeville)'
+        recommendation_container = 'id="buy-recommendations-container"'
+        self.assertLess(content.index(sell_title), content.index(buy_title))
+        self.assertLess(content.index(buy_title), content.index(recommendation_container))
+        self.assertIn("consensus in {'buy', 'strong buy'}", content)
+        self.assertIn("float(item.get('RR_Ratio') or 0) >= 3", content)
+        self.assertIn("'TLV.RO', 'SNP.RO', 'SNG.RO', 'H2O.RO'", content)
+        self.assertIn('render_buy_recommendations_html(', analysis_content)
+        self.assertIn('BUY + consensus Buy/Strong Buy + R:R ≥ 3', analysis_content)
+        self.assertIn("'economic_calendar': snapshot.get('economic_calendar', [])", analysis_content)
+
     def test_watchlist_mini_chart_opens_detail_window(self):
         """Mini-graficul watchlistului deschide aceeași fereastră OHLC, fără a schimba click-ul simbolului."""
         file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
