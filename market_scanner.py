@@ -3650,6 +3650,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 tws_account_data['fetched_at'] = min(timestamps)
     cached_portfolio_ai = full_state.get('last_portfolio_ai_analysis')
     cached_portfolio_evidence = full_state.get('last_portfolio_ai_evidence')
+    portfolio_market_context = analysis.build_portfolio_market_context(
+        portfolio_df, full_state.get('market_indicators', {})
+    )
     strict_buy_candidates = select_strict_buy_candidates(watchlist_df)
     buy_candidate_payload = [
         {
@@ -3679,15 +3682,21 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         }
         for item in strict_buy_candidates
     ]
+    sizing_snapshot = analysis.build_portfolio_risk_snapshot(
+        portfolio_df,
+        orders_df,
+        account_data=tws_account_data,
+        market_context=portfolio_market_context,
+    )
+    sizing_snapshot['buy_candidates'] = buy_candidate_payload
+    buy_candidate_payload = analysis._size_buy_candidates(sizing_snapshot)
     portfolio_ai_html, new_portfolio_ai_cache, new_portfolio_evidence, portfolio_ai_diagnostic = generate_portfolio_ai_analysis(
         portfolio_df,
         orders_df,
         cached=cached_portfolio_ai,
         cached_evidence=cached_portfolio_evidence,
         account_data=tws_account_data,
-        market_context=analysis.build_portfolio_market_context(
-            portfolio_df, full_state.get('market_indicators', {})
-        ),
+        market_context=portfolio_market_context,
         buy_candidates=buy_candidate_payload,
     )
     buy_recommendations_html = analysis.render_buy_recommendations_html(

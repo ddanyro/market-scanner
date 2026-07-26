@@ -128,7 +128,8 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("TVBETETF (proxy BET-TR)", analysis_content)
         self.assertIn("Ce fac piețele relevante", analysis_content)
         self.assertIn('account_data=tws_account_data', content)
-        self.assertIn('market_context=analysis.build_portfolio_market_context(', content)
+        self.assertIn('portfolio_market_context = analysis.build_portfolio_market_context(', content)
+        self.assertIn('market_context=portfolio_market_context', content)
 
     def test_empty_order_tables_do_not_trigger_datatables_column_warning(self):
         """Rândurile cu colspan pentru liste goale nu trebuie trimise către DataTables."""
@@ -168,6 +169,9 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('nu afirma că lipsesc semnalul BUY sau nivelul de intrare', analysis_content)
         self.assertIn('Scannerul confirmă BUY, consensus', analysis_content)
         self.assertIn('universul local a fost cercetat și adăugat în watchlist', analysis_content)
+        self.assertIn('Sumă orientativă acum:', analysis_content)
+        self.assertIn('Buget condițional după confirmare:', analysis_content)
+        self.assertIn('_size_buy_candidates(', analysis_content)
         self.assertIn("economic_calendar și piața poziției", analysis_content)
         self.assertIn("<b>Calendar:</b>", analysis_content)
         self.assertIn("'economic_calendar': snapshot.get('economic_calendar', [])", analysis_content)

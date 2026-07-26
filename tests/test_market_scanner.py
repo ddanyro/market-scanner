@@ -367,6 +367,54 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIn('BNR Rate Decision', effects['TVBETETF.RO'])
         self.assertNotIn('Fed Rate Decision', effects['TVBETETF.RO'])
 
+    def test_buy_sizing_uses_separate_broker_cash_and_stop_risk(self):
+        snapshot = {
+            'account_liquidity': {
+                'privacy_mode': 'exact',
+                'accounts': [
+                    {
+                        'label': 'IBKR',
+                        'source': 'IBKR TWS',
+                        'summary': {
+                            'NetLiquidation': 100000,
+                            'AvailableFunds': 80000,
+                            'TotalCashValue': 75000,
+                        },
+                    },
+                    {
+                        'label': 'Tradeville',
+                        'source': 'Tradeville / snapshot manual',
+                        'summary': {
+                            'NetLiquidation': 50000,
+                            'AvailableFunds': 20000,
+                            'TotalCashValue': 18000,
+                        },
+                    },
+                ],
+            },
+            'positions': [],
+            'buy_candidates': [
+                {
+                    'symbol': 'TEST', 'market': 'SUA', 'entry_eur': 100,
+                    'stop_eur': 90, 'trend': 'Strong Bullish',
+                },
+                {
+                    'symbol': 'TLV.RO', 'market': 'România / BVB', 'entry_eur': 10,
+                    'stop_eur': 9, 'trend': 'Strong Bullish',
+                },
+            ],
+        }
+        sized = {
+            item['symbol']: item
+            for item in market_scanner_analysis._size_buy_candidates(snapshot)
+        }
+        self.assertEqual(sized['TEST']['broker'], 'IBKR')
+        self.assertEqual(sized['TEST']['broker_available_cash_eur'], 75000)
+        self.assertEqual(sized['TLV.RO']['broker'], 'Tradeville')
+        self.assertEqual(sized['TLV.RO']['broker_available_cash_eur'], 18000)
+        self.assertGreater(sized['TEST']['conditional_amount_eur'], 0)
+        self.assertGreater(sized['TLV.RO']['conditional_amount_eur'], 0)
+
     @patch.dict(os.environ, {}, clear=True)
     def test_portfolio_ai_falls_back_to_deterministic_alerts(self):
         with patch('market_scanner_analysis.os.path.exists', return_value=False):
