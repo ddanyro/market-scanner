@@ -361,7 +361,7 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
-PORTFOLIO_AI_CACHE_VERSION = 6
+PORTFOLIO_AI_CACHE_VERSION = 7
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
 SEC_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK{cik:010d}.json'
@@ -473,7 +473,7 @@ def _normalize_tws_account_data(account_data, now=None):
             for key in (
                 'NetLiquidation', 'TotalCashValue', 'SettledCash', 'AvailableFunds',
                 'BuyingPower', 'ExcessLiquidity', 'InitMarginReq', 'MaintMarginReq',
-                'GrossPositionValue', 'Cushion',
+                'GrossPositionValue', 'CostBasis', 'RelativeProfit', 'Cushion',
             )
         }
         summary = {key: value for key, value in summary.items() if value is not None}
@@ -1287,6 +1287,8 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
     balance_labels = (
         ('NetLiquidation', 'Valoare totală / NAV'),
         ('GrossPositionValue', 'Valoare dețineri'),
+        ('CostBasis', 'Cost investiție'),
+        ('RelativeProfit', 'Profit relativ'),
         ('TotalCashValue', 'Cash total'),
         ('SettledCash', 'Cash decontat'),
         ('AvailableFunds', 'Fonduri disponibile'),
@@ -1387,7 +1389,10 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
                 'main_risk': 'Nu există suficiente date pentru o intrare.',
                 'source_ids': [],
             }
-        if not candidate.get('strict_eligible', True):
+        if (
+            candidate.get('requires_watchlist_filters', True)
+            and not candidate.get('strict_eligible', True)
+        ):
             recommendation = dict(recommendation)
             recommendation['verdict'] = 'Așteaptă'
             recommendation['main_risk'] = (
@@ -1428,7 +1433,13 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
                 conditional_amount = float(sizing.get('conditional_amount_eur') or 0)
                 amount_now = (
                     conditional_amount
-                    if verdict == 'Candidat valid' and candidate.get('strict_eligible', True)
+                    if (
+                        verdict == 'Candidat valid'
+                        and (
+                            not candidate.get('requires_watchlist_filters', True)
+                            or candidate.get('strict_eligible', True)
+                        )
+                    )
                     else 0
                 )
                 units_now = int(sizing.get('conditional_units') or 0) if amount_now > 0 else 0
@@ -1444,11 +1455,20 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
                     f"risc până la stop {float(sizing.get('risk_to_stop_pct') or 0):.2f}%."
                     "</span></div>"
                 )
-            if candidate.get('strict_eligible', True):
+            if (
+                not candidate.get('requires_watchlist_filters', True)
+                or candidate.get('strict_eligible', True)
+            ):
                 why_now = (
-                    f"Scannerul confirmă BUY, consensus {candidate.get('consensus')}, "
-                    f"R:R {float(candidate.get('rr_ratio') or 0):.2f} și un nivel de "
-                    f"intrare urmărit de €{entry_value:.2f}. Verdictul AI este "
+                    (
+                        f"Ideea a fost găsită prin cercetare externă și nu este "
+                        f"supusă filtrului watchlistului. "
+                        if candidate.get('candidate_source') == 'external_research'
+                        else
+                        f"Scannerul confirmă BUY, consensus {candidate.get('consensus')}, "
+                        f"R:R {float(candidate.get('rr_ratio') or 0):.2f}. "
+                    )
+                    + f"Nivelul urmărit este €{entry_value:.2f}, iar verdictul AI este "
                     f"{verdict.lower()} după verificarea contextului."
                 )
             else:
@@ -1500,8 +1520,8 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
         if 'România / BVB' not in represented_markets:
             market_notices.append(
                 "<p style='margin:0;color:var(--text-secondary);'><b>România / BVB:</b> "
-                "universul local a fost cercetat și adăugat în watchlist, dar momentan "
-                "niciun simbol nu trece simultan BUY, consensus Buy/Strong Buy și R:R ≥ 3.</p>"
+                "universul local este cercetat separat de watchlist; numai ideile validate "
+                "sunt promovate ulterior în watchlist și în recomandări.</p>"
             )
         if 'Europa / Nasdaq-100' not in represented_markets:
             market_notices.append(
@@ -1520,7 +1540,9 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
         "<h3 style='margin:0 0 8px;color:var(--primary-purple);'>"
         "Candidați de cumpărare — SUA, BVB și LQQ</h3>"
         "<p style='margin:0 0 15px;color:var(--text-secondary);'>"
-        "Cumpărarea cere BUY + consensus Buy/Strong Buy + R:R ≥ 3. "
+        "Pentru simbolurile din watchlist, cumpărarea cere BUY + consensus "
+        "Buy/Strong Buy + R:R ≥ 3. Ideile suplimentare cercetate în afara "
+        "watchlistului sunt evaluate separat pe calitate, catalizatori, știri și risc. "
         "LQQ este monitorizat obligatoriu la fiecare rulare și dimensionat separat "
         "pentru IBKR și Tradeville când devine eligibil. "
         "Validarea AI ține cont de știri, piață și calendar; nu reprezintă ordin de tranzacționare.</p>"
@@ -1646,8 +1668,9 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Citează exclusiv source_id existente în date și menționează conflictele dintre surse.',
             'Acțiunile trebuie formulate ca verificări: plasează/revizuiește/menține/strânge doar condiționat.',
             'Pentru buy_candidates verifică dacă știrile, piața și calendarul economic susțin intrarea acum; filtrele tehnice singure nu sunt suficiente.',
-            'Nu recomanda și nu inventa simboluri care nu există în buy_candidates. Cu excepția LQQ, un simbol cercetat intră mai întâi în watchlist și trebuie să treacă BUY + Buy/Strong Buy + R:R minimum 3.',
-            'Câmpul strict_eligible arată dacă instrumentul a trecut filtrul tehnic. LQQ este inclus obligatoriu la fiecare rulare; dacă strict_eligible=false, verdictul lui trebuie să fie Așteaptă.',
+            'Nu recomanda și nu inventa simboluri care nu există în buy_candidates.',
+            'Pentru candidate_source=watchlist, strict_eligible arată dacă instrumentul a trecut BUY + Buy/Strong Buy + R:R minimum 3; dacă este false, verdictul trebuie să fie Așteaptă.',
+            'Pentru candidate_source=external_research, nu aplica filtrul watchlistului. Evaluează independent calitatea, catalizatorii, știrile, piața, calendarul, entry/stop/target și riscul; recomandă numai dacă aceste dovezi susțin intrarea.',
             'Dacă strict_eligible=true și entry_eur este pozitiv, nu afirma că lipsesc semnalul BUY sau nivelul de intrare.',
             'Dimensionarea din buy_candidates este calculată determinist și separat pe broker în sizing_by_broker. Nu modifica și nu inventa sumele, unitățile sau cash-ul brokerilor.',
             'Un verdict Așteaptă înseamnă investiție acum zero; suma condițională poate fi folosită numai după dispariția riscului menționat și reconfirmarea semnalului.',

@@ -42,6 +42,9 @@ BUY_RESEARCH_UNIVERSES = {
     'SUA': [
         'MSFT', 'NVDA', 'AMZN', 'GOOGL', 'META', 'AVGO', 'V', 'MA',
         'COST', 'LLY', 'XOM', 'SCHW', 'ET', 'RELY',
+        # Univers suplimentar, separat de watchlist, pentru descoperirea
+        # oportunităților atunci când filtrul watchlistului nu produce idei.
+        'MMM', 'AIG', 'EBAY', 'GRMN', 'IT', 'KEYS', 'MTB', 'EIX', 'IP', 'JBHT',
     ],
     'România / BVB': [
         'TLV.RO', 'SNP.RO', 'SNG.RO', 'H2O.RO', 'TGN.RO', 'BRD.RO',
@@ -90,25 +93,118 @@ def _buy_candidate_entry_eur(item):
         return None
 
 
-def select_strict_buy_candidates(watchlist_df, limit_per_market=4):
-    """Filtrul unic folosit de watchlist și recomandările din portofoliu."""
-    if watchlist_df is None or watchlist_df.empty:
+def _correct_tradeville_manual_snapshot(account_data):
+    """Corectează snapshotul din 26 iulie 2026 conform extrasului Tradeville."""
+    if not isinstance(account_data, dict):
+        return account_data
+    if not str(account_data.get('fetched_at', '')).startswith('2026-07-26'):
+        return account_data
+    corrected = json.loads(json.dumps(account_data))
+    for account in corrected.get('accounts', []):
+        source = (
+            str(account.get('label', '')) + ' ' + str(account.get('source', ''))
+        ).lower()
+        summary = account.get('summary', {})
+        if (
+            'tradeville' in source
+            and abs(float(summary.get('TotalCashValue') or 0) - 48438.86) < 0.01
+        ):
+            summary.update({
+                'NetLiquidation': 72778.09,
+                'TotalCashValue': 48438.86,
+                'AvailableFunds': 48438.86,
+                'GrossPositionValue': 24339.23,
+                'CostBasis': 11306.92,
+                'RelativeProfit': 12983.64,
+            })
+    return corrected
+
+
+def _promote_validated_external_candidates(result, candidates, filepath='watchlist.csv'):
+    """Adaugă în watchlist numai ideile externe validate explicit de AI."""
+    valid_symbols = {
+        str(item.get('symbol', '')).upper()
+        for item in (result or {}).get('buy_recommendations', [])
+        if item.get('verdict') == 'Candidat valid'
+    }
+    promoted = [
+        str(item.get('symbol', '')).upper()
+        for item in candidates or []
+        if (
+            item.get('candidate_source') == 'external_research'
+            and str(item.get('symbol', '')).upper() in valid_symbols
+        )
+    ]
+    if not promoted:
         return []
+    watchlist = (
+        pd.read_csv(filepath)
+        if os.path.exists(filepath)
+        else pd.DataFrame(columns=['symbol'])
+    )
+    existing = {
+        str(symbol).upper() for symbol in watchlist.get('symbol', pd.Series(dtype=str)).dropna()
+    }
+    additions = [symbol for symbol in promoted if symbol not in existing]
+    if additions:
+        watchlist = pd.concat(
+            [watchlist, pd.DataFrame({'symbol': additions})], ignore_index=True
+        )
+        watchlist.drop_duplicates(subset=['symbol'], keep='first').to_csv(filepath, index=False)
+    return additions
+
+
+def _external_research_score(item):
+    """Prioritizează idei externe fără a reutiliza filtrul strict al watchlistului."""
+    score = 0.0
+    decision = str(item.get('Decision', '')).upper()
+    consensus = str(item.get('Consensus', '')).lower()
+    trend = str(item.get('Trend', '')).lower()
+    score += {'BUY': 4, 'HOLD': 2, 'WAIT': 1}.get(decision, 0)
+    score += 2 if consensus in {'buy', 'strong buy'} else 0
+    score += min(max(float(item.get('RR_Ratio') or 0), 0), 5)
+    score += 1.5 if 'bullish' in trend else 0
+    rsi = float(item.get('RSI') or 0)
+    score += 1 if 35 <= rsi <= 68 else 0
+    score -= 2 if item.get('Earnings_Danger') else 0
+    return score
+
+
+def select_strict_buy_candidates(watchlist_df, external_research=None, limit_per_market=4):
+    """Aplică filtrele doar watchlistului și triază separat cercetarea externă."""
     candidates = []
-    for _, row in watchlist_df.iterrows():
-        item = row.to_dict()
+    all_watchlist_symbols = set()
+    if watchlist_df is not None and not watchlist_df.empty:
+        for _, row in watchlist_df.iterrows():
+            item = row.to_dict()
+            symbol = str(item.get('Ticker', '')).upper()
+            all_watchlist_symbols.add(symbol)
+            strict_eligible = _is_strict_buy_candidate(item)
+            if not strict_eligible and symbol not in ALWAYS_RESEARCH_SYMBOLS:
+                continue
+            item['Market'] = _buy_candidate_market(item.get('Ticker'))
+            item['Eligible_Brokers'] = _buy_candidate_brokers(item.get('Ticker'))
+            item['Strict_Eligible'] = strict_eligible
+            item['Candidate_Source'] = 'watchlist'
+            item['Requires_Watchlist_Filters'] = True
+            item['_research_score'] = float(item.get('RR_Ratio') or 0)
+            candidates.append(item)
+    for raw_item in external_research or []:
+        item = dict(raw_item)
         symbol = str(item.get('Ticker', '')).upper()
-        strict_eligible = _is_strict_buy_candidate(item)
-        if not strict_eligible and symbol not in ALWAYS_RESEARCH_SYMBOLS:
+        if not symbol or symbol in all_watchlist_symbols:
             continue
-        item['Market'] = _buy_candidate_market(item.get('Ticker'))
-        item['Eligible_Brokers'] = _buy_candidate_brokers(item.get('Ticker'))
-        item['Strict_Eligible'] = strict_eligible
+        item['Market'] = _buy_candidate_market(symbol)
+        item['Eligible_Brokers'] = _buy_candidate_brokers(symbol)
+        item['Strict_Eligible'] = _is_strict_buy_candidate(item)
+        item['Candidate_Source'] = 'external_research'
+        item['Requires_Watchlist_Filters'] = False
+        item['_research_score'] = _external_research_score(item)
         candidates.append(item)
     candidates.sort(
         key=lambda item: (
             item['Market'],
-            -float(item.get('RR_Ratio') or 0),
+            -float(item.get('_research_score') or 0),
             str(item.get('Ticker', '')),
         )
     )
@@ -124,7 +220,7 @@ def select_strict_buy_candidates(watchlist_df, limit_per_market=4):
 
 
 def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False):
-    """Completează watchlistul cu universuri lichide și scanează doar piețele fără idei eligibile."""
+    """Cercetează separat universuri externe, fără a le confunda cu watchlistul."""
     existing_results = list(state.get('watchlist', []))
     eligible_markets = {
         _buy_candidate_market(item.get('Ticker'))
@@ -137,36 +233,21 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
     if not markets_to_research:
         return state
 
-    watchlist_path = 'watchlist.csv'
-    watchlist_file = pd.read_csv(watchlist_path) if os.path.exists(watchlist_path) else pd.DataFrame(columns=['symbol'])
-    if 'symbol' not in watchlist_file.columns:
-        watchlist_file['symbol'] = ''
-    existing_symbols = {
-        str(symbol).upper() for symbol in watchlist_file['symbol'].dropna().tolist()
-    }
-    additions = [
-        symbol
-        for market in markets_to_research
-        for symbol in BUY_RESEARCH_UNIVERSES[market]
-        if symbol.upper() not in existing_symbols
-    ]
-    if additions:
-        watchlist_file = pd.concat(
-            [watchlist_file, pd.DataFrame({'symbol': additions})], ignore_index=True
-        )
-        watchlist_file = watchlist_file.drop_duplicates(subset=['symbol'], keep='first')
-        watchlist_file.to_csv(watchlist_path, index=False)
-        print(f"  -> Cercetare BUY: adăugate {len(additions)} simboluri în watchlist.")
-
     if not refresh_missing:
         return state
 
+    watchlist_symbols = {
+        str(item.get('Ticker', '')).upper() for item in existing_results
+    }
     by_symbol = {
-        str(item.get('Ticker', '')).upper(): item for item in existing_results
+        str(item.get('Ticker', '')).upper(): item
+        for item in state.get('external_buy_research', [])
     }
     for market in markets_to_research:
         print(f"  -> Cercetare BUY pentru {market}...")
         for symbol in BUY_RESEARCH_UNIVERSES[market]:
+            if symbol.upper() in watchlist_symbols and symbol.upper() not in ALWAYS_RESEARCH_SYMBOLS:
+                continue
             cached = by_symbol.get(symbol.upper())
             if (
                 symbol.upper() not in ALWAYS_RESEARCH_SYMBOLS
@@ -177,8 +258,9 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
             if not data:
                 continue
             data['_cached_at'] = time.time()
+            data['Candidate_Source'] = 'external_research'
             by_symbol[symbol.upper()] = data
-    state['watchlist'] = list(by_symbol.values())
+    state['external_buy_research'] = list(by_symbol.values())
     return state
 
 # Cache settings for long-horizon historical returns (slow to compute)
@@ -3655,6 +3737,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     if tradeville_account_data and (
         tws_account_data is None or tws_account_data.get('privacy_mode') != 'bands_only'
     ):
+        tradeville_account_data = _correct_tradeville_manual_snapshot(
+            tradeville_account_data
+        )
         if tws_account_data is None:
             tws_account_data = tradeville_account_data
         else:
@@ -3687,7 +3772,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     portfolio_market_context = analysis.build_portfolio_market_context(
         portfolio_df, full_state.get('market_indicators', {})
     )
-    strict_buy_candidates = select_strict_buy_candidates(watchlist_df)
+    strict_buy_candidates = select_strict_buy_candidates(
+        watchlist_df,
+        (full_state or {}).get('external_buy_research', []),
+    )
     buy_candidate_payload = [
         {
             'symbol': str(item.get('Ticker', '')).upper(),
@@ -3710,6 +3798,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'earnings_risk': bool(item.get('Earnings_Danger')),
             'entry_reason': item.get('Smart_Reason'),
             'strict_eligible': bool(item.get('Strict_Eligible')),
+            'candidate_source': item.get('Candidate_Source', 'watchlist'),
+            'requires_watchlist_filters': bool(
+                item.get('Requires_Watchlist_Filters', True)
+            ),
             'eligible_brokers': item.get('Eligible_Brokers') or _buy_candidate_brokers(
                 item.get('Ticker')
             ),
@@ -3733,8 +3825,19 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         market_context=portfolio_market_context,
         buy_candidates=buy_candidate_payload,
     )
+    portfolio_ai_result = (
+        (new_portfolio_ai_cache or cached_portfolio_ai or {}).get('result', {})
+    )
+    promoted_symbols = _promote_validated_external_candidates(
+        portfolio_ai_result, buy_candidate_payload
+    )
+    if promoted_symbols:
+        print(
+            "  -> Idei externe validate și adăugate în watchlist: "
+            + ", ".join(promoted_symbols)
+        )
     buy_recommendations_html = analysis.render_buy_recommendations_html(
-        (new_portfolio_ai_cache or cached_portfolio_ai or {}).get('result', {}),
+        portfolio_ai_result,
         buy_candidate_payload,
         new_portfolio_evidence or cached_portfolio_evidence,
     )
@@ -5736,9 +5839,9 @@ def main():
         
     if args.mode in ['all', 'watchlist']:
         state = update_watchlist_data(state, rates, vix_val)
-    elif args.mode == 'portfolio':
-        # Rularea frecventă a portofoliului procesează numai universul pieței
-        # pentru care nu există nicio oportunitate strict eligibilă.
+    if args.mode in ['all', 'watchlist', 'portfolio']:
+        # Cercetarea suplimentară rămâne separată de watchlist și folosește
+        # propriul criteriu de triere.
         state = ensure_buy_research_candidates(
             state, rates, vix_val, refresh_missing=True
         )
