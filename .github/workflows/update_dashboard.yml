@@ -35,6 +35,7 @@ jobs:
         IBKR_TOKEN: ${{ secrets.IBKR_TOKEN }}
         IBKR_QUERY_ID: ${{ secrets.IBKR_QUERY_ID }}
         PORTFOLIO_PASSWORD: ${{ secrets.PORTFOLIO_PASSWORD }}
+        TWS_ACCOUNT_PASSWORD: ${{ secrets.TWS_ACCOUNT_PASSWORD }}
       run: |
         MODE="portfolio"
         if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event.schedule }}" = "0 */5 * * *" ]; then
