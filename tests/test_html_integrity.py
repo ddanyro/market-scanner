@@ -97,6 +97,17 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("drawHorizontalLevels(ctx,width,pad,min,max,levels)", content)
         self.assertIn("ctx.setLineDash([7,5])", content)
 
+    def test_portfolio_ai_analysis_is_in_encrypted_payload(self):
+        """Analiza nouă trebuie să rămână în spatele PIN-ului portofoliului."""
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        self.assertIn('id="portfolio-ai-container"', content)
+        self.assertIn("portfolioAi.innerHTML = data.portfolio_ai_html || ''", content)
+        self.assertIn('"portfolio_ai_html": portfolio_ai_html', content)
+        self.assertIn('generate_portfolio_ai_analysis(', content)
+
     def test_watchlist_mini_chart_opens_detail_window(self):
         """Mini-graficul watchlistului deschide aceeași fereastră OHLC, fără a schimba click-ul simbolului."""
         file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')

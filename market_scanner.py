@@ -27,7 +27,12 @@ from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
 from base64 import b64encode
 import json
-from market_scanner_analysis import generate_market_analysis, generate_swing_trading_html, get_swing_trading_data
+from market_scanner_analysis import (
+    generate_market_analysis,
+    generate_portfolio_ai_analysis,
+    generate_swing_trading_html,
+    get_swing_trading_data,
+)
 import market_scanner_analysis as analysis
 import market_utils
 import market_security
@@ -2837,6 +2842,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 if (tbodySell) {
                     tbodySell.innerHTML = data.selling_orders_html || '<tr><td colspan="15" style="text-align:center;">Niciun ordin de vânzare activ în IBKR.</td></tr>';
                 }
+
+                const portfolioAi = document.getElementById('portfolio-ai-container');
+                if (portfolioAi) {
+                    portfolioAi.innerHTML = data.portfolio_ai_html || '';
+                }
                 
                 // 3. Init Charts
                 initCharts(data.sparklines);
@@ -3018,6 +3028,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 <div class="summary">
                     {risk_cards_html}
                 </div>
+
+            <div id="portfolio-ai-container"></div>
             
             <div style="text-align: right; color: #888; font-size: 0.8rem; margin-bottom: 10px; padding-right: 10px;">
                 📅 Last IBKR/Data Update: <strong>{ibkr_last_update}</strong>
@@ -3431,6 +3443,17 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         selling_rows_html = '<tr><td colspan="15" style="text-align:center;">Niciun ordin de vânzare activ în IBKR / Tradeville.</td></tr>'
 
     # Encrypt Data
+    cached_portfolio_ai = full_state.get('last_portfolio_ai_analysis')
+    portfolio_ai_html, new_portfolio_ai_cache = generate_portfolio_ai_analysis(
+        portfolio_df,
+        orders_df,
+        cached=cached_portfolio_ai,
+    )
+    if new_portfolio_ai_cache and new_portfolio_ai_cache != cached_portfolio_ai:
+        full_state['last_portfolio_ai_analysis'] = new_portfolio_ai_cache
+        market_utils.save_state(full_state)
+        print("  -> Analiza AI a portofoliului a fost salvată în cache.")
+
     portfolio_detail_data = {}
     for _, row in portfolio_df.iterrows():
         symbol = str(row['Symbol'])
@@ -3541,6 +3564,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         "html": portfolio_rows_html,
         "buying_orders_html": buying_rows_html,
         "selling_orders_html": selling_rows_html,
+        "portfolio_ai_html": portfolio_ai_html,
         "sparklines": sparkline_data,
         "chart_details": portfolio_detail_data
     }
