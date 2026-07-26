@@ -1258,28 +1258,74 @@ def collect_portfolio_evidence(snapshot, cached=None, request_session=None, now=
 def _position_calendar_effects(snapshot):
     """Produce un context minim verificabil chiar dacă modelul omite calendarul."""
     events = snapshot.get('economic_calendar', [])
+    reference_dt = _parse_event_date(snapshot.get('as_of')) or datetime.datetime.now()
+
+    def event_is_upcoming(event):
+        status = str(event.get('status', '')).lower()
+        if status in {'upcoming', 'future', 'viitor'}:
+            return True
+        if status in {'past', 'trecut'}:
+            return False
+        event_dt = _parse_event_date(event.get('datetime'))
+        return bool(event_dt and event_dt > reference_dt)
+
+    def event_sort_key(event):
+        event_dt = _parse_event_date(event.get('datetime'))
+        return event_dt or datetime.datetime.min
+
     effects = {}
     for position in snapshot.get('positions', []):
         symbol = position['symbol']
         market = position.get('market')
-        relevant_countries = {'SUA'} if market == 'SUA' else {'România', 'Europa'}
+        country_priority = (
+            {'SUA': 0}
+            if market == 'SUA'
+            else {'România': 0, 'Europa': 1}
+        )
         relevant = [
             event for event in events
-            if event.get('country') in relevant_countries
-        ][:3]
+            if event.get('country') in country_priority
+        ]
         if not relevant:
             effects[symbol] = (
                 "Nu sunt disponibile evenimente economice relevante în fereastra calendarului; "
                 "stopul se evaluează din preț, volatilitate și știrile companiei."
             )
             continue
+        upcoming = sorted(
+            (event for event in relevant if event_is_upcoming(event)),
+            key=lambda event: (
+                country_priority.get(event.get('country'), 9),
+                event_sort_key(event),
+            ),
+        )[:3]
+        if upcoming:
+            labels = [
+                f"{event.get('name', 'Eveniment')} "
+                f"({event.get('datetime', 'dată indisponibilă')})"
+                for event in upcoming
+            ]
+            region_note = (
+                "Evenimentele din România au prioritate; cele europene sunt "
+                "incluse numai pentru transmiterea prin dobânzi, EUR/RON și sentiment. "
+                if market != 'SUA'
+                else ''
+            )
+            effects[symbol] = (
+                "Evenimente viitoare relevante: " + "; ".join(labels) + ". "
+                + region_note
+                + "Pot crește volatilitatea; nu lărgi stopul înaintea publicării."
+            )
+            continue
+        recent = sorted(relevant, key=event_sort_key, reverse=True)[:3]
         labels = [
             f"{event.get('name', 'Eveniment')} ({event.get('datetime', 'dată indisponibilă')})"
-            for event in relevant
+            for event in recent
         ]
         effects[symbol] = (
-            "Evenimente relevante: " + "; ".join(labels)
-            + ". Pot crește riscul de gap; nu lărgi stopul înaintea publicării."
+            "Evenimente recente deja publicate: " + "; ".join(labels)
+            + ". Nu mai reprezintă un risc viitor de publicare; evaluează reacția "
+            "deja produsă în preț și nu modifica stopul doar din cauza lor."
         )
     return effects
 
@@ -1331,21 +1377,10 @@ def _validate_portfolio_ai_result(result, symbols, evidence_ids=None, candidate_
         deterministic_calendar_effect = str(
             (calendar_effects or {}).get(symbol, '')
         ).strip()
-        unavailable_calendar_claim = any(
-            phrase in raw_calendar_effect.lower()
-            for phrase in (
-                'calendarul economic nu este disponibil',
-                'calendarul economic este indisponibil',
-                'calendarul economic lipsește',
-                'calendarul economic lipseste',
-                'nu sunt disponibile evenimente',
-                'calendarul bvb și european nu este disponibil',
-            )
-        )
         calendar_effect = (
             deterministic_calendar_effect
-            if deterministic_calendar_effect and unavailable_calendar_claim
-            else raw_calendar_effect or deterministic_calendar_effect
+            if deterministic_calendar_effect
+            else raw_calendar_effect
         )[:500]
         next_check = str(raw.get('next_check', '')).strip()[:400]
         if plain_reason and calendar_effect and next_check:

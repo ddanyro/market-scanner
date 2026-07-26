@@ -397,6 +397,54 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIn('BNR Rate Decision', effects['TVBETETF.RO'])
         self.assertNotIn('Fed Rate Decision', effects['TVBETETF.RO'])
 
+    def test_bvb_calendar_does_not_describe_past_ecb_events_as_upcoming(self):
+        snapshot = {
+            'as_of': '2026-07-26T12:00:00',
+            'positions': [{
+                'symbol': 'TVBETETF.RO', 'market': 'România / BVB',
+            }],
+            'economic_calendar': [
+                {
+                    'name': 'ECB Interest Rate Decision',
+                    'country': 'Europa',
+                    'datetime': '2026-07-23T12:15:00',
+                    'status': 'past',
+                },
+                {
+                    'name': 'BNR Interest Rate Decision',
+                    'country': 'România',
+                    'datetime': '2026-08-03T12:00:00',
+                    'status': 'upcoming',
+                },
+            ],
+        }
+        effect = market_scanner_analysis._position_calendar_effects(
+            snapshot
+        )['TVBETETF.RO']
+        self.assertIn('Evenimente viitoare relevante', effect)
+        self.assertIn('BNR Interest Rate Decision', effect)
+        self.assertNotIn('ECB Interest Rate Decision', effect)
+
+    def test_only_past_bvb_events_are_labeled_as_already_published(self):
+        snapshot = {
+            'as_of': '2026-07-26T12:00:00',
+            'positions': [{
+                'symbol': 'TVBETETF.RO', 'market': 'România / BVB',
+            }],
+            'economic_calendar': [{
+                'name': 'ECB Press Conference',
+                'country': 'Europa',
+                'datetime': '2026-07-23T12:45:00',
+                'status': 'past',
+            }],
+        }
+        effect = market_scanner_analysis._position_calendar_effects(
+            snapshot
+        )['TVBETETF.RO']
+        self.assertIn('deja publicate', effect)
+        self.assertIn('Nu mai reprezintă un risc viitor', effect)
+        self.assertNotIn('înaintea publicării', effect)
+
     def test_tvbetetf_parser_reads_official_daily_basket(self):
         payload = market_scanner_analysis._parse_tvbetetf_holdings_html("""
             <h3>Cos de emitere-rascumparare la data de 23-07-2026</h3>
