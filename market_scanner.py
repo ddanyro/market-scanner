@@ -61,6 +61,23 @@ BVB_SHARES_CSV_URL = (
     'SharesListForDownload.ashx?filetype=csv'
 )
 BVB_DEEP_SCAN_BATCH = 30
+US_DEEP_SCAN_BATCH = 40
+SP500_UNIVERSE_FILE = 'sp500_tickers.json'
+
+
+def load_complete_us_equity_universe(path=SP500_UNIVERSE_FILE):
+    """Încarcă universul larg SUA; lista fixă rămâne doar fallback."""
+    try:
+        with open(path, 'r', encoding='utf-8') as handle:
+            raw = json.load(handle)
+        symbols = raw if isinstance(raw, list) else raw.get('symbols', [])
+        return sorted({
+            str(symbol).strip().upper().replace('.', '-')
+            for symbol in symbols
+            if re.fullmatch(r'[A-Za-z.-]{1,10}', str(symbol).strip())
+        })
+    except (OSError, ValueError, TypeError):
+        return list(BUY_RESEARCH_UNIVERSES['SUA'])
 
 
 def _normalized_column_name(value):
@@ -280,7 +297,7 @@ def _external_research_score(item):
 
 def select_strict_buy_candidates(
     watchlist_df, external_research=None, limit_per_market=4, etf_holdings=None,
-    sector_rotation=None,
+    sector_rotation=None, us_market_regime=None,
 ):
     """Aplică filtrele doar watchlistului și triază separat cercetarea externă."""
     candidates = []
@@ -289,6 +306,7 @@ def select_strict_buy_candidates(
         for item in (etf_holdings or {}).get('holdings', [])
     }
     rotation_by_sector = (sector_rotation or {}).get('sectors', {})
+    cycle_by_sector = (us_market_regime or {}).get('sector_fit', {})
 
     def apply_us_rotation(item):
         if item.get('Market') != 'SUA':
@@ -297,12 +315,17 @@ def select_strict_buy_candidates(
         status = rotation.get('status', 'date insuficiente')
         item['Sector_Rotation_Status'] = status
         item['Sector_ETF'] = rotation.get('etf')
+        cycle_fit = cycle_by_sector.get(str(item.get('Sector') or ''), 'neutru')
+        item['Cycle_Fit'] = cycle_fit
         item['_research_score'] += {
             'lider': 2.0,
             'neutru': 0.0,
             'în deteriorare': -3.0,
             'date insuficiente': -1.0,
         }.get(status, -1.0)
+        item['_research_score'] += {
+            'favorizat': 1.5, 'neutru': 0.0, 'nefavorizat': -1.5,
+        }.get(cycle_fit, 0.0)
     all_watchlist_symbols = set()
     if watchlist_df is not None and not watchlist_df.empty:
         for _, row in watchlist_df.iterrows():
@@ -392,6 +415,9 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
     research_universes = {
         market: list(symbols) for market, symbols in BUY_RESEARCH_UNIVERSES.items()
     }
+    us_universe = load_complete_us_equity_universe()
+    if us_universe:
+        research_universes['SUA'] = us_universe
     if bvb_universe:
         research_universes['România / BVB'] = [
             item['symbol'] for item in bvb_universe
@@ -444,7 +470,7 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
         market for market in research_universes
         if (
             market not in eligible_markets
-            or market in {'Europa / Nasdaq-100', 'România / BVB'}
+            or market in {'SUA', 'Europa / Nasdaq-100', 'România / BVB'}
         )
     ]
     if not markets_to_research:
@@ -482,6 +508,13 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
 
             symbols.sort(key=bvb_priority)
             symbols = symbols[:BVB_DEEP_SCAN_BATCH]
+        elif market == 'SUA':
+            symbols.sort(key=lambda symbol: (
+                1 if symbol.upper() in by_symbol else 0,
+                float(by_symbol.get(symbol.upper(), {}).get('_cached_at') or 0),
+                symbol,
+            ))
+            symbols = symbols[:US_DEEP_SCAN_BATCH]
         for symbol in symbols:
             if symbol.upper() in watchlist_symbols and symbol.upper() not in ALWAYS_RESEARCH_SYMBOLS:
                 continue
@@ -508,6 +541,17 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
         ),
         'batch_size': BVB_DEEP_SCAN_BATCH,
         'source': BVB_SHARES_CSV_URL,
+        'updated_at': datetime.datetime.now().isoformat(timespec='seconds'),
+    }
+    us_symbols = set(us_universe)
+    state['us_universe_stats'] = {
+        'discovered': len(us_universe),
+        'deep_scanned': sum(
+            str(item.get('Ticker', '')).upper() in us_symbols
+            for item in by_symbol.values()
+        ),
+        'batch_size': US_DEEP_SCAN_BATCH,
+        'source': SP500_UNIVERSE_FILE,
         'updated_at': datetime.datetime.now().isoformat(timespec='seconds'),
     }
     return state
@@ -4031,11 +4075,17 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     )
     if us_sector_rotation:
         full_state['us_sector_rotation'] = us_sector_rotation
+    us_market_regime = analysis.build_us_market_regime(
+        full_state.get('market_indicators', {}),
+        full_state.get('eco_phase'),
+    )
+    full_state['us_market_regime'] = us_market_regime
     strict_buy_candidates = select_strict_buy_candidates(
         watchlist_df,
         (full_state or {}).get('external_buy_research', []),
         etf_holdings=tvbetetf_holdings,
         sector_rotation=us_sector_rotation,
+        us_market_regime=us_market_regime,
     )
     buy_candidate_payload = [
         {
@@ -4071,6 +4121,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'requires_watchlist_filters': bool(
                 item.get('Requires_Watchlist_Filters', True)
             ),
+            'cycle_fit': item.get('Cycle_Fit'),
             'eligible_brokers': item.get('Eligible_Brokers') or _buy_candidate_brokers(
                 item.get('Ticker')
             ),
@@ -4084,6 +4135,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         market_context=portfolio_market_context,
         etf_holdings=tvbetetf_holdings,
         sector_rotation=us_sector_rotation,
+        us_market_regime=us_market_regime,
     )
     sizing_snapshot['buy_candidates'] = buy_candidate_payload
     buy_candidate_payload = analysis._size_buy_candidates(sizing_snapshot)
@@ -4097,6 +4149,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         buy_candidates=buy_candidate_payload,
         etf_holdings=tvbetetf_holdings,
         sector_rotation=us_sector_rotation,
+        us_market_regime=us_market_regime,
     )
     portfolio_ai_result = (
         (new_portfolio_ai_cache or cached_portfolio_ai or {}).get('result', {})
@@ -4114,6 +4167,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         buy_candidate_payload,
         new_portfolio_evidence or cached_portfolio_evidence,
         (full_state or {}).get('bvb_universe_stats'),
+        (full_state or {}).get('us_universe_stats'),
     )
     full_state['last_portfolio_ai_diagnostic'] = portfolio_ai_diagnostic
     if new_portfolio_ai_cache and new_portfolio_ai_cache != cached_portfolio_ai:
