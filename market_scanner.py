@@ -48,11 +48,23 @@ BUY_RESEARCH_UNIVERSES = {
         'DIGI.RO', 'EL.RO', 'M.RO', 'SNN.RO', 'TEL.RO', 'FP.RO', 'PE.RO',
         'ONE.RO', 'AQ.RO', 'TRP.RO', 'TTS.RO', 'ATB.RO', 'CFH.RO', 'SFG.RO',
     ],
+    'Europa / Nasdaq-100': ['LQQ.PA'],
 }
+ALWAYS_RESEARCH_SYMBOLS = {'LQQ.PA'}
 
 
 def _buy_candidate_market(symbol):
-    return 'România / BVB' if str(symbol).upper().endswith('.RO') else 'SUA'
+    normalized = str(symbol).upper()
+    if normalized in {'LQQ.PA', 'LQQ.FR', 'FR.LQQ'}:
+        return 'Europa / Nasdaq-100'
+    return 'România / BVB' if normalized.endswith('.RO') else 'SUA'
+
+
+def _buy_candidate_brokers(symbol):
+    market = _buy_candidate_market(symbol)
+    if market == 'Europa / Nasdaq-100':
+        return ['IBKR', 'Tradeville']
+    return ['Tradeville'] if market == 'România / BVB' else ['IBKR']
 
 
 def _is_strict_buy_candidate(item):
@@ -85,9 +97,13 @@ def select_strict_buy_candidates(watchlist_df, limit_per_market=4):
     candidates = []
     for _, row in watchlist_df.iterrows():
         item = row.to_dict()
-        if not _is_strict_buy_candidate(item):
+        symbol = str(item.get('Ticker', '')).upper()
+        strict_eligible = _is_strict_buy_candidate(item)
+        if not strict_eligible and symbol not in ALWAYS_RESEARCH_SYMBOLS:
             continue
         item['Market'] = _buy_candidate_market(item.get('Ticker'))
+        item['Eligible_Brokers'] = _buy_candidate_brokers(item.get('Ticker'))
+        item['Strict_Eligible'] = strict_eligible
         candidates.append(item)
     candidates.sort(
         key=lambda item: (
@@ -115,7 +131,8 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
         for item in existing_results if _is_strict_buy_candidate(item)
     }
     markets_to_research = [
-        market for market in BUY_RESEARCH_UNIVERSES if market not in eligible_markets
+        market for market in BUY_RESEARCH_UNIVERSES
+        if market not in eligible_markets or market == 'Europa / Nasdaq-100'
     ]
     if not markets_to_research:
         return state
@@ -151,7 +168,10 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
         print(f"  -> Cercetare BUY pentru {market}...")
         for symbol in BUY_RESEARCH_UNIVERSES[market]:
             cached = by_symbol.get(symbol.upper())
-            if cached and market_data.is_fresh(cached, ttl_hours=5):
+            if (
+                symbol.upper() not in ALWAYS_RESEARCH_SYMBOLS
+                and cached and market_data.is_fresh(cached, ttl_hours=5)
+            ):
                 continue
             data = process_watchlist_ticker(symbol, vix_val, rates)
             if not data:
@@ -3689,6 +3709,10 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'rsi': item.get('RSI'),
             'earnings_risk': bool(item.get('Earnings_Danger')),
             'entry_reason': item.get('Smart_Reason'),
+            'strict_eligible': bool(item.get('Strict_Eligible')),
+            'eligible_brokers': item.get('Eligible_Brokers') or _buy_candidate_brokers(
+                item.get('Ticker')
+            ),
         }
         for item in strict_buy_candidates
     ]
@@ -5507,6 +5531,10 @@ def update_watchlist_data(state, rates, vix_val):
         # Check if we need to backfill Smart Entry or Currency
         missing_fields = False
         if cached_data:
+            # LQQ este reevaluat la fiecare rulare completă deoarece poate fi
+            # cumpărat prin ambele conturi, iar eligibilitatea trebuie să fie actuală.
+            if str(ticker).upper() in ALWAYS_RESEARCH_SYMBOLS:
+                missing_fields = True
             # 1. Missing Smart Entry for BUY
             if cached_data.get('Decision') == 'BUY' and not cached_data.get('Smart_Entry'):
                 missing_fields = True

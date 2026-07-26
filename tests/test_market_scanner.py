@@ -420,6 +420,75 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         item = {'Smart_Entry_EUR': float('nan'), 'Smart_Entry': 110, 'Price': 100}
         self.assertEqual(market_scanner._buy_candidate_entry_eur(item), 100)
 
+    def test_lqq_is_always_selected_and_available_through_both_brokers(self):
+        watchlist = pd.DataFrame([{
+            'Ticker': 'LQQ.PA', 'Decision': 'WAIT', 'Consensus': '-',
+            'RR_Ratio': 0, 'Price': 100,
+        }])
+        selected = market_scanner.select_strict_buy_candidates(watchlist)
+        self.assertEqual(len(selected), 1)
+        self.assertFalse(selected[0]['Strict_Eligible'])
+        self.assertEqual(selected[0]['Market'], 'Europa / Nasdaq-100')
+        self.assertEqual(selected[0]['Eligible_Brokers'], ['IBKR', 'Tradeville'])
+
+    def test_lqq_sizing_is_separate_for_ibkr_and_tradeville(self):
+        snapshot = {
+            'account_liquidity': {
+                'privacy_mode': 'exact',
+                'accounts': [
+                    {'label': 'IBKR', 'source': 'IBKR TWS', 'summary': {
+                        'NetLiquidation': 100000, 'AvailableFunds': 80000,
+                        'TotalCashValue': 75000,
+                    }},
+                    {'label': 'Tradeville', 'source': 'Tradeville manual', 'summary': {
+                        'NetLiquidation': 50000, 'AvailableFunds': 20000,
+                        'TotalCashValue': 18000,
+                    }},
+                ],
+            },
+            'positions': [],
+            'buy_candidates': [{
+                'symbol': 'LQQ.PA', 'market': 'Europa / Nasdaq-100',
+                'eligible_brokers': ['IBKR', 'Tradeville'],
+                'entry_eur': 100, 'stop_eur': 90, 'trend': 'Bullish',
+            }],
+        }
+        candidate = market_scanner_analysis._size_buy_candidates(snapshot)[0]
+        rows = {item['broker']: item for item in candidate['sizing_by_broker']}
+        self.assertEqual(set(rows), {'IBKR', 'Tradeville'})
+        self.assertEqual(rows['IBKR']['broker_available_cash_eur'], 75000)
+        self.assertEqual(rows['Tradeville']['broker_available_cash_eur'], 18000)
+        self.assertGreater(rows['IBKR']['conditional_amount_eur'], 0)
+        self.assertGreater(rows['Tradeville']['conditional_amount_eur'], 0)
+
+    def test_lqq_renderer_forces_wait_and_shows_both_brokers(self):
+        html_result = market_scanner_analysis.render_buy_recommendations_html(
+            {'buy_recommendations': [{
+                'symbol': 'LQQ.PA', 'market': 'Europa / Nasdaq-100',
+                'verdict': 'Candidat valid', 'market_effect': 'pozitiv',
+                'news_effect': 'neutru', 'calendar_effect': 'neutru',
+                'main_risk': 'risc', 'source_ids': [],
+            }]},
+            [{
+                'symbol': 'LQQ.PA', 'market': 'Europa / Nasdaq-100',
+                'company_name': 'LQQ', 'strict_eligible': False,
+                'eligible_brokers': ['IBKR', 'Tradeville'], 'entry_eur': 100,
+                'stop_eur': 90, 'target_eur': 130, 'rr_ratio': 3,
+                'consensus': 'Buy', 'sizing_by_broker': [
+                    {'broker': 'IBKR', 'broker_available_cash_eur': 75000,
+                     'conditional_amount_eur': 3000, 'conditional_units': 30,
+                     'risk_to_stop_pct': 10},
+                    {'broker': 'Tradeville', 'broker_available_cash_eur': 18000,
+                     'conditional_amount_eur': 1000, 'conditional_units': 10,
+                     'risk_to_stop_pct': 10},
+                ],
+            }],
+        )
+        self.assertIn('LQQ.PA', html_result)
+        self.assertIn('IBKR — sumă orientativă acum:</b> €0.00', html_result)
+        self.assertIn('Tradeville — sumă orientativă acum:</b> €0.00', html_result)
+        self.assertIn('Așteaptă', html_result)
+
     @patch.dict(os.environ, {}, clear=True)
     def test_portfolio_ai_falls_back_to_deterministic_alerts(self):
         with patch('market_scanner_analysis.os.path.exists', return_value=False):

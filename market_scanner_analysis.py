@@ -361,7 +361,7 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
-PORTFOLIO_AI_CACHE_VERSION = 5
+PORTFOLIO_AI_CACHE_VERSION = 6
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
 SEC_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK{cik:010d}.json'
@@ -758,30 +758,35 @@ def _portfolio_snapshot_fingerprint(snapshot):
 
 
 def _size_buy_candidates(snapshot):
-    """Dimensionare prudentă din cash, risc la stop și concentrarea pieței."""
+    """Dimensionare prudentă, separată pentru fiecare broker eligibil."""
     candidates = [dict(item) for item in snapshot.get('buy_candidates', [])]
     liquidity = snapshot.get('account_liquidity', {})
     if liquidity.get('privacy_mode') != 'exact':
         for candidate in candidates:
             candidate['sizing_status'] = 'indisponibil'
             candidate['sizing_reason'] = 'Soldurile exacte ale brokerului nu sunt disponibile.'
+            candidate['sizing_by_broker'] = []
         return candidates
 
     accounts = liquidity.get('accounts', [])
-    market_weights = {}
+    broker_weights = {}
     for position in snapshot.get('positions', []):
-        market = position.get('market')
-        market_weights[market] = (
-            market_weights.get(market, 0)
+        broker = str(position.get('broker') or '')
+        broker_weights[broker] = (
+            broker_weights.get(broker, 0)
             + _safe_number(position.get('portfolio_weight_pct'))
         )
 
-    grouped = {}
+    allocations_by_broker = {}
     for candidate in candidates:
-        grouped.setdefault(candidate.get('market'), []).append(candidate)
+        brokers = candidate.get('eligible_brokers')
+        if not isinstance(brokers, list) or not brokers:
+            brokers = ['Tradeville'] if candidate.get('market') == 'România / BVB' else ['IBKR']
+        candidate['sizing_by_broker'] = []
+        for broker in brokers:
+            allocations_by_broker.setdefault(str(broker), []).append(candidate)
 
-    for market, market_candidates in grouped.items():
-        broker = 'Tradeville' if market == 'România / BVB' else 'IBKR'
+    for broker, broker_candidates in allocations_by_broker.items():
         account = next(
             (
                 item for item in accounts
@@ -792,8 +797,8 @@ def _size_buy_candidates(snapshot):
             None,
         )
         if not account:
-            for candidate in market_candidates:
-                candidate.update({
+            for candidate in broker_candidates:
+                candidate['sizing_by_broker'].append({
                     'broker': broker,
                     'sizing_status': 'indisponibil',
                     'sizing_reason': f'Soldul {broker} nu este disponibil.',
@@ -808,15 +813,15 @@ def _size_buy_candidates(snapshot):
             value for value in (available_funds, total_cash)
             if value > 0
         ) if available_funds > 0 and total_cash > 0 else max(available_funds, total_cash)
-        concentrated = market_weights.get(market, 0) > 40
-        risk_pct_nav = 0.002 if market == 'România / BVB' else 0.0025
-        max_pct_nav = 0.02 if market == 'România / BVB' else 0.03
+        concentrated = broker_weights.get(broker, 0) > 40
+        risk_pct_nav = 0.002 if broker == 'Tradeville' else 0.0025
+        max_pct_nav = 0.02 if broker == 'Tradeville' else 0.03
         if concentrated:
             risk_pct_nav *= 0.5
             max_pct_nav *= 0.5
 
         preliminary = []
-        for candidate in market_candidates:
+        for candidate in broker_candidates:
             entry = _safe_number(candidate.get('entry_eur'))
             stop = _safe_number(candidate.get('stop_eur'))
             stop_risk_pct = (
@@ -844,7 +849,7 @@ def _size_buy_candidates(snapshot):
             amount *= scale
             units = int(amount / entry) if entry > 0 else 0
             amount = units * entry
-            candidate.update({
+            candidate['sizing_by_broker'].append({
                 'broker': broker,
                 'broker_available_cash_eur': round(usable_cash, 2),
                 'broker_net_liquidation_eur': round(net_liquidation, 2),
@@ -857,6 +862,10 @@ def _size_buy_candidates(snapshot):
                     if amount > 0 else 'Stopul sau soldul nu permit o dimensionare verificabilă.'
                 ),
             })
+    for candidate in candidates:
+        rows = candidate.get('sizing_by_broker') or []
+        if rows:
+            candidate.update(rows[0])
     return candidates
 
 
@@ -1359,10 +1368,33 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
     candidates_by_symbol = {
         str(item.get('symbol', '')).upper(): item for item in (candidates or [])
     }
-    recommendations = [
-        item for item in (result or {}).get('buy_recommendations', [])
+    recommendations_by_symbol = {
+        str(item.get('symbol', '')).upper(): item
+        for item in (result or {}).get('buy_recommendations', [])
         if str(item.get('symbol', '')).upper() in candidates_by_symbol
-    ]
+    }
+    recommendations = []
+    for symbol, candidate in candidates_by_symbol.items():
+        recommendation = recommendations_by_symbol.get(symbol)
+        if not recommendation:
+            recommendation = {
+                'symbol': symbol,
+                'market': candidate.get('market') or '-',
+                'verdict': 'Așteaptă',
+                'market_effect': 'Validarea completă a contextului de piață nu este disponibilă.',
+                'news_effect': 'Știrile și rapoartele nu au putut fi validate acum.',
+                'calendar_effect': 'Calendarul economic nu a putut fi validat acum.',
+                'main_risk': 'Nu există suficiente date pentru o intrare.',
+                'source_ids': [],
+            }
+        if not candidate.get('strict_eligible', True):
+            recommendation = dict(recommendation)
+            recommendation['verdict'] = 'Așteaptă'
+            recommendation['main_risk'] = (
+                'LQQ este verificat la fiecare rulare, dar nu trece acum toate '
+                'condițiile BUY + consensus Buy/Strong Buy + R:R ≥ 3.'
+            )
+        recommendations.append(recommendation)
     evidence_lookup = {
         str(item.get('source_id')): item
         for item in (evidence_cache or {}).get('items', [])
@@ -1374,12 +1406,6 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
             "consensus Buy/Strong Buy și R:R de minimum 3. Universurile SUA și BVB "
             "rămân în cercetare și vor fi adăugate în watchlist numai după scanare.</p>"
         )
-    elif not recommendations:
-        body = (
-            "<p style='color:var(--text-secondary);margin:0;'>"
-            "Candidații tehnici există, dar validarea prin știri, context de piață și "
-            "calendar economic nu este disponibilă momentan. Nu sunt prezentați ca intrări.</p>"
-        )
     else:
         cards = []
         represented_markets = set()
@@ -1387,18 +1413,49 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
             symbol = str(item['symbol']).upper()
             candidate = candidates_by_symbol[symbol]
             verdict = item['verdict']
-            represented_markets.add(str(item.get('market', '')))
+            represented_markets.add(str(candidate.get('market') or item.get('market', '')))
             color = '#16a34a' if verdict == 'Candidat valid' else '#d97706'
             entry_value = float(candidate.get('entry_eur') or 0)
-            conditional_amount = float(candidate.get('conditional_amount_eur') or 0)
-            amount_now = conditional_amount if verdict == 'Candidat valid' else 0
-            units_now = int(candidate.get('conditional_units') or 0) if amount_now > 0 else 0
-            why_now = (
-                f"Scannerul confirmă BUY, consensus {candidate.get('consensus')}, "
-                f"R:R {float(candidate.get('rr_ratio') or 0):.2f} și un nivel de "
-                f"intrare urmărit de €{entry_value:.2f}. Verdictul AI este "
-                f"{verdict.lower()} după verificarea contextului."
-            )
+            sizing_rows = candidate.get('sizing_by_broker') or [{
+                key: candidate.get(key) for key in (
+                    'broker', 'broker_available_cash_eur', 'broker_net_liquidation_eur',
+                    'conditional_amount_eur', 'conditional_units', 'risk_to_stop_pct',
+                    'sizing_status', 'sizing_reason',
+                )
+            }]
+            sizing_html = []
+            for sizing in sizing_rows:
+                conditional_amount = float(sizing.get('conditional_amount_eur') or 0)
+                amount_now = (
+                    conditional_amount
+                    if verdict == 'Candidat valid' and candidate.get('strict_eligible', True)
+                    else 0
+                )
+                units_now = int(sizing.get('conditional_units') or 0) if amount_now > 0 else 0
+                broker = str(sizing.get('broker') or '-')
+                sizing_html.append(
+                    "<div style='background:var(--light-purple-bg);border-radius:var(--radius-sm);"
+                    "padding:10px 12px;margin:8px 0;font-size:13px;'>"
+                    f"<b>{html.escape(broker)} — sumă orientativă acum:</b> €{amount_now:,.2f}"
+                    + (f" · aproximativ {units_now} unități" if units_now else '')
+                    + f"<br><span style='color:var(--text-secondary);'>Cash disponibil: "
+                    f"€{float(sizing.get('broker_available_cash_eur') or 0):,.2f}. "
+                    f"Buget condițional după confirmare: €{conditional_amount:,.2f}; "
+                    f"risc până la stop {float(sizing.get('risk_to_stop_pct') or 0):.2f}%."
+                    "</span></div>"
+                )
+            if candidate.get('strict_eligible', True):
+                why_now = (
+                    f"Scannerul confirmă BUY, consensus {candidate.get('consensus')}, "
+                    f"R:R {float(candidate.get('rr_ratio') or 0):.2f} și un nivel de "
+                    f"intrare urmărit de €{entry_value:.2f}. Verdictul AI este "
+                    f"{verdict.lower()} după verificarea contextului."
+                )
+            else:
+                why_now = (
+                    "LQQ este analizat obligatoriu la fiecare rulare, dar acum nu "
+                    "îndeplinește simultan toate condițiile necesare cumpărării."
+                )
             source_links = []
             for source_id in item.get('source_ids', []):
                 source = evidence_lookup.get(str(source_id))
@@ -1419,23 +1476,15 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
                 f"{html.escape(str(candidate.get('company_name') or ''))}"
                 f"<span style='float:right;color:{color};'>{html.escape(verdict)}</span></summary>"
                 "<div style='display:flex;gap:12px;flex-wrap:wrap;margin:10px 0;font-size:13px;'>"
-                f"<span><b>Piață:</b> {html.escape(item['market'])}</span>"
-                f"<span><b>Broker:</b> {html.escape(str(candidate.get('broker') or '-'))}</span>"
+                f"<span><b>Piața instrumentului:</b> {html.escape(item['market'])}</span>"
+                f"<span><b>Disponibil prin:</b> {html.escape(', '.join(candidate.get('eligible_brokers') or []))}</span>"
                 f"<span><b>Consensus:</b> {html.escape(str(candidate.get('consensus')))}</span>"
                 f"<span><b>R:R:</b> {float(candidate.get('rr_ratio') or 0):.2f}</span>"
                 f"<span><b>Entry:</b> €{entry_value:.2f}</span>"
                 f"<span><b>Stop:</b> €{float(candidate.get('stop_eur') or 0):.2f}</span>"
                 f"<span><b>Target:</b> €{float(candidate.get('target_eur') or 0):.2f}</span></div>"
-                "<div style='background:var(--light-purple-bg);border-radius:var(--radius-sm);"
-                "padding:10px 12px;margin:8px 0;font-size:13px;'>"
-                f"<b>Sumă orientativă acum:</b> €{amount_now:,.2f}"
-                + (f" · aproximativ {units_now} unități" if units_now else '')
-                + f"<br><span style='color:var(--text-secondary);'>Cash disponibil "
-                f"{html.escape(str(candidate.get('broker') or 'broker'))}: "
-                f"€{float(candidate.get('broker_available_cash_eur') or 0):,.2f}. "
-                f"Buget condițional după confirmare: €{conditional_amount:,.2f}; "
-                f"risc până la stop {float(candidate.get('risk_to_stop_pct') or 0):.2f}%.</span></div>"
-                f"<p style='margin:6px 0;'><b>De ce acum:</b> {html.escape(why_now)}</p>"
+                + ''.join(sizing_html)
+                + f"<p style='margin:6px 0;'><b>De ce acum:</b> {html.escape(why_now)}</p>"
                 f"<p style='margin:6px 0;'><b>Piața:</b> {html.escape(item['market_effect'])}</p>"
                 f"<p style='margin:6px 0;'><b>Știri:</b> {html.escape(item['news_effect'])}</p>"
                 f"<p style='margin:6px 0;'><b>Calendar:</b> {html.escape(item['calendar_effect'])}</p>"
@@ -1454,6 +1503,11 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
                 "universul local a fost cercetat și adăugat în watchlist, dar momentan "
                 "niciun simbol nu trece simultan BUY, consensus Buy/Strong Buy și R:R ≥ 3.</p>"
             )
+        if 'Europa / Nasdaq-100' not in represented_markets:
+            market_notices.append(
+                "<p style='margin:0;color:var(--text-secondary);'><b>LQQ:</b> "
+                "este verificat obligatoriu la fiecare rulare pentru IBKR și Tradeville.</p>"
+            )
         notices_html = (
             "<div style='display:grid;gap:5px;margin-bottom:12px;'>"
             + ''.join(market_notices) + "</div>"
@@ -1464,9 +1518,11 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
         "<section style='margin:28px 0;background:var(--light-purple-bg);"
         "border:1px solid var(--border-light);border-radius:var(--radius-md);padding:22px;'>"
         "<h3 style='margin:0 0 8px;color:var(--primary-purple);'>"
-        "Candidați de cumpărare — SUA și BVB</h3>"
+        "Candidați de cumpărare — SUA, BVB și LQQ</h3>"
         "<p style='margin:0 0 15px;color:var(--text-secondary);'>"
-        "Filtru obligatoriu: BUY + consensus Buy/Strong Buy + R:R ≥ 3. "
+        "Cumpărarea cere BUY + consensus Buy/Strong Buy + R:R ≥ 3. "
+        "LQQ este monitorizat obligatoriu la fiecare rulare și dimensionat separat "
+        "pentru IBKR și Tradeville când devine eligibil. "
         "Validarea AI ține cont de știri, piață și calendar; nu reprezintă ordin de tranzacționare.</p>"
         + body + "</section>"
     )
@@ -1590,9 +1646,10 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Citează exclusiv source_id existente în date și menționează conflictele dintre surse.',
             'Acțiunile trebuie formulate ca verificări: plasează/revizuiește/menține/strânge doar condiționat.',
             'Pentru buy_candidates verifică dacă știrile, piața și calendarul economic susțin intrarea acum; filtrele tehnice singure nu sunt suficiente.',
-            'Nu recomanda și nu inventa simboluri care nu există în buy_candidates. Un simbol cercetat intră mai întâi în watchlist și trebuie să treacă BUY + Buy/Strong Buy + R:R minimum 3.',
-            'Toate elementele din buy_candidates au trecut deja filtrul tehnic și au decision=BUY. Dacă entry_eur este pozitiv, nu afirma că lipsesc semnalul BUY sau nivelul de intrare.',
-            'Dimensionarea din buy_candidates este calculată determinist și separat pe broker. Nu modifica și nu inventa conditional_amount_eur, conditional_units sau cash-ul brokerului.',
+            'Nu recomanda și nu inventa simboluri care nu există în buy_candidates. Cu excepția LQQ, un simbol cercetat intră mai întâi în watchlist și trebuie să treacă BUY + Buy/Strong Buy + R:R minimum 3.',
+            'Câmpul strict_eligible arată dacă instrumentul a trecut filtrul tehnic. LQQ este inclus obligatoriu la fiecare rulare; dacă strict_eligible=false, verdictul lui trebuie să fie Așteaptă.',
+            'Dacă strict_eligible=true și entry_eur este pozitiv, nu afirma că lipsesc semnalul BUY sau nivelul de intrare.',
+            'Dimensionarea din buy_candidates este calculată determinist și separat pe broker în sizing_by_broker. Nu modifica și nu inventa sumele, unitățile sau cash-ul brokerilor.',
             'Un verdict Așteaptă înseamnă investiție acum zero; suma condițională poate fi folosită numai după dispariția riscului menționat și reconfirmarea semnalului.',
             'Nu promite îmbunătățirea randamentului lunar. Prioritizează limitarea pierderii, evitarea concentrării și păstrarea cash-ului pentru oportunități confirmate.',
             'Dacă riscul de rezultate, știrile sau un eveniment economic apropiat pot produce gap, verdictul este Așteaptă.',
@@ -1610,7 +1667,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             }],
             'buy_recommendations': [{
                 'symbol': 'un simbol existent în buy_candidates',
-                'market': 'SUA sau România / BVB',
+                'market': 'SUA, România / BVB sau Europa / Nasdaq-100',
                 'verdict': 'Candidat valid|Așteaptă',
                 'why_now': 'de ce merită analizat acum',
                 'market_effect': 'cum ajută sau încurcă piața relevantă',
