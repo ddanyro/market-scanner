@@ -164,13 +164,24 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             "action": "Verifică și plasează un stop adecvat.",
             "why": "Pierderile nu sunt limitate procedural.",
             "review_trigger": "La modificarea ATR sau a tezei.",
-            "confidence": "ridicată, ordinul lipsește"
+            "confidence": "ridicată, ordinul lipsește",
+            "source_ids": ["TEST-sec-1", "SURSA-INVENTATA"]
           }]
         }'''}
         mock_post.return_value = mock_response
 
-        html_result, cache = market_scanner_analysis.generate_portfolio_ai_analysis(
-            self.portfolio, pd.DataFrame()
+        evidence_cache = {
+            'fetched_at': datetime.utcnow().isoformat(),
+            'symbols': ['TEST'],
+            'items': [{
+                'source_id': 'TEST-sec-1', 'symbol': 'TEST',
+                'title': 'Depunere SEC 10-Q', 'url': 'https://www.sec.gov/test',
+                'date': '2026-07-25', 'publisher': 'SEC',
+                'source_type': 'raport oficial 10-Q', 'official': True,
+            }],
+        }
+        html_result, cache, returned_evidence = market_scanner_analysis.generate_portfolio_ai_analysis(
+            self.portfolio, pd.DataFrame(), cached_evidence=evidence_cache
         )
 
         request_json = mock_post.call_args.kwargs['json']
@@ -178,16 +189,60 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(request_json['reasoning'], {'effort': 'max', 'mode': 'pro'})
         self.assertEqual(request_json['text']['format']['type'], 'json_object')
         self.assertIn('TEST · Lipsă stop', html_result)
+        self.assertIn('Depunere SEC 10-Q', html_result)
+        self.assertIn('oficial', html_result)
+        self.assertNotIn('SURSA-INVENTATA', html_result)
         self.assertEqual(cache['result']['priorities'][0]['symbol'], 'TEST')
+        self.assertEqual(returned_evidence['items'][0]['source_id'], 'TEST-sec-1')
 
     @patch.dict(os.environ, {}, clear=True)
     def test_portfolio_ai_falls_back_to_deterministic_alerts(self):
         with patch('market_scanner_analysis.os.path.exists', return_value=False):
-            html_result, cache = market_scanner_analysis.generate_portfolio_ai_analysis(
-                self.portfolio, pd.DataFrame()
+            html_result, cache, evidence = market_scanner_analysis.generate_portfolio_ai_analysis(
+                self.portfolio, pd.DataFrame(),
+                cached_evidence={
+                    'fetched_at': datetime.utcnow().isoformat(),
+                    'symbols': ['TEST'], 'items': [],
+                },
             )
         self.assertIn('Fără ordin stop activ identificat', html_result)
         self.assertIsNone(cache)
+        self.assertEqual(evidence['items'], [])
+
+    def test_portfolio_evidence_prefers_official_sec_filings_and_keeps_links(self):
+        class FakeResponse:
+            def __init__(self, payload=None, content=b''):
+                self._payload = payload
+                self.content = content
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return self._payload
+
+        class FakeSession:
+            def get(self, url, **kwargs):
+                if 'company_tickers' in url:
+                    return FakeResponse({'0': {'ticker': 'TEST', 'cik_str': 123}})
+                if 'submissions' in url:
+                    return FakeResponse({'filings': {'recent': {
+                        'form': ['10-Q'], 'accessionNumber': ['0000123-26-000001'],
+                        'primaryDocument': ['quarterly.htm'], 'filingDate': ['2026-07-25'],
+                    }}})
+                if 'feeds.finance.yahoo.com' in url:
+                    return FakeResponse(content=b'<rss><channel></channel></rss>')
+                return FakeResponse([])
+
+        snapshot = market_scanner_analysis.build_portfolio_risk_snapshot(
+            self.portfolio, pd.DataFrame()
+        )
+        with patch('market_scanner_analysis.get_economic_events', return_value=[]):
+            evidence = market_scanner_analysis.collect_portfolio_evidence(
+                snapshot, request_session=FakeSession()
+            )
+        self.assertEqual(len(evidence['items']), 1)
+        self.assertTrue(evidence['items'][0]['official'])
+        self.assertIn('10-Q', evidence['items'][0]['title'])
+        self.assertTrue(evidence['items'][0]['url'].startswith('https://www.sec.gov/Archives/'))
         
     def test_nasdaq_affects_probability_calculation(self):
         """Test that NASDAQ affects probability direction calculation."""

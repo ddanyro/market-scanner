@@ -11,6 +11,7 @@ import html
 import hashlib
 import math
 import tempfile
+import urllib.parse
 from bs4 import BeautifulSoup
 
 ECONOMIC_CALENDAR_CACHE = os.path.join(tempfile.gettempdir(), "antigravity_economic_calendar_cache.json")
@@ -360,6 +361,9 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
 PORTFOLIO_AI_CACHE_VERSION = 1
+PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
+SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
+SEC_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK{cik:010d}.json'
 
 
 def _extract_openai_response_text(payload):
@@ -538,8 +542,203 @@ def _portfolio_snapshot_fingerprint(snapshot):
     ).hexdigest()
 
 
-def _validate_portfolio_ai_result(result, symbols):
+def _clean_evidence_item(item):
+    if not isinstance(item, dict):
+        return None
+    url = str(item.get('url', '')).strip()
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme != 'https' or not parsed.netloc:
+        return None
+    source_id = str(item.get('source_id', '')).strip()
+    title = str(item.get('title', '')).strip()
+    if not source_id or not title:
+        return None
+    return {
+        'source_id': source_id[:100],
+        'symbol': str(item.get('symbol', '')).strip().upper()[:30],
+        'title': title[:500],
+        'url': url[:1500],
+        'date': str(item.get('date', '')).strip()[:30],
+        'publisher': str(item.get('publisher', '')).strip()[:200],
+        'source_type': str(item.get('source_type', 'știre')).strip()[:80],
+        'official': bool(item.get('official')),
+    }
+
+
+def _evidence_cache_is_fresh(cached):
+    if not isinstance(cached, dict) or not cached.get('fetched_at'):
+        return False
+    try:
+        fetched = datetime.datetime.fromisoformat(cached['fetched_at'].replace('Z', '+00:00'))
+        if fetched.tzinfo is not None:
+            fetched = fetched.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+        return datetime.datetime.utcnow() - fetched < datetime.timedelta(hours=PORTFOLIO_EVIDENCE_CACHE_HOURS)
+    except (TypeError, ValueError):
+        return False
+
+
+def _fetch_yahoo_company_news(symbol, session):
+    encoded_symbol = urllib.parse.quote(symbol, safe='.-^')
+    url = f'https://feeds.finance.yahoo.com/rss/2.0/headline?s={encoded_symbol}&region=US&lang=en-US'
+    response = session.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=12)
+    response.raise_for_status()
+    root = ET.fromstring(response.content)
+    items = []
+    for index, node in enumerate(root.findall('./channel/item')[:5]):
+        title_node = node.find('title')
+        link_node = node.find('link')
+        date_node = node.find('pubDate')
+        if title_node is None or link_node is None:
+            continue
+        item = _clean_evidence_item({
+            'source_id': f'{symbol}-news-{index + 1}',
+            'symbol': symbol,
+            'title': title_node.text or '',
+            'url': link_node.text or '',
+            'date': date_node.text if date_node is not None else '',
+            'publisher': 'Yahoo Finance RSS',
+            'source_type': 'știre financiară',
+            'official': False,
+        })
+        if item:
+            items.append(item)
+    return items
+
+
+def _fetch_sec_ticker_map(session):
+    response = session.get(
+        SEC_TICKER_MAP_URL,
+        headers={'User-Agent': 'MarketScanner risk dashboard admin@marketscanner.local'},
+        timeout=15,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    return {
+        str(entry.get('ticker', '')).upper(): int(entry['cik_str'])
+        for entry in payload.values()
+        if isinstance(entry, dict) and entry.get('ticker') and entry.get('cik_str') is not None
+    }
+
+
+def _fetch_sec_filings(symbol, cik, session):
+    response = session.get(
+        SEC_SUBMISSIONS_URL.format(cik=cik),
+        headers={'User-Agent': 'MarketScanner risk dashboard admin@marketscanner.local'},
+        timeout=15,
+    )
+    response.raise_for_status()
+    recent = response.json().get('filings', {}).get('recent', {})
+    accepted_forms = {'10-K', '10-Q', '8-K', '6-K', '20-F', '40-F', 'DEF 14A'}
+    items = []
+    forms = recent.get('form', [])
+    for index, form in enumerate(forms):
+        if form not in accepted_forms:
+            continue
+        accession = str(recent.get('accessionNumber', [''])[index])
+        document = str(recent.get('primaryDocument', [''])[index])
+        filing_date = str(recent.get('filingDate', [''])[index])
+        if not accession or not document:
+            continue
+        accession_compact = accession.replace('-', '')
+        url = f'https://www.sec.gov/Archives/edgar/data/{cik}/{accession_compact}/{document}'
+        item = _clean_evidence_item({
+            'source_id': f'{symbol}-sec-{accession_compact}',
+            'symbol': symbol,
+            'title': f'Depunere SEC {form}',
+            'url': url,
+            'date': filing_date,
+            'publisher': 'U.S. Securities and Exchange Commission',
+            'source_type': f'raport oficial {form}',
+            'official': True,
+        })
+        if item:
+            items.append(item)
+        if len(items) >= 4:
+            break
+    return items
+
+
+def _bvb_calendar_evidence(symbol, calendar_events):
+    base_symbol = symbol.upper().replace('.RO', '')
+    items = []
+    for event in calendar_events or []:
+        event_name = str(event.get('name', ''))
+        if base_symbol not in event_name.upper():
+            continue
+        item = _clean_evidence_item({
+            'source_id': f"{symbol}-bvb-{event.get('id', len(items))}",
+            'symbol': symbol,
+            'title': event_name,
+            'url': event.get('source_url', BVB_CALENDAR_URL),
+            'date': event.get('datetime', ''),
+            'publisher': 'Bursa de Valori București',
+            'source_type': 'calendar/raportare oficială BVB',
+            'official': True,
+        })
+        if item:
+            items.append(item)
+    return items[:4]
+
+
+def collect_portfolio_evidence(snapshot, cached=None, request_session=None, now=None):
+    """Colectează metadate verificabile; la eroare păstrează ultimul cache valid."""
+    now = now or datetime.datetime.utcnow()
+    symbols = [item['symbol'] for item in snapshot.get('positions', []) if item.get('symbol')]
+    if _evidence_cache_is_fresh(cached):
+        cached_symbols = set(cached.get('symbols', []))
+        if cached_symbols == set(symbols):
+            return cached
+
+    session = request_session or requests.Session()
+    previous_items = [
+        clean for clean in (_clean_evidence_item(item) for item in (cached or {}).get('items', []))
+        if clean
+    ]
+    items = []
+    sec_map = {}
+    try:
+        sec_map = _fetch_sec_ticker_map(session)
+    except (requests.RequestException, ValueError, TypeError, KeyError):
+        pass
+
+    calendar_events = []
+    try:
+        calendar_events = get_economic_events(now=datetime.datetime.now(), request_session=session)
+    except (requests.RequestException, ValueError, TypeError, KeyError):
+        pass
+
+    for symbol in symbols:
+        try:
+            items.extend(_fetch_yahoo_company_news(symbol, session))
+        except (requests.RequestException, ValueError, TypeError, ET.ParseError):
+            pass
+        sec_symbol = symbol.split('.')[0]
+        if sec_symbol in sec_map:
+            try:
+                items.extend(_fetch_sec_filings(symbol, sec_map[sec_symbol], session))
+            except (requests.RequestException, ValueError, TypeError, KeyError, IndexError):
+                pass
+        if symbol.endswith('.RO'):
+            items.extend(_bvb_calendar_evidence(symbol, calendar_events))
+
+    if not items:
+        items = previous_items
+    unique = {}
+    for item in items:
+        unique[item['source_id']] = item
+    return {
+        'fetched_at': now.isoformat(timespec='seconds'),
+        'symbols': symbols,
+        'items': list(unique.values())[:30],
+        'status': 'actualizat' if items and items != previous_items else (
+            'cache păstrat' if items else 'indisponibil'
+        ),
+    }
+
+
+def _validate_portfolio_ai_result(result, symbols, evidence_ids=None):
     allowed_severity = {'critic', 'ridicat', 'mediu', 'scăzut', 'informativ'}
+    evidence_ids = evidence_ids or set()
     clean_items = []
     for raw in result.get('priorities', [])[:12]:
         if not isinstance(raw, dict):
@@ -555,6 +754,11 @@ def _validate_portfolio_ai_result(result, symbols):
                 break
             item[field] = value.strip()[:900]
         else:
+            raw_source_ids = raw.get('source_ids', [])
+            item['source_ids'] = [
+                str(source_id) for source_id in raw_source_ids
+                if str(source_id) in evidence_ids
+            ][:5]
             clean_items.append(item)
     if not clean_items:
         raise ValueError('Răspuns AI fără priorități valide')
@@ -571,8 +775,29 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
     }
     if result:
         cards = []
+        evidence_lookup = {
+            evidence['source_id']: evidence
+            for position in snapshot.get('positions', [])
+            for evidence in position.get('evidence', [])
+        }
         for item in result['priorities']:
             color = severity_colors[item['severity']]
+            source_links = []
+            for source_id in item.get('source_ids', []):
+                evidence = evidence_lookup.get(source_id)
+                if not evidence:
+                    continue
+                official_label = 'oficial' if evidence['official'] else 'presă'
+                source_links.append(
+                    f"<a href='{html.escape(evidence['url'], quote=True)}' target='_blank' "
+                    f"rel='noopener noreferrer' style='color:var(--primary-purple);'>"
+                    f"{html.escape(evidence['title'])} · {html.escape(evidence['date'])} · {official_label}</a>"
+                )
+            sources_html = (
+                f"<p style='margin:5px 0;color:var(--text-secondary);'><b>Surse relevante:</b> "
+                + ' | '.join(source_links) + "</p>"
+                if source_links else ''
+            )
             cards.append(
                 "<details style='background:var(--bg-white);border:1px solid var(--border-light);"
                 f"border-left:4px solid {color};border-radius:var(--radius-sm);padding:14px 16px;'>"
@@ -585,6 +810,7 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
                 f"<p style='margin:5px 0;color:var(--text-secondary);'><b>De ce:</b> {html.escape(item['why'])}</p>"
                 f"<p style='margin:5px 0;color:var(--text-secondary);'><b>Reevaluare:</b> {html.escape(item['review_trigger'])}</p>"
                 f"<p style='margin:5px 0;color:var(--text-secondary);'><b>Încredere:</b> {html.escape(item['confidence'])}</p>"
+                f"{sources_html}"
                 "</details>"
             )
         overview = html.escape(result['portfolio_overview'])
@@ -625,17 +851,30 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
     )
 
 
-def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None):
+def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, cached_evidence=None,
+                                   request_session=None):
     """Generează o analiză structurată și cache-uibilă, apoi returnează HTML sigur."""
     snapshot = build_portfolio_risk_snapshot(portfolio_df, orders_df)
+    evidence_cache = collect_portfolio_evidence(
+        snapshot, cached=cached_evidence, request_session=request_session
+    )
+    evidence_by_symbol = {}
+    for evidence in evidence_cache.get('items', []):
+        evidence_by_symbol.setdefault(evidence['symbol'], []).append(evidence)
+    for position in snapshot['positions']:
+        position['evidence'] = evidence_by_symbol.get(position['symbol'], [])
+    evidence_ids = {
+        evidence['source_id'] for evidence in evidence_cache.get('items', [])
+    }
     fingerprint = _portfolio_snapshot_fingerprint(snapshot)
     if isinstance(cached, dict) and cached.get('fingerprint') == fingerprint:
         try:
             result = _validate_portfolio_ai_result(
                 cached.get('result', {}),
                 {item['symbol'] for item in snapshot['positions']},
+                evidence_ids,
             )
-            return _render_portfolio_ai_html(snapshot, result, 'OpenAI · cache'), cached
+            return _render_portfolio_ai_html(snapshot, result, 'OpenAI · cache'), cached, evidence_cache
         except (ValueError, TypeError):
             pass
 
@@ -647,7 +886,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None):
         except OSError:
             pass
     if not openai_key or not snapshot['positions']:
-        return _render_portfolio_ai_html(snapshot), cached
+        return _render_portfolio_ai_html(snapshot), cached, evidence_cache
 
     request_payload = {
         'as_of': snapshot['as_of'],
@@ -662,6 +901,9 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None):
             'Semnalează contradicțiile dintre HOLD/REDUCE/EXIT, trend, momentum și protecția activă.',
             'Evaluează concentrarea și raportul recompensă/risc numai când există date suficiente.',
             'Separă controlul de preț de invalidarea tezei și cere reevaluare la catalizatori.',
+            'Folosește știrile și rapoartele numai când sunt relevante pentru risc sau teză.',
+            'Acordă prioritate surselor oficiale; nu prezenta o știre de presă drept declarație a companiei.',
+            'Citează exclusiv source_id existente în date și menționează conflictele dintre surse.',
             'Acțiunile trebuie formulate ca verificări: plasează/revizuiește/menține/strânge doar condiționat.',
         ],
         'required_json': {
@@ -675,6 +917,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None):
                 'why': 'mecanismul riscului',
                 'review_trigger': 'condiție observabilă de reevaluare',
                 'confidence': 'ridicată|medie|scăzută și motiv',
+                'source_ids': ['zero sau mai mulți identificatori exacți din data.positions[].evidence'],
             }],
         },
         'data': snapshot,
@@ -701,6 +944,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None):
         result = _validate_portfolio_ai_result(
             json.loads(_extract_openai_response_text(response.json())),
             {item['symbol'] for item in snapshot['positions']},
+            evidence_ids,
         )
         new_cache = {
             'version': PORTFOLIO_AI_CACHE_VERSION,
@@ -708,9 +952,13 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None):
             'generated_at': snapshot['as_of'],
             'result': result,
         }
-        return _render_portfolio_ai_html(snapshot, result, f'OpenAI · {OPENAI_ANALYSIS_MODEL}'), new_cache
+        return (
+            _render_portfolio_ai_html(snapshot, result, f'OpenAI · {OPENAI_ANALYSIS_MODEL}'),
+            new_cache,
+            evidence_cache,
+        )
     except (requests.RequestException, ValueError, KeyError, TypeError, json.JSONDecodeError):
-        return _render_portfolio_ai_html(snapshot), cached
+        return _render_portfolio_ai_html(snapshot), cached, evidence_cache
 
 
 def _enrich_events_with_ai(events, indicators):
