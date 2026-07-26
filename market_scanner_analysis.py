@@ -361,7 +361,7 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
-PORTFOLIO_AI_CACHE_VERSION = 7
+PORTFOLIO_AI_CACHE_VERSION = 8
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
 SEC_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK{cik:010d}.json'
@@ -1369,7 +1369,9 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
     )
 
 
-def render_buy_recommendations_html(result, candidates, evidence_cache=None):
+def render_buy_recommendations_html(
+    result, candidates, evidence_cache=None, bvb_universe_stats=None
+):
     """Carduri BUY stricte, validate AI cu știri, piață și calendar."""
     candidates_by_symbol = {
         str(item.get('symbol', '')).upper(): item for item in (candidates or [])
@@ -1543,6 +1545,17 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
             if market_notices else ''
         )
         body = notices_html + "<div style='display:grid;gap:10px;'>" + ''.join(cards) + "</div>"
+    bvb_coverage_html = ''
+    if bvb_universe_stats:
+        bvb_coverage_html = (
+            "<p style='margin:0 0 15px;color:var(--text-secondary);font-size:13px;'>"
+            f"Univers BVB/AeRO descoperit: "
+            f"<b>{int(bvb_universe_stats.get('discovered') or 0)}</b> simboluri · "
+            f"analiză profundă disponibilă pentru "
+            f"<b>{int(bvb_universe_stats.get('deep_scanned') or 0)}</b> · "
+            f"lot rotativ/rulare: {int(bvb_universe_stats.get('batch_size') or 0)}."
+            "</p>"
+        )
     return (
         "<section style='margin:28px 0;background:var(--light-purple-bg);"
         "border:1px solid var(--border-light);border-radius:var(--radius-md);padding:22px;'>"
@@ -1555,7 +1568,7 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
         "LQQ este monitorizat obligatoriu la fiecare rulare și dimensionat separat "
         "pentru IBKR și Tradeville când devine eligibil. "
         "Validarea AI ține cont de știri, piață și calendar; nu reprezintă ordin de tranzacționare.</p>"
-        + body + "</section>"
+        + bvb_coverage_html + body + "</section>"
     )
 
 

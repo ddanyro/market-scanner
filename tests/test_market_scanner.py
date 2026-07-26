@@ -35,6 +35,30 @@ class TestMarketAnalysis(unittest.TestCase):
         desc = market_scanner_analysis.get_event_impact('FOMC')
         self.assertIsInstance(desc, str)
         self.assertGreater(len(desc), 0)
+
+    def test_complete_bvb_csv_parser_includes_main_and_aero(self):
+        content = (
+            'Simbol;ISIN;Societate;Pret (RON);Data;Segment;Categoria;Volum\n'
+            'TLV;ROTLVAACNOR1;BANCA TRANSILVANIA;37,10;24.07.2026;'
+            'Piata Reglementata;Premium;100000\n'
+            'IARV;ROIARVACNOR1;IAR SA BRASOV;38,80;24.07.2026;'
+            'AeRO;AeRO Standard;25000\n'
+        )
+        records = market_scanner._parse_bvb_equity_universe_csv(content)
+        by_symbol = {item['symbol']: item for item in records}
+        self.assertEqual(set(by_symbol), {'TLV.RO', 'IARV.RO'})
+        self.assertEqual(by_symbol['IARV.RO']['segment'], 'AeRO')
+        self.assertEqual(by_symbol['TLV.RO']['price_ron'], 37.10)
+        self.assertEqual(by_symbol['IARV.RO']['volume'], 25000)
+
+    def test_bvb_universe_fetch_uses_last_valid_cache_on_error(self):
+        state = {'bvb_equity_universe': [{'symbol': 'IARV.RO'}]}
+        session = Mock()
+        session.get.side_effect = market_scanner.requests.RequestException('offline')
+        self.assertEqual(
+            market_scanner.fetch_complete_bvb_equity_universe(state, session),
+            state['bvb_equity_universe'],
+        )
         
     def test_event_impact_nfp(self):
         """Test NFP event impact description."""
@@ -493,6 +517,16 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIn('IBKR — sumă orientativă acum:</b> €0.00', html_result)
         self.assertIn('Tradeville — sumă orientativă acum:</b> €0.00', html_result)
         self.assertIn('Așteaptă', html_result)
+
+    def test_buy_renderer_shows_complete_bvb_coverage(self):
+        html_result = market_scanner_analysis.render_buy_recommendations_html(
+            {}, [], bvb_universe_stats={
+                'discovered': 372, 'deep_scanned': 60, 'batch_size': 30,
+            }
+        )
+        self.assertIn('Univers BVB/AeRO descoperit', html_result)
+        self.assertIn('<b>372</b>', html_result)
+        self.assertIn('<b>60</b>', html_result)
 
     def test_external_research_does_not_use_watchlist_filters(self):
         watchlist = pd.DataFrame([{
