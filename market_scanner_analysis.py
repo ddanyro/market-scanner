@@ -1242,10 +1242,12 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
         )
     else:
         cards = []
+        represented_markets = set()
         for item in recommendations:
             symbol = str(item['symbol']).upper()
             candidate = candidates_by_symbol[symbol]
             verdict = item['verdict']
+            represented_markets.add(str(item.get('market', '')))
             color = '#16a34a' if verdict == 'Candidat valid' else '#d97706'
             source_links = []
             for source_id in item.get('source_ids', []):
@@ -1280,7 +1282,24 @@ def render_buy_recommendations_html(result, candidates, evidence_cache=None):
                 f"<p style='margin:6px 0;'><b>Risc principal:</b> {html.escape(item['main_risk'])}</p>"
                 f"{sources_html}</details>"
             )
-        body = "<div style='display:grid;gap:10px;'>" + ''.join(cards) + "</div>"
+        market_notices = []
+        if 'SUA' not in represented_markets:
+            market_notices.append(
+                "<p style='margin:0;color:var(--text-secondary);'><b>SUA:</b> "
+                "niciun candidat nu a trecut toate filtrele și validarea AI.</p>"
+            )
+        if 'România / BVB' not in represented_markets:
+            market_notices.append(
+                "<p style='margin:0;color:var(--text-secondary);'><b>România / BVB:</b> "
+                "universul local a fost cercetat și adăugat în watchlist, dar momentan "
+                "niciun simbol nu trece simultan BUY, consensus Buy/Strong Buy și R:R ≥ 3.</p>"
+            )
+        notices_html = (
+            "<div style='display:grid;gap:5px;margin-bottom:12px;'>"
+            + ''.join(market_notices) + "</div>"
+            if market_notices else ''
+        )
+        body = notices_html + "<div style='display:grid;gap:10px;'>" + ''.join(cards) + "</div>"
     return (
         "<section style='margin:28px 0;background:var(--light-purple-bg);"
         "border:1px solid var(--border-light);border-radius:var(--radius-md);padding:22px;'>"
