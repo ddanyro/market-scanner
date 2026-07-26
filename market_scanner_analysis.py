@@ -1813,6 +1813,32 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
         'attempts': diagnostics,
         'message': 'Apelurile OpenAI au eșuat; este afișat fallback-ul determinist.',
     }
+    if isinstance(cached, dict) and isinstance(cached.get('result'), dict):
+        try:
+            stale_result = _validate_portfolio_ai_result(
+                cached['result'],
+                {item['symbol'] for item in snapshot['positions']},
+                evidence_ids,
+                {item['symbol'] for item in snapshot['buy_candidates']},
+                calendar_effects,
+            )
+            diagnostic.update({
+                'status': 'fallback_cache',
+                'message': (
+                    'Răspunsul nou a fost invalid; analiza AI anterioară este afișată '
+                    'împreună cu dimensionarea și soldurile curente.'
+                ),
+            })
+            return (
+                _render_portfolio_ai_html(
+                    snapshot, stale_result, f'OpenAI · {OPENAI_ANALYSIS_MODEL} · cache anterior'
+                ),
+                cached,
+                evidence_cache,
+                diagnostic,
+            )
+        except (ValueError, KeyError, TypeError):
+            pass
     return _render_portfolio_ai_html(snapshot), cached, evidence_cache, diagnostic
 
 

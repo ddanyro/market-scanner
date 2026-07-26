@@ -435,6 +435,53 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(evidence['items'], [])
         self.assertEqual(diagnostic['status'], 'missing_key')
 
+    @patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key'})
+    @patch('market_scanner_analysis.get_economic_events', return_value=[])
+    @patch('market_scanner_analysis.requests.post')
+    def test_portfolio_ai_uses_previous_valid_cache_when_new_json_is_invalid(
+        self, mock_post, _mock_calendar
+    ):
+        response = Mock()
+        response.status_code = 200
+        response.json.return_value = {'output_text': '{invalid'}
+        mock_post.return_value = response
+        cached = {
+            'version': 4,
+            'fingerprint': 'old',
+            'result': {
+                'portfolio_overview': 'Rezumat anterior valid.',
+                'market_read': 'Context anterior valid pentru SUA.',
+                'position_actions': [{
+                    'symbol': 'TEST', 'broker': 'IBKR', 'action': 'Urmărește atent',
+                    'plain_reason': 'Protecția trebuie verificată.',
+                    'calendar_effect': 'Calendarul nu este disponibil.',
+                    'next_check': 'Verifică stopul.',
+                }],
+                'buy_recommendations': [],
+                'priorities': [{
+                    'symbol': 'TEST', 'severity': 'mediu', 'issue': 'Protecție',
+                    'evidence': 'Stop neverificat.', 'action': 'Verifică stopul.',
+                    'why': 'Controlează pierderea.', 'review_trigger': 'La schimbarea prețului.',
+                    'confidence': 'medie', 'source_ids': [],
+                }],
+            },
+        }
+        html_result, returned_cache, _, diagnostic = (
+            market_scanner_analysis.generate_portfolio_ai_analysis(
+                self.portfolio,
+                pd.DataFrame(),
+                cached=cached,
+                cached_evidence={
+                    'fetched_at': datetime.utcnow().isoformat(),
+                    'symbols': ['TEST'],
+                    'items': [],
+                },
+            )
+        )
+        self.assertEqual(diagnostic['status'], 'fallback_cache')
+        self.assertIs(returned_cache, cached)
+        self.assertIn('cache anterior', html_result)
+
     def test_portfolio_evidence_prefers_official_sec_filings_and_keeps_links(self):
         class FakeResponse:
             def __init__(self, payload=None, content=b''):
