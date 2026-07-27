@@ -62,6 +62,9 @@ BVB_SHARES_CSV_URL = (
 )
 BVB_DEEP_SCAN_BATCH = 30
 US_DEEP_SCAN_BATCH = 40
+EXTERNAL_RESEARCH_MIN_RR = 1.8
+BUY_FINALIST_TTL_HOURS = 1.0
+EXTERNAL_RESEARCH_TTL_HOURS = 5.0
 SP500_UNIVERSE_FILE = 'sp500_tickers.json'
 
 
@@ -396,6 +399,20 @@ def _is_strict_buy_candidate(item):
     )
 
 
+def _buy_candidate_data_age_hours(item):
+    cached_at = _safe_float_text(item.get('_cached_at'))
+    if not cached_at:
+        return None
+    return max((time.time() - cached_at) / 3600, 0)
+
+
+def _buy_candidate_data_is_fresh(item, ttl_hours=BUY_FINALIST_TTL_HOURS):
+    """Fixturele fără timestamp sunt tratate drept curente; cache-ul real nu."""
+    if not _safe_float_text(item.get('_cached_at')):
+        return True
+    return market_data.is_fresh(item, ttl_hours=ttl_hours)
+
+
 def _buy_candidate_entry_eur(item):
     smart_entry_eur = item.get('Smart_Entry_EUR')
     try:
@@ -408,6 +425,101 @@ def _buy_candidate_entry_eur(item):
         return float(price_eur) if pd.notna(price_eur) and float(price_eur) > 0 else None
     except (TypeError, ValueError):
         return None
+
+
+def _prepare_external_research_candidate(raw_item):
+    """Construiește niveluri tehnice explicite pentru ruta externă independentă."""
+    item = dict(raw_item or {})
+    price = _safe_float_text(item.get('Price'))
+    if not price or price <= 0:
+        return item
+
+    ohlc = item.get('Chart_OHLC')
+    recent_highs = []
+    if isinstance(ohlc, list):
+        for bar in ohlc[-20:]:
+            if not isinstance(bar, dict):
+                continue
+            high = _safe_float_text(bar.get('high'))
+            if high and high > 0:
+                recent_highs.append(high)
+
+    trend = str(item.get('Trend') or '').lower()
+    strategy = str(item.get('Strategy') or '').lower()
+    bullish_breakout = (
+        'bullish' in trend or 'breakout' in strategy
+    )
+    atr = _safe_float_text(item.get('ATR_14')) or 0
+    has_technical_history = len(recent_highs) >= 5 and atr > 0
+    entry = _buy_candidate_entry_eur(item) or price
+    trigger_basis = str(item.get('Smart_Reason') or '').strip()
+    if bullish_breakout and has_technical_history:
+        recent_high = max(recent_highs)
+        # Confirmarea se face puțin peste maximul recent, nu prin urmărirea
+        # arbitrară a unei lumânări deja extinse.
+        breakout_entry = recent_high * 1.002
+        if breakout_entry <= price * 1.08:
+            entry = max(price, breakout_entry)
+            trigger_basis = (
+                'confirmare cu 0,2% peste maximul ultimelor 20 de ședințe'
+            )
+
+    stop = _safe_float_text(item.get('Stop_Loss'))
+    if (not stop or not (0 < stop < entry)) and has_technical_history:
+        stop_distance = max(atr * 2, entry * 0.04)
+        stop = entry - stop_distance
+
+    risk = entry - stop if stop and 0 < stop < entry else 0
+    original_target = _safe_float_text(
+        item.get('Original_Target')
+        if 'Original_Target' in item
+        else item.get('Target')
+    )
+    target = original_target
+    if not target:
+        target = _safe_float_text(item.get('Target'))
+    target_basis = str(
+        item.get('Target_Basis')
+        or 'țintă furnizată de sursa de piață'
+    )
+    supplied_rr = (
+        (target - entry) / risk
+        if target and target > entry and risk > 0 else 0
+    )
+    if supplied_rr < EXTERNAL_RESEARCH_MIN_RR and has_technical_history and risk > 0:
+        target = entry + max(
+            risk * 2.0,
+            atr * 3.0 if atr > 0 else 0,
+        )
+        target_basis = (
+            'țintă tehnică de 2× riscul inițial; nu este consens de analist'
+        )
+
+    rr_ratio = (
+        (target - entry) / risk
+        if target and target > entry and risk > 0 else 0
+    )
+    item.update({
+        'Smart_Entry_EUR': round(entry, 4),
+        'Stop_Loss': round(stop, 4) if stop else None,
+        'Target': round(target, 4) if target else None,
+        'RR_Ratio': round(rr_ratio, 2),
+        'Original_Target': original_target,
+        'Technical_Level_Source': (
+            item.get('Technical_Level_Source')
+            or (
+                'technical_breakout'
+                if bullish_breakout and has_technical_history
+                else 'technical_risk_plan'
+                if has_technical_history
+                else 'source_market_levels'
+            )
+        ),
+        'Trigger_Basis': trigger_basis or 'nivel tehnic curent',
+        'Target_Basis': target_basis,
+        'External_Min_RR': EXTERNAL_RESEARCH_MIN_RR,
+    })
+    return item
 
 
 def _correct_tradeville_manual_snapshot(account_data):
@@ -509,11 +621,8 @@ def _external_research_score(item):
 
 
 def _external_candidate_has_reliable_levels(item):
-    """Respinge nivelurile BVB evident incomplete sau corupte înainte de AI."""
+    """Validează nivelurile externe fără a impune filtrul strict al watchlistului."""
     symbol = str(item.get('Ticker', '')).upper()
-    if not symbol.endswith('.RO'):
-        return True
-
     entry = _buy_candidate_entry_eur(item)
     stop = _safe_float_text(item.get('Stop_Loss'))
     target = _safe_float_text(item.get('Target'))
@@ -522,34 +631,83 @@ def _external_candidate_has_reliable_levels(item):
         return False
     if not (0 < stop < entry < target):
         return False
+    if rr_ratio < EXTERNAL_RESEARCH_MIN_RR:
+        return False
 
-    # Pentru BVB, Yahoo poate publica uneori ținte fără unitate/monedă coerentă.
+    # Sursele pot publica uneori ținte fără unitate/monedă coerentă.
     # Nu trimitem modelului valori care implică multiplicări neverosimile.
     if rr_ratio > 12 or target / entry > 2.5:
         return False
-    if int(_safe_float_text(item.get('Analysts')) or 0) < 1:
+    if not _buy_candidate_data_is_fresh(item):
         return False
+
+    if not symbol.endswith('.RO'):
+        return True
 
     liquidity = _bvb_liquidity_assessment(item)
     item['BVB_Liquidity'] = liquidity
     return liquidity['eligible']
 
 
-def _research_symbols_due(symbols, by_symbol, watchlist_symbols):
-    """Filtrează simbolurile deja acoperite înainte de limitarea lotului."""
-    due = []
+def _research_symbols_due(
+    symbols, by_symbol, watchlist_symbols=None, priority_symbols=None,
+):
+    """Include și simbolurile din watchlist; finaliștii primesc refresh mai des."""
+    del watchlist_symbols  # Apartenența la watchlist nu mai blochează cercetarea.
+    priority_symbols = {
+        str(symbol).upper() for symbol in (priority_symbols or set())
+    }
+    priority_due = []
+    regular_due = []
     for symbol in symbols:
         normalized = str(symbol).upper()
         if normalized in ALWAYS_RESEARCH_SYMBOLS:
-            due.append(symbol)
-            continue
-        if normalized in watchlist_symbols:
+            priority_due.append(symbol)
             continue
         cached = by_symbol.get(normalized)
-        if cached and market_data.is_fresh(cached, ttl_hours=5):
+        ttl_hours = (
+            BUY_FINALIST_TTL_HOURS
+            if normalized in priority_symbols
+            else EXTERNAL_RESEARCH_TTL_HOURS
+        )
+        if cached and market_data.is_fresh(cached, ttl_hours=ttl_hours):
             continue
-        due.append(symbol)
-    return due
+        if normalized in priority_symbols:
+            priority_due.append(symbol)
+        else:
+            regular_due.append(symbol)
+    return priority_due + regular_due
+
+
+def _external_priority_symbols(
+    symbols, by_symbol, fallback_by_symbol=None, limit=10,
+):
+    """Folosește ultima triere disponibilă pentru a reîmprospăta finaliștii întâi."""
+    ranked = []
+    fallback_by_symbol = fallback_by_symbol or {}
+    for symbol in symbols:
+        normalized = str(symbol).upper()
+        raw = by_symbol.get(normalized) or fallback_by_symbol.get(normalized)
+        if not isinstance(raw, dict):
+            continue
+        candidate = _prepare_external_research_candidate(raw)
+        entry = _buy_candidate_entry_eur(candidate)
+        stop = _safe_float_text(candidate.get('Stop_Loss'))
+        target = _safe_float_text(candidate.get('Target'))
+        rr_ratio = _safe_float_text(candidate.get('RR_Ratio')) or 0
+        if not (
+            entry and stop and target
+            and 0 < stop < entry < target
+            and EXTERNAL_RESEARCH_MIN_RR <= rr_ratio <= 12
+        ):
+            continue
+        ranked.append((
+            -_external_research_score(candidate),
+            -rr_ratio,
+            normalized,
+        ))
+    ranked.sort()
+    return {symbol for _, _, symbol in ranked[:limit]}
 
 
 def select_strict_buy_candidates(
@@ -587,7 +745,7 @@ def select_strict_buy_candidates(
         item['_research_score'] += {
             'favorizat': 1.5, 'neutru': 0.0, 'nefavorizat': -1.5,
         }.get(cycle_fit, 0.0)
-    all_watchlist_symbols = set()
+    watchlist_candidate_symbols = set()
     if watchlist_df is not None and not watchlist_df.empty:
         for _, row in watchlist_df.iterrows():
             item = row.to_dict()
@@ -597,8 +755,10 @@ def select_strict_buy_candidates(
                 and not isinstance(item.get('BVB_Metadata'), dict)
             ):
                 item['BVB_Metadata'] = bvb_metadata_by_symbol[symbol]
-            all_watchlist_symbols.add(symbol)
-            strict_eligible = _is_strict_buy_candidate(item)
+            strict_eligible = (
+                _is_strict_buy_candidate(item)
+                and _buy_candidate_data_is_fresh(item)
+            )
             if not strict_eligible and symbol not in ALWAYS_RESEARCH_SYMBOLS:
                 continue
             item['Market'] = _buy_candidate_market(item.get('Ticker'))
@@ -606,6 +766,8 @@ def select_strict_buy_candidates(
             item['Strict_Eligible'] = strict_eligible
             item['Candidate_Source'] = 'watchlist'
             item['Requires_Watchlist_Filters'] = True
+            item['Data_Age_Hours'] = _buy_candidate_data_age_hours(item)
+            item['Data_Fresh'] = _buy_candidate_data_is_fresh(item)
             item['_research_score'] = float(item.get('RR_Ratio') or 0)
             if symbol.endswith('.RO'):
                 liquidity = _bvb_liquidity_assessment(item)
@@ -616,10 +778,14 @@ def select_strict_buy_candidates(
                 item['_research_score'] -= etf_weights.get(symbol, 0) / 4
             apply_us_rotation(item)
             candidates.append(item)
+            watchlist_candidate_symbols.add(symbol)
     for raw_item in external_research or []:
-        item = dict(raw_item)
+        item = _prepare_external_research_candidate(raw_item)
         symbol = str(item.get('Ticker', '')).upper()
-        if not symbol or symbol in all_watchlist_symbols:
+        # Un simbol care nu trece filtrul strict al watchlistului poate fi
+        # totuși cercetat independent. Evităm doar dublarea unui candidat
+        # strict deja inclus din watchlist.
+        if not symbol or symbol in watchlist_candidate_symbols:
             continue
         if (
             symbol in bvb_metadata_by_symbol
@@ -633,6 +799,9 @@ def select_strict_buy_candidates(
         item['Strict_Eligible'] = _is_strict_buy_candidate(item)
         item['Candidate_Source'] = 'external_research'
         item['Requires_Watchlist_Filters'] = False
+        item['External_Min_RR'] = EXTERNAL_RESEARCH_MIN_RR
+        item['Data_Age_Hours'] = _buy_candidate_data_age_hours(item)
+        item['Data_Fresh'] = _buy_candidate_data_is_fresh(item)
         item['_research_score'] = _external_research_score(item)
         if symbol.endswith('.RO'):
             item['TVBETETF_Weight_Pct'] = etf_weights.get(symbol, 0)
@@ -773,6 +942,10 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
         str(item.get('Ticker', '')).upper(): item
         for item in list(state.get('external_buy_research', [])) + migrated_external
     }
+    watchlist_by_symbol = {
+        str(item.get('Ticker', '')).upper(): item
+        for item in existing_results
+    }
     bvb_metadata = {
         item['symbol']: item for item in bvb_universe
     }
@@ -781,10 +954,26 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
     for market in markets_to_research:
         print(f"  -> Cercetare BUY pentru {market}...")
         symbols = list(research_universes[market])
+        priority_limit = (
+            12 if market == 'SUA'
+            else 8 if market == 'România / BVB'
+            else 1
+        )
+        priority_symbols = _external_priority_symbols(
+            symbols,
+            by_symbol,
+            fallback_by_symbol=watchlist_by_symbol,
+            limit=priority_limit,
+        )
         if market == 'România / BVB':
             def bvb_priority(symbol):
                 metadata = bvb_metadata.get(symbol, {})
-                cached = by_symbol.get(symbol.upper(), {})
+                normalized = symbol.upper()
+                cached = (
+                    by_symbol.get(normalized)
+                    or watchlist_by_symbol.get(normalized)
+                    or {}
+                )
                 freshness = float(cached.get('_cached_at') or 0)
                 trade_date = metadata.get('last_trade') or ''
                 try:
@@ -796,24 +985,52 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
                     or metadata.get('volume')
                     or 0
                 )
-                return (freshness, -liquidity, recency, symbol)
+                research_score = _external_research_score(
+                    _prepare_external_research_candidate(cached)
+                )
+                return (
+                    0 if normalized in priority_symbols else 1,
+                    -research_score,
+                    freshness,
+                    -liquidity,
+                    recency,
+                    symbol,
+                )
 
             symbols.sort(key=bvb_priority)
             symbols = _research_symbols_due(
-                symbols, by_symbol, watchlist_symbols
+                symbols,
+                by_symbol,
+                watchlist_symbols,
+                priority_symbols=priority_symbols,
             )[:BVB_DEEP_SCAN_BATCH]
         elif market == 'SUA':
             symbols.sort(key=lambda symbol: (
-                1 if symbol.upper() in by_symbol else 0,
-                float(by_symbol.get(symbol.upper(), {}).get('_cached_at') or 0),
+                0 if symbol.upper() in priority_symbols else 1,
+                -_external_research_score(_prepare_external_research_candidate(
+                    by_symbol.get(symbol.upper())
+                    or watchlist_by_symbol.get(symbol.upper())
+                    or {}
+                )),
+                float((
+                    by_symbol.get(symbol.upper())
+                    or watchlist_by_symbol.get(symbol.upper())
+                    or {}
+                ).get('_cached_at') or 0),
                 symbol,
             ))
             symbols = _research_symbols_due(
-                symbols, by_symbol, watchlist_symbols
+                symbols,
+                by_symbol,
+                watchlist_symbols,
+                priority_symbols=priority_symbols,
             )[:US_DEEP_SCAN_BATCH]
         else:
             symbols = _research_symbols_due(
-                symbols, by_symbol, watchlist_symbols
+                symbols,
+                by_symbol,
+                watchlist_symbols,
+                priority_symbols=priority_symbols,
             )
         attempted_by_market[market] = len(symbols)
         completed_by_market[market] = 0
@@ -4412,6 +4629,21 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'volume': item.get('Volume'),
             'strategy': item.get('Strategy'),
             'relative_strength': item.get('RS_vs_SPX'),
+            'data_as_of': item.get('Date'),
+            'data_age_hours': item.get(
+                'Data_Age_Hours',
+                _buy_candidate_data_age_hours(item),
+            ),
+            'data_fresh': bool(
+                item.get(
+                    'Data_Fresh',
+                    _buy_candidate_data_is_fresh(item),
+                )
+            ),
+            'level_source': item.get('Technical_Level_Source'),
+            'trigger_basis': item.get('Trigger_Basis'),
+            'target_basis': item.get('Target_Basis'),
+            'external_min_rr': item.get('External_Min_RR'),
             'bvb_metadata': item.get('BVB_Metadata'),
             'bvb_market_segment': (
                 (item.get('BVB_Liquidity') or {}).get('market_segment')

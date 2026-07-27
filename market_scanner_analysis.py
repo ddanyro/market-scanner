@@ -542,7 +542,7 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
-PORTFOLIO_AI_CACHE_VERSION = 14
+PORTFOLIO_AI_CACHE_VERSION = 15
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 ACTIONABLE_BUY_VERDICTS = {'Candidat valid', 'Pregătit la trigger'}
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
@@ -2409,6 +2409,32 @@ def render_buy_recommendations_html(
                     f" · sector {html.escape(str(candidate.get('cycle_fit') or 'neutru'))}."
                     "</div>"
                 )
+            data_age = candidate.get('data_age_hours')
+            data_as_of = str(candidate.get('data_as_of') or '').strip()
+            freshness_text = (
+                f"actualizate acum {float(data_age):.1f} ore"
+                if data_age is not None
+                else "actualizare curentă confirmată de scanner"
+            )
+            if data_as_of:
+                freshness_text += f" · data pieței {data_as_of}"
+            level_basis = ' · '.join(
+                str(value).strip()
+                for value in (
+                    candidate.get('trigger_basis'),
+                    candidate.get('target_basis'),
+                )
+                if str(value or '').strip()
+            )
+            validation_details_html = (
+                "<p style='margin:6px 0;font-size:12px;color:var(--text-secondary);'>"
+                f"<b>Validarea nivelurilor:</b> {html.escape(freshness_text)}"
+                + (
+                    f" · {html.escape(level_basis)}"
+                    if level_basis else ''
+                )
+                + "</p>"
+            )
             cards.append(
                 "<details style='background:var(--bg-white);border:1px solid var(--border-light);"
                 f"border-left:4px solid {color};border-radius:var(--radius-sm);padding:14px 16px;'>"
@@ -2425,6 +2451,7 @@ def render_buy_recommendations_html(
                 f"<span><b>Target:</b> €{float(candidate.get('target_eur') or 0):.2f}</span></div>"
                 + overlap_html
                 + ''.join(sizing_html)
+                + validation_details_html
                 + f"<p style='margin:6px 0;'><b>De ce acum:</b> {html.escape(why_now)}</p>"
                 f"<p style='margin:6px 0;'><b>Piața:</b> {html.escape(item['market_effect'])}</p>"
                 f"<p style='margin:6px 0;'><b>Știri:</b> {html.escape(item['news_effect'])}</p>"
@@ -2657,7 +2684,11 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Calendarul candidaților este validat determinist: evenimentele trecute nu pot fi descrise ca riscuri viitoare de publicare.',
             'Nu recomanda și nu inventa simboluri care nu există în buy_candidates.',
             'Pentru candidate_source=watchlist, strict_eligible arată dacă instrumentul a trecut BUY + Buy/Strong Buy + R:R minimum 3; dacă este false, verdictul trebuie să fie Așteaptă.',
-            'Pentru candidate_source=external_research, nu aplica filtrul watchlistului. Evaluează independent calitatea, catalizatorii, știrile, piața, calendarul, entry/stop/target și riscul; recomandă numai dacă aceste dovezi susțin intrarea.',
+            'Pentru candidate_source=external_research, nu aplica filtrul watchlistului și nu respinge simbolul doar fiindcă există deja în watchlist. Evaluează independent calitatea, catalizatorii, știrile, piața, calendarul, entry/stop/target și riscul.',
+            'Un candidat extern poate primi Candidat valid sau Pregătit la trigger numai dacă data_fresh=true, entry_eur, stop_eur și target_eur respectă stop < entry < target, iar rr_ratio este cel puțin external_min_rr (în prezent 1,8). Dacă datele sunt vechi sau nivelurile sunt incoerente, verdictul trebuie să fie Așteaptă și investiția acum zero.',
+            'Pentru BVB, absența unui consens de analiști nu invalidează singură un candidat extern. Cere însă niveluri tehnice verificabile și lichiditate locală eligibilă; nu inventa un consens.',
+            'Folosește level_source, trigger_basis și target_basis. Când target_basis spune că ținta este un plan tehnic de risc, prezint-o ca nivel de administrare a tranzacției, nu ca țintă de analist.',
+            'Dacă prețul curent a depășit deja clar un trigger de breakout, nu recomanda urmărirea prețului. Cere o bază nouă ori un nou trigger, exceptând cazul în care nivelurile actualizate confirmă că intrarea nu este extinsă.',
             'Pentru cercetarea externă folosește trepte clare: Candidat valid numai pentru intrare imediată; Pregătit la trigger când există un prag apropiat; Foarte aproape când mai lipsește o confirmare; Urmărește pentru o idee utilă dar prematură; Evită când riscul domină.',
             'Pregătit la trigger înseamnă că se poate pregăti un ordin condiționat la entry_eur, nu că instrumentul trebuie cumpărat imediat la piață. Spune clar ce nivel trebuie atins înaintea execuției.',
             'Pentru verdicturile diferite de Candidat valid, investiția acum este zero. În why_now spune în limbaj simplu triggerul sau confirmarea necesară folosind exclusiv nivelurile primite.',

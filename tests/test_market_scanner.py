@@ -1147,9 +1147,9 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         }])
         external = [{
             'Ticker': 'TLV.RO', 'Decision': 'HOLD', 'Consensus': '-',
-            'RR_Ratio': 1.5, 'Trend': 'Bullish', 'RSI': 52,
-            'Price': 10, 'Stop_Loss': 9, 'Target': 12.5,
-            'Analysts': 1, 'Volume': 50_000,
+            'RR_Ratio': 2, 'Trend': 'Bullish', 'RSI': 52,
+            'Price': 10, 'Stop_Loss': 9, 'Target': 12,
+            'Analysts': 0, 'Volume': 50_000,
         }]
         selected = market_scanner.select_strict_buy_candidates(
             watchlist, external_research=external
@@ -1157,6 +1157,87 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual([item['Ticker'] for item in selected], ['TLV.RO'])
         self.assertEqual(selected[0]['Candidate_Source'], 'external_research')
         self.assertFalse(selected[0]['Requires_Watchlist_Filters'])
+        self.assertEqual(selected[0]['External_Min_RR'], 1.8)
+
+    def test_external_research_enforces_confirmed_minimum_rr(self):
+        common = {
+            'Ticker': 'TEST', 'Price': 10, 'Smart_Entry_EUR': 10,
+            'Stop_Loss': 9, 'Target': 11.8, 'RR_Ratio': 1.8,
+        }
+        self.assertTrue(
+            market_scanner._external_candidate_has_reliable_levels(common)
+        )
+        below_minimum = dict(common, Target=11.79, RR_Ratio=1.79)
+        self.assertFalse(
+            market_scanner._external_candidate_has_reliable_levels(below_minimum)
+        )
+
+    def test_external_research_does_not_invent_levels_without_history(self):
+        prepared = market_scanner._prepare_external_research_candidate({
+            'Ticker': 'EMPTY', 'Price': 10, 'Trend': 'Bullish',
+        })
+        self.assertIsNone(prepared['Stop_Loss'])
+        self.assertIsNone(prepared['Target'])
+        self.assertFalse(
+            market_scanner._external_candidate_has_reliable_levels(prepared)
+        )
+
+    def test_bvb_external_research_can_use_technical_levels_without_consensus(self):
+        prepared = market_scanner._prepare_external_research_candidate({
+            'Ticker': 'DIGI.RO', 'Decision': 'WAIT', 'Consensus': '-',
+            'Analysts': 0, 'Price': 10, 'Price_Native': 50,
+            'Trend': 'Bullish', 'RSI': 55, 'ATR_14': 0.2,
+            'Volume': 50_000,
+            'Chart_OHLC': [
+                {'high': 9.80 + index * 0.01}
+                for index in range(20)
+            ],
+        })
+        selected = market_scanner.select_strict_buy_candidates(
+            pd.DataFrame(), external_research=[prepared]
+        )
+        self.assertEqual([item['Ticker'] for item in selected], ['DIGI.RO'])
+        self.assertEqual(selected[0]['Analysts'], 0)
+        self.assertGreaterEqual(selected[0]['RR_Ratio'], 1.8)
+        self.assertEqual(
+            selected[0]['Target_Basis'],
+            'țintă tehnică de 2× riscul inițial; nu este consens de analist',
+        )
+
+    def test_symbol_already_in_watchlist_can_be_selected_by_external_research(self):
+        watchlist = pd.DataFrame([{
+            'Ticker': 'AAPL', 'Decision': 'WAIT', 'Consensus': 'Buy',
+            'RR_Ratio': 1.2, 'Price': 100,
+        }])
+        external = [{
+            'Ticker': 'AAPL', 'Decision': 'WAIT', 'Consensus': 'Buy',
+            'RR_Ratio': 2, 'Trend': 'Bullish', 'RSI': 55,
+            'Price': 100, 'Stop_Loss': 95, 'Target': 110,
+            'Sector': 'Technology', 'Industry': 'Consumer Electronics',
+        }]
+        selected = market_scanner.select_strict_buy_candidates(
+            watchlist, external_research=external
+        )
+        self.assertEqual([item['Ticker'] for item in selected], ['AAPL'])
+        self.assertEqual(selected[0]['Candidate_Source'], 'external_research')
+
+    def test_strict_watchlist_candidate_wins_over_external_duplicate(self):
+        watchlist = pd.DataFrame([{
+            'Ticker': 'AAPL', 'Decision': 'BUY', 'Consensus': 'Strong Buy',
+            'RR_Ratio': 3.5, 'Price': 100,
+            'Sector': 'Technology', 'Industry': 'Consumer Electronics',
+        }])
+        external = [{
+            'Ticker': 'AAPL', 'Decision': 'WAIT', 'Consensus': 'Buy',
+            'RR_Ratio': 2, 'Trend': 'Bullish', 'RSI': 55,
+            'Price': 100, 'Stop_Loss': 95, 'Target': 110,
+            'Sector': 'Technology', 'Industry': 'Consumer Electronics',
+        }]
+        selected = market_scanner.select_strict_buy_candidates(
+            watchlist, external_research=external
+        )
+        self.assertEqual(len(selected), 1)
+        self.assertEqual(selected[0]['Candidate_Source'], 'watchlist')
 
     def test_external_research_rewards_verified_relative_strength(self):
         base = {
@@ -1214,7 +1295,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         )
         self.assertEqual([item['Ticker'] for item in selected], ['ONE.RO'])
 
-    def test_research_batch_filters_fresh_and_watchlist_before_limit(self):
+    def test_research_batch_includes_watchlist_symbols_and_skips_fresh_cache(self):
         symbols = [f'WATCH{index}' for index in range(40)] + [
             f'NEW{index}' for index in range(50)
         ]
@@ -1223,15 +1304,65 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             {'NEW0': {'_cached_at': time.time()}},
             {f'WATCH{index}' for index in range(40)},
         )
-        self.assertEqual(len(due[:market_scanner.US_DEEP_SCAN_BATCH]), 40)
-        self.assertEqual(due[0], 'NEW1')
-        self.assertEqual(due[39], 'NEW40')
+        self.assertIn('WATCH0', due)
+        self.assertNotIn('NEW0', due)
+        self.assertEqual(due[0], 'WATCH0')
+
+    def test_research_finalists_refresh_more_often_than_regular_symbols(self):
+        cached_at = time.time() - (2 * 3600)
+        due = market_scanner._research_symbols_due(
+            ['AAPL', 'OTHER'],
+            {
+                'AAPL': {'_cached_at': cached_at},
+                'OTHER': {'_cached_at': cached_at},
+            },
+            priority_symbols={'AAPL'},
+        )
+        self.assertEqual(due, ['AAPL'])
+
+    @patch('market_scanner.process_watchlist_ticker')
+    @patch('market_scanner.load_complete_us_equity_universe', return_value=['AAPL'])
+    @patch('market_scanner.fetch_complete_bvb_equity_universe', return_value=[])
+    @patch('market_scanner.os.path.exists', return_value=True)
+    @patch('market_scanner.pd.read_csv')
+    def test_external_refresh_scans_symbol_even_when_it_is_in_watchlist(
+        self, mock_read_csv, _mock_exists, _mock_bvb, _mock_us, mock_process
+    ):
+        mock_read_csv.return_value = pd.DataFrame({'symbol': ['AAPL']})
+        mock_process.return_value = {
+            'Ticker': 'AAPL', 'Price': 100, 'Stop_Loss': 95,
+            'Target': 110, 'RR_Ratio': 2,
+        }
+        state = {
+            'watchlist': [{
+                'Ticker': 'AAPL', 'Decision': 'WAIT', 'Price': 99,
+                'Stop_Loss': 94, 'Target': 109, 'RR_Ratio': 2,
+                '_cached_at': time.time() - 7200,
+            }],
+        }
+        with patch.dict(
+            market_scanner.BUY_RESEARCH_UNIVERSES,
+            {'SUA': ['AAPL']},
+            clear=True,
+        ):
+            result = market_scanner.ensure_buy_research_candidates(
+                state, {'EUR': 1, 'USD': 1}, 15, refresh_missing=True
+            )
+        mock_process.assert_called_once_with(
+            'AAPL', 15, {'EUR': 1, 'USD': 1}
+        )
+        self.assertEqual(
+            [item['Ticker'] for item in result['external_buy_research']],
+            ['AAPL'],
+        )
+        self.assertEqual(result['us_universe_stats']['last_batch_attempted'], 1)
 
     def test_us_selection_limits_two_candidates_per_sector(self):
         external = [
             {
                 'Ticker': ticker, 'Decision': 'BUY', 'Consensus': 'Buy',
                 'RR_Ratio': 3, 'Trend': 'Bullish', 'RSI': 50,
+                'Price': 100, 'Stop_Loss': 95, 'Target': 115,
                 'Sector': sector,
             }
             for ticker, sector in [
@@ -1258,6 +1389,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             {
                 'Ticker': ticker, 'Decision': 'BUY', 'Consensus': 'Buy',
                 'RR_Ratio': 3, 'Trend': 'Bullish', 'RSI': 50,
+                'Price': 100, 'Stop_Loss': 95, 'Target': 115,
                 'Sector': sector, 'Industry': 'Semiconductors',
             }
             for ticker, sector in [
