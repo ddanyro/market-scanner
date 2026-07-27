@@ -1085,12 +1085,50 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(len(second), 1)
         self.assertFalse(second[0]['is_current'])
         self.assertEqual(second[0]['closed_at'], '2026-07-28T09:00:00')
+        self.assertEqual(second[0]['closed_verdict'], 'Așteaptă')
+        self.assertEqual(second[0]['closed_reason'], 'Nu acum.')
         history_html = (
             market_scanner_analysis._render_buy_recommendation_history(second)
         )
         self.assertIn('MSFT · Cumpărare acum', history_html)
         self.assertIn('Încheiată', history_html)
-        self.assertNotIn('Nu acum.', history_html)
+        self.assertIn('Retrasă după reevaluare:</b> Așteaptă', history_html)
+        self.assertIn('Nu acum.', history_html)
+
+    def test_buy_history_archives_previous_cache_before_reclassification(self):
+        old_candidate = {
+            'symbol': 'AIG', 'company_name': 'AIG', 'market': 'SUA',
+            'entry_eur': 66.99, 'stop_eur': 65.41, 'target_eur': 77.63,
+            'rr_ratio': 6.73, 'eligible_brokers': ['IBKR'],
+            'sizing_by_broker': [{
+                'broker': 'IBKR', 'conditional_amount_eur': 937.86,
+                'conditional_units': 14,
+            }],
+        }
+        cached = {
+            'generated_at': '2026-07-27T15:16:25',
+            'buy_candidates': [old_candidate],
+            'result': {'buy_recommendations': [{
+                'symbol': 'AIG', 'market': 'SUA',
+                'verdict': 'Pregătit la trigger',
+                'why_now': 'Ordin condiționat la 66,99 EUR.',
+                'main_risk': 'Sub 65,41 EUR.',
+            }]},
+        }
+        archived = (
+            market_scanner_analysis.update_buy_recommendation_history_from_cache(
+                [], cached, [{
+                    **old_candidate,
+                    'entry_eur': 70.24,
+                }]
+            )
+        )
+        self.assertEqual(len(archived), 1)
+        self.assertEqual(archived[0]['entry_eur'], 66.99)
+        self.assertEqual(
+            archived[0]['first_seen_at'], '2026-07-27T15:16:25'
+        )
+        self.assertTrue(archived[0]['is_current'])
 
     def test_buy_renderer_shows_complete_bvb_coverage(self):
         html_result = market_scanner_analysis.render_buy_recommendations_html(

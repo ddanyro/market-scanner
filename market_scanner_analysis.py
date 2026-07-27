@@ -1979,10 +1979,27 @@ def update_buy_recommendation_history(
         if isinstance(item, dict) and item.get('history_key')
     ]
     by_key = {item['history_key']: item for item in history}
+    latest_by_symbol = {
+        str(item.get('symbol', '')).upper(): item
+        for item in (result or {}).get('buy_recommendations', [])
+        if item.get('symbol')
+    }
     for item in history:
         if item.get('is_current'):
             item['is_current'] = False
             item['closed_at'] = recorded_at
+            replacement = latest_by_symbol.get(
+                str(item.get('symbol', '')).upper()
+            )
+            if replacement:
+                item['closed_verdict'] = str(
+                    replacement.get('verdict') or 'Reevaluat'
+                )
+                item['closed_reason'] = str(
+                    replacement.get('why_now')
+                    or replacement.get('main_risk')
+                    or ''
+                )[:700]
 
     for recommendation in (result or {}).get('buy_recommendations', []):
         symbol = str(recommendation.get('symbol', '')).upper()
@@ -2015,6 +2032,8 @@ def update_buy_recommendation_history(
             'main_risk': str(recommendation.get('main_risk') or '')[:700],
             'is_current': True,
             'closed_at': None,
+            'closed_verdict': None,
+            'closed_reason': None,
             'last_seen_at': recorded_at,
         }
         sizing_rows = []
@@ -2050,6 +2069,27 @@ def update_buy_recommendation_history(
     return history[:limit]
 
 
+def update_buy_recommendation_history_from_cache(
+    previous_history, cached_analysis, fallback_candidates=None, limit=120,
+):
+    """Arhivează rezultatul anterior înainte ca un cache nou să-l înlocuiască."""
+    if not isinstance(cached_analysis, dict):
+        return list(previous_history or [])
+    cached_result = cached_analysis.get('result')
+    if not isinstance(cached_result, dict):
+        return list(previous_history or [])
+    cached_candidates = cached_analysis.get('buy_candidates')
+    if not isinstance(cached_candidates, list) or not cached_candidates:
+        cached_candidates = list(fallback_candidates or [])
+    return update_buy_recommendation_history(
+        previous_history,
+        cached_result,
+        cached_candidates,
+        recorded_at=cached_analysis.get('generated_at'),
+        limit=limit,
+    )
+
+
 def _render_buy_recommendation_history(history):
     if not history:
         return ''
@@ -2066,6 +2106,18 @@ def _render_buy_recommendation_history(history):
             )
             for row in item.get('sizing_by_broker') or []
         )
+        closed_reason_html = ''
+        if not item.get('is_current') and (
+            item.get('closed_verdict') or item.get('closed_reason')
+        ):
+            closed_reason_html = (
+                "<br><b>Retrasă după reevaluare:</b> "
+                f"{html.escape(str(item.get('closed_verdict') or '-'))}"
+                + (
+                    f" — {html.escape(str(item.get('closed_reason')))}"
+                    if item.get('closed_reason') else ''
+                )
+            )
         rows.append(
             "<details style='background:var(--bg-white);border:1px solid "
             "var(--border-light);border-radius:var(--radius-sm);padding:11px 13px;'>"
@@ -2087,10 +2139,11 @@ def _render_buy_recommendation_history(history):
             )
             + f"<br><b>Motiv:</b> {html.escape(str(item.get('why_now') or '-'))}"
             f"<br><b>Risc:</b> {html.escape(str(item.get('main_risk') or '-'))}"
-            "</div></details>"
+            + closed_reason_html
+            + "</div></details>"
         )
     return (
-        "<details style='margin-top:18px;background:rgba(255,255,255,.55);"
+        "<details open style='margin-top:18px;background:rgba(255,255,255,.55);"
         "border:1px solid var(--border-light);border-radius:var(--radius-sm);"
         "padding:13px 15px;'>"
         f"<summary style='cursor:pointer;font-weight:700;'>Istoric recomandări executabile ({len(history)})</summary>"
@@ -2815,6 +2868,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 'fingerprint': fingerprint,
                 'generated_at': snapshot['as_of'],
                 'result': result,
+                'buy_candidates': snapshot['buy_candidates'],
             }
             diagnostic = {
                 'status': 'success',
@@ -3026,6 +3080,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'fingerprint': fingerprint,
             'generated_at': snapshot['as_of'],
             'result': recovered_core,
+            'buy_candidates': snapshot['buy_candidates'],
         }
         diagnostic = {
             'status': 'success_recovered',
