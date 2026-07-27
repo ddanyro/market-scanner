@@ -521,7 +521,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             cache['result'], [candidate]
         )
         self.assertNotIn('>Neanalizat</span>', cards)
-        self.assertIn('Pregătit la trigger', cards)
+        self.assertIn('Ordin la trigger', cards)
 
     def test_portfolio_ai_validation_can_require_every_candidate(self):
         result = {
@@ -995,9 +995,102 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             }],
         )
         self.assertIn('LQQ.PA', html_result)
-        self.assertIn('IBKR — sumă orientativă acum:</b> €0.00', html_result)
-        self.assertIn('Tradeville — sumă orientativă acum:</b> €0.00', html_result)
-        self.assertIn('Așteaptă', html_result)
+        self.assertIn('IBKR — sumă de cumpărat acum:</b> €0.00', html_result)
+        self.assertIn('Tradeville — sumă de cumpărat acum:</b> €0.00', html_result)
+        self.assertIn('LQQ monitorizat', html_result)
+
+    def test_buy_renderer_hides_non_actionable_verdicts_but_keeps_lqq(self):
+        result = {'buy_recommendations': [
+            {
+                'symbol': 'WAIT', 'market': 'SUA', 'verdict': 'Așteaptă',
+                'why_now': 'Nu acum.', 'market_effect': 'Mixt.',
+                'news_effect': 'Neutru.', 'calendar_effect': 'Neutru.',
+                'main_risk': 'Risc.', 'source_ids': [],
+            },
+            {
+                'symbol': 'TRIGGER', 'market': 'SUA',
+                'verdict': 'Pregătit la trigger', 'why_now': 'Peste 101.',
+                'market_effect': 'Pozitiv.', 'news_effect': 'Neutru.',
+                'calendar_effect': 'Neutru.', 'main_risk': 'Sub 95.',
+                'source_ids': [],
+            },
+            {
+                'symbol': 'LQQ.PA', 'market': 'Europa / Nasdaq-100',
+                'verdict': 'Așteaptă', 'why_now': 'Nu acum.',
+                'market_effect': 'Mixt.', 'news_effect': 'Neutru.',
+                'calendar_effect': 'Neutru.', 'main_risk': 'Trend.',
+                'source_ids': [],
+            },
+        ]}
+        candidates = [
+            {
+                'symbol': symbol, 'market': market, 'company_name': symbol,
+                'strict_eligible': symbol != 'LQQ.PA',
+                'requires_watchlist_filters': True,
+                'eligible_brokers': ['IBKR'], 'entry_eur': 100,
+                'stop_eur': 95, 'target_eur': 120, 'rr_ratio': 4,
+                'consensus': 'Buy', 'sizing_by_broker': [{
+                    'broker': 'IBKR', 'broker_available_cash_eur': 10_000,
+                    'conditional_amount_eur': 1_000,
+                    'conditional_units': 10, 'risk_to_stop_pct': 5,
+                }],
+            }
+            for symbol, market in [
+                ('WAIT', 'SUA'), ('TRIGGER', 'SUA'),
+                ('LQQ.PA', 'Europa / Nasdaq-100'),
+            ]
+        ]
+        html_result = market_scanner_analysis.render_buy_recommendations_html(
+            result, candidates
+        )
+        self.assertNotIn('WAIT · WAIT', html_result)
+        self.assertIn('TRIGGER · TRIGGER', html_result)
+        self.assertIn('Ordin la trigger', html_result)
+        self.assertIn(
+            'buget pentru ordin condiționat la trigger:</b> €1,000.00',
+            html_result,
+        )
+        self.assertIn('Nu cumpăra la piață înainte de trigger', html_result)
+        self.assertIn('LQQ.PA · LQQ.PA', html_result)
+
+    def test_buy_recommendation_history_keeps_past_actionable_signals(self):
+        candidate = {
+            'symbol': 'MSFT', 'company_name': 'Microsoft', 'market': 'SUA',
+            'entry_eur': 100, 'stop_eur': 95, 'target_eur': 120,
+            'rr_ratio': 4, 'eligible_brokers': ['IBKR'],
+            'sizing_by_broker': [{
+                'broker': 'IBKR', 'conditional_amount_eur': 1_000,
+                'conditional_units': 10,
+            }],
+        }
+        first = market_scanner_analysis.update_buy_recommendation_history(
+            [],
+            {'buy_recommendations': [{
+                'symbol': 'MSFT', 'market': 'SUA',
+                'verdict': 'Candidat valid', 'why_now': 'Setup valid.',
+                'main_risk': 'Sub stop.',
+            }]},
+            [candidate],
+            recorded_at='2026-07-27T09:00:00',
+        )
+        second = market_scanner_analysis.update_buy_recommendation_history(
+            first,
+            {'buy_recommendations': [{
+                'symbol': 'MSFT', 'market': 'SUA', 'verdict': 'Așteaptă',
+                'why_now': 'Nu acum.', 'main_risk': 'Piață slabă.',
+            }]},
+            [candidate],
+            recorded_at='2026-07-28T09:00:00',
+        )
+        self.assertEqual(len(second), 1)
+        self.assertFalse(second[0]['is_current'])
+        self.assertEqual(second[0]['closed_at'], '2026-07-28T09:00:00')
+        history_html = (
+            market_scanner_analysis._render_buy_recommendation_history(second)
+        )
+        self.assertIn('MSFT · Cumpărare acum', history_html)
+        self.assertIn('Încheiată', history_html)
+        self.assertNotIn('Nu acum.', history_html)
 
     def test_buy_renderer_shows_complete_bvb_coverage(self):
         html_result = market_scanner_analysis.render_buy_recommendations_html(
@@ -1305,7 +1398,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIs(returned_cache, cached)
         self.assertIn('OpenAI · cache', html_result)
 
-    def test_buy_renderer_marks_missing_ai_result_as_not_analyzed(self):
+    def test_buy_renderer_hides_missing_ai_result_from_suggestions(self):
         html_result = market_scanner_analysis.render_buy_recommendations_html(
             {},
             [{
@@ -1321,10 +1414,10 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
                 }],
             }],
         )
-        self.assertIn('Neanalizat', html_result)
+        self.assertNotIn('MSFT · Microsoft', html_result)
         self.assertNotIn('>Așteaptă</span>', html_result)
-        self.assertIn('nu că ideea a fost respinsă', html_result)
-        self.assertIn('Validare AI curentă: <b>0</b> din <b>1</b>', html_result)
+        self.assertIn('sugestii executabile: <b>0</b>', html_result)
+        self.assertIn('Nu există momentan o sugestie executabilă', html_result)
 
     def test_portfolio_evidence_prefers_official_sec_filings_and_keeps_links(self):
         class FakeResponse:

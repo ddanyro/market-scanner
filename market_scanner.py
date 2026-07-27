@@ -4489,6 +4489,24 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         us_market_regime=us_market_regime,
     )
     portfolio_ai_result = (new_portfolio_ai_cache or {}).get('result', {})
+    previous_buy_history = list(
+        (full_state or {}).get('buy_recommendation_history', [])
+    )
+    buy_recommendation_history = previous_buy_history
+    if portfolio_ai_result:
+        buy_recommendation_history = (
+            analysis.update_buy_recommendation_history(
+                previous_buy_history,
+                portfolio_ai_result,
+                buy_candidate_payload,
+                recorded_at=(new_portfolio_ai_cache or {}).get(
+                    'generated_at'
+                ),
+            )
+        )
+        full_state['buy_recommendation_history'] = (
+            buy_recommendation_history
+        )
     promoted_symbols = _promote_validated_external_candidates(
         portfolio_ai_result, buy_candidate_payload
     )
@@ -4503,6 +4521,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         new_portfolio_evidence or cached_portfolio_evidence,
         (full_state or {}).get('bvb_universe_stats'),
         (full_state or {}).get('us_universe_stats'),
+        buy_recommendation_history,
     )
     full_state['last_portfolio_ai_diagnostic'] = portfolio_ai_diagnostic
     if (
@@ -4518,6 +4537,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         full_state['last_portfolio_ai_evidence'] = new_portfolio_evidence
         market_utils.save_state(full_state)
         print("  -> Sursele recente ale portofoliului au fost salvate în cache.")
+    if buy_recommendation_history != previous_buy_history:
+        market_utils.save_state(full_state)
+        print("  -> Istoricul recomandărilor executabile a fost actualizat.")
     if portfolio_ai_diagnostic.get('status') == 'failed':
         print(f"  ⚠ Analiza AI portofoliu indisponibilă: {portfolio_ai_diagnostic}")
 

@@ -542,8 +542,9 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
-PORTFOLIO_AI_CACHE_VERSION = 13
+PORTFOLIO_AI_CACHE_VERSION = 14
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
+ACTIONABLE_BUY_VERDICTS = {'Candidat valid', 'Pregătit la trigger'}
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
 SEC_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK{cik:010d}.json'
 
@@ -1951,9 +1952,159 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
     )
 
 
+def _buy_recommendation_history_key(symbol, verdict, candidate):
+    levels = [
+        round(_safe_number(candidate.get(field)), 4)
+        for field in ('entry_eur', 'stop_eur', 'target_eur')
+    ]
+    return '|'.join([str(symbol).upper(), str(verdict)] + [
+        f'{value:.4f}' for value in levels
+    ])
+
+
+def update_buy_recommendation_history(
+    previous_history, result, candidates, recorded_at=None, limit=120,
+):
+    """Păstrează numai semnalele executabile, fără a le confunda cu cele curente."""
+    recorded_at = recorded_at or datetime.datetime.now().isoformat(
+        timespec='seconds'
+    )
+    candidates_by_symbol = {
+        str(item.get('symbol', '')).upper(): item
+        for item in (candidates or [])
+        if item.get('symbol')
+    }
+    history = [
+        dict(item) for item in (previous_history or [])
+        if isinstance(item, dict) and item.get('history_key')
+    ]
+    by_key = {item['history_key']: item for item in history}
+    for item in history:
+        if item.get('is_current'):
+            item['is_current'] = False
+            item['closed_at'] = recorded_at
+
+    for recommendation in (result or {}).get('buy_recommendations', []):
+        symbol = str(recommendation.get('symbol', '')).upper()
+        verdict = str(recommendation.get('verdict', ''))
+        candidate = candidates_by_symbol.get(symbol)
+        if verdict not in ACTIONABLE_BUY_VERDICTS or not candidate:
+            continue
+        history_key = _buy_recommendation_history_key(
+            symbol, verdict, candidate
+        )
+        snapshot = {
+            'history_key': history_key,
+            'symbol': symbol,
+            'company_name': str(candidate.get('company_name') or ''),
+            'market': str(
+                candidate.get('market') or recommendation.get('market') or '-'
+            ),
+            'verdict': verdict,
+            'action_label': (
+                'Cumpărare acum'
+                if verdict == 'Candidat valid'
+                else 'Ordin la trigger'
+            ),
+            'entry_eur': round(_safe_number(candidate.get('entry_eur')), 4),
+            'stop_eur': round(_safe_number(candidate.get('stop_eur')), 4),
+            'target_eur': round(_safe_number(candidate.get('target_eur')), 4),
+            'rr_ratio': round(_safe_number(candidate.get('rr_ratio')), 3),
+            'eligible_brokers': list(candidate.get('eligible_brokers') or []),
+            'why_now': str(recommendation.get('why_now') or '')[:700],
+            'main_risk': str(recommendation.get('main_risk') or '')[:700],
+            'is_current': True,
+            'closed_at': None,
+            'last_seen_at': recorded_at,
+        }
+        sizing_rows = []
+        for sizing in candidate.get('sizing_by_broker') or []:
+            sizing_rows.append({
+                'broker': str(sizing.get('broker') or '-'),
+                'conditional_amount_eur': round(
+                    _safe_number(sizing.get('conditional_amount_eur')), 2
+                ),
+                'conditional_units': int(
+                    _safe_number(sizing.get('conditional_units'))
+                ),
+            })
+        snapshot['sizing_by_broker'] = sizing_rows
+        if history_key in by_key:
+            first_seen = by_key[history_key].get(
+                'first_seen_at', recorded_at
+            )
+            by_key[history_key].update(snapshot)
+            by_key[history_key]['first_seen_at'] = first_seen
+        else:
+            snapshot['first_seen_at'] = recorded_at
+            history.append(snapshot)
+            by_key[history_key] = snapshot
+
+    history.sort(
+        key=lambda item: (
+            bool(item.get('is_current')),
+            str(item.get('last_seen_at') or ''),
+        ),
+        reverse=True,
+    )
+    return history[:limit]
+
+
+def _render_buy_recommendation_history(history):
+    if not history:
+        return ''
+    rows = []
+    for item in history:
+        status = 'Activă' if item.get('is_current') else 'Încheiată'
+        status_color = '#16a34a' if item.get('is_current') else '#64748b'
+        sizing_text = ' · '.join(
+            f"{row.get('broker', '-')}: €"
+            f"{float(row.get('conditional_amount_eur') or 0):,.2f}"
+            + (
+                f" / {int(row.get('conditional_units') or 0)} unități"
+                if int(row.get('conditional_units') or 0) else ''
+            )
+            for row in item.get('sizing_by_broker') or []
+        )
+        rows.append(
+            "<details style='background:var(--bg-white);border:1px solid "
+            "var(--border-light);border-radius:var(--radius-sm);padding:11px 13px;'>"
+            f"<summary style='cursor:pointer;font-weight:700;'>"
+            f"{html.escape(str(item.get('symbol') or ''))} · "
+            f"{html.escape(str(item.get('action_label') or ''))}"
+            f"<span style='float:right;color:{status_color};'>{status}</span>"
+            "</summary>"
+            "<div style='font-size:13px;line-height:1.55;margin-top:8px;'>"
+            f"<b>Prima apariție:</b> {html.escape(str(item.get('first_seen_at') or '-'))}"
+            f" · <b>Ultima confirmare:</b> {html.escape(str(item.get('last_seen_at') or '-'))}"
+            f"<br><b>Niveluri:</b> entry €{float(item.get('entry_eur') or 0):.2f}"
+            f" · stop €{float(item.get('stop_eur') or 0):.2f}"
+            f" · target €{float(item.get('target_eur') or 0):.2f}"
+            f" · R:R {float(item.get('rr_ratio') or 0):.2f}"
+            + (
+                f"<br><b>Dimensionare la momentul recomandării:</b> "
+                f"{html.escape(sizing_text)}" if sizing_text else ''
+            )
+            + f"<br><b>Motiv:</b> {html.escape(str(item.get('why_now') or '-'))}"
+            f"<br><b>Risc:</b> {html.escape(str(item.get('main_risk') or '-'))}"
+            "</div></details>"
+        )
+    return (
+        "<details style='margin-top:18px;background:rgba(255,255,255,.55);"
+        "border:1px solid var(--border-light);border-radius:var(--radius-sm);"
+        "padding:13px 15px;'>"
+        f"<summary style='cursor:pointer;font-weight:700;'>Istoric recomandări executabile ({len(history)})</summary>"
+        "<p style='color:var(--text-secondary);font-size:12px;line-height:1.45;'>"
+        "Istoricul păstrează semnalele care au fost cândva „Cumpărare acum” "
+        "sau „Ordin la trigger”. O intrare încheiată nu mai este o recomandare curentă."
+        "</p><div style='display:grid;gap:8px;'>"
+        + ''.join(rows) + "</div></details>"
+    )
+
+
 def render_buy_recommendations_html(
     result, candidates, evidence_cache=None, bvb_universe_stats=None,
-    us_universe_stats=None,
+    us_universe_stats=None, recommendation_history=None,
 ):
     """Carduri BUY stricte, validate AI cu știri, piață și calendar."""
     candidates_by_symbol = {
@@ -1996,6 +2147,13 @@ def render_buy_recommendations_html(
                 'condițiile BUY + consensus Buy/Strong Buy + R:R ≥ 3.'
             )
         recommendations.append(recommendation)
+    visible_recommendations = [
+        item for item in recommendations
+        if (
+            item.get('verdict') in ACTIONABLE_BUY_VERDICTS
+            or str(item.get('symbol', '')).upper() == 'LQQ.PA'
+        )
+    ]
     evidence_lookup = {
         str(item.get('source_id')): item
         for item in (evidence_cache or {}).get('items', [])
@@ -2010,10 +2168,17 @@ def render_buy_recommendations_html(
     else:
         cards = []
         represented_markets = set()
-        for item in recommendations:
+        for item in visible_recommendations:
             symbol = str(item['symbol']).upper()
             candidate = candidates_by_symbol[symbol]
             verdict = item['verdict']
+            action_label = (
+                'Cumpărare acum'
+                if verdict == 'Candidat valid'
+                else 'Ordin la trigger'
+                if verdict == 'Pregătit la trigger'
+                else 'LQQ monitorizat'
+            )
             represented_markets.add(str(candidate.get('market') or item.get('market', '')))
             color = (
                 '#16a34a' if verdict == 'Candidat valid'
@@ -2033,27 +2198,54 @@ def render_buy_recommendations_html(
             sizing_html = []
             for sizing in sizing_rows:
                 conditional_amount = float(sizing.get('conditional_amount_eur') or 0)
-                amount_now = (
-                    conditional_amount
-                    if (
-                        verdict == 'Candidat valid'
-                        and (
-                            not candidate.get('requires_watchlist_filters', True)
-                            or candidate.get('strict_eligible', True)
-                        )
-                    )
-                    else 0
+                filters_allow_action = (
+                    not candidate.get('requires_watchlist_filters', True)
+                    or candidate.get('strict_eligible', True)
                 )
-                units_now = int(sizing.get('conditional_units') or 0) if amount_now > 0 else 0
+                immediate_buy = (
+                    verdict == 'Candidat valid' and filters_allow_action
+                )
+                trigger_order = (
+                    verdict == 'Pregătit la trigger' and filters_allow_action
+                )
+                displayed_amount = (
+                    conditional_amount
+                    if immediate_buy or trigger_order else 0
+                )
+                displayed_units = (
+                    int(sizing.get('conditional_units') or 0)
+                    if displayed_amount > 0 else 0
+                )
                 broker = str(sizing.get('broker') or '-')
+                if immediate_buy:
+                    sizing_title = 'sumă orientativă pentru cumpărare acum'
+                    execution_note = (
+                        'Semnalul este executabil la nivelul indicat; verifică '
+                        'prețul și spreadul înainte de ordin.'
+                    )
+                elif trigger_order:
+                    sizing_title = 'buget pentru ordin condiționat la trigger'
+                    execution_note = (
+                        'Nu cumpăra la piață înainte de trigger; ordinul se '
+                        'execută numai după atingerea nivelului de intrare.'
+                    )
+                else:
+                    sizing_title = 'sumă de cumpărat acum'
+                    execution_note = (
+                        'LQQ rămâne monitorizat, dar nu are acum semnal executabil.'
+                    )
                 sizing_html.append(
                     "<div style='background:var(--light-purple-bg);border-radius:var(--radius-sm);"
                     "padding:10px 12px;margin:8px 0;font-size:13px;'>"
-                    f"<b>{html.escape(broker)} — sumă orientativă acum:</b> €{amount_now:,.2f}"
-                    + (f" · aproximativ {units_now} unități" if units_now else '')
-                    + f"<br><span style='color:var(--text-secondary);'>Cash disponibil: "
-                    f"€{float(sizing.get('broker_available_cash_eur') or 0):,.2f}. "
-                    f"Buget condițional după confirmare: €{conditional_amount:,.2f}; "
+                    f"<b>{html.escape(broker)} — {sizing_title}:</b> "
+                    f"€{displayed_amount:,.2f}"
+                    + (
+                        f" · aproximativ {displayed_units} unități"
+                        if displayed_units else ''
+                    )
+                    + f"<br><span style='color:var(--text-secondary);'>"
+                    f"{html.escape(execution_note)} Cash disponibil: "
+                    f"€{float(sizing.get('broker_available_cash_eur') or 0):,.2f}; "
                     f"risc până la stop {float(sizing.get('risk_to_stop_pct') or 0):.2f}%."
                     "</span></div>"
                 )
@@ -2169,7 +2361,7 @@ def render_buy_recommendations_html(
                 f"border-left:4px solid {color};border-radius:var(--radius-sm);padding:14px 16px;'>"
                 f"<summary style='cursor:pointer;font-weight:700;'>{html.escape(symbol)} · "
                 f"{html.escape(str(candidate.get('company_name') or ''))}"
-                f"<span style='float:right;color:{color};'>{html.escape(verdict)}</span></summary>"
+                f"<span style='float:right;color:{color};'>{html.escape(action_label)}</span></summary>"
                 "<div style='display:flex;gap:12px;flex-wrap:wrap;margin:10px 0;font-size:13px;'>"
                 f"<span><b>Piața instrumentului:</b> {html.escape(item['market'])}</span>"
                 f"<span><b>Disponibil prin:</b> {html.escape(', '.join(candidate.get('eligible_brokers') or []))}</span>"
@@ -2210,13 +2402,24 @@ def render_buy_recommendations_html(
             if market_notices else ''
         )
         validated_count = len(recommendations_by_symbol)
+        actionable_count = sum(
+            item.get('verdict') in ACTIONABLE_BUY_VERDICTS
+            for item in recommendations
+        )
         validation_html = (
             "<p style='margin:0 0 12px;color:var(--text-secondary);font-size:13px;'>"
             f"Validare AI curentă: <b>{validated_count}</b> din "
-            f"<b>{len(recommendations)}</b> candidați. "
-            "„Neanalizat” înseamnă că răspunsul AI curent lipsește, nu că ideea a fost respinsă."
+            f"<b>{len(recommendations)}</b> candidați · sugestii executabile: "
+            f"<b>{actionable_count}</b>. Restul verdicturilor sunt ascunse din "
+            "lista de cumpărare."
             "</p>"
         )
+        if not cards:
+            cards.append(
+                "<p style='color:var(--text-secondary);margin:0;'>"
+                "Nu există momentan o sugestie executabilă. LQQ va reapărea "
+                "automat aici la următoarea analiză disponibilă.</p>"
+            )
         body = (
             notices_html + validation_html
             + "<div style='display:grid;gap:10px;'>" + ''.join(cards) + "</div>"
@@ -2246,15 +2449,16 @@ def render_buy_recommendations_html(
         "<section style='margin:28px 0;background:var(--light-purple-bg);"
         "border:1px solid var(--border-light);border-radius:var(--radius-md);padding:22px;'>"
         "<h3 style='margin:0 0 8px;color:var(--primary-purple);'>"
-        "Candidați de cumpărare — SUA, BVB și LQQ</h3>"
+        "Sugestii executabile de cumpărare — SUA, BVB și LQQ</h3>"
         "<p style='margin:0 0 15px;color:var(--text-secondary);'>"
-        "Pentru simbolurile din watchlist, cumpărarea cere BUY + consensus "
-        "Buy/Strong Buy + R:R ≥ 3. Ideile suplimentare cercetate în afara "
-        "watchlistului sunt evaluate separat pe calitate, catalizatori, știri și risc. "
-        "LQQ este monitorizat obligatoriu la fiecare rulare și dimensionat separat "
-        "pentru IBKR și Tradeville când devine eligibil. "
-        "Validarea AI ține cont de știri, piață și calendar; nu reprezintă ordin de tranzacționare.</p>"
-        + bvb_coverage_html + us_coverage_html + body + "</section>"
+        "Sunt afișate numai „Cumpărare acum” și „Ordin la trigger”. "
+        "Primul permite evaluarea unei intrări la nivelul indicat; al doilea permite "
+        "pregătirea unui ordin condiționat, fără cumpărare la piață înainte de trigger. "
+        "LQQ rămâne vizibil permanent pentru monitorizare. Validarea AI ține cont "
+        "de știri, piață și calendar; verifică întotdeauna prețul și spreadul înaintea ordinului.</p>"
+        + bvb_coverage_html + us_coverage_html + body
+        + _render_buy_recommendation_history(recommendation_history)
+        + "</section>"
     )
 
 
@@ -2402,6 +2606,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Pentru candidate_source=watchlist, strict_eligible arată dacă instrumentul a trecut BUY + Buy/Strong Buy + R:R minimum 3; dacă este false, verdictul trebuie să fie Așteaptă.',
             'Pentru candidate_source=external_research, nu aplica filtrul watchlistului. Evaluează independent calitatea, catalizatorii, știrile, piața, calendarul, entry/stop/target și riscul; recomandă numai dacă aceste dovezi susțin intrarea.',
             'Pentru cercetarea externă folosește trepte clare: Candidat valid numai pentru intrare imediată; Pregătit la trigger când există un prag apropiat; Foarte aproape când mai lipsește o confirmare; Urmărește pentru o idee utilă dar prematură; Evită când riscul domină.',
+            'Pregătit la trigger înseamnă că se poate pregăti un ordin condiționat la entry_eur, nu că instrumentul trebuie cumpărat imediat la piață. Spune clar ce nivel trebuie atins înaintea execuției.',
             'Pentru verdicturile diferite de Candidat valid, investiția acum este zero. În why_now spune în limbaj simplu triggerul sau confirmarea necesară folosind exclusiv nivelurile primite.',
             'Păstrează acoperire echilibrată: dacă există candidați, include idei relevante atât pentru SUA, cât și pentru România/BVB; nu lăsa o singură piață să ocupe toate rezultatele.',
             'Include fiecare simbol din buy_candidates exact o dată în buy_recommendations; nu omite candidați și nu adăuga alții.',
