@@ -542,7 +542,7 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
-PORTFOLIO_AI_CACHE_VERSION = 15
+PORTFOLIO_AI_CACHE_VERSION = 16
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 ACTIONABLE_BUY_VERDICTS = {'Candidat valid', 'Pregătit la trigger'}
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
@@ -575,6 +575,58 @@ def _safe_number(value, default=0.0):
         return number if math.isfinite(number) else default
     except (TypeError, ValueError):
         return default
+
+
+def _execution_currency(candidate):
+    currency = str(
+        candidate.get('execution_currency')
+        or candidate.get('currency')
+        or ''
+    ).strip().upper()
+    if currency:
+        return currency
+    symbol = str(candidate.get('symbol') or '').upper()
+    if symbol.endswith('.RO'):
+        return 'RON'
+    if symbol in {'LQQ.PA', 'LQQ.FR', 'FR.LQQ'}:
+        return 'EUR'
+    return 'USD'
+
+
+def _eur_per_native(candidate):
+    explicit = _safe_number(candidate.get('eur_per_native'))
+    if explicit > 0:
+        return explicit
+    price_eur = _safe_number(candidate.get('price_eur'))
+    price_native = _safe_number(candidate.get('price_native'))
+    if price_eur > 0 and price_native > 0:
+        return price_eur / price_native
+    return 1.0
+
+
+def _execution_value(candidate, native_field, eur_field):
+    native_value = _safe_number(candidate.get(native_field))
+    if native_value > 0:
+        return native_value
+    eur_value = _safe_number(candidate.get(eur_field))
+    eur_per_native = _eur_per_native(candidate)
+    if eur_value > 0 and eur_per_native > 0:
+        return eur_value / eur_per_native
+    return eur_value
+
+
+def _format_execution_money(value, currency):
+    numeric = _safe_number(value)
+    code = str(currency or 'EUR').upper()
+    decimals = 4 if code == 'RON' and 0 < abs(numeric) < 10 else 2
+    formatted = f"{numeric:,.{decimals}f}"
+    if code == 'USD':
+        return f"${formatted}"
+    if code == 'EUR':
+        return f"€{formatted}"
+    if code == 'GBP':
+        return f"£{formatted}"
+    return f"{formatted} {code}"
 
 
 def _normalize_tws_account_data(account_data, now=None):
@@ -1095,6 +1147,17 @@ def _size_buy_candidates(snapshot):
         )
     for candidate in candidates:
         symbol = str(candidate.get('symbol', '')).upper()
+        execution_currency = _execution_currency(candidate)
+        candidate['execution_currency'] = execution_currency
+        candidate['entry_native'] = round(
+            _execution_value(candidate, 'entry_native', 'entry_eur'), 4
+        )
+        candidate['stop_native'] = round(
+            _execution_value(candidate, 'stop_native', 'stop_eur'), 4
+        )
+        candidate['target_native'] = round(
+            _execution_value(candidate, 'target_native', 'target_eur'), 4
+        )
         overlap = lookthrough_by_symbol.get(symbol, {})
         etf_weight = _safe_number(overlap.get('etf_weight_pct'))
         indirect = _safe_number(overlap.get('indirect_exposure_eur'))
@@ -1308,11 +1371,20 @@ def _size_buy_candidates(snapshot):
                     industry_allocated[industry] = (
                         industry_allocated.get(industry, 0) + amount
                     )
+            execution_currency = _execution_currency(candidate)
+            eur_per_native = _eur_per_native(candidate)
             candidate['sizing_by_broker'].append({
                 'broker': broker,
                 'broker_available_cash_eur': round(usable_cash, 2),
+                'broker_available_cash_native_equivalent': round(
+                    usable_cash / eur_per_native, 2
+                ),
+                'execution_currency': execution_currency,
                 'broker_net_liquidation_eur': round(net_liquidation, 2),
                 'conditional_amount_eur': round(amount, 2),
+                'conditional_amount_native': round(
+                    amount / eur_per_native, 2
+                ),
                 'conditional_units': units,
                 'risk_to_stop_pct': round(stop_risk_pct * 100, 2),
                 'sizing_status': 'condițional' if amount > 0 else 'indisponibil',
@@ -2026,6 +2098,16 @@ def update_buy_recommendation_history(
             'entry_eur': round(_safe_number(candidate.get('entry_eur')), 4),
             'stop_eur': round(_safe_number(candidate.get('stop_eur')), 4),
             'target_eur': round(_safe_number(candidate.get('target_eur')), 4),
+            'execution_currency': _execution_currency(candidate),
+            'entry_native': round(
+                _execution_value(candidate, 'entry_native', 'entry_eur'), 4
+            ),
+            'stop_native': round(
+                _execution_value(candidate, 'stop_native', 'stop_eur'), 4
+            ),
+            'target_native': round(
+                _execution_value(candidate, 'target_native', 'target_eur'), 4
+            ),
             'rr_ratio': round(_safe_number(candidate.get('rr_ratio')), 3),
             'eligible_brokers': list(candidate.get('eligible_brokers') or []),
             'why_now': str(recommendation.get('why_now') or '')[:700],
@@ -2037,11 +2119,24 @@ def update_buy_recommendation_history(
             'last_seen_at': recorded_at,
         }
         sizing_rows = []
+        eur_per_native = _eur_per_native(candidate)
         for sizing in candidate.get('sizing_by_broker') or []:
             sizing_rows.append({
                 'broker': str(sizing.get('broker') or '-'),
                 'conditional_amount_eur': round(
                     _safe_number(sizing.get('conditional_amount_eur')), 2
+                ),
+                'execution_currency': str(
+                    sizing.get('execution_currency')
+                    or _execution_currency(candidate)
+                ),
+                'conditional_amount_native': round(
+                    _safe_number(sizing.get('conditional_amount_native'))
+                    or (
+                        _safe_number(sizing.get('conditional_amount_eur'))
+                        / eur_per_native
+                    ),
+                    2,
                 ),
                 'conditional_units': int(
                     _safe_number(sizing.get('conditional_units'))
@@ -2090,16 +2185,51 @@ def update_buy_recommendation_history_from_cache(
     )
 
 
-def _render_buy_recommendation_history(history):
+def _render_buy_recommendation_history(history, candidates=None):
     if not history:
         return ''
+    candidates_by_symbol = {
+        str(candidate.get('symbol') or '').upper(): candidate
+        for candidate in (candidates or [])
+    }
     rows = []
     for item in history:
         status = 'Activă' if item.get('is_current') else 'Încheiată'
         status_color = '#16a34a' if item.get('is_current') else '#64748b'
+        current_candidate = candidates_by_symbol.get(
+            str(item.get('symbol') or '').upper()
+        )
+        execution_currency = str(
+            item.get('execution_currency')
+            or (
+                _execution_currency(current_candidate)
+                if current_candidate else 'EUR'
+            )
+        ).upper()
+        history_eur_per_native = (
+            _eur_per_native(current_candidate)
+            if current_candidate else 1.0
+        )
+
+        def history_native(native_field, eur_field):
+            native_value = _safe_number(item.get(native_field))
+            if native_value > 0:
+                return native_value
+            return (
+                _safe_number(item.get(eur_field))
+                / history_eur_per_native
+            )
+
         sizing_text = ' · '.join(
-            f"{row.get('broker', '-')}: €"
-            f"{float(row.get('conditional_amount_eur') or 0):,.2f}"
+            f"{row.get('broker', '-')}: "
+            + _format_execution_money(
+                row.get('conditional_amount_native')
+                or (
+                    _safe_number(row.get('conditional_amount_eur'))
+                    / history_eur_per_native
+                ),
+                row.get('execution_currency') or execution_currency,
+            )
             + (
                 f" / {int(row.get('conditional_units') or 0)} unități"
                 if int(row.get('conditional_units') or 0) else ''
@@ -2129,9 +2259,10 @@ def _render_buy_recommendation_history(history):
             "<div style='font-size:13px;line-height:1.55;margin-top:8px;'>"
             f"<b>Prima apariție:</b> {html.escape(str(item.get('first_seen_at') or '-'))}"
             f" · <b>Ultima confirmare:</b> {html.escape(str(item.get('last_seen_at') or '-'))}"
-            f"<br><b>Niveluri:</b> entry €{float(item.get('entry_eur') or 0):.2f}"
-            f" · stop €{float(item.get('stop_eur') or 0):.2f}"
-            f" · target €{float(item.get('target_eur') or 0):.2f}"
+            f"<br><b>Niveluri:</b> entry "
+            f"{_format_execution_money(history_native('entry_native', 'entry_eur'), execution_currency)}"
+            f" · stop {_format_execution_money(history_native('stop_native', 'stop_eur'), execution_currency)}"
+            f" · target {_format_execution_money(history_native('target_native', 'target_eur'), execution_currency)}"
             f" · R:R {float(item.get('rr_ratio') or 0):.2f}"
             + (
                 f"<br><b>Dimensionare la momentul recomandării:</b> "
@@ -2240,17 +2371,49 @@ def render_buy_recommendations_html(
                 else '#64748b' if verdict == 'Neanalizat'
                 else '#dc2626'
             )
-            entry_value = float(candidate.get('entry_eur') or 0)
+            execution_currency = _execution_currency(candidate)
+            entry_value = _execution_value(
+                candidate, 'entry_native', 'entry_eur'
+            )
+            stop_value = _execution_value(
+                candidate, 'stop_native', 'stop_eur'
+            )
+            target_value = _execution_value(
+                candidate, 'target_native', 'target_eur'
+            )
             sizing_rows = candidate.get('sizing_by_broker') or [{
                 key: candidate.get(key) for key in (
                     'broker', 'broker_available_cash_eur', 'broker_net_liquidation_eur',
-                    'conditional_amount_eur', 'conditional_units', 'risk_to_stop_pct',
-                    'sizing_status', 'sizing_reason',
+                    'broker_available_cash_native_equivalent',
+                    'conditional_amount_eur', 'conditional_amount_native',
+                    'conditional_units', 'risk_to_stop_pct', 'sizing_status',
+                    'sizing_reason', 'execution_currency',
                 )
             }]
             sizing_html = []
             for sizing in sizing_rows:
-                conditional_amount = float(sizing.get('conditional_amount_eur') or 0)
+                sizing_currency = str(
+                    sizing.get('execution_currency')
+                    or execution_currency
+                ).upper()
+                conditional_amount = _safe_number(
+                    sizing.get('conditional_amount_native')
+                )
+                if conditional_amount <= 0:
+                    eur_per_native = _eur_per_native(candidate)
+                    conditional_amount = (
+                        _safe_number(sizing.get('conditional_amount_eur'))
+                        / eur_per_native
+                    )
+                cash_equivalent = _safe_number(
+                    sizing.get('broker_available_cash_native_equivalent')
+                )
+                if cash_equivalent <= 0:
+                    eur_per_native = _eur_per_native(candidate)
+                    cash_equivalent = (
+                        _safe_number(sizing.get('broker_available_cash_eur'))
+                        / eur_per_native
+                    )
                 filters_allow_action = (
                     not candidate.get('requires_watchlist_filters', True)
                     or candidate.get('strict_eligible', True)
@@ -2291,14 +2454,14 @@ def render_buy_recommendations_html(
                     "<div style='background:var(--light-purple-bg);border-radius:var(--radius-sm);"
                     "padding:10px 12px;margin:8px 0;font-size:13px;'>"
                     f"<b>{html.escape(broker)} — {sizing_title}:</b> "
-                    f"€{displayed_amount:,.2f}"
+                    f"{html.escape(_format_execution_money(displayed_amount, sizing_currency))}"
                     + (
                         f" · aproximativ {displayed_units} unități"
                         if displayed_units else ''
                     )
                     + f"<br><span style='color:var(--text-secondary);'>"
-                    f"{html.escape(execution_note)} Cash disponibil: "
-                    f"€{float(sizing.get('broker_available_cash_eur') or 0):,.2f}; "
+                    f"{html.escape(execution_note)} Cash utilizabil echivalent: "
+                    f"{html.escape(_format_execution_money(cash_equivalent, sizing_currency))}; "
                     f"risc până la stop {float(sizing.get('risk_to_stop_pct') or 0):.2f}%."
                     "</span></div>"
                 )
@@ -2318,7 +2481,9 @@ def render_buy_recommendations_html(
                             f"Scannerul confirmă BUY, consensus {candidate.get('consensus')}, "
                             f"R:R {float(candidate.get('rr_ratio') or 0):.2f}. "
                         )
-                        + f"Nivelul urmărit este €{entry_value:.2f}, iar verdictul AI este "
+                        + f"Nivelul urmărit este "
+                        f"{_format_execution_money(entry_value, execution_currency)}, "
+                        f"iar verdictul AI este "
                         f"{verdict.lower()} după verificarea contextului. "
                         + str(item.get('why_now') or '')
                     )
@@ -2353,6 +2518,10 @@ def render_buy_recommendations_html(
                 liquidity_cap = float(
                     candidate.get('liquidity_position_cap_eur') or 0
                 )
+                liquidity_cap_native = (
+                    liquidity_cap / _eur_per_native(candidate)
+                    if liquidity_cap > 0 else 0
+                )
                 liquidity_details = (
                     f"{median_turnover:,.0f} RON mediană/ședință"
                     if median_turnover > 0 else
@@ -2368,12 +2537,13 @@ def render_buy_recommendations_html(
                     )
                 if liquidity_cap > 0:
                     liquidity_details += (
-                        f" · plafon orientativ al ordinului €{liquidity_cap:,.2f}"
+                        " · plafon orientativ al ordinului "
+                        f"{_format_execution_money(liquidity_cap_native, execution_currency)}"
                     )
                 overlap_html = (
                     "<div style='background:#fff7ed;border-radius:var(--radius-sm);"
                     "padding:9px 12px;margin:8px 0;font-size:13px;'>"
-                    "<b>Expunere înainte de cumpărare:</b> "
+                    "<b>Expunere portofoliu înainte de cumpărare (normalizată în EUR):</b> "
                     f"€{float(candidate.get('direct_exposure_eur') or 0):,.2f} direct + "
                     f"€{float(candidate.get('indirect_exposure_eur') or 0):,.2f} prin TVBETETF"
                     f" · total €{float(candidate.get('combined_pretrade_exposure_eur') or 0):,.2f}. "
@@ -2401,7 +2571,7 @@ def render_buy_recommendations_html(
                         if relative_1m is not None and relative_3m is not None
                         else ''
                     )
-                    + f". Expunere existentă în sector: "
+                    + f". Expunere existentă în sector (normalizată în EUR): "
                     f"€{float(candidate.get('existing_sector_exposure_eur') or 0):,.2f}."
                     f"<br><b>Regim SUA:</b> "
                     f"{html.escape(str(candidate.get('us_market_stage') or 'date insuficiente'))}"
@@ -2444,11 +2614,16 @@ def render_buy_recommendations_html(
                 "<div style='display:flex;gap:12px;flex-wrap:wrap;margin:10px 0;font-size:13px;'>"
                 f"<span><b>Piața instrumentului:</b> {html.escape(item['market'])}</span>"
                 f"<span><b>Disponibil prin:</b> {html.escape(', '.join(candidate.get('eligible_brokers') or []))}</span>"
+                f"<span><b>Moneda ordinului:</b> {html.escape(execution_currency)}</span>"
                 f"<span><b>Consensus:</b> {html.escape(str(candidate.get('consensus')))}</span>"
                 f"<span><b>R:R:</b> {float(candidate.get('rr_ratio') or 0):.2f}</span>"
-                f"<span><b>Entry:</b> €{entry_value:.2f}</span>"
-                f"<span><b>Stop:</b> €{float(candidate.get('stop_eur') or 0):.2f}</span>"
-                f"<span><b>Target:</b> €{float(candidate.get('target_eur') or 0):.2f}</span></div>"
+                f"<span><b>Entry:</b> {html.escape(_format_execution_money(entry_value, execution_currency))}</span>"
+                f"<span><b>Stop:</b> {html.escape(_format_execution_money(stop_value, execution_currency))}</span>"
+                f"<span><b>Target:</b> {html.escape(_format_execution_money(target_value, execution_currency))}</span>"
+                f"<a href='#' data-symbol='{html.escape(symbol, quote=True)}' "
+                "onclick=\"openBuyRecommendationDetail(this.dataset.symbol);return false;\" "
+                "style='color:var(--primary-purple);font-weight:700;text-decoration:none;'>"
+                "📈 Grafic mare OHLC</a></div>"
                 + overlap_html
                 + ''.join(sizing_html)
                 + validation_details_html
@@ -2535,9 +2710,11 @@ def render_buy_recommendations_html(
         "Primul permite evaluarea unei intrări la nivelul indicat; al doilea permite "
         "pregătirea unui ordin condiționat, fără cumpărare la piață înainte de trigger. "
         "LQQ rămâne vizibil permanent pentru monitorizare. Validarea AI ține cont "
-        "de știri, piață și calendar; verifică întotdeauna prețul și spreadul înaintea ordinului.</p>"
+        "de știri, piață și calendar. Nivelurile și bugetul sunt afișate în moneda "
+        "ordinului: USD pentru SUA, RON pentru BVB și EUR pentru LQQ; verifică "
+        "întotdeauna prețul și spreadul înaintea ordinului.</p>"
         + bvb_coverage_html + us_coverage_html + body
-        + _render_buy_recommendation_history(recommendation_history)
+        + _render_buy_recommendation_history(recommendation_history, candidates)
         + "</section>"
     )
 
@@ -2685,6 +2862,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Nu recomanda și nu inventa simboluri care nu există în buy_candidates.',
             'Pentru candidate_source=watchlist, strict_eligible arată dacă instrumentul a trecut BUY + Buy/Strong Buy + R:R minimum 3; dacă este false, verdictul trebuie să fie Așteaptă.',
             'Pentru candidate_source=external_research, nu aplica filtrul watchlistului și nu respinge simbolul doar fiindcă există deja în watchlist. Evaluează independent calitatea, catalizatorii, știrile, piața, calendarul, entry/stop/target și riscul.',
+            'Pentru orice recomandare de cumpărare, folosește în text execution_currency și nivelurile entry_native, stop_native și target_native. Acțiunile SUA se discută în USD, cele BVB în RON, iar LQQ în EUR. Câmpurile *_eur sunt exclusiv pentru normalizarea internă a riscului și nu trebuie citate ca niveluri de ordin.',
             'Un candidat extern poate primi Candidat valid sau Pregătit la trigger numai dacă data_fresh=true, entry_eur, stop_eur și target_eur respectă stop < entry < target, iar rr_ratio este cel puțin external_min_rr (în prezent 1,8). Dacă datele sunt vechi sau nivelurile sunt incoerente, verdictul trebuie să fie Așteaptă și investiția acum zero.',
             'Pentru BVB, absența unui consens de analiști nu invalidează singură un candidat extern. Cere însă niveluri tehnice verificabile și lichiditate locală eligibilă; nu inventa un consens.',
             'Folosește level_source, trigger_basis și target_basis. Când target_basis spune că ținta este un plan tehnic de risc, prezint-o ca nivel de administrare a tranzacției, nu ca țintă de analist.',

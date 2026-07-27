@@ -68,9 +68,9 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("hasUsableIndicatorOhlc(detail.ohlc)", content)
         self.assertIn("candles.length < 5", content)
         self.assertIn("nonFlat.length / valid.length >= 0.2", content)
-        self.assertIn("drawCandles(canvas, detail.ohlc.slice(-count), detail.levels || [])", content)
-        self.assertIn("drawLineSeries(canvas, series, dates, levels)", content)
-        self.assertIn("ctx.fillText(formatIndicatorNumber(value),pad.left-8,py)", content)
+        self.assertIn("function drawCandles(canvas, candles, levels, currency)", content)
+        self.assertIn("function drawLineSeries(canvas, series, dates, levels, currency)", content)
+        self.assertIn("ctx.fillText(formatDetailNumber(value,currency),pad.left-8,py)", content)
         self.assertIn("String(dates[index]).slice(5)", content)
         self.assertIn("Istoric zilnic real afișat liniar", content)
 
@@ -82,10 +82,16 @@ class TestHtmlIntegrity(unittest.TestCase):
 
         self.assertIn("onclick=\"openPortfolioDetail('", content)
         self.assertIn('"chart_details": portfolio_detail_data', content)
+        self.assertIn('"buy_chart_details": buy_recommendation_detail_data', content)
         self.assertIn("'Chart_OHLC': chart_ohlc", content)
         self.assertIn("'Chart_History': chart_history", content)
         self.assertIn("portfolioDetailData = data.chart_details || {}", content)
+        self.assertIn(
+            "buyRecommendationDetailData = data.buy_chart_details || {}",
+            content,
+        )
         self.assertIn("function openPortfolioDetail(symbol)", content)
+        self.assertIn("function openBuyRecommendationDetail(symbol)", content)
         self.assertIn("openMarketDetailWindow(detail, symbol)", content)
         self.assertIn("if(event.key==='Escape'){event.preventDefault();window.close();}", content)
         self.assertIn('"Stop activ" if len(active_stops) == 1', content)
@@ -93,7 +99,11 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('"label": "Stop propus"', content)
         self.assertIn("quantity_label", content)
         self.assertIn('"color": "#2563eb"', content)
-        self.assertIn("drawHorizontalLevels(ctx,width,pad,min,max,levels)", content)
+        self.assertIn("drawHorizontalLevels(ctx,width,pad,min,max,levels,currency)", content)
+        self.assertIn("formatDetailNumber(value,currency)", content)
+        self.assertIn("detail.currency", content)
+        self.assertIn("Grafic zilnic${detail.currency?", content)
+        self.assertIn("currency?100:66", content)
         self.assertIn("ctx.setLineDash([7,5])", content)
 
     def test_portfolio_ai_analysis_is_in_encrypted_payload(self):
@@ -182,6 +192,9 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('Apartenența la watchlist nu mai blochează cercetarea', content)
         self.assertIn("'TLV.RO', 'SNP.RO', 'SNG.RO', 'H2O.RO'", content)
         self.assertIn("'entry_eur': _buy_candidate_entry_eur(item)", content)
+        self.assertIn('_buy_candidate_execution_values(', content)
+        self.assertIn("'execution_currency': currency", content)
+        self.assertIn("'entry_native': to_native(_buy_candidate_entry_eur(item))", content)
         self.assertIn("'decision': item.get('Decision')", content)
         self.assertIn("'data_fresh': bool(", content)
         self.assertIn("'external_min_rr': item.get('External_Min_RR')", content)
@@ -191,6 +204,14 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('Scannerul confirmă BUY, consensus', analysis_content)
         self.assertIn('external_min_rr (în prezent 1,8)', analysis_content)
         self.assertIn('nu inventa un consens', analysis_content)
+        self.assertIn('Acțiunile SUA se discută în USD, cele BVB în RON', analysis_content)
+        self.assertIn('Moneda ordinului:', analysis_content)
+        self.assertIn('📈 Grafic mare OHLC', analysis_content)
+        self.assertIn(
+            'openBuyRecommendationDetail(this.dataset.symbol)',
+            analysis_content,
+        )
+        self.assertIn('_format_execution_money(', analysis_content)
         self.assertIn('<b>Validarea nivelurilor:</b>', analysis_content)
         self.assertIn('universul local este cercetat separat de watchlist', analysis_content)
         self.assertIn('sumă orientativă pentru cumpărare acum', analysis_content)
@@ -222,6 +243,8 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("detail.kind === 'watchlist'", content)
         self.assertIn("'label': 'Stop recomandat'", content)
         self.assertIn("'levels': watchlist_levels", content)
+        self.assertIn("_chart_detail_native_payload(", content)
+        self.assertIn("'currency': native_detail['currency']", content)
         self.assertIn("'Smart_Entry_EUR': round(s_entry * rate, 2)", content)
         self.assertIn("row.get('Decision') == 'BUY'", content)
         self.assertIn("'label': f'Entry recomandat · {entry_type}'", content)
