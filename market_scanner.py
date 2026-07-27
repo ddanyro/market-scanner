@@ -161,6 +161,200 @@ def _parse_bvb_number(value):
     return _safe_float_text(text)
 
 
+def _calculate_bvb_liquidity_metrics(frame, window=20):
+    """Calculează lichiditatea locală fără ca o singură ședință să domine."""
+    empty = {
+        'Liquidity_Observations_20D': 0,
+        'Active_Days_20D': 0,
+        'Zero_Volume_Days_20D': 0,
+        'Median_Volume_20D': None,
+        'Median_Turnover_20D_RON': None,
+        'Average_Turnover_20D_RON': None,
+        'Last_Turnover_RON': None,
+        'Relative_Volume_20D': None,
+    }
+    if (
+        frame is None
+        or frame.empty
+        or 'Close' not in frame.columns
+        or 'Volume' not in frame.columns
+    ):
+        return empty
+
+    recent = frame.tail(window).copy()
+    close = pd.to_numeric(recent['Close'], errors='coerce')
+    volume = pd.to_numeric(recent['Volume'], errors='coerce').fillna(0)
+    valid_session = close.notna() & (close > 0)
+    active_session = valid_session & (volume > 0)
+    observations = int(valid_session.sum())
+    active_days = int(active_session.sum())
+    zero_volume_days = int((valid_session & (volume <= 0)).sum())
+    if active_days:
+        active_volume = volume[active_session]
+        active_turnover = close[active_session] * active_volume
+        median_volume = float(active_volume.median())
+        median_turnover = float(active_turnover.median())
+        average_turnover = float(active_turnover.mean())
+    else:
+        median_volume = None
+        median_turnover = None
+        average_turnover = None
+
+    last_turnover = None
+    last_volume = None
+    if observations:
+        last_valid_index = close[valid_session].index[-1]
+        last_volume = float(volume.loc[last_valid_index])
+        last_turnover = float(close.loc[last_valid_index] * last_volume)
+    relative_volume = (
+        last_volume / median_volume
+        if last_volume is not None and median_volume and median_volume > 0
+        else None
+    )
+    return {
+        'Liquidity_Observations_20D': observations,
+        'Active_Days_20D': active_days,
+        'Zero_Volume_Days_20D': zero_volume_days,
+        'Median_Volume_20D': round(median_volume, 2) if median_volume is not None else None,
+        'Median_Turnover_20D_RON': (
+            round(median_turnover, 2) if median_turnover is not None else None
+        ),
+        'Average_Turnover_20D_RON': (
+            round(average_turnover, 2) if average_turnover is not None else None
+        ),
+        'Last_Turnover_RON': (
+            round(last_turnover, 2) if last_turnover is not None else None
+        ),
+        'Relative_Volume_20D': (
+            round(relative_volume, 3) if relative_volume is not None else None
+        ),
+    }
+
+
+def _bvb_market_segment(item):
+    """Normalizează segmentul oficial în Piața Reglementată, AeRO sau necunoscut."""
+    metadata = item.get('BVB_Metadata')
+    if not isinstance(metadata, dict):
+        metadata = {}
+    raw = ' '.join(
+        str(value or '')
+        for value in (
+            metadata.get('segment'),
+            metadata.get('category'),
+            item.get('BVB_Market_Segment'),
+        )
+    )
+    normalized = _normalized_column_name(raw).upper()
+    if any(marker in normalized for marker in ('AERO', 'SMT', 'ATS', 'XRS')):
+        return 'AeRO'
+    if any(
+        marker in normalized
+        for marker in ('REGS', 'REGLEMENTATA', 'REGULATED', 'PRINCIPALA')
+    ):
+        return 'Piața Reglementată'
+    return 'Necunoscut'
+
+
+def _bvb_liquidity_assessment(item):
+    """Evaluează executabilitatea BVB/AeRO și produce un plafon de ordin."""
+    segment = _bvb_market_segment(item)
+    thresholds = {
+        'Piața Reglementată': {
+            'turnover': 100_000.0, 'active_days': 15, 'participation': 0.02,
+        },
+        'AeRO': {
+            'turnover': 25_000.0, 'active_days': 12, 'participation': 0.01,
+        },
+        'Necunoscut': {
+            'turnover': 50_000.0, 'active_days': 12, 'participation': 0.015,
+        },
+    }
+    threshold = thresholds[segment]
+    observations = int(_safe_float_text(
+        item.get('Liquidity_Observations_20D')
+    ) or 0)
+    active_days = int(_safe_float_text(item.get('Active_Days_20D')) or 0)
+    median_turnover = _safe_float_text(
+        item.get('Median_Turnover_20D_RON')
+    )
+    metadata = item.get('BVB_Metadata')
+    if not isinstance(metadata, dict):
+        metadata = {}
+    official_turnover = _safe_float_text(metadata.get('turnover_ron')) or 0
+    last_turnover = _safe_float_text(item.get('Last_Turnover_RON')) or 0
+    avg_volume = _safe_float_text(item.get('Avg_Volume')) or 0
+    price_native = (
+        _safe_float_text(item.get('Price_Native'))
+        or _safe_float_text(metadata.get('price_ron'))
+        or 0
+    )
+    estimated_turnover = avg_volume * price_native
+    source = 'istoric 20 ședințe'
+
+    if observations >= 15:
+        reference_turnover = median_turnover or 0
+        active_ratio = active_days / observations if observations else 0
+        eligible = (
+            reference_turnover >= threshold['turnover']
+            and active_days >= threshold['active_days']
+            and active_ratio >= 0.60
+        )
+        if eligible:
+            status = 'adecvată'
+            reason = (
+                f'Mediana rulajului pe 20 ședințe este '
+                f'{reference_turnover:,.0f} RON, cu tranzacții în '
+                f'{active_days}/{observations} ședințe.'
+            )
+        else:
+            status = 'insuficientă'
+            reason = (
+                f'Lichiditatea nu trece pragul pentru {segment}: mediană '
+                f'{reference_turnover:,.0f} RON și '
+                f'{active_days}/{observations} ședințe active.'
+            )
+    else:
+        source = 'fallback până la completarea istoricului'
+        reference_turnover = max(
+            official_turnover, last_turnover, estimated_turnover
+        )
+        volume = _safe_float_text(item.get('Volume')) or 0
+        official_volume = _safe_float_text(metadata.get('volume')) or 0
+        volume_fallback = max(volume, avg_volume, official_volume)
+        eligible = (
+            reference_turnover >= threshold['turnover']
+            or (reference_turnover <= 0 and volume_fallback >= 1_000)
+        )
+        status = 'provizorie' if eligible else 'date insuficiente'
+        reason = (
+            f'Istoricul are doar {observations} ședințe; selecția folosește '
+            f'rulajul/volumul disponibil și trebuie reconfirmată.'
+            if eligible else
+            f'Istoricul are doar {observations} ședințe și nu există rulaj '
+            f'suficient pentru o intrare verificabilă.'
+        )
+
+    price_eur = _buy_candidate_entry_eur(item) or 0
+    ron_per_eur = price_native / price_eur if price_native > 0 and price_eur > 0 else 0
+    position_cap_eur = (
+        reference_turnover * threshold['participation'] / ron_per_eur
+        if reference_turnover > 0 and ron_per_eur > 0
+        else None
+    )
+    return {
+        'market_segment': segment,
+        'eligible': bool(eligible),
+        'status': status,
+        'reason': reason,
+        'source': source,
+        'minimum_median_turnover_ron': threshold['turnover'],
+        'participation_limit_pct': threshold['participation'] * 100,
+        'position_cap_eur': (
+            round(position_cap_eur, 2) if position_cap_eur is not None else None
+        ),
+    }
+
+
 def fetch_complete_bvb_equity_universe(state, request_session=requests):
     """Încarcă universul complet BVB/AeRO; la eroare păstrează ultimul cache valid."""
     cached = list((state or {}).get('bvb_equity_universe', []))
@@ -292,6 +486,25 @@ def _external_research_score(item):
     relative_strength = float(item.get('RS_vs_SPX') or 0)
     score += 2 if relative_strength > 10 else 1 if relative_strength > 0 else 0
     score -= 1 if item.get('Earnings_Danger') else 0
+    if str(item.get('Ticker', '')).upper().endswith('.RO'):
+        liquidity = item.get('BVB_Liquidity') or _bvb_liquidity_assessment(item)
+        median_turnover = _safe_float_text(
+            item.get('Median_Turnover_20D_RON')
+        ) or 0
+        minimum_turnover = _safe_float_text(
+            liquidity.get('minimum_median_turnover_ron')
+        ) or 1
+        if median_turnover >= minimum_turnover * 5:
+            score += 2
+        elif median_turnover >= minimum_turnover * 2:
+            score += 1
+        elif liquidity.get('source') != 'istoric 20 ședințe':
+            score -= 0.5
+        relative_volume = _safe_float_text(item.get('Relative_Volume_20D'))
+        if relative_volume is not None:
+            score += 0.5 if relative_volume >= 1.2 else -0.5 if relative_volume < 0.5 else 0
+        if liquidity.get('market_segment') == 'AeRO':
+            score -= 0.5
     return score
 
 
@@ -317,14 +530,9 @@ def _external_candidate_has_reliable_levels(item):
     if int(_safe_float_text(item.get('Analysts')) or 0) < 1:
         return False
 
-    volume = _safe_float_text(item.get('Volume')) or 0
-    avg_volume = _safe_float_text(item.get('Avg_Volume')) or 0
-    metadata = item.get('BVB_Metadata') or {}
-    official_volume = _safe_float_text(metadata.get('volume')) or 0
-    turnover_ron = _safe_float_text(metadata.get('turnover_ron')) or 0
-    if max(volume, avg_volume, official_volume) < 1_000 and turnover_ron < 25_000:
-        return False
-    return True
+    liquidity = _bvb_liquidity_assessment(item)
+    item['BVB_Liquidity'] = liquidity
+    return liquidity['eligible']
 
 
 def _research_symbols_due(symbols, by_symbol, watchlist_symbols):
@@ -346,10 +554,14 @@ def _research_symbols_due(symbols, by_symbol, watchlist_symbols):
 
 def select_strict_buy_candidates(
     watchlist_df, external_research=None, limit_per_market=4, etf_holdings=None,
-    sector_rotation=None, us_market_regime=None,
+    sector_rotation=None, us_market_regime=None, bvb_universe=None,
 ):
     """Aplică filtrele doar watchlistului și triază separat cercetarea externă."""
     candidates = []
+    bvb_metadata_by_symbol = {
+        str(item.get('symbol', '')).upper(): item
+        for item in (bvb_universe or [])
+    }
     etf_weights = {
         str(item.get('symbol', '')).upper(): float(item.get('weight_pct') or 0)
         for item in (etf_holdings or {}).get('holdings', [])
@@ -380,6 +592,11 @@ def select_strict_buy_candidates(
         for _, row in watchlist_df.iterrows():
             item = row.to_dict()
             symbol = str(item.get('Ticker', '')).upper()
+            if (
+                symbol in bvb_metadata_by_symbol
+                and not isinstance(item.get('BVB_Metadata'), dict)
+            ):
+                item['BVB_Metadata'] = bvb_metadata_by_symbol[symbol]
             all_watchlist_symbols.add(symbol)
             strict_eligible = _is_strict_buy_candidate(item)
             if not strict_eligible and symbol not in ALWAYS_RESEARCH_SYMBOLS:
@@ -391,6 +608,10 @@ def select_strict_buy_candidates(
             item['Requires_Watchlist_Filters'] = True
             item['_research_score'] = float(item.get('RR_Ratio') or 0)
             if symbol.endswith('.RO'):
+                liquidity = _bvb_liquidity_assessment(item)
+                item['BVB_Liquidity'] = liquidity
+                if not liquidity['eligible']:
+                    continue
                 item['TVBETETF_Weight_Pct'] = etf_weights.get(symbol, 0)
                 item['_research_score'] -= etf_weights.get(symbol, 0) / 4
             apply_us_rotation(item)
@@ -400,6 +621,11 @@ def select_strict_buy_candidates(
         symbol = str(item.get('Ticker', '')).upper()
         if not symbol or symbol in all_watchlist_symbols:
             continue
+        if (
+            symbol in bvb_metadata_by_symbol
+            and not isinstance(item.get('BVB_Metadata'), dict)
+        ):
+            item['BVB_Metadata'] = bvb_metadata_by_symbol[symbol]
         if not _external_candidate_has_reliable_levels(item):
             continue
         item['Market'] = _buy_candidate_market(symbol)
@@ -2321,6 +2547,11 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             watch_chart_history[-1] - watch_chart_history[-2]
             if len(watch_chart_history) >= 2 else 0.0
         )
+        bvb_liquidity_metrics = (
+            _calculate_bvb_liquidity_metrics(df)
+            if ticker.upper().endswith('.RO')
+            else {}
+        )
 
         result = {
             'Ticker': ticker,
@@ -2377,6 +2608,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'Check_Details': " ".join(check_details),
             'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         }
+        result.update(bvb_liquidity_metrics)
         return result
         
     except Exception as e:
@@ -4159,6 +4391,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         etf_holdings=tvbetetf_holdings,
         sector_rotation=us_sector_rotation,
         us_market_regime=us_market_regime,
+        bvb_universe=(full_state or {}).get('bvb_equity_universe', []),
     )
     buy_candidate_payload = [
         {
@@ -4189,6 +4422,37 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'strategy': item.get('Strategy'),
             'relative_strength': item.get('RS_vs_SPX'),
             'bvb_metadata': item.get('BVB_Metadata'),
+            'bvb_market_segment': (
+                (item.get('BVB_Liquidity') or {}).get('market_segment')
+            ),
+            'liquidity_status': (
+                (item.get('BVB_Liquidity') or {}).get('status')
+            ),
+            'liquidity_reason': (
+                (item.get('BVB_Liquidity') or {}).get('reason')
+            ),
+            'liquidity_source': (
+                (item.get('BVB_Liquidity') or {}).get('source')
+            ),
+            'liquidity_observations_20d': item.get(
+                'Liquidity_Observations_20D'
+            ),
+            'active_days_20d': item.get('Active_Days_20D'),
+            'zero_volume_days_20d': item.get('Zero_Volume_Days_20D'),
+            'median_volume_20d': item.get('Median_Volume_20D'),
+            'median_turnover_20d_ron': item.get(
+                'Median_Turnover_20D_RON'
+            ),
+            'last_turnover_ron': item.get('Last_Turnover_RON'),
+            'relative_volume_20d': item.get('Relative_Volume_20D'),
+            'liquidity_position_cap_eur': (
+                (item.get('BVB_Liquidity') or {}).get('position_cap_eur')
+            ),
+            'liquidity_participation_limit_pct': (
+                (item.get('BVB_Liquidity') or {}).get(
+                    'participation_limit_pct'
+                )
+            ),
             'strict_eligible': bool(item.get('Strict_Eligible')),
             'candidate_source': item.get('Candidate_Source', 'watchlist'),
             'requires_watchlist_filters': bool(
