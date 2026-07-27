@@ -542,7 +542,7 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
-PORTFOLIO_AI_CACHE_VERSION = 11
+PORTFOLIO_AI_CACHE_VERSION = 12
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
 SEC_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK{cik:010d}.json'
@@ -1253,6 +1253,19 @@ def _size_buy_candidates(snapshot):
                 conditional_amount *= {
                     'favorizat': 1.0, 'neutru': 0.8, 'nefavorizat': 0.55,
                 }.get(candidate.get('cycle_fit'), 0.8)
+            liquidity_cap = _safe_number(
+                candidate.get('liquidity_position_cap_eur')
+            )
+            candidate['liquidity_cap_applied'] = bool(
+                candidate.get('market') == 'România / BVB'
+                and liquidity_cap > 0
+                and conditional_amount > liquidity_cap
+            )
+            if (
+                candidate.get('market') == 'România / BVB'
+                and liquidity_cap > 0
+            ):
+                conditional_amount = min(conditional_amount, liquidity_cap)
             preliminary.append((candidate, conditional_amount, stop_risk_pct))
 
         aggregate_cap = min(usable_cash * 0.15, net_liquidation * 0.12)
@@ -1303,7 +1316,16 @@ def _size_buy_candidates(snapshot):
                 'risk_to_stop_pct': round(stop_risk_pct * 100, 2),
                 'sizing_status': 'condițional' if amount > 0 else 'indisponibil',
                 'sizing_reason': (
-                    'Limitat de riscul până la stop, cash, NAV și concentrarea existentă.'
+                    (
+                        'Limitat de riscul până la stop, cash, NAV, concentrarea '
+                        'existentă și capacitatea rulajului BVB/AeRO.'
+                        if candidate.get('market') == 'România / BVB'
+                        and _safe_number(
+                            candidate.get('liquidity_position_cap_eur')
+                        ) > 0
+                        else
+                        'Limitat de riscul până la stop, cash, NAV și concentrarea existentă.'
+                    )
                     if amount > 0 else 'Stopul sau soldul nu permit o dimensionare verificabilă.'
                 ),
             })
@@ -2046,6 +2068,34 @@ def render_buy_recommendations_html(
             )
             overlap_html = ''
             if candidate.get('market') == 'România / BVB':
+                observations = int(
+                    float(candidate.get('liquidity_observations_20d') or 0)
+                )
+                active_days = int(float(candidate.get('active_days_20d') or 0))
+                median_turnover = float(
+                    candidate.get('median_turnover_20d_ron') or 0
+                )
+                relative_volume = candidate.get('relative_volume_20d')
+                liquidity_cap = float(
+                    candidate.get('liquidity_position_cap_eur') or 0
+                )
+                liquidity_details = (
+                    f"{median_turnover:,.0f} RON mediană/ședință"
+                    if median_turnover > 0 else
+                    "istoric de rulaj în curs de completare"
+                )
+                if observations:
+                    liquidity_details += (
+                        f" · {active_days}/{observations} ședințe active"
+                    )
+                if relative_volume is not None:
+                    liquidity_details += (
+                        f" · volum curent {float(relative_volume):.2f}× mediana"
+                    )
+                if liquidity_cap > 0:
+                    liquidity_details += (
+                        f" · plafon orientativ al ordinului €{liquidity_cap:,.2f}"
+                    )
                 overlap_html = (
                     "<div style='background:#fff7ed;border-radius:var(--radius-sm);"
                     "padding:9px 12px;margin:8px 0;font-size:13px;'>"
@@ -2055,6 +2105,11 @@ def render_buy_recommendations_html(
                     f" · total €{float(candidate.get('combined_pretrade_exposure_eur') or 0):,.2f}. "
                     f"Pondere în ETF: {float(candidate.get('tvbetetf_weight_pct') or 0):.2f}%"
                     f" · suprapunere {html.escape(str(candidate.get('overlap_risk') or 'necunoscută'))}."
+                    "<br><b>Lichiditate locală:</b> "
+                    f"{html.escape(str(candidate.get('bvb_market_segment') or 'segment necunoscut'))}"
+                    f" · {html.escape(liquidity_details)}"
+                    f" · {html.escape(str(candidate.get('liquidity_status') or 'date insuficiente'))}. "
+                    f"{html.escape(str(candidate.get('liquidity_reason') or ''))}"
                     "</div>"
                 )
             elif candidate.get('market') == 'SUA':
@@ -2307,6 +2362,8 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Acțiunile trebuie formulate ca verificări: plasează/revizuiește/menține/strânge doar condiționat.',
             'Pentru buy_candidates verifică dacă știrile, piața și calendarul economic susțin intrarea acum; filtrele tehnice singure nu sunt suficiente.',
             'Pentru candidații BVB folosește tvbetetf_weight_pct, indirect_exposure_eur, direct_exposure_eur și overlap_risk. Preferă diversificarea și cere dovezi mai puternice înainte de a dubla componentele dominante ale TVBETETF.',
+            'Pentru fiecare candidat BVB folosește bvb_market_segment, liquidity_status, median_turnover_20d_ron, active_days_20d, relative_volume_20d și liquidity_position_cap_eur. Nu transforma un vârf de volum dintr-o singură zi într-un semnal de lichiditate persistentă.',
+            'Nu valida o intrare BVB când liquidity_status este insuficientă sau date insuficiente. Pentru AeRO presupune risc mai mare de spread și slippage, iar suma deterministă nu poate depăși liquidity_position_cap_eur.',
             'Pentru candidații SUA folosește us_sector_rotation și câmpurile sector_rotation_status, relative față de SPY și existing_sector_exposure_eur. Preferă liderii confirmați și cere dovezi mai puternice pentru sectoarele în deteriorare.',
             'Pentru candidații SUA folosește și us_market_regime: market_stage, economic_phase, cycle_fit și size_factor. Explică simplu dacă piața este în creștere, corecție, încetinire sau recesiune și nu contrazice dimensionarea deterministă.',
             'Nu concentra recomandările SUA: limita deterministă este maximum două idei pe sector, maximum o idee pe industrie cunoscută, maximum 10% din NAV IBKR pe sector și 5% pe industrie după includerea expunerii existente.',

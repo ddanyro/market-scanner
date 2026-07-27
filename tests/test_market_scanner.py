@@ -60,7 +60,87 @@ class TestMarketAnalysis(unittest.TestCase):
             market_scanner.fetch_complete_bvb_equity_universe(state, session),
             state['bvb_equity_universe'],
         )
-        
+
+    def test_bvb_liquidity_uses_rolling_median_not_single_day_spike(self):
+        frame = pd.DataFrame({
+            'Close': [10.0] * 20,
+            'Volume': [1_000] * 19 + [50_000],
+        })
+        metrics = market_scanner._calculate_bvb_liquidity_metrics(frame)
+        self.assertEqual(metrics['Liquidity_Observations_20D'], 20)
+        self.assertEqual(metrics['Active_Days_20D'], 20)
+        self.assertEqual(metrics['Median_Turnover_20D_RON'], 10_000)
+        self.assertEqual(metrics['Last_Turnover_RON'], 500_000)
+        self.assertEqual(metrics['Relative_Volume_20D'], 50)
+
+    def test_bvb_liquidity_has_separate_regulated_and_aero_thresholds(self):
+        common = {
+            'Price': 10, 'Price_Native': 50,
+            'Liquidity_Observations_20D': 20,
+            'Active_Days_20D': 12,
+            'Median_Turnover_20D_RON': 30_000,
+        }
+        regulated = dict(common, BVB_Metadata={
+            'segment': 'Piata Reglementata',
+        })
+        aero = dict(common, BVB_Metadata={'segment': 'AeRO'})
+        regulated_result = market_scanner._bvb_liquidity_assessment(regulated)
+        aero_result = market_scanner._bvb_liquidity_assessment(aero)
+        self.assertFalse(regulated_result['eligible'])
+        self.assertTrue(aero_result['eligible'])
+        self.assertEqual(aero_result['market_segment'], 'AeRO')
+        self.assertEqual(aero_result['position_cap_eur'], 60)
+
+    def test_bvb_selection_rejects_one_day_volume_spike(self):
+        external = [{
+            'Ticker': 'SPIKE.RO', 'Decision': 'BUY', 'Consensus': 'Buy',
+            'RR_Ratio': 3, 'Trend': 'Bullish', 'RSI': 50,
+            'Price': 2, 'Price_Native': 10,
+            'Stop_Loss': 1.8, 'Target': 2.6, 'Analysts': 1,
+            'Volume': 100_000, 'Avg_Volume': 1_000,
+            'Liquidity_Observations_20D': 20,
+            'Active_Days_20D': 20,
+            'Median_Turnover_20D_RON': 10_000,
+            'Last_Turnover_RON': 1_000_000,
+            'BVB_Metadata': {'segment': 'Piata Reglementata'},
+        }]
+        selected = market_scanner.select_strict_buy_candidates(
+            pd.DataFrame(), external_research=external
+        )
+        self.assertEqual(selected, [])
+
+    def test_bvb_watchlist_candidate_also_requires_local_liquidity(self):
+        watchlist = pd.DataFrame([{
+            'Ticker': 'THIN.RO', 'Decision': 'BUY', 'Consensus': 'Strong Buy',
+            'RR_Ratio': 3.5, 'Price': 2, 'Price_Native': 10,
+            'Liquidity_Observations_20D': 20,
+            'Active_Days_20D': 8,
+            'Median_Turnover_20D_RON': 8_000,
+            'BVB_Metadata': {'segment': 'AeRO'},
+        }])
+        selected = market_scanner.select_strict_buy_candidates(watchlist)
+        self.assertEqual(selected, [])
+
+    def test_bvb_selection_attaches_official_market_segment(self):
+        watchlist = pd.DataFrame([{
+            'Ticker': 'AERO.RO', 'Decision': 'BUY', 'Consensus': 'Strong Buy',
+            'RR_Ratio': 3.5, 'Price': 2, 'Price_Native': 10,
+            'Liquidity_Observations_20D': 20,
+            'Active_Days_20D': 12,
+            'Median_Turnover_20D_RON': 30_000,
+        }])
+        selected = market_scanner.select_strict_buy_candidates(
+            watchlist,
+            bvb_universe=[{
+                'symbol': 'AERO.RO', 'segment': 'AeRO',
+                'category': 'AeRO Standard',
+            }],
+        )
+        self.assertEqual(len(selected), 1)
+        self.assertEqual(
+            selected[0]['BVB_Liquidity']['market_segment'], 'AeRO'
+        )
+
     def test_event_impact_nfp(self):
         """Test NFP event impact description."""
         desc = market_scanner_analysis.get_event_impact('Nonfarm')
@@ -672,6 +752,70 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(sized['TLV.RO']['broker_available_cash_eur'], 18000)
         self.assertGreater(sized['TEST']['conditional_amount_eur'], 0)
         self.assertGreater(sized['TLV.RO']['conditional_amount_eur'], 0)
+
+    def test_bvb_buy_sizing_is_capped_by_local_turnover_capacity(self):
+        snapshot = {
+            'account_liquidity': {
+                'privacy_mode': 'exact',
+                'accounts': [{
+                    'label': 'Tradeville',
+                    'summary': {
+                        'NetLiquidation': 100000,
+                        'AvailableFunds': 50000,
+                        'TotalCashValue': 50000,
+                    },
+                }],
+            },
+            'positions': [],
+            'buy_candidates': [{
+                'symbol': 'TLV.RO', 'market': 'România / BVB',
+                'eligible_brokers': ['Tradeville'],
+                'entry_eur': 10, 'stop_eur': 9,
+                'liquidity_position_cap_eur': 600,
+            }],
+        }
+        candidate = market_scanner_analysis._size_buy_candidates(snapshot)[0]
+        sizing = candidate['sizing_by_broker'][0]
+        self.assertEqual(sizing['conditional_amount_eur'], 600)
+        self.assertTrue(candidate['liquidity_cap_applied'])
+        self.assertIn('rulajului BVB/AeRO', sizing['sizing_reason'])
+
+    def test_bvb_buy_renderer_explains_local_liquidity(self):
+        html_result = market_scanner_analysis.render_buy_recommendations_html(
+            {'buy_recommendations': [{
+                'symbol': 'TLV.RO', 'market': 'România / BVB',
+                'verdict': 'Candidat valid', 'why_now': 'Setup confirmat.',
+                'market_effect': 'pozitiv', 'news_effect': 'neutru',
+                'calendar_effect': 'neutru', 'main_risk': 'stop',
+                'source_ids': [],
+            }]},
+            [{
+                'symbol': 'TLV.RO', 'market': 'România / BVB',
+                'company_name': 'Banca Transilvania',
+                'eligible_brokers': ['Tradeville'], 'strict_eligible': True,
+                'entry_eur': 10, 'stop_eur': 9, 'target_eur': 13,
+                'rr_ratio': 3, 'consensus': 'Buy',
+                'bvb_market_segment': 'Piața Reglementată',
+                'liquidity_status': 'adecvată',
+                'liquidity_reason': 'Rulaj stabil.',
+                'liquidity_observations_20d': 20,
+                'active_days_20d': 19,
+                'median_turnover_20d_ron': 500_000,
+                'relative_volume_20d': 1.25,
+                'liquidity_position_cap_eur': 2_000,
+                'sizing_by_broker': [{
+                    'broker': 'Tradeville',
+                    'broker_available_cash_eur': 10_000,
+                    'conditional_amount_eur': 2_000,
+                    'conditional_units': 200,
+                    'risk_to_stop_pct': 10,
+                }],
+            }],
+        )
+        self.assertIn('Lichiditate locală', html_result)
+        self.assertIn('500,000 RON mediană/ședință', html_result)
+        self.assertIn('19/20 ședințe active', html_result)
+        self.assertIn('plafon orientativ al ordinului €2,000.00', html_result)
 
     def test_buy_candidate_entry_uses_eur_price_when_smart_entry_is_nan(self):
         item = {'Smart_Entry_EUR': float('nan'), 'Smart_Entry': 110, 'Price': 100}
