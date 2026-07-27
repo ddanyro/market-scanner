@@ -427,6 +427,196 @@ def _buy_candidate_entry_eur(item):
         return None
 
 
+def _buy_candidate_execution_values(item, rates=None):
+    """Convertește nivelurile interne EUR în moneda în care se execută ordinul."""
+    symbol = str(item.get('Ticker') or item.get('symbol') or '').upper()
+    currency = str(item.get('Currency') or '').strip().upper()
+    if not currency:
+        currency = (
+            'RON' if symbol.endswith('.RO')
+            else 'EUR' if symbol in {'LQQ.PA', 'LQQ.FR', 'FR.LQQ'}
+            else 'USD'
+        )
+    price_eur = _safe_float_text(item.get('Price'))
+    price_native = _safe_float_text(item.get('Price_Native'))
+    eur_per_native = (
+        price_eur / price_native
+        if price_eur and price_native and price_eur > 0 and price_native > 0
+        else None
+    )
+    if not eur_per_native:
+        eur_per_native = _safe_float_text((rates or {}).get(currency))
+    if not eur_per_native and currency == 'EUR':
+        eur_per_native = 1.0
+
+    def to_native(value):
+        numeric = _safe_float_text(value)
+        if not numeric or not eur_per_native or eur_per_native <= 0:
+            return None
+        return round(numeric / eur_per_native, 4)
+
+    return {
+        'execution_currency': currency,
+        'eur_per_native': round(eur_per_native, 8) if eur_per_native else None,
+        'price_native': (
+            round(price_native, 4)
+            if price_native and price_native > 0
+            else to_native(price_eur)
+        ),
+        'entry_native': to_native(_buy_candidate_entry_eur(item)),
+        'stop_native': to_native(item.get('Stop_Loss')),
+        'target_native': to_native(item.get('Target')),
+    }
+
+
+def _chart_detail_native_payload(
+    item, symbol, eur_price_field, rates=None,
+):
+    """Pregătește seriile ferestrei detaliate în moneda de tranzacționare."""
+    normalized_symbol = str(symbol or '').upper()
+    currency = str(item.get('Currency') or '').strip().upper()
+    if not currency:
+        currency = (
+            'RON' if normalized_symbol.endswith('.RO')
+            else 'EUR'
+            if normalized_symbol in {'LQQ.PA', 'LQQ.FR', 'FR.LQQ'}
+            else 'USD'
+        )
+    price_eur = _safe_float_text(item.get(eur_price_field))
+    price_native = _safe_float_text(item.get('Price_Native'))
+    eur_per_native = (
+        price_eur / price_native
+        if price_eur and price_native and price_eur > 0 and price_native > 0
+        else _safe_float_text((rates or {}).get(currency))
+    )
+    if not eur_per_native and currency == 'EUR':
+        eur_per_native = 1.0
+    if not eur_per_native or eur_per_native <= 0:
+        eur_per_native = 1.0
+
+    def to_native(value):
+        numeric = _safe_float_text(value)
+        return (
+            round(numeric / eur_per_native, 4)
+            if numeric is not None else None
+        )
+
+    native_ohlc = []
+    for bar in item.get('Chart_OHLC', []) or []:
+        if not isinstance(bar, dict):
+            continue
+        converted = {'date': bar.get('date')}
+        valid = True
+        for key in ('open', 'high', 'low', 'close'):
+            native_value = to_native(bar.get(key))
+            if native_value is None:
+                valid = False
+                break
+            converted[key] = native_value
+        if valid:
+            native_ohlc.append(converted)
+
+    native_series = [
+        native_value
+        for native_value in (
+            to_native(value)
+            for value in (
+                item.get('Chart_History', item.get('Sparkline', [])) or []
+            )
+        )
+        if native_value is not None
+    ]
+    return {
+        'currency': currency,
+        'eur_per_native': eur_per_native,
+        'value': (
+            round(price_native, 4)
+            if price_native and price_native > 0
+            else to_native(price_eur)
+        ),
+        'change': to_native(item.get('Daily_Change', 0)) or 0,
+        'ohlc': native_ohlc,
+        'series': native_series,
+        'seriesDates': item.get('Chart_Dates', []),
+        'to_native': to_native,
+    }
+
+
+def _format_native_price_text(value, currency):
+    numeric = _safe_float_text(value)
+    if numeric is None:
+        return 'indisponibil'
+    code = str(currency or 'EUR').upper()
+    decimals = 4 if code == 'RON' and 0 < abs(numeric) < 10 else 2
+    formatted = f"{numeric:,.{decimals}f}"
+    if code == 'USD':
+        return f"${formatted}"
+    if code == 'EUR':
+        return f"€{formatted}"
+    if code == 'GBP':
+        return f"£{formatted}"
+    return f"{formatted} {code}"
+
+
+def _build_buy_recommendation_detail_data(candidates, ai_result=None):
+    """Construiește ferestrele OHLC pentru sugestiile curente de cumpărare."""
+    recommendations_by_symbol = {
+        str(item.get('symbol') or '').upper(): item
+        for item in (ai_result or {}).get('buy_recommendations', [])
+    }
+    details = {}
+    for candidate in candidates or []:
+        symbol = str(candidate.get('symbol') or '').upper()
+        if not symbol:
+            continue
+        currency = str(
+            candidate.get('chart_currency')
+            or candidate.get('execution_currency')
+            or 'EUR'
+        ).upper()
+        levels = []
+        for label, field, color in (
+            ('Entry recomandat', 'entry_native', '#2563eb'),
+            ('Stop recomandat', 'stop_native', '#dc2626'),
+            ('Target', 'target_native', '#16a34a'),
+        ):
+            value = _safe_float_text(candidate.get(field))
+            if value is not None and value > 0:
+                levels.append({
+                    'label': label,
+                    'value': round(value, 4),
+                    'color': color,
+                })
+        recommendation = recommendations_by_symbol.get(symbol, {})
+        details[symbol] = {
+            'kind': 'buy_recommendation',
+            'name': candidate.get('company_name') or symbol,
+            'ticker': symbol,
+            'currency': currency,
+            'value': candidate.get(
+                'chart_value_native',
+                candidate.get('price_native'),
+            ),
+            'change': candidate.get('chart_change_native', 0),
+            'status': (
+                recommendation.get('verdict')
+                or candidate.get('decision')
+                or '—'
+            ),
+            'rangeDescription': candidate.get('trend') or '—',
+            'explanation': (
+                'Candidat din sugestiile de cumpărare. Graficul include '
+                'nivelurile curente de entry, stop și target în moneda '
+                f'ordinului ({currency}).'
+            ),
+            'ohlc': candidate.get('chart_ohlc_native') or [],
+            'series': candidate.get('chart_series_native') or [],
+            'seriesDates': candidate.get('chart_series_dates') or [],
+            'levels': levels,
+        }
+    return details
+
+
 def _prepare_external_research_candidate(raw_item):
     """Construiește niveluri tehnice explicite pentru ruta externă independentă."""
     item = dict(raw_item or {})
@@ -3028,6 +3218,7 @@ def assess_stock_fitness(sector, phase):
     return "⚠️" # Caution/Neutral
 def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filename="index.html", full_state=None):
     if full_state is None: full_state = {}
+    dashboard_rates = full_state.get('rates', {})
     """Generează dashboard HTML cu 2 tab-uri și indicatori de piață."""
     
     css = """
@@ -3809,6 +4000,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             // Variabila cu datele criptate va fi injectată aici de Python
             // const ENCRYPTED_DATA = { ... }; 
             let portfolioDetailData = {};
+            let buyRecommendationDetailData = {};
 
 
             function unlockPortfolio() {
@@ -3899,6 +4091,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 // 3. Init Charts
                 initCharts(data.sparklines);
                 portfolioDetailData = data.chart_details || {};
+                buyRecommendationDetailData = data.buy_chart_details || {};
                 
                 // 4. Re-Init DataTables
                 if (typeof $ !== 'undefined' && $.fn.DataTable) {
@@ -4601,9 +4794,21 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         us_market_regime=us_market_regime,
         bvb_universe=(full_state or {}).get('bvb_equity_universe', []),
     )
-    buy_candidate_payload = [
-        {
-            'symbol': str(item.get('Ticker', '')).upper(),
+    candidate_rates = (full_state or {}).get('rates', {})
+    buy_candidate_payload = []
+    for item in strict_buy_candidates:
+        symbol = str(item.get('Ticker', '')).upper()
+        execution_values = _buy_candidate_execution_values(
+            item, rates=candidate_rates
+        )
+        native_chart_detail = _chart_detail_native_payload(
+            item,
+            symbol,
+            'Price',
+            rates=candidate_rates,
+        )
+        buy_candidate_payload.append({
+            'symbol': symbol,
             'market': item.get('Market'),
             'company_name': item.get('Company_Name'),
             'sector': item.get('Sector'),
@@ -4625,6 +4830,13 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'entry_reason': item.get('Smart_Reason'),
             'price_native': item.get('Price_Native'),
             'currency': item.get('Currency'),
+            **execution_values,
+            'chart_currency': native_chart_detail['currency'],
+            'chart_value_native': native_chart_detail['value'],
+            'chart_change_native': native_chart_detail['change'],
+            'chart_ohlc_native': native_chart_detail['ohlc'],
+            'chart_series_native': native_chart_detail['series'],
+            'chart_series_dates': native_chart_detail['seriesDates'],
             'atr_eur': item.get('ATR_14'),
             'volume': item.get('Volume'),
             'strategy': item.get('Strategy'),
@@ -4685,9 +4897,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'eligible_brokers': item.get('Eligible_Brokers') or _buy_candidate_brokers(
                 item.get('Ticker')
             ),
-        }
-        for item in strict_buy_candidates
-    ]
+        })
     sizing_snapshot = analysis.build_portfolio_risk_snapshot(
         portfolio_df,
         orders_df,
@@ -4754,6 +4964,12 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         (full_state or {}).get('us_universe_stats'),
         buy_recommendation_history,
     )
+    buy_recommendation_detail_data = (
+        _build_buy_recommendation_detail_data(
+            buy_candidate_payload,
+            portfolio_ai_result,
+        )
+    )
     full_state['last_portfolio_ai_diagnostic'] = portfolio_ai_diagnostic
     if (
         cached_portfolio_ai
@@ -4777,12 +4993,23 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     portfolio_detail_data = {}
     for _, row in portfolio_df.iterrows():
         symbol = str(row['Symbol'])
+        native_detail = _chart_detail_native_payload(
+            row,
+            symbol,
+            'Current_Price',
+            rates=dashboard_rates,
+        )
+        to_native = native_detail['to_native']
         raw_buy_levels = row.get('Buy_Levels', [])
         if not isinstance(raw_buy_levels, list) or not raw_buy_levels:
             raw_buy_levels = [row.get('Buy_Price', 0)]
         buy_levels = [
-            float(value) for value in raw_buy_levels
-            if pd.notna(value) and float(value) > 0
+            to_native(value) for value in raw_buy_levels
+            if (
+                pd.notna(value)
+                and float(value) > 0
+                and to_native(value) is not None
+            )
         ]
         chart_levels = [
             {
@@ -4803,10 +5030,6 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 symbol_orders = symbol_orders[
                     symbol_orders['Action'].astype(str).str.upper() == 'SELL'
                 ]
-            conversion_rate = 1.0
-            price_native = row.get('Price_Native', 0)
-            if pd.notna(price_native) and float(price_native) > 0:
-                conversion_rate = float(row.get('Current_Price', 0)) / float(price_native)
             for _, order in symbol_orders.iterrows():
                 stop_price_native = 0.0
                 for price_column in ('Calculated_Stop', 'Stop_Price', 'Aux_Price'):
@@ -4818,7 +5041,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     continue
                 quantity = order.get('Total_Qty', order.get('Quantity', 0))
                 quantity = float(quantity) if pd.notna(quantity) else 0.0
-                stop_value = round(stop_price_native * conversion_rate, 4)
+                # Ordinele brokerului sunt deja în moneda instrumentului.
+                stop_value = round(stop_price_native, 4)
                 duplicate = any(
                     abs(item['value'] - stop_value) < 0.005
                     and abs(item['quantity'] - quantity) < 0.001
@@ -4834,7 +5058,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 stop_loss = row.get('Trail_Stop', 0)
             if pd.notna(stop_loss) and float(stop_loss) > 0:
                 active_stops.append({
-                    'value': float(stop_loss),
+                    'value': to_native(stop_loss),
                     'quantity': float(row.get('Shares', 0))
                 })
 
@@ -4854,7 +5078,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
         suggested_stop = row.get('Suggested_Stop', 0)
         if pd.notna(suggested_stop) and float(suggested_stop) > 0:
-            suggested_value = float(suggested_stop)
+            suggested_value = to_native(suggested_stop)
             if not any(abs(stop['value'] - suggested_value) < 0.005 for stop in active_stops):
                 chart_levels.append({
                     "label": "Stop propus",
@@ -4865,18 +5089,20 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             "kind": "portfolio",
             "name": row.get('Company_Name', symbol),
             "ticker": symbol,
-            "value": row.get('Current_Price'),
-            "change": row.get('Daily_Change', 0),
+            "currency": native_detail['currency'],
+            "value": native_detail['value'],
+            "change": native_detail['change'],
             "status": row.get('Sell_Decision', 'HOLD'),
             "rangeDescription": row.get('Trend', '—'),
             "explanation": (
                 f"Poziție în portofoliu: {int(row.get('Shares', 0))} acțiuni. "
-                f"Preț mediu de cumpărare €{float(row.get('Buy_Price', 0)):.2f}; "
+                f"Preț mediu de cumpărare "
+                f"{_format_native_price_text(to_native(row.get('Buy_Price', 0)), native_detail['currency'])}; "
                 f"profit/pierdere {float(row.get('Profit_Pct', 0)):.2f}%."
             ),
-            "ohlc": row.get('Chart_OHLC', []),
-            "series": row.get('Chart_History', row.get('Sparkline', [])),
-            "seriesDates": row.get('Chart_Dates', []),
+            "ohlc": native_detail['ohlc'],
+            "series": native_detail['series'],
+            "seriesDates": native_detail['seriesDates'],
             "levels": chart_levels
         }
 
@@ -4887,7 +5113,8 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         "portfolio_ai_html": portfolio_ai_html,
         "buy_recommendations_html": buy_recommendations_html,
         "sparklines": sparkline_data,
-        "chart_details": portfolio_detail_data
+        "chart_details": portfolio_detail_data,
+        "buy_chart_details": buy_recommendation_detail_data,
     }
     # Use password variable (should be defined)
     if not password: password = "1234" # Fallback
@@ -6085,26 +6312,28 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     if not watchlist_df.empty:
         for _, row in watchlist_df.iterrows():
             ticker = str(row['Ticker'])
-            target_value = row.get('Target')
-            target_description = (
-                f"€{float(target_value):.2f}"
-                if pd.notna(target_value) and target_value else "indisponibil"
+            native_detail = _chart_detail_native_payload(
+                row,
+                ticker,
+                'Price',
+                rates=dashboard_rates,
             )
-            stop_value = row.get('Stop_Loss', 0)
+            to_native = native_detail['to_native']
+            target_value = to_native(row.get('Target'))
+            target_description = _format_native_price_text(
+                target_value,
+                native_detail['currency'],
+            )
+            stop_value = to_native(row.get('Stop_Loss', 0))
             watchlist_levels = []
-            entry_value = row.get('Smart_Entry_EUR', 0)
+            entry_value = row.get('Smart_Entry', 0)
             if (
                 row.get('Decision') == 'BUY'
                 and (pd.isna(entry_value) or not entry_value)
-                and pd.notna(row.get('Smart_Entry'))
-                and row.get('Smart_Entry')
+                and pd.notna(row.get('Smart_Entry_EUR'))
+                and row.get('Smart_Entry_EUR')
             ):
-                native_price = row.get('Price_Native', 0)
-                conversion_rate = (
-                    float(row.get('Price', 0)) / float(native_price)
-                    if pd.notna(native_price) and float(native_price) > 0 else 1.0
-                )
-                entry_value = float(row.get('Smart_Entry')) * conversion_rate
+                entry_value = to_native(row.get('Smart_Entry_EUR'))
             if (
                 row.get('Decision') == 'BUY'
                 and pd.notna(entry_value)
@@ -6126,8 +6355,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 'kind': 'watchlist',
                 'name': row.get('Company_Name', ticker),
                 'ticker': ticker,
-                'value': row.get('Price'),
-                'change': row.get('Daily_Change', 0),
+                'currency': native_detail['currency'],
+                'value': native_detail['value'],
+                'change': native_detail['change'],
                 'status': row.get('Decision', '—'),
                 'rangeDescription': row.get('Trend', '—'),
                 'explanation': (
@@ -6135,9 +6365,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     f"consens {row.get('Consensus', '—')}; "
                     f"target {target_description}."
                 ),
-                'ohlc': row.get('Chart_OHLC', []),
-                'series': row.get('Chart_History', row.get('Sparkline', [])),
-                'seriesDates': row.get('Chart_Dates', []),
+                'ohlc': native_detail['ohlc'],
+                'series': native_detail['series'],
+                'seriesDates': native_detail['seriesDates'],
                 'levels': watchlist_levels
             }
     watchlist_detail_json = json.dumps(watchlist_detail_data, ensure_ascii=False).replace('</', '<\\/')
@@ -6161,6 +6391,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
             function openWatchlistDetail(symbol) {
                 const detail = watchlistDetailData[symbol];
+                openMarketDetailWindow(detail, symbol);
+            }
+
+            function openBuyRecommendationDetail(symbol) {
+                const detail = buyRecommendationDetailData[symbol];
                 openMarketDetailWindow(detail, symbol);
             }
 
@@ -6195,12 +6430,12 @@ h1{margin:0 0 6px;font-size:clamp(28px,4vw,44px)}.ticker{color:#7760f9;font-weig
 <body><main class="page">
 <div class="top"><div><h1>${escapeIndicatorText(detail.name)}</h1><div class="ticker">${escapeIndicatorText(detail.ticker || indicatorName)}</div></div><button class="close" onclick="window.close()">Închide</button></div>
 <section class="stats">
-<div class="stat"><div class="label">Valoare curentă</div><div class="num">${formatIndicatorNumber(detail.value)}</div></div>
-<div class="stat"><div class="label">Schimbare zilnică</div><div class="num" style="color:${Number(detail.change)>=0?'#ef4444':'#16a34a'}">${Number(detail.change)>=0?'↑':'↓'} ${formatIndicatorNumber(Math.abs(Number(detail.change)||0))}</div></div>
+<div class="stat"><div class="label">Valoare curentă${detail.currency?' · '+escapeIndicatorText(detail.currency):''}</div><div class="num">${formatDetailNumber(detail.value,detail.currency)}</div></div>
+<div class="stat"><div class="label">Schimbare zilnică${detail.currency?' · '+escapeIndicatorText(detail.currency):''}</div><div class="num" style="color:${Number(detail.change)>=0?'#ef4444':'#16a34a'}">${Number(detail.change)>=0?'↑':'↓'} ${formatDetailNumber(Math.abs(Number(detail.change)||0),detail.currency)}</div></div>
 <div class="stat"><div class="label">Status</div><div class="num">${escapeIndicatorText(detail.status)}</div></div>
 <div class="stat"><div class="label">Interval</div><div class="num" style="font-size:18px">${escapeIndicatorText(detail.rangeDescription || '—')}</div></div>
 </section>
-<section class="panel"><div class="toolbar"><strong id="chartTitle">Grafic zilnic</strong><div class="buttons"><button class="range" data-count="22">1L</button><button class="range active" data-count="66">3L</button><button class="range" data-count="9999">Tot</button></div></div>
+<section class="panel"><div class="toolbar"><strong id="chartTitle">Grafic zilnic${detail.currency?' · '+escapeIndicatorText(detail.currency):''}</strong><div class="buttons"><button class="range" data-count="22">1L</button><button class="range active" data-count="66">3L</button><button class="range" data-count="9999">Tot</button></div></div>
 <div class="chart-wrap"><canvas id="indicatorChart"></canvas></div><div class="note" id="chartNote"></div></section>
 <section class="details"><div class="panel"><h2>Ce măsoară</h2><p>${escapeIndicatorText(detail.explanation || 'Detalii indisponibile.')}</p></div>
 <div class="panel"><h2>Cum se interpretează</h2><p>${escapeIndicatorText(indicatorInterpretation(indicatorName, detail))}</p></div></section>
@@ -6212,6 +6447,7 @@ ${drawCandles.toString()}
 ${drawLineSeries.toString()}
 ${drawHorizontalLevels.toString()}
 ${formatIndicatorNumber.toString()}
+${formatDetailNumber.toString()}
 document.querySelectorAll('.range').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('.range').forEach(x=>x.classList.remove('active'));button.classList.add('active');drawIndicatorDetail(detail,Number(button.dataset.count));}));
 window.addEventListener('resize',()=>{const active=document.querySelector('.range.active');drawIndicatorDetail(detail,Number(active.dataset.count));});
 window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();window.close();}});
@@ -6234,12 +6470,30 @@ drawIndicatorDetail(detail,66);
                     : '—';
             }
 
+            function formatDetailNumber(value, currency) {
+                const number = Number(value);
+                if (!Number.isFinite(number)) return '—';
+                const code = String(currency || '').toUpperCase();
+                const digits = code === 'RON' && Math.abs(number) < 10 ? 4 : 2;
+                const formatted = number.toLocaleString('ro-RO', {
+                    minimumFractionDigits: digits,
+                    maximumFractionDigits: digits
+                });
+                if (code === 'USD') return '$' + formatted;
+                if (code === 'EUR') return '€' + formatted;
+                if (code === 'GBP') return '£' + formatted;
+                return code ? formatted + ' ' + code : formatIndicatorNumber(number);
+            }
+
             function indicatorInterpretation(name, detail) {
                 if (detail && detail.kind === 'portfolio') {
                     return 'Lumânările arată evoluția zilnică a prețului. Compară trendul cu prețul de cumpărare, targetul, stop-ul și riscul poziției; graficul singur nu reprezintă o recomandare de tranzacționare.';
                 }
                 if (detail && detail.kind === 'watchlist') {
                     return 'Lumânările arată evoluția zilnică a prețului. Evaluează trendul împreună cu RSI, targetul, consensul și raportul risc-randament; includerea în watchlist nu reprezintă o recomandare de cumpărare.';
+                }
+                if (detail && detail.kind === 'buy_recommendation') {
+                    return 'Lumânările arată evoluția zilnică a prețului, iar liniile marchează entry-ul, stopul și targetul recomandării curente. Confirmă triggerul și spreadul înaintea ordinului.';
                 }
                 if (name === 'SPX' || name === 'NASDAQ') {
                     return 'Creșterea indicelui indică aprecierea pieței. Direcția trebuie evaluată împreună cu trendul, volatilitatea și participarea acțiunilor.';
@@ -6254,16 +6508,29 @@ drawIndicatorDetail(detail,66);
                 const canvas = document.getElementById('indicatorChart');
                 if (!canvas) return;
                 if (hasUsableIndicatorOhlc(detail.ohlc)) {
-                    drawCandles(canvas, detail.ohlc.slice(-count), detail.levels || []);
-                    document.getElementById('chartNote').textContent = 'Lumânări OHLC zilnice reale, furnizate de Yahoo Finance.';
+                    drawCandles(
+                        canvas,
+                        detail.ohlc.slice(-count),
+                        detail.levels || [],
+                        detail.currency
+                    );
+                    document.getElementById('chartNote').textContent = (
+                        'Lumânări OHLC zilnice reale, furnizate de Yahoo Finance'
+                        + (detail.currency ? ', în ' + detail.currency : '') + '.'
+                    );
                 } else {
                     drawLineSeries(
                         canvas,
                         (detail.series || []).slice(-count),
                         (detail.seriesDates || []).slice(-count),
-                        detail.levels || []
+                        detail.levels || [],
+                        detail.currency
                     );
-                    document.getElementById('chartNote').textContent = 'Istoric zilnic real afișat liniar: sursa nu oferă suficiente date OHLC utile pentru lumânări.';
+                    document.getElementById('chartNote').textContent = (
+                        'Istoric zilnic real afișat liniar'
+                        + (detail.currency ? ' în ' + detail.currency : '')
+                        + ': sursa nu oferă suficiente date OHLC utile pentru lumânări.'
+                    );
                 }
             }
 
@@ -6279,7 +6546,7 @@ drawIndicatorDetail(detail,66);
                 return nonFlat.length / valid.length >= 0.2;
             }
 
-            function drawCandles(canvas, candles, levels) {
+            function drawCandles(canvas, candles, levels, currency) {
                 const rect = canvas.getBoundingClientRect();
                 const ratio = window.devicePixelRatio || 1;
                 canvas.width = Math.max(1, Math.floor(rect.width * ratio));
@@ -6287,7 +6554,7 @@ drawIndicatorDetail(detail,66);
                 const ctx = canvas.getContext('2d');
                 ctx.scale(ratio, ratio);
                 const width = rect.width, height = rect.height;
-                const pad = {left:66,right:levels.length?155:18,top:18,bottom:34};
+                const pad = {left:currency?100:66,right:levels.length?190:18,top:18,bottom:34};
                 const chartW = width-pad.left-pad.right, chartH = height-pad.top-pad.bottom;
                 ctx.clearRect(0,0,width,height);
                 if (!candles.length) return;
@@ -6297,32 +6564,32 @@ drawIndicatorDetail(detail,66);
                 const extra = Math.max((max-min)*.06, .001); min-=extra; max+=extra;
                 const y = value => pad.top + (max-value)/(max-min)*chartH;
                 ctx.font='12px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';
-                for(let i=0;i<=5;i++){const value=max-(max-min)*i/5;const py=pad.top+chartH*i/5;ctx.strokeStyle='#e8ebf1';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.left,py);ctx.lineTo(width-pad.right,py);ctx.stroke();ctx.fillStyle='#6b7280';ctx.fillText(formatIndicatorNumber(value),pad.left-8,py);}
+                for(let i=0;i<=5;i++){const value=max-(max-min)*i/5;const py=pad.top+chartH*i/5;ctx.strokeStyle='#e8ebf1';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.left,py);ctx.lineTo(width-pad.right,py);ctx.stroke();ctx.fillStyle='#6b7280';ctx.fillText(formatDetailNumber(value,currency),pad.left-8,py);}
                 const step=chartW/candles.length, body=Math.max(2,Math.min(13,step*.62));
                 candles.forEach((item,index)=>{const x=pad.left+step*(index+.5);const open=Number(item.open),close=Number(item.close),high=Number(item.high),low=Number(item.low);const color=close>=open?'#16a34a':'#ef4444';ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(x,y(high));ctx.lineTo(x,y(low));ctx.stroke();const top=Math.min(y(open),y(close));const h=Math.max(1.5,Math.abs(y(open)-y(close)));ctx.fillRect(x-body/2,top,body,h);});
                 const labelEvery=Math.max(1,Math.ceil(candles.length/7));ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle='#6b7280';
                 candles.forEach((item,index)=>{if(index%labelEvery===0||index===candles.length-1){const x=pad.left+step*(index+.5);ctx.fillText(String(item.date).slice(5),x,height-pad.bottom+9);}});
-                drawHorizontalLevels(ctx,width,pad,min,max,levels);
+                drawHorizontalLevels(ctx,width,pad,min,max,levels,currency);
             }
 
-            function drawLineSeries(canvas, series, dates, levels) {
+            function drawLineSeries(canvas, series, dates, levels, currency) {
                 const rect=canvas.getBoundingClientRect(),ratio=window.devicePixelRatio||1;
                 canvas.width=Math.max(1,Math.floor(rect.width*ratio));canvas.height=Math.max(1,Math.floor(rect.height*ratio));
                 const ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);const width=rect.width,height=rect.height;
-                const pad={left:66,right:levels.length?155:18,top:18,bottom:40};
+                const pad={left:currency?100:66,right:levels.length?190:18,top:18,bottom:40};
                 const chartW=width-pad.left-pad.right,chartH=height-pad.top-pad.bottom;
                 ctx.clearRect(0,0,width,height);if(!series.length)return;
                 const levelValues=levels.map(x=>Number(x.value)).filter(Number.isFinite);
                 let min=Math.min(...series,...levelValues),max=Math.max(...series,...levelValues);const extra=Math.max((max-min)*.1,1);min-=extra;max+=extra;
                 ctx.font='12px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';
-                for(let i=0;i<=5;i++){const value=max-(max-min)*i/5;const py=pad.top+chartH*i/5;ctx.strokeStyle='#e8ebf1';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.left,py);ctx.lineTo(width-pad.right,py);ctx.stroke();ctx.fillStyle='#6b7280';ctx.fillText(formatIndicatorNumber(value),pad.left-8,py);}
+                for(let i=0;i<=5;i++){const value=max-(max-min)*i/5;const py=pad.top+chartH*i/5;ctx.strokeStyle='#e8ebf1';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.left,py);ctx.lineTo(width-pad.right,py);ctx.stroke();ctx.fillStyle='#6b7280';ctx.fillText(formatDetailNumber(value,currency),pad.left-8,py);}
                 ctx.strokeStyle='#7760f9';ctx.lineWidth=3;ctx.beginPath();series.forEach((value,index)=>{const x=pad.left+chartW*(index/Math.max(1,series.length-1));const y=pad.top+(max-value)/(max-min)*chartH;index?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
                 const labelEvery=Math.max(1,Math.ceil(series.length/7));ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle='#6b7280';
                 series.forEach((value,index)=>{if(index%labelEvery===0||index===series.length-1){const x=pad.left+chartW*(index/Math.max(1,series.length-1));const label=dates&&dates[index]?String(dates[index]).slice(5):String(index+1);ctx.fillText(label,x,height-pad.bottom+10);}});
-                drawHorizontalLevels(ctx,width,pad,min,max,levels);
+                drawHorizontalLevels(ctx,width,pad,min,max,levels,currency);
             }
 
-            function drawHorizontalLevels(ctx, width, pad, min, max, levels) {
+            function drawHorizontalLevels(ctx, width, pad, min, max, levels, currency) {
                 if (!levels || !levels.length || max <= min) return;
                 const chartH=ctx.canvas.getBoundingClientRect().height-pad.top-pad.bottom;
                 levels.forEach(level=>{
@@ -6334,7 +6601,7 @@ drawIndicatorDetail(detail,66);
                     ctx.beginPath();ctx.moveTo(pad.left,py);ctx.lineTo(width-pad.right,py);ctx.stroke();
                     ctx.setLineDash([]);ctx.fillStyle=level.color||'#2563eb';ctx.font='bold 12px sans-serif';
                     ctx.textAlign='left';ctx.textBaseline='middle';
-                    ctx.fillText(`${level.label}: €${formatIndicatorNumber(value)}`,width-pad.right+8,py);
+                    ctx.fillText(`${level.label}: ${formatDetailNumber(value,currency)}`,width-pad.right+8,py);
                     ctx.restore();
                 });
             }

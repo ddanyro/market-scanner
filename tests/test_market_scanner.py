@@ -903,6 +903,8 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
                 'company_name': 'Banca Transilvania',
                 'eligible_brokers': ['Tradeville'], 'strict_eligible': True,
                 'entry_eur': 10, 'stop_eur': 9, 'target_eur': 13,
+                'execution_currency': 'RON', 'eur_per_native': 0.2,
+                'entry_native': 50, 'stop_native': 45, 'target_native': 65,
                 'rr_ratio': 3, 'consensus': 'Buy',
                 'bvb_market_segment': 'Piața Reglementată',
                 'liquidity_status': 'adecvată',
@@ -915,7 +917,10 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
                 'sizing_by_broker': [{
                     'broker': 'Tradeville',
                     'broker_available_cash_eur': 10_000,
+                    'broker_available_cash_native_equivalent': 50_000,
                     'conditional_amount_eur': 2_000,
+                    'conditional_amount_native': 10_000,
+                    'execution_currency': 'RON',
                     'conditional_units': 200,
                     'risk_to_stop_pct': 10,
                 }],
@@ -924,11 +929,166 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIn('Lichiditate locală', html_result)
         self.assertIn('500,000 RON mediană/ședință', html_result)
         self.assertIn('19/20 ședințe active', html_result)
-        self.assertIn('plafon orientativ al ordinului €2,000.00', html_result)
+        self.assertIn('plafon orientativ al ordinului 10,000.00 RON', html_result)
+        self.assertIn('<b>Entry:</b> 50.00 RON', html_result)
+        self.assertIn('sumă orientativă pentru cumpărare acum:</b> 10,000.00 RON', html_result)
 
     def test_buy_candidate_entry_uses_eur_price_when_smart_entry_is_nan(self):
         item = {'Smart_Entry_EUR': float('nan'), 'Smart_Entry': 110, 'Price': 100}
         self.assertEqual(market_scanner._buy_candidate_entry_eur(item), 100)
+
+    def test_buy_candidate_execution_values_use_usd_and_ron(self):
+        ual = market_scanner._buy_candidate_execution_values({
+            'Ticker': 'UAL', 'Currency': 'USD',
+            'Price': 200, 'Price_Native': 220,
+            'Smart_Entry_EUR': 201, 'Stop_Loss': 190, 'Target': 230,
+        })
+        connections = market_scanner._buy_candidate_execution_values({
+            'Ticker': 'CC.RO', 'Currency': 'RON',
+            'Price': 2, 'Price_Native': 10,
+            'Smart_Entry_EUR': 2.1, 'Stop_Loss': 1.8, 'Target': 2.8,
+        })
+        self.assertEqual(ual['execution_currency'], 'USD')
+        self.assertAlmostEqual(ual['entry_native'], 221.1, places=2)
+        self.assertEqual(connections['execution_currency'], 'RON')
+        self.assertAlmostEqual(connections['entry_native'], 10.5, places=2)
+        self.assertAlmostEqual(connections['stop_native'], 9, places=2)
+
+    def test_detailed_chart_payload_uses_usd_for_us_stock(self):
+        detail = market_scanner._chart_detail_native_payload(
+            {
+                'Currency': 'USD',
+                'Current_Price': 200,
+                'Price_Native': 220,
+                'Daily_Change': 2,
+                'Chart_History': [190, 200],
+                'Chart_Dates': ['2026-07-24', '2026-07-27'],
+                'Chart_OHLC': [{
+                    'date': '2026-07-27',
+                    'open': 195, 'high': 205, 'low': 190, 'close': 200,
+                }],
+            },
+            'UAL',
+            'Current_Price',
+        )
+        self.assertEqual(detail['currency'], 'USD')
+        self.assertAlmostEqual(detail['value'], 220, places=2)
+        self.assertAlmostEqual(detail['series'][-1], 220, places=2)
+        self.assertAlmostEqual(detail['ohlc'][0]['high'], 225.5, places=2)
+        self.assertAlmostEqual(detail['change'], 2.2, places=2)
+
+    def test_detailed_chart_payload_uses_ron_for_bvb_stock(self):
+        detail = market_scanner._chart_detail_native_payload(
+            {
+                'Currency': 'RON',
+                'Price': 2,
+                'Price_Native': 10,
+                'Daily_Change': 0.1,
+                'Chart_History': [1.8, 2],
+                'Chart_Dates': ['2026-07-24', '2026-07-27'],
+                'Chart_OHLC': [{
+                    'date': '2026-07-27',
+                    'open': 1.9, 'high': 2.1, 'low': 1.8, 'close': 2,
+                }],
+            },
+            'CC.RO',
+            'Price',
+        )
+        self.assertEqual(detail['currency'], 'RON')
+        self.assertAlmostEqual(detail['series'][0], 9, places=2)
+        self.assertAlmostEqual(detail['ohlc'][0]['high'], 10.5, places=2)
+        self.assertAlmostEqual(detail['change'], 0.5, places=2)
+
+    def test_buy_recommendation_chart_uses_native_levels_and_ai_status(self):
+        details = market_scanner._build_buy_recommendation_detail_data(
+            [{
+                'symbol': 'CC.RO',
+                'company_name': 'Connections Consult S.A.',
+                'execution_currency': 'RON',
+                'chart_currency': 'RON',
+                'chart_value_native': 10,
+                'chart_change_native': 0.25,
+                'chart_ohlc_native': [{
+                    'date': '2026-07-27',
+                    'open': 9.8, 'high': 10.2, 'low': 9.7, 'close': 10,
+                }],
+                'chart_series_native': [9.8, 10],
+                'chart_series_dates': ['2026-07-24', '2026-07-27'],
+                'entry_native': 10.5,
+                'stop_native': 9,
+                'target_native': 14,
+                'decision': 'BUY',
+                'trend': 'Bullish',
+            }],
+            {'buy_recommendations': [{
+                'symbol': 'CC.RO',
+                'verdict': 'Pregătit la trigger',
+            }]},
+        )
+        detail = details['CC.RO']
+        self.assertEqual(detail['kind'], 'buy_recommendation')
+        self.assertEqual(detail['currency'], 'RON')
+        self.assertEqual(detail['status'], 'Pregătit la trigger')
+        self.assertEqual(
+            [level['value'] for level in detail['levels']],
+            [10.5, 9, 14],
+        )
+
+    def test_buy_renderer_uses_execution_currency_for_ual_and_connections(self):
+        recommendations = []
+        candidates = []
+        for symbol, market, company, currency, entry, stop, target, amount in [
+            (
+                'UAL', 'SUA', 'United Airlines Holdings', 'USD',
+                220, 209, 247, 1_100,
+            ),
+            (
+                'CC.RO', 'România / BVB', 'Connections Consult S.A.', 'RON',
+                10.5, 9, 14, 10_000,
+            ),
+        ]:
+            recommendations.append({
+                'symbol': symbol, 'market': market,
+                'verdict': 'Candidat valid', 'why_now': 'Setup confirmat.',
+                'market_effect': 'Pozitiv.', 'news_effect': 'Neutru.',
+                'calendar_effect': 'Neutru.', 'main_risk': 'Sub stop.',
+                'source_ids': [],
+            })
+            candidates.append({
+                'symbol': symbol, 'market': market, 'company_name': company,
+                'candidate_source': 'external_research',
+                'requires_watchlist_filters': False, 'strict_eligible': False,
+                'eligible_brokers': [
+                    'IBKR' if market == 'SUA' else 'Tradeville'
+                ],
+                'execution_currency': currency,
+                'entry_native': entry, 'stop_native': stop,
+                'target_native': target, 'rr_ratio': 2,
+                'entry_eur': entry, 'stop_eur': stop, 'target_eur': target,
+                'consensus': '-',
+                'sizing_by_broker': [{
+                    'broker': 'IBKR' if market == 'SUA' else 'Tradeville',
+                    'execution_currency': currency,
+                    'broker_available_cash_native_equivalent': amount * 10,
+                    'conditional_amount_native': amount,
+                    'conditional_units': 5,
+                    'risk_to_stop_pct': 5,
+                }],
+            })
+        html_result = market_scanner_analysis.render_buy_recommendations_html(
+            {'buy_recommendations': recommendations}, candidates
+        )
+        self.assertIn('UAL · United Airlines Holdings', html_result)
+        self.assertIn('<b>Entry:</b> $220.00', html_result)
+        self.assertIn('sumă orientativă pentru cumpărare acum:</b> $1,100.00', html_result)
+        self.assertIn('CC.RO · Connections Consult S.A.', html_result)
+        self.assertIn('<b>Entry:</b> 10.50 RON', html_result)
+        self.assertIn('sumă orientativă pentru cumpărare acum:</b> 10,000.00 RON', html_result)
+        self.assertEqual(html_result.count('📈 Grafic mare OHLC'), 2)
+        self.assertIn(
+            'openBuyRecommendationDetail(this.dataset.symbol)',
+            html_result,
+        )
 
     def test_lqq_is_always_selected_and_available_through_both_brokers(self):
         watchlist = pd.DataFrame([{
@@ -1047,7 +1207,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIn('TRIGGER · TRIGGER', html_result)
         self.assertIn('Ordin la trigger', html_result)
         self.assertIn(
-            'buget pentru ordin condiționat la trigger:</b> €1,000.00',
+            'buget pentru ordin condiționat la trigger:</b> $1,000.00',
             html_result,
         )
         self.assertIn('Nu cumpăra la piață înainte de trigger', html_result)
@@ -1087,10 +1247,12 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(second[0]['closed_at'], '2026-07-28T09:00:00')
         self.assertEqual(second[0]['closed_verdict'], 'Așteaptă')
         self.assertEqual(second[0]['closed_reason'], 'Nu acum.')
+        self.assertEqual(second[0]['execution_currency'], 'USD')
         history_html = (
             market_scanner_analysis._render_buy_recommendation_history(second)
         )
         self.assertIn('MSFT · Cumpărare acum', history_html)
+        self.assertIn('entry $100.00', history_html)
         self.assertIn('Încheiată', history_html)
         self.assertIn('Retrasă după reevaluare:</b> Așteaptă', history_html)
         self.assertIn('Nu acum.', history_html)
