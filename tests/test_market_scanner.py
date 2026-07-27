@@ -439,6 +439,115 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(returned_evidence['items'][0]['source_id'], 'TEST-sec-1')
         self.assertEqual(diagnostic['status'], 'success')
 
+    @patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key'})
+    @patch('market_scanner_analysis.get_economic_events', return_value=[])
+    @patch('market_scanner_analysis.requests.post')
+    def test_portfolio_ai_recovers_invalid_large_response_in_validated_batches(
+        self, mock_post, _mock_calendar
+    ):
+        incomplete = Mock()
+        incomplete.status_code = 200
+        incomplete.json.return_value = {
+            'status': 'incomplete',
+            'incomplete_details': {'reason': 'max_output_tokens'},
+            'output': [],
+        }
+        invalid_json = Mock()
+        invalid_json.status_code = 200
+        invalid_json.json.return_value = {'output_text': '{invalid'}
+        recovered = Mock()
+        recovered.status_code = 200
+        recovered.json.return_value = {'output_text': '''{
+          "portfolio_overview": "Riscul principal este protecția poziției existente.",
+          "market_read": "Piața SUA permite selecție, dar intrările cer confirmare.",
+          "position_actions": [{
+            "symbol": "TEST", "broker": "IBKR", "action": "Urmărește atent",
+            "plain_reason": "Poziția trebuie protejată printr-un ordin verificabil.",
+            "calendar_effect": "Nu sunt evenimente apropiate în date.",
+            "next_check": "Confirmarea ordinului stop."
+          }],
+          "buy_recommendations": [{
+            "symbol": "MSFT", "market": "SUA",
+            "verdict": "Pregătit la trigger",
+            "why_now": "Trendul este favorabil, dar intrarea cere confirmare.",
+            "market_effect": "Piața susține selectiv liderii.",
+            "news_effect": "Nu există știri validate care să schimbe teza.",
+            "calendar_effect": "Nu sunt evenimente apropiate în date.",
+            "main_risk": "Pierderea nivelului de stop.",
+            "source_ids": []
+          }],
+          "priorities": [{
+            "symbol": "TEST", "severity": "ridicat",
+            "issue": "Lipsă stop", "evidence": "Nu există ordin stop activ.",
+            "action": "Verifică și plasează protecția.",
+            "why": "Pierderile nu sunt limitate procedural.",
+            "review_trigger": "La activarea stopului.",
+            "confidence": "ridicată, ordinul lipsește",
+            "source_ids": []
+          }]
+        }'''}
+        mock_post.side_effect = [incomplete, invalid_json, recovered]
+        candidate = {
+            'symbol': 'MSFT', 'market': 'SUA', 'company_name': 'Microsoft',
+            'entry_eur': 100, 'stop_eur': 95, 'target_eur': 120,
+            'rr_ratio': 4, 'consensus': 'Buy', 'strict_eligible': True,
+            'requires_watchlist_filters': True, 'eligible_brokers': ['IBKR'],
+        }
+        evidence_cache = {
+            'fetched_at': (
+                datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+            ),
+            'symbols': ['TEST', 'MSFT'],
+            'items': [],
+        }
+        _, cache, _, diagnostic = (
+            market_scanner_analysis.generate_portfolio_ai_analysis(
+                self.portfolio,
+                pd.DataFrame(),
+                cached_evidence=evidence_cache,
+                buy_candidates=[candidate],
+            )
+        )
+        self.assertEqual(diagnostic['status'], 'success_recovered')
+        self.assertEqual(
+            cache['result']['buy_recommendations'][0]['symbol'], 'MSFT'
+        )
+        self.assertEqual(mock_post.call_count, 3)
+        self.assertEqual(
+            mock_post.call_args_list[0].kwargs['json']['max_output_tokens'],
+            16000,
+        )
+        cards = market_scanner_analysis.render_buy_recommendations_html(
+            cache['result'], [candidate]
+        )
+        self.assertNotIn('>Neanalizat</span>', cards)
+        self.assertIn('Pregătit la trigger', cards)
+
+    def test_portfolio_ai_validation_can_require_every_candidate(self):
+        result = {
+            'portfolio_overview': 'Rezumat valid.',
+            'market_read': 'Context valid.',
+            'position_actions': [{
+                'symbol': 'TEST', 'broker': 'IBKR',
+                'action': 'Urmărește atent', 'plain_reason': 'Motiv valid.',
+                'calendar_effect': 'Calendar valid.', 'next_check': 'Prag valid.',
+            }],
+            'buy_recommendations': [],
+            'priorities': [{
+                'symbol': 'TEST', 'severity': 'mediu', 'issue': 'Risc',
+                'evidence': 'Date valide.', 'action': 'Verifică.',
+                'why': 'Controlează riscul.', 'review_trigger': 'La prag.',
+                'confidence': 'medie', 'source_ids': [],
+            }],
+        }
+        with self.assertRaisesRegex(ValueError, 'MSFT'):
+            market_scanner_analysis._validate_portfolio_ai_result(
+                result,
+                {'TEST'},
+                candidate_symbols={'MSFT'},
+                require_complete_candidates=True,
+            )
+
     def test_portfolio_positions_map_to_broker_and_relevant_market(self):
         portfolio = pd.DataFrame([
             {'Symbol': 'JPM', 'Shares': 1, 'Current_Value': 100},
