@@ -295,6 +295,55 @@ def _external_research_score(item):
     return score
 
 
+def _external_candidate_has_reliable_levels(item):
+    """Respinge nivelurile BVB evident incomplete sau corupte înainte de AI."""
+    symbol = str(item.get('Ticker', '')).upper()
+    if not symbol.endswith('.RO'):
+        return True
+
+    entry = _buy_candidate_entry_eur(item)
+    stop = _safe_float_text(item.get('Stop_Loss'))
+    target = _safe_float_text(item.get('Target'))
+    rr_ratio = _safe_float_text(item.get('RR_Ratio'))
+    if not entry or not stop or not target or not rr_ratio:
+        return False
+    if not (0 < stop < entry < target):
+        return False
+
+    # Pentru BVB, Yahoo poate publica uneori ținte fără unitate/monedă coerentă.
+    # Nu trimitem modelului valori care implică multiplicări neverosimile.
+    if rr_ratio > 12 or target / entry > 2.5:
+        return False
+    if int(_safe_float_text(item.get('Analysts')) or 0) < 1:
+        return False
+
+    volume = _safe_float_text(item.get('Volume')) or 0
+    avg_volume = _safe_float_text(item.get('Avg_Volume')) or 0
+    metadata = item.get('BVB_Metadata') or {}
+    official_volume = _safe_float_text(metadata.get('volume')) or 0
+    turnover_ron = _safe_float_text(metadata.get('turnover_ron')) or 0
+    if max(volume, avg_volume, official_volume) < 1_000 and turnover_ron < 25_000:
+        return False
+    return True
+
+
+def _research_symbols_due(symbols, by_symbol, watchlist_symbols):
+    """Filtrează simbolurile deja acoperite înainte de limitarea lotului."""
+    due = []
+    for symbol in symbols:
+        normalized = str(symbol).upper()
+        if normalized in ALWAYS_RESEARCH_SYMBOLS:
+            due.append(symbol)
+            continue
+        if normalized in watchlist_symbols:
+            continue
+        cached = by_symbol.get(normalized)
+        if cached and market_data.is_fresh(cached, ttl_hours=5):
+            continue
+        due.append(symbol)
+    return due
+
+
 def select_strict_buy_candidates(
     watchlist_df, external_research=None, limit_per_market=4, etf_holdings=None,
     sector_rotation=None, us_market_regime=None,
@@ -351,6 +400,8 @@ def select_strict_buy_candidates(
         symbol = str(item.get('Ticker', '')).upper()
         if not symbol or symbol in all_watchlist_symbols:
             continue
+        if not _external_candidate_has_reliable_levels(item):
+            continue
         item['Market'] = _buy_candidate_market(symbol)
         item['Eligible_Brokers'] = _buy_candidate_brokers(symbol)
         item['Strict_Eligible'] = _is_strict_buy_candidate(item)
@@ -373,6 +424,12 @@ def select_strict_buy_candidates(
     )
     selected = []
     market_counts = {}
+    market_total_counts = {}
+    market_total_limits = {
+        'Europa / Nasdaq-100': 1,
+        'România / BVB': 6,
+        'SUA': 8,
+    }
     us_sector_counts = {}
     us_industry_counts = {}
     for item in candidates:
@@ -380,6 +437,10 @@ def select_strict_buy_candidates(
         count_key = (item['Market'], source)
         source_limit = 10 if source == 'external_research' else limit_per_market
         if market_counts.get(count_key, 0) >= source_limit:
+            continue
+        if market_total_counts.get(item['Market'], 0) >= market_total_limits.get(
+            item['Market'], limit_per_market
+        ):
             continue
         if item['Market'] == 'SUA':
             sector = str(item.get('Sector') or 'Necunoscut')
@@ -394,6 +455,9 @@ def select_strict_buy_candidates(
                 continue
         selected.append(item)
         market_counts[count_key] = market_counts.get(count_key, 0) + 1
+        market_total_counts[item['Market']] = (
+            market_total_counts.get(item['Market'], 0) + 1
+        )
         if item['Market'] == 'SUA':
             us_sector_counts[sector] = us_sector_counts.get(sector, 0) + 1
             if industry and industry not in {'-', 'N/A', 'Unknown'}:
@@ -486,6 +550,8 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
     bvb_metadata = {
         item['symbol']: item for item in bvb_universe
     }
+    attempted_by_market = {}
+    completed_by_market = {}
     for market in markets_to_research:
         print(f"  -> Cercetare BUY pentru {market}...")
         symbols = list(research_universes[market])
@@ -507,23 +573,25 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
                 return (freshness, -liquidity, recency, symbol)
 
             symbols.sort(key=bvb_priority)
-            symbols = symbols[:BVB_DEEP_SCAN_BATCH]
+            symbols = _research_symbols_due(
+                symbols, by_symbol, watchlist_symbols
+            )[:BVB_DEEP_SCAN_BATCH]
         elif market == 'SUA':
             symbols.sort(key=lambda symbol: (
                 1 if symbol.upper() in by_symbol else 0,
                 float(by_symbol.get(symbol.upper(), {}).get('_cached_at') or 0),
                 symbol,
             ))
-            symbols = symbols[:US_DEEP_SCAN_BATCH]
+            symbols = _research_symbols_due(
+                symbols, by_symbol, watchlist_symbols
+            )[:US_DEEP_SCAN_BATCH]
+        else:
+            symbols = _research_symbols_due(
+                symbols, by_symbol, watchlist_symbols
+            )
+        attempted_by_market[market] = len(symbols)
+        completed_by_market[market] = 0
         for symbol in symbols:
-            if symbol.upper() in watchlist_symbols and symbol.upper() not in ALWAYS_RESEARCH_SYMBOLS:
-                continue
-            cached = by_symbol.get(symbol.upper())
-            if (
-                symbol.upper() not in ALWAYS_RESEARCH_SYMBOLS
-                and cached and market_data.is_fresh(cached, ttl_hours=5)
-            ):
-                continue
             data = process_watchlist_ticker(symbol, vix_val, rates)
             if not data:
                 continue
@@ -532,6 +600,7 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
             if symbol in bvb_metadata:
                 data['BVB_Metadata'] = bvb_metadata[symbol]
             by_symbol[symbol.upper()] = data
+            completed_by_market[market] += 1
     state['external_buy_research'] = list(by_symbol.values())
     state['bvb_universe_stats'] = {
         'discovered': len(bvb_universe),
@@ -540,6 +609,8 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
             for item in by_symbol.values()
         ),
         'batch_size': BVB_DEEP_SCAN_BATCH,
+        'last_batch_attempted': attempted_by_market.get('România / BVB', 0),
+        'last_batch_completed': completed_by_market.get('România / BVB', 0),
         'source': BVB_SHARES_CSV_URL,
         'updated_at': datetime.datetime.now().isoformat(timespec='seconds'),
     }
@@ -551,6 +622,8 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
             for item in by_symbol.values()
         ),
         'batch_size': US_DEEP_SCAN_BATCH,
+        'last_batch_attempted': attempted_by_market.get('SUA', 0),
+        'last_batch_completed': completed_by_market.get('SUA', 0),
         'source': SP500_UNIVERSE_FILE,
         'updated_at': datetime.datetime.now().isoformat(timespec='seconds'),
     }
@@ -4151,9 +4224,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         sector_rotation=us_sector_rotation,
         us_market_regime=us_market_regime,
     )
-    portfolio_ai_result = (
-        (new_portfolio_ai_cache or cached_portfolio_ai or {}).get('result', {})
-    )
+    portfolio_ai_result = (new_portfolio_ai_cache or {}).get('result', {})
     promoted_symbols = _promote_validated_external_candidates(
         portfolio_ai_result, buy_candidate_payload
     )
@@ -4170,6 +4241,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         (full_state or {}).get('us_universe_stats'),
     )
     full_state['last_portfolio_ai_diagnostic'] = portfolio_ai_diagnostic
+    if (
+        cached_portfolio_ai
+        and cached_portfolio_ai.get('version') != analysis.PORTFOLIO_AI_CACHE_VERSION
+    ):
+        full_state.pop('last_portfolio_ai_analysis', None)
     if new_portfolio_ai_cache and new_portfolio_ai_cache != cached_portfolio_ai:
         full_state['last_portfolio_ai_analysis'] = new_portfolio_ai_cache
         market_utils.save_state(full_state)

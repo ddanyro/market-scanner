@@ -542,7 +542,7 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
-PORTFOLIO_AI_CACHE_VERSION = 10
+PORTFOLIO_AI_CACHE_VERSION = 11
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
 SEC_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK{cik:010d}.json'
@@ -1464,7 +1464,13 @@ def collect_portfolio_evidence(snapshot, cached=None, request_session=None, now=
         if item.get('symbol')
     ]
     symbols = list(dict.fromkeys(symbols))
-    if _evidence_cache_is_fresh(cached):
+    cached_has_cross_market_sec = any(
+        str(item.get('symbol', '')).upper().endswith('.RO')
+        and '-sec-' in str(item.get('source_id', '')).lower()
+        for item in (cached or {}).get('items', [])
+        if isinstance(item, dict)
+    )
+    if _evidence_cache_is_fresh(cached) and not cached_has_cross_market_sec:
         cached_symbols = set(cached.get('symbols', []))
         if cached_symbols == set(symbols):
             return cached
@@ -1472,7 +1478,13 @@ def collect_portfolio_evidence(snapshot, cached=None, request_session=None, now=
     session = request_session or requests.Session()
     previous_items = [
         clean for clean in (_clean_evidence_item(item) for item in (cached or {}).get('items', []))
-        if clean
+        if (
+            clean
+            and not (
+                clean['symbol'].endswith('.RO')
+                and '-sec-' in clean['source_id'].lower()
+            )
+        )
     ]
     items = []
     sec_map = {}
@@ -1493,7 +1505,7 @@ def collect_portfolio_evidence(snapshot, cached=None, request_session=None, now=
         except (requests.RequestException, ValueError, TypeError, ET.ParseError):
             pass
         sec_symbol = symbol.split('.')[0]
-        if sec_symbol in sec_map:
+        if not symbol.upper().endswith('.RO') and sec_symbol in sec_map:
             try:
                 items.extend(_fetch_sec_filings(symbol, sec_map[sec_symbol], session))
             except (requests.RequestException, ValueError, TypeError, KeyError, IndexError):
@@ -1908,11 +1920,18 @@ def render_buy_recommendations_html(
             recommendation = {
                 'symbol': symbol,
                 'market': candidate.get('market') or '-',
-                'verdict': 'Așteaptă',
-                'market_effect': 'Validarea completă a contextului de piață nu este disponibilă.',
-                'news_effect': 'Știrile și rapoartele nu au putut fi validate acum.',
-                'calendar_effect': 'Calendarul economic nu a putut fi validat acum.',
-                'main_risk': 'Nu există suficiente date pentru o intrare.',
+                'verdict': 'Neanalizat',
+                'why_now': (
+                    'Candidatul a trecut selecția deterministă, dar nu a primit încă '
+                    'o validare AI pentru datele curente.'
+                ),
+                'market_effect': 'Contextul curent nu a fost încă validat de AI.',
+                'news_effect': 'Știrile și rapoartele nu au fost încă validate de AI.',
+                'calendar_effect': 'Calendarul curent nu a fost încă validat de AI.',
+                'main_risk': (
+                    'Nu deschide poziția până la finalizarea validării curente. '
+                    'Aceasta nu este o respingere a candidatului.'
+                ),
                 'source_ids': [],
             }
         if (
@@ -1949,6 +1968,7 @@ def render_buy_recommendations_html(
                 '#16a34a' if verdict == 'Candidat valid'
                 else '#2563eb' if verdict == 'Pregătit la trigger'
                 else '#d97706' if verdict in {'Foarte aproape', 'Urmărește', 'Așteaptă'}
+                else '#64748b' if verdict == 'Neanalizat'
                 else '#dc2626'
             )
             entry_value = float(candidate.get('entry_eur') or 0)
@@ -1990,18 +2010,22 @@ def render_buy_recommendations_html(
                 not candidate.get('requires_watchlist_filters', True)
                 or candidate.get('strict_eligible', True)
             ):
-                why_now = (
-                    (
-                        f"Ideea a fost găsită prin cercetare externă și nu este "
-                        f"supusă filtrului watchlistului. "
-                        if candidate.get('candidate_source') == 'external_research'
-                        else
-                        f"Scannerul confirmă BUY, consensus {candidate.get('consensus')}, "
-                        f"R:R {float(candidate.get('rr_ratio') or 0):.2f}. "
+                if verdict == 'Neanalizat':
+                    why_now = item['why_now']
+                else:
+                    why_now = (
+                        (
+                            f"Ideea a fost găsită prin cercetare externă și nu este "
+                            f"supusă filtrului watchlistului. "
+                            if candidate.get('candidate_source') == 'external_research'
+                            else
+                            f"Scannerul confirmă BUY, consensus {candidate.get('consensus')}, "
+                            f"R:R {float(candidate.get('rr_ratio') or 0):.2f}. "
+                        )
+                        + f"Nivelul urmărit este €{entry_value:.2f}, iar verdictul AI este "
+                        f"{verdict.lower()} după verificarea contextului. "
+                        + str(item.get('why_now') or '')
                     )
-                    + f"Nivelul urmărit este €{entry_value:.2f}, iar verdictul AI este "
-                    f"{verdict.lower()} după verificarea contextului."
-                )
             else:
                 why_now = (
                     "LQQ este analizat obligatoriu la fiecare rulare, dar acum nu "
@@ -2101,7 +2125,18 @@ def render_buy_recommendations_html(
             + ''.join(market_notices) + "</div>"
             if market_notices else ''
         )
-        body = notices_html + "<div style='display:grid;gap:10px;'>" + ''.join(cards) + "</div>"
+        validated_count = len(recommendations_by_symbol)
+        validation_html = (
+            "<p style='margin:0 0 12px;color:var(--text-secondary);font-size:13px;'>"
+            f"Validare AI curentă: <b>{validated_count}</b> din "
+            f"<b>{len(recommendations)}</b> candidați. "
+            "„Neanalizat” înseamnă că răspunsul AI curent lipsește, nu că ideea a fost respinsă."
+            "</p>"
+        )
+        body = (
+            notices_html + validation_html
+            + "<div style='display:grid;gap:10px;'>" + ''.join(cards) + "</div>"
+        )
     bvb_coverage_html = ''
     if bvb_universe_stats:
         bvb_coverage_html = (
@@ -2193,7 +2228,11 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
     calendar_effects = _position_calendar_effects(snapshot)
     candidate_calendar_effects = _candidate_calendar_effects(snapshot)
     fingerprint = _portfolio_snapshot_fingerprint(snapshot)
-    if isinstance(cached, dict) and cached.get('fingerprint') == fingerprint:
+    if (
+        isinstance(cached, dict)
+        and cached.get('version') == PORTFOLIO_AI_CACHE_VERSION
+        and cached.get('fingerprint') == fingerprint
+    ):
         try:
             result = _validate_portfolio_ai_result(
                 cached.get('result', {}),
@@ -2223,7 +2262,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
         reason = 'missing_key' if not openai_key else 'empty_portfolio'
         return (
             _render_portfolio_ai_html(snapshot),
-            cached,
+            None,
             evidence_cache,
             {'status': reason, 'message': 'Cheia OpenAI sau pozițiile nu sunt disponibile.'},
         )
@@ -2278,11 +2317,12 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Pentru cercetarea externă folosește trepte clare: Candidat valid numai pentru intrare imediată; Pregătit la trigger când există un prag apropiat; Foarte aproape când mai lipsește o confirmare; Urmărește pentru o idee utilă dar prematură; Evită când riscul domină.',
             'Pentru verdicturile diferite de Candidat valid, investiția acum este zero. În why_now spune în limbaj simplu triggerul sau confirmarea necesară folosind exclusiv nivelurile primite.',
             'Păstrează acoperire echilibrată: dacă există candidați, include idei relevante atât pentru SUA, cât și pentru România/BVB; nu lăsa o singură piață să ocupe toate rezultatele.',
+            'Include fiecare simbol din buy_candidates exact o dată în buy_recommendations; nu omite candidați și nu adăuga alții.',
             'Dacă strict_eligible=true și entry_eur este pozitiv, nu afirma că lipsesc semnalul BUY sau nivelul de intrare.',
             'Dimensionarea din buy_candidates este calculată determinist și separat pe broker în sizing_by_broker. Nu modifica și nu inventa sumele, unitățile sau cash-ul brokerilor.',
             'Un verdict Așteaptă înseamnă investiție acum zero; suma condițională poate fi folosită numai după dispariția riscului menționat și reconfirmarea semnalului.',
             'Nu promite îmbunătățirea randamentului lunar. Prioritizează limitarea pierderii, evitarea concentrării și păstrarea cash-ului pentru oportunități confirmate.',
-            'Dacă riscul de rezultate, știrile sau un eveniment economic apropiat pot produce gap, verdictul este Așteaptă.',
+            'Un eveniment macroeconomic general apropiat nu blochează automat toate cumpărările din piața respectivă. Pentru un setup solid folosește dimensionarea prudentă deja calculată sau Pregătit la trigger; folosește Așteaptă când riscul este specific emitentului (de exemplu rezultate) ori când combinația dintre calendar, piață și setup face probabil un gap greu de controlat.',
         ],
         'required_json': {
             'portfolio_overview': 'maximum 4 propoziții clare, fără repetarea detaliilor tehnice',
@@ -2504,34 +2544,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
         'attempts': diagnostics,
         'message': 'Apelurile OpenAI au eșuat; este afișat fallback-ul determinist.',
     }
-    if isinstance(cached, dict) and isinstance(cached.get('result'), dict):
-        try:
-            stale_result = _validate_portfolio_ai_result(
-                cached['result'],
-                {item['symbol'] for item in snapshot['positions']},
-                evidence_ids,
-                {item['symbol'] for item in snapshot['buy_candidates']},
-                calendar_effects,
-                candidate_calendar_effects,
-            )
-            diagnostic.update({
-                'status': 'fallback_cache',
-                'message': (
-                    'Răspunsul nou a fost invalid; analiza AI anterioară este afișată '
-                    'împreună cu dimensionarea și soldurile curente.'
-                ),
-            })
-            return (
-                _render_portfolio_ai_html(
-                    snapshot, stale_result, f'OpenAI · {OPENAI_ANALYSIS_MODEL} · cache anterior'
-                ),
-                cached,
-                evidence_cache,
-                diagnostic,
-            )
-        except (ValueError, KeyError, TypeError):
-            pass
-    return _render_portfolio_ai_html(snapshot), cached, evidence_cache, diagnostic
+    return _render_portfolio_ai_html(snapshot), None, evidence_cache, diagnostic
 
 
 def _enrich_events_with_ai(events, indicators):

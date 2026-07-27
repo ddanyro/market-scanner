@@ -7,6 +7,7 @@ import copy
 import sys
 import os
 import tempfile
+import time
 from unittest.mock import Mock, patch, MagicMock
 import pandas as pd
 import numpy as np
@@ -763,6 +764,8 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         external = [{
             'Ticker': 'TLV.RO', 'Decision': 'HOLD', 'Consensus': '-',
             'RR_Ratio': 1.5, 'Trend': 'Bullish', 'RSI': 52,
+            'Price': 10, 'Stop_Loss': 9, 'Target': 12.5,
+            'Analysts': 1, 'Volume': 50_000,
         }]
         selected = market_scanner.select_strict_buy_candidates(
             watchlist, external_research=external
@@ -788,10 +791,14 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             {
                 'Ticker': 'TLV.RO', 'Decision': 'BUY', 'Consensus': 'Buy',
                 'RR_Ratio': 3, 'Trend': 'Bullish', 'RSI': 50,
+                'Price': 10, 'Stop_Loss': 9, 'Target': 13,
+                'Analysts': 1, 'Volume': 50_000,
             },
             {
                 'Ticker': 'IARV.RO', 'Decision': 'BUY', 'Consensus': 'Buy',
                 'RR_Ratio': 3, 'Trend': 'Bullish', 'RSI': 50,
+                'Price': 10, 'Stop_Loss': 9, 'Target': 13,
+                'Analysts': 1, 'Volume': 50_000,
             },
         ]
         selected = market_scanner.select_strict_buy_candidates(
@@ -802,6 +809,39 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             },
         )
         self.assertEqual(selected[0]['Ticker'], 'IARV.RO')
+
+    def test_bvb_external_research_rejects_absurd_or_unverifiable_targets(self):
+        external = [
+            {
+                'Ticker': 'BIO.RO', 'Decision': 'BUY', 'Consensus': 'None',
+                'RR_Ratio': 4328.52, 'Trend': 'Bullish', 'RSI': 50,
+                'Price': 0.26, 'Stop_Loss': 0.24, 'Target': 57.80,
+                'Analysts': 0, 'Volume': 31_963,
+            },
+            {
+                'Ticker': 'ONE.RO', 'Decision': 'WAIT', 'Consensus': 'None',
+                'RR_Ratio': 4.25, 'Trend': 'Bullish', 'RSI': 50,
+                'Price': 6.63, 'Stop_Loss': 6.30, 'Target': 8.04,
+                'Analysts': 2, 'Volume': 12_375,
+            },
+        ]
+        selected = market_scanner.select_strict_buy_candidates(
+            pd.DataFrame(), external_research=external
+        )
+        self.assertEqual([item['Ticker'] for item in selected], ['ONE.RO'])
+
+    def test_research_batch_filters_fresh_and_watchlist_before_limit(self):
+        symbols = [f'WATCH{index}' for index in range(40)] + [
+            f'NEW{index}' for index in range(50)
+        ]
+        due = market_scanner._research_symbols_due(
+            symbols,
+            {'NEW0': {'_cached_at': time.time()}},
+            {f'WATCH{index}' for index in range(40)},
+        )
+        self.assertEqual(len(due[:market_scanner.US_DEEP_SCAN_BATCH]), 40)
+        self.assertEqual(due[0], 'NEW1')
+        self.assertEqual(due[39], 'NEW40')
 
     def test_us_selection_limits_two_candidates_per_sector(self):
         external = [
@@ -924,7 +964,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
     @patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key'})
     @patch('market_scanner_analysis.get_economic_events', return_value=[])
     @patch('market_scanner_analysis.requests.post')
-    def test_portfolio_ai_uses_previous_valid_cache_when_new_json_is_invalid(
+    def test_portfolio_ai_rejects_outdated_cache_when_new_json_is_invalid(
         self, mock_post, _mock_calendar
     ):
         response = Mock()
@@ -964,9 +1004,74 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
                 },
             )
         )
-        self.assertEqual(diagnostic['status'], 'fallback_cache')
+        self.assertEqual(diagnostic['status'], 'failed')
+        self.assertIsNone(returned_cache)
+        self.assertNotIn('cache anterior', html_result)
+        self.assertIn('Analiza AI nu este disponibilă momentan', html_result)
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch('market_scanner_analysis.get_economic_events', return_value=[])
+    @patch('market_scanner_analysis._portfolio_snapshot_fingerprint', return_value='same')
+    def test_portfolio_ai_keeps_current_exact_cache(
+        self, _mock_fingerprint, _mock_calendar
+    ):
+        cached = {
+            'version': market_scanner_analysis.PORTFOLIO_AI_CACHE_VERSION,
+            'fingerprint': 'same',
+            'result': {
+                'portfolio_overview': 'Rezumat curent valid.',
+                'market_read': 'Context curent valid pentru SUA.',
+                'position_actions': [{
+                    'symbol': 'TEST', 'broker': 'IBKR', 'action': 'Urmărește atent',
+                    'plain_reason': 'Protecția trebuie verificată.',
+                    'calendar_effect': 'Nu există evenimente apropiate în date.',
+                    'next_check': 'Verifică stopul.',
+                }],
+                'buy_recommendations': [],
+                'priorities': [{
+                    'symbol': 'TEST', 'severity': 'mediu', 'issue': 'Protecție',
+                    'evidence': 'Stop neverificat.', 'action': 'Verifică stopul.',
+                    'why': 'Controlează pierderea.', 'review_trigger': 'La schimbarea prețului.',
+                    'confidence': 'medie', 'source_ids': [],
+                }],
+            },
+        }
+        html_result, returned_cache, _, diagnostic = (
+            market_scanner_analysis.generate_portfolio_ai_analysis(
+                self.portfolio,
+                pd.DataFrame(),
+                cached=cached,
+                cached_evidence={
+                    'fetched_at': datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
+                    'symbols': ['TEST'],
+                    'items': [],
+                },
+            )
+        )
+        self.assertEqual(diagnostic['status'], 'cache_valid')
         self.assertIs(returned_cache, cached)
-        self.assertIn('cache anterior', html_result)
+        self.assertIn('OpenAI · cache', html_result)
+
+    def test_buy_renderer_marks_missing_ai_result_as_not_analyzed(self):
+        html_result = market_scanner_analysis.render_buy_recommendations_html(
+            {},
+            [{
+                'symbol': 'MSFT', 'market': 'SUA', 'company_name': 'Microsoft',
+                'strict_eligible': True, 'requires_watchlist_filters': True,
+                'candidate_source': 'watchlist', 'eligible_brokers': ['IBKR'],
+                'entry_eur': 100, 'stop_eur': 95, 'target_eur': 120,
+                'rr_ratio': 4, 'consensus': 'Buy',
+                'sizing_by_broker': [{
+                    'broker': 'IBKR', 'broker_available_cash_eur': 10_000,
+                    'conditional_amount_eur': 1_000, 'conditional_units': 10,
+                    'risk_to_stop_pct': 5,
+                }],
+            }],
+        )
+        self.assertIn('Neanalizat', html_result)
+        self.assertNotIn('>Așteaptă</span>', html_result)
+        self.assertIn('nu că ideea a fost respinsă', html_result)
+        self.assertIn('Validare AI curentă: <b>0</b> din <b>1</b>', html_result)
 
     def test_portfolio_evidence_prefers_official_sec_filings_and_keeps_links(self):
         class FakeResponse:
@@ -1002,6 +1107,68 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertTrue(evidence['items'][0]['official'])
         self.assertIn('10-Q', evidence['items'][0]['title'])
         self.assertTrue(evidence['items'][0]['url'].startswith('https://www.sec.gov/Archives/'))
+
+    def test_bvb_symbol_is_never_matched_to_same_named_sec_ticker(self):
+        class FakeResponse:
+            def __init__(self, payload=None, content=b''):
+                self._payload = payload
+                self.content = content
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return self._payload
+
+        class FakeSession:
+            def __init__(self):
+                self.submissions_requested = False
+            def get(self, url, **kwargs):
+                if 'company_tickers' in url:
+                    return FakeResponse({'0': {'ticker': 'EL', 'cik_str': 123}})
+                if 'submissions' in url:
+                    self.submissions_requested = True
+                    return FakeResponse({'filings': {'recent': {}}})
+                if 'feeds.finance.yahoo.com' in url:
+                    return FakeResponse(content=b'<rss><channel></channel></rss>')
+                return FakeResponse([])
+
+        session = FakeSession()
+        snapshot = {
+            'positions': [{'symbol': 'EL.RO'}],
+            'buy_candidates': [],
+        }
+        with patch('market_scanner_analysis.get_economic_events', return_value=[]):
+            evidence = market_scanner_analysis.collect_portfolio_evidence(
+                snapshot, request_session=session
+            )
+        self.assertFalse(session.submissions_requested)
+        self.assertEqual(evidence['items'], [])
+
+    def test_invalid_cached_bvb_sec_evidence_is_removed(self):
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        cached = {
+            'fetched_at': now.isoformat(),
+            'symbols': ['EL.RO'],
+            'items': [{
+                'source_id': 'EL.RO-sec-wrong',
+                'symbol': 'EL.RO',
+                'title': 'Depunere SEC greșită',
+                'url': 'https://www.sec.gov/wrong',
+                'date': '2026-07-24',
+                'publisher': 'SEC',
+                'source_type': 'raport oficial 8-K',
+                'official': True,
+            }],
+        }
+        session = Mock()
+        session.get.side_effect = market_scanner_analysis.requests.RequestException()
+        with patch('market_scanner_analysis.get_economic_events', return_value=[]):
+            evidence = market_scanner_analysis.collect_portfolio_evidence(
+                {'positions': [{'symbol': 'EL.RO'}], 'buy_candidates': []},
+                cached=cached,
+                request_session=session,
+                now=now,
+            )
+        self.assertEqual(evidence['items'], [])
         
     def test_nasdaq_affects_probability_calculation(self):
         """Test that NASDAQ affects probability direction calculation."""
