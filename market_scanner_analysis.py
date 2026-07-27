@@ -542,7 +542,7 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
 OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
-PORTFOLIO_AI_CACHE_VERSION = 12
+PORTFOLIO_AI_CACHE_VERSION = 13
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
 SEC_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK{cik:010d}.json'
@@ -1642,9 +1642,64 @@ def _candidate_calendar_effects(snapshot):
     return _position_calendar_effects(candidate_snapshot)
 
 
-def _validate_portfolio_ai_result(result, symbols, evidence_ids=None, candidate_symbols=None,
-                                  calendar_effects=None,
-                                  candidate_calendar_effects=None):
+def _validate_buy_recommendations(
+    raw_items, candidate_symbols, evidence_ids=None,
+    candidate_calendar_effects=None, require_complete=False,
+):
+    """Validează recomandările BUY și poate impune acoperirea fiecărui candidat."""
+    candidate_symbols = candidate_symbols or set()
+    evidence_ids = evidence_ids or set()
+    allowed_buy_verdicts = {
+        'Candidat valid', 'Pregătit la trigger', 'Foarte aproape',
+        'Urmărește', 'Evită', 'Așteaptă',
+    }
+    buy_recommendations = []
+    for raw in raw_items or []:
+        if not isinstance(raw, dict):
+            continue
+        symbol = str(raw.get('symbol', '')).strip().upper()
+        verdict = str(raw.get('verdict', '')).strip()
+        if symbol not in candidate_symbols or verdict not in allowed_buy_verdicts:
+            continue
+        item = {'symbol': symbol, 'verdict': verdict}
+        for field in (
+            'market', 'why_now', 'market_effect', 'news_effect',
+            'calendar_effect', 'main_risk',
+        ):
+            value = raw.get(field)
+            if (
+                field == 'calendar_effect'
+                and (candidate_calendar_effects or {}).get(symbol)
+            ):
+                value = candidate_calendar_effects[symbol]
+            if not isinstance(value, str) or not value.strip():
+                break
+            item[field] = value.strip()[:700]
+        else:
+            item['source_ids'] = [
+                str(source_id) for source_id in raw.get('source_ids', [])
+                if str(source_id) in evidence_ids
+            ][:5]
+            buy_recommendations.append(item)
+    if require_complete:
+        returned_symbols = [item['symbol'] for item in buy_recommendations]
+        if (
+            len(returned_symbols) != len(candidate_symbols)
+            or set(returned_symbols) != set(candidate_symbols)
+        ):
+            missing = sorted(set(candidate_symbols) - set(returned_symbols))
+            raise ValueError(
+                'Răspuns AI incomplet pentru candidați'
+                + (f": {', '.join(missing)}" if missing else '')
+            )
+    return buy_recommendations
+
+
+def _validate_portfolio_ai_result(
+    result, symbols, evidence_ids=None, candidate_symbols=None,
+    calendar_effects=None, candidate_calendar_effects=None,
+    require_complete_candidates=False,
+):
     allowed_severity = {'critic', 'ridicat', 'mediu', 'scăzut', 'informativ'}
     evidence_ids = evidence_ids or set()
     clean_items = []
@@ -1707,39 +1762,13 @@ def _validate_portfolio_ai_result(result, symbols, evidence_ids=None, candidate_
             })
     if not position_actions:
         raise ValueError('Răspuns AI fără acțiuni clare pe poziții')
-    candidate_symbols = candidate_symbols or set()
-    buy_recommendations = []
-    for raw in result.get('buy_recommendations', []):
-        if not isinstance(raw, dict):
-            continue
-        symbol = str(raw.get('symbol', '')).strip().upper()
-        verdict = str(raw.get('verdict', '')).strip()
-        allowed_buy_verdicts = {
-            'Candidat valid', 'Pregătit la trigger', 'Foarte aproape',
-            'Urmărește', 'Evită', 'Așteaptă',
-        }
-        if symbol not in candidate_symbols or verdict not in allowed_buy_verdicts:
-            continue
-        item = {'symbol': symbol, 'verdict': verdict}
-        for field in (
-            'market', 'why_now', 'market_effect', 'news_effect',
-            'calendar_effect', 'main_risk',
-        ):
-            value = raw.get(field)
-            if (
-                field == 'calendar_effect'
-                and (candidate_calendar_effects or {}).get(symbol)
-            ):
-                value = candidate_calendar_effects[symbol]
-            if not isinstance(value, str) or not value.strip():
-                break
-            item[field] = value.strip()[:700]
-        else:
-            item['source_ids'] = [
-                str(source_id) for source_id in raw.get('source_ids', [])
-                if str(source_id) in evidence_ids
-            ][:5]
-            buy_recommendations.append(item)
+    buy_recommendations = _validate_buy_recommendations(
+        result.get('buy_recommendations', []),
+        candidate_symbols or set(),
+        evidence_ids,
+        candidate_calendar_effects,
+        require_complete=require_complete_candidates,
+    )
     return {
         'portfolio_overview': overview,
         'market_read': market_read,
@@ -2296,6 +2325,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 {item['symbol'] for item in snapshot['buy_candidates']},
                 calendar_effects,
                 candidate_calendar_effects,
+                require_complete_candidates=True,
             )
             return (
                 _render_portfolio_ai_html(snapshot, result, 'OpenAI · cache'),
@@ -2514,11 +2544,22 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
         ],
     }
     attempts = [
-        {'reasoning': OPENAI_PORTFOLIO_REASONING, 'timeout': 150, 'verbosity': 'medium'},
-        {'reasoning': {'effort': 'medium'}, 'timeout': 90, 'verbosity': 'low'},
+        {
+            'reasoning': OPENAI_PORTFOLIO_REASONING,
+            'timeout': 180,
+            'verbosity': 'low',
+            'max_output_tokens': 16000,
+        },
+        {
+            'reasoning': {'effort': 'medium'},
+            'timeout': 120,
+            'verbosity': 'low',
+            'max_output_tokens': 12000,
+        },
     ]
     diagnostics = []
     for attempt_number, attempt in enumerate(attempts, start=1):
+        response_payload = {}
         try:
             response = requests.post(
                 'https://api.openai.com/v1/responses',
@@ -2526,7 +2567,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 json={
                     'model': OPENAI_ANALYSIS_MODEL,
                     'reasoning': attempt['reasoning'],
-                    'max_output_tokens': 5000,
+                    'max_output_tokens': attempt['max_output_tokens'],
                     'text': {
                         'format': {
                             'type': 'json_schema',
@@ -2554,13 +2595,15 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                     'http_status': response.status_code,
                 })
                 continue
+            response_payload = response.json()
             result = _validate_portfolio_ai_result(
-                json.loads(_extract_openai_response_text(response.json())),
+                json.loads(_extract_openai_response_text(response_payload)),
                 {item['symbol'] for item in snapshot['positions']},
                 evidence_ids,
                 {item['symbol'] for item in snapshot['buy_candidates']},
                 calendar_effects,
                 candidate_calendar_effects,
+                require_complete_candidates=True,
             )
             new_cache = {
                 'version': PORTFOLIO_AI_CACHE_VERSION,
@@ -2589,11 +2632,216 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 'error_class': type(error).__name__,
             })
         except (ValueError, KeyError, TypeError, json.JSONDecodeError) as error:
-            diagnostics.append({
+            diagnostic_item = {
                 'attempt': attempt_number,
                 'type': 'invalid_response',
                 'error_class': type(error).__name__,
-            })
+                'detail': str(error)[:240],
+            }
+            if isinstance(response_payload, dict):
+                if response_payload.get('status'):
+                    diagnostic_item['response_status'] = response_payload['status']
+                incomplete = response_payload.get('incomplete_details')
+                if isinstance(incomplete, dict) and incomplete.get('reason'):
+                    diagnostic_item['incomplete_reason'] = incomplete['reason']
+            diagnostics.append(diagnostic_item)
+
+    # Un răspuns unic poate deveni prea mare când sunt analizate simultan
+    # pozițiile și până la 15 idei BUY. Recuperăm analiza în loturi mici,
+    # păstrând aceeași schemă strictă și cerând fiecare simbol exact o dată.
+    recovery_attempts = [
+        {
+            'reasoning': {'effort': 'medium'},
+            'timeout': 120,
+            'verbosity': 'low',
+            'max_output_tokens': 8000,
+        },
+        {
+            'reasoning': {'effort': 'low'},
+            'timeout': 90,
+            'verbosity': 'low',
+            'max_output_tokens': 6000,
+        },
+    ]
+
+    def recover_candidate_batch(batch, batch_label):
+        batch_snapshot = dict(snapshot)
+        batch_snapshot['buy_candidates'] = list(batch)
+        batch_payload = dict(request_payload)
+        batch_payload['data'] = batch_snapshot
+        batch_payload['objective'] = (
+            request_payload['objective']
+            + ' Această cerere este un lot de recuperare: analizează fiecare '
+              'candidat BUY primit exact o dată.'
+        )
+        batch_symbols = {
+            item['symbol'] for item in batch if item.get('symbol')
+        }
+        for retry_number, retry in enumerate(recovery_attempts, start=1):
+            response_payload = {}
+            try:
+                response = requests.post(
+                    'https://api.openai.com/v1/responses',
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {openai_key}',
+                    },
+                    json={
+                        'model': OPENAI_ANALYSIS_MODEL,
+                        'reasoning': retry['reasoning'],
+                        'max_output_tokens': retry['max_output_tokens'],
+                        'text': {
+                            'format': {
+                                'type': 'json_schema',
+                                'name': 'portfolio_risk_analysis_recovery',
+                                'strict': True,
+                                'schema': output_schema,
+                            },
+                            'verbosity': retry['verbosity'],
+                        },
+                        'input': [
+                            {
+                                'role': 'system',
+                                'content': (
+                                    'Ești un consilier de risc pentru swing trading long. '
+                                    'Răspunzi în română clară și exclusiv în schema JSON cerută. '
+                                    'Analizezi fiecare candidat primit exact o dată.'
+                                ),
+                            },
+                            {
+                                'role': 'user',
+                                'content': json.dumps(
+                                    batch_payload, ensure_ascii=False
+                                ),
+                            },
+                        ],
+                    },
+                    timeout=retry['timeout'],
+                )
+                if response.status_code >= 400:
+                    diagnostics.append({
+                        'attempt': batch_label,
+                        'retry': retry_number,
+                        'type': 'http_error',
+                        'http_status': response.status_code,
+                    })
+                    continue
+                response_payload = response.json()
+                return _validate_portfolio_ai_result(
+                    json.loads(_extract_openai_response_text(response_payload)),
+                    {item['symbol'] for item in snapshot['positions']},
+                    evidence_ids,
+                    batch_symbols,
+                    calendar_effects,
+                    {
+                        symbol: candidate_calendar_effects.get(symbol, '')
+                        for symbol in batch_symbols
+                    },
+                    require_complete_candidates=True,
+                )
+            except requests.Timeout:
+                diagnostics.append({
+                    'attempt': batch_label,
+                    'retry': retry_number,
+                    'type': 'timeout',
+                })
+            except requests.RequestException as error:
+                diagnostics.append({
+                    'attempt': batch_label,
+                    'retry': retry_number,
+                    'type': 'connection_error',
+                    'error_class': type(error).__name__,
+                })
+            except (ValueError, KeyError, TypeError, json.JSONDecodeError) as error:
+                diagnostic_item = {
+                    'attempt': batch_label,
+                    'retry': retry_number,
+                    'type': 'invalid_response',
+                    'error_class': type(error).__name__,
+                    'detail': str(error)[:240],
+                }
+                if isinstance(response_payload, dict):
+                    if response_payload.get('status'):
+                        diagnostic_item['response_status'] = response_payload['status']
+                    incomplete = response_payload.get('incomplete_details')
+                    if isinstance(incomplete, dict) and incomplete.get('reason'):
+                        diagnostic_item['incomplete_reason'] = incomplete['reason']
+                diagnostics.append(diagnostic_item)
+        return None
+
+    candidates = list(snapshot['buy_candidates'])
+    recovery_batches = [
+        candidates[index:index + 4]
+        for index in range(0, len(candidates), 4)
+    ] or [[]]
+    recovered_core = None
+    recovered_by_symbol = {}
+    failed_batches = []
+    for batch_index, batch in enumerate(recovery_batches, start=1):
+        batch_result = recover_candidate_batch(
+            batch, f'batch-{batch_index}'
+        )
+        if not batch_result:
+            failed_batches.append(batch)
+            continue
+        if recovered_core is None:
+            recovered_core = dict(batch_result)
+            recovered_core['buy_recommendations'] = []
+        for item in batch_result['buy_recommendations']:
+            recovered_by_symbol[item['symbol']] = item
+
+    # Dacă un lot nu a putut fi validat, îl spargem pe simboluri individuale.
+    for failed_batch in failed_batches:
+        for candidate in failed_batch:
+            symbol = candidate.get('symbol')
+            single_result = recover_candidate_batch(
+                [candidate], f'symbol-{symbol}'
+            )
+            if not single_result:
+                continue
+            if recovered_core is None:
+                recovered_core = dict(single_result)
+                recovered_core['buy_recommendations'] = []
+            for item in single_result['buy_recommendations']:
+                recovered_by_symbol[item['symbol']] = item
+
+    expected_candidate_symbols = [
+        item['symbol'] for item in candidates if item.get('symbol')
+    ]
+    if (
+        recovered_core is not None
+        and set(recovered_by_symbol) == set(expected_candidate_symbols)
+    ):
+        recovered_core['buy_recommendations'] = [
+            recovered_by_symbol[symbol]
+            for symbol in expected_candidate_symbols
+        ]
+        new_cache = {
+            'version': PORTFOLIO_AI_CACHE_VERSION,
+            'fingerprint': fingerprint,
+            'generated_at': snapshot['as_of'],
+            'result': recovered_core,
+        }
+        diagnostic = {
+            'status': 'success_recovered',
+            'model': OPENAI_ANALYSIS_MODEL,
+            'mode': 'batched',
+            'batch_count': len(recovery_batches),
+            'attempts': diagnostics,
+            'message': (
+                'Răspunsul mare nu a fost valid; analiza a fost refăcută '
+                'în loturi și acoperă toți candidații.'
+            ),
+        }
+        return (
+            _render_portfolio_ai_html(
+                snapshot, recovered_core,
+                f'OpenAI · {OPENAI_ANALYSIS_MODEL} · loturi validate',
+            ),
+            new_cache,
+            evidence_cache,
+            diagnostic,
+        )
 
     diagnostic = {
         'status': 'failed',
