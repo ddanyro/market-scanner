@@ -57,6 +57,51 @@ def _bars():
 
 
 class TestTwsInstrumentSync(unittest.TestCase):
+    def test_dynamic_bvb_equity_is_data_only_and_tradeville_executable(self):
+        instruments = ib_tws_sync.build_research_instruments(
+            ['ALR.RO', 'TVBETETF.RO']
+        )
+
+        self.assertIn('ALR.RO', instruments)
+        self.assertEqual(instruments['ALR.RO']['query_symbol'], 'ALR')
+        self.assertEqual(instruments['ALR.RO']['currency'], 'RON')
+        self.assertEqual(
+            instruments['ALR.RO']['execution_brokers'], ['Tradeville']
+        )
+        self.assertEqual(
+            instruments['ALR.RO']['instrument_type'], 'Equity'
+        )
+        self.assertEqual(
+            list(instruments).count('TVBETETF.RO'), 1
+        )
+
+    def test_contract_resolution_rejects_unrelated_bond_match(self):
+        bond = types.SimpleNamespace(
+            conId=303,
+            symbol='TALD',
+            localSymbol='TALD',
+            secType='BOND',
+            currency='USD',
+            exchange='SMART',
+            primaryExchange='',
+        )
+        ib = Mock()
+        ib.reqMatchingSymbols.return_value = [
+            types.SimpleNamespace(contract=bond)
+        ]
+        ib.qualifyContracts.return_value = []
+        ib.reqContractDetails.return_value = []
+        config = ib_tws_sync.build_research_instruments(
+            ['TALD.RO']
+        )['TALD.RO']
+
+        with self.assertRaises(ValueError):
+            ib_tws_sync._resolve_research_contract(ib, config)
+
+        fallback = ib.reqContractDetails.call_args.args[0]
+        self.assertEqual(fallback.symbol, 'TALD')
+        self.assertEqual(fallback.currency, 'RON')
+
     def test_tvbetetf_uses_ibkr_only_as_data_provider(self):
         lqq_contract = _contract('LQQ', 'EUR', 'SBF', 101)
         tvbet_contract = _contract('TVBETETF', 'RON', 'BVB', 202)

@@ -1227,6 +1227,100 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(float(frame['Close'].iloc[-1]), 61)
         self.assertIsNone(stale)
 
+    @patch('market_scanner.tradeville_market_data.fetch_history')
+    @patch('market_scanner._load_tws_instrument', return_value=None)
+    @patch('market_scanner._download_yahoo_history')
+    def test_bvb_history_prefers_yahoo_before_tws_and_tradeville(
+        self, yahoo_download, _load_tws, tradeville_fetch,
+    ):
+        yahoo_frame = pd.DataFrame(
+            {'Close': [10.0]},
+            index=pd.to_datetime(['2026-07-27']),
+        )
+        yahoo_download.return_value = yahoo_frame
+
+        frame, selected, _, attribution = (
+            market_scanner._load_analysis_history(
+                'ALR.RO', 'ALR.RO', period='1y'
+            )
+        )
+
+        self.assertEqual(float(frame['Close'].iloc[-1]), 10.0)
+        self.assertIsNone(selected)
+        self.assertEqual(attribution['Market_Data_Source'], 'Yahoo Finance')
+        tradeville_fetch.assert_not_called()
+
+    @patch('market_scanner.tradeville_market_data.fetch_history')
+    @patch('market_scanner._load_tws_instrument')
+    @patch('market_scanner._download_yahoo_history')
+    def test_bvb_history_uses_tws_second(
+        self, yahoo_download, load_tws, tradeville_fetch,
+    ):
+        yahoo_download.return_value = pd.DataFrame()
+        load_tws.return_value = {
+            'symbol': 'ALR.RO',
+            'data_provider': 'IBKR TWS API',
+            'data_broker': 'IBKR',
+            'fetched_at': '2026-07-28T06:00:00+00:00',
+            'bars': [{
+                'date': '2026-07-27',
+                'open': 1,
+                'high': 1.1,
+                'low': .9,
+                'close': 1.05,
+                'volume': 1000,
+            }],
+        }
+
+        frame, selected, _, attribution = (
+            market_scanner._load_analysis_history('ALR.RO', 'ALR.RO')
+        )
+
+        self.assertEqual(float(frame['Close'].iloc[-1]), 1.05)
+        self.assertIs(selected, load_tws.return_value)
+        self.assertEqual(attribution['Data_Broker'], 'IBKR')
+        tradeville_fetch.assert_not_called()
+
+    @patch('market_scanner.tradeville_market_data.fetch_history')
+    @patch('market_scanner._load_tws_instrument', return_value=None)
+    @patch('market_scanner._download_yahoo_history')
+    def test_bvb_history_uses_tradeville_only_after_yahoo_and_tws(
+        self, yahoo_download, _load_tws, tradeville_fetch,
+    ):
+        yahoo_download.return_value = pd.DataFrame()
+        tradeville_frame = pd.DataFrame(
+            {
+                'Open': [10],
+                'High': [11],
+                'Low': [9],
+                'Close': [10.5],
+                'Volume': [500],
+            },
+            index=pd.to_datetime(['2026-07-27']),
+        )
+        tradeville_fetch.return_value = (
+            tradeville_frame,
+            {
+                'data_provider': 'Tradeville public market data',
+                'data_broker': 'Tradeville',
+                'fetched_at': '2026-07-28T06:00:00+00:00',
+                'market_data': {'close': 10.5},
+                'ibkr_data_only': False,
+            },
+        )
+
+        frame, selected, _, attribution = (
+            market_scanner._load_analysis_history('ALR.RO', 'ALR.RO')
+        )
+
+        self.assertEqual(float(frame['Close'].iloc[-1]), 10.5)
+        self.assertEqual(selected['data_broker'], 'Tradeville')
+        self.assertEqual(
+            attribution['Market_Data_Source'],
+            'Tradeville public market data',
+        )
+        self.assertFalse(attribution['IBKR_Data_Only'])
+
     @patch('market_scanner.market_data.get_finviz_data', return_value={})
     @patch('market_scanner.yf.download')
     @patch('market_scanner._load_tws_instrument')

@@ -39,6 +39,7 @@ import market_scanner_analysis as analysis
 import market_utils
 import market_security
 import market_data
+import tradeville_market_data
 
 BUY_RESEARCH_UNIVERSES = {
     'SUA': [
@@ -239,9 +240,127 @@ def _instrument_data_attribution(symbol, instrument):
         # nu din brokerul care a furnizat cotația.
         'Execution_Brokers': execution_brokers,
         'IBKR_Data_Only': (
-            str(symbol or '').upper() in {'TVBETETF', 'TVBETETF.RO'}
+            bool(instrument.get('ibkr_data_only'))
+            or (
+                instrument.get('data_broker') == 'IBKR'
+                and str(symbol or '').upper() in {'TVBETETF', 'TVBETETF.RO'}
+            )
         ),
     }
+
+
+def _normalize_downloaded_history(frame):
+    """Normalizează rezultatele Yahoo/TWS/Tradeville la aceleași coloane."""
+    if frame is None or frame.empty:
+        return pd.DataFrame()
+    normalized = frame.copy()
+    if isinstance(normalized.columns, pd.MultiIndex):
+        try:
+            normalized.columns = normalized.columns.droplevel(1)
+        except (IndexError, ValueError):
+            return pd.DataFrame()
+    if 'Close' not in normalized.columns:
+        return pd.DataFrame()
+    normalized = normalized.dropna(subset=['Close']).sort_index()
+    return normalized
+
+
+def _download_yahoo_history(symbol, period='1y'):
+    """Yahoo fără mesajele repetitive ale bibliotecii pentru simboluri absente."""
+    import contextlib
+    import io
+
+    with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
+        io.StringIO()
+    ):
+        frame = yf.download(
+            symbol,
+            period=period,
+            auto_adjust=True,
+            progress=False,
+        )
+    return _normalize_downloaded_history(frame)
+
+
+def _load_analysis_history(ticker, download_ticker, period='1y'):
+    """Aplică lanțul de surse; pentru BVB: Yahoo → TWS → Tradeville."""
+    normalized_ticker = str(ticker or '').upper()
+    tws_instrument = _load_tws_instrument(ticker)
+    is_bvb = normalized_ticker.endswith('.RO')
+
+    if is_bvb:
+        try:
+            yahoo_history = _download_yahoo_history(download_ticker, period=period)
+        except Exception:
+            yahoo_history = pd.DataFrame()
+        if not yahoo_history.empty:
+            return (
+                yahoo_history,
+                None,
+                tws_instrument,
+                _instrument_data_attribution(ticker, None),
+            )
+
+        tws_history = _tws_instrument_history_frame(tws_instrument)
+        if not tws_history.empty:
+            print(
+                f"  [TWS API] Yahoo indisponibil; istoric IBKR pentru "
+                f"{ticker}: {len(tws_history)} ședințe"
+            )
+            return (
+                tws_history,
+                tws_instrument,
+                tws_instrument,
+                _instrument_data_attribution(ticker, tws_instrument),
+            )
+
+        try:
+            tradeville_history, tradeville_instrument = (
+                tradeville_market_data.fetch_history(ticker)
+            )
+            print(
+                f"  [Tradeville] Yahoo/TWS indisponibile; istoric pentru "
+                f"{ticker}: {len(tradeville_history)} observații"
+            )
+            return (
+                tradeville_history,
+                tradeville_instrument,
+                tws_instrument,
+                _instrument_data_attribution(ticker, tradeville_instrument),
+            )
+        except tradeville_market_data.TradevilleStaleDataError as exc:
+            print(f"  [BVB] {ticker} exclus din analiza curentă: {exc}")
+        except Exception as exc:
+            print(
+                f"  [BVB] {ticker}: date indisponibile în Yahoo, TWS și "
+                f"Tradeville ({exc})"
+            )
+        return pd.DataFrame(), None, tws_instrument, (
+            _instrument_data_attribution(ticker, None)
+        )
+
+    tws_history = _tws_instrument_history_frame(tws_instrument)
+    if not tws_history.empty:
+        print(
+            f"  [TWS API] Istoric IBKR pentru {ticker}: "
+            f"{len(tws_history)} ședințe"
+        )
+        return (
+            tws_history,
+            tws_instrument,
+            tws_instrument,
+            _instrument_data_attribution(ticker, tws_instrument),
+        )
+    try:
+        yahoo_history = _download_yahoo_history(download_ticker, period=period)
+    except Exception:
+        yahoo_history = pd.DataFrame()
+    return (
+        yahoo_history,
+        None,
+        tws_instrument,
+        _instrument_data_attribution(ticker, None),
+    )
 
 
 def load_complete_us_equity_universe(path=SP500_UNIVERSE_FILE):
@@ -1393,6 +1512,91 @@ def select_strict_buy_candidates(
     return selected
 
 
+def _select_bvb_research_symbols(
+    bvb_universe,
+    by_symbol,
+    watchlist_by_symbol,
+    watchlist_symbols,
+):
+    """Alege lotul BVB folosit identic de TWS și de analiza BUY."""
+    symbols = [item['symbol'] for item in bvb_universe]
+    bvb_metadata = {item['symbol']: item for item in bvb_universe}
+    priority_symbols = _external_priority_symbols(
+        symbols,
+        by_symbol,
+        fallback_by_symbol=watchlist_by_symbol,
+        limit=8,
+    )
+
+    def bvb_priority(symbol):
+        metadata = bvb_metadata.get(symbol, {})
+        normalized = symbol.upper()
+        cached = (
+            by_symbol.get(normalized)
+            or watchlist_by_symbol.get(normalized)
+            or {}
+        )
+        freshness = float(cached.get('_cached_at') or 0)
+        trade_date = metadata.get('last_trade') or ''
+        try:
+            recency = -datetime.date.fromisoformat(trade_date).toordinal()
+        except (TypeError, ValueError):
+            recency = 0
+        liquidity = float(
+            metadata.get('turnover_ron')
+            or metadata.get('volume')
+            or 0
+        )
+        research_score = _external_research_score(
+            _prepare_external_research_candidate(cached)
+        )
+        return (
+            0 if normalized in priority_symbols else 1,
+            -research_score,
+            freshness,
+            -liquidity,
+            recency,
+            symbol,
+        )
+
+    symbols.sort(key=bvb_priority)
+    return _research_symbols_due(
+        symbols,
+        by_symbol,
+        watchlist_symbols,
+        priority_symbols=priority_symbols,
+    )[:BVB_DEEP_SCAN_BATCH]
+
+
+def _planned_bvb_tws_symbols(state):
+    """Calculează fără mutații lotul BVB ce trebuie verificat în TWS."""
+    bvb_universe = list(state.get('bvb_equity_universe', []))
+    if not bvb_universe:
+        return list(BUY_RESEARCH_UNIVERSES['România / BVB'])
+    watchlist_symbols = set()
+    if os.path.exists('watchlist.csv'):
+        watchlist_file = pd.read_csv('watchlist.csv')
+        if 'symbol' in watchlist_file.columns:
+            watchlist_symbols = {
+                str(symbol).upper()
+                for symbol in watchlist_file['symbol'].dropna().tolist()
+            }
+    watchlist_by_symbol = {
+        str(item.get('Ticker', '')).upper(): item
+        for item in state.get('watchlist', [])
+    }
+    by_symbol = {
+        str(item.get('Ticker', '')).upper(): item
+        for item in state.get('external_buy_research', [])
+    }
+    return _select_bvb_research_symbols(
+        bvb_universe,
+        by_symbol,
+        watchlist_by_symbol,
+        watchlist_symbols,
+    )
+
+
 def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False):
     """Cercetează separat universuri externe, fără a le confunda cu watchlistul."""
     bvb_universe = (
@@ -1497,44 +1701,12 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
             limit=priority_limit,
         )
         if market == 'România / BVB':
-            def bvb_priority(symbol):
-                metadata = bvb_metadata.get(symbol, {})
-                normalized = symbol.upper()
-                cached = (
-                    by_symbol.get(normalized)
-                    or watchlist_by_symbol.get(normalized)
-                    or {}
-                )
-                freshness = float(cached.get('_cached_at') or 0)
-                trade_date = metadata.get('last_trade') or ''
-                try:
-                    recency = -datetime.date.fromisoformat(trade_date).toordinal()
-                except (TypeError, ValueError):
-                    recency = 0
-                liquidity = float(
-                    metadata.get('turnover_ron')
-                    or metadata.get('volume')
-                    or 0
-                )
-                research_score = _external_research_score(
-                    _prepare_external_research_candidate(cached)
-                )
-                return (
-                    0 if normalized in priority_symbols else 1,
-                    -research_score,
-                    freshness,
-                    -liquidity,
-                    recency,
-                    symbol,
-                )
-
-            symbols.sort(key=bvb_priority)
-            symbols = _research_symbols_due(
-                symbols,
+            symbols = _select_bvb_research_symbols(
+                bvb_universe,
                 by_symbol,
+                watchlist_by_symbol,
                 watchlist_symbols,
-                priority_symbols=priority_symbols,
-            )[:BVB_DEEP_SCAN_BATCH]
+            )
         elif market == 'SUA':
             symbols.sort(key=lambda symbol: (
                 0 if symbol.upper() in priority_symbols else 1,
@@ -2281,32 +2453,24 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         
         if ticker_cache is None: ticker_cache = {}
 
-        tws_instrument = _load_tws_instrument(ticker)
-        tws_history = _tws_instrument_history_frame(tws_instrument)
-        data_attribution = _instrument_data_attribution(
-            ticker, tws_instrument
+        (
+            df,
+            selected_market_instrument,
+            tws_instrument,
+            data_attribution,
+        ) = _load_analysis_history(
+            ticker, download_ticker, period='1y'
         )
         
         # --- CACHED DOWNLOAD ---
-        if not tws_history.empty:
-             df = tws_history.copy()
-             print(
-                 f"  [TWS API] Istoric IBKR pentru {ticker}: "
-                 f"{len(df)} ședințe"
-             )
+        if not df.empty:
+             pass
         elif download_ticker in ticker_cache and ticker_cache[download_ticker] is not None:
              df = ticker_cache[download_ticker]
              # print(f"  [Cache] Used cached data for {download_ticker}")
-        else:
+        elif not ticker.endswith('.RO'):
             time.sleep(2)
-            df = yf.download(download_ticker, period="1y", auto_adjust=True, progress=False)
-            if not df.empty:
-                if isinstance(df.columns, pd.MultiIndex):
-                    try:
-                        df.columns = df.columns.droplevel(1)
-                    except:
-                        pass
-                df = df.dropna(subset=['Close'])
+            df = _download_yahoo_history(download_ticker, period='1y')
             
             # Retry with European suffixes if base ticker fails (common for IBKR ETFs like SXRZ)
             # Retry with European suffixes if base ticker fails (common for IBKR ETFs like SXRZ)
@@ -3057,24 +3221,14 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         download_ticker = ticker[:-3] if ticker.endswith('.US') else ticker
         if download_ticker in ['LQQ.FR', 'FR.LQQ']:
             download_ticker = 'LQQ.PA'
-        tws_instrument = _load_tws_instrument(ticker)
-        df = _tws_instrument_history_frame(tws_instrument)
-        data_attribution = _instrument_data_attribution(
-            ticker, tws_instrument
+        (
+            df,
+            selected_market_instrument,
+            tws_instrument,
+            data_attribution,
+        ) = _load_analysis_history(
+            ticker, download_ticker, period='1y'
         )
-        if not df.empty:
-            print(
-                f"  [TWS API] Istoric IBKR pentru {ticker}: "
-                f"{len(df)} ședințe"
-            )
-        else:
-            time.sleep(2)
-            df = yf.download(
-                download_ticker,
-                period="1y",
-                auto_adjust=True,
-                progress=False,
-            )
         
         if df.empty:
             print(f"Nu există date pentru {download_ticker}")
@@ -3100,7 +3254,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         last_row = df.iloc[-1]
         
         last_close_native = (
-            _tws_instrument_market_price(tws_instrument)
+            _tws_instrument_market_price(selected_market_instrument)
             or market_data.get_scalar(last_row['Close'])
         )
         last_close = last_close_native * rate
@@ -3207,7 +3361,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         rs_trend_up = False
         rs_status = "Neutral"
         try:
-            spx_df = yf.download(rs_benchmark, period="3mo", auto_adjust=True, progress=False)
+            spx_df = _download_yahoo_history(rs_benchmark, period='3mo')
             if not spx_df.empty:
                 if isinstance(spx_df.columns, pd.MultiIndex):
                     try:
@@ -7384,7 +7538,9 @@ def main():
         if args.tws:
              try:
                  import ib_tws_sync
-                 ib_tws_sync.fetch_active_orders()
+                 ib_tws_sync.fetch_active_orders(
+                     research_symbols=_planned_bvb_tws_symbols(state)
+                 )
                  
                  # Apply TWS Orders to Local CSV immediately
                  if os.path.exists('tws_orders.csv') and os.path.exists('portfolio.csv'):
