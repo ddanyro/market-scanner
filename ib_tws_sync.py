@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import json
+import math
 import os
 import pandas as pd
 import sys
@@ -12,6 +13,279 @@ try:
 except ImportError:
     print("Modulul 'ib_insync' nu este instalat. TWS Sync indisponibil.")
     HAS_IB_INSYNC = False
+
+
+RESEARCH_INSTRUMENTS = {
+    'LQQ.PA': {
+        'query_symbol': 'LQQ',
+        'aliases': ['LQQ.PA', 'LQQ.FR', 'FR.LQQ'],
+        'currency': 'EUR',
+        'preferred_exchanges': ['SBF', 'SMART', 'EUREX'],
+        'market': 'Europa / Nasdaq-100',
+        'execution_brokers': ['IBKR', 'Tradeville'],
+        'ibkr_role': 'date și execuție',
+    },
+    'TVBETETF.RO': {
+        'query_symbol': 'TVBETETF',
+        'aliases': ['TVBETETF.RO', 'TVBETETF'],
+        'currency': 'RON',
+        'preferred_exchanges': ['BVB', 'BUCHAREST', 'SMART'],
+        'market': 'România / BVB',
+        'execution_brokers': ['Tradeville'],
+        'ibkr_role': 'doar sursă de date',
+    },
+}
+
+
+def _finite_number(value):
+    try:
+        number = float(value)
+        return number if math.isfinite(number) and abs(number) < 1e100 else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _contract_match_score(contract, config):
+    """Prioritizează contractul exact, în moneda și piața configurate."""
+    symbol = str(getattr(contract, 'symbol', '') or '').upper()
+    local_symbol = str(getattr(contract, 'localSymbol', '') or '').upper()
+    currency = str(getattr(contract, 'currency', '') or '').upper()
+    sec_type = str(getattr(contract, 'secType', '') or '').upper()
+    exchange_values = {
+        str(getattr(contract, field, '') or '').upper()
+        for field in ('exchange', 'primaryExchange')
+    }
+    expected_symbol = str(config.get('query_symbol', '')).upper()
+    preferred_exchanges = {
+        str(value).upper() for value in config.get('preferred_exchanges', [])
+    }
+    score = 0
+    if symbol == expected_symbol:
+        score += 40
+    if local_symbol == expected_symbol:
+        score += 35
+    if currency == str(config.get('currency', '')).upper():
+        score += 30
+    if sec_type in {'STK', 'FUND'}:
+        score += 15
+    if exchange_values & preferred_exchanges:
+        score += 20
+    if _finite_number(getattr(contract, 'conId', None)):
+        score += 5
+    return score
+
+
+def _resolve_research_contract(ib, config):
+    descriptions = ib.reqMatchingSymbols(config['query_symbol']) or []
+    contracts = [
+        description.contract
+        for description in descriptions
+        if getattr(description, 'contract', None) is not None
+    ]
+    if contracts:
+        contract = max(
+            contracts,
+            key=lambda candidate: _contract_match_score(candidate, config),
+        )
+    else:
+        fallback_exchange = (
+            config.get('preferred_exchanges') or ['SMART']
+        )[0]
+        contract = Stock(
+            config['query_symbol'],
+            fallback_exchange,
+            config['currency'],
+        )
+        qualified = ib.qualifyContracts(contract) or []
+        if qualified:
+            contract = qualified[0]
+
+    details = ib.reqContractDetails(contract) or []
+    if not details:
+        raise ValueError(
+            f"Contract IBKR indisponibil pentru {config['query_symbol']}"
+        )
+    contract_id = getattr(contract, 'conId', None)
+    detail = next(
+        (
+            item for item in details
+            if getattr(getattr(item, 'contract', None), 'conId', None)
+            == contract_id
+        ),
+        details[0],
+    )
+    return detail
+
+
+def _serialize_contract_detail(detail):
+    contract = detail.contract
+    security_ids = {
+        str(getattr(item, 'tag', '') or ''): str(
+            getattr(item, 'value', '') or ''
+        )
+        for item in (getattr(detail, 'secIdList', None) or [])
+        if getattr(item, 'tag', None)
+    }
+    return {
+        'con_id': getattr(contract, 'conId', None),
+        'symbol': getattr(contract, 'symbol', None),
+        'local_symbol': getattr(contract, 'localSymbol', None),
+        'security_type': getattr(contract, 'secType', None),
+        'currency': getattr(contract, 'currency', None),
+        'exchange': getattr(contract, 'exchange', None),
+        'primary_exchange': getattr(contract, 'primaryExchange', None),
+        'trading_class': getattr(contract, 'tradingClass', None),
+        'long_name': getattr(detail, 'longName', None),
+        'market_name': getattr(detail, 'marketName', None),
+        'industry': getattr(detail, 'industry', None),
+        'category': getattr(detail, 'category', None),
+        'subcategory': getattr(detail, 'subcategory', None),
+        'stock_type': getattr(detail, 'stockType', None),
+        'valid_exchanges': getattr(detail, 'validExchanges', None),
+        'time_zone': getattr(detail, 'timeZoneId', None),
+        'trading_hours': getattr(detail, 'tradingHours', None),
+        'liquid_hours': getattr(detail, 'liquidHours', None),
+        'isin': security_ids.get('ISIN'),
+    }
+
+
+def _serialize_bar_date(value):
+    if isinstance(value, datetime.datetime):
+        return value.date().isoformat()
+    if isinstance(value, datetime.date):
+        return value.isoformat()
+    text = str(value or '').strip()
+    for source_format in ('%Y%m%d', '%Y-%m-%d', '%Y%m%d %H:%M:%S'):
+        try:
+            return datetime.datetime.strptime(text, source_format).date().isoformat()
+        except ValueError:
+            continue
+    return text[:10]
+
+
+def _serialize_historical_bars(bars):
+    serialized = []
+    for bar in bars or []:
+        values = {
+            field: _finite_number(getattr(bar, field, None))
+            for field in ('open', 'high', 'low', 'close', 'volume')
+        }
+        if any(values[field] is None for field in ('open', 'high', 'low', 'close')):
+            continue
+        serialized.append({
+            'date': _serialize_bar_date(getattr(bar, 'date', None)),
+            **values,
+        })
+    return serialized
+
+
+def _load_instrument_cache(path):
+    try:
+        with open(path, 'r', encoding='utf-8') as handle:
+            payload = json.load(handle)
+        return payload if isinstance(payload, dict) else {}
+    except (OSError, ValueError, TypeError):
+        return {}
+
+
+def fetch_research_instruments(
+    ib, output_file='tws_instruments.json', instruments=None,
+):
+    """Extrage prin TWS date pentru analiză, independent de brokerul de execuție."""
+    instruments = instruments or RESEARCH_INSTRUMENTS
+    cached_payload = _load_instrument_cache(output_file)
+    cached_instruments = cached_payload.get('instruments', {})
+    fetched_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    result = {}
+
+    print("\n=== Date TWS pentru LQQ și ETF Patria-Tradeville ===")
+    for dashboard_symbol, config in instruments.items():
+        try:
+            detail = _resolve_research_contract(ib, config)
+            contract = detail.contract
+            bars = ib.reqHistoricalData(
+                contract,
+                endDateTime='',
+                durationStr='1 Y',
+                barSizeSetting='1 day',
+                whatToShow='TRADES',
+                useRTH=True,
+                formatDate=1,
+                keepUpToDate=False,
+            )
+            serialized_bars = _serialize_historical_bars(bars)
+            if not serialized_bars:
+                raise ValueError('Istoricul OHLCV IBKR este gol')
+
+            latest_bar = serialized_bars[-1]
+            # Ultima închidere IBKR este disponibilă fără abonamentul separat
+            # necesar snapshoturilor live/delayed și nu blochează sincronizarea.
+            market_data = {
+                'market_price': None,
+                'bid': None,
+                'ask': None,
+                'last': None,
+                'close': latest_bar.get('close'),
+                'volume': latest_bar.get('volume'),
+                'as_of': latest_bar.get('date'),
+            }
+            result[dashboard_symbol] = {
+                'symbol': dashboard_symbol,
+                'aliases': list(config.get('aliases', [])),
+                'market': config.get('market'),
+                'instrument_type': 'ETF',
+                'corporate_fundamentals_applicable': False,
+                'fundamental_scope': (
+                    'metadate contract și date OHLCV; ETF-ul nu are '
+                    'earnings sau situații financiare de companie'
+                ),
+                'data_provider': 'IBKR TWS API',
+                'data_broker': 'IBKR',
+                'market_data_mode': 'ultima închidere istorică IBKR',
+                'execution_brokers': list(
+                    config.get('execution_brokers', [])
+                ),
+                'ibkr_role': config.get('ibkr_role'),
+                'ibkr_data_only': (
+                    'IBKR' not in config.get('execution_brokers', [])
+                ),
+                'fetched_at': fetched_at,
+                'contract': _serialize_contract_detail(detail),
+                'market_data': market_data,
+                'bars': serialized_bars,
+            }
+            execution_text = ', '.join(config.get('execution_brokers', []))
+            print(
+                f"  -> {dashboard_symbol}: {len(serialized_bars)} zile IBKR; "
+                f"execuție {execution_text}"
+            )
+        except Exception as exc:
+            cached = cached_instruments.get(dashboard_symbol)
+            if isinstance(cached, dict) and cached.get('bars'):
+                cached = dict(cached)
+                cached['cache_fallback'] = True
+                cached['last_refresh_error'] = str(exc)
+                result[dashboard_symbol] = cached
+                print(
+                    f"  -> {dashboard_symbol}: folosim ultimul cache TWS valid "
+                    f"({exc})"
+                )
+            else:
+                print(f"  -> {dashboard_symbol}: date TWS indisponibile ({exc})")
+
+    if not result:
+        return {}
+
+    payload = {
+        'fetched_at': fetched_at,
+        'source': 'IBKR TWS API',
+        'instruments': result,
+    }
+    with open(output_file, 'w', encoding='utf-8') as handle:
+        json.dump(payload, handle, ensure_ascii=False, indent=2)
+    print(f"Salvat {output_file} cu {len(result)} instrumente.")
+    return payload
+
 
 def fetch_active_orders(output_file='tws_orders.csv'):
     """
@@ -157,6 +431,16 @@ def fetch_active_orders(output_file='tws_orders.csv'):
             print(f"Salvat tws_positions.csv cu {len(pos_data)} poziții.")
         else:
             print("Nicio poziție deschisă găsită.")
+
+        # Datele IBKR sunt folosite și pentru instrumente tranzacționate prin
+        # alt broker. TVBETETF rămâne executabil exclusiv prin Tradeville.
+        try:
+            fetch_research_instruments(ib)
+        except Exception as instrument_ex:
+            print(
+                "  -> Avertisment la sincronizarea instrumentelor TWS: "
+                f"{instrument_ex}"
+            )
 
         # === Extragere sumar cont (cash, lichiditate și marjă) ===
         try:

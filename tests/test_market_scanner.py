@@ -1150,6 +1150,138 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(selected[0]['Market'], 'Europa / Nasdaq-100')
         self.assertEqual(selected[0]['Eligible_Brokers'], ['IBKR', 'Tradeville'])
 
+    @patch('market_scanner.yf.Ticker')
+    def test_lqq_skips_yahoo_fundamentals_and_earnings(self, ticker_factory):
+        info = market_scanner._get_yahoo_info('LQQ.PA')
+        earnings_date = market_scanner.get_next_earnings_date('LQQ.PA')
+
+        ticker_factory.assert_not_called()
+        self.assertEqual(info['shortName'], 'LQQ')
+        self.assertEqual(info['industry'], 'ETF leveraged')
+        self.assertIsNone(earnings_date)
+
+    @patch('market_scanner.yf.Ticker')
+    def test_tradeville_etf_skips_yahoo_fundamentals_and_earnings(
+        self, ticker_factory,
+    ):
+        info = market_scanner._get_yahoo_info('TVBETETF.RO')
+        earnings_date = market_scanner.get_next_earnings_date('TVBETETF.RO')
+
+        ticker_factory.assert_not_called()
+        self.assertEqual(info['shortName'], 'TVBETETF')
+        self.assertEqual(info['industry'], 'ETF')
+        self.assertIsNone(earnings_date)
+
+    def test_tvbetetf_tws_data_never_enables_ibkr_execution(self):
+        attribution = market_scanner._instrument_data_attribution(
+            'TVBETETF.RO',
+            {
+                'data_provider': 'IBKR TWS API',
+                'data_broker': 'IBKR',
+                'execution_brokers': ['IBKR'],
+                'fetched_at': '2026-07-28T06:00:00+00:00',
+            },
+        )
+        self.assertEqual(attribution['Data_Broker'], 'IBKR')
+        self.assertTrue(attribution['IBKR_Data_Only'])
+        self.assertEqual(
+            attribution['Execution_Brokers'], ['Tradeville']
+        )
+
+    def test_tws_instrument_history_loads_alias_and_rejects_stale_cache(self):
+        fetched_at = '2026-07-28T06:00:00+00:00'
+        payload = {
+            'fetched_at': fetched_at,
+            'instruments': {
+                'TVBETETF.RO': {
+                    'aliases': ['TVBETETF.RO', 'TVBETETF'],
+                    'fetched_at': fetched_at,
+                    'bars': [{
+                        'date': '2026-07-27',
+                        'open': 60,
+                        'high': 62,
+                        'low': 59,
+                        'close': 61,
+                        'volume': 1000,
+                    }],
+                },
+            },
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'tws_instruments.json')
+            with open(path, 'w', encoding='utf-8') as handle:
+                import json
+                json.dump(payload, handle)
+            fresh = market_scanner._load_tws_instrument(
+                'TVBETETF',
+                path=path,
+                now=datetime(2026, 7, 28, 7, tzinfo=timezone.utc),
+            )
+            stale = market_scanner._load_tws_instrument(
+                'TVBETETF.RO',
+                path=path,
+                now=datetime(2026, 8, 2, 7, tzinfo=timezone.utc),
+            )
+
+        frame = market_scanner._tws_instrument_history_frame(fresh)
+        self.assertEqual(float(frame['Close'].iloc[-1]), 61)
+        self.assertIsNone(stale)
+
+    @patch('market_scanner.market_data.get_finviz_data', return_value={})
+    @patch('market_scanner.yf.download')
+    @patch('market_scanner._load_tws_instrument')
+    def test_lqq_analysis_prefers_tws_ohlcv_over_yahoo(
+        self, load_tws, yahoo_download, _finviz,
+    ):
+        dates = pd.date_range('2025-09-01', periods=220, freq='B')
+        closes = pd.Series(
+            np.linspace(8.0, 12.0, len(dates)), index=dates
+        )
+        benchmark = pd.DataFrame({
+            'Open': closes * 0.99,
+            'High': closes * 1.01,
+            'Low': closes * 0.98,
+            'Close': closes,
+            'Volume': np.full(len(dates), 100_000),
+        })
+        load_tws.return_value = {
+            'symbol': 'LQQ.PA',
+            'data_provider': 'IBKR TWS API',
+            'data_broker': 'IBKR',
+            'fetched_at': '2026-07-28T06:00:00+00:00',
+            'contract': {
+                'long_name': 'Amundi Nasdaq-100 Daily 2x',
+                'currency': 'EUR',
+            },
+            'market_data': {'market_price': 12.10},
+            'bars': [
+                {
+                    'date': date.date().isoformat(),
+                    'open': float(row.Open),
+                    'high': float(row.High),
+                    'low': float(row.Low),
+                    'close': float(row.Close),
+                    'volume': float(row.Volume),
+                }
+                for date, row in benchmark.iterrows()
+            ],
+        }
+        yahoo_download.return_value = benchmark
+
+        result = market_scanner.process_watchlist_ticker(
+            'LQQ.PA',
+            18,
+            {'EUR': 1.0, 'USD': 0.9, 'RON': 0.2, 'GBP': 1.1},
+        )
+
+        self.assertEqual(result['Market_Data_Source'], 'IBKR TWS API')
+        self.assertEqual(result['Data_Broker'], 'IBKR')
+        self.assertEqual(result['Execution_Brokers'], ['IBKR', 'Tradeville'])
+        self.assertEqual(result['Price_Native'], 12.10)
+        self.assertEqual(len(result['Chart_OHLC']), 90)
+        yahoo_download.assert_called_once()
+        self.assertEqual(yahoo_download.call_args.args[0], '^GSPC')
+
     def test_lqq_sizing_is_separate_for_ibkr_and_tradeville(self):
         snapshot = {
             'account_liquidity': {

@@ -1025,6 +1025,17 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
             'rsi': _safe_number(row.get('RSI')) or None,
             'relative_strength_vs_spx_pct': _safe_number(row.get('RS_vs_SPX')) or None,
             'earnings_risk': bool(row.get('Earnings_Danger')),
+            'market_data_source': str(
+                row.get('Market_Data_Source', '')
+            ).strip() or None,
+            'market_data_fetched_at': str(
+                row.get('Market_Data_Fetched_At', '')
+            ).strip() or None,
+            'data_broker': str(row.get('Data_Broker', '')).strip() or None,
+            'execution_brokers': list(
+                row.get('Execution_Brokers', [])
+            ) if isinstance(row.get('Execution_Brokers'), list) else [],
+            'ibkr_data_only': bool(row.get('IBKR_Data_Only')),
             'data_flags': flags,
         })
 
@@ -2885,6 +2896,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'TVBETETF este doar proxy pentru BET-TR; spune asta clar și nu îl prezenta drept indice oficial.',
             'Folosește tvbetetf_lookthrough pentru expunerea indirectă la fiecare emitent BVB și evaluează expunerea combinată directă plus cea prin ETF.',
             'Respectă maparea position.broker și position.market. Nu asocia JPM sau UPBD cu Tradeville și nu asocia TVBETETF.RO cu IBKR.',
+            'Separă obligatoriu data_broker de broker și execution_brokers: IBKR poate furniza date TWS pentru TVBETETF.RO, dar TVBETETF.RO se tranzacționează și se dimensionează exclusiv prin Tradeville. Nu transforma IBKR_Data_Only într-o permisiune de execuție.',
             'Pentru fiecare poziție dă o singură acțiune clară și un singur lucru observabil de urmărit.',
             'Evită jargonul precum NAV, Cushion, ATR, R/R sau Excess Liquidity în rezumatul principal; aceste noțiuni pot apărea numai în detalii.',
             'Verifică existența și acoperirea cantitativă a ordinelor stop.',
