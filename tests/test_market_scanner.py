@@ -1000,6 +1000,15 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertAlmostEqual(detail['change'], 0.5, places=2)
 
     def test_buy_recommendation_chart_uses_native_levels_and_ai_status(self):
+        history = [{
+            'history_key': 'CC.RO|Pregătit la trigger|2.1000|1.8000|2.8000',
+            'symbol': 'CC.RO',
+            'action_label': 'Ordin la trigger',
+            'entry_native': 10.5,
+            'first_seen_at': '2026-07-27T09:30:00',
+            'last_seen_at': '2026-07-27T10:30:00',
+            'is_current': True,
+        }]
         details = market_scanner._build_buy_recommendation_detail_data(
             [{
                 'symbol': 'CC.RO',
@@ -1024,6 +1033,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
                 'symbol': 'CC.RO',
                 'verdict': 'Pregătit la trigger',
             }]},
+            history,
         )
         detail = details['CC.RO']
         self.assertEqual(detail['kind'], 'buy_recommendation')
@@ -1032,6 +1042,45 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(
             [level['value'] for level in detail['levels']],
             [10.5, 9, 14],
+        )
+        self.assertEqual(len(detail['markers']), 1)
+        self.assertEqual(detail['markers'][0]['label'], 'C1')
+        self.assertEqual(detail['markers'][0]['date'], '2026-07-27')
+        self.assertEqual(detail['markers'][0]['value'], 10.5)
+
+    def test_history_chart_candidates_include_symbols_outside_current_list(self):
+        history = [{
+            'history_key': 'SNN.RO|Pregătit la trigger|14|13|16',
+            'symbol': 'SNN.RO',
+            'company_name': 'Nuclearelectrica',
+            'execution_currency': 'RON',
+            'first_seen_at': '2026-07-27T09:00:00',
+            'last_seen_at': '2026-07-27T10:00:00',
+        }]
+        candidates = market_scanner._build_history_chart_candidates(
+            [],
+            history,
+            [{
+                'Ticker': 'SNN.RO',
+                'Company_Name': 'Nuclearelectrica',
+                'Currency': 'RON',
+                'Price': 14,
+                'Price_Native': 70,
+                'Chart_History': [13.8, 14],
+                'Chart_Dates': ['2026-07-24', '2026-07-27'],
+                'Chart_OHLC': [{
+                    'date': '2026-07-27',
+                    'open': 13.9, 'high': 14.2, 'low': 13.7, 'close': 14,
+                }],
+            }],
+        )
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0]['symbol'], 'SNN.RO')
+        self.assertEqual(candidates[0]['chart_currency'], 'RON')
+        self.assertAlmostEqual(
+            candidates[0]['chart_ohlc_native'][0]['close'],
+            70,
+            places=2,
         )
 
     def test_buy_renderer_uses_execution_currency_for_ual_and_connections(self):
@@ -1253,9 +1302,31 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         )
         self.assertIn('MSFT · Cumpărare acum', history_html)
         self.assertIn('entry $100.00', history_html)
+        self.assertIn('27.07.2026 09:00', history_html)
+        self.assertIn('28.07.2026 09:00', history_html)
         self.assertIn('Încheiată', history_html)
-        self.assertIn('Retrasă după reevaluare:</b> Așteaptă', history_html)
+        self.assertIn('📈 Grafic OHLC · marcaj C1', history_html)
+        self.assertIn(
+            'openBuyRecommendationDetail(this.dataset.symbol)',
+            history_html,
+        )
+        self.assertIn(
+            'Retrasă după reevaluare la 28.07.2026 09:00:</b> Așteaptă',
+            history_html,
+        )
         self.assertIn('Nu acum.', history_html)
+
+    def test_history_datetime_uses_romanian_format(self):
+        self.assertEqual(
+            market_scanner_analysis._format_ro_datetime(
+                '2026-07-28T06:59:16'
+            ),
+            '28.07.2026 06:59',
+        )
+        self.assertEqual(
+            market_scanner_analysis._format_ro_datetime('2026-07-28'),
+            '28.07.2026',
+        )
 
     def test_buy_history_archives_previous_cache_before_reclassification(self):
         old_candidate = {

@@ -2185,15 +2185,63 @@ def update_buy_recommendation_history_from_cache(
     )
 
 
+def _buy_recommendation_marker_labels(history):
+    """Numerotează stabil recomandările fiecărui simbol în ordine cronologică."""
+    grouped = {}
+    for item in history or []:
+        if not isinstance(item, dict):
+            continue
+        symbol = str(item.get('symbol') or '').upper()
+        history_key = str(item.get('history_key') or '')
+        if symbol and history_key:
+            grouped.setdefault(symbol, []).append(item)
+    labels = {}
+    for items in grouped.values():
+        ordered = sorted(
+            items,
+            key=lambda item: (
+                str(item.get('first_seen_at') or ''),
+                str(item.get('last_seen_at') or ''),
+                str(item.get('history_key') or ''),
+            ),
+        )
+        for index, item in enumerate(ordered, start=1):
+            labels[str(item['history_key'])] = f'C{index}'
+    return labels
+
+
+def _format_ro_datetime(value):
+    """Formatează timestampurile ISO pentru interfața în limba română."""
+    text = str(value or '').strip()
+    if not text:
+        return '-'
+    try:
+        parsed = datetime.datetime.fromisoformat(
+            text.replace('Z', '+00:00')
+        )
+    except ValueError:
+        return text
+    has_time = 'T' in text or ' ' in text
+    return parsed.strftime(
+        '%d.%m.%Y %H:%M' if has_time else '%d.%m.%Y'
+    )
+
+
 def _render_buy_recommendation_history(history, candidates=None):
     if not history:
         return ''
+    marker_labels = _buy_recommendation_marker_labels(history)
     candidates_by_symbol = {
         str(candidate.get('symbol') or '').upper(): candidate
         for candidate in (candidates or [])
     }
     rows = []
     for item in history:
+        symbol = str(item.get('symbol') or '').upper()
+        marker_label = marker_labels.get(
+            str(item.get('history_key') or ''),
+            'C?',
+        )
         status = 'Activă' if item.get('is_current') else 'Încheiată'
         status_color = '#16a34a' if item.get('is_current') else '#64748b'
         current_candidate = candidates_by_symbol.get(
@@ -2240,8 +2288,14 @@ def _render_buy_recommendation_history(history, candidates=None):
         if not item.get('is_current') and (
             item.get('closed_verdict') or item.get('closed_reason')
         ):
+            closed_at = _format_ro_datetime(item.get('closed_at'))
+            closed_label = (
+                f"Retrasă după reevaluare la {closed_at}"
+                if closed_at != '-'
+                else "Retrasă după reevaluare"
+            )
             closed_reason_html = (
-                "<br><b>Retrasă după reevaluare:</b> "
+                f"<br><b>{html.escape(closed_label)}:</b> "
                 f"{html.escape(str(item.get('closed_verdict') or '-'))}"
                 + (
                     f" — {html.escape(str(item.get('closed_reason')))}"
@@ -2252,18 +2306,23 @@ def _render_buy_recommendation_history(history, candidates=None):
             "<details style='background:var(--bg-white);border:1px solid "
             "var(--border-light);border-radius:var(--radius-sm);padding:11px 13px;'>"
             f"<summary style='cursor:pointer;font-weight:700;'>"
-            f"{html.escape(str(item.get('symbol') or ''))} · "
+            f"{html.escape(symbol)} · "
             f"{html.escape(str(item.get('action_label') or ''))}"
             f"<span style='float:right;color:{status_color};'>{status}</span>"
             "</summary>"
             "<div style='font-size:13px;line-height:1.55;margin-top:8px;'>"
-            f"<b>Prima apariție:</b> {html.escape(str(item.get('first_seen_at') or '-'))}"
-            f" · <b>Ultima confirmare:</b> {html.escape(str(item.get('last_seen_at') or '-'))}"
+            f"<b>Prima apariție:</b> {html.escape(_format_ro_datetime(item.get('first_seen_at')))}"
+            f" · <b>Ultima confirmare:</b> {html.escape(_format_ro_datetime(item.get('last_seen_at')))}"
             f"<br><b>Niveluri:</b> entry "
             f"{_format_execution_money(history_native('entry_native', 'entry_eur'), execution_currency)}"
             f" · stop {_format_execution_money(history_native('stop_native', 'stop_eur'), execution_currency)}"
             f" · target {_format_execution_money(history_native('target_native', 'target_eur'), execution_currency)}"
             f" · R:R {float(item.get('rr_ratio') or 0):.2f}"
+            "<br>"
+            f"<a href='#' data-symbol='{html.escape(symbol, quote=True)}' "
+            "onclick=\"openBuyRecommendationDetail(this.dataset.symbol);return false;\" "
+            "style='color:var(--primary-purple);font-weight:700;text-decoration:none;'>"
+            f"📈 Grafic OHLC · marcaj {html.escape(marker_label)}</a>"
             + (
                 f"<br><b>Dimensionare la momentul recomandării:</b> "
                 f"{html.escape(sizing_text)}" if sizing_text else ''

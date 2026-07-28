@@ -68,10 +68,12 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("hasUsableIndicatorOhlc(detail.ohlc)", content)
         self.assertIn("candles.length < 5", content)
         self.assertIn("nonFlat.length / valid.length >= 0.2", content)
-        self.assertIn("function drawCandles(canvas, candles, levels, currency)", content)
-        self.assertIn("function drawLineSeries(canvas, series, dates, levels, currency)", content)
+        self.assertIn("function drawCandles(canvas, candles, levels, currency, markers)", content)
+        self.assertIn("function drawLineSeries(canvas, series, dates, levels, currency, markers)", content)
         self.assertIn("ctx.fillText(formatDetailNumber(value,currency),pad.left-8,py)", content)
-        self.assertIn("String(dates[index]).slice(5)", content)
+        self.assertIn("formatRomanianDate(dates[index],false,true)", content)
+        self.assertIn("formatRomanianDate(item.date,false,true)", content)
+        self.assertIn("function formatRomanianDate(", content)
         self.assertIn("Istoric zilnic real afișat liniar", content)
 
     def test_portfolio_mini_chart_opens_encrypted_candlestick_details(self):
@@ -105,6 +107,11 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("Grafic zilnic${detail.currency?", content)
         self.assertIn("currency?100:66", content)
         self.assertIn("ctx.setLineDash([7,5])", content)
+        self.assertIn("function drawRecommendationMarkers(", content)
+        self.assertIn("ctx.moveTo(x,y-9)", content)
+        self.assertIn("detail.markers || []", content)
+        self.assertIn("Recomandări de cumpărare marcate punctual", content)
+        self.assertIn("_build_history_chart_candidates(", content)
 
     def test_portfolio_ai_analysis_is_in_encrypted_payload(self):
         """Analiza nouă trebuie să rămână în spatele PIN-ului portofoliului."""
@@ -223,6 +230,8 @@ class TestHtmlIntegrity(unittest.TestCase):
             'update_buy_recommendation_history_from_cache(', content
         )
         self.assertIn('Istoric recomandări executabile', analysis_content)
+        self.assertIn('📈 Grafic OHLC · marcaj', analysis_content)
+        self.assertIn('_buy_recommendation_marker_labels(', analysis_content)
         self.assertIn('_size_buy_candidates(', analysis_content)
         self.assertIn("economic_calendar și piața poziției", analysis_content)
         self.assertIn("<b>Calendar:</b>", analysis_content)

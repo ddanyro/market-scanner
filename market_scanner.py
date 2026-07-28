@@ -558,12 +558,127 @@ def _format_native_price_text(value, currency):
     return f"{formatted} {code}"
 
 
-def _build_buy_recommendation_detail_data(candidates, ai_result=None):
-    """Construiește ferestrele OHLC pentru sugestiile curente de cumpărare."""
+def _build_history_chart_candidates(
+    candidates, recommendation_history, source_rows, rates=None,
+):
+    """Completează seriile OHLC pentru toate simbolurile păstrate în istoric."""
+    candidates_by_symbol = {
+        str(candidate.get('symbol') or '').upper(): dict(candidate)
+        for candidate in candidates or []
+        if candidate.get('symbol')
+    }
+    history_by_symbol = {}
+    for item in recommendation_history or []:
+        symbol = str(item.get('symbol') or '').upper()
+        if symbol:
+            history_by_symbol.setdefault(symbol, []).append(item)
+    sources_by_symbol = {}
+    for raw_source in source_rows or []:
+        source = dict(raw_source)
+        symbol = str(
+            source.get('Ticker')
+            or source.get('symbol')
+            or ''
+        ).upper()
+        if not symbol or symbol not in history_by_symbol:
+            continue
+        previous = sources_by_symbol.get(symbol)
+        has_chart = bool(
+            source.get('Chart_OHLC')
+            or source.get('Chart_History')
+            or source.get('Sparkline')
+        )
+        previous_has_chart = bool(
+            previous
+            and (
+                previous.get('Chart_OHLC')
+                or previous.get('Chart_History')
+                or previous.get('Sparkline')
+            )
+        )
+        if previous is None or (has_chart and not previous_has_chart):
+            sources_by_symbol[symbol] = source
+
+    for symbol, history_items in history_by_symbol.items():
+        candidate = candidates_by_symbol.get(symbol, {'symbol': symbol})
+        has_chart = bool(
+            candidate.get('chart_ohlc_native')
+            or candidate.get('chart_series_native')
+        )
+        source = sources_by_symbol.get(symbol)
+        latest_history = max(
+            history_items,
+            key=lambda item: str(item.get('last_seen_at') or ''),
+        )
+        if source and not has_chart:
+            source = dict(source)
+            source.setdefault(
+                'Currency',
+                latest_history.get('execution_currency'),
+            )
+            native_detail = _chart_detail_native_payload(
+                source,
+                symbol,
+                'Price',
+                rates=rates,
+            )
+            candidate.update({
+                'company_name': (
+                    candidate.get('company_name')
+                    or source.get('Company_Name')
+                    or latest_history.get('company_name')
+                    or symbol
+                ),
+                'market': (
+                    candidate.get('market')
+                    or source.get('Market')
+                    or latest_history.get('market')
+                ),
+                'execution_currency': (
+                    candidate.get('execution_currency')
+                    or native_detail['currency']
+                ),
+                'chart_currency': native_detail['currency'],
+                'chart_value_native': native_detail['value'],
+                'chart_change_native': native_detail['change'],
+                'chart_ohlc_native': native_detail['ohlc'],
+                'chart_series_native': native_detail['series'],
+                'chart_series_dates': native_detail['seriesDates'],
+                'trend': candidate.get('trend') or source.get('Trend'),
+            })
+        else:
+            candidate.setdefault(
+                'company_name',
+                latest_history.get('company_name') or symbol,
+            )
+            candidate.setdefault(
+                'execution_currency',
+                latest_history.get('execution_currency') or 'EUR',
+            )
+            candidate.setdefault(
+                'chart_currency',
+                candidate.get('execution_currency'),
+            )
+        candidates_by_symbol[symbol] = candidate
+    return list(candidates_by_symbol.values())
+
+
+def _build_buy_recommendation_detail_data(
+    candidates, ai_result=None, recommendation_history=None,
+):
+    """Construiește graficele sugestiilor curente și ale istoricului BUY."""
     recommendations_by_symbol = {
         str(item.get('symbol') or '').upper(): item
         for item in (ai_result or {}).get('buy_recommendations', [])
     }
+    marker_labels = analysis._buy_recommendation_marker_labels(
+        recommendation_history
+    )
+    history_by_symbol = {}
+    for item in recommendation_history or []:
+        symbol = str(item.get('symbol') or '').upper()
+        if symbol:
+            history_by_symbol.setdefault(symbol, []).append(item)
     details = {}
     for candidate in candidates or []:
         symbol = str(candidate.get('symbol') or '').upper()
@@ -588,6 +703,54 @@ def _build_buy_recommendation_detail_data(candidates, ai_result=None):
                     'color': color,
                 })
         recommendation = recommendations_by_symbol.get(symbol, {})
+        eur_per_native = (
+            _safe_float_text(candidate.get('eur_per_native'))
+            or 1.0
+        )
+        markers = []
+        for history_item in sorted(
+            history_by_symbol.get(symbol, []),
+            key=lambda item: (
+                str(item.get('first_seen_at') or ''),
+                str(item.get('last_seen_at') or ''),
+                str(item.get('history_key') or ''),
+            ),
+        ):
+            value = _safe_float_text(history_item.get('entry_native'))
+            if value is None or value <= 0:
+                entry_eur = _safe_float_text(history_item.get('entry_eur'))
+                value = (
+                    entry_eur / eur_per_native
+                    if entry_eur is not None and eur_per_native > 0
+                    else None
+                )
+            if value is None or value <= 0:
+                continue
+            is_current = bool(history_item.get('is_current'))
+            action_label = str(
+                history_item.get('action_label') or 'Recomandare'
+            )
+            marker_color = (
+                '#16a34a'
+                if is_current and action_label == 'Cumpărare acum'
+                else '#2563eb'
+                if is_current
+                else '#64748b'
+            )
+            history_key = str(history_item.get('history_key') or '')
+            markers.append({
+                'label': marker_labels.get(history_key, 'C?'),
+                'date': str(
+                    history_item.get('first_seen_at') or ''
+                )[:10],
+                'dateTime': history_item.get('first_seen_at'),
+                'value': round(value, 4),
+                'action': action_label,
+                'status': 'Activă' if is_current else 'Încheiată',
+                'isCurrent': is_current,
+                'color': marker_color,
+                'historyKey': history_key,
+            })
         details[symbol] = {
             'kind': 'buy_recommendation',
             'name': candidate.get('company_name') or symbol,
@@ -605,14 +768,16 @@ def _build_buy_recommendation_detail_data(candidates, ai_result=None):
             ),
             'rangeDescription': candidate.get('trend') or '—',
             'explanation': (
-                'Candidat din sugestiile de cumpărare. Graficul include '
-                'nivelurile curente de entry, stop și target în moneda '
-                f'ordinului ({currency}).'
+                'Candidat din sugestiile de cumpărare. Nivelurile curente '
+                'de entry, stop și target sunt separate de marcajele '
+                'punctuale C1, C2 etc. ale recomandărilor istorice, toate '
+                f'în moneda ordinului ({currency}).'
             ),
             'ohlc': candidate.get('chart_ohlc_native') or [],
             'series': candidate.get('chart_series_native') or [],
             'seriesDates': candidate.get('chart_series_dates') or [],
             'levels': levels,
+            'markers': markers,
         }
     return details
 
@@ -4964,10 +5129,22 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         (full_state or {}).get('us_universe_stats'),
         buy_recommendation_history,
     )
+    buy_history_chart_candidates = _build_history_chart_candidates(
+        buy_candidate_payload,
+        buy_recommendation_history,
+        (
+            list(strict_buy_candidates)
+            + watchlist_df.to_dict('records')
+            + list((full_state or {}).get('external_buy_research', []))
+            + list((full_state or {}).get('bvb_equity_universe', []))
+        ),
+        rates=candidate_rates,
+    )
     buy_recommendation_detail_data = (
         _build_buy_recommendation_detail_data(
-            buy_candidate_payload,
+            buy_history_chart_candidates,
             portfolio_ai_result,
+            buy_recommendation_history,
         )
     )
     full_state['last_portfolio_ai_diagnostic'] = portfolio_ai_diagnostic
@@ -6424,6 +6601,7 @@ h1{margin:0 0 6px;font-size:clamp(28px,4vw,44px)}.ticker{color:#7760f9;font-weig
 .buttons{display:flex;gap:8px}.range{border:1px solid #dfe3ea;background:#fff;color:#4b5563;padding:7px 12px;border-radius:8px;cursor:pointer;font-weight:650}.range.active{background:#7760f9;color:#fff;border-color:#7760f9}
 .chart-wrap{height:min(68vh,680px);min-height:420px;position:relative}canvas{display:block;width:100%;height:100%}.details{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .details h2{margin:0 0 10px;font-size:18px}.details p{margin:0;color:#4b5563;line-height:1.65}.note{font-size:12px;color:#6b7280;margin-top:10px}
+.marker-legend{margin-top:14px;padding-top:13px;border-top:1px solid #e5e7eb}.marker-legend-title{font-size:13px;font-weight:750;margin-bottom:8px}.marker-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:7px}.marker-item{display:flex;align-items:center;gap:8px;font-size:12px;color:#4b5563;background:#f8fafc;border-radius:8px;padding:7px 9px}.marker-badge{display:inline-flex;align-items:center;justify-content:center;min-width:30px;padding:3px 6px;border-radius:6px;color:#fff;font-weight:800}
 @media(max-width:760px){.page{padding:16px}.stats,.details{grid-template-columns:1fr 1fr}.chart-wrap{min-height:360px;height:55vh}}@media(max-width:480px){.stats,.details{grid-template-columns:1fr}}
 </style>
 </head>
@@ -6436,7 +6614,7 @@ h1{margin:0 0 6px;font-size:clamp(28px,4vw,44px)}.ticker{color:#7760f9;font-weig
 <div class="stat"><div class="label">Interval</div><div class="num" style="font-size:18px">${escapeIndicatorText(detail.rangeDescription || '—')}</div></div>
 </section>
 <section class="panel"><div class="toolbar"><strong id="chartTitle">Grafic zilnic${detail.currency?' · '+escapeIndicatorText(detail.currency):''}</strong><div class="buttons"><button class="range" data-count="22">1L</button><button class="range active" data-count="66">3L</button><button class="range" data-count="9999">Tot</button></div></div>
-<div class="chart-wrap"><canvas id="indicatorChart"></canvas></div><div class="note" id="chartNote"></div></section>
+<div class="chart-wrap"><canvas id="indicatorChart"></canvas></div><div class="note" id="chartNote"></div>${renderRecommendationMarkerLegend(detail.markers || [], detail.currency)}</section>
 <section class="details"><div class="panel"><h2>Ce măsoară</h2><p>${escapeIndicatorText(detail.explanation || 'Detalii indisponibile.')}</p></div>
 <div class="panel"><h2>Cum se interpretează</h2><p>${escapeIndicatorText(indicatorInterpretation(indicatorName, detail))}</p></div></section>
 </main><script>
@@ -6446,8 +6624,10 @@ ${hasUsableIndicatorOhlc.toString()}
 ${drawCandles.toString()}
 ${drawLineSeries.toString()}
 ${drawHorizontalLevels.toString()}
+${drawRecommendationMarkers.toString()}
 ${formatIndicatorNumber.toString()}
 ${formatDetailNumber.toString()}
+${formatRomanianDate.toString()}
 document.querySelectorAll('.range').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('.range').forEach(x=>x.classList.remove('active'));button.classList.add('active');drawIndicatorDetail(detail,Number(button.dataset.count));}));
 window.addEventListener('resize',()=>{const active=document.querySelector('.range.active');drawIndicatorDetail(detail,Number(active.dataset.count));});
 window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();window.close();}});
@@ -6485,6 +6665,44 @@ drawIndicatorDetail(detail,66);
                 return code ? formatted + ' ' + code : formatIndicatorNumber(number);
             }
 
+            function formatRomanianDate(value, includeTime, shortDate) {
+                const text = String(value || '').trim();
+                const match = text.match(
+                    /^(\\d{4})-(\\d{2})-(\\d{2})(?:[T ](\\d{2}):(\\d{2}))?/
+                );
+                if (!match) return text || '—';
+                const date = shortDate
+                    ? match[3] + '.' + match[2]
+                    : match[3] + '.' + match[2] + '.' + match[1];
+                return includeTime && match[4]
+                    ? date + ' ' + match[4] + ':' + match[5]
+                    : date;
+            }
+
+            function renderRecommendationMarkerLegend(markers, currency) {
+                if (!Array.isArray(markers) || !markers.length) return '';
+                const rows = markers.map(marker => {
+                    const color = /^#[0-9a-f]{6}$/i.test(String(marker.color || ''))
+                        ? marker.color : '#64748b';
+                    return "<div class='marker-item'>"
+                        + "<span class='marker-badge' style='background:" + color + ";'>"
+                        + escapeIndicatorText(marker.label || 'C?') + "</span>"
+                        + "<span><b>" + escapeIndicatorText(marker.action || 'Recomandare')
+                        + "</b> · " + escapeIndicatorText(
+                            formatRomanianDate(
+                                marker.dateTime || marker.date,
+                                true,
+                                false
+                            )
+                        )
+                        + " · " + formatDetailNumber(marker.value, currency)
+                        + " · " + escapeIndicatorText(marker.status || '') + "</span></div>";
+                }).join('');
+                return "<div class='marker-legend'><div class='marker-legend-title'>"
+                    + "Recomandări de cumpărare marcate punctual pe grafic"
+                    + "</div><div class='marker-grid'>" + rows + "</div></div>";
+            }
+
             function indicatorInterpretation(name, detail) {
                 if (detail && detail.kind === 'portfolio') {
                     return 'Lumânările arată evoluția zilnică a prețului. Compară trendul cu prețul de cumpărare, targetul, stop-ul și riscul poziției; graficul singur nu reprezintă o recomandare de tranzacționare.';
@@ -6493,7 +6711,7 @@ drawIndicatorDetail(detail,66);
                     return 'Lumânările arată evoluția zilnică a prețului. Evaluează trendul împreună cu RSI, targetul, consensul și raportul risc-randament; includerea în watchlist nu reprezintă o recomandare de cumpărare.';
                 }
                 if (detail && detail.kind === 'buy_recommendation') {
-                    return 'Lumânările arată evoluția zilnică a prețului, iar liniile marchează entry-ul, stopul și targetul recomandării curente. Confirmă triggerul și spreadul înaintea ordinului.';
+                    return 'Lumânările arată evoluția zilnică a prețului. Triunghiurile numerotate C1, C2 etc. sunt recomandări punctuale din istoric; liniile orizontale rămân rezervate numai nivelurilor curente de entry, stop și target. Confirmă triggerul și spreadul înaintea ordinului.';
                 }
                 if (name === 'SPX' || name === 'NASDAQ') {
                     return 'Creșterea indicelui indică aprecierea pieței. Direcția trebuie evaluată împreună cu trendul, volatilitatea și participarea acțiunilor.';
@@ -6512,7 +6730,8 @@ drawIndicatorDetail(detail,66);
                         canvas,
                         detail.ohlc.slice(-count),
                         detail.levels || [],
-                        detail.currency
+                        detail.currency,
+                        detail.markers || []
                     );
                     document.getElementById('chartNote').textContent = (
                         'Lumânări OHLC zilnice reale, furnizate de Yahoo Finance'
@@ -6524,7 +6743,8 @@ drawIndicatorDetail(detail,66);
                         (detail.series || []).slice(-count),
                         (detail.seriesDates || []).slice(-count),
                         detail.levels || [],
-                        detail.currency
+                        detail.currency,
+                        detail.markers || []
                     );
                     document.getElementById('chartNote').textContent = (
                         'Istoric zilnic real afișat liniar'
@@ -6546,7 +6766,7 @@ drawIndicatorDetail(detail,66);
                 return nonFlat.length / valid.length >= 0.2;
             }
 
-            function drawCandles(canvas, candles, levels, currency) {
+            function drawCandles(canvas, candles, levels, currency, markers) {
                 const rect = canvas.getBoundingClientRect();
                 const ratio = window.devicePixelRatio || 1;
                 canvas.width = Math.max(1, Math.floor(rect.width * ratio));
@@ -6558,8 +6778,11 @@ drawIndicatorDetail(detail,66);
                 const chartW = width-pad.left-pad.right, chartH = height-pad.top-pad.bottom;
                 ctx.clearRect(0,0,width,height);
                 if (!candles.length) return;
+                const firstDate=String(candles[0].date||'').slice(0,10);
+                const visibleMarkers=(markers||[]).filter(marker=>!marker.date||String(marker.date).slice(0,10)>=firstDate);
                 const levelValues=levels.map(x=>Number(x.value)).filter(Number.isFinite);
-                const lows = candles.map(x=>Number(x.low)).concat(levelValues), highs = candles.map(x=>Number(x.high)).concat(levelValues);
+                const markerValues=visibleMarkers.map(x=>Number(x.value)).filter(Number.isFinite);
+                const lows = candles.map(x=>Number(x.low)).concat(levelValues,markerValues), highs = candles.map(x=>Number(x.high)).concat(levelValues,markerValues);
                 let min = Math.min(...lows), max = Math.max(...highs);
                 const extra = Math.max((max-min)*.06, .001); min-=extra; max+=extra;
                 const y = value => pad.top + (max-value)/(max-min)*chartH;
@@ -6568,25 +6791,30 @@ drawIndicatorDetail(detail,66);
                 const step=chartW/candles.length, body=Math.max(2,Math.min(13,step*.62));
                 candles.forEach((item,index)=>{const x=pad.left+step*(index+.5);const open=Number(item.open),close=Number(item.close),high=Number(item.high),low=Number(item.low);const color=close>=open?'#16a34a':'#ef4444';ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(x,y(high));ctx.lineTo(x,y(low));ctx.stroke();const top=Math.min(y(open),y(close));const h=Math.max(1.5,Math.abs(y(open)-y(close)));ctx.fillRect(x-body/2,top,body,h);});
                 const labelEvery=Math.max(1,Math.ceil(candles.length/7));ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle='#6b7280';
-                candles.forEach((item,index)=>{if(index%labelEvery===0||index===candles.length-1){const x=pad.left+step*(index+.5);ctx.fillText(String(item.date).slice(5),x,height-pad.bottom+9);}});
+                candles.forEach((item,index)=>{if(index%labelEvery===0||index===candles.length-1){const x=pad.left+step*(index+.5);ctx.fillText(formatRomanianDate(item.date,false,true),x,height-pad.bottom+9);}});
                 drawHorizontalLevels(ctx,width,pad,min,max,levels,currency);
+                drawRecommendationMarkers(ctx,width,pad,min,max,candles.map(item=>item.date),visibleMarkers,true);
             }
 
-            function drawLineSeries(canvas, series, dates, levels, currency) {
+            function drawLineSeries(canvas, series, dates, levels, currency, markers) {
                 const rect=canvas.getBoundingClientRect(),ratio=window.devicePixelRatio||1;
                 canvas.width=Math.max(1,Math.floor(rect.width*ratio));canvas.height=Math.max(1,Math.floor(rect.height*ratio));
                 const ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);const width=rect.width,height=rect.height;
                 const pad={left:currency?100:66,right:levels.length?190:18,top:18,bottom:40};
                 const chartW=width-pad.left-pad.right,chartH=height-pad.top-pad.bottom;
                 ctx.clearRect(0,0,width,height);if(!series.length)return;
+                const firstDate=dates&&dates.length?String(dates[0]||'').slice(0,10):'';
+                const visibleMarkers=(markers||[]).filter(marker=>!firstDate||!marker.date||String(marker.date).slice(0,10)>=firstDate);
                 const levelValues=levels.map(x=>Number(x.value)).filter(Number.isFinite);
-                let min=Math.min(...series,...levelValues),max=Math.max(...series,...levelValues);const extra=Math.max((max-min)*.1,1);min-=extra;max+=extra;
+                const markerValues=visibleMarkers.map(x=>Number(x.value)).filter(Number.isFinite);
+                let min=Math.min(...series,...levelValues,...markerValues),max=Math.max(...series,...levelValues,...markerValues);const extra=Math.max((max-min)*.1,1);min-=extra;max+=extra;
                 ctx.font='12px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';
                 for(let i=0;i<=5;i++){const value=max-(max-min)*i/5;const py=pad.top+chartH*i/5;ctx.strokeStyle='#e8ebf1';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.left,py);ctx.lineTo(width-pad.right,py);ctx.stroke();ctx.fillStyle='#6b7280';ctx.fillText(formatDetailNumber(value,currency),pad.left-8,py);}
                 ctx.strokeStyle='#7760f9';ctx.lineWidth=3;ctx.beginPath();series.forEach((value,index)=>{const x=pad.left+chartW*(index/Math.max(1,series.length-1));const y=pad.top+(max-value)/(max-min)*chartH;index?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
                 const labelEvery=Math.max(1,Math.ceil(series.length/7));ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle='#6b7280';
-                series.forEach((value,index)=>{if(index%labelEvery===0||index===series.length-1){const x=pad.left+chartW*(index/Math.max(1,series.length-1));const label=dates&&dates[index]?String(dates[index]).slice(5):String(index+1);ctx.fillText(label,x,height-pad.bottom+10);}});
+                series.forEach((value,index)=>{if(index%labelEvery===0||index===series.length-1){const x=pad.left+chartW*(index/Math.max(1,series.length-1));const label=dates&&dates[index]?formatRomanianDate(dates[index],false,true):String(index+1);ctx.fillText(label,x,height-pad.bottom+10);}});
                 drawHorizontalLevels(ctx,width,pad,min,max,levels,currency);
+                drawRecommendationMarkers(ctx,width,pad,min,max,dates||[],visibleMarkers,false);
             }
 
             function drawHorizontalLevels(ctx, width, pad, min, max, levels, currency) {
@@ -6602,6 +6830,50 @@ drawIndicatorDetail(detail,66);
                     ctx.setLineDash([]);ctx.fillStyle=level.color||'#2563eb';ctx.font='bold 12px sans-serif';
                     ctx.textAlign='left';ctx.textBaseline='middle';
                     ctx.fillText(`${level.label}: ${formatDetailNumber(value,currency)}`,width-pad.right+8,py);
+                    ctx.restore();
+                });
+            }
+
+            function drawRecommendationMarkers(ctx, width, pad, min, max, dates, markers, centered) {
+                if (!Array.isArray(markers) || !markers.length || !dates.length || max <= min) return;
+                const normalizedDates=dates.map(value=>String(value||'').slice(0,10));
+                const chartW=width-pad.left-pad.right;
+                const chartH=ctx.canvas.getBoundingClientRect().height-pad.top-pad.bottom;
+                const positioned=[];
+                markers.forEach(marker=>{
+                    const markerDate=String(marker.date||'').slice(0,10);
+                    const markerTime=Date.parse(markerDate);
+                    let bestIndex=normalizedDates.length-1,bestDistance=Infinity;
+                    normalizedDates.forEach((date,index)=>{
+                        const distance=Math.abs(Date.parse(date)-markerTime);
+                        if(Number.isFinite(distance)&&distance<bestDistance){bestDistance=distance;bestIndex=index;}
+                    });
+                    const value=Number(marker.value);
+                    if(Number.isFinite(value)){positioned.push({marker,index:bestIndex,value});}
+                });
+                const groups={};
+                positioned.forEach(item=>{(groups[item.index]||(groups[item.index]=[])).push(item);});
+                Object.values(groups).forEach(group=>group.forEach((item,ordinal)=>{item.ordinal=ordinal;item.groupSize=group.length;}));
+                positioned.forEach(item=>{
+                    const baseX=centered
+                        ? pad.left+chartW*((item.index+.5)/Math.max(1,normalizedDates.length))
+                        : pad.left+chartW*(item.index/Math.max(1,normalizedDates.length-1));
+                    const spread=Math.min(11,Math.max(6,56/Math.max(1,item.groupSize)));
+                    const offset=(item.ordinal-(item.groupSize-1)/2)*spread;
+                    const x=Math.max(pad.left+6,Math.min(width-pad.right-6,baseX+offset));
+                    const y=pad.top+(max-item.value)/(max-min)*chartH;
+                    const color=/^#[0-9a-f]{6}$/i.test(String(item.marker.color||''))
+                        ? item.marker.color : '#64748b';
+                    ctx.save();
+                    ctx.fillStyle=color;ctx.strokeStyle='#ffffff';ctx.lineWidth=1.5;
+                    ctx.beginPath();ctx.moveTo(x,y-9);ctx.lineTo(x-7,y+5);ctx.lineTo(x+7,y+5);ctx.closePath();ctx.fill();ctx.stroke();
+                    ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+                    const label=String(item.marker.label||'C?');
+                    const badgeWidth=Math.max(26,ctx.measureText(label).width+10);
+                    let badgeY=y-28-(item.ordinal%3)*18;
+                    if(badgeY<pad.top+2){badgeY=y+13+(item.ordinal%3)*18;}
+                    ctx.fillStyle=color;ctx.fillRect(x-badgeWidth/2,badgeY,badgeWidth,16);
+                    ctx.fillStyle='#ffffff';ctx.fillText(label,x,badgeY+8);
                     ctx.restore();
                 });
             }
