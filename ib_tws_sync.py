@@ -24,6 +24,8 @@ RESEARCH_INSTRUMENTS = {
         'market': 'Europa / Nasdaq-100',
         'execution_brokers': ['IBKR', 'Tradeville'],
         'ibkr_role': 'date și execuție',
+        'instrument_type': 'ETF',
+        'corporate_fundamentals_applicable': False,
     },
     'TVBETETF.RO': {
         'query_symbol': 'TVBETETF',
@@ -33,8 +35,38 @@ RESEARCH_INSTRUMENTS = {
         'market': 'România / BVB',
         'execution_brokers': ['Tradeville'],
         'ibkr_role': 'doar sursă de date',
+        'instrument_type': 'ETF',
+        'corporate_fundamentals_applicable': False,
     },
 }
+
+
+def build_research_instruments(bvb_symbols=None):
+    """Extinde sincronizarea TWS cu lotul BVB analizat în rularea curentă."""
+    instruments = {
+        symbol: dict(config) for symbol, config in RESEARCH_INSTRUMENTS.items()
+    }
+    for value in bvb_symbols or []:
+        dashboard_symbol = str(value or '').strip().upper()
+        if not dashboard_symbol:
+            continue
+        if not dashboard_symbol.endswith('.RO'):
+            dashboard_symbol = f'{dashboard_symbol}.RO'
+        if dashboard_symbol in instruments:
+            continue
+        query_symbol = dashboard_symbol[:-3]
+        instruments[dashboard_symbol] = {
+            'query_symbol': query_symbol,
+            'aliases': [dashboard_symbol, query_symbol],
+            'currency': 'RON',
+            'preferred_exchanges': ['BVB', 'BUCHAREST', 'SMART'],
+            'market': 'România / BVB',
+            'execution_brokers': ['Tradeville'],
+            'ibkr_role': 'doar sursă de date',
+            'instrument_type': 'Equity',
+            'corporate_fundamentals_applicable': True,
+        }
+    return instruments
 
 
 def _finite_number(value):
@@ -75,12 +107,33 @@ def _contract_match_score(contract, config):
     return score
 
 
+def _is_eligible_research_contract(contract, config):
+    """Respinge rezultate IBKR similare ca text, dar din altă clasă/piață."""
+    expected_symbol = str(config.get('query_symbol', '')).upper()
+    symbol_values = {
+        str(getattr(contract, 'symbol', '') or '').upper(),
+        str(getattr(contract, 'localSymbol', '') or '').upper(),
+    }
+    sec_type = str(getattr(contract, 'secType', '') or '').upper()
+    currency = str(getattr(contract, 'currency', '') or '').upper()
+    return (
+        expected_symbol in symbol_values
+        and sec_type in {'STK', 'FUND'}
+        and currency == str(config.get('currency', '')).upper()
+    )
+
+
 def _resolve_research_contract(ib, config):
     descriptions = ib.reqMatchingSymbols(config['query_symbol']) or []
     contracts = [
         description.contract
         for description in descriptions
-        if getattr(description, 'contract', None) is not None
+        if (
+            getattr(description, 'contract', None) is not None
+            and _is_eligible_research_contract(
+                description.contract, config
+            )
+        )
     ]
     if contracts:
         contract = max(
@@ -198,7 +251,7 @@ def fetch_research_instruments(
     fetched_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
     result = {}
 
-    print("\n=== Date TWS pentru LQQ și ETF Patria-Tradeville ===")
+    print("\n=== Date TWS pentru instrumentele analizate ===")
     for dashboard_symbol, config in instruments.items():
         try:
             detail = _resolve_research_contract(ib, config)
@@ -233,11 +286,19 @@ def fetch_research_instruments(
                 'symbol': dashboard_symbol,
                 'aliases': list(config.get('aliases', [])),
                 'market': config.get('market'),
-                'instrument_type': 'ETF',
-                'corporate_fundamentals_applicable': False,
+                'instrument_type': config.get(
+                    'instrument_type', 'Equity'
+                ),
+                'corporate_fundamentals_applicable': bool(
+                    config.get('corporate_fundamentals_applicable', True)
+                ),
                 'fundamental_scope': (
-                    'metadate contract și date OHLCV; ETF-ul nu are '
-                    'earnings sau situații financiare de companie'
+                    'metadate contract și date OHLCV'
+                    if config.get('corporate_fundamentals_applicable', True)
+                    else (
+                        'metadate contract și date OHLCV; ETF-ul nu are '
+                        'earnings sau situații financiare de companie'
+                    )
                 ),
                 'data_provider': 'IBKR TWS API',
                 'data_broker': 'IBKR',
@@ -287,7 +348,7 @@ def fetch_research_instruments(
     return payload
 
 
-def fetch_active_orders(output_file='tws_orders.csv'):
+def fetch_active_orders(output_file='tws_orders.csv', research_symbols=None):
     """
     Se conectează la TWS local (Port 7497 sau 4001 Gateway) și extrage ordinele active (Stop, Trail).
     """
@@ -435,7 +496,10 @@ def fetch_active_orders(output_file='tws_orders.csv'):
         # Datele IBKR sunt folosite și pentru instrumente tranzacționate prin
         # alt broker. TVBETETF rămâne executabil exclusiv prin Tradeville.
         try:
-            fetch_research_instruments(ib)
+            fetch_research_instruments(
+                ib,
+                instruments=build_research_instruments(research_symbols),
+            )
         except Exception as instrument_ex:
             print(
                 "  -> Avertisment la sincronizarea instrumentelor TWS: "
