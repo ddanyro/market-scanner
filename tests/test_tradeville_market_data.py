@@ -20,6 +20,49 @@ def _payload(rows):
 
 
 class TestTradevilleMarketData(unittest.TestCase):
+    def test_default_session_retries_temporary_connection_failures(self):
+        tradeville_market_data._RETRY_SESSION = None
+        session = tradeville_market_data._retry_session()
+        retry = session.get_adapter("https://").max_retries
+
+        self.assertEqual(retry.connect, 3)
+        self.assertEqual(retry.read, 2)
+        self.assertIn(503, retry.status_forcelist)
+        self.assertIn(
+            "Mozilla/5.0", session.headers["User-Agent"]
+        )
+        self.assertEqual(
+            session.headers["Referer"], "https://tradeville.ro/"
+        )
+
+    def test_parses_public_tradeville_symbol_list(self):
+        links = "".join(
+            f'<a href="/actiuni/S{index}">Companie</a>'
+            for index in range(25)
+        )
+        symbols = tradeville_market_data.parse_listed_symbols(links)
+
+        self.assertIn("S0", symbols)
+        self.assertIn("S24", symbols)
+
+    def test_last_valid_public_list_survives_source_403(self):
+        response = Mock()
+        response.raise_for_status.side_effect = (
+            tradeville_market_data.requests.HTTPError("403")
+        )
+        session = Mock()
+        session.get.return_value = response
+
+        symbols = tradeville_market_data.fetch_listed_symbols(
+            session=session
+        )
+
+        self.assertEqual(
+            symbols, set(tradeville_market_data.LAST_VALID_LISTED_SYMBOLS)
+        )
+        self.assertIn("ALR", symbols)
+        self.assertNotIn("TALD", symbols)
+
     def test_parses_valid_ohlcv_and_scientific_volume(self):
         rows = []
         start = datetime.date(2026, 4, 29)
@@ -74,8 +117,17 @@ class TestTradevilleMarketData(unittest.TestCase):
         response = Mock()
         response.json.return_value = _payload(rows)
         response.raise_for_status.return_value = None
+        list_response = Mock()
+        list_response.text = "".join(
+            f'<a href="/actiuni/{symbol}">{symbol}</a>'
+            for symbol in (
+                ["ALR"]
+                + [f"S{index}" for index in range(24)]
+            )
+        )
+        list_response.raise_for_status.return_value = None
         session = Mock()
-        session.get.return_value = response
+        session.get.side_effect = [list_response, response]
 
         frame, metadata = tradeville_market_data.fetch_history(
             "ALR.RO",
@@ -91,6 +143,25 @@ class TestTradevilleMarketData(unittest.TestCase):
             session.get.call_args.kwargs["params"],
             {"simbol": "ALR", "lat": ""},
         )
+
+    def test_fetch_history_skips_symbol_absent_from_public_list(self):
+        list_response = Mock()
+        list_response.text = "".join(
+            f'<a href="/actiuni/S{index}">S{index}</a>'
+            for index in range(25)
+        )
+        list_response.raise_for_status.return_value = None
+        session = Mock()
+        session.get.return_value = list_response
+
+        with self.assertRaises(tradeville_market_data.TradevilleDataError):
+            tradeville_market_data.fetch_history(
+                "TALD.RO",
+                session=session,
+                now=datetime.date(2026, 7, 28),
+            )
+
+        session.get.assert_called_once()
 
 
 if __name__ == "__main__":
