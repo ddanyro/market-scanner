@@ -7,15 +7,42 @@ strict răspunsul public Tradeville și respinge seriile fără tranzacții rece
 import datetime
 import json
 import math
+import re
+import threading
+import time
 from io import StringIO
 
 import pandas as pd
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 
 TRADEVILLE_CHART_URL = "https://mbl.tradeville.ro/cmd/graficdata"
+TRADEVILLE_LIST_URL = "https://tradeville.ro/actiuni/actiuni-listare-bursa"
+# Ultima listă validă citită din pagina publică Tradeville la 28.07.2026.
+# Este folosită numai când pagina listei este temporar blocată/indisponibilă.
+LAST_VALID_LISTED_SYMBOLS = frozenset({
+    "AAG", "ALR", "ALT", "ALU", "AQ", "ARM", "AROBS", "ARS", "ARTE",
+    "ATB", "BCM", "BIO", "BKBETETF", "BNET", "BRD", "BRK", "BRM",
+    "BTBETRETF", "BTF", "BUCV", "BVB", "CAOR", "CBC", "CFH", "CMCM",
+    "CMF", "CMP", "CNTE", "COMI", "COTE", "CRC", "DIGI", "EAI", "EBS",
+    "ECT", "EFO", "EL", "ELGS", "ELGSR01", "ELJ", "ELMA", "ENP", "EVER",
+    "FP", "GIBEFETF", "GREEN", "H2O", "IARV", "ICBETNETF", "ICCROETF",
+    "ICGROETF", "ICSLOETF", "IMP", "INFINITY", "LION", "LONG", "M",
+    "MCAB", "MECF", "MFC", "NAPO", "OIL", "ONE", "PBK", "PE", "PPL",
+    "PREB", "PREH", "PTENGETF", "PTR", "RMAH", "ROC1", "ROCE", "RPH",
+    "RRC", "SAFE", "SFG", "SMTL", "SNG", "SNN", "SNO", "SNP", "SOCP",
+    "STK", "STZ", "TBK", "TBM", "TEL", "TGN", "TLV", "TRANSI", "TRIP",
+    "TRP", "TTS", "TVBETETF", "UAM", "UZT", "VESY", "VNC", "WINE",
+})
 DEFAULT_MAX_AGE_DAYS = 10
 DEFAULT_MIN_OBSERVATIONS = 60
+_RETRY_SESSION = None
+_LISTED_SYMBOLS = None
+_REQUEST_LOCK = threading.Lock()
+_LAST_REQUEST_AT = 0.0
+MIN_REQUEST_INTERVAL_SECONDS = 1.0
 
 
 class TradevilleDataError(ValueError):
@@ -37,6 +64,88 @@ def _finite_number(value):
     except (TypeError, ValueError):
         return None
     return number if math.isfinite(number) else None
+
+
+def _retry_session():
+    """Reîncearcă erorile temporare de DNS/conexiune fără a inventa date."""
+    global _RETRY_SESSION
+    if _RETRY_SESSION is None:
+        retry = Retry(
+            total=3,
+            connect=3,
+            read=2,
+            status=2,
+            backoff_factor=0.5,
+            status_forcelist=(429, 500, 502, 503, 504),
+            allowed_methods=frozenset({"GET"}),
+            raise_on_status=False,
+        )
+        _RETRY_SESSION = requests.Session()
+        _RETRY_SESSION.headers.update({
+            "User-Agent": (
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/138.0.0.0 Safari/537.36"
+            ),
+            "Accept": "application/json, text/plain, */*",
+            "Referer": "https://tradeville.ro/",
+        })
+        adapter = HTTPAdapter(max_retries=retry)
+        _RETRY_SESSION.mount("https://", adapter)
+        _RETRY_SESSION.mount("http://", adapter)
+    return _RETRY_SESSION
+
+
+def _throttled_get(client, *args, **kwargs):
+    """Evită blocarea sursei publice prin cereri prea apropiate."""
+    global _LAST_REQUEST_AT
+    with _REQUEST_LOCK:
+        elapsed = time.monotonic() - _LAST_REQUEST_AT
+        remaining = MIN_REQUEST_INTERVAL_SECONDS - elapsed
+        if remaining > 0:
+            time.sleep(remaining)
+        try:
+            return client.get(*args, **kwargs)
+        finally:
+            _LAST_REQUEST_AT = time.monotonic()
+
+
+def parse_listed_symbols(html):
+    """Extrage simbolurile din lista publică Tradeville BVB/AeRO."""
+    symbols = {
+        match.upper()
+        for match in re.findall(
+            r'href=["\'](?:https?://[^"\']+)?/actiuni/([A-Za-z0-9]{1,12})',
+            str(html or ""),
+            flags=re.IGNORECASE,
+        )
+    }
+    if len(symbols) < 20:
+        raise TradevilleDataError(
+            "Lista publică Tradeville nu conține suficiente simboluri"
+        )
+    return symbols
+
+
+def fetch_listed_symbols(*, session=None, timeout=15):
+    """Încarcă o singură dată universul public Tradeville din rularea curentă."""
+    global _LISTED_SYMBOLS
+    if session is None and _LISTED_SYMBOLS is not None:
+        return set(_LISTED_SYMBOLS)
+    client = session or _retry_session()
+    try:
+        response = (
+            client.get(TRADEVILLE_LIST_URL, timeout=timeout)
+            if session is not None
+            else _throttled_get(client, TRADEVILLE_LIST_URL, timeout=timeout)
+        )
+        response.raise_for_status()
+        symbols = parse_listed_symbols(response.text)
+    except (requests.RequestException, TradevilleDataError):
+        symbols = set(LAST_VALID_LISTED_SYMBOLS)
+    if session is None:
+        _LISTED_SYMBOLS = set(symbols)
+    return symbols
 
 
 def parse_chart_payload(
@@ -144,12 +253,23 @@ def fetch_history(
     bvb_symbol = normalize_bvb_symbol(symbol)
     if not bvb_symbol:
         raise TradevilleDataError("Simbol BVB lipsă")
-    client = session or requests
-    response = client.get(
-        TRADEVILLE_CHART_URL,
-        params={"simbol": bvb_symbol, "lat": ""},
+    listed_symbols = fetch_listed_symbols(
+        session=session,
         timeout=timeout,
-        headers={"User-Agent": "Antigravity-Market-Scanner/1.0"},
+    )
+    if bvb_symbol not in listed_symbols:
+        raise TradevilleDataError(
+            f"{bvb_symbol} nu apare în lista publică Tradeville"
+        )
+    client = session or _retry_session()
+    request_kwargs = {
+        "params": {"simbol": bvb_symbol, "lat": ""},
+        "timeout": timeout,
+    }
+    response = (
+        client.get(TRADEVILLE_CHART_URL, **request_kwargs)
+        if session is not None
+        else _throttled_get(client, TRADEVILLE_CHART_URL, **request_kwargs)
     )
     response.raise_for_status()
     try:
