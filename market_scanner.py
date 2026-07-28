@@ -56,6 +56,20 @@ BUY_RESEARCH_UNIVERSES = {
     'Europa / Nasdaq-100': ['LQQ.PA'],
 }
 ALWAYS_RESEARCH_SYMBOLS = {'LQQ.PA'}
+KNOWN_FUND_PROFILES = {
+    'LQQ.PA': {
+        'longName': 'LQQ — Nasdaq-100 Daily (2x) Leveraged UCITS ETF',
+        'shortName': 'LQQ',
+        'industry': 'ETF leveraged',
+        'sector': 'Nasdaq-100',
+    },
+    'TVBETETF.RO': {
+        'longName': 'ETF BET Patria-Tradeville',
+        'shortName': 'TVBETETF',
+        'industry': 'ETF',
+        'sector': 'Piața românească / BET',
+    },
+}
 BVB_SHARES_CSV_URL = (
     'https://www.bvb.ro/FinancialInstruments/Markets/'
     'SharesListForDownload.ashx?filetype=csv'
@@ -66,6 +80,168 @@ EXTERNAL_RESEARCH_MIN_RR = 1.8
 BUY_FINALIST_TTL_HOURS = 1.0
 EXTERNAL_RESEARCH_TTL_HOURS = 5.0
 SP500_UNIVERSE_FILE = 'sp500_tickers.json'
+TWS_INSTRUMENTS_FILE = 'tws_instruments.json'
+TWS_INSTRUMENT_TTL_HOURS = 96
+
+
+def _canonical_fund_symbol(symbol):
+    normalized = str(symbol or '').strip().upper()
+    if normalized in {'LQQ.PA', 'LQQ.FR', 'FR.LQQ'}:
+        return 'LQQ.PA'
+    return normalized
+
+
+def _known_fund_profile(symbol):
+    """Returnează metadate locale pentru ETF-uri care nu au fundamentale Yahoo."""
+    return KNOWN_FUND_PROFILES.get(_canonical_fund_symbol(symbol))
+
+
+def _get_yahoo_info(symbol, tws_instrument=None):
+    """Evită endpointul de fundamentale pentru ETF-urile cunoscute."""
+    fund_profile = _known_fund_profile(symbol)
+    contract = (
+        (tws_instrument or {}).get('contract', {})
+        if isinstance(tws_instrument, dict) else {}
+    )
+    tws_profile = {
+        'longName': contract.get('long_name'),
+        'shortName': contract.get('local_symbol'),
+        'industry': contract.get('industry'),
+        'sector': contract.get('category'),
+    }
+    if fund_profile:
+        info = dict(fund_profile)
+        info.update({
+            key: value for key, value in tws_profile.items() if value
+        })
+        return info
+    lookup_symbol = str(symbol or '').strip()
+    if lookup_symbol.endswith('.US'):
+        lookup_symbol = lookup_symbol[:-3]
+    info = yf.Ticker(lookup_symbol).info or {}
+    info.update({
+        key: value for key, value in tws_profile.items() if value
+    })
+    return info
+
+
+def _parse_snapshot_timestamp(value):
+    text = str(value or '').strip()
+    if not text:
+        return None
+    try:
+        parsed = datetime.datetime.fromisoformat(text.replace('Z', '+00:00'))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+    return parsed.astimezone(datetime.timezone.utc)
+
+
+def _load_tws_instrument(
+    symbol, path=TWS_INSTRUMENTS_FILE, now=None,
+    max_age_hours=TWS_INSTRUMENT_TTL_HOURS,
+):
+    """Încarcă un snapshot TWS proaspăt, inclusiv prin aliasurile dashboardului."""
+    try:
+        with open(path, 'r', encoding='utf-8') as handle:
+            payload = json.load(handle)
+    except (OSError, ValueError, TypeError):
+        return None
+    instruments = payload.get('instruments', {})
+    normalized = str(symbol or '').strip().upper()
+    entry = instruments.get(normalized)
+    if not isinstance(entry, dict):
+        entry = next(
+            (
+                candidate for candidate in instruments.values()
+                if normalized in {
+                    str(alias).upper()
+                    for alias in candidate.get('aliases', [])
+                }
+            ),
+            None,
+        )
+    if not isinstance(entry, dict) or not entry.get('bars'):
+        return None
+    fetched_at = _parse_snapshot_timestamp(
+        entry.get('fetched_at') or payload.get('fetched_at')
+    )
+    current_time = now or datetime.datetime.now(datetime.timezone.utc)
+    if current_time.tzinfo is None:
+        current_time = current_time.replace(tzinfo=datetime.timezone.utc)
+    if (
+        fetched_at is None
+        or (current_time.astimezone(datetime.timezone.utc) - fetched_at).total_seconds()
+        > max_age_hours * 3600
+    ):
+        return None
+    return entry
+
+
+def _tws_instrument_history_frame(instrument):
+    bars = (instrument or {}).get('bars', [])
+    if not bars:
+        return pd.DataFrame()
+    frame = pd.DataFrame(bars)
+    required_columns = {'date', 'open', 'high', 'low', 'close'}
+    if not required_columns.issubset(frame.columns):
+        return pd.DataFrame()
+    frame['date'] = pd.to_datetime(frame['date'], errors='coerce')
+    for column in ('open', 'high', 'low', 'close', 'volume'):
+        if column in frame.columns:
+            frame[column] = pd.to_numeric(frame[column], errors='coerce')
+    frame = frame.dropna(subset=['date', 'close']).sort_values('date')
+    if frame.empty:
+        return pd.DataFrame()
+    frame = frame.set_index('date')
+    frame = frame.rename(columns={
+        'open': 'Open',
+        'high': 'High',
+        'low': 'Low',
+        'close': 'Close',
+        'volume': 'Volume',
+    })
+    if 'Volume' not in frame.columns:
+        frame['Volume'] = 0.0
+    return frame[['Open', 'High', 'Low', 'Close', 'Volume']]
+
+
+def _tws_instrument_market_price(instrument):
+    market_data_snapshot = (instrument or {}).get('market_data', {})
+    for field in ('market_price', 'last', 'close'):
+        try:
+            value = float(market_data_snapshot.get(field))
+            if math.isfinite(value) and value > 0:
+                return value
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def _instrument_data_attribution(symbol, instrument):
+    execution_brokers = _buy_candidate_brokers(symbol)
+    if not instrument:
+        return {
+            'Market_Data_Source': 'Yahoo Finance',
+            'Market_Data_Fetched_At': None,
+            'Data_Broker': None,
+            'Execution_Brokers': execution_brokers,
+            'IBKR_Data_Only': False,
+        }
+    return {
+        'Market_Data_Source': instrument.get(
+            'data_provider', 'IBKR TWS API'
+        ),
+        'Market_Data_Fetched_At': instrument.get('fetched_at'),
+        'Data_Broker': instrument.get('data_broker', 'IBKR'),
+        # Eligibilitatea de tranzacționare vine din regulile dashboardului,
+        # nu din brokerul care a furnizat cotația.
+        'Execution_Brokers': execution_brokers,
+        'IBKR_Data_Only': (
+            str(symbol or '').upper() in {'TVBETETF', 'TVBETETF.RO'}
+        ),
+    }
 
 
 def load_complete_us_equity_universe(path=SP500_UNIVERSE_FILE):
@@ -1651,6 +1827,10 @@ def get_next_earnings_date(ticker_symbol):
     Returnează următoarea dată de earnings (datetime.date) sau None dacă nu e găsită.
     Folosește yfinance calendar.
     """
+    # ETF-urile nu raportează earnings ca o companie. Yahoo răspunde cu 404
+    # pentru quoteSummary/calendarEvents, deși istoricul de preț este valid.
+    if _known_fund_profile(ticker_symbol):
+        return None
     try:
         lookup_symbol = ticker_symbol[:-3] if ticker_symbol.endswith('.US') else ticker_symbol
         if lookup_symbol in ['LQQ.FR', 'FR.LQQ']:
@@ -2100,9 +2280,21 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         vol_m = finviz_data.get('VolM')
         
         if ticker_cache is None: ticker_cache = {}
+
+        tws_instrument = _load_tws_instrument(ticker)
+        tws_history = _tws_instrument_history_frame(tws_instrument)
+        data_attribution = _instrument_data_attribution(
+            ticker, tws_instrument
+        )
         
         # --- CACHED DOWNLOAD ---
-        if download_ticker in ticker_cache and ticker_cache[download_ticker] is not None:
+        if not tws_history.empty:
+             df = tws_history.copy()
+             print(
+                 f"  [TWS API] Istoric IBKR pentru {ticker}: "
+                 f"{len(df)} ședințe"
+             )
+        elif download_ticker in ticker_cache and ticker_cache[download_ticker] is not None:
              df = ticker_cache[download_ticker]
              # print(f"  [Cache] Used cached data for {download_ticker}")
         else:
@@ -2164,8 +2356,9 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
 
         company_name = ""
         try:
-             yt = yf.Ticker(actual_download_ticker)
-             info = yt.info
+             info = _get_yahoo_info(
+                 actual_download_ticker, tws_instrument=tws_instrument
+             )
              company_name = info.get('longName') or info.get('shortName') or ""
         except:
              pass
@@ -2244,7 +2437,8 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 'Chart_Dates': [],
                 'Chart_OHLC': [],
                 'Daily_Change': 0.0,
-                'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                **data_attribution,
             }
             return result
         
@@ -2259,8 +2453,9 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         consensus = "-"
         analysts_count = 0
         try:
-           yt = yf.Ticker(actual_download_ticker)
-           info = yt.info
+           info = _get_yahoo_info(
+               actual_download_ticker, tws_instrument=tws_instrument
+           )
            # Dacă info e gol sau fail
            if info:
                consensus = info.get('recommendationKey', '-').replace('_', ' ').title()
@@ -2277,10 +2472,10 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         last_row = df.iloc[-1]
         
         # Verificăm dacă avem prețul live din TWS (tws_positions.csv)
-        tws_price_avail = False
-        tws_price_native = 0.0
+        tws_price_native = _tws_instrument_market_price(tws_instrument)
+        tws_price_avail = bool(tws_price_native)
         tws_file = 'tws_positions.csv'
-        if os.path.exists(tws_file):
+        if not tws_price_avail and os.path.exists(tws_file):
             mtime = os.path.getmtime(tws_file)
             if time.time() - mtime < 300:  # 5 minute
                 try:
@@ -2809,7 +3004,8 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             'Chart_Dates': chart_dates,
             'Chart_OHLC': chart_ohlc,
             'Daily_Change': round(daily_change, 4),
-            'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+            **data_attribution,
         }
         return result
         
@@ -2826,8 +3022,9 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             lookup_symbol = symbol[:-3] if symbol.endswith('.US') else symbol
             if lookup_symbol in ['LQQ.FR', 'FR.LQQ']:
                 lookup_symbol = 'LQQ.PA'
-            t = yf.Ticker(lookup_symbol)
-            info = t.info
+            info = _get_yahoo_info(
+                lookup_symbol, tws_instrument=tws_instrument
+            )
             name = info.get('longName') or info.get('shortName')
             if name: return name
         except:
@@ -2848,8 +3045,6 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         return ""
 
     try:
-        time.sleep(2)
-        
         # Detect Currency
         currency = 'USD'
         if '.RO' in ticker: currency = 'RON'
@@ -2862,7 +3057,24 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         download_ticker = ticker[:-3] if ticker.endswith('.US') else ticker
         if download_ticker in ['LQQ.FR', 'FR.LQQ']:
             download_ticker = 'LQQ.PA'
-        df = yf.download(download_ticker, period="1y", auto_adjust=True, progress=False)
+        tws_instrument = _load_tws_instrument(ticker)
+        df = _tws_instrument_history_frame(tws_instrument)
+        data_attribution = _instrument_data_attribution(
+            ticker, tws_instrument
+        )
+        if not df.empty:
+            print(
+                f"  [TWS API] Istoric IBKR pentru {ticker}: "
+                f"{len(df)} ședințe"
+            )
+        else:
+            time.sleep(2)
+            df = yf.download(
+                download_ticker,
+                period="1y",
+                auto_adjust=True,
+                progress=False,
+            )
         
         if df.empty:
             print(f"Nu există date pentru {download_ticker}")
@@ -2887,7 +3099,10 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         
         last_row = df.iloc[-1]
         
-        last_close_native = market_data.get_scalar(last_row['Close']) 
+        last_close_native = (
+            _tws_instrument_market_price(tws_instrument)
+            or market_data.get_scalar(last_row['Close'])
+        )
         last_close = last_close_native * rate
         last_atr = market_data.get_scalar(last_row['ATR']) * rate
         if pd.isna(last_atr): last_atr = 0.0
@@ -2949,8 +3164,9 @@ def process_watchlist_ticker(ticker, vix_value, rates):
            yt_ticker = ticker
            if yt_ticker in ['LQQ.FR', 'FR.LQQ']:
                yt_ticker = 'LQQ.PA'
-           yt = yf.Ticker(yt_ticker)
-           info = yt.info
+           info = _get_yahoo_info(
+               yt_ticker, tws_instrument=tws_instrument
+           )
            consensus = info.get('recommendationKey', '-').replace('_', ' ').title() # ex: Strong Buy
            analysts_count = info.get('numberOfAnalystOpinions', 0)
            industry = info.get('industry', '-')
@@ -2971,6 +3187,12 @@ def process_watchlist_ticker(ticker, vix_value, rates):
            if len(industry) > 20: industry = industry[:17] + "..."
         except:
            avg_vol_3m = 0
+        if not avg_vol_3m and 'Volume' in df.columns:
+            valid_volume = pd.to_numeric(
+                df['Volume'].tail(63), errors='coerce'
+            ).dropna()
+            if not valid_volume.empty:
+                avg_vol_3m = int(valid_volume.mean())
 
         if target_val and last_close > 0:
             pct_to_target = ((target_val - last_close) / last_close) * 100
@@ -3178,7 +3400,8 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'Earnings_Msg': earnings_msg,
             
             'Check_Details': " ".join(check_details),
-            'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+            **data_attribution,
         }
         result.update(bvb_liquidity_metrics)
         return result
@@ -5007,6 +5230,12 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             'strategy': item.get('Strategy'),
             'relative_strength': item.get('RS_vs_SPX'),
             'data_as_of': item.get('Date'),
+            'market_data_source': item.get('Market_Data_Source'),
+            'market_data_fetched_at': item.get(
+                'Market_Data_Fetched_At'
+            ),
+            'data_broker': item.get('Data_Broker'),
+            'ibkr_data_only': bool(item.get('IBKR_Data_Only')),
             'data_age_hours': item.get(
                 'Data_Age_Hours',
                 _buy_candidate_data_age_hours(item),
