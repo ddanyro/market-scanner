@@ -2496,7 +2496,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                             df_alt = df_alt.dropna(subset=['Close'])
                         if not df_alt.empty:
                              ticker_cache[alt_ticker] = df_alt # Cache successful alt
-                    
+
                     if not df_alt.empty:
                         print(f"    ✅ Found data for {alt_ticker}!")
                         df = df_alt
@@ -4537,6 +4537,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
         <!-- CryptoJS for AES Decryption -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+        <script src="portfolio_auth.js"></script>
         
         <script>
             // Variabila cu datele criptate va fi injectată aici de Python
@@ -4545,16 +4546,16 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             let buyRecommendationDetailData = {};
 
 
-            function unlockPortfolio() {
-                const input = document.getElementById('pf-pass').value;
-                if (!input) return;
-                
+            async function unlockPortfolioWithCredential(input, options) {
+                const settings = Object.assign(
+                    { remember: true, silent: false },
+                    options || {}
+                );
                 try {
                     // Decrypt
                     // ENCRYPTED_DATA is defined below in the body/script injection
                     if (typeof ENCRYPTED_DATA === 'undefined') {
-                        alert('Eroare: Datele criptate lipsesc.');
-                        return;
+                        throw new Error('Datele criptate lipsesc.');
                     }
                     
                     const salt = CryptoJS.enc.Base64.parse(ENCRYPTED_DATA.salt);
@@ -4577,20 +4578,67 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     const strData = decrypted.toString(CryptoJS.enc.Utf8);
                     
                     if (!strData) {
-                        alert('Parolă Incorectă (Decriptare eșuată)');
-                    } else {
-                        const data = JSON.parse(strData);
-                        renderPortfolio(data);
-                        
-                        document.getElementById('portfolio-lock').style.display = 'none';
-                        document.getElementById('portfolio-data').style.display = 'block';
-                        sessionStorage.setItem('pf_auth', 'true'); // Optional: store flag, but can't store password safely
-                        // Store decrypted data? No, keep in memory.
+                        throw new Error('Decriptarea a eșuat.');
                     }
+                    const data = JSON.parse(strData);
+                    renderPortfolio(data);
+
+                    document.getElementById('portfolio-lock').style.display = 'none';
+                    document.getElementById('portfolio-data').style.display = 'block';
+                    const passwordInput = document.getElementById('pf-pass');
+                    if (passwordInput) passwordInput.value = '';
+                    if (
+                        settings.remember &&
+                        window.PortfolioAuthPersistence
+                    ) {
+                        window.PortfolioAuthPersistence
+                            .rememberCredential(input)
+                            .catch(function (error) {
+                                console.warn(
+                                    'Sesiunea de 30 de zile nu a putut fi salvată.',
+                                    error
+                                );
+                            });
+                    }
+                    return true;
                 } catch (e) {
                     console.error(e);
-                    alert('Parolă Incorectă sau Eroare Decriptare.');
+                    if (!settings.silent) {
+                        alert('Parolă Incorectă sau Eroare Decriptare.');
+                    }
+                    return false;
                 }
+            }
+
+            function unlockPortfolio() {
+                const passwordInput = document.getElementById('pf-pass');
+                const input = passwordInput ? passwordInput.value : '';
+                if (!input) return;
+                void unlockPortfolioWithCredential(input, {
+                    remember: true,
+                    silent: false
+                });
+            }
+
+            async function restorePortfolioAccess() {
+                if (!window.PortfolioAuthPersistence) return;
+                const credential = await window.PortfolioAuthPersistence
+                    .restoreCredential();
+                if (!credential) return;
+                const unlocked = await unlockPortfolioWithCredential(
+                    credential,
+                    { remember: false, silent: true }
+                );
+                if (!unlocked) {
+                    await window.PortfolioAuthPersistence.clearCredential();
+                }
+            }
+
+            async function logoutPortfolio() {
+                if (window.PortfolioAuthPersistence) {
+                    await window.PortfolioAuthPersistence.clearCredential();
+                }
+                window.location.reload();
             }
             
             function renderPortfolio(data) {
@@ -4707,7 +4755,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 });
             }
             
-            // Auto unlock if dev mode? No.
+            window.addEventListener('DOMContentLoaded', function () {
+                void restorePortfolioAccess();
+            });
             
             // Global Tooltip Logic
             function showTooltip(evt, text) {
@@ -4770,10 +4820,14 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     <input type="password" id="pf-pass" style="padding: 14px 20px; font-size: 18px; text-align: center; width: 180px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: var(--bg-white); color: var(--text-primary); letter-spacing: 8px; font-weight: 600; transition: all 0.2s;" placeholder="••••" onkeyup="if(event.key==='Enter') unlockPortfolio()" onfocus="this.style.borderColor='var(--primary-purple)'; this.style.boxShadow='0 0 0 3px rgba(119,96,249,0.1)'" onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none'">
                     <button onclick="unlockPortfolio()" class="btn-primary">Unlock</button>
                 </div>
+                <p style="color: var(--text-secondary); margin: 18px 0 0; font-size: 13px;">Accesul va fi memorat automat 30 de zile în acest browser.</p>
             </div>
             
             <!-- ACTUAL DATA (Hidden) -->
             <div id="portfolio-data" style="display: none;">
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+                    <button type="button" onclick="logoutPortfolio()" style="border: 1px solid var(--border-light); background: var(--bg-white); color: var(--text-secondary); border-radius: var(--radius-sm); padding: 8px 12px; cursor: pointer;">Deconectare de pe acest dispozitiv</button>
+                </div>
                 <div class="summary">
                     <div class="summary-card">
                         <h3>Total Investment</h3>

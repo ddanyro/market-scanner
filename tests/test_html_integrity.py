@@ -148,6 +148,60 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('portfolio_market_context = analysis.build_portfolio_market_context(', content)
         self.assertIn('market_context=portfolio_market_context', content)
 
+    def test_portfolio_auth_is_remembered_implicitly_for_thirty_days(self):
+        """Deblocarea este memorată criptat, fără parolă în local/session storage."""
+        root = os.path.join(os.path.dirname(__file__), '..')
+        with open(
+            os.path.join(root, 'market_scanner.py'),
+            'r',
+            encoding='utf-8',
+        ) as handle:
+            content = handle.read()
+        with open(
+            os.path.join(root, 'portfolio_auth.js'),
+            'r',
+            encoding='utf-8',
+        ) as handle:
+            auth_content = handle.read()
+        with open(
+            os.path.join(root, 'index.html'),
+            'r',
+            encoding='utf-8',
+        ) as handle:
+            generated_content = handle.read()
+
+        self.assertIn('<script src="portfolio_auth.js"></script>', content)
+        self.assertIn(
+            '<script src="portfolio_auth.js"></script>',
+            generated_content,
+        )
+        self.assertIn('void restorePortfolioAccess()', content)
+        self.assertIn('void restorePortfolioAccess()', generated_content)
+        self.assertIn('remember: true', content)
+        self.assertIn('remember: false, silent: true', content)
+        self.assertIn('Deconectare de pe acest dispozitiv', content)
+        self.assertIn(
+            'Deconectare de pe acest dispozitiv',
+            generated_content,
+        )
+        self.assertIn(
+            'Accesul va fi memorat automat 30 de zile în acest browser.',
+            content,
+        )
+        self.assertNotIn("sessionStorage.setItem('pf_auth'", content)
+        self.assertIn(
+            'const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;',
+            auth_content,
+        )
+        self.assertIn("const DB_NAME = 'market-scanner-portfolio-auth';", auth_content)
+        self.assertIn("{ name: 'AES-GCM', length: 256 }", auth_content)
+        self.assertIn('false,', auth_content)
+        self.assertIn('expiresAt: now + SESSION_TTL_MS', auth_content)
+        self.assertIn('session.expiresAt <= Date.now()', auth_content)
+        self.assertIn('additionalData: additionalData()', auth_content)
+        self.assertNotIn('localStorage', auth_content)
+        self.assertNotIn('sessionStorage', auth_content)
+
     def test_empty_order_tables_do_not_trigger_datatables_column_warning(self):
         """Rândurile cu colspan pentru liste goale nu trebuie trimise către DataTables."""
         file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
