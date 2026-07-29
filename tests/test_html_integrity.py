@@ -105,13 +105,75 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("formatDetailNumber(value,currency)", content)
         self.assertIn("detail.currency", content)
         self.assertIn("Grafic zilnic${detail.currency?", content)
-        self.assertIn("currency?100:66", content)
+        self.assertIn("detailChartLayout(width, currency, levels.length > 0, false)", content)
         self.assertIn("ctx.setLineDash([7,5])", content)
         self.assertIn("function drawRecommendationMarkers(", content)
         self.assertIn("ctx.moveTo(x,y-9)", content)
         self.assertIn("detail.markers || []", content)
         self.assertIn("Recomandări de cumpărare marcate punctual", content)
         self.assertIn("_build_history_chart_candidates(", content)
+
+    def test_detail_charts_are_readable_on_mobile(self):
+        """Graficul mobil folosește toată lățimea și mută etichetele nivelurilor sub canvas."""
+        root = os.path.join(os.path.dirname(__file__), '..')
+        for filename in ('market_scanner.py', 'index.html'):
+            with self.subTest(filename=filename):
+                with open(os.path.join(root, filename), 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                self.assertIn("const compact = width <= 640", content)
+                self.assertIn("left: currency ? 62 : 48", content)
+                self.assertIn("right: 10", content)
+                self.assertIn("if (pad.compact)", content)
+                self.assertIn("detailChartTickIndexes(candles.length,chartW)", content)
+                self.assertIn("detailChartTickIndexes(series.length,chartW)", content)
+                self.assertIn("Math.floor(chartWidth / 58)", content)
+                self.assertIn("renderHorizontalLevelLegend(detail.levels || []", content)
+                self.assertIn("class='level-legend'", content)
+                self.assertIn(
+                    "window.matchMedia('(max-width: 640px)').matches?22:66",
+                    content,
+                )
+
+    def test_buy_now_web_push_is_configured_without_exposing_api_key(self):
+        root = os.path.join(os.path.dirname(__file__), '..')
+        with open(
+            os.path.join(root, 'market_scanner.py'),
+            'r',
+            encoding='utf-8',
+        ) as f:
+            generator = f.read()
+        with open(
+            os.path.join(root, '.github', 'workflows', 'update_dashboard.yml'),
+            'r',
+            encoding='utf-8',
+        ) as f:
+            workflow = f.read()
+        with open(
+            os.path.join(
+                root, 'push', 'onesignal', 'OneSignalSDKWorker.js'
+            ),
+            'r',
+            encoding='utf-8',
+        ) as f:
+            worker = f.read()
+
+        self.assertIn('send_new_buy_now_notifications(', generator)
+        self.assertIn('ONESIGNAL_APP_ID', generator)
+        self.assertIn('OneSignalSDK.page.js', generator)
+        self.assertIn('Activează alertele BUY', generator)
+        self.assertIn('Instalează pentru alerte BUY', generator)
+        self.assertIn('manifest.webmanifest', generator)
+        self.assertIn('secrets.ONESIGNAL_APP_ID', workflow)
+        self.assertIn('secrets.ONESIGNAL_API_KEY', workflow)
+        self.assertIn('OneSignalSDK.sw.js', worker)
+        with open(
+            os.path.join(root, 'index.html'),
+            'r',
+            encoding='utf-8',
+        ) as f:
+            generated_dashboard = f.read()
+        self.assertNotIn('ONESIGNAL_API_KEY', generated_dashboard)
 
     def test_portfolio_ai_analysis_is_in_encrypted_payload(self):
         """Analiza nouă trebuie să rămână în spatele PIN-ului portofoliului."""

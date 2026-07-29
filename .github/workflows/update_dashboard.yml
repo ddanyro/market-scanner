@@ -36,6 +36,9 @@ jobs:
         IBKR_QUERY_ID: ${{ secrets.IBKR_QUERY_ID }}
         PORTFOLIO_PASSWORD: ${{ secrets.PORTFOLIO_PASSWORD }}
         TWS_ACCOUNT_PASSWORD: ${{ secrets.TWS_ACCOUNT_PASSWORD }}
+        ONESIGNAL_APP_ID: ${{ secrets.ONESIGNAL_APP_ID }}
+        ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
+        ONESIGNAL_SITE_URL: https://ddanyro.github.io/market-scanner/
       run: |
         MODE="portfolio"
         if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event.schedule }}" = "0 */5 * * *" ]; then
