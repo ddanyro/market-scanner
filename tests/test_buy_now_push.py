@@ -318,6 +318,42 @@ class BuyNowPushTests(unittest.TestCase):
             "Ordin de cumpărare acum: TEST.",
         )
 
+    def test_manual_push_can_target_one_subscription_directly(self):
+        calls = []
+        subscription_id = "12345678-1234-4234-8234-123456789abc"
+        diagnostic = buy_now_push.send_test_notification(
+            "test",
+            subscription_id=subscription_id,
+            app_id="app-id",
+            api_key="api-key",
+            post=lambda *args, **kwargs: (
+                calls.append(kwargs)
+                or FakeResponse({"id": "notification-direct"})
+            ),
+            now=self.now,
+        )
+
+        self.assertEqual(diagnostic["status"], "sent")
+        self.assertEqual(
+            calls[0]["json"]["include_subscription_ids"],
+            [subscription_id],
+        )
+        self.assertNotIn("included_segments", calls[0]["json"])
+
+    def test_manual_push_rejects_invalid_subscription_id(self):
+        diagnostic = buy_now_push.send_test_notification(
+            "test",
+            subscription_id="not-a-uuid",
+            app_id="app-id",
+            api_key="api-key",
+            now=self.now,
+        )
+
+        self.assertEqual(
+            diagnostic["status"],
+            "invalid_subscription_id",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
