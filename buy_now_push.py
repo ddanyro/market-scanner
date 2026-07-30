@@ -1,6 +1,8 @@
 """Web push pentru tranzițiile noi în starea „Cumpărare acum”."""
 
+import argparse
 import datetime
+import json
 import os
 import uuid
 
@@ -198,3 +200,59 @@ def send_new_buy_now_notifications(
         "errors": errors,
     }
     return state_core, diagnostic
+
+
+def retry_cached_buy_now_notifications(
+    state_path="dashboard_state.json",
+    **delivery_options,
+):
+    """Reîncearcă imediat semnalele BUY restante din ultimul cache valid."""
+    with open(state_path, "r", encoding="utf-8") as handle:
+        dashboard_state = json.load(handle)
+    cached_analysis = (
+        dashboard_state.get("last_portfolio_ai_analysis") or {}
+    )
+    result = cached_analysis.get("result") or {}
+    candidates = cached_analysis.get("buy_candidates") or []
+    previous_state = dashboard_state.get("buy_now_push_state") or {}
+    next_state, diagnostic = send_new_buy_now_notifications(
+        previous_state,
+        result,
+        candidates,
+        event_token=cached_analysis.get("generated_at"),
+        **delivery_options,
+    )
+    if next_state != previous_state:
+        dashboard_state["buy_now_push_state"] = next_state
+        with open(state_path, "w", encoding="utf-8") as handle:
+            json.dump(
+                dashboard_state,
+                handle,
+                ensure_ascii=False,
+                indent=2,
+            )
+            handle.write("\n")
+    return diagnostic
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Retry pentru alertele BUY OneSignal restante."
+    )
+    parser.add_argument(
+        "--retry-state",
+        metavar="FILE",
+        help="Reîncearcă alertele din cache-ul dashboardului.",
+    )
+    args = parser.parse_args()
+    if not args.retry_state:
+        parser.error("--retry-state este obligatoriu")
+    diagnostic = retry_cached_buy_now_notifications(args.retry_state)
+    print(
+        "Retry web push BUY: "
+        + json.dumps(diagnostic, ensure_ascii=False)
+    )
+
+
+if __name__ == "__main__":
+    main()

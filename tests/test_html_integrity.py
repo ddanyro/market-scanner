@@ -180,6 +180,11 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('manifest.webmanifest', generator)
         self.assertIn('secrets.ONESIGNAL_APP_ID', workflow)
         self.assertIn('secrets.ONESIGNAL_API_KEY', workflow)
+        self.assertIn('Retry pending BUY alerts', workflow)
+        self.assertIn(
+            'python buy_now_push.py --retry-state dashboard_state.json',
+            workflow,
+        )
         self.assertIn('OneSignalSDK.sw.js', worker)
         with open(
             os.path.join(root, 'index.html'),
