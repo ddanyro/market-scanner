@@ -341,6 +341,68 @@ class BuyNowPushTests(unittest.TestCase):
         )
         self.assertNotIn("included_segments", calls[0]["json"])
 
+    def test_manual_push_reports_effective_delivery(self):
+        get_calls = []
+        diagnostic = buy_now_push.send_test_notification(
+            "test",
+            subscription_id="12345678-1234-4234-8234-123456789abc",
+            app_id="app-id",
+            api_key="api-key",
+            post=lambda *args, **kwargs: FakeResponse(
+                {"id": "notification-direct"}
+            ),
+            get=lambda *args, **kwargs: (
+                get_calls.append((args, kwargs))
+                or FakeResponse(
+                    {
+                        "successful": 1,
+                        "received": 1,
+                        "failed": 0,
+                        "errored": 0,
+                        "remaining": 0,
+                    }
+                )
+            ),
+            verify_delivery=True,
+            sleep=lambda _seconds: None,
+            now=self.now,
+        )
+
+        self.assertEqual(diagnostic["status"], "sent")
+        self.assertEqual(diagnostic["delivery"]["successful"], 1)
+        self.assertEqual(diagnostic["delivery"]["received"], 1)
+        self.assertEqual(len(get_calls), 1)
+        self.assertEqual(
+            get_calls[0][1]["params"],
+            {"app_id": "app-id"},
+        )
+
+    def test_manual_push_marks_zero_recipient_delivery(self):
+        diagnostic = buy_now_push.send_test_notification(
+            "test",
+            subscription_id="12345678-1234-4234-8234-123456789abc",
+            app_id="app-id",
+            api_key="api-key",
+            post=lambda *args, **kwargs: FakeResponse(
+                {"id": "notification-direct"}
+            ),
+            get=lambda *args, **kwargs: FakeResponse(
+                {
+                    "successful": 0,
+                    "received": 0,
+                    "failed": 0,
+                    "errored": 0,
+                    "remaining": 0,
+                }
+            ),
+            verify_delivery=True,
+            sleep=lambda _seconds: None,
+            now=self.now,
+        )
+
+        self.assertEqual(diagnostic["status"], "not_delivered")
+        self.assertEqual(diagnostic["delivery"]["successful"], 0)
+
     def test_manual_push_rejects_invalid_subscription_id(self):
         diagnostic = buy_now_push.send_test_notification(
             "test",
