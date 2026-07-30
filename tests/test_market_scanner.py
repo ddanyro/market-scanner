@@ -2343,6 +2343,26 @@ class TestIndicatorLogic(unittest.TestCase):
 
 class TestHTMLGeneration(unittest.TestCase):
     """Test HTML generation functions."""
+
+    def test_onesignal_control_is_mounted_inside_navigation_menu(self):
+        html = market_scanner._onesignal_web_push_html(
+            '12345678-1234-1234-1234-123456789abc'
+        )
+        self.assertIn("document.getElementById('navMenu')", html)
+        self.assertIn("button.className = 'menu-item push-menu-item'", html)
+        self.assertIn('menu.appendChild(button)', html)
+        self.assertNotIn('document.body.appendChild(button)', html)
+        self.assertNotIn('position: fixed', html)
+
+    def test_onesignal_menu_control_preserves_subscription_states(self):
+        html = market_scanner._onesignal_web_push_html(
+            '12345678-1234-1234-1234-123456789abc'
+        )
+        self.assertIn('Activează alertele BUY', html)
+        self.assertIn('Alerte BUY active', html)
+        self.assertIn('Instalează pentru alerte BUY', html)
+        self.assertIn('PushSubscription.optIn()', html)
+        self.assertIn('PushSubscription.optOut()', html)
     
     def test_html_escaping(self):
         """Test HTML special characters are handled."""

@@ -99,21 +99,16 @@ def _onesignal_web_push_html(app_id):
         <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
         <style>
             #buyNowPushButton {{
-                position: fixed;
-                right: 14px;
-                bottom: 14px;
-                z-index: 10000;
-                border: 1px solid #dfe3ea;
-                border-radius: 999px;
-                padding: 10px 14px;
-                background: #ffffff;
-                color: #374151;
-                box-shadow: 0 5px 20px rgba(15, 23, 42, .16);
-                font: 700 12px/1.2 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-                cursor: pointer;
+                width: 100%;
+                border: 0;
+                border-bottom: 1px solid var(--border-light, #dfe3ea);
+                border-radius: 0;
+                background: transparent;
+                text-align: left;
+                font: inherit;
+                appearance: none;
             }}
             #buyNowPushButton[data-active="true"] {{
-                border-color: #16a34a;
                 background: #ecfdf5;
                 color: #166534;
             }}
@@ -138,10 +133,13 @@ def _onesignal_web_push_html(app_id):
 
                 function mountBuyNowPushButton() {{
                     if (document.getElementById('buyNowPushButton')) return;
+                    const menu = document.getElementById('navMenu');
+                    if (!menu) return;
                     const button = document.createElement('button');
                     button.id = 'buyNowPushButton';
                     button.type = 'button';
-                    document.body.appendChild(button);
+                    button.className = 'menu-item push-menu-item';
+                    menu.appendChild(button);
                     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
                     const isStandalone = (
                         window.matchMedia('(display-mode: standalone)').matches
