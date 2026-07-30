@@ -177,7 +177,55 @@ def _firebase_web_push_html(config_value, vapid_key, worker_path=None):
                     'push/firebase/firebase-messaging-sw.js',
                     document.baseURI
                 ).href;
-                if (!('serviceWorker' in navigator) || !('PushManager' in window)) {{
+                const isIOS = (
+                    /iPad|iPhone|iPod/.test(navigator.userAgent)
+                    || (
+                        navigator.platform === 'MacIntel'
+                        && navigator.maxTouchPoints > 1
+                    )
+                );
+                const isStandalone = (
+                    window.matchMedia('(display-mode: standalone)').matches
+                    || window.navigator.standalone === true
+                );
+                const supportsWebPush = (
+                    'serviceWorker' in navigator
+                    && 'PushManager' in window
+                    && typeof Notification !== 'undefined'
+                );
+
+                function mountPushPrerequisiteButton(message, explanation) {{
+                    if (document.getElementById('buyNowPushButton')) return;
+                    const menu = document.getElementById('navMenu');
+                    if (!menu) return;
+                    const button = document.createElement('button');
+                    button.id = 'buyNowPushButton';
+                    button.type = 'button';
+                    button.className = 'menu-item push-menu-item';
+                    button.textContent = message;
+                    button.title = explanation;
+                    button.addEventListener('click', function() {{
+                        alert(explanation);
+                    }});
+                    menu.appendChild(button);
+                }}
+
+                if (isIOS && !isStandalone) {{
+                    mountPushPrerequisiteButton(
+                        'Instalează pentru alerte BUY',
+                        'Pentru notificări pe iPhone: apasă Partajare, '
+                        + 'alege „Adaugă la ecranul principal”, apoi deschide '
+                        + 'dashboardul instalat și activează alertele BUY.'
+                    );
+                    return;
+                }}
+                if (!supportsWebPush) {{
+                    mountPushPrerequisiteButton(
+                        'Alerte BUY indisponibile',
+                        'Acest browser nu oferă notificări web. Actualizează '
+                        + 'browserul sau deschide dashboardul într-un browser '
+                        + 'compatibil.'
+                    );
                     return;
                 }}
                 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
@@ -221,26 +269,6 @@ def _firebase_web_push_html(config_value, vapid_key, worker_path=None):
                     button.type = 'button';
                     button.className = 'menu-item push-menu-item';
                     menu.appendChild(button);
-                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-                    const isStandalone = (
-                        window.matchMedia('(display-mode: standalone)').matches
-                        || window.navigator.standalone === true
-                    );
-                    if (isIOS && !isStandalone) {{
-                        button.textContent = 'Instalează pentru alerte BUY';
-                        button.title = (
-                            'Pe iPhone: Partajare → Adaugă la ecranul principal, '
-                            + 'apoi deschide pagina instalată.'
-                        );
-                        button.addEventListener('click', function() {{
-                            alert(
-                                'Pentru notificări pe iPhone: apasă Partajare, '
-                                + 'alege „Adaugă la ecranul principal”, deschide '
-                                + 'dashboardul instalat și activează alertele BUY.'
-                            );
-                        }});
-                        return;
-                    }}
 
                     const copyButton = document.createElement('button');
                     copyButton.id = 'copyFirebaseTokenButton';
