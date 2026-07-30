@@ -177,6 +177,8 @@ class TestHtmlIntegrity(unittest.TestCase):
             workflow,
         )
         self.assertIn('Send Firebase BUY push test', workflow)
+        self.assertIn('update_mode:', workflow)
+        self.assertIn('default: \'portfolio\'', workflow)
         self.assertIn('--test-symbol "$PUSH_TEST_SYMBOL"', workflow)
         self.assertIn(
             '--registration-token "$PUSH_TEST_REGISTRATION_TOKEN"',
