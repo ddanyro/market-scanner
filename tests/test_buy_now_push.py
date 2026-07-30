@@ -38,6 +38,36 @@ class BuyNowPushTests(unittest.TestCase):
         self.now = datetime.datetime(
             2026, 7, 29, 12, 30, tzinfo=datetime.timezone.utc
         )
+        self.service_account = {
+            "type": "service_account",
+            "project_id": "market-scanner-test",
+            "private_key": (
+                "-----BEGIN PRIVATE KEY-----\nTEST\n"
+                "-----END PRIVATE KEY-----\n"
+            ),
+            "client_email": (
+                "firebase-adminsdk@market-scanner-test.iam."
+                "gserviceaccount.com"
+            ),
+        }
+        self.registration_token = (
+            "fcm-registration-token:"
+            "abcdefghijklmnopqrstuvwxyz0123456789_-ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        )
+
+    @staticmethod
+    def access_token(_service_account):
+        return "oauth-access-token"
+
+    def delivery_options(self, **overrides):
+        options = {
+            "service_account_json": self.service_account,
+            "registration_tokens": self.registration_token,
+            "access_token_factory": self.access_token,
+            "now": self.now,
+        }
+        options.update(overrides)
+        return options
 
     def test_only_dashboard_buy_now_orders_are_selected(self):
         result = {
@@ -73,12 +103,14 @@ class BuyNowPushTests(unittest.TestCase):
             ["PBR"],
         )
 
-    def test_sends_one_exact_message_per_new_symbol(self):
+    def test_sends_one_exact_firebase_message_per_new_symbol(self):
         calls = []
 
         def post(url, **kwargs):
             calls.append((url, kwargs))
-            return FakeResponse({"id": f"notification-{len(calls)}"})
+            return FakeResponse(
+                {"name": f"projects/test/messages/{len(calls)}"}
+            )
 
         state, diagnostic = buy_now_push.send_new_buy_now_notifications(
             {},
@@ -89,33 +121,38 @@ class BuyNowPushTests(unittest.TestCase):
                 ]
             },
             [candidate("NVDA"), candidate("PBR")],
-            event_token="2026-07-29T12:00:00",
-            app_id="app-id",
-            api_key="api-key",
-            site_url="https://example.test/",
             post=post,
-            now=self.now,
+            **self.delivery_options(),
         )
 
         self.assertEqual(diagnostic["status"], "sent")
+        self.assertEqual(diagnostic["provider"], "firebase")
         self.assertEqual(diagnostic["delivered_symbols"], ["NVDA", "PBR"])
         self.assertEqual(
             state["notified_active_symbols"], ["NVDA", "PBR"]
         )
+        self.assertEqual(state["provider"], "firebase")
         self.assertEqual(len(calls), 2)
         self.assertEqual(
-            calls[0][1]["json"]["contents"]["ro"],
+            calls[0][1]["json"]["message"]["notification"]["body"],
             "Ordin de cumpărare acum: NVDA.",
         )
         self.assertEqual(
-            calls[1][1]["json"]["contents"]["ro"],
-            "Ordin de cumpărare acum: PBR.",
+            calls[0][1]["json"]["message"]["token"],
+            self.registration_token,
         )
         self.assertEqual(
             calls[0][1]["headers"]["Authorization"],
-            "Key api-key",
+            "Bearer oauth-access-token",
         )
-        self.assertNotIn("api-key", str(calls[0][1]["json"]))
+        self.assertIn(
+            "/v1/projects/market-scanner-test/messages:send",
+            calls[0][0],
+        )
+        self.assertNotIn(
+            self.service_account["private_key"],
+            str(calls[0][1]["json"]),
+        )
 
     def test_active_order_is_not_sent_twice(self):
         calls = []
@@ -125,29 +162,19 @@ class BuyNowPushTests(unittest.TestCase):
             ]
         }
         candidates = [candidate("NVDA")]
-        first_state, _ = buy_now_push.send_new_buy_now_notifications(
-            {},
-            result,
-            candidates,
-            event_token="event-1",
-            app_id="app-id",
-            api_key="api-key",
+        options = self.delivery_options(
             post=lambda *args, **kwargs: (
-                calls.append(kwargs) or FakeResponse({"id": "first"})
-            ),
-            now=self.now,
+                calls.append(kwargs)
+                or FakeResponse({"name": "projects/test/messages/first"})
+            )
         )
-        second_state, diagnostic = buy_now_push.send_new_buy_now_notifications(
-            first_state,
-            result,
-            candidates,
-            event_token="event-1",
-            app_id="app-id",
-            api_key="api-key",
-            post=lambda *args, **kwargs: (
-                calls.append(kwargs) or FakeResponse({"id": "duplicate"})
-            ),
-            now=self.now,
+        first_state, _ = buy_now_push.send_new_buy_now_notifications(
+            {}, result, candidates, **options
+        )
+        second_state, diagnostic = (
+            buy_now_push.send_new_buy_now_notifications(
+                first_state, result, candidates, **options
+            )
         )
 
         self.assertEqual(len(calls), 1)
@@ -156,7 +183,8 @@ class BuyNowPushTests(unittest.TestCase):
 
     def test_symbol_can_notify_again_after_leaving_buy_now(self):
         active_state = {
-            "version": 1,
+            "version": 2,
+            "provider": "firebase",
             "current_symbols": ["NVDA"],
             "notified_active_symbols": ["NVDA"],
         }
@@ -164,9 +192,7 @@ class BuyNowPushTests(unittest.TestCase):
             active_state,
             {"buy_recommendations": []},
             [candidate("NVDA")],
-            app_id="app-id",
-            api_key="api-key",
-            now=self.now,
+            **self.delivery_options(),
         )
         calls = []
         _, diagnostic = buy_now_push.send_new_buy_now_notifications(
@@ -177,17 +203,43 @@ class BuyNowPushTests(unittest.TestCase):
                 ]
             },
             [candidate("NVDA")],
-            event_token="event-2",
-            app_id="app-id",
-            api_key="api-key",
             post=lambda *args, **kwargs: (
-                calls.append(kwargs) or FakeResponse({"id": "second"})
+                calls.append(kwargs)
+                or FakeResponse({"name": "projects/test/messages/second"})
             ),
-            now=self.now,
+            **self.delivery_options(),
         )
 
         self.assertEqual(len(calls), 1)
         self.assertEqual(diagnostic["delivered_symbols"], ["NVDA"])
+
+    def test_provider_migration_realerts_current_buy_once(self):
+        calls = []
+        previous_onesignal_state = {
+            "version": 1,
+            "current_symbols": ["NVDA"],
+            "notified_active_symbols": ["NVDA"],
+        }
+        next_state, diagnostic = (
+            buy_now_push.send_new_buy_now_notifications(
+                previous_onesignal_state,
+                {
+                    "buy_recommendations": [
+                        recommendation("NVDA", "Candidat valid"),
+                    ]
+                },
+                [candidate("NVDA")],
+                post=lambda *args, **kwargs: (
+                    calls.append(kwargs)
+                    or FakeResponse({"name": "projects/test/messages/nvda"})
+                ),
+                **self.delivery_options(),
+            )
+        )
+
+        self.assertEqual(diagnostic["delivered_symbols"], ["NVDA"])
+        self.assertEqual(next_state["provider"], "firebase")
+        self.assertEqual(len(calls), 1)
 
     def test_failed_or_unconfigured_delivery_stays_pending(self):
         result = {
@@ -201,8 +253,8 @@ class BuyNowPushTests(unittest.TestCase):
                 {},
                 result,
                 candidates,
-                app_id="",
-                api_key="",
+                service_account_json="",
+                registration_tokens="",
                 now=self.now,
             )
         )
@@ -210,12 +262,10 @@ class BuyNowPushTests(unittest.TestCase):
             {},
             result,
             candidates,
-            app_id="app-id",
-            api_key="api-key",
             post=lambda *args, **kwargs: FakeResponse(
                 error=RuntimeError("network down")
             ),
-            now=self.now,
+            **self.delivery_options(),
         )
 
         self.assertEqual(missing["status"], "configuration_missing")
@@ -223,31 +273,18 @@ class BuyNowPushTests(unittest.TestCase):
         self.assertEqual(failed["status"], "failed")
         self.assertEqual(failed_state["notified_active_symbols"], [])
 
-    def test_empty_onesignal_audience_reports_provider_details(self):
-        _, diagnostic = buy_now_push.send_new_buy_now_notifications(
-            {},
-            {
-                "buy_recommendations": [
-                    recommendation("WST", "Candidat valid"),
-                ]
-            },
-            [candidate("WST")],
-            app_id="app-id",
-            api_key="api-key",
-            post=lambda *args, **kwargs: FakeResponse({
-                "errors": ["All included players are not subscribed"],
-            }),
+    def test_invalid_service_account_is_not_used(self):
+        diagnostic = buy_now_push.send_test_notification(
+            "test",
+            registration_token=self.registration_token,
+            service_account_json='{"project_id": "missing-key"}',
             now=self.now,
         )
 
-        self.assertEqual(diagnostic["status"], "failed")
-        self.assertIn(
-            "All included players are not subscribed",
-            diagnostic["errors"]["WST"],
-        )
+        self.assertEqual(diagnostic["status"], "configuration_missing")
+        self.assertEqual(diagnostic["provider"], "firebase")
 
     def test_cached_retry_delivers_pending_symbols_and_persists_state(self):
-        calls = []
         cached_state = {
             "last_portfolio_ai_analysis": {
                 "generated_at": "2026-07-30T17:00:00+03:00",
@@ -259,7 +296,8 @@ class BuyNowPushTests(unittest.TestCase):
                 "buy_candidates": [candidate("WST")],
             },
             "buy_now_push_state": {
-                "version": 1,
+                "version": 2,
+                "provider": "firebase",
                 "current_symbols": ["WST"],
                 "notified_active_symbols": [],
             },
@@ -271,158 +309,85 @@ class BuyNowPushTests(unittest.TestCase):
             )
             with open(state_path, "w", encoding="utf-8") as handle:
                 json.dump(cached_state, handle)
-            diagnostic = (
-                buy_now_push.retry_cached_buy_now_notifications(
-                    state_path,
-                    app_id="app-id",
-                    api_key="api-key",
-                    post=lambda *args, **kwargs: (
-                        calls.append(kwargs)
-                        or FakeResponse({"id": "notification-wst"})
-                    ),
-                    now=self.now,
-                )
+            diagnostic = buy_now_push.retry_cached_buy_now_notifications(
+                state_path,
+                post=lambda *args, **kwargs: FakeResponse(
+                    {"name": "projects/test/messages/wst"}
+                ),
+                **self.delivery_options(),
             )
             with open(state_path, "r", encoding="utf-8") as handle:
                 persisted = json.load(handle)
 
         self.assertEqual(diagnostic["status"], "sent")
         self.assertEqual(diagnostic["delivered_symbols"], ["WST"])
-        self.assertEqual(len(calls), 1)
         self.assertEqual(
             persisted["buy_now_push_state"]["notified_active_symbols"],
             ["WST"],
         )
 
-    def test_manual_push_test_does_not_depend_on_cached_orders(self):
+    def test_manual_push_test_targets_fcm_registration_token(self):
         calls = []
         diagnostic = buy_now_push.send_test_notification(
             "test",
-            app_id="app-id",
-            api_key="api-key",
+            registration_token=self.registration_token,
+            service_account_json=self.service_account,
             site_url="https://example.test/",
             post=lambda *args, **kwargs: (
                 calls.append(kwargs)
-                or FakeResponse({"id": "notification-test"})
+                or FakeResponse({"name": "projects/test/messages/manual"})
             ),
+            access_token_factory=self.access_token,
             now=self.now,
         )
 
         self.assertEqual(diagnostic["status"], "sent")
         self.assertEqual(
-            diagnostic["notification_id"],
-            "notification-test",
+            diagnostic["message_ids"],
+            ["projects/test/messages/manual"],
         )
         self.assertEqual(len(calls), 1)
         self.assertEqual(
-            calls[0]["json"]["contents"]["ro"],
+            calls[0]["json"]["message"]["notification"]["body"],
             "Ordin de cumpărare acum: TEST.",
         )
-
-    def test_manual_push_can_target_one_subscription_directly(self):
-        calls = []
-        subscription_id = "12345678-1234-4234-8234-123456789abc"
-        diagnostic = buy_now_push.send_test_notification(
-            "test",
-            subscription_id=subscription_id,
-            app_id="app-id",
-            api_key="api-key",
-            post=lambda *args, **kwargs: (
-                calls.append(kwargs)
-                or FakeResponse({"id": "notification-direct"})
-            ),
-            now=self.now,
-        )
-
-        self.assertEqual(diagnostic["status"], "sent")
         self.assertEqual(
-            calls[0]["json"]["include_subscription_ids"],
-            [subscription_id],
+            calls[0]["json"]["message"]["webpush"]["fcm_options"]["link"],
+            "https://example.test/",
         )
-        self.assertNotIn("included_segments", calls[0]["json"])
 
-    def test_manual_push_reports_effective_delivery(self):
-        get_calls = []
+    def test_multiple_firebase_tokens_receive_same_alert(self):
+        calls = []
+        second_token = self.registration_token + "-second"
         diagnostic = buy_now_push.send_test_notification(
             "test",
-            subscription_id="12345678-1234-4234-8234-123456789abc",
-            app_id="app-id",
-            api_key="api-key",
-            post=lambda *args, **kwargs: FakeResponse(
-                {"id": "notification-direct"}
-            ),
-            get=lambda *args, **kwargs: (
-                get_calls.append((args, kwargs))
+            registration_token=[
+                self.registration_token,
+                second_token,
+            ],
+            service_account_json=self.service_account,
+            post=lambda *args, **kwargs: (
+                calls.append(kwargs["json"]["message"]["token"])
                 or FakeResponse(
-                    {
-                        "successful": 1,
-                        "received": 1,
-                        "failed": 0,
-                        "errored": 0,
-                        "remaining": 0,
-                    }
+                    {"name": f"projects/test/messages/{len(calls)}"}
                 )
             ),
-            verify_delivery=True,
-            sleep=lambda _seconds: None,
+            access_token_factory=self.access_token,
             now=self.now,
         )
 
         self.assertEqual(diagnostic["status"], "sent")
-        self.assertEqual(diagnostic["delivery"]["successful"], 1)
-        self.assertEqual(diagnostic["delivery"]["received"], 1)
-        self.assertEqual(len(get_calls), 1)
+        self.assertEqual(diagnostic["target_count"], 2)
         self.assertEqual(
-            get_calls[0][1]["params"],
-            {"app_id": "app-id"},
+            calls,
+            [self.registration_token, second_token],
         )
 
-    def test_manual_push_marks_zero_recipient_delivery(self):
-        diagnostic = buy_now_push.send_test_notification(
-            "test",
-            subscription_id="12345678-1234-4234-8234-123456789abc",
-            app_id="app-id",
-            api_key="api-key",
-            post=lambda *args, **kwargs: FakeResponse(
-                {"id": "notification-direct"}
-            ),
-            get=lambda *args, **kwargs: FakeResponse(
-                {
-                    "successful": 0,
-                    "received": 0,
-                    "failed": 0,
-                    "errored": 0,
-                    "remaining": 0,
-                }
-            ),
-            verify_delivery=True,
-            sleep=lambda _seconds: None,
-            now=self.now,
-        )
-
-        self.assertEqual(diagnostic["status"], "not_delivered")
-        self.assertEqual(diagnostic["delivery"]["successful"], 0)
-
-    def test_manual_push_rejects_invalid_subscription_id(self):
-        diagnostic = buy_now_push.send_test_notification(
-            "test",
-            subscription_id="not-a-uuid",
-            app_id="app-id",
-            api_key="api-key",
-            now=self.now,
-        )
-
-        self.assertEqual(
-            diagnostic["status"],
-            "invalid_subscription_id",
-        )
-
-    def test_real_buy_alert_can_target_configured_subscription(self):
+    def test_real_buy_alert_uses_configured_firebase_token(self):
         calls = []
-        subscription_id = "12345678-1234-4234-8234-123456789abc"
         with mock.patch.dict(
             os.environ,
-            {"ONESIGNAL_SUBSCRIPTION_IDS": subscription_id},
+            {"FIREBASE_REGISTRATION_TOKENS": self.registration_token},
         ):
             _, diagnostic = buy_now_push.send_new_buy_now_notifications(
                 {},
@@ -432,21 +397,20 @@ class BuyNowPushTests(unittest.TestCase):
                     ],
                 },
                 [candidate("NVDA")],
-                app_id="app-id",
-                api_key="api-key",
+                service_account_json=self.service_account,
+                access_token_factory=self.access_token,
                 post=lambda *args, **kwargs: (
                     calls.append(kwargs)
-                    or FakeResponse({"id": "notification-direct"})
+                    or FakeResponse({"name": "projects/test/messages/nvda"})
                 ),
                 now=self.now,
             )
 
         self.assertEqual(diagnostic["status"], "sent")
         self.assertEqual(
-            calls[0]["json"]["include_subscription_ids"],
-            [subscription_id],
+            calls[0]["json"]["message"]["token"],
+            self.registration_token,
         )
-        self.assertNotIn("included_segments", calls[0]["json"])
 
 
 if __name__ == "__main__":

@@ -135,7 +135,7 @@ class TestHtmlIntegrity(unittest.TestCase):
                     content,
                 )
 
-    def test_buy_now_web_push_is_configured_without_exposing_api_key(self):
+    def test_buy_now_web_push_uses_firebase_without_server_secret(self):
         root = os.path.join(os.path.dirname(__file__), '..')
         with open(
             os.path.join(root, 'market_scanner.py'),
@@ -151,7 +151,7 @@ class TestHtmlIntegrity(unittest.TestCase):
             workflow = f.read()
         with open(
             os.path.join(
-                root, 'push', 'onesignal', 'OneSignalSDKWorker.js'
+                root, 'push', 'firebase', 'firebase-messaging-sw.js'
             ),
             'r',
             encoding='utf-8',
@@ -159,50 +159,38 @@ class TestHtmlIntegrity(unittest.TestCase):
             worker = f.read()
 
         self.assertIn('send_new_buy_now_notifications(', generator)
-        self.assertIn('ONESIGNAL_APP_ID', generator)
-        self.assertIn('OneSignalSDK.page.js', generator)
+        self.assertIn('FIREBASE_WEB_CONFIG', generator)
+        self.assertIn('firebase-messaging-compat.js', generator)
         self.assertIn('Activează alertele BUY', generator)
         self.assertIn('Instalează pentru alerte BUY', generator)
-        self.assertIn('repairBuyNowPushSubscription', generator)
-        self.assertIn(
-            'marketScannerOneSignalSubscriptionRepair:',
-            generator,
-        )
-        self.assertIn('validBuyNowPushSubscriptionId', generator)
-        self.assertIn('waitForBuyNowPushSubscription', generator)
-        self.assertIn('Alerte BUY – reconectare', generator)
-        self.assertIn("':v2'", generator)
-        self.assertIn(
-            'await OneSignal.User.PushSubscription.optOut()',
-            generator,
-        )
-        self.assertIn(
-            'await OneSignal.User.PushSubscription.optIn()',
-            generator,
-        )
-        self.assertIn('OneSignal.User.PushSubscription.id', generator)
+        self.assertIn('messaging.getToken', generator)
+        self.assertIn('messaging.deleteToken', generator)
+        self.assertIn('Copiază tokenul Firebase', generator)
         self.assertIn('manifest.webmanifest', generator)
-        self.assertIn('secrets.ONESIGNAL_APP_ID', workflow)
-        self.assertIn('secrets.ONESIGNAL_API_KEY', workflow)
-        self.assertIn('Retry pending BUY alerts', workflow)
+        self.assertIn('secrets.FIREBASE_SERVICE_ACCOUNT_JSON', workflow)
+        self.assertIn('secrets.FIREBASE_REGISTRATION_TOKENS', workflow)
+        self.assertIn('secrets.FIREBASE_WEB_CONFIG', workflow)
+        self.assertIn('secrets.FIREBASE_VAPID_KEY', workflow)
+        self.assertIn('Retry pending Firebase BUY alerts', workflow)
         self.assertIn(
             'python buy_now_push.py --retry-state dashboard_state.json',
             workflow,
         )
-        self.assertIn('Send BUY push test', workflow)
+        self.assertIn('Send Firebase BUY push test', workflow)
         self.assertIn('--test-symbol "$PUSH_TEST_SYMBOL"', workflow)
         self.assertIn(
-            '--subscription-id "$PUSH_TEST_SUBSCRIPTION_ID"',
+            '--registration-token "$PUSH_TEST_REGISTRATION_TOKEN"',
             workflow,
         )
-        self.assertIn('OneSignalSDK.sw.js', worker)
+        self.assertNotIn('private_key', worker)
         with open(
             os.path.join(root, 'index.html'),
             'r',
             encoding='utf-8',
         ) as f:
             generated_dashboard = f.read()
-        self.assertNotIn('ONESIGNAL_API_KEY', generated_dashboard)
+        self.assertNotIn('FIREBASE_SERVICE_ACCOUNT_JSON', generated_dashboard)
+        self.assertNotIn('private_key', generated_dashboard)
 
     def test_portfolio_ai_analysis_is_in_encrypted_payload(self):
         """Analiza nouă trebuie să rămână în spatele PIN-ului portofoliului."""

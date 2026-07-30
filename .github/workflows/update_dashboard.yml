@@ -13,8 +13,8 @@ on:
         required: false
         default: ''
         type: string
-      push_test_subscription_id:
-        description: 'Subscription ID OneSignal pentru țintire directă'
+      push_test_registration_token:
+        description: 'Token FCM pentru țintire directă'
         required: false
         default: ''
         type: string
@@ -38,28 +38,25 @@ jobs:
       run: |
         pip install pandas requests yfinance ib_insync beautifulsoup4 lxml pycryptodome -r requirements.txt
 
-    - name: Send BUY push test
+    - name: Send Firebase BUY push test
       if: ${{ github.event_name == 'workflow_dispatch' && inputs.push_test_symbol != '' }}
       env:
-        ONESIGNAL_APP_ID: ${{ secrets.ONESIGNAL_APP_ID }}
-        ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
-        ONESIGNAL_SUBSCRIPTION_IDS: ${{ secrets.ONESIGNAL_SUBSCRIPTION_IDS }}
-        ONESIGNAL_SITE_URL: https://ddanyro.github.io/market-scanner/
+        FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        FIREBASE_REGISTRATION_TOKENS: ${{ secrets.FIREBASE_REGISTRATION_TOKENS }}
+        FIREBASE_SITE_URL: https://ddanyro.github.io/market-scanner/
         PUSH_TEST_SYMBOL: ${{ inputs.push_test_symbol }}
-        PUSH_TEST_SUBSCRIPTION_ID: ${{ inputs.push_test_subscription_id || secrets.ONESIGNAL_SUBSCRIPTION_IDS }}
+        PUSH_TEST_REGISTRATION_TOKEN: ${{ inputs.push_test_registration_token || secrets.FIREBASE_REGISTRATION_TOKENS }}
       run: |
         python buy_now_push.py \
           --test-symbol "$PUSH_TEST_SYMBOL" \
-          --subscription-id "$PUSH_TEST_SUBSCRIPTION_ID" \
-          --verify-delivery
+          --registration-token "$PUSH_TEST_REGISTRATION_TOKEN"
 
-    - name: Retry pending BUY alerts
+    - name: Retry pending Firebase BUY alerts
       if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
       env:
-        ONESIGNAL_APP_ID: ${{ secrets.ONESIGNAL_APP_ID }}
-        ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
-        ONESIGNAL_SUBSCRIPTION_IDS: ${{ secrets.ONESIGNAL_SUBSCRIPTION_IDS }}
-        ONESIGNAL_SITE_URL: https://ddanyro.github.io/market-scanner/
+        FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        FIREBASE_REGISTRATION_TOKENS: ${{ secrets.FIREBASE_REGISTRATION_TOKENS }}
+        FIREBASE_SITE_URL: https://ddanyro.github.io/market-scanner/
       run: python buy_now_push.py --retry-state dashboard_state.json
 
     - name: Run Market Scanner
@@ -72,10 +69,11 @@ jobs:
         IBKR_QUERY_ID: ${{ secrets.IBKR_QUERY_ID }}
         PORTFOLIO_PASSWORD: ${{ secrets.PORTFOLIO_PASSWORD }}
         TWS_ACCOUNT_PASSWORD: ${{ secrets.TWS_ACCOUNT_PASSWORD }}
-        ONESIGNAL_APP_ID: ${{ secrets.ONESIGNAL_APP_ID }}
-        ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
-        ONESIGNAL_SUBSCRIPTION_IDS: ${{ secrets.ONESIGNAL_SUBSCRIPTION_IDS }}
-        ONESIGNAL_SITE_URL: https://ddanyro.github.io/market-scanner/
+        FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        FIREBASE_REGISTRATION_TOKENS: ${{ secrets.FIREBASE_REGISTRATION_TOKENS }}
+        FIREBASE_WEB_CONFIG: ${{ secrets.FIREBASE_WEB_CONFIG }}
+        FIREBASE_VAPID_KEY: ${{ secrets.FIREBASE_VAPID_KEY }}
+        FIREBASE_SITE_URL: https://ddanyro.github.io/market-scanner/
       run: |
         MODE="portfolio"
         if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event.schedule }}" = "0 */5 * * *" ]; then
@@ -90,6 +88,6 @@ jobs:
       run: |
         git config --global user.name 'GitHub Action'
         git config --global user.email 'action@github.com'
-        git add index.html dashboard_state.json portfolio.csv watchlist.csv sp500_tickers.json tws_account.enc.json tws_account_risk.json
+        git add index.html dashboard_state.json portfolio.csv watchlist.csv sp500_tickers.json tws_account.enc.json tws_account_risk.json push/firebase/firebase-messaging-sw.js
         git commit -m "Auto-update Dashboard [skip ci]" || echo "No changes to commit"
         git push origin HEAD:main || (git fetch origin main && git rebase -X theirs origin/main && git push origin HEAD:main)

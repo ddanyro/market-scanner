@@ -86,19 +86,64 @@ TWS_INSTRUMENTS_FILE = 'tws_instruments.json'
 TWS_INSTRUMENT_TTL_HOURS = 96
 
 
-def _onesignal_web_push_html(app_id):
-    """Inițializează abonarea web push numai când App ID-ul este configurat."""
-    app_id = str(app_id or '').strip()
-    if not re.fullmatch(
-        r'[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}',
-        app_id,
-    ):
+def _firebase_web_config(value):
+    """Validează configurația publică a aplicației web Firebase."""
+    try:
+        config = value if isinstance(value, dict) else json.loads(value or '')
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return {}
+    if not isinstance(config, dict):
+        return {}
+    allowed_keys = {
+        'apiKey',
+        'authDomain',
+        'projectId',
+        'storageBucket',
+        'messagingSenderId',
+        'appId',
+        'measurementId',
+    }
+    config = {
+        key: str(config.get(key) or '').strip()
+        for key in allowed_keys
+        if config.get(key)
+    }
+    required = {'apiKey', 'projectId', 'messagingSenderId', 'appId'}
+    return config if required.issubset(config) else {}
+
+
+def _write_firebase_service_worker(config, worker_path=None):
+    """Scrie workerul FCM fără a include credențialele serverului."""
+    worker_path = worker_path or os.path.join(
+        'push', 'firebase', 'firebase-messaging-sw.js'
+    )
+    os.makedirs(os.path.dirname(worker_path), exist_ok=True)
+    worker = f"""\
+importScripts("https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js");
+
+firebase.initializeApp({json.dumps(config, ensure_ascii=False)});
+firebase.messaging();
+"""
+    with open(worker_path, 'w', encoding='utf-8') as handle:
+        handle.write(worker)
+
+
+def _firebase_web_push_html(config_value, vapid_key, worker_path=None):
+    """Inițializează abonarea web push prin Firebase Cloud Messaging."""
+    config = _firebase_web_config(config_value)
+    vapid_key = str(vapid_key or '').strip()
+    if not config or len(vapid_key) < 40:
         return ''
-    app_id_json = json.dumps(app_id)
+    _write_firebase_service_worker(config, worker_path=worker_path)
+    config_json = json.dumps(config, ensure_ascii=False)
+    vapid_key_json = json.dumps(vapid_key)
+    project_id_json = json.dumps(config['projectId'])
     return f"""
-        <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+        <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js"></script>
         <style>
-            #buyNowPushButton {{
+            #buyNowPushButton, #copyFirebaseTokenButton {{
                 width: 100%;
                 border: 0;
                 border-bottom: 1px solid var(--border-light, #dfe3ea);
@@ -116,92 +161,56 @@ def _onesignal_web_push_html(app_id):
                 cursor: wait;
                 opacity: .65;
             }}
+            #copyFirebaseTokenButton {{
+                color: #4f46e5;
+            }}
         </style>
         <script>
-            window.OneSignalDeferred = window.OneSignalDeferred || [];
-            window.OneSignalDeferred.push(async function(OneSignal) {{
+            window.addEventListener('load', async function() {{
+                const firebaseConfig = {config_json};
+                const firebaseVapidKey = {vapid_key_json};
+                const firebaseProjectId = {project_id_json};
                 const workerScope = new URL(
-                    'push/onesignal/', document.baseURI
+                    'push/firebase/', document.baseURI
                 ).pathname;
-                await OneSignal.init({{
-                    appId: {app_id_json},
-                    serviceWorkerPath: 'push/onesignal/OneSignalSDKWorker.js',
-                    serviceWorkerParam: {{scope: workerScope}},
-                    autoResubscribe: true,
-                    welcomeNotification: {{disable: true}}
-                }});
-
-                function validBuyNowPushSubscriptionId() {{
-                    const subscriptionId = String(
-                        OneSignal.User.PushSubscription.id || ''
-                    ).trim();
-                    return (
-                        /^[0-9a-f]{{8}}-[0-9a-f]{{4}}-[1-5][0-9a-f]{{3}}-[89ab][0-9a-f]{{3}}-[0-9a-f]{{12}}$/i
-                    ).test(subscriptionId);
+                const workerUrl = new URL(
+                    'push/firebase/firebase-messaging-sw.js',
+                    document.baseURI
+                ).href;
+                if (!('serviceWorker' in navigator) || !('PushManager' in window)) {{
+                    return;
                 }}
+                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                const messaging = firebase.messaging();
+                const registration = await navigator.serviceWorker.register(
+                    workerUrl, {{scope: workerScope}}
+                );
+                const tokenStorageKey = (
+                    'marketScannerFirebaseToken:' + firebaseProjectId
+                );
+                let currentToken = '';
 
-                async function waitForBuyNowPushSubscription() {{
-                    const deadline = Date.now() + 8000;
-                    while (Date.now() < deadline) {{
-                        if (
-                            OneSignal.User.PushSubscription.optedIn
-                            && validBuyNowPushSubscriptionId()
-                        ) {{
-                            return true;
-                        }}
-                        await new Promise(function(resolve) {{
-                            window.setTimeout(resolve, 250);
-                        }});
-                    }}
-                    return false;
-                }}
-
-                async function repairBuyNowPushSubscription() {{
-                    const permissionGranted = (
-                        OneSignal.Notifications.permission === true
-                        || (
-                            typeof Notification !== 'undefined'
-                            && Notification.permission === 'granted'
-                        )
-                    );
-                    if (!permissionGranted) return;
-                    const repairKey = (
-                        'marketScannerOneSignalSubscriptionRepair:'
-                        + {app_id_json}
-                        + ':v2'
-                    );
+                async function readFirebaseToken(requestIfMissing) {{
                     if (
-                        OneSignal.User.PushSubscription.optedIn
-                        && validBuyNowPushSubscriptionId()
+                        typeof Notification === 'undefined'
+                        || Notification.permission !== 'granted'
                     ) {{
-                        localStorage.setItem(
-                            repairKey,
-                            new Date().toISOString()
-                        );
-                        return;
+                        currentToken = '';
+                        return '';
                     }}
-                    if (localStorage.getItem(repairKey)) return;
-                    try {{
-                        // Reînregistrează o singură dată dispozitivele care au
-                        // deja permisiunea, dar au rămas inactive în OneSignal.
-                        if (OneSignal.User.PushSubscription.optedIn) {{
-                            await OneSignal.User.PushSubscription.optOut();
-                        }}
-                        await OneSignal.User.PushSubscription.optIn();
-                        if (await waitForBuyNowPushSubscription()) {{
-                            localStorage.setItem(
-                                repairKey,
-                                new Date().toISOString()
-                            );
-                        }}
-                    }} catch (error) {{
-                        console.warn(
-                            'Reînregistrarea alertelor BUY a eșuat.',
-                            error
-                        );
+                    if (!requestIfMissing) {{
+                        currentToken = localStorage.getItem(tokenStorageKey) || '';
+                        if (currentToken) return currentToken;
                     }}
+                    currentToken = await messaging.getToken({{
+                        vapidKey: firebaseVapidKey,
+                        serviceWorkerRegistration: registration
+                    }}) || '';
+                    if (currentToken) {{
+                        localStorage.setItem(tokenStorageKey, currentToken);
+                    }}
+                    return currentToken;
                 }}
-                await repairBuyNowPushSubscription();
 
                 function mountBuyNowPushButton() {{
                     if (document.getElementById('buyNowPushButton')) return;
@@ -232,88 +241,87 @@ def _onesignal_web_push_html(app_id):
                         }});
                         return;
                     }}
-                    if (!OneSignal.Notifications.isPushSupported()) {{
-                        button.remove();
-                        return;
-                    }}
-                    function refreshPushButton() {{
-                        const permissionGranted = (
-                            OneSignal.Notifications.permission === true
-                            || (
-                                typeof Notification !== 'undefined'
-                                && Notification.permission === 'granted'
-                            )
-                        );
-                        const optedIn = Boolean(
-                            OneSignal.User.PushSubscription.optedIn
-                        );
+
+                    const copyButton = document.createElement('button');
+                    copyButton.id = 'copyFirebaseTokenButton';
+                    copyButton.type = 'button';
+                    copyButton.className = 'menu-item push-menu-item';
+                    copyButton.textContent = 'Copiază tokenul Firebase';
+                    copyButton.hidden = true;
+                    menu.appendChild(copyButton);
+
+                    async function refreshPushButton(requestIfMissing=false) {{
+                        try {{
+                            await readFirebaseToken(requestIfMissing);
+                        }} catch (error) {{
+                            console.warn('FCM nu a putut citi tokenul.', error);
+                            currentToken = '';
+                        }}
                         const active = Boolean(
-                            permissionGranted
-                            && optedIn
-                            && validBuyNowPushSubscriptionId()
-                        );
-                        const subscriptionId = String(
-                            OneSignal.User.PushSubscription.id || ''
+                            Notification.permission === 'granted'
+                            && currentToken
                         );
                         button.dataset.active = String(active);
                         button.dataset.subscriptionReady = String(active);
+                        copyButton.hidden = !active;
                         if (active) {{
                             button.textContent = 'Alerte BUY active';
                             button.title = (
-                                'Abonament OneSignal activ'
-                                + ' · ' + subscriptionId
-                                + '. Apasă pentru a opri alertele.'
-                            );
-                        }} else if (permissionGranted || optedIn) {{
-                            button.textContent = 'Alerte BUY – reconectare';
-                            button.title = (
-                                'Permisiunea există, dar OneSignal nu a '
-                                + 'confirmat un Subscription ID valid. '
-                                + 'Apasă pentru reînregistrare.'
+                                'Abonament Firebase activ. '
+                                + 'Folosește opțiunea de copiere a tokenului '
+                                + 'pentru configurarea GitHub.'
                             );
                         }} else {{
                             button.textContent = 'Activează alertele BUY';
                             button.title = (
-                                'Primești doar ordinele noi Cumpărare acum.'
+                                'Primești prin Google Firebase numai ordinele '
+                                + 'noi Cumpărare acum.'
                             );
                         }}
                     }}
+
+                    copyButton.addEventListener('click', async function() {{
+                        if (!currentToken) return;
+                        await navigator.clipboard.writeText(currentToken);
+                        copyButton.textContent = 'Token Firebase copiat';
+                        window.setTimeout(function() {{
+                            copyButton.textContent = 'Copiază tokenul Firebase';
+                        }}, 1800);
+                    }});
+
                     button.addEventListener('click', async function() {{
                         button.disabled = true;
                         try {{
-                            const active = (
-                                OneSignal.User.PushSubscription.optedIn
-                                && validBuyNowPushSubscriptionId()
-                            );
-                            if (active) {{
-                                await OneSignal.User.PushSubscription.optOut();
+                            if (currentToken) {{
+                                await messaging.deleteToken();
+                                currentToken = '';
+                                localStorage.removeItem(tokenStorageKey);
                             }} else {{
-                                if (
-                                    typeof Notification !== 'undefined'
-                                    && Notification.permission !== 'granted'
-                                ) {{
-                                    await OneSignal.Notifications
+                                if (Notification.permission !== 'granted') {{
+                                    const permission = await Notification
                                         .requestPermission();
+                                    if (permission !== 'granted') return;
                                 }}
-                                if (
-                                    OneSignal.User.PushSubscription.optedIn
-                                ) {{
-                                    await OneSignal.User.PushSubscription
-                                        .optOut();
-                                }}
-                                await OneSignal.User.PushSubscription.optIn();
-                                await waitForBuyNowPushSubscription();
+                                await readFirebaseToken(true);
                             }}
                         }} finally {{
                             button.disabled = false;
-                            refreshPushButton();
+                            await refreshPushButton(false);
                         }}
                     }});
-                    OneSignal.User.PushSubscription.addEventListener(
-                        'change', refreshPushButton
-                    );
-                    refreshPushButton();
+                    refreshPushButton(true);
                 }}
+
+                messaging.onMessage(async function(payload) {{
+                    const notification = payload.notification || {{}};
+                    await registration.showNotification(
+                        notification.title || 'Market Scanner',
+                        {{
+                            body: notification.body || '',
+                            data: {{url: {json.dumps("https://ddanyro.github.io/market-scanner/")}}}
+                        }}
+                    );
+                }});
                 if (document.readyState === 'loading') {{
                     document.addEventListener(
                         'DOMContentLoaded', mountBuyNowPushButton,
@@ -4718,8 +4726,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 password = f.read().strip()
         except: pass
 
-    onesignal_web_push_html = _onesignal_web_push_html(
-        os.environ.get('ONESIGNAL_APP_ID')
+    firebase_web_push_html = _firebase_web_push_html(
+        os.environ.get('FIREBASE_WEB_CONFIG'),
+        os.environ.get('FIREBASE_VAPID_KEY'),
     )
     html_head = f"""
     <!DOCTYPE html>
@@ -4730,7 +4739,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
         <meta name="theme-color" content="#7760F9">
         <title>Market Scanner Dashboard</title>
         <link rel="manifest" href="manifest.webmanifest">
-        {onesignal_web_push_html}
+        {firebase_web_push_html}
         
         <!-- DataTables & jQuery -->
         <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
