@@ -131,6 +131,46 @@ def _onesignal_web_push_html(app_id):
                     welcomeNotification: {{disable: true}}
                 }});
 
+                async function repairBuyNowPushSubscription() {{
+                    const permissionGranted = (
+                        OneSignal.Notifications.permission === true
+                        || (
+                            typeof Notification !== 'undefined'
+                            && Notification.permission === 'granted'
+                        )
+                    );
+                    if (!permissionGranted) return;
+                    const repairKey = (
+                        'marketScannerOneSignalSubscriptionRepair:'
+                        + {app_id_json}
+                        + ':v1'
+                    );
+                    if (localStorage.getItem(repairKey)) return;
+                    try {{
+                        // Reînregistrează o singură dată dispozitivele care au
+                        // deja permisiunea, dar au rămas inactive în OneSignal.
+                        if (OneSignal.User.PushSubscription.optedIn) {{
+                            await OneSignal.User.PushSubscription.optOut();
+                        }}
+                        await OneSignal.User.PushSubscription.optIn();
+                        if (
+                            OneSignal.User.PushSubscription.optedIn
+                            && OneSignal.User.PushSubscription.id
+                        ) {{
+                            localStorage.setItem(
+                                repairKey,
+                                new Date().toISOString()
+                            );
+                        }}
+                    }} catch (error) {{
+                        console.warn(
+                            'Reînregistrarea alertelor BUY a eșuat.',
+                            error
+                        );
+                    }}
+                }}
+                await repairBuyNowPushSubscription();
+
                 function mountBuyNowPushButton() {{
                     if (document.getElementById('buyNowPushButton')) return;
                     const menu = document.getElementById('navMenu');
@@ -168,12 +208,23 @@ def _onesignal_web_push_html(app_id):
                         const active = Boolean(
                             OneSignal.User.PushSubscription.optedIn
                         );
+                        const subscriptionId = String(
+                            OneSignal.User.PushSubscription.id || ''
+                        );
                         button.dataset.active = String(active);
                         button.textContent = active
                             ? 'Alerte BUY active'
                             : 'Activează alertele BUY';
                         button.title = active
-                            ? 'Apasă pentru a opri alertele Cumpărare acum.'
+                            ? (
+                                'Abonament OneSignal activ'
+                                + (
+                                    subscriptionId
+                                    ? ' · ' + subscriptionId
+                                    : ''
+                                )
+                                + '. Apasă pentru a opri alertele.'
+                            )
                             : 'Primești doar ordinele noi Cumpărare acum.';
                     }}
                     button.addEventListener('click', async function() {{

@@ -163,6 +163,20 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('OneSignalSDK.page.js', generator)
         self.assertIn('Activează alertele BUY', generator)
         self.assertIn('Instalează pentru alerte BUY', generator)
+        self.assertIn('repairBuyNowPushSubscription', generator)
+        self.assertIn(
+            'marketScannerOneSignalSubscriptionRepair:',
+            generator,
+        )
+        self.assertIn(
+            'await OneSignal.User.PushSubscription.optOut()',
+            generator,
+        )
+        self.assertIn(
+            'await OneSignal.User.PushSubscription.optIn()',
+            generator,
+        )
+        self.assertIn('OneSignal.User.PushSubscription.id', generator)
         self.assertIn('manifest.webmanifest', generator)
         self.assertIn('secrets.ONESIGNAL_APP_ID', workflow)
         self.assertIn('secrets.ONESIGNAL_API_KEY', workflow)

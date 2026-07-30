@@ -219,6 +219,29 @@ class BuyNowPushTests(unittest.TestCase):
         self.assertEqual(failed["status"], "failed")
         self.assertEqual(failed_state["notified_active_symbols"], [])
 
+    def test_empty_onesignal_audience_reports_provider_details(self):
+        _, diagnostic = buy_now_push.send_new_buy_now_notifications(
+            {},
+            {
+                "buy_recommendations": [
+                    recommendation("WST", "Candidat valid"),
+                ]
+            },
+            [candidate("WST")],
+            app_id="app-id",
+            api_key="api-key",
+            post=lambda *args, **kwargs: FakeResponse({
+                "errors": ["All included players are not subscribed"],
+            }),
+            now=self.now,
+        )
+
+        self.assertEqual(diagnostic["status"], "failed")
+        self.assertIn(
+            "All included players are not subscribed",
+            diagnostic["errors"]["WST"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
