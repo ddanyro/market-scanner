@@ -131,6 +131,31 @@ def _onesignal_web_push_html(app_id):
                     welcomeNotification: {{disable: true}}
                 }});
 
+                function validBuyNowPushSubscriptionId() {{
+                    const subscriptionId = String(
+                        OneSignal.User.PushSubscription.id || ''
+                    ).trim();
+                    return (
+                        /^[0-9a-f]{{8}}-[0-9a-f]{{4}}-[1-5][0-9a-f]{{3}}-[89ab][0-9a-f]{{3}}-[0-9a-f]{{12}}$/i
+                    ).test(subscriptionId);
+                }}
+
+                async function waitForBuyNowPushSubscription() {{
+                    const deadline = Date.now() + 8000;
+                    while (Date.now() < deadline) {{
+                        if (
+                            OneSignal.User.PushSubscription.optedIn
+                            && validBuyNowPushSubscriptionId()
+                        ) {{
+                            return true;
+                        }}
+                        await new Promise(function(resolve) {{
+                            window.setTimeout(resolve, 250);
+                        }});
+                    }}
+                    return false;
+                }}
+
                 async function repairBuyNowPushSubscription() {{
                     const permissionGranted = (
                         OneSignal.Notifications.permission === true
@@ -143,8 +168,18 @@ def _onesignal_web_push_html(app_id):
                     const repairKey = (
                         'marketScannerOneSignalSubscriptionRepair:'
                         + {app_id_json}
-                        + ':v1'
+                        + ':v2'
                     );
+                    if (
+                        OneSignal.User.PushSubscription.optedIn
+                        && validBuyNowPushSubscriptionId()
+                    ) {{
+                        localStorage.setItem(
+                            repairKey,
+                            new Date().toISOString()
+                        );
+                        return;
+                    }}
                     if (localStorage.getItem(repairKey)) return;
                     try {{
                         // Reînregistrează o singură dată dispozitivele care au
@@ -153,10 +188,7 @@ def _onesignal_web_push_html(app_id):
                             await OneSignal.User.PushSubscription.optOut();
                         }}
                         await OneSignal.User.PushSubscription.optIn();
-                        if (
-                            OneSignal.User.PushSubscription.optedIn
-                            && OneSignal.User.PushSubscription.id
-                        ) {{
+                        if (await waitForBuyNowPushSubscription()) {{
                             localStorage.setItem(
                                 repairKey,
                                 new Date().toISOString()
@@ -205,35 +237,72 @@ def _onesignal_web_push_html(app_id):
                         return;
                     }}
                     function refreshPushButton() {{
-                        const active = Boolean(
+                        const permissionGranted = (
+                            OneSignal.Notifications.permission === true
+                            || (
+                                typeof Notification !== 'undefined'
+                                && Notification.permission === 'granted'
+                            )
+                        );
+                        const optedIn = Boolean(
                             OneSignal.User.PushSubscription.optedIn
+                        );
+                        const active = Boolean(
+                            permissionGranted
+                            && optedIn
+                            && validBuyNowPushSubscriptionId()
                         );
                         const subscriptionId = String(
                             OneSignal.User.PushSubscription.id || ''
                         );
                         button.dataset.active = String(active);
-                        button.textContent = active
-                            ? 'Alerte BUY active'
-                            : 'Activează alertele BUY';
-                        button.title = active
-                            ? (
+                        button.dataset.subscriptionReady = String(active);
+                        if (active) {{
+                            button.textContent = 'Alerte BUY active';
+                            button.title = (
                                 'Abonament OneSignal activ'
-                                + (
-                                    subscriptionId
-                                    ? ' · ' + subscriptionId
-                                    : ''
-                                )
+                                + ' · ' + subscriptionId
                                 + '. Apasă pentru a opri alertele.'
-                            )
-                            : 'Primești doar ordinele noi Cumpărare acum.';
+                            );
+                        }} else if (permissionGranted || optedIn) {{
+                            button.textContent = 'Alerte BUY – reconectare';
+                            button.title = (
+                                'Permisiunea există, dar OneSignal nu a '
+                                + 'confirmat un Subscription ID valid. '
+                                + 'Apasă pentru reînregistrare.'
+                            );
+                        }} else {{
+                            button.textContent = 'Activează alertele BUY';
+                            button.title = (
+                                'Primești doar ordinele noi Cumpărare acum.'
+                            );
+                        }}
                     }}
                     button.addEventListener('click', async function() {{
                         button.disabled = true;
                         try {{
-                            if (OneSignal.User.PushSubscription.optedIn) {{
+                            const active = (
+                                OneSignal.User.PushSubscription.optedIn
+                                && validBuyNowPushSubscriptionId()
+                            );
+                            if (active) {{
                                 await OneSignal.User.PushSubscription.optOut();
                             }} else {{
+                                if (
+                                    typeof Notification !== 'undefined'
+                                    && Notification.permission !== 'granted'
+                                ) {{
+                                    await OneSignal.Notifications
+                                        .requestPermission();
+                                }}
+                                if (
+                                    OneSignal.User.PushSubscription.optedIn
+                                ) {{
+                                    await OneSignal.User.PushSubscription
+                                        .optOut();
+                                }}
                                 await OneSignal.User.PushSubscription.optIn();
+                                await waitForBuyNowPushSubscription();
                             }}
                         }} finally {{
                             button.disabled = false;
