@@ -92,8 +92,15 @@ def _send_onesignal_notification(
     response_payload = response.json()
     notification_id = response_payload.get("id")
     if not notification_id:
+        response_errors = response_payload.get("errors")
+        error_detail = (
+            f" Detalii OneSignal: {str(response_errors)[:300]}."
+            if response_errors
+            else ""
+        )
         raise RuntimeError(
             "OneSignal nu a găsit niciun abonament web push activ."
+            + error_detail
         )
     return str(notification_id)
 
