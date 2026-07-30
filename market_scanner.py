@@ -4800,7 +4800,6 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 const portfolioAi = document.getElementById('portfolio-ai-container');
                 if (portfolioAi) {
                     portfolioAi.innerHTML = data.portfolio_ai_html || '';
-                    window.requestAnimationFrame(initBrokerTotalsMiniChart);
                 }
                 const buyRecommendations = document.getElementById('buy-recommendations-container');
                 if (buyRecommendations) {
@@ -4897,41 +4896,6 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     console.error('Istoricul agregat al brokerilor este invalid.', error);
                     return [];
                 }
-            }
-
-            function initBrokerTotalsMiniChart() {
-                const canvas = document.getElementById('brokerTotalsMiniChart');
-                if (!canvas || typeof Chart === 'undefined') return;
-                const history = parseBrokerTotalsHistory(canvas);
-                if (!history.length) return;
-                new Chart(canvas, {
-                    type: 'line',
-                    data: {
-                        labels: history.map(item => item.timestamp),
-                        datasets: [{
-                            data: history.map(item => Number(item.net_liquidation)),
-                            borderColor: '#7760f9',
-                            backgroundColor: 'rgba(119,96,249,.10)',
-                            borderWidth: 2,
-                            fill: true,
-                            pointRadius: history.length === 1 ? 3 : 0,
-                            pointHoverRadius: 4,
-                            tension: .2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: { enabled: true }
-                        },
-                        scales: {
-                            x: { display: false },
-                            y: { display: false }
-                        }
-                    }
-                });
             }
 
             function openBrokerTotalsDetail(element) {

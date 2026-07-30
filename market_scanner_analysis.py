@@ -2152,20 +2152,21 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
                 "<div style='display:flex;justify-content:space-between;gap:18px;'>"
                 "<span>Cash total</span>"
                 f"<b>{combined_totals['total_cash']:,.2f} {currency}</b></div></div>"
-                "<canvas id='brokerTotalsMiniChart' role='button' tabindex='0' "
+                "<button id='brokerTotalsHistoryButton' type='button' "
                 "aria-label='Deschide istoricul valorii totale și al cash-ului' "
                 "title='Deschide istoricul valorii totale și al cash-ului' "
                 f"data-history='{history_json}' data-currency='{currency}' "
-                "style='display:block;width:100%;height:72px;margin-top:10px;cursor:pointer;' "
-                "onclick='openBrokerTotalsDetail(this)' "
-                "onkeydown=\"if(event.key==='Enter'||event.key===' '){"
-                "event.preventDefault();openBrokerTotalsDetail(this);}\"></canvas></div>"
+                "style='display:inline-flex;align-items:center;justify-content:center;"
+                "margin-top:14px;padding:8px 16px;border:1px solid var(--primary-purple);"
+                "border-radius:8px;background:var(--primary-purple);color:#fff;"
+                "font:inherit;font-weight:700;cursor:pointer;' "
+                "onclick='openBrokerTotalsDetail(this)'>Evoluție</button></div>"
             )
     accounts_html = (
         "<details open style='margin:16px 0;'>"
         "<summary style='cursor:pointer;font-weight:700;color:var(--text-primary);'>"
         "Solduri brute brokeri</summary>"
-        "<div style='display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;'>"
+        "<div style='display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-top:10px;'>"
         + ''.join(account_cards) + "</div></details>"
         if account_cards else ''
     )

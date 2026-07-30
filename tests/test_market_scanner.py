@@ -473,7 +473,9 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIn('300.00 EUR', rendered)
         self.assertIn('Cash total', rendered)
         self.assertIn('140.00 EUR', rendered)
-        self.assertIn("id='brokerTotalsMiniChart'", rendered)
+        self.assertIn("id='brokerTotalsHistoryButton'", rendered)
+        self.assertIn('>Evoluție</button>', rendered)
+        self.assertNotIn('<canvas', rendered)
         self.assertIn('openBrokerTotalsDetail(this)', rendered)
 
     def test_portfolio_ai_cache_changes_with_broker_snapshot_not_age(self):
