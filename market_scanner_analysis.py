@@ -545,6 +545,7 @@ OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
 PORTFOLIO_AI_CACHE_VERSION = 16
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 ACTIONABLE_BUY_VERDICTS = {'Candidat valid', 'Pregătit la trigger'}
+BUY_RECOMMENDATION_HISTORY_DISPLAY_LIMIT = 50
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
 SEC_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK{cik:010d}.json'
 
@@ -692,7 +693,7 @@ def _combined_broker_totals(account_data):
 
 def update_broker_totals_history(history, account_data, observed_at=None,
                                  max_points=1095):
-    """Păstrează istoric agregat verificabil, fără a inventa puncte lipsă."""
+    """Păstrează evoluția zilnică și elimină doar duplicatele aceleiași zile."""
     totals = _combined_broker_totals(account_data)
     if not totals:
         return list(history or [])
@@ -732,7 +733,10 @@ def update_broker_totals_history(history, account_data, observed_at=None,
             previous['net_liquidation'] == point['net_liquidation']
             and previous['total_cash'] == point['total_cash']
         )
-        if unchanged:
+        same_day = (
+            previous['timestamp'][:10] == point['timestamp'][:10]
+        )
+        if unchanged and same_day:
             return valid[-max(1, int(max_points)):]
         valid.append(point)
     else:
@@ -2255,7 +2259,7 @@ def _buy_recommendation_history_key(symbol, verdict, candidate):
 
 
 def update_buy_recommendation_history(
-    previous_history, result, candidates, recorded_at=None, limit=120,
+    previous_history, result, candidates, recorded_at=None, limit=None,
 ):
     """Păstrează numai semnalele executabile, fără a le confunda cu cele curente."""
     recorded_at = recorded_at or datetime.datetime.now().isoformat(
@@ -2381,11 +2385,13 @@ def update_buy_recommendation_history(
         ),
         reverse=True,
     )
-    return history[:limit]
+    if limit is None:
+        return history
+    return history[:max(0, int(limit))]
 
 
 def update_buy_recommendation_history_from_cache(
-    previous_history, cached_analysis, fallback_candidates=None, limit=120,
+    previous_history, cached_analysis, fallback_candidates=None, limit=None,
 ):
     """Arhivează rezultatul anterior înainte ca un cache nou să-l înlocuiască."""
     if not isinstance(cached_analysis, dict):
@@ -2451,12 +2457,15 @@ def _render_buy_recommendation_history(history, candidates=None):
     if not history:
         return ''
     marker_labels = _buy_recommendation_marker_labels(history)
+    display_history = list(history)[
+        :BUY_RECOMMENDATION_HISTORY_DISPLAY_LIMIT
+    ]
     candidates_by_symbol = {
         str(candidate.get('symbol') or '').upper(): candidate
         for candidate in (candidates or [])
     }
     rows = []
-    for item in history:
+    for item in display_history:
         symbol = str(item.get('symbol') or '').upper()
         marker_label = marker_labels.get(
             str(item.get('history_key') or ''),
@@ -2560,7 +2569,12 @@ def _render_buy_recommendation_history(history, candidates=None):
         "<p style='color:var(--text-secondary);font-size:12px;line-height:1.45;'>"
         "Istoricul păstrează semnalele care au fost cândva „Cumpărare acum” "
         "sau „Ordin la trigger”. O intrare încheiată nu mai este o recomandare curentă."
-        "</p><div style='display:grid;gap:8px;'>"
+        + (
+            f" Se afișează cele mai recente {len(display_history)} din "
+            f"{len(history)} înregistrări."
+            if len(history) > len(display_history) else ""
+        )
+        + "</p><div style='display:grid;gap:8px;'>"
         + ''.join(rows) + "</div></details>"
     )
 

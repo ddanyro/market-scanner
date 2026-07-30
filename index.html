@@ -759,14 +759,8 @@
                         settings.remember &&
                         window.PortfolioAuthPersistence
                     ) {
-                        window.PortfolioAuthPersistence
-                            .rememberCredential(input)
-                            .catch(function (error) {
-                                console.warn(
-                                    'Sesiunea de 30 de zile nu a putut fi salvată.',
-                                    error
-                                );
-                            });
+                        await window.PortfolioAuthPersistence
+                            .rememberCredential(input);
                     }
                     return true;
                 } catch (e) {
@@ -795,7 +789,7 @@
                 if (!credential) return;
                 const unlocked = await unlockPortfolioWithCredential(
                     credential,
-                    { remember: false, silent: true }
+                    { remember: true, silent: true }
                 );
                 if (!unlocked) {
                     await window.PortfolioAuthPersistence.clearCredential();
@@ -807,6 +801,33 @@
                     await window.PortfolioAuthPersistence.clearCredential();
                 }
                 window.location.reload();
+            }
+
+            const BUY_RECOMMENDATION_HISTORY_DISPLAY_LIMIT = 50;
+
+            function limitBuyRecommendationHistoryDisplay(container) {
+                if (!container) return;
+                const historyDetails = Array.from(
+                    container.querySelectorAll('details')
+                ).find(function(detailsElement) {
+                    const summary = Array.from(detailsElement.children)
+                        .find(function(child) {
+                            return child.tagName === 'SUMMARY';
+                        });
+                    return summary && summary.textContent.trim()
+                        .startsWith('Istoric recomandări executabile (');
+                });
+                if (!historyDetails) return;
+                const historyGrid = Array.from(historyDetails.children)
+                    .find(function(child) {
+                        return child.tagName === 'DIV';
+                    });
+                if (!historyGrid) return;
+                Array.from(historyGrid.children).forEach(function(row, index) {
+                    row.hidden = (
+                        index >= BUY_RECOMMENDATION_HISTORY_DISPLAY_LIMIT
+                    );
+                });
             }
             
             function renderPortfolio(data) {
@@ -844,6 +865,7 @@
                 const buyRecommendations = document.getElementById('buy-recommendations-container');
                 if (buyRecommendations) {
                     buyRecommendations.innerHTML = data.buy_recommendations_html || '';
+                    limitBuyRecommendationHistoryDisplay(buyRecommendations);
                 }
                 
                 // 3. Init Charts
@@ -1025,29 +1047,40 @@ const currency=${JSON.stringify(currency)};
 const money=value=>Number(value).toLocaleString('ro-RO',{style:'currency',currency:currency,maximumFractionDigits:2});
 const dateKey=value=>{
 const raw=String(value||'');
-if(/^\d{8}$/.test(raw))return raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8);
+if(/^\d{8}$/.test(raw))return raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8)+'T00:00:00';
+if(/^\d{4}-\d{2}-\d{2}$/.test(raw))return raw+'T00:00:00';
 const parsed=new Date(raw);
-return Number.isNaN(parsed.getTime())?raw:parsed.toISOString().slice(0,10);
+return Number.isNaN(parsed.getTime())?raw:parsed.toISOString();
+};
+const timestampKey=value=>{
+const raw=String(value||'');
+const parsed=new Date(raw);
+return Number.isNaN(parsed.getTime())?raw:parsed.toISOString();
 };
 const labels=Array.from(new Set([
-...history.map(item=>dateKey(item.timestamp)),
+...history.map(item=>timestampKey(item.timestamp)),
 ...ibkrNavHistory.map(item=>dateKey(item.date)),
 ...ibkrCashHistory.map(item=>dateKey(item.date))
-])).sort();
-const series=(items,dateField,valueField)=>{
-const values=new Map(items.map(item=>[dateKey(item[dateField]),Number(item[valueField])]));
+])).sort((left,right)=>new Date(left).getTime()-new Date(right).getTime());
+const series=(items,dateField,valueField,keyFunction)=>{
+const values=new Map(items.map(item=>[keyFunction(item[dateField]),Number(item[valueField])]));
 return labels.map(label=>values.has(label)?values.get(label):null);
 };
-const displayDate=value=>new Intl.DateTimeFormat('ro-RO',{dateStyle:'short'}).format(new Date(value+'T12:00:00'));
+const displayDate=value=>{
+const parsed=new Date(value);
+if(Number.isNaN(parsed.getTime()))return String(value);
+const isDailyPoint=/T00:00:00(?:\.000)?(?:Z)?$/.test(String(value));
+return new Intl.DateTimeFormat('ro-RO',isDailyPoint?{dateStyle:'short'}:{dateStyle:'short',timeStyle:'short'}).format(parsed);
+};
 const datasets=[
-{label:'Valoare totală',data:series(history,'timestamp','net_liquidation'),borderColor:'#7760f9',backgroundColor:'rgba(119,96,249,.08)',borderWidth:3,pointRadius:history.length===1?4:2,pointHoverRadius:5,tension:.18,fill:false,spanGaps:false},
-{label:'Cash total',data:series(history,'timestamp','total_cash'),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.08)',borderWidth:3,pointRadius:history.length===1?4:2,pointHoverRadius:5,tension:.18,fill:false,spanGaps:false}
+{label:'Valoare totală',data:series(history,'timestamp','net_liquidation',timestampKey),borderColor:'#7760f9',backgroundColor:'rgba(119,96,249,.08)',borderWidth:3,pointRadius:history.length===1?4:2,pointHoverRadius:5,tension:.18,fill:false,spanGaps:true},
+{label:'Cash total',data:series(history,'timestamp','total_cash',timestampKey),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.08)',borderWidth:3,pointRadius:history.length===1?4:2,pointHoverRadius:5,tension:.18,fill:false,spanGaps:true}
 ];
 if(ibkrNavHistory.length){
-datasets.push({label:'NAV IBKR',data:series(ibkrNavHistory,'date','nav'),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.06)',borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:false});
+datasets.push({label:'NAV IBKR',data:series(ibkrNavHistory,'date','nav',dateKey),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.06)',borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:true});
 }
 if(ibkrCashHistory.length){
-datasets.push({label:'Cash IBKR',data:series(ibkrCashHistory,'date','cash'),borderColor:'#15803d',backgroundColor:'rgba(21,128,61,.05)',borderWidth:2,borderDash:[7,5],pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:false});
+datasets.push({label:'Cash IBKR',data:series(ibkrCashHistory,'date','cash',dateKey),borderColor:'#15803d',backgroundColor:'rgba(21,128,61,.05)',borderWidth:2,borderDash:[7,5],pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:true});
 }
 new Chart(document.getElementById('brokerTotalsChart'),{
 type:'line',
@@ -1121,7 +1154,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     <input type="password" id="pf-pass" style="padding: 14px 20px; font-size: 18px; text-align: center; width: 180px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: var(--bg-white); color: var(--text-primary); letter-spacing: 8px; font-weight: 600; transition: all 0.2s;" placeholder="••••" onkeyup="if(event.key==='Enter') unlockPortfolio()" onfocus="this.style.borderColor='var(--primary-purple)'; this.style.boxShadow='0 0 0 3px rgba(119,96,249,0.1)'" onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none'">
                     <button onclick="unlockPortfolio()" class="btn-primary">Unlock</button>
                 </div>
-                <p style="color: var(--text-secondary); margin: 18px 0 0; font-size: 13px;">Accesul va fi memorat automat 30 de zile în acest browser.</p>
+                <p style="color: var(--text-secondary); margin: 18px 0 0; font-size: 13px;">Accesul rămâne activ 30 de zile de la ultima autentificare manuală sau automată în acest browser.</p>
             </div>
             
             <!-- ACTUAL DATA (Hidden) -->
@@ -42815,4 +42848,3 @@ drawIndicatorDetail(detail,initialCount);
     </div> <!-- End container -->
     </body>
     </html>
-    
