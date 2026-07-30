@@ -474,6 +474,10 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
                     {'date': '20260729', 'nav': 95, 'currency': 'EUR'},
                     {'date': '20260730', 'nav': 100, 'currency': 'EUR'},
                 ],
+                'cash_history': [
+                    {'date': '20260729', 'cash': 50, 'currency': 'EUR'},
+                    {'date': '20260730', 'cash': 55, 'currency': 'EUR'},
+                ],
             },
         }
         rendered = market_scanner_analysis._render_portfolio_ai_html(snapshot)
@@ -486,6 +490,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIn('>Evoluție</button>', rendered)
         self.assertNotIn('<canvas', rendered)
         self.assertIn('data-ibkr-nav-history=', rendered)
+        self.assertIn('data-ibkr-cash-history=', rendered)
         self.assertIn('20260729', rendered)
         self.assertIn('openBrokerTotalsDetail(this)', rendered)
 

@@ -185,6 +185,15 @@ class TestHtmlIntegrity(unittest.TestCase):
         )
         with open(analysis_path, 'r', encoding='utf-8') as f:
             analysis_content = f.read()
+        workflow_path = os.path.join(
+            os.path.dirname(__file__),
+            '..',
+            '.github',
+            'workflows',
+            'update_dashboard.yml',
+        )
+        with open(workflow_path, 'r', encoding='utf-8') as f:
+            workflow = f.read()
 
         self.assertIn('id="portfolio-ai-container"', content)
         self.assertIn("portfolioAi.innerHTML = data.portfolio_ai_html || ''", content)
@@ -216,11 +225,18 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('>Evoluție</button>', analysis_content)
         self.assertIn('openBrokerTotalsDetail', content)
         self.assertIn('parseIBKRNavHistory', content)
+        self.assertIn('parseIBKRCashHistory', content)
         self.assertIn("import ibkr_web_api", content)
         self.assertIn("ibkr_web_api.sync_account_snapshot()", content)
+        self.assertIn(
+            'tws_account.enc.json tws_account_risk.json',
+            workflow,
+        )
+        self.assertNotIn('git add tws_account.json', workflow)
         self.assertIn("label:'Valoare totală'", content)
         self.assertIn("label:'Cash total'", content)
         self.assertIn("label:'NAV IBKR'", content)
+        self.assertIn("label:'Cash IBKR'", content)
         self.assertIn('window.close();', content)
 
     def test_portfolio_auth_is_remembered_implicitly_for_thirty_days(self):

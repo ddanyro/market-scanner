@@ -41,6 +41,31 @@ Clientul refuză dezactivarea verificării TLS pentru adrese care nu sunt loopba
 Snapshotul exact este păstrat în fișierul criptat existent; varianta publică de
 risc nu conține soldurile brute.
 
+# Istoric automat prin Flex (compatibil cu iPhone)
+
+Tokenul și Query ID-ul Flex deja configurate continuă să fie folosite de GitHub
+Actions. Nu este necesar un token nou. Pentru ca același raport să furnizeze și
+istoricul zilnic folosit de grafic, editează Activity Flex Query existent și
+adaugă următoarele secțiuni/câmpuri:
+
+- **Account Information**: Account ID și Base Currency;
+- **Net Asset Value (NAV) Summary In Base**: Report Date, Cash și Total;
+- **Change in NAV**: Starting Value și Ending Value;
+- **Cash Report**: Currency, Ending Cash și Ending Settled Cash.
+
+Păstrează formatul XML și selectează o perioadă de până la un an. Poți edita
+query-ul existent și păstra același token. După salvare, verifică din iconița
+**Info** că Query ID-ul a rămas cel configurat; dacă IBKR afișează alt ID,
+actualizează numai secretul `IBKR_QUERY_ID`. Scannerul:
+
+- importă punctele istorice NAV și cash deja prezente în raport;
+- actualizează o singură observație pentru fiecare dată;
+- păstrează până la 366 de observații în dashboard;
+- nu reconstruiește NAV sau cash din poziții când câmpurile lipsesc.
+
+Flex Activity este actualizat de IBKR după închiderea zilei, deci istoricul este
+zilnic, nu intraday. Client Portal Web API rămâne un supliment local opțional.
+
 # Configurare Sincronizare Automată Interactive Brokers (Flex Service)
 
 Această metodă permite preluarea portofoliului direct din serverele IBKR (Cloud), similar cu modul în care funcționează agregatoarele financiare (ex: Yahoo Finance), fără a necesita aplicația TWS deschisă.

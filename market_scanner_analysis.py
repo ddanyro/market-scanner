@@ -752,6 +752,7 @@ def _normalize_tws_account_data(account_data, now=None):
         'privacy_mode': 'exact',
         'combined_history': [],
         'nav_history': [],
+        'cash_history': [],
     }
     if not isinstance(account_data, dict):
         result['risk_flags'].append('Sumarul cash/marjă TWS nu este disponibil')
@@ -888,6 +889,20 @@ def _normalize_tws_account_data(account_data, now=None):
             'currency': currency,
         })
     result['nav_history'] = result['nav_history'][-366:]
+    for item in account_data.get('cash_history', []):
+        if not isinstance(item, dict):
+            continue
+        value = _safe_number(item.get('cash'), None)
+        date_value = str(item.get('date', '')).strip()
+        currency = str(item.get('currency', '')).strip().upper()
+        if value is None or not date_value or not currency:
+            continue
+        result['cash_history'].append({
+            'date': date_value,
+            'cash': round(value, 2),
+            'currency': currency,
+        })
+    result['cash_history'] = result['cash_history'][-366:]
     result['risk_flags'] = list(dict.fromkeys(result['risk_flags']))
     return result
 
@@ -2163,6 +2178,15 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
                 json.dumps(nav_history, ensure_ascii=False),
                 quote=True,
             )
+            cash_history = [
+                item for item in liquidity.get('cash_history', [])
+                if str(item.get('currency', '')).upper()
+                == combined_totals['currency']
+            ]
+            cash_history_json = html.escape(
+                json.dumps(cash_history, ensure_ascii=False),
+                quote=True,
+            )
             account_cards.append(
                 "<div style='background:var(--bg-white);border:2px solid var(--primary-purple);"
                 "border-radius:var(--radius-sm);padding:14px 16px;min-width:280px;flex:1;'>"
@@ -2180,6 +2204,7 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
                 "title='Deschide istoricul valorii totale și al cash-ului' "
                 f"data-history='{history_json}' data-currency='{currency}' "
                 f"data-ibkr-nav-history='{nav_history_json}' "
+                f"data-ibkr-cash-history='{cash_history_json}' "
                 "style='display:inline-flex;align-items:center;justify-content:center;"
                 "margin-top:14px;padding:8px 16px;border:1px solid var(--primary-purple);"
                 "border-radius:8px;background:var(--primary-purple);color:#fff;"
@@ -3071,6 +3096,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
     request_liquidity = dict(snapshot.get('account_liquidity', {}))
     request_liquidity.pop('combined_history', None)
     request_liquidity.pop('nav_history', None)
+    request_liquidity.pop('cash_history', None)
     request_snapshot['account_liquidity'] = request_liquidity
     request_payload = {
         'as_of': snapshot['as_of'],

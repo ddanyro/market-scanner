@@ -4914,10 +4914,27 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 }
             }
 
+            function parseIBKRCashHistory(element) {
+                if (!element) return [];
+                try {
+                    const parsed = JSON.parse(
+                        element.dataset.ibkrCashHistory || '[]'
+                    );
+                    return Array.isArray(parsed) ? parsed.filter(item =>
+                        Number.isFinite(Number(item.cash)) &&
+                        String(item.date || '').length > 0
+                    ) : [];
+                } catch (error) {
+                    console.error('Istoricul cash IBKR este invalid.', error);
+                    return [];
+                }
+            }
+
             function openBrokerTotalsDetail(element) {
                 const history = parseBrokerTotalsHistory(element);
                 if (!history.length) return;
                 const ibkrNavHistory = parseIBKRNavHistory(element);
+                const ibkrCashHistory = parseIBKRCashHistory(element);
                 const rawCurrency = String(element.dataset.currency || 'EUR').toUpperCase();
                 const currency = /^[A-Z]{3}$/.test(rawCurrency) ? rawCurrency : 'EUR';
                 const popup = window.open('', '_blank');
@@ -4928,6 +4945,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 const payload = JSON.stringify(history).replace(/</g, '\\u003c');
                 const ibkrNavPayload = JSON.stringify(
                     ibkrNavHistory
+                ).replace(/</g, '\\u003c');
+                const ibkrCashPayload = JSON.stringify(
+                    ibkrCashHistory
                 ).replace(/</g, '\\u003c');
                 const latest = history[history.length - 1];
                 const formatMoney = value => Number(value).toLocaleString('ro-RO', {
@@ -4956,10 +4976,11 @@ h1{margin:0;font-size:clamp(27px,4vw,44px)}.sub{color:#7760f9;font-weight:700;ma
 <section class="stats"><div class="stat"><div class="label">Valoare totală</div><div class="value">${formatMoney(latest.net_liquidation)}</div></div>
 <div class="stat"><div class="label">Cash total</div><div class="value">${formatMoney(latest.total_cash)}</div></div></section>
 <section class="panel"><div class="chart-wrap"><canvas id="brokerTotalsChart"></canvas></div>
-<p class="note">Totalul și cashul combinat încep din momentul activării acestei funcții. Linia NAV IBKR folosește istoricul real furnizat de PortfolioAnalyst; Tradeville este inclus numai în punctele pentru care există snapshot.</p></section>
+<p class="note">Totalul și cashul combinat includ IBKR și Tradeville numai în punctele pentru care există ambele snapshoturi. Liniile NAV IBKR și Cash IBKR folosesc istoricul real furnizat de PortfolioAnalyst sau de raportul Flex configurat.</p></section>
 </main><script>
 const history=${payload};
 const ibkrNavHistory=${ibkrNavPayload};
+const ibkrCashHistory=${ibkrCashPayload};
 const currency=${JSON.stringify(currency)};
 const money=value=>Number(value).toLocaleString('ro-RO',{style:'currency',currency:currency,maximumFractionDigits:2});
 const dateKey=value=>{
@@ -4970,7 +4991,8 @@ return Number.isNaN(parsed.getTime())?raw:parsed.toISOString().slice(0,10);
 };
 const labels=Array.from(new Set([
 ...history.map(item=>dateKey(item.timestamp)),
-...ibkrNavHistory.map(item=>dateKey(item.date))
+...ibkrNavHistory.map(item=>dateKey(item.date)),
+...ibkrCashHistory.map(item=>dateKey(item.date))
 ])).sort();
 const series=(items,dateField,valueField)=>{
 const values=new Map(items.map(item=>[dateKey(item[dateField]),Number(item[valueField])]));
@@ -4983,6 +5005,9 @@ const datasets=[
 ];
 if(ibkrNavHistory.length){
 datasets.push({label:'NAV IBKR',data:series(ibkrNavHistory,'date','nav'),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.06)',borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:false});
+}
+if(ibkrCashHistory.length){
+datasets.push({label:'Cash IBKR',data:series(ibkrCashHistory,'date','cash'),borderColor:'#15803d',backgroundColor:'rgba(21,128,61,.05)',borderWidth:2,borderDash:[7,5],pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:false});
 }
 new Chart(document.getElementById('brokerTotalsChart'),{
 type:'line',

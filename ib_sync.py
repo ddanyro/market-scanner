@@ -184,6 +184,33 @@ def sync_ibkr():
                         if root_dl is None or (root_dl.get('status') != 'Success' and root_dl.tag != 'FlexQueryResponse'):
                             print("Timeout așteptare raport IBKR.")
                         else:
+                            # Persistăm numai valorile NAV/cash furnizate explicit
+                            # de Flex. Dacă secțiunile lipsesc din query, nu
+                            # reconstruim și nu inventăm solduri din poziții.
+                            try:
+                                import ibkr_flex_history
+                                flex_account = (
+                                    ibkr_flex_history.persist_flex_account_snapshot(
+                                        root_dl
+                                    )
+                                )
+                                if flex_account:
+                                    print(
+                                        "  -> Istoric NAV/cash IBKR actualizat "
+                                        "din Flex."
+                                    )
+                                else:
+                                    print(
+                                        "  -> Flex nu include încă NAV/cash; "
+                                        "adaugă Change in NAV, Cash Report și "
+                                        "NAV Summary In Base în query."
+                                    )
+                            except Exception as flex_history_error:
+                                print(
+                                    "  -> Istoricul Flex NAV/cash nu a putut "
+                                    f"fi salvat: {flex_history_error}"
+                                )
+
                             # Parse Active Orders (pentru Trail Stop)
                             for order in root_dl.iter('Order'):
                                 try:
