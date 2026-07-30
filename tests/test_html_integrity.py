@@ -228,6 +228,15 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('parseIBKRCashHistory', content)
         self.assertIn("import ibkr_web_api", content)
         self.assertIn("ibkr_web_api.sync_account_snapshot()", content)
+        self.assertLess(
+            content.index('ib_tws_sync.fetch_active_orders('),
+            content.index('IBKR Web API fallback:'),
+        )
+        self.assertIn(
+            'ib_sync.sync_ibkr(allow_flex=not tws_synced)',
+            content,
+        )
+        self.assertIn('sync_before_load=False', content)
         self.assertIn(
             'tws_account.enc.json tws_account_risk.json',
             workflow,

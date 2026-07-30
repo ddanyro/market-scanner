@@ -377,6 +377,7 @@ def fetch_active_orders(output_file='tws_orders.csv', research_symbols=None):
         print("Sărim peste actualizarea ordinelor live.")
         return False
 
+    sync_succeeded = False
     try:
         # Request Toate Ordinele Deschise
         trades = ib.reqAllOpenOrders()
@@ -577,17 +578,37 @@ def fetch_active_orders(output_file='tws_orders.csv', research_symbols=None):
 
                 if base_values or cash_by_currency:
                     accounts.append({
-                        'label': f'IBKR {len(accounts) + 1}',
+                        'account_id': account_id,
+                        'label': (
+                            'IBKR' if not accounts
+                            else f'IBKR {len(accounts) + 1}'
+                        ),
                         'source': 'IBKR TWS',
                         'base_currency': base_currency or 'BASE',
                         'summary': base_values,
                         'cash_by_currency': cash_by_currency,
                     })
 
+            # Păstrăm istoricul verificat deja; TWS actualizează valorile
+            # curente, nu trebuie să șteargă seriile NAV/cash anterioare.
+            try:
+                import ibkr_flex_history
+                previous_account_payload = (
+                    ibkr_flex_history.load_existing_snapshot()
+                )
+            except Exception:
+                previous_account_payload = {}
+
             account_payload = {
                 'fetched_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
                 'source': 'TWS / IBKR API',
                 'accounts': accounts,
+                'nav_history': list(
+                    previous_account_payload.get('nav_history', [])
+                )[-366:],
+                'cash_history': list(
+                    previous_account_payload.get('cash_history', [])
+                )[-366:],
             }
             with open('tws_account.json', 'w', encoding='utf-8') as handle:
                 json.dump(account_payload, handle, ensure_ascii=False, indent=2)
@@ -671,10 +692,12 @@ def fetch_active_orders(output_file='tws_orders.csv', research_symbols=None):
         except Exception as account_ex:
             print(f"  -> Avertisment la citirea sumarului de cont TWS: {account_ex}")
 
+        sync_succeeded = True
     except Exception as e:
         print(f"Eroare extragere ordine TWS: {e}")
     finally:
         ib.disconnect()
+    return sync_succeeded
         
 if __name__ == "__main__":
     fetch_active_orders()

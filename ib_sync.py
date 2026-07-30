@@ -25,7 +25,7 @@ def load_config():
         except: pass
     return None, None
 
-def sync_ibkr():
+def sync_ibkr(allow_flex=True):
     """
     Sincronizează portofoliul folosind IBKR Flex Web Service (Metodă Cloud/API).
     Nu necesită TWS deschis.
@@ -86,10 +86,11 @@ def sync_ibkr():
 
     # Even if using TWS, we might want Flex for Entry Dates (Enrichment)
     # But we won't add Flex positions to the main list if TWS is primary
-    need_flex_pos = True 
-    need_flex_stats = True # Restore missing variable
+    need_flex_pos = bool(allow_flex)
+    need_flex_stats = bool(allow_flex)
     
     flex_enrichment_map = {} # Store metadata (dates) from Flex
+    orders_map = {}
 
     
     if need_flex_pos or need_flex_stats:
@@ -119,7 +120,6 @@ def sync_ibkr():
             req_url = f"{base_req_url}?t={token}&q={query_id}&v=3"
             
             xml_root = None
-            orders_map = {} # Initialize orders_map for Flex
             try:
                 headers = {'User-Agent': 'Java/1.8.0_202'}
                 r = requests.get(req_url, headers=headers, timeout=15)
@@ -350,6 +350,8 @@ def sync_ibkr():
                         print(f"Eroare IBKR Flex: {msg} (Code: {err_code})")
             except Exception as e:
                 print(f"Eroare conexiune API: {e}")
+    elif use_tws_primary:
+        print("  -> Flex omis: TWS este sursa primară și are date recente.")
 
     # === Enrich TWS Positions with Flex Metadata (Entry Dates & Trail Stops) ===
     if use_tws_primary:
@@ -545,61 +547,68 @@ def sync_ibkr():
         except Exception as e:
             print(f"Eroare procesare TWS Orders: {e}")
 
-        
-        # Merge cu preferințele locale (CSV vechi)
-        
-        if os.path.exists(PORTFOLIO_FILE):
-             try:
-                print("Îmbinare cu preferințele locale...")
-                old_df = pd.read_csv(PORTFOLIO_FILE)
-                manual_cols = ['Symbol', 'Target', 'Max_Profit', 'Entry_Date'] # Trail_Pct and Trail_Stop excluded: they are synced live from IBKR
-                existing_cols = [c for c in manual_cols if c in old_df.columns]
-                
-                if existing_cols:
-                    # DEDUPLICATE old preferences by Symbol to avoid Cartesian Product (N lots x N old rows)
-                    old_subset = old_df[existing_cols].drop_duplicates(subset=['Symbol'])
-                    
-                    # Folosim suffixes pentru a identifica conflictele
-                    merged_df = pd.merge(new_df, old_subset, on='Symbol', how='left', suffixes=('', '_old'))
-                    
-                    # Pentru fiecare coloană manuală, dacă există versiunea veche, o restaurăm (prioritate manual)
-                    for col in existing_cols:
-                        old_col_name = col + '_old'
-                        if col in merged_df.columns and old_col_name in merged_df.columns:
-                            # Preferăm valoarea veche (din CSV-ul persistent)
-                            merged_df[col] = merged_df[old_col_name].combine_first(merged_df[col])
-                            merged_df.drop(columns=[old_col_name], inplace=True)
-                    
-                    if 'Trail_Pct' in merged_df.columns:
-                        merged_df['Trail_Pct'] = merged_df['Trail_Pct'].fillna(15)
-                    new_df = merged_df
-             except Exception as e:
-                 print(f"Eroare merge, suprascriere: {e}")
-        
-        # CLEANUP: When TWS is primary, remove positions not in TWS (sold positions)
-        # but preserve ALL manual positions from tradeville_portfolio.csv
-        if use_tws_primary and len(tws_symbols) > 0:
-            original_count = len(new_df)
-            # Load manual symbols from tradeville file
-            manual_symbols = set()
-            if os.path.exists(MANUAL_FILE):
-                try:
-                    manual_df = pd.read_csv(MANUAL_FILE)
-                    manual_symbols = set(manual_df['Symbol'].dropna().astype(str).str.strip())
-                except:
-                    pass
-            
-            # Keep: TWS symbols + Manual tradeville symbols
-            manual_mask = new_df['Symbol'].isin(manual_symbols)
-            tws_mask = new_df['Symbol'].isin(tws_symbols)
-            new_df = new_df[tws_mask | manual_mask]
-            removed = original_count - len(new_df)
-            if removed > 0:
-                print(f"  -> Cleaned up {removed} sold positions (not in TWS anymore)")
-        
-        new_df.to_csv(PORTFOLIO_FILE, index=False)
-        print("Portofoliu actualizat cu succes!")
-        return True
+    # Merge cu preferințele locale indiferent dacă există ordine active.
+    if os.path.exists(PORTFOLIO_FILE):
+        try:
+            print("Îmbinare cu preferințele locale...")
+            old_df = pd.read_csv(PORTFOLIO_FILE)
+            manual_cols = ['Symbol', 'Target', 'Max_Profit', 'Entry_Date']
+            existing_cols = [
+                column for column in manual_cols if column in old_df.columns
+            ]
+
+            if existing_cols and 'Symbol' in new_df.columns:
+                old_subset = old_df[existing_cols].drop_duplicates(
+                    subset=['Symbol']
+                )
+                merged_df = pd.merge(
+                    new_df,
+                    old_subset,
+                    on='Symbol',
+                    how='left',
+                    suffixes=('', '_old'),
+                )
+                for column in existing_cols:
+                    old_column = column + '_old'
+                    if column in merged_df.columns and old_column in merged_df.columns:
+                        merged_df[column] = merged_df[old_column].combine_first(
+                            merged_df[column]
+                        )
+                        merged_df.drop(columns=[old_column], inplace=True)
+                if 'Trail_Pct' in merged_df.columns:
+                    merged_df['Trail_Pct'] = merged_df['Trail_Pct'].fillna(15)
+                new_df = merged_df
+        except Exception as e:
+            print(f"Eroare merge, suprascriere: {e}")
+
+    # Când TWS este primar, eliminăm pozițiile IBKR vândute, dar păstrăm
+    # instrumentele introduse manual pentru Tradeville.
+    if (
+        use_tws_primary
+        and tws_symbols
+        and 'Symbol' in new_df.columns
+    ):
+        original_count = len(new_df)
+        manual_symbols = set()
+        if os.path.exists(MANUAL_FILE):
+            try:
+                manual_df = pd.read_csv(MANUAL_FILE)
+                manual_symbols = set(
+                    manual_df['Symbol'].dropna().astype(str).str.strip()
+                )
+            except Exception:
+                manual_symbols = set()
+        new_df = new_df[
+            new_df['Symbol'].isin(tws_symbols)
+            | new_df['Symbol'].isin(manual_symbols)
+        ]
+        removed = original_count - len(new_df)
+        if removed > 0:
+            print(f"  -> Cleaned up {removed} sold positions (not in TWS anymore)")
+
+    new_df.to_csv(PORTFOLIO_FILE, index=False)
+    print("Portofoliu actualizat cu succes!")
+    return True
 
 
 
