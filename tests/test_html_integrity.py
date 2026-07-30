@@ -189,6 +189,8 @@ class TestHtmlIntegrity(unittest.TestCase):
             'python buy_now_push.py --retry-state dashboard_state.json',
             workflow,
         )
+        self.assertIn('Send BUY push test', workflow)
+        self.assertIn('--test-symbol "$PUSH_TEST_SYMBOL"', workflow)
         self.assertIn('OneSignalSDK.sw.js', worker)
         with open(
             os.path.join(root, 'index.html'),

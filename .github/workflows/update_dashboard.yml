@@ -6,7 +6,13 @@ on:
   schedule:
     - cron: '*/30 * * * *'  # Rulează la fiecare 30 de minute (mod: portfolio)
     - cron: '0 */5 * * *'   # Rulează la fiecare 5 ore (mod: all)
-  workflow_dispatch:      # Permite rularea manuală din buton
+  workflow_dispatch:
+    inputs:
+      push_test_symbol:
+        description: 'Simbol pentru un push de test; gol rulează scannerul'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   build:
@@ -27,7 +33,17 @@ jobs:
       run: |
         pip install pandas requests yfinance ib_insync beautifulsoup4 lxml pycryptodome -r requirements.txt
 
+    - name: Send BUY push test
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.push_test_symbol != '' }}
+      env:
+        ONESIGNAL_APP_ID: ${{ secrets.ONESIGNAL_APP_ID }}
+        ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
+        ONESIGNAL_SITE_URL: https://ddanyro.github.io/market-scanner/
+        PUSH_TEST_SYMBOL: ${{ inputs.push_test_symbol }}
+      run: python buy_now_push.py --test-symbol "$PUSH_TEST_SYMBOL"
+
     - name: Retry pending BUY alerts
+      if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
       env:
         ONESIGNAL_APP_ID: ${{ secrets.ONESIGNAL_APP_ID }}
         ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
@@ -35,6 +51,7 @@ jobs:
       run: python buy_now_push.py --retry-state dashboard_state.json
 
     - name: Run Market Scanner
+      if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
       env:
         TZ: 'Europe/Bucharest'
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -56,6 +73,7 @@ jobs:
         python market_scanner.py --mode $MODE
 
     - name: Commit and Push changes
+      if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
       run: |
         git config --global user.name 'GitHub Action'
         git config --global user.email 'action@github.com'

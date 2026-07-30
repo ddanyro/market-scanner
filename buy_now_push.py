@@ -235,23 +235,82 @@ def retry_cached_buy_now_notifications(
     return diagnostic
 
 
+def send_test_notification(
+    symbol="TEST",
+    app_id=None,
+    api_key=None,
+    site_url=None,
+    post=None,
+    now=None,
+):
+    """Trimite un push de test independent de recomandările din cache."""
+    symbol = _normalized_symbol(symbol) or "TEST"
+    app_id = str(
+        app_id or os.environ.get("ONESIGNAL_APP_ID") or ""
+    ).strip()
+    api_key = str(
+        api_key or os.environ.get("ONESIGNAL_API_KEY") or ""
+    ).strip()
+    site_url = str(
+        site_url
+        or os.environ.get("ONESIGNAL_SITE_URL")
+        or "https://ddanyro.github.io/market-scanner/"
+    ).strip()
+    if not app_id or not api_key:
+        return {
+            "status": "configuration_missing",
+            "symbol": symbol,
+            "notification_id": None,
+            "error": "Lipsesc ONESIGNAL_APP_ID sau ONESIGNAL_API_KEY.",
+        }
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    try:
+        notification_id = _send_onesignal_notification(
+            symbol,
+            app_id,
+            api_key,
+            site_url,
+            f"manual-test:{now.isoformat()}",
+            post or requests.post,
+        )
+    except Exception as exc:
+        return {
+            "status": "failed",
+            "symbol": symbol,
+            "notification_id": None,
+            "error": str(exc)[:500],
+        }
+    return {
+        "status": "sent",
+        "symbol": symbol,
+        "notification_id": notification_id,
+        "error": None,
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Retry pentru alertele BUY OneSignal restante."
+        description="Trimite sau reîncearcă alerte BUY prin OneSignal."
     )
-    parser.add_argument(
+    action = parser.add_mutually_exclusive_group(required=True)
+    action.add_argument(
         "--retry-state",
         metavar="FILE",
         help="Reîncearcă alertele din cache-ul dashboardului.",
     )
-    args = parser.parse_args()
-    if not args.retry_state:
-        parser.error("--retry-state este obligatoriu")
-    diagnostic = retry_cached_buy_now_notifications(args.retry_state)
-    print(
-        "Retry web push BUY: "
-        + json.dumps(diagnostic, ensure_ascii=False)
+    action.add_argument(
+        "--test-symbol",
+        metavar="SYMBOL",
+        help="Trimite imediat un push de test pentru simbolul indicat.",
     )
+    args = parser.parse_args()
+    if args.retry_state:
+        diagnostic = retry_cached_buy_now_notifications(args.retry_state)
+        prefix = "Retry web push BUY: "
+    else:
+        diagnostic = send_test_notification(args.test_symbol)
+        prefix = "Test web push BUY: "
+    print(prefix + json.dumps(diagnostic, ensure_ascii=False))
 
 
 if __name__ == "__main__":

@@ -293,6 +293,31 @@ class BuyNowPushTests(unittest.TestCase):
             ["WST"],
         )
 
+    def test_manual_push_test_does_not_depend_on_cached_orders(self):
+        calls = []
+        diagnostic = buy_now_push.send_test_notification(
+            "test",
+            app_id="app-id",
+            api_key="api-key",
+            site_url="https://example.test/",
+            post=lambda *args, **kwargs: (
+                calls.append(kwargs)
+                or FakeResponse({"id": "notification-test"})
+            ),
+            now=self.now,
+        )
+
+        self.assertEqual(diagnostic["status"], "sent")
+        self.assertEqual(
+            diagnostic["notification_id"],
+            "notification-test",
+        )
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(
+            calls[0]["json"]["contents"]["ro"],
+            "Ordin de cumpărare acum: TEST.",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
