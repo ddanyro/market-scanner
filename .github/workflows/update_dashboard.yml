@@ -13,6 +13,11 @@ on:
         required: false
         default: ''
         type: string
+      push_test_subscription_id:
+        description: 'Subscription ID OneSignal pentru țintire directă'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   build:
@@ -40,7 +45,11 @@ jobs:
         ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
         ONESIGNAL_SITE_URL: https://ddanyro.github.io/market-scanner/
         PUSH_TEST_SYMBOL: ${{ inputs.push_test_symbol }}
-      run: python buy_now_push.py --test-symbol "$PUSH_TEST_SYMBOL"
+        PUSH_TEST_SUBSCRIPTION_ID: ${{ inputs.push_test_subscription_id }}
+      run: |
+        python buy_now_push.py \
+          --test-symbol "$PUSH_TEST_SYMBOL" \
+          --subscription-id "$PUSH_TEST_SUBSCRIPTION_ID"
 
     - name: Retry pending BUY alerts
       if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}

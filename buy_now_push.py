@@ -62,12 +62,12 @@ def _send_onesignal_notification(
     site_url,
     event_token,
     post,
+    subscription_ids=None,
 ):
     message = buy_now_message(symbol)
     payload = {
         "app_id": app_id,
         "target_channel": "push",
-        "included_segments": ["Subscribed Users"],
         "headings": {
             "en": "Market Scanner",
             "ro": "Market Scanner",
@@ -79,6 +79,10 @@ def _send_onesignal_notification(
         "name": f"buy-now-{_normalized_symbol(symbol)}",
         "idempotency_key": _event_idempotency_key(symbol, event_token),
     }
+    if subscription_ids:
+        payload["include_subscription_ids"] = list(subscription_ids)
+    else:
+        payload["included_segments"] = ["Subscribed Users"]
     if site_url:
         payload["url"] = site_url
     response = post(
@@ -237,6 +241,7 @@ def retry_cached_buy_now_notifications(
 
 def send_test_notification(
     symbol="TEST",
+    subscription_id=None,
     app_id=None,
     api_key=None,
     site_url=None,
@@ -264,6 +269,17 @@ def send_test_notification(
             "error": "Lipsesc ONESIGNAL_APP_ID sau ONESIGNAL_API_KEY.",
         }
     now = now or datetime.datetime.now(datetime.timezone.utc)
+    subscription_ids = None
+    if subscription_id:
+        try:
+            subscription_ids = [str(uuid.UUID(str(subscription_id).strip()))]
+        except (ValueError, AttributeError, TypeError):
+            return {
+                "status": "invalid_subscription_id",
+                "symbol": symbol,
+                "notification_id": None,
+                "error": "Subscription ID-ul OneSignal nu este un UUID valid.",
+            }
     try:
         notification_id = _send_onesignal_notification(
             symbol,
@@ -272,6 +288,7 @@ def send_test_notification(
             site_url,
             f"manual-test:{now.isoformat()}",
             post or requests.post,
+            subscription_ids=subscription_ids,
         )
     except Exception as exc:
         return {
@@ -303,12 +320,19 @@ def main():
         metavar="SYMBOL",
         help="Trimite imediat un push de test pentru simbolul indicat.",
     )
+    parser.add_argument(
+        "--subscription-id",
+        help="Țintește direct un Subscription ID OneSignal.",
+    )
     args = parser.parse_args()
     if args.retry_state:
         diagnostic = retry_cached_buy_now_notifications(args.retry_state)
         prefix = "Retry web push BUY: "
     else:
-        diagnostic = send_test_notification(args.test_symbol)
+        diagnostic = send_test_notification(
+            args.test_symbol,
+            subscription_id=args.subscription_id,
+        )
         prefix = "Test web push BUY: "
     print(prefix + json.dumps(diagnostic, ensure_ascii=False))
 

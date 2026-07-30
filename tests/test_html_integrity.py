@@ -191,6 +191,10 @@ class TestHtmlIntegrity(unittest.TestCase):
         )
         self.assertIn('Send BUY push test', workflow)
         self.assertIn('--test-symbol "$PUSH_TEST_SYMBOL"', workflow)
+        self.assertIn(
+            '--subscription-id "$PUSH_TEST_SUBSCRIPTION_ID"',
+            workflow,
+        )
         self.assertIn('OneSignalSDK.sw.js', worker)
         with open(
             os.path.join(root, 'index.html'),
