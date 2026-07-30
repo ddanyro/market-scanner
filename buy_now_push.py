@@ -4,6 +4,7 @@ import argparse
 import datetime
 import json
 import os
+import time
 import uuid
 
 import requests
@@ -122,6 +123,35 @@ def _send_onesignal_notification(
             + error_detail
         )
     return str(notification_id)
+
+
+def _onesignal_delivery_report(
+    notification_id,
+    app_id,
+    api_key,
+    get,
+):
+    """Citește rezultatul efectiv al livrării unei notificări OneSignal."""
+    response = get(
+        f"{ONESIGNAL_NOTIFICATIONS_URL}/{notification_id}",
+        headers={"Authorization": f"Key {api_key}"},
+        params={"app_id": app_id},
+        timeout=15,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    return {
+        key: payload.get(key)
+        for key in (
+            "successful",
+            "received",
+            "failed",
+            "errored",
+            "remaining",
+            "completed_at",
+            "platform_delivery_stats",
+        )
+    }
 
 
 def send_new_buy_now_notifications(
@@ -271,6 +301,9 @@ def send_test_notification(
     api_key=None,
     site_url=None,
     post=None,
+    get=None,
+    verify_delivery=False,
+    sleep=None,
     now=None,
 ):
     """Trimite un push de test independent de recomandările din cache."""
@@ -322,12 +355,35 @@ def send_test_notification(
             "notification_id": None,
             "error": str(exc)[:500],
         }
-    return {
+    diagnostic = {
         "status": "sent",
         "symbol": symbol,
         "notification_id": notification_id,
         "error": None,
     }
+    if verify_delivery:
+        try:
+            (sleep or time.sleep)(5)
+            delivery = _onesignal_delivery_report(
+                notification_id,
+                app_id,
+                api_key,
+                get or requests.get,
+            )
+            diagnostic["delivery"] = delivery
+            if (
+                delivery.get("successful") == 0
+                and not delivery.get("remaining")
+            ):
+                diagnostic["status"] = "not_delivered"
+                diagnostic["error"] = (
+                    "OneSignal a acceptat mesajul, dar nu l-a livrat "
+                    "niciunui abonament activ."
+                )
+        except Exception as exc:
+            diagnostic["delivery"] = None
+            diagnostic["delivery_check_error"] = str(exc)[:500]
+    return diagnostic
 
 
 def main():
@@ -349,6 +405,11 @@ def main():
         "--subscription-id",
         help="Țintește direct un Subscription ID OneSignal.",
     )
+    parser.add_argument(
+        "--verify-delivery",
+        action="store_true",
+        help="Verifică și rezultatul efectiv al livrării OneSignal.",
+    )
     args = parser.parse_args()
     if args.retry_state:
         diagnostic = retry_cached_buy_now_notifications(args.retry_state)
@@ -357,6 +418,7 @@ def main():
         diagnostic = send_test_notification(
             args.test_symbol,
             subscription_id=args.subscription_id,
+            verify_delivery=args.verify_delivery,
         )
         prefix = "Test web push BUY: "
     print(prefix + json.dumps(diagnostic, ensure_ascii=False))
