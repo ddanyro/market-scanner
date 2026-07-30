@@ -1,4 +1,7 @@
 import datetime
+import json
+import os
+import tempfile
 import unittest
 
 import buy_now_push
@@ -240,6 +243,54 @@ class BuyNowPushTests(unittest.TestCase):
         self.assertIn(
             "All included players are not subscribed",
             diagnostic["errors"]["WST"],
+        )
+
+    def test_cached_retry_delivers_pending_symbols_and_persists_state(self):
+        calls = []
+        cached_state = {
+            "last_portfolio_ai_analysis": {
+                "generated_at": "2026-07-30T17:00:00+03:00",
+                "result": {
+                    "buy_recommendations": [
+                        recommendation("WST", "Candidat valid"),
+                    ],
+                },
+                "buy_candidates": [candidate("WST")],
+            },
+            "buy_now_push_state": {
+                "version": 1,
+                "current_symbols": ["WST"],
+                "notified_active_symbols": [],
+            },
+        }
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            state_path = os.path.join(
+                temporary_directory,
+                "dashboard_state.json",
+            )
+            with open(state_path, "w", encoding="utf-8") as handle:
+                json.dump(cached_state, handle)
+            diagnostic = (
+                buy_now_push.retry_cached_buy_now_notifications(
+                    state_path,
+                    app_id="app-id",
+                    api_key="api-key",
+                    post=lambda *args, **kwargs: (
+                        calls.append(kwargs)
+                        or FakeResponse({"id": "notification-wst"})
+                    ),
+                    now=self.now,
+                )
+            )
+            with open(state_path, "r", encoding="utf-8") as handle:
+                persisted = json.load(handle)
+
+        self.assertEqual(diagnostic["status"], "sent")
+        self.assertEqual(diagnostic["delivered_symbols"], ["WST"])
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(
+            persisted["buy_now_push_state"]["notified_active_symbols"],
+            ["WST"],
         )
 
 
