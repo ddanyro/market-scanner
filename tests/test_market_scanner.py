@@ -402,7 +402,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             market_scanner_analysis._combined_broker_totals(account_data)
         )
 
-    def test_broker_totals_history_deduplicates_intraday_and_keeps_new_days(self):
+    def test_broker_totals_history_keeps_only_real_balance_changes(self):
         account_data = {
             'accounts': [
                 {
@@ -428,12 +428,17 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             history, account_data, observed_at='2026-07-30T12:00:00+03:00'
         )
         self.assertEqual(len(history), 1)
-        self.assertEqual(history[0]['timestamp'], '2026-07-30T12:00:00+03:00')
+        self.assertEqual(history[0]['timestamp'], '2026-07-30T09:00:00+03:00')
         history = market_scanner_analysis.update_broker_totals_history(
             history, account_data, observed_at='2026-07-31T09:00:00+03:00'
         )
+        self.assertEqual(len(history), 1)
+        account_data['accounts'][0]['summary']['NetLiquidation'] = 101
+        history = market_scanner_analysis.update_broker_totals_history(
+            history, account_data, observed_at='2026-07-31T10:00:00+03:00'
+        )
         self.assertEqual(len(history), 2)
-        self.assertEqual(history[-1]['net_liquidation'], 300)
+        self.assertEqual(history[-1]['net_liquidation'], 301)
         self.assertEqual(history[-1]['total_cash'], 140)
 
     def test_raw_balance_renderer_adds_combined_card_and_history_chart(self):
@@ -465,6 +470,10 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
                     },
                 ],
                 'combined_history': [],
+                'nav_history': [
+                    {'date': '20260729', 'nav': 95, 'currency': 'EUR'},
+                    {'date': '20260730', 'nav': 100, 'currency': 'EUR'},
+                ],
             },
         }
         rendered = market_scanner_analysis._render_portfolio_ai_html(snapshot)
@@ -476,6 +485,8 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIn("id='brokerTotalsHistoryButton'", rendered)
         self.assertIn('>Evoluție</button>', rendered)
         self.assertNotIn('<canvas', rendered)
+        self.assertIn('data-ibkr-nav-history=', rendered)
+        self.assertIn('20260729', rendered)
         self.assertIn('openBrokerTotalsDetail(this)', rendered)
 
     def test_portfolio_ai_cache_changes_with_broker_snapshot_not_age(self):

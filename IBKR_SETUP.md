@@ -1,3 +1,46 @@
+# Sincronizare read-only prin Client Portal Web API
+
+Aceasta este sursa preferată local pentru solduri, cash pe valute și istoricul
+NAV PortfolioAnalyst. Nu expune funcții de plasare sau modificare a ordinelor.
+
+## Cerințe
+
+- cont IBKR Pro activ și finanțat;
+- Java instalat;
+- Client Portal Gateway descărcat de la IBKR;
+- autentificare în browser cel puțin o dată după miezul nopții, conform
+  limitărilor IBKR pentru conturile individuale.
+
+## Pornire pe macOS
+
+1. Dezarhivează Client Portal Gateway într-un director local.
+2. Din directorul Gateway rulează:
+
+   ```bash
+   bin/run.sh root/conf.yaml
+   ```
+
+3. Deschide în browser `https://localhost:5000` și autentifică-te în IBKR.
+4. Rulează normal:
+
+   ```bash
+   python3 market_scanner.py --mode portfolio
+   ```
+
+Scannerul verifică automat Gateway pe `https://localhost:5000/v1/api`. Dacă
+sesiunea este validă, preia conturile, sumarul, ledgerul pe valute, pozițiile și
+istoricul NAV de până la un an. Dacă Gateway nu este disponibil, păstrează
+fallbackurile TWS, Flex și ultimul cache valid.
+
+Configurare opțională:
+
+- `IBKR_WEB_API_ENABLED=0` dezactivează încercarea locală;
+- `IBKR_WEB_API_URL=https://localhost:5001/v1/api` schimbă portul/adresa locală.
+
+Clientul refuză dezactivarea verificării TLS pentru adrese care nu sunt loopback.
+Snapshotul exact este păstrat în fișierul criptat existent; varianta publică de
+risc nu conține soldurile brute.
+
 # Configurare Sincronizare Automată Interactive Brokers (Flex Service)
 
 Această metodă permite preluarea portofoliului direct din serverele IBKR (Cloud), similar cu modul în care funcționează agregatoarele financiare (ex: Yahoo Finance), fără a necesita aplicația TWS deschisă.

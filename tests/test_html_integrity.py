@@ -215,8 +215,12 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("id='brokerTotalsHistoryButton'", analysis_content)
         self.assertIn('>Evoluție</button>', analysis_content)
         self.assertIn('openBrokerTotalsDetail', content)
+        self.assertIn('parseIBKRNavHistory', content)
+        self.assertIn("import ibkr_web_api", content)
+        self.assertIn("ibkr_web_api.sync_account_snapshot()", content)
         self.assertIn("label:'Valoare totală'", content)
         self.assertIn("label:'Cash total'", content)
+        self.assertIn("label:'NAV IBKR'", content)
         self.assertIn('window.close();', content)
 
     def test_portfolio_auth_is_remembered_implicitly_for_thirty_days(self):
