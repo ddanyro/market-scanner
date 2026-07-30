@@ -1,35 +1,66 @@
-"""Web push pentru tranzițiile noi în starea „Cumpărare acum”."""
+"""Web push Firebase pentru tranzițiile noi în starea „Cumpărare acum”."""
 
 import argparse
 import datetime
 import json
 import os
-import time
-import uuid
 
 import requests
 
 
-ONESIGNAL_NOTIFICATIONS_URL = "https://api.onesignal.com/notifications"
+FCM_SCOPE = "https://www.googleapis.com/auth/firebase.messaging"
+FCM_SEND_URL = "https://fcm.googleapis.com/v1/projects/{project_id}/messages:send"
 BUY_NOW_VERDICT = "Candidat valid"
-STATE_VERSION = 1
+STATE_VERSION = 2
 
 
 def _normalized_symbol(value):
     return str(value or "").strip().upper()
 
 
-def _subscription_ids(value):
-    identifiers = []
-    for raw_identifier in str(value or "").split(","):
-        raw_identifier = raw_identifier.strip()
-        if not raw_identifier:
+def _registration_tokens(value):
+    """Normalizează lista de tokenuri FCM fără a le publica în loguri."""
+    tokens = []
+    raw_value = value
+    if isinstance(value, (list, tuple, set)):
+        raw_value = "\n".join(str(item or "") for item in value)
+    for raw_token in str(raw_value or "").replace(",", "\n").splitlines():
+        token = raw_token.strip()
+        if len(token) < 40 or any(character.isspace() for character in token):
             continue
+        if token not in tokens:
+            tokens.append(token)
+    return tokens
+
+
+def _service_account_info(value):
+    if isinstance(value, dict):
+        info = dict(value)
+    else:
         try:
-            identifiers.append(str(uuid.UUID(raw_identifier)))
-        except (ValueError, AttributeError, TypeError):
-            continue
-    return identifiers
+            info = json.loads(str(value or ""))
+        except (TypeError, ValueError, json.JSONDecodeError):
+            return {}
+    if not isinstance(info, dict):
+        return {}
+    if not info.get("project_id") or not info.get("private_key"):
+        return {}
+    if not info.get("client_email"):
+        return {}
+    return info
+
+
+def _firebase_access_token(service_account_info):
+    """Obține un token OAuth scurt folosind biblioteca oficială Google."""
+    from google.auth.transport.requests import Request
+    from google.oauth2 import service_account
+
+    credentials = service_account.Credentials.from_service_account_info(
+        service_account_info,
+        scopes=[FCM_SCOPE],
+    )
+    credentials.refresh(Request())
+    return credentials.token
 
 
 def immediate_buy_symbols(result, candidates):
@@ -43,10 +74,7 @@ def immediate_buy_symbols(result, candidates):
     for recommendation in (result or {}).get("buy_recommendations", []):
         symbol = _normalized_symbol(recommendation.get("symbol"))
         candidate = candidates_by_symbol.get(symbol)
-        if (
-            not candidate
-            or recommendation.get("verdict") != BUY_NOW_VERDICT
-        ):
+        if not candidate or recommendation.get("verdict") != BUY_NOW_VERDICT:
             continue
         filters_allow_action = (
             not candidate.get("requires_watchlist_filters", True)
@@ -61,97 +89,75 @@ def buy_now_message(symbol):
     return f"Ordin de cumpărare acum: {_normalized_symbol(symbol)}."
 
 
-def _event_idempotency_key(symbol, event_token):
-    event_identity = (
-        f"market-scanner:buy-now:{_normalized_symbol(symbol)}:"
-        f"{str(event_token or 'current')}"
-    )
-    return str(uuid.uuid5(uuid.NAMESPACE_URL, event_identity))
-
-
-def _send_onesignal_notification(
+def _send_firebase_notification(
     symbol,
-    app_id,
-    api_key,
+    registration_token,
+    project_id,
+    access_token,
     site_url,
-    event_token,
     post,
-    subscription_ids=None,
 ):
     message = buy_now_message(symbol)
     payload = {
-        "app_id": app_id,
-        "target_channel": "push",
-        "headings": {
-            "en": "Market Scanner",
-            "ro": "Market Scanner",
-        },
-        "contents": {
-            "en": message,
-            "ro": message,
-        },
-        "name": f"buy-now-{_normalized_symbol(symbol)}",
-        "idempotency_key": _event_idempotency_key(symbol, event_token),
+        "message": {
+            "token": registration_token,
+            "notification": {
+                "title": "Market Scanner",
+                "body": message,
+            },
+            "data": {
+                "symbol": _normalized_symbol(symbol),
+                "kind": "buy_now",
+            },
+            "webpush": {
+                "headers": {
+                    "Urgency": "high",
+                    "TTL": "3600",
+                },
+                "fcm_options": {"link": site_url},
+            },
+        }
     }
-    if subscription_ids:
-        payload["include_subscription_ids"] = list(subscription_ids)
-    else:
-        payload["included_segments"] = ["Subscribed Users"]
-    if site_url:
-        payload["url"] = site_url
     response = post(
-        ONESIGNAL_NOTIFICATIONS_URL,
+        FCM_SEND_URL.format(project_id=project_id),
         headers={
-            "Authorization": f"Key {api_key}",
-            "Content-Type": "application/json",
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json; UTF-8",
         },
         json=payload,
         timeout=15,
     )
     response.raise_for_status()
     response_payload = response.json()
-    notification_id = response_payload.get("id")
-    if not notification_id:
-        response_errors = response_payload.get("errors")
-        error_detail = (
-            f" Detalii OneSignal: {str(response_errors)[:300]}."
-            if response_errors
-            else ""
-        )
-        raise RuntimeError(
-            "OneSignal nu a găsit niciun abonament web push activ."
-            + error_detail
-        )
-    return str(notification_id)
+    message_id = response_payload.get("name")
+    if not message_id:
+        raise RuntimeError("Firebase nu a returnat ID-ul mesajului.")
+    return str(message_id)
 
 
-def _onesignal_delivery_report(
-    notification_id,
-    app_id,
-    api_key,
-    get,
+def _delivery_configuration(
+    service_account_json=None,
+    registration_tokens=None,
+    access_token_factory=None,
 ):
-    """Citește rezultatul efectiv al livrării unei notificări OneSignal."""
-    response = get(
-        f"{ONESIGNAL_NOTIFICATIONS_URL}/{notification_id}",
-        headers={"Authorization": f"Key {api_key}"},
-        params={"app_id": app_id},
-        timeout=15,
+    service_account_info = _service_account_info(
+        service_account_json
+        if service_account_json is not None
+        else os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON")
     )
-    response.raise_for_status()
-    payload = response.json()
-    return {
-        key: payload.get(key)
-        for key in (
-            "successful",
-            "received",
-            "failed",
-            "errored",
-            "remaining",
-            "completed_at",
-            "platform_delivery_stats",
-        )
-    }
+    tokens = _registration_tokens(
+        registration_tokens
+        if registration_tokens is not None
+        else os.environ.get("FIREBASE_REGISTRATION_TOKENS")
+    )
+    if not service_account_info or not tokens:
+        return {}, [], ""
+    token_factory = access_token_factory or _firebase_access_token
+    return (
+        service_account_info,
+        tokens,
+        str(token_factory(service_account_info) or "").strip(),
+    )
 
 
 def send_new_buy_now_notifications(
@@ -159,77 +165,82 @@ def send_new_buy_now_notifications(
     result,
     candidates,
     event_token=None,
-    app_id=None,
-    api_key=None,
+    service_account_json=None,
+    registration_tokens=None,
     site_url=None,
     post=None,
+    access_token_factory=None,
     now=None,
-    subscription_ids=None,
 ):
-    """Trimite o singură alertă la intrarea unui simbol în „Cumpărare acum”."""
+    """Trimite o singură alertă FCM la intrarea în „Cumpărare acum”."""
+    del event_token  # Păstrat în semnătură pentru compatibilitatea apelurilor.
     previous_state = (
         dict(previous_state) if isinstance(previous_state, dict) else {}
     )
     current_symbols = set(immediate_buy_symbols(result, candidates))
-    previously_notified = {
-        _normalized_symbol(symbol)
-        for symbol in previous_state.get("notified_active_symbols", [])
-        if _normalized_symbol(symbol)
-    }
+    previously_notified = (
+        {
+            _normalized_symbol(symbol)
+            for symbol in previous_state.get("notified_active_symbols", [])
+            if _normalized_symbol(symbol)
+        }
+        if previous_state.get("provider") == "firebase"
+        else set()
+    )
     still_notified = previously_notified & current_symbols
     pending_symbols = sorted(current_symbols - still_notified)
-
-    app_id = str(app_id or os.environ.get("ONESIGNAL_APP_ID") or "").strip()
-    api_key = str(
-        api_key or os.environ.get("ONESIGNAL_API_KEY") or ""
-    ).strip()
     site_url = str(
         site_url
-        or os.environ.get("ONESIGNAL_SITE_URL")
+        or os.environ.get("FIREBASE_SITE_URL")
         or "https://ddanyro.github.io/market-scanner/"
     ).strip()
     post = post or requests.post
     now = now or datetime.datetime.now(datetime.timezone.utc)
-    if subscription_ids is None:
-        subscription_ids = _subscription_ids(
-            os.environ.get("ONESIGNAL_SUBSCRIPTION_IDS")
-        )
-    else:
-        subscription_ids = _subscription_ids(
-            ",".join(subscription_ids)
-            if isinstance(subscription_ids, (list, tuple, set))
-            else subscription_ids
-        )
-    delivered_symbols = []
     errors = {}
+    delivered_symbols = []
 
-    configured = bool(app_id and api_key)
+    try:
+        account, tokens, access_token = _delivery_configuration(
+            service_account_json,
+            registration_tokens,
+            access_token_factory,
+        )
+    except Exception as exc:
+        account, tokens, access_token = {}, [], ""
+        errors["configuration"] = str(exc)[:500]
+    configured = bool(account and tokens and access_token)
+
     if configured:
+        project_id = str(account["project_id"])
         for symbol in pending_symbols:
-            try:
-                _send_onesignal_notification(
-                    symbol,
-                    app_id,
-                    api_key,
-                    site_url,
-                    event_token,
-                    post,
-                    subscription_ids=subscription_ids,
-                )
+            token_errors = []
+            sent_count = 0
+            for registration_token in tokens:
+                try:
+                    _send_firebase_notification(
+                        symbol,
+                        registration_token,
+                        project_id,
+                        access_token,
+                        site_url,
+                        post,
+                    )
+                    sent_count += 1
+                except Exception as exc:
+                    token_errors.append(str(exc)[:300])
+            if sent_count:
                 delivered_symbols.append(symbol)
                 still_notified.add(symbol)
-            except Exception as exc:
-                errors[symbol] = str(exc)[:500]
+            if token_errors:
+                errors[symbol] = token_errors
 
     state_core = {
         "version": STATE_VERSION,
+        "provider": "firebase",
         "current_symbols": sorted(current_symbols),
         "notified_active_symbols": sorted(still_notified),
     }
-    previous_core = {
-        key: previous_state.get(key)
-        for key in state_core
-    }
+    previous_core = {key: previous_state.get(key) for key in state_core}
     if state_core != previous_core:
         state_core["updated_at"] = now.isoformat()
     elif previous_state.get("updated_at"):
@@ -244,11 +255,12 @@ def send_new_buy_now_notifications(
                 state_core[key] = previous_state[key]
 
     diagnostic = {
+        "provider": "firebase",
         "status": (
             "configuration_missing"
             if not configured
             else "failed"
-            if errors
+            if errors and not delivered_symbols
             else "sent"
             if delivered_symbols
             else "no_new_orders"
@@ -256,6 +268,7 @@ def send_new_buy_now_notifications(
         "current_symbols": sorted(current_symbols),
         "pending_symbols": pending_symbols,
         "delivered_symbols": delivered_symbols,
+        "target_count": len(tokens),
         "errors": errors,
     }
     return state_core, diagnostic
@@ -268,9 +281,7 @@ def retry_cached_buy_now_notifications(
     """Reîncearcă imediat semnalele BUY restante din ultimul cache valid."""
     with open(state_path, "r", encoding="utf-8") as handle:
         dashboard_state = json.load(handle)
-    cached_analysis = (
-        dashboard_state.get("last_portfolio_ai_analysis") or {}
-    )
+    cached_analysis = dashboard_state.get("last_portfolio_ai_analysis") or {}
     result = cached_analysis.get("result") or {}
     candidates = cached_analysis.get("buy_candidates") or []
     previous_state = dashboard_state.get("buy_now_push_state") or {}
@@ -284,111 +295,83 @@ def retry_cached_buy_now_notifications(
     if next_state != previous_state:
         dashboard_state["buy_now_push_state"] = next_state
         with open(state_path, "w", encoding="utf-8") as handle:
-            json.dump(
-                dashboard_state,
-                handle,
-                ensure_ascii=False,
-                indent=2,
-            )
+            json.dump(dashboard_state, handle, ensure_ascii=False, indent=2)
             handle.write("\n")
     return diagnostic
 
 
 def send_test_notification(
     symbol="TEST",
-    subscription_id=None,
-    app_id=None,
-    api_key=None,
+    registration_token=None,
+    service_account_json=None,
     site_url=None,
     post=None,
-    get=None,
-    verify_delivery=False,
-    sleep=None,
+    access_token_factory=None,
     now=None,
 ):
-    """Trimite un push de test independent de recomandările din cache."""
+    """Trimite un push FCM de test independent de recomandările din cache."""
     symbol = _normalized_symbol(symbol) or "TEST"
-    app_id = str(
-        app_id or os.environ.get("ONESIGNAL_APP_ID") or ""
-    ).strip()
-    api_key = str(
-        api_key or os.environ.get("ONESIGNAL_API_KEY") or ""
-    ).strip()
-    site_url = str(
-        site_url
-        or os.environ.get("ONESIGNAL_SITE_URL")
-        or "https://ddanyro.github.io/market-scanner/"
-    ).strip()
-    if not app_id or not api_key:
-        return {
-            "status": "configuration_missing",
-            "symbol": symbol,
-            "notification_id": None,
-            "error": "Lipsesc ONESIGNAL_APP_ID sau ONESIGNAL_API_KEY.",
-        }
     now = now or datetime.datetime.now(datetime.timezone.utc)
-    subscription_ids = _subscription_ids(
-        subscription_id
-        or os.environ.get("ONESIGNAL_SUBSCRIPTION_IDS")
-    )
-    if subscription_id and not subscription_ids:
-        return {
-            "status": "invalid_subscription_id",
-            "symbol": symbol,
-            "notification_id": None,
-            "error": "Subscription ID-ul OneSignal nu este un UUID valid.",
-        }
     try:
-        notification_id = _send_onesignal_notification(
-            symbol,
-            app_id,
-            api_key,
-            site_url,
-            f"manual-test:{now.isoformat()}",
-            post or requests.post,
-            subscription_ids=subscription_ids,
+        account, tokens, access_token = _delivery_configuration(
+            service_account_json,
+            registration_token,
+            access_token_factory,
         )
     except Exception as exc:
         return {
-            "status": "failed",
+            "provider": "firebase",
+            "status": "configuration_invalid",
             "symbol": symbol,
-            "notification_id": None,
+            "message_ids": [],
             "error": str(exc)[:500],
         }
-    diagnostic = {
-        "status": "sent",
-        "symbol": symbol,
-        "notification_id": notification_id,
-        "error": None,
-    }
-    if verify_delivery:
+    if not account or not tokens or not access_token:
+        return {
+            "provider": "firebase",
+            "status": "configuration_missing",
+            "symbol": symbol,
+            "message_ids": [],
+            "error": (
+                "Lipsesc FIREBASE_SERVICE_ACCOUNT_JSON sau "
+                "FIREBASE_REGISTRATION_TOKENS."
+            ),
+        }
+    site_url = str(
+        site_url
+        or os.environ.get("FIREBASE_SITE_URL")
+        or "https://ddanyro.github.io/market-scanner/"
+    ).strip()
+    message_ids = []
+    errors = []
+    for token in tokens:
         try:
-            (sleep or time.sleep)(5)
-            delivery = _onesignal_delivery_report(
-                notification_id,
-                app_id,
-                api_key,
-                get or requests.get,
-            )
-            diagnostic["delivery"] = delivery
-            if (
-                delivery.get("successful") == 0
-                and not delivery.get("remaining")
-            ):
-                diagnostic["status"] = "not_delivered"
-                diagnostic["error"] = (
-                    "OneSignal a acceptat mesajul, dar nu l-a livrat "
-                    "niciunui abonament activ."
+            message_ids.append(
+                _send_firebase_notification(
+                    symbol,
+                    token,
+                    str(account["project_id"]),
+                    access_token,
+                    site_url,
+                    post or requests.post,
                 )
+            )
         except Exception as exc:
-            diagnostic["delivery"] = None
-            diagnostic["delivery_check_error"] = str(exc)[:500]
-    return diagnostic
+            errors.append(str(exc)[:300])
+    return {
+        "provider": "firebase",
+        "status": "sent" if message_ids else "failed",
+        "symbol": symbol,
+        "message_ids": message_ids,
+        "target_count": len(tokens),
+        "error": "; ".join(errors) if errors else None,
+        "sent_at": now.isoformat(),
+    }
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Trimite sau reîncearcă alerte BUY prin OneSignal."
+        description="Trimite sau reîncearcă alerte BUY prin Firebase."
     )
     action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument(
@@ -399,28 +382,22 @@ def main():
     action.add_argument(
         "--test-symbol",
         metavar="SYMBOL",
-        help="Trimite imediat un push de test pentru simbolul indicat.",
+        help="Trimite imediat un push Firebase de test.",
     )
     parser.add_argument(
-        "--subscription-id",
-        help="Țintește direct un Subscription ID OneSignal.",
-    )
-    parser.add_argument(
-        "--verify-delivery",
-        action="store_true",
-        help="Verifică și rezultatul efectiv al livrării OneSignal.",
+        "--registration-token",
+        help="Țintește direct un token de înregistrare FCM.",
     )
     args = parser.parse_args()
     if args.retry_state:
         diagnostic = retry_cached_buy_now_notifications(args.retry_state)
-        prefix = "Retry web push BUY: "
+        prefix = "Retry Firebase BUY: "
     else:
         diagnostic = send_test_notification(
             args.test_symbol,
-            subscription_id=args.subscription_id,
-            verify_delivery=args.verify_delivery,
+            registration_token=args.registration_token,
         )
-        prefix = "Test web push BUY: "
+        prefix = "Test Firebase BUY: "
     print(prefix + json.dumps(diagnostic, ensure_ascii=False))
 
 

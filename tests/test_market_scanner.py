@@ -2556,29 +2556,45 @@ class TestIndicatorLogic(unittest.TestCase):
 class TestHTMLGeneration(unittest.TestCase):
     """Test HTML generation functions."""
 
-    def test_onesignal_control_is_mounted_inside_navigation_menu(self):
-        html = market_scanner._onesignal_web_push_html(
-            '12345678-1234-1234-1234-123456789abc'
+    def _firebase_html(self, worker_path):
+        return market_scanner._firebase_web_push_html(
+            {
+                'apiKey': 'public-api-key',
+                'projectId': 'market-scanner-test',
+                'messagingSenderId': '123456789',
+                'appId': '1:123456789:web:abcdef',
+            },
+            'BPublicVapidKey_abcdefghijklmnopqrstuvwxyz0123456789',
+            worker_path=worker_path,
         )
+
+    def test_firebase_control_is_mounted_inside_navigation_menu(self):
+        with tempfile.TemporaryDirectory() as directory:
+            html = self._firebase_html(
+                os.path.join(directory, 'firebase-messaging-sw.js')
+            )
         self.assertIn("document.getElementById('navMenu')", html)
         self.assertIn("button.className = 'menu-item push-menu-item'", html)
         self.assertIn('menu.appendChild(button)', html)
         self.assertNotIn('document.body.appendChild(button)', html)
         self.assertNotIn('position: fixed', html)
 
-    def test_onesignal_menu_control_preserves_subscription_states(self):
-        html = market_scanner._onesignal_web_push_html(
-            '12345678-1234-1234-1234-123456789abc'
-        )
+    def test_firebase_menu_control_preserves_subscription_states(self):
+        with tempfile.TemporaryDirectory() as directory:
+            worker_path = os.path.join(
+                directory, 'firebase-messaging-sw.js'
+            )
+            html = self._firebase_html(worker_path)
+            with open(worker_path, 'r', encoding='utf-8') as handle:
+                worker = handle.read()
         self.assertIn('Activează alertele BUY', html)
         self.assertIn('Alerte BUY active', html)
         self.assertIn('Instalează pentru alerte BUY', html)
-        self.assertIn('Alerte BUY – reconectare', html)
-        self.assertIn('PushSubscription.optIn()', html)
-        self.assertIn('PushSubscription.optOut()', html)
-        self.assertIn('validBuyNowPushSubscriptionId', html)
-        self.assertIn('waitForBuyNowPushSubscription', html)
-        self.assertIn(':v2', html)
+        self.assertIn('messaging.getToken', html)
+        self.assertIn('messaging.deleteToken', html)
+        self.assertIn('Copiază tokenul Firebase', html)
+        self.assertIn('firebase.messaging();', worker)
+        self.assertNotIn('private_key', worker)
     
     def test_html_escaping(self):
         """Test HTML special characters are handled."""
