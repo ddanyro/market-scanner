@@ -333,6 +333,149 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(tradeville['summary']['RelativeProfit'], 12983.64)
         self.assertNotIn('BuyingPower', tradeville['summary'])
 
+    def test_single_ibkr_account_label_is_normalized(self):
+        account_data = {
+            'fetched_at': datetime.now().astimezone().isoformat(),
+            'accounts': [{
+                'label': 'IBKR 1',
+                'source': 'IBKR TWS',
+                'base_currency': 'EUR',
+                'summary': {
+                    'NetLiquidation': 100000,
+                    'TotalCashValue': 40000,
+                },
+            }],
+        }
+        normalized = market_scanner_analysis._normalize_tws_account_data(
+            account_data
+        )
+        self.assertEqual(normalized['accounts'][0]['label'], 'IBKR')
+
+    def test_combined_broker_totals_sum_nav_and_cash_once(self):
+        account_data = {
+            'accounts': [
+                {
+                    'label': 'IBKR',
+                    'source': 'IBKR TWS',
+                    'base_currency': 'EUR',
+                    'summary': {
+                        'NetLiquidation': 89043.59,
+                        'TotalCashValue': 85949.15,
+                    },
+                },
+                {
+                    'label': 'Tradeville',
+                    'source': 'Tradeville / snapshot manual',
+                    'base_currency': 'EUR',
+                    'summary': {
+                        'NetLiquidation': 72778.09,
+                        'TotalCashValue': 48438.86,
+                    },
+                },
+            ],
+        }
+        totals = market_scanner_analysis._combined_broker_totals(account_data)
+        self.assertEqual(totals['currency'], 'EUR')
+        self.assertEqual(totals['net_liquidation'], 161821.68)
+        self.assertEqual(totals['total_cash'], 134388.01)
+
+    def test_combined_broker_totals_reject_mixed_base_currencies(self):
+        account_data = {
+            'accounts': [
+                {
+                    'label': 'IBKR', 'source': 'IBKR TWS',
+                    'base_currency': 'USD',
+                    'summary': {
+                        'NetLiquidation': 100, 'TotalCashValue': 50,
+                    },
+                },
+                {
+                    'label': 'Tradeville', 'source': 'Tradeville manual',
+                    'base_currency': 'EUR',
+                    'summary': {
+                        'NetLiquidation': 100, 'TotalCashValue': 50,
+                    },
+                },
+            ],
+        }
+        self.assertIsNone(
+            market_scanner_analysis._combined_broker_totals(account_data)
+        )
+
+    def test_broker_totals_history_deduplicates_intraday_and_keeps_new_days(self):
+        account_data = {
+            'accounts': [
+                {
+                    'label': 'IBKR', 'source': 'IBKR TWS',
+                    'base_currency': 'EUR',
+                    'summary': {
+                        'NetLiquidation': 100, 'TotalCashValue': 60,
+                    },
+                },
+                {
+                    'label': 'Tradeville', 'source': 'Tradeville manual',
+                    'base_currency': 'EUR',
+                    'summary': {
+                        'NetLiquidation': 200, 'TotalCashValue': 80,
+                    },
+                },
+            ],
+        }
+        history = market_scanner_analysis.update_broker_totals_history(
+            [], account_data, observed_at='2026-07-30T09:00:00+03:00'
+        )
+        history = market_scanner_analysis.update_broker_totals_history(
+            history, account_data, observed_at='2026-07-30T12:00:00+03:00'
+        )
+        self.assertEqual(len(history), 1)
+        self.assertEqual(history[0]['timestamp'], '2026-07-30T12:00:00+03:00')
+        history = market_scanner_analysis.update_broker_totals_history(
+            history, account_data, observed_at='2026-07-31T09:00:00+03:00'
+        )
+        self.assertEqual(len(history), 2)
+        self.assertEqual(history[-1]['net_liquidation'], 300)
+        self.assertEqual(history[-1]['total_cash'], 140)
+
+    def test_raw_balance_renderer_adds_combined_card_and_history_chart(self):
+        snapshot = {
+            'as_of': '2026-07-30T10:00:00+03:00',
+            'portfolio': {},
+            'positions': [],
+            'account_liquidity': {
+                'privacy_mode': 'exact',
+                'accounts': [
+                    {
+                        'label': 'IBKR', 'source': 'IBKR TWS',
+                        'base_currency': 'EUR',
+                        'summary': {
+                            'NetLiquidation': 100,
+                            'TotalCashValue': 60,
+                        },
+                        'cash_by_currency': {},
+                    },
+                    {
+                        'label': 'Tradeville',
+                        'source': 'Tradeville manual',
+                        'base_currency': 'EUR',
+                        'summary': {
+                            'NetLiquidation': 200,
+                            'TotalCashValue': 80,
+                        },
+                        'cash_by_currency': {},
+                    },
+                ],
+                'combined_history': [],
+            },
+        }
+        rendered = market_scanner_analysis._render_portfolio_ai_html(snapshot)
+        self.assertIn('Total IBKR + Tradeville · EUR', rendered)
+        self.assertIn('Valoare totală', rendered)
+        self.assertIn('300.00 EUR', rendered)
+        self.assertIn('Cash total', rendered)
+        self.assertIn('140.00 EUR', rendered)
+        self.assertIn("id='brokerTotalsMiniChart'", rendered)
+        self.assertIn('openBrokerTotalsDetail(this)', rendered)
+
     def test_portfolio_ai_cache_changes_with_broker_snapshot_not_age(self):
         base = {
             'portfolio': {'position_count': 1},

@@ -4800,6 +4800,7 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 const portfolioAi = document.getElementById('portfolio-ai-container');
                 if (portfolioAi) {
                     portfolioAi.innerHTML = data.portfolio_ai_html || '';
+                    window.requestAnimationFrame(initBrokerTotalsMiniChart);
                 }
                 const buyRecommendations = document.getElementById('buy-recommendations-container');
                 if (buyRecommendations) {
@@ -4881,6 +4882,113 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                         }
                     });
                 });
+            }
+
+            function parseBrokerTotalsHistory(element) {
+                if (!element) return [];
+                try {
+                    const parsed = JSON.parse(element.dataset.history || '[]');
+                    return Array.isArray(parsed) ? parsed.filter(item =>
+                        Number.isFinite(Number(item.net_liquidation)) &&
+                        Number.isFinite(Number(item.total_cash)) &&
+                        String(item.timestamp || '').length > 0
+                    ) : [];
+                } catch (error) {
+                    console.error('Istoricul agregat al brokerilor este invalid.', error);
+                    return [];
+                }
+            }
+
+            function initBrokerTotalsMiniChart() {
+                const canvas = document.getElementById('brokerTotalsMiniChart');
+                if (!canvas || typeof Chart === 'undefined') return;
+                const history = parseBrokerTotalsHistory(canvas);
+                if (!history.length) return;
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: history.map(item => item.timestamp),
+                        datasets: [{
+                            data: history.map(item => Number(item.net_liquidation)),
+                            borderColor: '#7760f9',
+                            backgroundColor: 'rgba(119,96,249,.10)',
+                            borderWidth: 2,
+                            fill: true,
+                            pointRadius: history.length === 1 ? 3 : 0,
+                            pointHoverRadius: 4,
+                            tension: .2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: true }
+                        },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false }
+                        }
+                    }
+                });
+            }
+
+            function openBrokerTotalsDetail(element) {
+                const history = parseBrokerTotalsHistory(element);
+                if (!history.length) return;
+                const rawCurrency = String(element.dataset.currency || 'EUR').toUpperCase();
+                const currency = /^[A-Z]{3}$/.test(rawCurrency) ? rawCurrency : 'EUR';
+                const popup = window.open('', '_blank');
+                if (!popup) {
+                    alert('Browserul a blocat fereastra nouă. Permite pop-up-uri pentru acest site.');
+                    return;
+                }
+                const payload = JSON.stringify(history).replace(/</g, '\\u003c');
+                const latest = history[history.length - 1];
+                const formatMoney = value => Number(value).toLocaleString('ro-RO', {
+                    style: 'currency',
+                    currency: currency,
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                popup.document.open();
+                popup.document.write(`<!DOCTYPE html>
+<html lang="ro"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Istoric total IBKR + Tradeville</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f6f7fb;color:#121827;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.page{max-width:1500px;margin:0 auto;padding:28px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:20px}
+h1{margin:0;font-size:clamp(27px,4vw,44px)}.sub{color:#7760f9;font-weight:700;margin-top:6px}.close{border:1px solid #dfe3ea;background:#fff;padding:10px 16px;border-radius:10px;cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(180px,1fr));gap:14px;margin-bottom:18px}.stat,.panel{background:#fff;border:1px solid #e1e5ec;border-radius:16px;box-shadow:0 4px 18px rgba(15,23,42,.05)}
+.stat{padding:18px}.label{font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.06em}.value{font-size:clamp(23px,4vw,34px);font-weight:750;margin-top:7px}
+.panel{padding:20px}.chart-wrap{height:min(70vh,720px);min-height:430px;position:relative}.chart-wrap canvas{width:100%!important;height:100%!important}.note{margin:12px 0 0;color:#6b7280;font-size:12px}
+@media(max-width:640px){.page{padding:14px}.stats{grid-template-columns:1fr}.panel{padding:14px}.chart-wrap{height:58vh;min-height:360px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"><\\/script>
+</head><body><main class="page">
+<div class="top"><div><h1>Total IBKR + Tradeville</h1><div class="sub">Istoric valoare totală și cash · ${currency}</div></div><button class="close" onclick="window.close()">Închide</button></div>
+<section class="stats"><div class="stat"><div class="label">Valoare totală</div><div class="value">${formatMoney(latest.net_liquidation)}</div></div>
+<div class="stat"><div class="label">Cash total</div><div class="value">${formatMoney(latest.total_cash)}</div></div></section>
+<section class="panel"><div class="chart-wrap"><canvas id="brokerTotalsChart"></canvas></div>
+<p class="note">Istoricul începe din momentul activării acestei funcții și folosește numai snapshoturile IBKR și Tradeville disponibile în aceeași monedă de bază.</p></section>
+</main><script>
+const history=${payload};
+const currency=${JSON.stringify(currency)};
+const money=value=>Number(value).toLocaleString('ro-RO',{style:'currency',currency:currency,maximumFractionDigits:2});
+const date=value=>new Intl.DateTimeFormat('ro-RO',{dateStyle:'short',timeStyle:'short'}).format(new Date(value));
+new Chart(document.getElementById('brokerTotalsChart'),{
+type:'line',
+data:{labels:history.map(item=>date(item.timestamp)),datasets:[
+{label:'Valoare totală',data:history.map(item=>Number(item.net_liquidation)),borderColor:'#7760f9',backgroundColor:'rgba(119,96,249,.08)',borderWidth:3,pointRadius:history.length===1?4:2,pointHoverRadius:5,tension:.18,fill:false},
+{label:'Cash total',data:history.map(item=>Number(item.total_cash)),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.08)',borderWidth:3,pointRadius:history.length===1?4:2,pointHoverRadius:5,tension:.18,fill:false}
+]},
+options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top'},tooltip:{callbacks:{label:context=>context.dataset.label+': '+money(context.parsed.y)}}},scales:{x:{ticks:{maxRotation:45,minRotation:0,autoSkip:true,maxTicksLimit:10}},y:{ticks:{callback:value=>money(value)}}}}
+});
+window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();window.close();}});
+<\\/script></body></html>`);
+                popup.document.close();
             }
             
             window.addEventListener('DOMContentLoaded', function () {
@@ -5469,13 +5577,13 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             tws_account_data = dict(tws_account_data)
             tws_account_data['source'] = 'IBKR TWS + Tradeville manual'
             ibkr_accounts = []
-            for index, raw_account in enumerate(tws_account_data.get('accounts', []), start=1):
+            raw_ibkr_accounts = list(tws_account_data.get('accounts', []))
+            for index, raw_account in enumerate(raw_ibkr_accounts, start=1):
                 ibkr_account = dict(raw_account)
-                old_label = str(ibkr_account.get('label', '')).strip()
                 ibkr_account['label'] = (
-                    'IBKR' if len(tws_account_data.get('accounts', [])) == 1
+                    'IBKR' if len(raw_ibkr_accounts) == 1
                     else f'IBKR {index}'
-                ) if not old_label or old_label.lower().startswith('cont ') else old_label
+                )
                 ibkr_account['source'] = 'IBKR TWS'
                 ibkr_accounts.append(ibkr_account)
             tws_account_data['accounts'] = (
@@ -5490,6 +5598,44 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
             ]
             if timestamps:
                 tws_account_data['fetched_at'] = min(timestamps)
+
+    # Istoricul agregat rămâne criptat în starea publicată. Totalul este
+    # disponibil numai când există atât IBKR, cât și Tradeville în aceeași
+    # monedă de bază, astfel încât cash-ul să nu fie dublat sau amestecat.
+    broker_totals_history = []
+    encrypted_broker_history = (
+        (full_state or {}).get('broker_totals_history_enc')
+    )
+    if encrypted_broker_history and password:
+        try:
+            broker_totals_history = json.loads(
+                market_security.decrypt_from_js(
+                    encrypted_broker_history,
+                    password,
+                )
+            )
+        except (ValueError, TypeError, KeyError):
+            broker_totals_history = []
+    previous_broker_totals_history = list(broker_totals_history)
+    broker_totals_history = analysis.update_broker_totals_history(
+        broker_totals_history,
+        tws_account_data,
+    )
+    if broker_totals_history and tws_account_data:
+        tws_account_data = dict(tws_account_data)
+        tws_account_data['combined_history'] = broker_totals_history
+        if full_state is not None and password:
+            full_state['broker_totals_history_enc'] = json.loads(
+                market_security.encrypt_for_js(
+                    json.dumps(
+                        broker_totals_history,
+                        ensure_ascii=False,
+                    ),
+                    password,
+                )
+            )
+            if broker_totals_history != previous_broker_totals_history:
+                market_utils.save_state(full_state)
     cached_portfolio_ai = full_state.get('last_portfolio_ai_analysis')
     cached_portfolio_evidence = full_state.get('last_portfolio_ai_evidence')
     portfolio_market_context = analysis.build_portfolio_market_context(

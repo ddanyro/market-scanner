@@ -629,6 +629,118 @@ def _format_execution_money(value, currency):
     return f"{formatted} {code}"
 
 
+def _broker_account_kind(account):
+    """Clasifică sursa contului fără a confunda Tradeville cu IBKR."""
+    identity = ' '.join([
+        str((account or {}).get('label', '')),
+        str((account or {}).get('source', '')),
+    ]).lower()
+    if 'tradeville' in identity:
+        return 'tradeville'
+    if 'ibkr' in identity or 'interactive brokers' in identity or 'tws' in identity:
+        return 'ibkr'
+    return ''
+
+
+def _combined_broker_totals(account_data):
+    """Adună NAV și cash numai pentru conturi IBKR + Tradeville compatibile."""
+    if not isinstance(account_data, dict):
+        return None
+    if account_data.get('privacy_mode') == 'bands_only':
+        return None
+    selected = {'ibkr': [], 'tradeville': []}
+    for account in account_data.get('accounts', []):
+        if not isinstance(account, dict):
+            continue
+        kind = _broker_account_kind(account)
+        if kind in selected:
+            selected[kind].append(account)
+    if not selected['ibkr'] or not selected['tradeville']:
+        return None
+
+    accounts = selected['ibkr'] + selected['tradeville']
+    currencies = {
+        str(account.get('base_currency', '')).strip().upper()
+        for account in accounts
+        if str(account.get('base_currency', '')).strip()
+    }
+    if len(currencies) != 1:
+        return None
+    currency = next(iter(currencies))
+    if currency in {'', 'BASE'}:
+        return None
+
+    total_value = 0.0
+    total_cash = 0.0
+    for account in accounts:
+        summary = account.get('summary', {})
+        net_liquidation = _safe_number(
+            summary.get('NetLiquidation'), None
+        )
+        cash = _safe_number(summary.get('TotalCashValue'), None)
+        if net_liquidation is None or cash is None:
+            return None
+        total_value += net_liquidation
+        total_cash += cash
+    return {
+        'currency': currency,
+        'net_liquidation': round(total_value, 2),
+        'total_cash': round(total_cash, 2),
+        'account_count': len(accounts),
+    }
+
+
+def update_broker_totals_history(history, account_data, observed_at=None,
+                                 max_points=366):
+    """Păstrează istoric agregat verificabil, fără a inventa puncte lipsă."""
+    totals = _combined_broker_totals(account_data)
+    if not totals:
+        return list(history or [])
+    timestamp = (
+        str(observed_at).strip()
+        if observed_at
+        else datetime.datetime.now().astimezone().isoformat(timespec='seconds')
+    )
+    valid = []
+    for item in history or []:
+        if not isinstance(item, dict):
+            continue
+        value = _safe_number(item.get('net_liquidation'), None)
+        cash = _safe_number(item.get('total_cash'), None)
+        item_timestamp = str(item.get('timestamp', '')).strip()
+        currency = str(item.get('currency', '')).strip().upper()
+        if (
+            value is None or cash is None or not item_timestamp
+            or currency != totals['currency']
+        ):
+            continue
+        valid.append({
+            'timestamp': item_timestamp,
+            'net_liquidation': round(value, 2),
+            'total_cash': round(cash, 2),
+            'currency': currency,
+        })
+    point = {
+        'timestamp': timestamp,
+        'net_liquidation': totals['net_liquidation'],
+        'total_cash': totals['total_cash'],
+        'currency': totals['currency'],
+    }
+    if valid:
+        previous = valid[-1]
+        unchanged = (
+            previous['net_liquidation'] == point['net_liquidation']
+            and previous['total_cash'] == point['total_cash']
+        )
+        if unchanged and previous['timestamp'][:10] == timestamp[:10]:
+            valid[-1] = point
+        else:
+            valid.append(point)
+    else:
+        valid.append(point)
+    return valid[-max(1, int(max_points)):]
+
+
 def _normalize_tws_account_data(account_data, now=None):
     now = now or datetime.datetime.now(datetime.timezone.utc)
     result = {
@@ -639,6 +751,7 @@ def _normalize_tws_account_data(account_data, now=None):
         'accounts': [],
         'risk_flags': [],
         'privacy_mode': 'exact',
+        'combined_history': [],
     }
     if not isinstance(account_data, dict):
         result['risk_flags'].append('Sumarul cash/marjă TWS nu este disponibil')
@@ -658,6 +771,10 @@ def _normalize_tws_account_data(account_data, now=None):
         result['risk_flags'].append('Timestampul sumarului TWS este invalid')
 
     raw_accounts = account_data.get('accounts', [])
+    ibkr_account_count = sum(
+        1 for account in raw_accounts
+        if isinstance(account, dict) and _broker_account_kind(account) == 'ibkr'
+    )
     if result['privacy_mode'] == 'bands_only':
         raw_accounts = account_data.get('sanitized_accounts', [])
     for raw_account in raw_accounts:
@@ -719,8 +836,13 @@ def _normalize_tws_account_data(account_data, now=None):
         net_liquidation = summary.get('NetLiquidation', 0)
         total_cash = summary.get('TotalCashValue', 0)
         margin_requirement = summary.get('MaintMarginReq', 0)
+        account_label = str(
+            raw_account.get('label', f"Cont {len(result['accounts']) + 1}")
+        )
+        if _broker_account_kind(raw_account) == 'ibkr' and ibkr_account_count == 1:
+            account_label = 'IBKR'
         result['accounts'].append({
-            'label': str(raw_account.get('label', f"Cont {len(result['accounts']) + 1}")),
+            'label': account_label,
             'source': str(raw_account.get('source', account_data.get('source', result['source']))),
             'base_currency': str(raw_account.get('base_currency', 'BASE')),
             'summary': summary,
@@ -748,6 +870,10 @@ def _normalize_tws_account_data(account_data, now=None):
         result['risk_flags'].append('Datele cash/marjă TWS sunt mai vechi de 24 de ore')
     if not result['accounts']:
         result['risk_flags'].append('TWS nu a returnat un sumar de cont utilizabil')
+    result['combined_history'] = [
+        item for item in account_data.get('combined_history', [])
+        if isinstance(item, dict)
+    ][-366:]
     result['risk_flags'] = list(dict.fromkeys(result['risk_flags']))
     return result
 
@@ -2002,6 +2128,39 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
                 "<div style='display:grid;gap:5px;color:var(--text-secondary);font-size:13px;'>"
                 + ''.join(balance_rows + cash_rows) + "</div></div>"
             )
+        combined_totals = _combined_broker_totals(liquidity)
+        if combined_totals:
+            combined_history = update_broker_totals_history(
+                liquidity.get('combined_history', []),
+                liquidity,
+                observed_at=snapshot.get('as_of'),
+            )
+            history_json = html.escape(
+                json.dumps(combined_history, ensure_ascii=False),
+                quote=True,
+            )
+            currency = html.escape(combined_totals['currency'])
+            account_cards.append(
+                "<div style='background:var(--bg-white);border:2px solid var(--primary-purple);"
+                "border-radius:var(--radius-sm);padding:14px 16px;min-width:280px;flex:1;'>"
+                f"<b>Total IBKR + Tradeville · {currency}</b>"
+                "<div style='display:grid;gap:5px;color:var(--text-secondary);"
+                "font-size:13px;margin-top:10px;'>"
+                "<div style='display:flex;justify-content:space-between;gap:18px;'>"
+                "<span>Valoare totală</span>"
+                f"<b>{combined_totals['net_liquidation']:,.2f} {currency}</b></div>"
+                "<div style='display:flex;justify-content:space-between;gap:18px;'>"
+                "<span>Cash total</span>"
+                f"<b>{combined_totals['total_cash']:,.2f} {currency}</b></div></div>"
+                "<canvas id='brokerTotalsMiniChart' role='button' tabindex='0' "
+                "aria-label='Deschide istoricul valorii totale și al cash-ului' "
+                "title='Deschide istoricul valorii totale și al cash-ului' "
+                f"data-history='{history_json}' data-currency='{currency}' "
+                "style='display:block;width:100%;height:72px;margin-top:10px;cursor:pointer;' "
+                "onclick='openBrokerTotalsDetail(this)' "
+                "onkeydown=\"if(event.key==='Enter'||event.key===' '){"
+                "event.preventDefault();openBrokerTotalsDetail(this);}\"></canvas></div>"
+            )
     accounts_html = (
         "<details open style='margin:16px 0;'>"
         "<summary style='cursor:pointer;font-weight:700;color:var(--text-primary);'>"
@@ -2883,6 +3042,10 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             {'status': reason, 'message': 'Cheia OpenAI sau pozițiile nu sunt disponibile.'},
         )
 
+    request_snapshot = dict(snapshot)
+    request_liquidity = dict(snapshot.get('account_liquidity', {}))
+    request_liquidity.pop('combined_history', None)
+    request_snapshot['account_liquidity'] = request_liquidity
     request_payload = {
         'as_of': snapshot['as_of'],
         'objective': (
@@ -2983,7 +3146,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 'source_ids': ['zero sau mai mulți identificatori exacți din data.positions[].evidence'],
             }],
         },
-        'data': snapshot,
+        'data': request_snapshot,
     }
     output_schema = {
         'type': 'object',

@@ -198,7 +198,7 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("with open('tradeville_account.enc.json', 'r'", content)
         self.assertIn("'IBKR TWS + Tradeville manual'", content)
         self.assertIn("ibkr_account['source'] = 'IBKR TWS'", content)
-        self.assertIn("'IBKR' if len(tws_account_data.get('accounts', [])) == 1", content)
+        self.assertIn("'IBKR' if len(raw_ibkr_accounts) == 1", content)
         self.assertIn("Solduri brute brokeri", analysis_content)
         self.assertIn("('NetLiquidation', 'Valoare totală / NAV')", analysis_content)
         self.assertIn("('TotalCashValue', 'Cash total')", analysis_content)
@@ -209,6 +209,13 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('account_data=tws_account_data', content)
         self.assertIn('portfolio_market_context = analysis.build_portfolio_market_context(', content)
         self.assertIn('market_context=portfolio_market_context', content)
+        self.assertIn("full_state['broker_totals_history_enc']", content)
+        self.assertIn('market_security.encrypt_for_js(', content)
+        self.assertIn('initBrokerTotalsMiniChart', content)
+        self.assertIn('openBrokerTotalsDetail', content)
+        self.assertIn("label:'Valoare totală'", content)
+        self.assertIn("label:'Cash total'", content)
+        self.assertIn('window.close();', content)
 
     def test_portfolio_auth_is_remembered_implicitly_for_thirty_days(self):
         """Deblocarea este memorată criptat, fără parolă în local/session storage."""
