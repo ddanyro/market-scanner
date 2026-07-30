@@ -691,7 +691,7 @@ def _combined_broker_totals(account_data):
 
 
 def update_broker_totals_history(history, account_data, observed_at=None,
-                                 max_points=366):
+                                 max_points=1095):
     """Păstrează istoric agregat verificabil, fără a inventa puncte lipsă."""
     totals = _combined_broker_totals(account_data)
     if not totals:
@@ -732,10 +732,9 @@ def update_broker_totals_history(history, account_data, observed_at=None,
             previous['net_liquidation'] == point['net_liquidation']
             and previous['total_cash'] == point['total_cash']
         )
-        if unchanged and previous['timestamp'][:10] == timestamp[:10]:
-            valid[-1] = point
-        else:
-            valid.append(point)
+        if unchanged:
+            return valid[-max(1, int(max_points)):]
+        valid.append(point)
     else:
         valid.append(point)
     return valid[-max(1, int(max_points)):]
@@ -752,6 +751,7 @@ def _normalize_tws_account_data(account_data, now=None):
         'risk_flags': [],
         'privacy_mode': 'exact',
         'combined_history': [],
+        'nav_history': [],
     }
     if not isinstance(account_data, dict):
         result['risk_flags'].append('Sumarul cash/marjă TWS nu este disponibil')
@@ -873,7 +873,21 @@ def _normalize_tws_account_data(account_data, now=None):
     result['combined_history'] = [
         item for item in account_data.get('combined_history', [])
         if isinstance(item, dict)
-    ][-366:]
+    ][-1095:]
+    for item in account_data.get('nav_history', []):
+        if not isinstance(item, dict):
+            continue
+        value = _safe_number(item.get('nav'), None)
+        date_value = str(item.get('date', '')).strip()
+        currency = str(item.get('currency', '')).strip().upper()
+        if value is None or not date_value or not currency:
+            continue
+        result['nav_history'].append({
+            'date': date_value,
+            'nav': round(value, 2),
+            'currency': currency,
+        })
+    result['nav_history'] = result['nav_history'][-366:]
     result['risk_flags'] = list(dict.fromkeys(result['risk_flags']))
     return result
 
@@ -2140,6 +2154,15 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
                 quote=True,
             )
             currency = html.escape(combined_totals['currency'])
+            nav_history = [
+                item for item in liquidity.get('nav_history', [])
+                if str(item.get('currency', '')).upper()
+                == combined_totals['currency']
+            ]
+            nav_history_json = html.escape(
+                json.dumps(nav_history, ensure_ascii=False),
+                quote=True,
+            )
             account_cards.append(
                 "<div style='background:var(--bg-white);border:2px solid var(--primary-purple);"
                 "border-radius:var(--radius-sm);padding:14px 16px;min-width:280px;flex:1;'>"
@@ -2156,6 +2179,7 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
                 "aria-label='Deschide istoricul valorii totale și al cash-ului' "
                 "title='Deschide istoricul valorii totale și al cash-ului' "
                 f"data-history='{history_json}' data-currency='{currency}' "
+                f"data-ibkr-nav-history='{nav_history_json}' "
                 "style='display:inline-flex;align-items:center;justify-content:center;"
                 "margin-top:14px;padding:8px 16px;border:1px solid var(--primary-purple);"
                 "border-radius:8px;background:var(--primary-purple);color:#fff;"
@@ -3046,6 +3070,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
     request_snapshot = dict(snapshot)
     request_liquidity = dict(snapshot.get('account_liquidity', {}))
     request_liquidity.pop('combined_history', None)
+    request_liquidity.pop('nav_history', None)
     request_snapshot['account_liquidity'] = request_liquidity
     request_payload = {
         'as_of': snapshot['as_of'],

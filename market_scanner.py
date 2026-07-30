@@ -4898,9 +4898,26 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                 }
             }
 
+            function parseIBKRNavHistory(element) {
+                if (!element) return [];
+                try {
+                    const parsed = JSON.parse(
+                        element.dataset.ibkrNavHistory || '[]'
+                    );
+                    return Array.isArray(parsed) ? parsed.filter(item =>
+                        Number.isFinite(Number(item.nav)) &&
+                        String(item.date || '').length > 0
+                    ) : [];
+                } catch (error) {
+                    console.error('Istoricul NAV IBKR este invalid.', error);
+                    return [];
+                }
+            }
+
             function openBrokerTotalsDetail(element) {
                 const history = parseBrokerTotalsHistory(element);
                 if (!history.length) return;
+                const ibkrNavHistory = parseIBKRNavHistory(element);
                 const rawCurrency = String(element.dataset.currency || 'EUR').toUpperCase();
                 const currency = /^[A-Z]{3}$/.test(rawCurrency) ? rawCurrency : 'EUR';
                 const popup = window.open('', '_blank');
@@ -4909,6 +4926,9 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
                     return;
                 }
                 const payload = JSON.stringify(history).replace(/</g, '\\u003c');
+                const ibkrNavPayload = JSON.stringify(
+                    ibkrNavHistory
+                ).replace(/</g, '\\u003c');
                 const latest = history[history.length - 1];
                 const formatMoney = value => Number(value).toLocaleString('ro-RO', {
                     style: 'currency',
@@ -4932,23 +4952,42 @@ h1{margin:0;font-size:clamp(27px,4vw,44px)}.sub{color:#7760f9;font-weight:700;ma
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"><\\/script>
 </head><body><main class="page">
-<div class="top"><div><h1>Total IBKR + Tradeville</h1><div class="sub">Istoric valoare totală și cash · ${currency}</div></div><button class="close" onclick="window.close()">Închide</button></div>
+<div class="top"><div><h1>Total IBKR + Tradeville</h1><div class="sub">Istoric valoare totală, cash și NAV IBKR · ${currency}</div></div><button class="close" onclick="window.close()">Închide</button></div>
 <section class="stats"><div class="stat"><div class="label">Valoare totală</div><div class="value">${formatMoney(latest.net_liquidation)}</div></div>
 <div class="stat"><div class="label">Cash total</div><div class="value">${formatMoney(latest.total_cash)}</div></div></section>
 <section class="panel"><div class="chart-wrap"><canvas id="brokerTotalsChart"></canvas></div>
-<p class="note">Istoricul începe din momentul activării acestei funcții și folosește numai snapshoturile IBKR și Tradeville disponibile în aceeași monedă de bază.</p></section>
+<p class="note">Totalul și cashul combinat încep din momentul activării acestei funcții. Linia NAV IBKR folosește istoricul real furnizat de PortfolioAnalyst; Tradeville este inclus numai în punctele pentru care există snapshot.</p></section>
 </main><script>
 const history=${payload};
+const ibkrNavHistory=${ibkrNavPayload};
 const currency=${JSON.stringify(currency)};
 const money=value=>Number(value).toLocaleString('ro-RO',{style:'currency',currency:currency,maximumFractionDigits:2});
-const date=value=>new Intl.DateTimeFormat('ro-RO',{dateStyle:'short',timeStyle:'short'}).format(new Date(value));
+const dateKey=value=>{
+const raw=String(value||'');
+if(/^\\d{8}$/.test(raw))return raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8);
+const parsed=new Date(raw);
+return Number.isNaN(parsed.getTime())?raw:parsed.toISOString().slice(0,10);
+};
+const labels=Array.from(new Set([
+...history.map(item=>dateKey(item.timestamp)),
+...ibkrNavHistory.map(item=>dateKey(item.date))
+])).sort();
+const series=(items,dateField,valueField)=>{
+const values=new Map(items.map(item=>[dateKey(item[dateField]),Number(item[valueField])]));
+return labels.map(label=>values.has(label)?values.get(label):null);
+};
+const displayDate=value=>new Intl.DateTimeFormat('ro-RO',{dateStyle:'short'}).format(new Date(value+'T12:00:00'));
+const datasets=[
+{label:'Valoare totală',data:series(history,'timestamp','net_liquidation'),borderColor:'#7760f9',backgroundColor:'rgba(119,96,249,.08)',borderWidth:3,pointRadius:history.length===1?4:2,pointHoverRadius:5,tension:.18,fill:false,spanGaps:false},
+{label:'Cash total',data:series(history,'timestamp','total_cash'),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.08)',borderWidth:3,pointRadius:history.length===1?4:2,pointHoverRadius:5,tension:.18,fill:false,spanGaps:false}
+];
+if(ibkrNavHistory.length){
+datasets.push({label:'NAV IBKR',data:series(ibkrNavHistory,'date','nav'),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.06)',borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:false});
+}
 new Chart(document.getElementById('brokerTotalsChart'),{
 type:'line',
-data:{labels:history.map(item=>date(item.timestamp)),datasets:[
-{label:'Valoare totală',data:history.map(item=>Number(item.net_liquidation)),borderColor:'#7760f9',backgroundColor:'rgba(119,96,249,.08)',borderWidth:3,pointRadius:history.length===1?4:2,pointHoverRadius:5,tension:.18,fill:false},
-{label:'Cash total',data:history.map(item=>Number(item.total_cash)),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.08)',borderWidth:3,pointRadius:history.length===1?4:2,pointHoverRadius:5,tension:.18,fill:false}
-]},
-options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top'},tooltip:{callbacks:{label:context=>context.dataset.label+': '+money(context.parsed.y)}}},scales:{x:{ticks:{maxRotation:45,minRotation:0,autoSkip:true,maxTicksLimit:10}},y:{ticks:{callback:value=>money(value)}}}}
+data:{labels:labels.map(displayDate),datasets},
+options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top'},tooltip:{callbacks:{label:context=>context.parsed.y===null?'':context.dataset.label+': '+money(context.parsed.y)}}},scales:{x:{ticks:{maxRotation:45,minRotation:0,autoSkip:true,maxTicksLimit:10}},y:{ticks:{callback:value=>money(value)}}}}
 });
 window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();window.close();}});
 <\\/script></body></html>`);
@@ -7902,6 +7941,7 @@ def main():
     parser.add_argument('--mode', choices=['all', 'portfolio', 'watchlist', 'html-only'], default='all', help='Select update mode')
     parser.add_argument('--tws', action='store_true', help='Try fetching active orders from local TWS (requires ib_insync)')
     args = parser.parse_args()
+    tws_explicitly_requested = args.tws
     
     # Auto-enable TWS if local (not GitHub Actions) to prioritize live data
     if not os.environ.get('GITHUB_ACTIONS'):
@@ -7916,8 +7956,33 @@ def main():
 
     # 1. Update Portfolio Data
     if args.mode in ['all', 'portfolio']:
+        # Încercăm mai întâi Client Portal Web API. Dacă funcționează, acesta
+        # înlocuiește nevoia de TWS pentru solduri și istoricul NAV. TWS rămâne
+        # disponibil explicit pentru ordine/instrumente sau ca fallback.
+        web_api_enabled = (
+            not os.environ.get('GITHUB_ACTIONS')
+            and os.environ.get('IBKR_WEB_API_ENABLED', '1').strip().lower()
+            not in {'0', 'false', 'no', 'off'}
+        )
+        web_api_synced = False
+        web_snapshot = None
+        if web_api_enabled:
+            try:
+                import ibkr_web_api
+                web_snapshot = ibkr_web_api.sync_account_snapshot()
+                web_api_synced = True
+                print(
+                    "IBKR Web API: solduri și istoric NAV sincronizate "
+                    f"pentru {len(web_snapshot.get('accounts', []))} cont(uri)."
+                )
+            except Exception as web_api_error:
+                print(
+                    "IBKR Web API indisponibil; încercăm TWS/Flex/cache: "
+                    f"{web_api_error}"
+                )
+
         # Optional TWS Sync
-        if args.tws:
+        if args.tws and (tws_explicitly_requested or not web_api_synced):
              try:
                  import ib_tws_sync
                  ib_tws_sync.fetch_active_orders(
@@ -8018,6 +8083,17 @@ def main():
                  print("Cannot import ib_tws_sync. Skipping TWS sync.")
              except Exception as e:
                  print(f"TWS Sync Error: {e}")
+
+        # O rulare TWS explicită scrie același fișier de cont. Restaurăm
+        # snapshotul Web API deja validat, deoarece acesta include istoricul NAV.
+        if web_api_synced and tws_explicitly_requested and web_snapshot:
+            try:
+                ibkr_web_api.persist_account_snapshot(web_snapshot)
+            except Exception as web_restore_error:
+                print(
+                    "Nu am putut restaura snapshotul Web API după TWS: "
+                    f"{web_restore_error}"
+                )
 
         # IBKR Flex / Manual Sync
         if not ib_sync.sync_ibkr(): # Dacă sync eșuează, folosim datele vechi + prices
