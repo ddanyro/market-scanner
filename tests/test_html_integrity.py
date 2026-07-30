@@ -194,6 +194,11 @@ class TestHtmlIntegrity(unittest.TestCase):
         )
         with open(workflow_path, 'r', encoding='utf-8') as f:
             workflow = f.read()
+        index_path = os.path.join(
+            os.path.dirname(__file__), '..', 'index.html'
+        )
+        with open(index_path, 'r', encoding='utf-8') as f:
+            generated_content = f.read()
 
         self.assertIn('id="portfolio-ai-container"', content)
         self.assertIn("portfolioAi.innerHTML = data.portfolio_ai_html || ''", content)
@@ -246,6 +251,23 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("label:'Cash total'", content)
         self.assertIn("label:'NAV IBKR'", content)
         self.assertIn("label:'Cash IBKR'", content)
+        self.assertIn(
+            'history.map(item=>timestampKey(item.timestamp))',
+            content,
+        )
+        self.assertIn(
+            "series(history,'timestamp','net_liquidation',timestampKey)",
+            content,
+        )
+        self.assertIn(
+            "{dateStyle:'short',timeStyle:'short'}",
+            content,
+        )
+        self.assertIn('spanGaps:true', content)
+        self.assertIn(
+            'history.map(item=>timestampKey(item.timestamp))',
+            generated_content,
+        )
         self.assertIn('window.close();', content)
 
     def test_portfolio_auth_is_remembered_implicitly_for_thirty_days(self):
@@ -278,15 +300,32 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('void restorePortfolioAccess()', content)
         self.assertIn('void restorePortfolioAccess()', generated_content)
         self.assertIn('remember: true', content)
-        self.assertIn('remember: false, silent: true', content)
+        self.assertIn('remember: true, silent: true', content)
+        self.assertIn('remember: true, silent: true', generated_content)
+        self.assertNotIn('remember: false, silent: true', content)
+        self.assertNotIn(
+            'remember: false, silent: true',
+            generated_content,
+        )
+        self.assertIn(
+            'await window.PortfolioAuthPersistence\n'
+            '                            .rememberCredential(input);',
+            content,
+        )
         self.assertIn('Deconectare de pe acest dispozitiv', content)
         self.assertIn(
             'Deconectare de pe acest dispozitiv',
             generated_content,
         )
         self.assertIn(
-            'Accesul va fi memorat automat 30 de zile în acest browser.',
+            'Accesul rămâne activ 30 de zile de la ultima autentificare '
+            'manuală sau automată în acest browser.',
             content,
+        )
+        self.assertIn(
+            'Accesul rămâne activ 30 de zile de la ultima autentificare '
+            'manuală sau automată în acest browser.',
+            generated_content,
         )
         self.assertNotIn("sessionStorage.setItem('pf_auth'", content)
         self.assertIn(
@@ -296,6 +335,7 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("const DB_NAME = 'market-scanner-portfolio-auth';", auth_content)
         self.assertIn("{ name: 'AES-GCM', length: 256 }", auth_content)
         self.assertIn('false,', auth_content)
+        self.assertIn('lastAuthenticatedAt: now', auth_content)
         self.assertIn('expiresAt: now + SESSION_TTL_MS', auth_content)
         self.assertIn('session.expiresAt <= Date.now()', auth_content)
         self.assertIn('additionalData: additionalData()', auth_content)
@@ -384,6 +424,22 @@ class TestHtmlIntegrity(unittest.TestCase):
             'update_buy_recommendation_history_from_cache(', content
         )
         self.assertIn('Istoric recomandări executabile', analysis_content)
+        self.assertIn(
+            'const BUY_RECOMMENDATION_HISTORY_DISPLAY_LIMIT = 50;',
+            content,
+        )
+        self.assertIn(
+            'function limitBuyRecommendationHistoryDisplay(container)',
+            content,
+        )
+        self.assertIn(
+            'limitBuyRecommendationHistoryDisplay(buyRecommendations)',
+            content,
+        )
+        self.assertIn(
+            'const BUY_RECOMMENDATION_HISTORY_DISPLAY_LIMIT = 50;',
+            generated_content,
+        )
         self.assertIn('📈 Grafic OHLC · marcaj', analysis_content)
         self.assertIn('_buy_recommendation_marker_labels(', analysis_content)
         self.assertIn('_size_buy_candidates(', analysis_content)

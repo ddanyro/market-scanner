@@ -432,12 +432,15 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         history = market_scanner_analysis.update_broker_totals_history(
             history, account_data, observed_at='2026-07-31T09:00:00+03:00'
         )
-        self.assertEqual(len(history), 1)
+        self.assertEqual(len(history), 2)
+        self.assertEqual(history[-1]['timestamp'], '2026-07-31T09:00:00+03:00')
+        self.assertEqual(history[-1]['net_liquidation'], 300)
+        self.assertEqual(history[-1]['total_cash'], 140)
         account_data['accounts'][0]['summary']['NetLiquidation'] = 101
         history = market_scanner_analysis.update_broker_totals_history(
             history, account_data, observed_at='2026-07-31T10:00:00+03:00'
         )
-        self.assertEqual(len(history), 2)
+        self.assertEqual(len(history), 3)
         self.assertEqual(history[-1]['net_liquidation'], 301)
         self.assertEqual(history[-1]['total_cash'], 140)
 
@@ -1702,6 +1705,54 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             history_html,
         )
         self.assertIn('Nu acum.', history_html)
+
+    def test_buy_recommendation_history_keeps_all_but_renders_only_fifty(self):
+        self.assertEqual(
+            market_scanner_analysis.BUY_RECOMMENDATION_HISTORY_DISPLAY_LIMIT,
+            50,
+        )
+        history = [
+            {
+                'history_key': f'SYM{index:03d}|Candidat valid|1|2|3',
+                'symbol': f'SYM{index:03d}',
+                'action_label': 'Cumpărare acum',
+                'verdict': 'Candidat valid',
+                'entry_eur': 100,
+                'stop_eur': 95,
+                'target_eur': 110,
+                'rr_ratio': 2,
+                'last_seen_at': f'2026-07-30T10:{index % 60:02d}:00',
+                'first_seen_at': f'2026-07-30T10:{index % 60:02d}:00',
+                'is_current': False,
+            }
+            for index in range(120)
+        ]
+        persisted = (
+            market_scanner_analysis.update_buy_recommendation_history(
+                history,
+                {'buy_recommendations': []},
+                [],
+            )
+        )
+        self.assertEqual(len(persisted), 120)
+
+        history_html = (
+            market_scanner_analysis._render_buy_recommendation_history(
+                persisted
+            )
+        )
+        self.assertIn(
+            'Istoric recomandări executabile (120)',
+            history_html,
+        )
+        self.assertIn(
+            'Se afișează cele mai recente 50 din 120 înregistrări.',
+            history_html,
+        )
+        self.assertEqual(
+            history_html.count('📈 Grafic OHLC · marcaj'),
+            50,
+        )
 
     def test_history_datetime_uses_romanian_format(self):
         self.assertEqual(

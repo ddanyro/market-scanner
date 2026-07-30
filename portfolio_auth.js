@@ -186,6 +186,7 @@
                 iv: bytesToBase64(iv),
                 ciphertext: bytesToBase64(encrypted),
                 createdAt: now,
+                lastAuthenticatedAt: now,
                 expiresAt: now + SESSION_TTL_MS,
             });
             return true;
