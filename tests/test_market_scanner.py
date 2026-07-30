@@ -2573,8 +2573,12 @@ class TestHTMLGeneration(unittest.TestCase):
         self.assertIn('Activează alertele BUY', html)
         self.assertIn('Alerte BUY active', html)
         self.assertIn('Instalează pentru alerte BUY', html)
+        self.assertIn('Alerte BUY – reconectare', html)
         self.assertIn('PushSubscription.optIn()', html)
         self.assertIn('PushSubscription.optOut()', html)
+        self.assertIn('validBuyNowPushSubscriptionId', html)
+        self.assertIn('waitForBuyNowPushSubscription', html)
+        self.assertIn(':v2', html)
     
     def test_html_escaping(self):
         """Test HTML special characters are handled."""

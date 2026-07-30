@@ -168,6 +168,10 @@ class TestHtmlIntegrity(unittest.TestCase):
             'marketScannerOneSignalSubscriptionRepair:',
             generator,
         )
+        self.assertIn('validBuyNowPushSubscriptionId', generator)
+        self.assertIn('waitForBuyNowPushSubscription', generator)
+        self.assertIn('Alerte BUY – reconectare', generator)
+        self.assertIn("':v2'", generator)
         self.assertIn(
             'await OneSignal.User.PushSubscription.optOut()',
             generator,
