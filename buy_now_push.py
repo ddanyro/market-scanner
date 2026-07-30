@@ -18,6 +18,19 @@ def _normalized_symbol(value):
     return str(value or "").strip().upper()
 
 
+def _subscription_ids(value):
+    identifiers = []
+    for raw_identifier in str(value or "").split(","):
+        raw_identifier = raw_identifier.strip()
+        if not raw_identifier:
+            continue
+        try:
+            identifiers.append(str(uuid.UUID(raw_identifier)))
+        except (ValueError, AttributeError, TypeError):
+            continue
+    return identifiers
+
+
 def immediate_buy_symbols(result, candidates):
     """Întoarce exact simbolurile afișate de dashboard ca „Cumpărare acum”."""
     candidates_by_symbol = {
@@ -121,6 +134,7 @@ def send_new_buy_now_notifications(
     site_url=None,
     post=None,
     now=None,
+    subscription_ids=None,
 ):
     """Trimite o singură alertă la intrarea unui simbol în „Cumpărare acum”."""
     previous_state = (
@@ -146,6 +160,16 @@ def send_new_buy_now_notifications(
     ).strip()
     post = post or requests.post
     now = now or datetime.datetime.now(datetime.timezone.utc)
+    if subscription_ids is None:
+        subscription_ids = _subscription_ids(
+            os.environ.get("ONESIGNAL_SUBSCRIPTION_IDS")
+        )
+    else:
+        subscription_ids = _subscription_ids(
+            ",".join(subscription_ids)
+            if isinstance(subscription_ids, (list, tuple, set))
+            else subscription_ids
+        )
     delivered_symbols = []
     errors = {}
 
@@ -160,6 +184,7 @@ def send_new_buy_now_notifications(
                     site_url,
                     event_token,
                     post,
+                    subscription_ids=subscription_ids,
                 )
                 delivered_symbols.append(symbol)
                 still_notified.add(symbol)
@@ -269,17 +294,17 @@ def send_test_notification(
             "error": "Lipsesc ONESIGNAL_APP_ID sau ONESIGNAL_API_KEY.",
         }
     now = now or datetime.datetime.now(datetime.timezone.utc)
-    subscription_ids = None
-    if subscription_id:
-        try:
-            subscription_ids = [str(uuid.UUID(str(subscription_id).strip()))]
-        except (ValueError, AttributeError, TypeError):
-            return {
-                "status": "invalid_subscription_id",
-                "symbol": symbol,
-                "notification_id": None,
-                "error": "Subscription ID-ul OneSignal nu este un UUID valid.",
-            }
+    subscription_ids = _subscription_ids(
+        subscription_id
+        or os.environ.get("ONESIGNAL_SUBSCRIPTION_IDS")
+    )
+    if subscription_id and not subscription_ids:
+        return {
+            "status": "invalid_subscription_id",
+            "symbol": symbol,
+            "notification_id": None,
+            "error": "Subscription ID-ul OneSignal nu este un UUID valid.",
+        }
     try:
         notification_id = _send_onesignal_notification(
             symbol,

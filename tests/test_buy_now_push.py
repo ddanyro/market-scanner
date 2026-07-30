@@ -3,6 +3,7 @@ import json
 import os
 import tempfile
 import unittest
+from unittest import mock
 
 import buy_now_push
 
@@ -353,6 +354,37 @@ class BuyNowPushTests(unittest.TestCase):
             diagnostic["status"],
             "invalid_subscription_id",
         )
+
+    def test_real_buy_alert_can_target_configured_subscription(self):
+        calls = []
+        subscription_id = "12345678-1234-4234-8234-123456789abc"
+        with mock.patch.dict(
+            os.environ,
+            {"ONESIGNAL_SUBSCRIPTION_IDS": subscription_id},
+        ):
+            _, diagnostic = buy_now_push.send_new_buy_now_notifications(
+                {},
+                {
+                    "buy_recommendations": [
+                        recommendation("NVDA", "Candidat valid"),
+                    ],
+                },
+                [candidate("NVDA")],
+                app_id="app-id",
+                api_key="api-key",
+                post=lambda *args, **kwargs: (
+                    calls.append(kwargs)
+                    or FakeResponse({"id": "notification-direct"})
+                ),
+                now=self.now,
+            )
+
+        self.assertEqual(diagnostic["status"], "sent")
+        self.assertEqual(
+            calls[0]["json"]["include_subscription_ids"],
+            [subscription_id],
+        )
+        self.assertNotIn("included_segments", calls[0]["json"])
 
 
 if __name__ == "__main__":
