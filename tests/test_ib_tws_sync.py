@@ -6,6 +6,7 @@ import types
 import unittest
 from unittest.mock import Mock
 
+import ib_sync
 import ib_tws_sync
 
 
@@ -57,6 +58,31 @@ def _bars():
 
 
 class TestTwsInstrumentSync(unittest.TestCase):
+    def test_recent_tws_positions_skip_flex_when_disabled(self):
+        previous_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            try:
+                os.chdir(temp_dir)
+                with open('tws_positions.csv', 'w', encoding='utf-8') as handle:
+                    handle.write(
+                        'Symbol,Shares,Buy_Price,Current_Price,Currency\n'
+                        'JPM,4,300,320,USD\n'
+                    )
+                request = Mock(
+                    side_effect=AssertionError('Flex nu trebuie apelat')
+                )
+                original_request = ib_sync.requests.get
+                ib_sync.requests.get = request
+                try:
+                    result = ib_sync.sync_ibkr(allow_flex=False)
+                finally:
+                    ib_sync.requests.get = original_request
+            finally:
+                os.chdir(previous_cwd)
+
+        self.assertTrue(result)
+        request.assert_not_called()
+
     def test_dynamic_bvb_equity_is_data_only_and_tradeville_executable(self):
         instruments = ib_tws_sync.build_research_instruments(
             ['ALR.RO', 'TVBETETF.RO']

@@ -1,6 +1,18 @@
+# Ordinea surselor IBKR
+
+La rularea locală, scannerul folosește sursele în această ordine:
+
+1. **TWS API** — sursa primară pentru ordine, poziții, solduri și instrumente;
+2. **Client Portal Web API** — fallback dacă TWS nu răspunde;
+3. **Flex Web Service** — fallback cloud sau pentru GitHub Actions;
+4. ultimul cache valid.
+
+Dacă TWS răspunde, scannerul nu mai solicită Flex în aceeași rulare și nu
+permite unui fallback să suprascrie snapshotul TWS.
+
 # Sincronizare read-only prin Client Portal Web API
 
-Aceasta este sursa preferată local pentru solduri, cash pe valute și istoricul
+Aceasta este sursa locală de rezervă pentru solduri, cash pe valute și istoricul
 NAV PortfolioAnalyst. Nu expune funcții de plasare sau modificare a ordinelor.
 
 ## Cerințe

@@ -7778,15 +7778,17 @@ drawIndicatorDetail(detail,initialCount);
 
 import ib_sync  # Modul sincronizare IBKR
 
-def update_portfolio_data(state, rates, vix_val):
+def update_portfolio_data(state, rates, vix_val, sync_before_load=True):
     """Actualizează datele de portofoliu și le salvează în state."""
     print("\n=== Actualizare Portofoliu ===")
     
-    # 0. Sincronizare IBKR
-    try:
-        ib_sync.sync_ibkr()
-    except Exception as e:
-        print(f"Sincronizare IBKR a eșuat sau nu este disponibilă: {e}")
+    # Apelurile externe pot folosi funcția direct; main() sincronizează o
+    # singură dată înainte și dezactivează acest pas pentru a nu relansa Flex.
+    if sync_before_load:
+        try:
+            ib_sync.sync_ibkr()
+        except Exception as e:
+            print(f"Sincronizare IBKR a eșuat sau nu este disponibilă: {e}")
         
     portfolio_data = load_portfolio()
     
@@ -7966,7 +7968,6 @@ def main():
     parser.add_argument('--mode', choices=['all', 'portfolio', 'watchlist', 'html-only'], default='all', help='Select update mode')
     parser.add_argument('--tws', action='store_true', help='Try fetching active orders from local TWS (requires ib_insync)')
     args = parser.parse_args()
-    tws_explicitly_requested = args.tws
     
     # Auto-enable TWS if local (not GitHub Actions) to prioritize live data
     if not os.environ.get('GITHUB_ACTIONS'):
@@ -7981,37 +7982,16 @@ def main():
 
     # 1. Update Portfolio Data
     if args.mode in ['all', 'portfolio']:
-        # Încercăm mai întâi Client Portal Web API. Dacă funcționează, acesta
-        # înlocuiește nevoia de TWS pentru solduri și istoricul NAV. TWS rămâne
-        # disponibil explicit pentru ordine/instrumente sau ca fallback.
-        web_api_enabled = (
-            not os.environ.get('GITHUB_ACTIONS')
-            and os.environ.get('IBKR_WEB_API_ENABLED', '1').strip().lower()
-            not in {'0', 'false', 'no', 'off'}
-        )
-        web_api_synced = False
-        web_snapshot = None
-        if web_api_enabled:
-            try:
-                import ibkr_web_api
-                web_snapshot = ibkr_web_api.sync_account_snapshot()
-                web_api_synced = True
-                print(
-                    "IBKR Web API: solduri și istoric NAV sincronizate "
-                    f"pentru {len(web_snapshot.get('accounts', []))} cont(uri)."
-                )
-            except Exception as web_api_error:
-                print(
-                    "IBKR Web API indisponibil; încercăm TWS/Flex/cache: "
-                    f"{web_api_error}"
-                )
-
-        # Optional TWS Sync
-        if args.tws and (tws_explicitly_requested or not web_api_synced):
+        # TWS este sursa primară locală pentru ordine, poziții, solduri și
+        # instrumente. Web API și Flex sunt încercate numai dacă TWS eșuează.
+        tws_synced = False
+        if args.tws:
              try:
                  import ib_tws_sync
-                 ib_tws_sync.fetch_active_orders(
-                     research_symbols=_planned_bvb_tws_symbols(state)
+                 tws_synced = bool(
+                     ib_tws_sync.fetch_active_orders(
+                         research_symbols=_planned_bvb_tws_symbols(state)
+                     )
                  )
                  
                  # Apply TWS Orders to Local CSV immediately
@@ -8109,19 +8089,29 @@ def main():
              except Exception as e:
                  print(f"TWS Sync Error: {e}")
 
-        # O rulare TWS explicită scrie același fișier de cont. Restaurăm
-        # snapshotul Web API deja validat, deoarece acesta include istoricul NAV.
-        if web_api_synced and tws_explicitly_requested and web_snapshot:
+        web_api_enabled = (
+            not tws_synced
+            and not os.environ.get('GITHUB_ACTIONS')
+            and os.environ.get('IBKR_WEB_API_ENABLED', '1').strip().lower()
+            not in {'0', 'false', 'no', 'off'}
+        )
+        if web_api_enabled:
             try:
-                ibkr_web_api.persist_account_snapshot(web_snapshot)
-            except Exception as web_restore_error:
+                import ibkr_web_api
+                web_snapshot = ibkr_web_api.sync_account_snapshot()
                 print(
-                    "Nu am putut restaura snapshotul Web API după TWS: "
-                    f"{web_restore_error}"
+                    "IBKR Web API fallback: solduri și istoric NAV "
+                    f"sincronizate pentru "
+                    f"{len(web_snapshot.get('accounts', []))} cont(uri)."
+                )
+            except Exception as web_api_error:
+                print(
+                    "IBKR Web API indisponibil; încercăm Flex/cache: "
+                    f"{web_api_error}"
                 )
 
-        # IBKR Flex / Manual Sync
-        if not ib_sync.sync_ibkr(): # Dacă sync eșuează, folosim datele vechi + prices
+        # Flex este fallback pentru cloud sau când TWS local nu răspunde.
+        if not ib_sync.sync_ibkr(allow_flex=not tws_synced):
              print("Sync IBKR eșuat sau config lipsă. Se folosesc datele locale existente pentru cantități.")
         
         # Procesare Portfolio Tickers (Price update) = market_utils.load_state()
@@ -8160,7 +8150,12 @@ def main():
     )
 
     if args.mode in ['all', 'portfolio']:
-        state = update_portfolio_data(state, rates, vix_val)
+        state = update_portfolio_data(
+            state,
+            rates,
+            vix_val,
+            sync_before_load=False,
+        )
         
     if args.mode in ['all', 'watchlist']:
         state = update_watchlist_data(state, rates, vix_val)
