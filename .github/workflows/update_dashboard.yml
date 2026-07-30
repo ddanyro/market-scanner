@@ -18,6 +18,14 @@ on:
         required: false
         default: ''
         type: string
+      update_mode:
+        description: 'Tipul actualizării manuale'
+        required: false
+        default: 'portfolio'
+        type: choice
+        options:
+          - portfolio
+          - all
 
 jobs:
   build:
@@ -76,7 +84,7 @@ jobs:
         FIREBASE_SITE_URL: https://ddanyro.github.io/market-scanner/
       run: |
         MODE="portfolio"
-        if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event.schedule }}" = "0 */5 * * *" ]; then
+        if [ "${{ github.event.schedule }}" = "0 */5 * * *" ] || [ "${{ inputs.update_mode }}" = "all" ]; then
           MODE="all"
         fi
         echo "Running market scanner in mode: $MODE"
