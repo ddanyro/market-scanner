@@ -104,12 +104,31 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertIn('CUMPĂRĂ', html)
         self.assertIn('61.48 RON', html)
         self.assertIn('Datele BVB nu modifică Market Bias SUA', html)
+        self.assertIn('Interpretarea scorului BVB', html)
+        self.assertIn('Cum se calculează și ce înseamnă intervalele BVB', html)
+        self.assertIn('scorul maxim posibil este 85/100', html)
+        self.assertIn('Context puternic', html)
+        self.assertIn('Calitatea istoricului, nu probabilitatea de câștig', html)
+        self.assertIn('există minimum 200 de ședințe', html)
 
         _, signal = market_scanner._generate_bvb_market_overview_html(
             portfolio, pd.DataFrame(), return_signal=True
         )
         self.assertEqual(signal['key'], 'romania_bvb')
         self.assertEqual(signal['verdict'], 'CUMPĂRĂ')
+
+        long_history = pd.DataFrame([{
+            'Symbol': 'TVBETETF.RO',
+            'Price_Native': 61.48,
+            'RSI': 60,
+            'Chart_History': list(np.linspace(45, 61.48, 220)),
+        }])
+        full_score_html = market_scanner._generate_bvb_market_overview_html(
+            long_history, pd.DataFrame()
+        )
+        self.assertIn('100/100', full_score_html)
+        self.assertIn('Aliniere foarte puternică', full_score_html)
+        self.assertIn('nu validează automat fiecare acțiune BVB sau AeRO', full_score_html)
 
     def test_bvb_market_risk_is_independent_from_us_rules(self):
         portfolio = pd.DataFrame([{
