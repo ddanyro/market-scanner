@@ -52,31 +52,43 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertEqual(by_symbol['TLV.RO']['price_ron'], 37.10)
         self.assertEqual(by_symbol['IARV.RO']['volume'], 25000)
 
-    @patch(
-        'market_scanner.tradeville_market_data.fetch_listed_symbols',
-        side_effect=market_scanner.tradeville_market_data.TradevilleDataError(
-            'offline'
-        ),
-    )
-    def test_bvb_universe_fetch_uses_last_valid_cache_on_error(self, _fetch):
+    def test_bvb_universe_fetch_uses_last_valid_cache_on_error(self):
         state = {'bvb_equity_universe': [{'symbol': 'IARV.RO'}]}
+        session = Mock()
+        session.get.side_effect = market_scanner.requests.RequestException(
+            'offline'
+        )
         self.assertEqual(
-            market_scanner.fetch_complete_bvb_equity_universe(state),
+            market_scanner.fetch_complete_bvb_equity_universe(
+                state, request_session=session
+            ),
             state['bvb_equity_universe'],
         )
 
-    @patch(
-        'market_scanner.tradeville_market_data.fetch_listed_symbols',
-        return_value={'TLV', 'AROBS'},
-    )
-    def test_bvb_universe_is_discovered_without_bvb_api(self, _fetch):
-        records = market_scanner.fetch_complete_bvb_equity_universe({})
+    def test_bvb_universe_is_discovered_without_authenticated_bvb_api(self):
+        session = Mock()
+        response = Mock()
+        response.text = (
+            'Simbol;Societate;Segment\n'
+            'TLV;BANCA TRANSILVANIA;Piata Reglementata\n'
+            'AROBS;AROBS TRANSILVANIA SOFTWARE;AeRO\n'
+        )
+        response.raise_for_status.return_value = None
+        session.get.return_value = response
+
+        records = market_scanner.fetch_complete_bvb_equity_universe(
+            {}, request_session=session
+        )
         by_symbol = {item['symbol']: item for item in records}
         self.assertEqual(set(by_symbol), {'TLV.RO', 'AROBS.RO'})
         self.assertTrue(all(
-            item['source'] == 'Lista publică Tradeville'
+            item['source'] == 'Bursa de Valori București'
             for item in records
         ))
+        session.get.assert_called_once_with(
+            market_scanner.BVB_SHARES_CSV_URL,
+            timeout=30,
+        )
 
     def test_bvb_liquidity_uses_rolling_median_not_single_day_spike(self):
         frame = pd.DataFrame({
@@ -1408,24 +1420,24 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(float(frame['Close'].iloc[-1]), 61)
         self.assertIsNone(stale)
 
-    @patch('market_scanner.tradeville_market_data.fetch_history')
+    @patch('market_scanner.bvb_public_market_data.fetch_history')
     @patch('market_scanner._load_tws_instrument', return_value=None)
     @patch('market_scanner._download_yahoo_history')
-    def test_bvb_history_prefers_tradeville_before_yahoo_and_tws(
-        self, yahoo_download, _load_tws, tradeville_fetch,
+    def test_bvb_history_prefers_public_bvb_before_yahoo_and_tws(
+        self, yahoo_download, _load_tws, bvb_fetch,
     ):
-        tradeville_frame = pd.DataFrame(
+        bvb_frame = pd.DataFrame(
             {
                 'Open': [9.5], 'High': [10.5], 'Low': [9.0],
                 'Close': [10.0], 'Volume': [1000],
             },
             index=pd.to_datetime(['2026-07-27']),
         )
-        tradeville_fetch.return_value = (
-            tradeville_frame,
+        bvb_fetch.return_value = (
+            bvb_frame,
             {
-                'data_provider': 'Tradeville public market data',
-                'data_broker': 'Tradeville',
+                'data_provider': 'BVB CSV public zilnic (fără autentificare)',
+                'data_broker': 'BVB public',
                 'fetched_at': '2026-07-28T06:00:00+00:00',
                 'market_data': {'close': 10},
             },
@@ -1438,21 +1450,21 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         )
 
         self.assertEqual(float(frame['Close'].iloc[-1]), 10.0)
-        self.assertEqual(selected['data_broker'], 'Tradeville')
+        self.assertEqual(selected['data_broker'], 'BVB public')
         self.assertEqual(
             attribution['Market_Data_Source'],
-            'Tradeville public market data',
+            'BVB CSV public zilnic (fără autentificare)',
         )
         yahoo_download.assert_not_called()
 
-    @patch('market_scanner.tradeville_market_data.fetch_history')
+    @patch('market_scanner.bvb_public_market_data.fetch_history')
     @patch('market_scanner._load_tws_instrument')
     @patch('market_scanner._download_yahoo_history')
-    def test_bvb_history_uses_yahoo_after_tradeville(
-        self, yahoo_download, load_tws, tradeville_fetch,
+    def test_bvb_history_uses_yahoo_after_public_bvb(
+        self, yahoo_download, load_tws, bvb_fetch,
     ):
-        tradeville_fetch.side_effect = (
-            market_scanner.tradeville_market_data.TradevilleDataError('offline')
+        bvb_fetch.side_effect = (
+            market_scanner.bvb_public_market_data.BVBPublicDataError('offline')
         )
         yahoo_download.return_value = pd.DataFrame(
             {'Close': [10.25]},
@@ -1481,14 +1493,14 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIsNone(selected)
         self.assertEqual(attribution['Market_Data_Source'], 'Yahoo Finance')
 
-    @patch('market_scanner.tradeville_market_data.fetch_history')
+    @patch('market_scanner.bvb_public_market_data.fetch_history')
     @patch('market_scanner._load_tws_instrument')
     @patch('market_scanner._download_yahoo_history')
     def test_bvb_history_uses_existing_tws_cache_only_as_last_fallback(
-        self, yahoo_download, load_tws, tradeville_fetch,
+        self, yahoo_download, load_tws, bvb_fetch,
     ):
-        tradeville_fetch.side_effect = (
-            market_scanner.tradeville_market_data.TradevilleDataError('offline')
+        bvb_fetch.side_effect = (
+            market_scanner.bvb_public_market_data.BVBPublicDataError('offline')
         )
         yahoo_download.return_value = pd.DataFrame()
         load_tws.return_value = {

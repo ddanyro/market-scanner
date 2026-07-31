@@ -39,7 +39,7 @@ import market_scanner_analysis as analysis
 import market_utils
 import market_security
 import market_data
-import tradeville_market_data
+import bvb_public_market_data
 import buy_now_push
 
 BUY_RESEARCH_UNIVERSES = {
@@ -76,7 +76,7 @@ BVB_SHARES_CSV_URL = (
     'https://www.bvb.ro/FinancialInstruments/Markets/'
     'SharesListForDownload.ashx?filetype=csv'
 )
-ROMANIAN_UNIVERSE_SOURCE_URL = tradeville_market_data.TRADEVILLE_LIST_URL
+ROMANIAN_UNIVERSE_SOURCE_URL = BVB_SHARES_CSV_URL
 BVB_DEEP_SCAN_BATCH = 30
 US_DEEP_SCAN_BATCH = 40
 EXTERNAL_RESEARCH_MIN_RR = 1.8
@@ -549,35 +549,30 @@ def _download_yahoo_history(symbol, period='1y'):
 
 
 def _load_analysis_history(ticker, download_ticker, period='1y'):
-    """Aplică lanțul de surse; pentru BVB: Tradeville/cache → Yahoo → cache TWS."""
+    """Aplică lanțul de surse; pentru BVB: CSV public BVB → Yahoo → cache TWS."""
     normalized_ticker = str(ticker or '').upper()
     tws_instrument = _load_tws_instrument(ticker)
     is_bvb = normalized_ticker.endswith('.RO')
 
     if is_bvb:
         try:
-            tradeville_history, tradeville_instrument = (
-                tradeville_market_data.fetch_history(ticker)
-            )
-            source_label = (
-                'cache Tradeville'
-                if tradeville_instrument.get('cache_fallback')
-                else 'Tradeville'
+            bvb_history, bvb_instrument = (
+                bvb_public_market_data.fetch_history(ticker)
             )
             print(
-                f"  [{source_label}] Istoric pentru "
-                f"{ticker}: {len(tradeville_history)} observații"
+                f"  [BVB public] Istoric pentru "
+                f"{ticker}: {len(bvb_history)} ședințe"
             )
             return (
-                tradeville_history,
-                tradeville_instrument,
+                bvb_history,
+                bvb_instrument,
                 tws_instrument,
-                _instrument_data_attribution(ticker, tradeville_instrument),
+                _instrument_data_attribution(ticker, bvb_instrument),
             )
-        except tradeville_market_data.TradevilleStaleDataError as exc:
-            print(f"  [BVB] {ticker}: Tradeville/cache depășit ({exc})")
+        except bvb_public_market_data.BVBPublicStaleDataError as exc:
+            print(f"  [BVB] {ticker}: cache-ul public este depășit ({exc})")
         except Exception as exc:
-            print(f"  [BVB] {ticker}: Tradeville/cache indisponibil ({exc})")
+            print(f"  [BVB] {ticker}: CSV/cache public indisponibil ({exc})")
 
         try:
             yahoo_history = _download_yahoo_history(download_ticker, period=period)
@@ -594,7 +589,7 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
         tws_history = _tws_instrument_history_frame(tws_instrument)
         if not tws_history.empty:
             print(
-                f"  [TWS cache] Tradeville/Yahoo indisponibile; istoric pentru "
+                f"  [TWS cache] BVB public/Yahoo indisponibile; istoric pentru "
                 f"{ticker}: {len(tws_history)} ședințe"
             )
             return (
@@ -605,7 +600,7 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
             )
 
         print(
-            f"  [BVB] {ticker}: date indisponibile în Tradeville/cache, "
+            f"  [BVB] {ticker}: date indisponibile în CSV/cache public, "
             "Yahoo și cache-ul TWS"
         )
         return pd.DataFrame(), None, tws_instrument, (
@@ -927,48 +922,19 @@ def _bvb_liquidity_assessment(item):
 
 
 def fetch_complete_bvb_equity_universe(state, request_session=None):
-    """Descoperă universul BVB/AeRO din lista publică Tradeville, fără API BVB."""
+    """Descoperă universul BVB/AeRO din exportul public, fără Web Service."""
     cached = list((state or {}).get('bvb_equity_universe', []))
-    cached_by_symbol = {
-        str(item.get('symbol', '')).upper(): item
-        for item in cached
-        if isinstance(item, dict)
-    }
+    client = request_session or requests
     try:
-        discovered_symbols = tradeville_market_data.fetch_listed_symbols(
-            session=request_session,
+        response = client.get(
+            BVB_SHARES_CSV_URL,
             timeout=30,
         )
-        symbols = {
-            str(symbol).upper()
-            for symbol in discovered_symbols
-        } | {
-            str(item.get('bvb_symbol') or item.get('symbol', '')).upper()
-            .removesuffix('.RO')
-            for item in cached
-            if isinstance(item, dict)
-        }
-        records = []
-        for raw_symbol in sorted(symbols):
-            if not re.fullmatch(r'[A-Z0-9]{1,12}', raw_symbol):
-                continue
-            symbol = f'{raw_symbol}.RO'
-            previous = dict(cached_by_symbol.get(symbol, {}))
-            previous.update({
-                'symbol': symbol,
-                'bvb_symbol': raw_symbol,
-                'source': 'Lista publică Tradeville',
-                'source_url': ROMANIAN_UNIVERSE_SOURCE_URL,
-            })
-            records.append(previous)
+        response.raise_for_status()
+        records = _parse_bvb_equity_universe_csv(response.text)
         if records:
             return records
-    except (
-        requests.RequestException,
-        tradeville_market_data.TradevilleDataError,
-        ValueError,
-        TypeError,
-    ):
+    except (requests.RequestException, ValueError, TypeError):
         pass
     return cached
 
@@ -8210,6 +8176,16 @@ def update_watchlist_data(
                 watchlist_results.append(data)
                 updated_count += 1
                 print(f"  {progress_str} > {ticker} (updated)")
+            elif cached_data:
+                stale_data = dict(cached_data)
+                stale_data['Data_Refresh_Status'] = 'stale_cache'
+                stale_data['Data_Refresh_Warning'] = (
+                    'Actualizarea surselor a eșuat; sunt păstrate ultimele '
+                    'date valide, fără a le marca drept actualizate.'
+                )
+                watchlist_results.append(stale_data)
+                cached_count += 1
+                print(f"  {progress_str} ! {ticker} (stale cache)")
         
         print(f"  → {cached_count} cached, {updated_count} updated")
     
