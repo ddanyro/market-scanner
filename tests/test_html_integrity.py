@@ -28,7 +28,7 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("cron: '17 6-17 * * 1-5'", workflow)
         self.assertIn('python market_scanner.py --mode ro', workflow)
         self.assertIn('group: market-dashboard-writes', workflow)
-        self.assertIn('bvb_market_cache.json', workflow)
+        self.assertIn('bvb_daily_cache.csv', workflow)
         self.assertIn('market_scanner.py --mode ro', local_runner)
         self.assertIn(
             "['all', 'portfolio', 'watchlist', 'ro', 'html-only']",
