@@ -21,6 +21,8 @@ SAMPLE_DAILY_CSV = b'''"Symbol","Name","Market","Trades","Volume","Value","Open"
 class TestBVBPublicMarketData(unittest.TestCase):
     def setUp(self):
         bvb_public_market_data._CACHE_FRAMES.clear()
+        bvb_public_market_data._REQUESTED_DATES.clear()
+        bvb_public_market_data._UNAVAILABLE_CACHE_KEYS.clear()
 
     def test_daily_csv_keeps_regular_market_and_includes_aero_symbol(self):
         frame = bvb_public_market_data.parse_daily_csv(
@@ -82,6 +84,32 @@ class TestBVBPublicMarketData(unittest.TestCase):
         self.assertEqual(len(frame), 60)
         self.assertEqual(metadata["data_broker"], "BVB public")
         self.assertEqual(metadata["market_data"]["as_of"], "2026-07-30")
+
+    def test_empty_cache_stops_after_consecutive_source_errors(self):
+        session = Mock()
+        session.get.side_effect = (
+            bvb_public_market_data.requests.RequestException("offline")
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            cache_path = os.path.join(temp_dir, "bvb_daily_cache.csv")
+            with self.assertRaises(bvb_public_market_data.BVBPublicDataError):
+                bvb_public_market_data.fetch_history(
+                    "DN.RO",
+                    cache_path=cache_path,
+                    session=session,
+                    now="2026-07-31",
+                    max_consecutive_errors=3,
+                )
+            with self.assertRaises(bvb_public_market_data.BVBPublicDataError):
+                bvb_public_market_data.fetch_history(
+                    "TLV.RO",
+                    cache_path=cache_path,
+                    session=session,
+                    now="2026-07-31",
+                    max_consecutive_errors=3,
+                )
+        self.assertEqual(session.get.call_count, 3)
 
 
 if __name__ == "__main__":
