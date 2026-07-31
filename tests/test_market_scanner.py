@@ -37,7 +37,7 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertIsInstance(desc, str)
         self.assertGreater(len(desc), 0)
 
-    def test_ro_cached_swing_data_reuses_global_indicators(self):
+    def test_ro_cached_swing_data_rejects_short_global_history(self):
         dates = pd.bdate_range('2026-05-01', periods=60)
         state = {
             'vix_val': 18.5,
@@ -59,11 +59,101 @@ class TestMarketAnalysis(unittest.TestCase):
                 state, tide_path=os.path.join(temp_dir, 'missing.json')
             )
 
-        self.assertEqual(result['SPX_Price'], 7500)
-        self.assertEqual(result['NDX_Price'], 25000)
-        self.assertEqual(result['VIX_Current'], 18.5)
-        self.assertEqual(len(result['Chart_SPX']['price']), 60)
-        self.assertEqual(result['Breadth_Pct'], 50)
+        self.assertIsNone(result)
+
+    def test_ro_cached_swing_data_prefers_separate_us_snapshot(self):
+        snapshot = {
+            'SPX_Price': 7500,
+            'SPX_SMA10': 7450,
+            'SPX_SMA50': 7300,
+            'SPX_SMA200': 6900,
+            'NDX_Price': 28000,
+            'NDX_SMA10': 27900,
+            'NDX_SMA50': 27000,
+            'NDX_SMA200': 25000,
+            'Chart_SPX': {
+                'price': [7400, 7500],
+                'sma10': [7420, 7450],
+                'sma50': [7290, 7300],
+                'sma200': [6890, 6900],
+            },
+        }
+        state = {
+            'market_overviews': {
+                'SUA': {'updated_at': '2026-07-31T10:00:00Z', 'data': snapshot}
+            },
+            # Seria scurtă nu trebuie să înlocuiască snapshotul valid.
+            'market_indicators': {'SPX': {'history': [1, 2, 3]}},
+        }
+        result = market_scanner._cached_swing_data_for_ro(state)
+        self.assertEqual(result['SPX_SMA200'], 6900)
+        self.assertEqual(result['Chart_SPX']['sma200'], [6890, 6900])
+        self.assertIsNot(result, snapshot)
+
+    def test_bvb_market_overview_is_separate_and_uses_ron(self):
+        portfolio = pd.DataFrame([{
+            'Symbol': 'TVBETETF.RO',
+            'Price_Native': 61.48,
+            'RSI': 68.67,
+            'Chart_History': list(np.linspace(55, 61.48, 90)),
+        }])
+        html = market_scanner._generate_bvb_market_overview_html(
+            portfolio, pd.DataFrame()
+        )
+        self.assertIn('România / BVB', html)
+        self.assertIn('61.48 RON', html)
+        self.assertIn('Datele BVB nu modifică Market Bias SUA', html)
+
+    def test_bvb_market_risk_is_independent_from_us_rules(self):
+        portfolio = pd.DataFrame([{
+            'Symbol': 'TVBETETF.RO',
+            'Price_Native': 61.48,
+            'RSI': 68.67,
+            'Chart_History': list(np.linspace(55, 61.48, 90)),
+        }])
+        html = market_scanner._generate_bvb_risk_status_html(
+            portfolio, pd.DataFrame()
+        )
+        self.assertIn('TVBETETF &lt; SMA200', html)
+        self.assertIn('NEEVALUATĂ', html)
+        self.assertIn('90/200 ȘEDINȚE', html)
+        self.assertIn('DOAR POZIȚII BVB', html)
+        self.assertNotIn('VIX', html)
+        self.assertNotIn('SPX', html)
+
+    @patch('market_scanner.process_portfolio_ticker')
+    @patch('market_scanner.load_portfolio')
+    def test_portfolio_only_mode_processes_only_held_symbols(
+        self, mock_load_portfolio, mock_process
+    ):
+        mock_load_portfolio.return_value = pd.DataFrame([
+            {'symbol': 'JPM'},
+            {'symbol': 'TVBETETF.RO'},
+        ])
+        mock_process.side_effect = [
+            {'Symbol': 'JPM'}, {'Symbol': 'TVBETETF.RO'}
+        ]
+        state = {
+            'market_overviews': {'SUA': {'data': {
+                'SPX_Price': 7500, 'SPX_SMA10': 7450,
+                'SPX_SMA50': 7300, 'SPX_SMA200': 6900,
+                'NDX_Price': 28000, 'NDX_SMA10': 27900,
+                'NDX_SMA50': 27000, 'NDX_SMA200': 25000,
+                'Breadth_Pct': 60, 'VIX_Current': 17,
+                'Chart_SPX': {
+                    'labels': ['07-29', '07-30'],
+                    'price': [7400, 7500],
+                },
+            }}},
+        }
+        result = market_scanner.update_portfolio_positions_only(
+            state, {'USD': 0.9, 'RON': 0.2}, 17
+        )
+        self.assertEqual(mock_process.call_count, 2)
+        self.assertEqual(
+            [item['Symbol'] for item in result['portfolio']],
+            ['JPM', 'TVBETETF.RO'],
+        )
 
     def test_complete_bvb_csv_parser_includes_main_and_aero(self):
         content = (
@@ -1873,12 +1963,29 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
     def test_buy_renderer_shows_complete_bvb_coverage(self):
         html_result = market_scanner_analysis.render_buy_recommendations_html(
             {}, [], bvb_universe_stats={
-                'discovered': 372, 'deep_scanned': 60, 'batch_size': 30,
+                'discovered': 372, 'deep_scanned': 60, 'batch_size': 50,
+                'watchlist_symbols': 3,
             }
         )
-        self.assertIn('Univers BVB/AeRO descoperit', html_result)
+        self.assertIn('Watchlist BVB/AeRO', html_result)
+        self.assertIn('univers extern BVB/AeRO', html_result)
         self.assertIn('<b>372</b>', html_result)
         self.assertIn('<b>60</b>', html_result)
+
+    def test_buy_renderer_separates_watchlist_from_external_us_universe(self):
+        html_result = market_scanner_analysis.render_buy_recommendations_html(
+            {}, [], us_universe_stats={
+                'discovered': 503,
+                'deep_scanned': 420,
+                'batch_size': 70,
+                'watchlist_symbols': 1370,
+                'watchlist_europe_symbols': 1,
+            },
+        )
+        self.assertIn('Watchlist internațional', html_result)
+        self.assertIn('<b>1371</b>', html_result)
+        self.assertIn('univers extern S&amp;P 500', html_result)
+        self.assertIn('lot rotativ/rulare: 70', html_result)
 
     def test_external_research_does_not_use_watchlist_filters(self):
         watchlist = pd.DataFrame([{

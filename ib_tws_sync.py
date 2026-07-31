@@ -458,7 +458,11 @@ def sync_romanian_position_instruments(
         ib.disconnect()
 
 
-def fetch_active_orders(output_file='tws_orders.csv', research_symbols=None):
+def fetch_active_orders(
+    output_file='tws_orders.csv',
+    research_symbols=None,
+    sync_research_instruments=True,
+):
     """
     Se conectează la TWS local (Port 7497 sau 4001 Gateway) și extrage ordinele active (Stop, Trail).
     """
@@ -606,15 +610,21 @@ def fetch_active_orders(output_file='tws_orders.csv', research_symbols=None):
 
         # Datele IBKR sunt folosite și pentru instrumente tranzacționate prin
         # alt broker. TVBETETF rămâne executabil exclusiv prin Tradeville.
-        try:
-            fetch_research_instruments(
-                ib,
-                instruments=build_research_instruments(research_symbols),
-            )
-        except Exception as instrument_ex:
+        if sync_research_instruments:
+            try:
+                fetch_research_instruments(
+                    ib,
+                    instruments=build_research_instruments(research_symbols),
+                )
+            except Exception as instrument_ex:
+                print(
+                    "  -> Avertisment la sincronizarea instrumentelor TWS: "
+                    f"{instrument_ex}"
+                )
+        else:
             print(
-                "  -> Avertisment la sincronizarea instrumentelor TWS: "
-                f"{instrument_ex}"
+                "  -> Modul portofoliu: nu sincronizăm instrumente de "
+                "cercetare din afara pozițiilor deținute."
             )
 
         # === Extragere sumar cont (cash, lichiditate și marjă) ===

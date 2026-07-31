@@ -27,6 +27,7 @@ from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
 from base64 import b64encode
 import json
+import copy
 import unicodedata
 from io import StringIO
 from market_scanner_analysis import (
@@ -77,8 +78,8 @@ BVB_SHARES_CSV_URL = (
     'SharesListForDownload.ashx?filetype=csv'
 )
 ROMANIAN_UNIVERSE_SOURCE_URL = BVB_SHARES_CSV_URL
-BVB_DEEP_SCAN_BATCH = 30
-US_DEEP_SCAN_BATCH = 40
+BVB_DEEP_SCAN_BATCH = 50
+US_DEEP_SCAN_BATCH = 70
 EXTERNAL_RESEARCH_MIN_RR = 1.8
 BUY_FINALIST_TTL_HOURS = 1.0
 EXTERNAL_RESEARCH_TTL_HOURS = 5.0
@@ -1938,6 +1939,20 @@ def ensure_buy_research_candidates(
                 str(symbol).upper()
                 for symbol in watchlist_file['symbol'].dropna().tolist()
             }
+    watchlist_market_counts = {
+        'SUA': sum(
+            _buy_candidate_market(symbol) == 'SUA'
+            for symbol in watchlist_symbols
+        ),
+        'România / BVB': sum(
+            _buy_candidate_market(symbol) == 'România / BVB'
+            for symbol in watchlist_symbols
+        ),
+        'Europa / Nasdaq-100': sum(
+            _buy_candidate_market(symbol) == 'Europa / Nasdaq-100'
+            for symbol in watchlist_symbols
+        ),
+    }
     existing_results = [
         item for item in state_watchlist
         if str(item.get('Ticker', '')).upper() in watchlist_symbols
@@ -2072,6 +2087,7 @@ def ensure_buy_research_candidates(
                 for item in by_symbol.values()
             ),
             'batch_size': BVB_DEEP_SCAN_BATCH,
+            'watchlist_symbols': watchlist_market_counts['România / BVB'],
             'last_batch_attempted': attempted_by_market.get(
                 'România / BVB', 0
             ),
@@ -2090,6 +2106,10 @@ def ensure_buy_research_candidates(
                 for item in by_symbol.values()
             ),
             'batch_size': US_DEEP_SCAN_BATCH,
+            'watchlist_symbols': watchlist_market_counts['SUA'],
+            'watchlist_europe_symbols': watchlist_market_counts[
+                'Europa / Nasdaq-100'
+            ],
             'last_batch_attempted': attempted_by_market.get('SUA', 0),
             'last_batch_completed': completed_by_market.get('SUA', 0),
             'source': SP500_UNIVERSE_FILE,
@@ -2715,6 +2735,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
     """Procesează un ticker din portofoliu cu date de ownership (Conversie EUR)."""
     try:
         ticker = row.get('symbol', 'UNKNOWN').upper()
+        is_bvb_position = ticker.endswith('.RO')
         download_ticker = ticker[:-3] if ticker.endswith('.US') else ticker
         if download_ticker in ['LQQ.FR', 'FR.LQQ']:
             download_ticker = 'LQQ.PA'
@@ -3004,7 +3025,10 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         # Sparkline e doar vizual, nu contează scara, dar hai să convertim pt consistență dacă afișăm tooltip
         sparkline_data = df['Close'].tail(30).tolist()
         sparkline_data = [round(float(x) * rate, 2) for x in sparkline_data if not pd.isna(x)]
-        chart_df = df.tail(90)
+        # Pentru proxy-ul BVB păstrăm suficient istoric pentru SMA200. Restul
+        # portofoliului rămâne la fereastra compactă existentă de 90 de zile.
+        chart_limit = 260 if ticker.upper() in {'TVBETETF', 'TVBETETF.RO'} else 90
+        chart_df = df.tail(chart_limit)
         chart_history = [
             round(float(value) * rate, 4)
             for value in chart_df['Close'].tolist()
@@ -3106,7 +3130,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
 
             # Rule D: Relative Strength Failure (RS Falling 10 sessions)
             rule_d = False
-            if spx_df is not None and len(df) >= 10 and not spx_df.empty:
+            if not is_bvb_position and spx_df is not None and len(df) >= 10 and not spx_df.empty:
                 # Align dates? Simplified: Just take last 10 rows comparison
                 # Calculate RS = Stock / SPX
                 # We need matched closes. Using simple tail alignment
@@ -3133,12 +3157,21 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             
             # Count Active Market Rules
             active_rules_count = 0
-            if vix_value > 25: active_rules_count += 1
-            if breadth_pct < 45: active_rules_count += 1
-            if rule4_active: active_rules_count += 1
-            if market_in_downtrend: active_rules_count += 1
+            if not is_bvb_position:
+                if vix_value > 25: active_rules_count += 1
+                if breadth_pct < 45: active_rules_count += 1
+                if rule4_active: active_rules_count += 1
+                if market_in_downtrend: active_rules_count += 1
             
-            if active_rules_count >= 2:
+            if is_bvb_position:
+                # Pozițiile BVB sunt evaluate pe structura și impulsul propriu.
+                # VIX, breadth și structura SPX aparțin pieței SUA și nu trebuie
+                # să declanșeze reduceri sau ieșiri pentru instrumentele locale.
+                if rule_a or rule_b or rule_c:
+                    entry_status = "BAD"
+                    sell_decision = "REDUCE" if profit > 0 else "EXIT"
+
+            elif active_rules_count >= 2:
                 # --- GLOBAL SAFETY FILTER (2+ Rules Active) ---
                 # User: "If 2+ rules violated -> EXIT"
                 sell_decision = "EXIT"
@@ -3330,7 +3363,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
 
         # Calculate RS vs SPX (60-day) using passed spx_df
         rs_vs_spx = None
-        if spx_df is not None and len(df) >= 60:
+        if not is_bvb_position and spx_df is not None and len(df) >= 60:
             try:
                     # Calculate 60-day RS (Medium Term)
                     # Align using tail (simple)
@@ -4081,8 +4114,24 @@ def assess_stock_fitness(sector, phase):
     
     return "⚠️" # Caution/Neutral
 def _cached_swing_data_for_ro(state, tide_path='market_tide_cache.json'):
-    """Construiește cardul global din cache, fără reinterogarea pieței SUA."""
+    """Încarcă analiza SUA separată, fără recalculare din seriile scurte BVB.
+
+    ``market_indicators`` păstrează în mod intenționat numai 60 de puncte pentru
+    graficele mici. Acea serie nu poate produce o SMA200 validă și nu trebuie
+    folosită pentru a reconstrui Market Overview în timpul unui update BVB.
+    """
     state = state if isinstance(state, dict) else {}
+    us_snapshot = (
+        state.get('market_overviews', {}).get('SUA', {})
+        if isinstance(state.get('market_overviews'), dict)
+        else {}
+    )
+    snapshot_data = (
+        us_snapshot.get('data') if isinstance(us_snapshot, dict) else None
+    )
+    if _valid_us_market_overview(snapshot_data):
+        return copy.deepcopy(snapshot_data)
+
     indicators = state.get('market_indicators', {})
     result = {}
 
@@ -4096,7 +4145,8 @@ def _cached_swing_data_for_ro(state, tide_path='market_tide_cache.json'):
         dates = list(item.get('history_dates', []))[-len(history):]
         sma10 = history.rolling(10).mean()
         sma50 = history.rolling(50).mean()
-        sma200 = history.rolling(200).mean()
+        # Nu inventăm SMA-uri dintr-o fereastră mai scurtă decât perioada lor.
+        sma200 = history.rolling(200).mean() if len(history) >= 200 else None
         delta = history.diff()
         gain = delta.clip(lower=0).rolling(14).mean()
         loss = (-delta.clip(upper=0)).rolling(14).mean()
@@ -4104,7 +4154,8 @@ def _cached_swing_data_for_ro(state, tide_path='market_tide_cache.json'):
         result[f'{prefix}_Price'] = float(history.iloc[-1])
         result[f'{prefix}_SMA10'] = float(sma10.iloc[-1]) if pd.notna(sma10.iloc[-1]) else 0
         result[f'{prefix}_SMA50'] = float(sma50.iloc[-1]) if pd.notna(sma50.iloc[-1]) else 0
-        result[f'{prefix}_SMA200'] = float(sma200.iloc[-1]) if pd.notna(sma200.iloc[-1]) else 0
+        if sma200 is not None and pd.notna(sma200.iloc[-1]):
+            result[f'{prefix}_SMA200'] = float(sma200.iloc[-1])
         result[f'{prefix}_RSI'] = float(rsi.iloc[-1]) if pd.notna(rsi.iloc[-1]) else 50
         result[f'{prefix}_RSI_Weekly'] = result[f'{prefix}_RSI']
         tail = min(60, len(history))
@@ -4113,7 +4164,10 @@ def _cached_swing_data_for_ro(state, tide_path='market_tide_cache.json'):
             'price': history.tail(tail).astype(float).tolist(),
             'sma10': sma10.tail(tail).fillna(0).astype(float).tolist(),
             'sma50': sma50.tail(tail).fillna(0).astype(float).tolist(),
-            'sma200': sma200.tail(tail).fillna(0).astype(float).tolist(),
+            'sma200': (
+                sma200.tail(tail).where(sma200.notna(), None).tolist()
+                if sma200 is not None else []
+            ),
             'rsi': rsi.tail(tail).fillna(50).astype(float).tolist(),
         }
 
@@ -4142,7 +4196,356 @@ def _cached_swing_data_for_ro(state, tide_path='market_tide_cache.json'):
         )
     else:
         result['Breadth_Pct'] = 50
-    return result
+    # O reconstrucție parțială nu este trimisă rendererului. Astfel evităm
+    # exact linia SMA200=0 din captură. Apelantul poate face o inițializare SUA
+    # o singură dată, apoi update_ro va reutiliza snapshotul separat.
+    return result if _valid_us_market_overview(result) else None
+
+
+def _valid_us_market_overview(data):
+    """Confirmă că snapshotul SUA conține nivelurile necesare analizei."""
+    if not isinstance(data, dict):
+        return False
+    required = (
+        'SPX_Price', 'SPX_SMA10', 'SPX_SMA50', 'SPX_SMA200',
+        'NDX_Price', 'NDX_SMA10', 'NDX_SMA50', 'NDX_SMA200',
+    )
+    return all((_safe_float_text(data.get(key)) or 0) > 0 for key in required)
+
+
+def _store_us_market_overview_snapshot(state, swing_data):
+    """Salvează separat analiza SUA validă pentru rulările BVB ulterioare."""
+    if not isinstance(state, dict) or not _valid_us_market_overview(swing_data):
+        return False
+    overviews = state.setdefault('market_overviews', {})
+    overviews['SUA'] = {
+        'updated_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        'data': copy.deepcopy(swing_data),
+    }
+    return True
+
+
+def _generate_bvb_market_overview_html(portfolio_df, watchlist_df):
+    """Context BVB compact, separat complet de scorul SPX/NDX."""
+    candidates = []
+    for frame in (portfolio_df, watchlist_df):
+        if not isinstance(frame, pd.DataFrame) or frame.empty:
+            continue
+        for _, row in frame.iterrows():
+            symbol = str(row.get('Symbol') or row.get('Ticker') or '').upper()
+            if symbol in {'TVBETETF', 'TVBETETF.RO'}:
+                candidates.append(row)
+    if not candidates:
+        return """
+        <section style="margin:32px 0;">
+          <h3 style="margin:0 0 8px;color:var(--text-primary);">România / BVB</h3>
+          <div style="padding:16px;border:1px solid var(--border-light);border-radius:12px;background:var(--bg-white);color:var(--text-secondary);">
+            Contextul BVB este separat de analiza SUA. Proxy-ul local nu este disponibil în datele curente.
+          </div>
+        </section>"""
+
+    item = candidates[0]
+    prices_eur = pd.to_numeric(
+        pd.Series(item.get('Chart_History', []) or []), errors='coerce'
+    ).dropna()
+    price = (
+        _safe_float_text(item.get('Price_Native'))
+        or (float(prices_eur.iloc[-1]) if not prices_eur.empty else 0)
+    )
+    # Chart_History este normalizat în EUR pentru totalurile portofoliului.
+    # Îl readucem în moneda nativă folosind raportul ultimei cotații; altfel
+    # apăreau SMA-uri de ~11 RON lângă un preț real de ~61 RON.
+    if price and not prices_eur.empty and float(prices_eur.iloc[-1]) > 0:
+        native_scale = price / float(prices_eur.iloc[-1])
+    else:
+        native_scale = 1.0
+    prices = prices_eur * native_scale
+    dates = list(item.get('Chart_Dates', []) or [])[-len(prices):]
+    if len(dates) != len(prices):
+        dates = [str(index + 1) for index in range(len(prices))]
+
+    sma10_series = prices.rolling(10).mean()
+    sma50_series = prices.rolling(50).mean()
+    sma200_series = prices.rolling(200).mean()
+    delta = prices.diff()
+    gain = delta.clip(lower=0).rolling(14).mean()
+    loss = (-delta.clip(upper=0)).rolling(14).mean()
+    rsi_series = 100 - (100 / (1 + gain / loss.replace(0, np.nan)))
+
+    sma10 = float(sma10_series.iloc[-1]) if len(prices) >= 10 else None
+    sma50 = float(sma50_series.iloc[-1]) if len(prices) >= 50 else None
+    sma200 = float(sma200_series.iloc[-1]) if len(prices) >= 200 else None
+    rsi = (
+        float(rsi_series.iloc[-1])
+        if not rsi_series.empty and pd.notna(rsi_series.iloc[-1])
+        else _safe_float_text(item.get('RSI'))
+    )
+    if price and sma50:
+        trend = 'Peste SMA50' if price >= sma50 else 'Sub SMA50'
+        trend_color = '#4caf50' if price >= sma50 else '#f44336'
+    else:
+        trend, trend_color = 'Date insuficiente', '#888'
+
+    def chart_values(series):
+        return [
+            round(float(value), 4) if pd.notna(value) else None
+            for value in series
+        ]
+
+    chart_data = {
+        'labels': dates,
+        'price': chart_values(prices),
+        'sma10': chart_values(sma10_series),
+        'sma50': chart_values(sma50_series),
+        # Dacă lipsesc 200 de ședințe, datasetul rămâne gol, nu plin cu zero.
+        'sma200': chart_values(sma200_series) if len(prices) >= 200 else [],
+        'rsi': chart_values(rsi_series),
+    }
+    chart_json = json.dumps(chart_data, ensure_ascii=False)
+    history_note = (
+        f'SMA200: {sma200:.2f} RON'
+        if sma200 is not None
+        else f'SMA200 indisponibilă · {len(prices)}/200 ședințe'
+    )
+
+    # Scor swing local. SMA200 lipsă reduce încrederea, dar nu devine automat
+    # un semnal bearish. TVBETETF este proxy pentru BET, nu breadth-ul complet.
+    trend_points = (
+        40 if sma200 is not None and price >= sma200
+        else 0 if sma200 is not None
+        else 25 if sma50 is not None and price >= sma50
+        else 5
+    )
+    momentum_points = 25 if sma50 is not None and price >= sma50 else 0
+    timing_points = 15 if sma10 is not None and price >= sma10 else 0
+    if rsi is None:
+        rsi_points = 10
+    elif 45 <= rsi < 70:
+        rsi_points = 20
+    elif 35 <= rsi < 75:
+        rsi_points = 8
+    else:
+        rsi_points = 0
+    bvb_score = int(trend_points + momentum_points + timing_points + rsi_points)
+    confidence = 'Ridicată' if sma200 is not None else 'Medie'
+
+    above_sma50 = bool(sma50 is not None and price >= sma50)
+    above_sma10 = bool(sma10 is not None and price >= sma10)
+    above_sma200 = bool(sma200 is not None and price >= sma200)
+    major_trend_ok = above_sma200 if sma200 is not None else above_sma50
+    if major_trend_ok and above_sma10 and (rsi is None or rsi < 70):
+        bvb_verdict = 'TREND FAVORABIL'
+        verdict_color = '#4caf50'
+    elif major_trend_ok and (not above_sma10 or (rsi is not None and rsi >= 70)):
+        bvb_verdict = 'AȘTEAPTĂ CONFIRMAREA'
+        verdict_color = '#ff9800'
+    elif not above_sma50:
+        bvb_verdict = 'PRUDENȚĂ'
+        verdict_color = '#f44336'
+    else:
+        bvb_verdict = 'NEUTRU'
+        verdict_color = '#ff9800'
+
+    explanation_parts = []
+    if above_sma50:
+        explanation_parts.append(
+            f'Trendul intermediar este pozitiv: TVBETETF ({price:.2f} RON) '
+            f'se află peste SMA50 ({sma50:.2f} RON).'
+        )
+    elif sma50 is not None:
+        explanation_parts.append(
+            f'Trendul intermediar este fragil: TVBETETF ({price:.2f} RON) '
+            f'se află sub SMA50 ({sma50:.2f} RON).'
+        )
+    if above_sma10:
+        explanation_parts.append(
+            f'Timingul pe termen scurt este confirmat peste SMA10 '
+            f'({sma10:.2f} RON).'
+        )
+    elif sma10 is not None:
+        explanation_parts.append(
+            f'Timingul nu este încă confirmat: prețul este sub SMA10 '
+            f'({sma10:.2f} RON); este preferabilă o închidere clară peste acest nivel.'
+        )
+    if rsi is not None and rsi >= 70:
+        explanation_parts.append(
+            f'RSI14 este {rsi:.1f}, în zona supraîncălzită; evită urmărirea prețului.'
+        )
+    elif rsi is not None and rsi >= 60:
+        explanation_parts.append(
+            f'RSI14 este {rsi:.1f}: impulsul rămâne bun, dar spațiul pentru o '
+            'intrare fără retragere este mai redus.'
+        )
+    elif rsi is not None and rsi < 40:
+        explanation_parts.append(
+            f'RSI14 este {rsi:.1f}, ceea ce indică momentum slab.'
+        )
+    if sma200 is None:
+        explanation_parts.append(
+            'SMA200 nu poate fi validată încă, de aceea concluzia are încredere '
+            'medie și nu confirmă singură trendul major.'
+        )
+    else:
+        explanation_parts.append(
+            f'Trendul major este {"pozitiv" if above_sma200 else "negativ"}: '
+            f'prețul este {"peste" if above_sma200 else "sub"} SMA200 '
+            f'({sma200:.2f} RON).'
+        )
+    conclusion_text = ' '.join(explanation_parts)
+    invalidation_text = (
+        f'O închidere sub SMA50 ({sma50:.2f} RON) ar deteriora setupul local.'
+        if sma50 is not None else
+        'Nu există încă suficiente date pentru un nivel tehnic de invalidare.'
+    )
+
+    return f"""
+    <section style="margin:32px 0;border:1px solid var(--border-light);border-radius:14px;background:#fff;overflow:hidden;box-shadow:var(--shadow-sm);">
+      <div style="padding:20px 24px;background:{verdict_color};color:#fff;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;">
+        <div>
+          <h3 style="margin:0;font-size:22px;color:#fff;">🇷🇴 România / BVB — Swing Trading Signal (Long-only)</h3>
+          <p style="margin:6px 0 0;opacity:.92;">Context TVBETETF · strategie trend following · niveluri în RON</p>
+        </div>
+        <div style="padding:8px 16px;border:1px solid rgba(255,255,255,.55);border-radius:999px;background:rgba(255,255,255,.18);font-size:17px;font-weight:800;">{bvb_verdict}</div>
+      </div>
+      <div style="padding:22px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;">
+        <div style="padding:14px;border-left:5px solid {verdict_color};border-radius:8px;background:{verdict_color}12;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Market Bias BVB</div><div style="font-size:24px;font-weight:800;color:{verdict_color};">{bvb_verdict}</div></div>
+        <div style="padding:14px;border:1px solid var(--border-light);border-radius:8px;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Scor swing local</div><div style="font-size:24px;font-weight:800;">{bvb_score}/100</div></div>
+        <div style="padding:14px;border:1px solid var(--border-light);border-radius:8px;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Încredere</div><div style="font-size:24px;font-weight:800;">{confidence}</div></div>
+        <div style="padding:14px;border:1px solid var(--border-light);border-radius:8px;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Proxy local</div><div style="font-size:24px;font-weight:800;">TVBETETF</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
+        <div style="padding:16px;border:1px solid var(--border-light);border-radius:10px;background:#fff;">
+          <div style="display:flex;justify-content:space-between;gap:12px;"><b>Trend (SMA200)</b><b style="color:{trend_color};">{trend}</b></div>
+          <div style="height:180px;margin-top:10px;"><canvas id="bvb_chart_sma200"></canvas></div>
+          <div style="text-align:center;margin-top:8px;color:var(--text-secondary);">Preț: <b>{price:.2f} RON</b> · {history_note}</div>
+        </div>
+        <div style="padding:16px;border:1px solid var(--border-light);border-radius:10px;background:#fff;">
+          <div style="display:flex;justify-content:space-between;gap:12px;"><b>Momentum (SMA50)</b><b>{f'{sma50:.2f} RON' if sma50 else 'N/D'}</b></div>
+          <div style="height:180px;margin-top:10px;"><canvas id="bvb_chart_sma50"></canvas></div>
+          <div style="text-align:center;margin-top:8px;color:var(--text-secondary);">TVBETETF în RON</div>
+        </div>
+        <div style="padding:16px;border:1px solid var(--border-light);border-radius:10px;background:#fff;">
+          <div style="display:flex;justify-content:space-between;gap:12px;"><b>Timing (SMA10)</b><b>{f'{sma10:.2f} RON' if sma10 else 'N/D'}</b></div>
+          <div style="height:180px;margin-top:10px;"><canvas id="bvb_chart_sma10"></canvas></div>
+          <div style="text-align:center;margin-top:8px;color:var(--text-secondary);">Mișcarea pe termen scurt</div>
+        </div>
+        <div style="padding:16px;border:1px solid var(--border-light);border-radius:10px;background:#fff;">
+          <div style="display:flex;justify-content:space-between;gap:12px;"><b>Momentum (RSI14)</b><b>{f'{rsi:.1f}' if rsi is not None else 'N/D'}</b></div>
+          <div style="height:180px;margin-top:10px;"><canvas id="bvb_chart_rsi"></canvas></div>
+          <div style="text-align:center;margin-top:8px;color:var(--text-secondary);">Zone de referință: 30 / 70</div>
+        </div>
+      </div>
+      <div style="margin-top:22px;padding:18px;border:2px solid {verdict_color}55;border-radius:10px;background:{verdict_color}0d;">
+        <div style="font-size:13px;font-weight:800;color:{verdict_color};text-transform:uppercase;letter-spacing:.04em;">🎯 Concluzie generală BVB</div>
+        <div style="font-size:25px;font-weight:850;color:{verdict_color};margin:8px 0;">{bvb_verdict}</div>
+        <p style="margin:0;color:var(--text-primary);line-height:1.65;">{conclusion_text}</p>
+        <p style="margin:10px 0 0;color:var(--text-secondary);line-height:1.55;"><b>Ce ar invalida concluzia:</b> {invalidation_text}</p>
+      </div>
+      <p style="margin:12px 2px 0;color:var(--text-secondary);font-size:12px;">TVBETETF este folosit ca proxy investibil pentru piața principală BVB; nu reprezintă breadth-ul complet și nu include toate acțiunile AeRO. SMA200 nu este desenată fără minimum 200 de ședințe. Datele BVB nu modifică Market Bias SUA.</p>
+      </div>
+    </section>
+    <script>
+    (function() {{
+      const data = {chart_json};
+      if (typeof Chart === 'undefined' || !data.price.length) return;
+      const common = {{responsive:true,maintainAspectRatio:false,plugins:{{legend:{{display:false}}}},scales:{{x:{{display:false}},y:{{display:true}}}}}};
+      const priceSet = {{label:'TVBETETF',data:data.price,borderColor:'#cbd5e1',borderWidth:1.5,pointRadius:0,tension:.15}};
+      function priceChart(id, label, values, color, dashed) {{
+        const element = document.getElementById(id); if (!element) return;
+        const sets = [priceSet];
+        if (values && values.length) sets.push({{label:label,data:values,borderColor:color,borderWidth:2,pointRadius:0,borderDash:dashed?[3,3]:[],tension:.15,spanGaps:true}});
+        new Chart(element.getContext('2d'),{{type:'line',data:{{labels:data.labels,datasets:sets}},options:common}});
+      }}
+      priceChart('bvb_chart_sma200','SMA200',data.sma200,'#f59e0b',true);
+      priceChart('bvb_chart_sma50','SMA50',data.sma50,'#22c55e',false);
+      priceChart('bvb_chart_sma10','SMA10',data.sma10,'#2563eb',false);
+      const rsiElement = document.getElementById('bvb_chart_rsi');
+      if (rsiElement) new Chart(rsiElement.getContext('2d'),{{type:'line',data:{{labels:data.labels,datasets:[{{label:'RSI14',data:data.rsi,borderColor:'#f59e0b',backgroundColor:'#f59e0b20',fill:true,borderWidth:2,pointRadius:0,tension:.25,spanGaps:true}}]}},options:{{...common,scales:{{x:{{display:false}},y:{{min:0,max:100,ticks:{{callback:(v)=>v===30||v===70?v:''}}}}}}}}}});
+    }})();
+    </script>"""
+
+
+def _generate_bvb_risk_status_html(portfolio_df, watchlist_df):
+    """Reguli de risc BVB independente de SPX, VIX și breadth-ul SUA."""
+    item = None
+    for frame in (portfolio_df, watchlist_df):
+        if not isinstance(frame, pd.DataFrame) or frame.empty:
+            continue
+        for _, row in frame.iterrows():
+            symbol = str(row.get('Symbol') or row.get('Ticker') or '').upper()
+            if symbol in {'TVBETETF', 'TVBETETF.RO'}:
+                item = row
+                break
+        if item is not None:
+            break
+    if item is None:
+        return """
+        <div class="market-risk-card market-risk-unavailable">
+          <h3>Context BVB</h3><div class="risk-value">INDISPONIBIL</div>
+          <div class="risk-action">TVBETETF lipsește</div>
+        </div>"""
+
+    history_eur = pd.to_numeric(
+        pd.Series(item.get('Chart_History', []) or []), errors='coerce'
+    ).dropna()
+    price = _safe_float_text(item.get('Price_Native')) or 0
+    if price and not history_eur.empty and float(history_eur.iloc[-1]) > 0:
+        history = history_eur * (price / float(history_eur.iloc[-1]))
+    else:
+        history = history_eur
+        price = float(history.iloc[-1]) if not history.empty else 0
+    sma10 = float(history.tail(10).mean()) if len(history) >= 10 else None
+    sma50 = float(history.tail(50).mean()) if len(history) >= 50 else None
+    sma200 = float(history.tail(200).mean()) if len(history) >= 200 else None
+    rsi = _safe_float_text(item.get('RSI'))
+
+    rules = [
+        ('Regula #1 (TVBETETF &lt; SMA200)', sma200 is not None,
+         sma200 is not None and price < sma200, 'REDU RISCUL',
+         f'{len(history)}/200 ȘEDINȚE'),
+        ('Regula #2 (TVBETETF &lt; SMA50)', sma50 is not None,
+         sma50 is not None and price < sma50, 'TREND SLAB', 'NORMAL'),
+        ('Regula #3 (TVBETETF &lt; SMA10)', sma10 is not None,
+         sma10 is not None and price < sma10, 'TIMING SLAB', 'NORMAL'),
+        ('Regula #4 (RSI14 &lt; 40)', rsi is not None,
+         rsi is not None and rsi < 40, 'MOMENTUM SLAB', 'NORMAL'),
+    ]
+    evaluated = sum(1 for _, available, *_ in rules if available)
+    active = sum(
+        1 for _, available, is_active, *_ in rules
+        if available and is_active
+    )
+    if active >= 2:
+        overall, overall_color = 'RISC RIDICAT', '#d32f2f'
+    elif active == 1:
+        overall, overall_color = 'ATENȚIE', '#ff9800'
+    elif evaluated >= 3:
+        overall, overall_color = 'NORMAL', '#4caf50'
+    else:
+        overall, overall_color = 'DATE PARȚIALE', '#757575'
+
+    cards = []
+    for title, available, is_active, active_action, inactive_action in rules:
+        if not available:
+            status, action, color = 'NEEVALUATĂ', inactive_action, '#757575'
+        elif is_active:
+            status, action, color = 'ACTIVĂ', active_action, '#f44336'
+        else:
+            status, action, color = 'INACTIVĂ', inactive_action, '#4caf50'
+        cards.append(f"""
+        <div class="market-risk-card" style="border-color:{color}55;">
+          <h3>{title}</h3>
+          <div class="risk-value" style="color:{color};">{status}</div>
+          <div class="risk-action" style="color:{color};">{action}</div>
+        </div>""")
+    cards.append(f"""
+      <div class="market-risk-card market-risk-result" style="border-color:{overall_color};background:{overall_color}10;">
+        <h3>REZULTAT ({active}/{evaluated})</h3>
+        <div class="risk-value" style="color:{overall_color};">{overall}</div>
+        <div class="risk-action" style="color:{overall_color};">DOAR POZIȚII BVB</div>
+      </div>""")
+    return ''.join(cards)
 
 
 def generate_html_dashboard(
@@ -4472,6 +4875,46 @@ def generate_html_dashboard(
             font-weight: 700;
             color: var(--text-primary);
         }
+
+        /* Market risk: 5 carduri pe un singur rând desktop, responsive mobil. */
+        .market-risk-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .market-risk-card {
+            min-width: 0;
+            min-height: 112px;
+            padding: 14px 10px;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            background: var(--bg-white);
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .market-risk-card h3 {
+            margin: 0 0 7px;
+            color: var(--text-secondary);
+            font-size: clamp(10px, .8vw, 13px);
+            line-height: 1.35;
+            text-transform: uppercase;
+            overflow-wrap: anywhere;
+        }
+        .market-risk-card .risk-value {
+            font-size: clamp(16px, 1.25vw, 22px);
+            line-height: 1.15;
+            font-weight: 800;
+        }
+        .market-risk-card .risk-action {
+            margin-top: 6px;
+            font-size: clamp(10px, .72vw, 12px);
+            font-weight: 700;
+        }
         
         /* Macro Cards & Animated Cards */
         .macro-card {
@@ -4663,6 +5106,15 @@ def generate_html_dashboard(
             .summary-card {
                 padding: 20px;
             }
+
+            .market-risk-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+            .market-risk-card {
+                min-height: 102px;
+                padding: 12px 8px;
+            }
             
             .table-container {
                 border-radius: var(--radius-sm);
@@ -4692,6 +5144,10 @@ def generate_html_dashboard(
             .summary-card .value {
                 font-size: 28px;
             }
+
+            .market-risk-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
     """
@@ -4700,11 +5156,21 @@ def generate_html_dashboard(
     vix_cls = vix_val if vix_val != 'N/A' else 'Normal'
 
     # --- RISK MANAGEMENT LOGIC (NEW) ---
-    swing_data = (
-        swing_data_override
-        if isinstance(swing_data_override, dict)
-        else get_swing_trading_data()
-    )
+    if isinstance(swing_data_override, dict):
+        swing_data = swing_data_override
+    else:
+        fresh_swing_data = get_swing_trading_data()
+        if _store_us_market_overview_snapshot(full_state, fresh_swing_data):
+            swing_data = fresh_swing_data
+            # main() salvează starea înainte de randarea HTML. Snapshotul este
+            # creat aici, deci îl persistăm imediat pentru următorul update_ro.
+            market_utils.save_state(full_state)
+        else:
+            # O cădere Yahoo/Finviz nu are voie să înlocuiască overview-ul
+            # valid cu zerouri. Folosim ultimul snapshot complet al SUA.
+            swing_data = _cached_swing_data_for_ro(full_state)
+            if swing_data is None:
+                swing_data = fresh_swing_data
     
     # Extract Metrics
     r_spx_price = swing_data.get('SPX_Price', 0)
@@ -4752,35 +5218,39 @@ def generate_html_dashboard(
 
     # Generate HTML for Risk Cards
     risk_cards_html = f"""
-    <div class="summary-card" style="border: 1px solid {rule1_color}40;">
+    <div class="market-risk-card" style="border-color:{rule1_color}55;">
         <h3 style="font-size: 0.9rem; margin-bottom: 5px;">Regula #1 (SPX &lt; SMA200)</h3>
-        <div class="value" style="font-size: 1.2rem; color: {rule1_color};">{rule1_status}</div>
-        <div style="font-size: 0.8rem; color: {rule1_color}; font-weight: 600;">{rule1_action}</div>
+        <div class="risk-value" style="color:{rule1_color};">{rule1_status}</div>
+        <div class="risk-action" style="color:{rule1_color};">{rule1_action}</div>
     </div>
     
-    <div class="summary-card" style="border: 1px solid {rule2_color}40;">
+    <div class="market-risk-card" style="border-color:{rule2_color}55;">
         <h3 style="font-size: 0.9rem; margin-bottom: 5px;">Regula #2 (VIX &gt; 25)</h3>
-        <div class="value" style="font-size: 1.2rem; color: {rule2_color};">{rule2_status}</div>
-        <div style="font-size: 0.8rem; color: {rule2_color}; font-weight: 600;">{rule2_action}</div>
+        <div class="risk-value" style="color:{rule2_color};">{rule2_status}</div>
+        <div class="risk-action" style="color:{rule2_color};">{rule2_action}</div>
     </div>
     
-    <div class="summary-card" style="border: 1px solid {rule3_color}40;">
+    <div class="market-risk-card" style="border-color:{rule3_color}55;">
         <h3 style="font-size: 0.9rem; margin-bottom: 5px;">Regula #3 (Breadth &lt; 45%)</h3>
-        <div class="value" style="font-size: 1.2rem; color: {rule3_color};">{rule3_status}</div>
-        <div style="font-size: 0.8rem; color: {rule3_color}; font-weight: 600;">{rule3_action}</div>
+        <div class="risk-value" style="color:{rule3_color};">{rule3_status}</div>
+        <div class="risk-action" style="color:{rule3_color};">{rule3_action}</div>
     </div>
     
-    <div class="summary-card" style="border: 1px solid {rule4_color}40;" title="{rule4_debug}">
+    <div class="market-risk-card" style="border-color:{rule4_color}55;" title="{rule4_debug}">
         <h3 style="font-size: 0.9rem; margin-bottom: 5px;">Regula #4 (Market Structure)</h3>
-        <div class="value" style="font-size: 1.2rem; color: {rule4_color};">{rule4_status}</div>
-        <div style="font-size: 0.8rem; color: {rule4_color}; font-weight: 600;">{rule4_action}</div>
+        <div class="risk-value" style="color:{rule4_color};">{rule4_status}</div>
+        <div class="risk-action" style="color:{rule4_color};">{rule4_action}</div>
     </div>
     
-    <div class="summary-card" style="border: 2px solid {overall_color}; background: {overall_color}10;">
+    <div class="market-risk-card market-risk-result" style="border:2px solid {overall_color};background:{overall_color}10;">
         <h3 style="font-size: 0.9rem; margin-bottom: 5px;">REZULTAT ({active_rules_count}/4)</h3>
-        <div class="value" style="font-size: 1.3rem; color: {overall_color};">{overall_status}</div>
+        <div class="risk-value" style="color:{overall_color};">{overall_status}</div>
+        <div class="risk-action" style="color:{overall_color};">DOAR POZIȚII SUA</div>
     </div>
     """
+    bvb_risk_cards_html = _generate_bvb_risk_status_html(
+        portfolio_df, watchlist_df
+    )
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # Calcul Timestamp IBKR File
@@ -5444,9 +5914,14 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 </div>
                 
                 <!-- RISK ON/OFF ANALYSIS CARDS -->
-                <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">Market Risk Status</h3>
-                <div class="summary">
+                <h3 style="margin-top:30px;margin-bottom:15px;color:var(--text-primary);">Market Risk Status — separat pe piețe</h3>
+                <h4 style="margin:0 0 10px;color:var(--text-secondary);">SUA — SPX / VIX / breadth</h4>
+                <div class="market-risk-grid">
                     {risk_cards_html}
+                </div>
+                <h4 style="margin:0 0 10px;color:var(--text-secondary);">România / BVB — TVBETETF</h4>
+                <div class="market-risk-grid">
+                    {bvb_risk_cards_html}
                 </div>
 
             <div id="portfolio-ai-container"></div>
@@ -6664,7 +7139,16 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     print("  -> Generare Analiză Swing Trading (Long-only)...")
     try:
         swing_html = generate_swing_trading_html(data=swing_data)
+        html_head += """
+            <section style="margin-top:32px;">
+              <h2 style="margin:0;color:var(--text-primary);">SUA — S&amp;P 500 / Nasdaq</h2>
+              <p style="margin:6px 0 0;color:var(--text-secondary);">Trend, volatilitate, sentiment și breadth exclusiv pentru piața americană.</p>
+            </section>
+        """
         html_head += swing_html
+        html_head += _generate_bvb_market_overview_html(
+            portfolio_df, watchlist_df
+        )
     except Exception as e:
         print(f"  ⚠ Eroare generare Swing Trading HTML: {e}")
     
@@ -8199,6 +8683,58 @@ def update_portfolio_data(state, rates, vix_val, sync_before_load=True):
     return state
 
 
+def update_portfolio_positions_only(state, rates, vix_val):
+    """Actualizează strict instrumentele deținute, folosind contextul din cache.
+
+    Nu scanează watchlistul, universuri BUY, Finviz breadth sau componentele
+    S&P 500. Contextul SUA necesar regulilor pozițiilor este citit din ultimul
+    snapshot valid, iar fiecare simbol procesat provine exclusiv din portfolio.
+    """
+    print("\n=== Actualizare strictă a pozițiilor deținute ===")
+    portfolio_data = load_portfolio()
+    portfolio_results = []
+    swing = _cached_swing_data_for_ro(state) or {}
+    chart = swing.get('Chart_SPX', {}) if isinstance(swing, dict) else {}
+    closes = pd.to_numeric(
+        pd.Series(chart.get('price', []) or []), errors='coerce'
+    ).dropna()
+    # Pentru relative strength contează alinierea ultimelor observații, nu
+    # data calendaristică; etichetele cache-ului sunt intenționat MM-DD.
+    spx_df = pd.DataFrame(
+        {'Close': closes.to_numpy()}, index=pd.RangeIndex(len(closes))
+    )
+    spx_price = _safe_float_text(swing.get('SPX_Price')) or 0
+    spx_sma200 = _safe_float_text(swing.get('SPX_SMA200')) or 0
+    market_in_downtrend = bool(
+        spx_price > 0 and spx_sma200 > 0 and spx_price < spx_sma200
+    )
+    breadth_pct = _safe_float_text(swing.get('Breadth_Pct'))
+    if breadth_pct is None:
+        breadth_pct = 50.0
+    rule4_active = bool(swing.get('Rule4_Active', False))
+    if vix_val is None:
+        vix_val = _safe_float_text(swing.get('VIX_Current')) or 15.0
+
+    if portfolio_data.empty:
+        state['portfolio'] = []
+        return state
+    print(
+        f"Procesare {len(portfolio_data)} poziții; fără scanare watchlist "
+        "sau universuri de piață."
+    )
+    ticker_cache = {}
+    for _, row in portfolio_data.iterrows():
+        print(f"  > {row['symbol']}")
+        data = process_portfolio_ticker(
+            row, vix_val, rates, spx_df, market_in_downtrend,
+            breadth_pct, rule4_active, ticker_cache,
+        )
+        if data:
+            portfolio_results.append(data)
+    state['portfolio'] = portfolio_results
+    return state
+
+
 # REFACTORED: cache helpers moved to market_data.py
 
 
@@ -8208,14 +8744,17 @@ def update_watchlist_data(
     vix_val,
     *,
     target_market=None,
+    target_markets=None,
     sync_remote=True,
     cache_ttl_hours=5,
 ):
     """Actualizează datele din watchlist și le salvează în state."""
+    selected_markets = set(target_markets or [])
+    if target_market:
+        selected_markets.add(target_market)
     title = (
-        f"Watchlist — {target_market}"
-        if target_market
-        else "Watchlist"
+        f"Watchlist — {', '.join(sorted(selected_markets))}"
+        if selected_markets else "Watchlist"
     )
     print(f"\n=== Actualizare {title} ===")
     
@@ -8225,19 +8764,22 @@ def update_watchlist_data(
     
     watchlist_tickers = load_watchlist()
     retained_results = []
-    if target_market:
+    if selected_markets:
         retained_results = [
             item for item in state.get('watchlist', [])
-            if _buy_candidate_market(item.get('Ticker')) != target_market
+            if _buy_candidate_market(item.get('Ticker')) not in selected_markets
         ]
         watchlist_tickers = [
             ticker for ticker in watchlist_tickers
-            if _buy_candidate_market(ticker) == target_market
+            if _buy_candidate_market(ticker) in selected_markets
         ]
     watchlist_results = []
     
     if not watchlist_tickers:
-         print(f"Niciun simbol pentru {target_market or 'watchlist'}.")
+         print(
+             f"Niciun simbol pentru "
+             f"{', '.join(sorted(selected_markets)) or 'watchlist'}."
+         )
          state['watchlist'] = retained_results
          return state
 
@@ -8322,7 +8864,10 @@ def main():
     parser = argparse.ArgumentParser(description="Antigravity Market Scanner")
     parser.add_argument(
         '--mode',
-        choices=['all', 'portfolio', 'watchlist', 'ro', 'html-only'],
+        choices=[
+            'all', 'portfolio', 'watchlist', 'ro', 'international',
+            'html-only',
+        ],
         default='all',
         help='Select update mode',
     )
@@ -8366,7 +8911,11 @@ def main():
                  import ib_tws_sync
                  tws_synced = bool(
                      ib_tws_sync.fetch_active_orders(
-                         research_symbols=_planned_bvb_tws_symbols(state)
+                         research_symbols=(
+                             _planned_bvb_tws_symbols(state)
+                             if args.mode == 'all' else []
+                         ),
+                         sync_research_instruments=(args.mode == 'all'),
                      )
                  )
                  
@@ -8498,7 +9047,7 @@ def main():
     market_indicators = state.get('market_indicators', {})
     vix_val = state.get('vix_val', None)
     
-    if args.mode not in {'html-only', 'ro'}:
+    if args.mode not in {'html-only', 'ro', 'portfolio'}:
         print("=== Actualizare Date Globale ===")
         rates = market_data.get_exchange_rates()
         state['rates'] = rates
@@ -8521,24 +9070,29 @@ def main():
     # 3. Actualizări Secționale
     # Dacă o piață nu are candidați eligibili, extindem universul de cercetare.
     # În modul complet noile simboluri vor fi procesate de update_watchlist_data.
-    target_markets = (
-        {'România / BVB'} if args.mode == 'ro' else None
-    )
-    state = ensure_buy_research_candidates(
-        state,
-        rates,
-        vix_val,
-        refresh_missing=False,
-        target_markets=target_markets,
-    )
+    target_markets = None
+    if args.mode == 'ro':
+        target_markets = {'România / BVB'}
+    elif args.mode == 'international':
+        target_markets = {'SUA', 'Europa / Nasdaq-100'}
+    if args.mode not in {'portfolio', 'html-only'}:
+        state = ensure_buy_research_candidates(
+            state,
+            rates,
+            vix_val,
+            refresh_missing=False,
+            target_markets=target_markets,
+        )
 
-    if args.mode in ['all', 'portfolio']:
+    if args.mode == 'all':
         state = update_portfolio_data(
             state,
             rates,
             vix_val,
             sync_before_load=False,
         )
+    elif args.mode == 'portfolio':
+        state = update_portfolio_positions_only(state, rates, vix_val)
         
     if args.mode in ['all', 'watchlist']:
         state = update_watchlist_data(state, rates, vix_val)
@@ -8551,7 +9105,14 @@ def main():
             sync_remote=False,
             cache_ttl_hours=1,
         )
-    if args.mode in ['all', 'watchlist', 'portfolio']:
+    if args.mode == 'international':
+        state = update_watchlist_data(
+            state,
+            rates,
+            vix_val,
+            target_markets={'SUA', 'Europa / Nasdaq-100'},
+        )
+    if args.mode in ['all', 'watchlist']:
         # Cercetarea suplimentară rămâne separată de watchlist și folosește
         # propriul criteriu de triere.
         state = ensure_buy_research_candidates(
@@ -8564,6 +9125,14 @@ def main():
             vix_val,
             refresh_missing=True,
             target_markets={'România / BVB'},
+        )
+    elif args.mode == 'international':
+        state = ensure_buy_research_candidates(
+            state,
+            rates,
+            vix_val,
+            refresh_missing=True,
+            target_markets={'SUA', 'Europa / Nasdaq-100'},
         )
         
     # 4. Salvare Stare
@@ -8603,10 +9172,26 @@ def main():
     
     print("\n=== Generare Dashboard HTML ===")
     cached_swing_data = (
-        _cached_swing_data_for_ro(state) if args.mode == 'ro' else None
+        _cached_swing_data_for_ro(state)
+        if args.mode in {'ro', 'portfolio'} else None
     )
-    if cached_swing_data is not None:
+    if args.mode == 'portfolio' and cached_swing_data is None:
+        # Un dict gol oprește explicit fallback-ul din renderer către o
+        # interogare globală. Modul portfolio rămâne astfel strict limitat la
+        # pozițiile deținute chiar și la prima rulare, înainte de update_all.
+        cached_swing_data = {}
+    if cached_swing_data:
         print("  -> Contextul SUA este reutilizat din cache; fără scanare SUA.")
+    elif args.mode == 'ro':
+        print(
+            "  -> Snapshotul SUA lipsește sau este invalid; îl inițializăm "
+            "o singură dată, separat de datele BVB."
+        )
+    elif args.mode == 'portfolio':
+        print(
+            "  -> Contextul global nu este disponibil în cache; modul "
+            "portofoliu nu pornește o scanare de piață suplimentară."
+        )
     generate_html_dashboard(
         portfolio_df,
         watchlist_df,
