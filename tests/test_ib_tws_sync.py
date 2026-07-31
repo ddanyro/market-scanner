@@ -58,6 +58,49 @@ def _bars():
 
 
 class TestTwsInstrumentSync(unittest.TestCase):
+    def test_only_romanian_stock_positions_are_selected_for_ro_sync(self):
+        positions = [
+            types.SimpleNamespace(
+                position=10,
+                contract=_contract('TLV', 'RON', 'BVB', 1),
+            ),
+            types.SimpleNamespace(
+                position=5,
+                contract=_contract('JPM', 'USD', 'SMART', 2),
+            ),
+            types.SimpleNamespace(
+                position=0,
+                contract=_contract('SNP', 'RON', 'BVB', 3),
+            ),
+        ]
+        self.assertEqual(
+            ib_tws_sync._romanian_position_symbols(positions),
+            ['TLV.RO'],
+        )
+
+    def test_recent_romanian_tws_cache_skips_reconnection(self):
+        fetched_at = datetime.datetime.now(
+            datetime.timezone.utc
+        ).isoformat()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'tws_instruments.json')
+            with open(path, 'w', encoding='utf-8') as handle:
+                json.dump({
+                    'instruments': {
+                        'TLV.RO': {
+                            'symbol': 'TLV.RO',
+                            'market': 'România / BVB',
+                            'position_held_in_ibkr': True,
+                            'fetched_at': fetched_at,
+                            'bars': [{'date': '2026-07-30'}],
+                        },
+                    },
+                }, handle)
+            result = ib_tws_sync.sync_romanian_position_instruments(
+                output_file=path, max_age_hours=1
+            )
+        self.assertTrue(result)
+
     def test_recent_tws_positions_skip_flex_when_disabled(self):
         previous_cwd = os.getcwd()
         with tempfile.TemporaryDirectory() as temp_dir:

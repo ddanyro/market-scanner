@@ -1454,6 +1454,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
     def test_bvb_history_prefers_public_bvb_before_yahoo_and_tws(
         self, yahoo_download, _load_tws, bvb_fetch,
     ):
+        yahoo_download.return_value = pd.DataFrame()
         bvb_frame = pd.DataFrame(
             {
                 'Open': [9.5], 'High': [10.5], 'Low': [9.0],
@@ -1483,7 +1484,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             attribution['Market_Data_Source'],
             'BVB CSV public zilnic (fără autentificare)',
         )
-        yahoo_download.assert_not_called()
+        yahoo_download.assert_called_once_with('ALR.RO', period='1y')
 
     @patch('market_scanner.bvb_public_market_data.fetch_history')
     @patch('market_scanner._load_tws_instrument')
@@ -1518,8 +1519,11 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         )
 
         self.assertEqual(float(frame['Close'].iloc[-1]), 10.25)
-        self.assertIsNone(selected)
-        self.assertEqual(attribution['Market_Data_Source'], 'Yahoo Finance')
+        self.assertEqual(selected['data_broker'], 'surse combinate')
+        self.assertEqual(
+            attribution['Market_Data_Source'],
+            'IBKR TWS + Yahoo Finance',
+        )
 
     @patch('market_scanner.bvb_public_market_data.fetch_history')
     @patch('market_scanner._load_tws_instrument')
@@ -2055,6 +2059,36 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             priority_symbols={'AAPL'},
         )
         self.assertEqual(due, ['AAPL'])
+
+    def test_all_bvb_research_symbols_refresh_after_one_hour(self):
+        cached_at = time.time() - (2 * 3600)
+        due = market_scanner._research_symbols_due(
+            ['TLV.RO', 'OTHER'],
+            {
+                'TLV.RO': {'_cached_at': cached_at},
+                'OTHER': {'_cached_at': cached_at},
+            },
+        )
+        self.assertIn('TLV.RO', due)
+        self.assertNotIn('OTHER', due)
+
+    def test_bvb_history_merges_tws_and_public_without_duplicate_dates(self):
+        dates = pd.bdate_range('2026-04-01', periods=65)
+        tws = pd.DataFrame({
+            'Open': np.arange(65) + 10,
+            'High': np.arange(65) + 11,
+            'Low': np.arange(65) + 9,
+            'Close': np.arange(65) + 10.5,
+            'Volume': np.arange(65) + 1000,
+        }, index=dates)
+        public = pd.DataFrame({
+            'Open': [100.0], 'High': [102.0], 'Low': [99.0],
+            'Close': [101.0], 'Volume': [5000],
+        }, index=[dates[-1].tz_localize('Europe/Bucharest')])
+        merged = market_scanner._merge_ohlcv_histories(tws, public)
+
+        self.assertEqual(len(merged), 65)
+        self.assertEqual(float(merged.loc[dates[-1], 'Close']), 101.0)
 
     def test_broad_bvb_universe_is_never_sent_to_tws(self):
         state = {
