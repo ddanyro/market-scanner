@@ -52,14 +52,31 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertEqual(by_symbol['TLV.RO']['price_ron'], 37.10)
         self.assertEqual(by_symbol['IARV.RO']['volume'], 25000)
 
-    def test_bvb_universe_fetch_uses_last_valid_cache_on_error(self):
+    @patch(
+        'market_scanner.tradeville_market_data.fetch_listed_symbols',
+        side_effect=market_scanner.tradeville_market_data.TradevilleDataError(
+            'offline'
+        ),
+    )
+    def test_bvb_universe_fetch_uses_last_valid_cache_on_error(self, _fetch):
         state = {'bvb_equity_universe': [{'symbol': 'IARV.RO'}]}
-        session = Mock()
-        session.get.side_effect = market_scanner.requests.RequestException('offline')
         self.assertEqual(
-            market_scanner.fetch_complete_bvb_equity_universe(state, session),
+            market_scanner.fetch_complete_bvb_equity_universe(state),
             state['bvb_equity_universe'],
         )
+
+    @patch(
+        'market_scanner.tradeville_market_data.fetch_listed_symbols',
+        return_value={'TLV', 'AROBS'},
+    )
+    def test_bvb_universe_is_discovered_without_bvb_api(self, _fetch):
+        records = market_scanner.fetch_complete_bvb_equity_universe({})
+        by_symbol = {item['symbol']: item for item in records}
+        self.assertEqual(set(by_symbol), {'TLV.RO', 'AROBS.RO'})
+        self.assertTrue(all(
+            item['source'] == 'Lista publică Tradeville'
+            for item in records
+        ))
 
     def test_bvb_liquidity_uses_rolling_median_not_single_day_spike(self):
         frame = pd.DataFrame({
@@ -1394,14 +1411,25 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
     @patch('market_scanner.tradeville_market_data.fetch_history')
     @patch('market_scanner._load_tws_instrument', return_value=None)
     @patch('market_scanner._download_yahoo_history')
-    def test_bvb_history_prefers_yahoo_before_tws_and_tradeville(
+    def test_bvb_history_prefers_tradeville_before_yahoo_and_tws(
         self, yahoo_download, _load_tws, tradeville_fetch,
     ):
-        yahoo_frame = pd.DataFrame(
-            {'Close': [10.0]},
+        tradeville_frame = pd.DataFrame(
+            {
+                'Open': [9.5], 'High': [10.5], 'Low': [9.0],
+                'Close': [10.0], 'Volume': [1000],
+            },
             index=pd.to_datetime(['2026-07-27']),
         )
-        yahoo_download.return_value = yahoo_frame
+        tradeville_fetch.return_value = (
+            tradeville_frame,
+            {
+                'data_provider': 'Tradeville public market data',
+                'data_broker': 'Tradeville',
+                'fetched_at': '2026-07-28T06:00:00+00:00',
+                'market_data': {'close': 10},
+            },
+        )
 
         frame, selected, _, attribution = (
             market_scanner._load_analysis_history(
@@ -1410,17 +1438,26 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         )
 
         self.assertEqual(float(frame['Close'].iloc[-1]), 10.0)
-        self.assertIsNone(selected)
-        self.assertEqual(attribution['Market_Data_Source'], 'Yahoo Finance')
-        tradeville_fetch.assert_not_called()
+        self.assertEqual(selected['data_broker'], 'Tradeville')
+        self.assertEqual(
+            attribution['Market_Data_Source'],
+            'Tradeville public market data',
+        )
+        yahoo_download.assert_not_called()
 
     @patch('market_scanner.tradeville_market_data.fetch_history')
     @patch('market_scanner._load_tws_instrument')
     @patch('market_scanner._download_yahoo_history')
-    def test_bvb_history_uses_tws_second(
+    def test_bvb_history_uses_yahoo_after_tradeville(
         self, yahoo_download, load_tws, tradeville_fetch,
     ):
-        yahoo_download.return_value = pd.DataFrame()
+        tradeville_fetch.side_effect = (
+            market_scanner.tradeville_market_data.TradevilleDataError('offline')
+        )
+        yahoo_download.return_value = pd.DataFrame(
+            {'Close': [10.25]},
+            index=pd.to_datetime(['2026-07-27']),
+        )
         load_tws.return_value = {
             'symbol': 'ALR.RO',
             'data_provider': 'IBKR TWS API',
@@ -1440,50 +1477,38 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             market_scanner._load_analysis_history('ALR.RO', 'ALR.RO')
         )
 
-        self.assertEqual(float(frame['Close'].iloc[-1]), 1.05)
-        self.assertIs(selected, load_tws.return_value)
-        self.assertEqual(attribution['Data_Broker'], 'IBKR')
-        tradeville_fetch.assert_not_called()
+        self.assertEqual(float(frame['Close'].iloc[-1]), 10.25)
+        self.assertIsNone(selected)
+        self.assertEqual(attribution['Market_Data_Source'], 'Yahoo Finance')
 
     @patch('market_scanner.tradeville_market_data.fetch_history')
-    @patch('market_scanner._load_tws_instrument', return_value=None)
+    @patch('market_scanner._load_tws_instrument')
     @patch('market_scanner._download_yahoo_history')
-    def test_bvb_history_uses_tradeville_only_after_yahoo_and_tws(
-        self, yahoo_download, _load_tws, tradeville_fetch,
+    def test_bvb_history_uses_existing_tws_cache_only_as_last_fallback(
+        self, yahoo_download, load_tws, tradeville_fetch,
     ):
+        tradeville_fetch.side_effect = (
+            market_scanner.tradeville_market_data.TradevilleDataError('offline')
+        )
         yahoo_download.return_value = pd.DataFrame()
-        tradeville_frame = pd.DataFrame(
-            {
-                'Open': [10],
-                'High': [11],
-                'Low': [9],
-                'Close': [10.5],
-                'Volume': [500],
-            },
-            index=pd.to_datetime(['2026-07-27']),
-        )
-        tradeville_fetch.return_value = (
-            tradeville_frame,
-            {
-                'data_provider': 'Tradeville public market data',
-                'data_broker': 'Tradeville',
-                'fetched_at': '2026-07-28T06:00:00+00:00',
-                'market_data': {'close': 10.5},
-                'ibkr_data_only': False,
-            },
-        )
+        load_tws.return_value = {
+            'symbol': 'ALR.RO',
+            'data_provider': 'IBKR TWS API',
+            'data_broker': 'IBKR',
+            'fetched_at': '2026-07-28T06:00:00+00:00',
+            'bars': [{
+                'date': '2026-07-27', 'open': 10, 'high': 11,
+                'low': 9, 'close': 10.5, 'volume': 500,
+            }],
+        }
 
         frame, selected, _, attribution = (
             market_scanner._load_analysis_history('ALR.RO', 'ALR.RO')
         )
 
         self.assertEqual(float(frame['Close'].iloc[-1]), 10.5)
-        self.assertEqual(selected['data_broker'], 'Tradeville')
-        self.assertEqual(
-            attribution['Market_Data_Source'],
-            'Tradeville public market data',
-        )
-        self.assertFalse(attribution['IBKR_Data_Only'])
+        self.assertIs(selected, load_tws.return_value)
+        self.assertEqual(attribution['Data_Broker'], 'IBKR')
 
     @patch('market_scanner.market_data.get_finviz_data', return_value={})
     @patch('market_scanner.yf.download')
@@ -1990,6 +2015,64 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             priority_symbols={'AAPL'},
         )
         self.assertEqual(due, ['AAPL'])
+
+    def test_broad_bvb_universe_is_never_sent_to_tws(self):
+        state = {
+            'bvb_equity_universe': [
+                {'symbol': 'DENT.RO'},
+                {'symbol': 'RCHI.RO'},
+            ],
+        }
+        self.assertEqual(
+            market_scanner._planned_bvb_tws_symbols(state),
+            [],
+        )
+
+    @patch('market_scanner.process_watchlist_ticker')
+    @patch(
+        'market_scanner.fetch_complete_bvb_equity_universe',
+        return_value=[{'symbol': 'TLV.RO', 'bvb_symbol': 'TLV'}],
+    )
+    @patch('market_scanner.load_complete_us_equity_universe')
+    @patch('market_scanner.os.path.exists', return_value=False)
+    def test_ro_research_mode_does_not_scan_us(
+        self,
+        _exists,
+        load_us,
+        _fetch_bvb,
+        process_ticker,
+    ):
+        process_ticker.return_value = {
+            'Ticker': 'TLV.RO',
+            'Price': 10,
+            'Stop_Loss': 9,
+            'Target': 13,
+            'RR_Ratio': 3,
+        }
+        with patch.object(
+            market_scanner,
+            '_select_bvb_research_symbols',
+            return_value=['TLV.RO'],
+        ):
+            result = market_scanner.ensure_buy_research_candidates(
+                {},
+                {'EUR': 1, 'RON': 0.2, 'USD': 0.9},
+                15,
+                refresh_missing=True,
+                target_markets={'România / BVB'},
+            )
+
+        load_us.assert_not_called()
+        process_ticker.assert_called_once_with(
+            'TLV.RO',
+            15,
+            {'EUR': 1, 'RON': 0.2, 'USD': 0.9},
+        )
+        self.assertNotIn('us_universe_stats', result)
+        self.assertEqual(
+            result['bvb_universe_stats']['source'],
+            market_scanner.ROMANIAN_UNIVERSE_SOURCE_URL,
+        )
 
     @patch('market_scanner.process_watchlist_ticker')
     @patch('market_scanner.load_complete_us_equity_universe', return_value=['AAPL'])
