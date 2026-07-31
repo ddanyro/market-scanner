@@ -2595,7 +2595,10 @@ class TestHTMLGeneration(unittest.TestCase):
         self.assertIn('mountPushPrerequisiteButton', html)
         self.assertIn('messaging.getToken', html)
         self.assertIn('messaging.deleteToken', html)
-        self.assertIn('Copiază tokenul Firebase', html)
+        self.assertIn('marketScannerPortfolioAuthenticated', html)
+        self.assertIn('market-scanner:portfolio-authenticated', html)
+        self.assertNotIn('Copiază tokenul Firebase', html)
+        self.assertNotIn('copyFirebaseTokenButton', html)
         self.assertIn('firebase.messaging();', worker)
         self.assertNotIn('private_key', worker)
     

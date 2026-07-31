@@ -143,7 +143,7 @@ def _firebase_web_push_html(config_value, vapid_key, worker_path=None):
         <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js"></script>
         <style>
-            #buyNowPushButton, #copyFirebaseTokenButton {{
+            #buyNowPushButton {{
                 width: 100%;
                 border: 0;
                 border-bottom: 1px solid var(--border-light, #dfe3ea);
@@ -161,12 +161,18 @@ def _firebase_web_push_html(config_value, vapid_key, worker_path=None):
                 cursor: wait;
                 opacity: .65;
             }}
-            #copyFirebaseTokenButton {{
-                color: #4f46e5;
-            }}
         </style>
         <script>
             window.addEventListener('load', async function() {{
+                if (window.marketScannerPortfolioAuthenticated !== true) {{
+                    await new Promise(function(resolve) {{
+                        window.addEventListener(
+                            'market-scanner:portfolio-authenticated',
+                            resolve,
+                            {{once: true}}
+                        );
+                    }});
+                }}
                 const firebaseConfig = {config_json};
                 const firebaseVapidKey = {vapid_key_json};
                 const firebaseProjectId = {project_id_json};
@@ -270,14 +276,6 @@ def _firebase_web_push_html(config_value, vapid_key, worker_path=None):
                     button.className = 'menu-item push-menu-item';
                     menu.appendChild(button);
 
-                    const copyButton = document.createElement('button');
-                    copyButton.id = 'copyFirebaseTokenButton';
-                    copyButton.type = 'button';
-                    copyButton.className = 'menu-item push-menu-item';
-                    copyButton.textContent = 'Copiază tokenul Firebase';
-                    copyButton.hidden = true;
-                    menu.appendChild(copyButton);
-
                     async function refreshPushButton(requestIfMissing=false) {{
                         try {{
                             await readFirebaseToken(requestIfMissing);
@@ -291,13 +289,11 @@ def _firebase_web_push_html(config_value, vapid_key, worker_path=None):
                         );
                         button.dataset.active = String(active);
                         button.dataset.subscriptionReady = String(active);
-                        copyButton.hidden = !active;
                         if (active) {{
                             button.textContent = 'Alerte BUY active';
                             button.title = (
-                                'Abonament Firebase activ. '
-                                + 'Folosește opțiunea de copiere a tokenului '
-                                + 'pentru configurarea GitHub.'
+                                'Abonament Firebase activ. Apasă pentru a opri '
+                                + 'alertele BUY pe acest dispozitiv.'
                             );
                         }} else {{
                             button.textContent = 'Activează alertele BUY';
@@ -307,15 +303,6 @@ def _firebase_web_push_html(config_value, vapid_key, worker_path=None):
                             );
                         }}
                     }}
-
-                    copyButton.addEventListener('click', async function() {{
-                        if (!currentToken) return;
-                        await navigator.clipboard.writeText(currentToken);
-                        copyButton.textContent = 'Token Firebase copiat';
-                        window.setTimeout(function() {{
-                            copyButton.textContent = 'Copiază tokenul Firebase';
-                        }}, 1800);
-                    }});
 
                     button.addEventListener('click', async function() {{
                         button.disabled = true;
@@ -4870,6 +4857,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
 
                     document.getElementById('portfolio-lock').style.display = 'none';
                     document.getElementById('portfolio-data').style.display = 'block';
+                    window.marketScannerPortfolioAuthenticated = true;
+                    window.dispatchEvent(new CustomEvent(
+                        'market-scanner:portfolio-authenticated',
+                        { detail: { authenticated: true } }
+                    ));
                     const passwordInput = document.getElementById('pf-pass');
                     if (passwordInput) passwordInput.value = '';
                     if (
