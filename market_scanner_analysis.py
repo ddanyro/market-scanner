@@ -4867,54 +4867,114 @@ def calculate_international_swing_score(data):
     has_market_tide = bool(data.get('Market_Tide'))
     if completeness >= 0.9 and has_market_tide:
         confidence = 'Ridicată'
+        confidence_explanation = (
+            'Minimum 90% dintre datele-cheie sunt disponibile, iar Market '
+            'Tide confirmă structura internă a pieței.'
+        )
     elif completeness >= 0.65:
         confidence = 'Medie'
+        confidence_explanation = (
+            'Sunt disponibile minimum 65% dintre datele-cheie, dar lipsesc '
+            'unele confirmări sau Market Tide.'
+        )
     else:
         confidence = 'Scăzută'
+        confidence_explanation = (
+            'Lipsesc prea multe date-cheie pentru o concluzie robustă.'
+        )
 
-    score = 0.0
+    breakdown = {
+        'trend': 0.0,
+        'timing': 0.0,
+        'rsi': 0.0,
+        'breadth': 0.0,
+        'volatility': 0.0,
+        'sentiment': 0.0,
+    }
     # Trend major + intermediar: SPX și Nasdaq au aceeași importanță.
     for prefix in ('SPX', 'NDX'):
         price = float(data.get(f'{prefix}_Price') or 0)
         if price and price > float(data.get(f'{prefix}_SMA200') or 0):
-            score += 10
+            breakdown['trend'] += 10
         if price and price > float(data.get(f'{prefix}_SMA50') or 0):
-            score += 10
+            breakdown['trend'] += 10
         if price and price > float(data.get(f'{prefix}_SMA10') or 0):
-            score += 7.5
+            breakdown['timing'] += 7.5
 
         rsi = float(data.get(f'{prefix}_RSI') or 0)
         if 40 <= rsi < 80:
-            score += 5
+            breakdown['rsi'] += 5
         elif 35 <= rsi < 85:
-            score += 2
+            breakdown['rsi'] += 2
 
     breadth = float(data.get('Breadth_Pct') or 0)
     if breadth >= 70:
-        score += 15
+        breakdown['breadth'] = 15
     elif breadth >= 50:
-        score += 12
+        breakdown['breadth'] = 12
     elif breadth >= 30:
-        score += 5
+        breakdown['breadth'] = 5
 
     vix = float(data.get('VIX_Current') or 0)
     if 15 <= vix < 25:
-        score += 10
+        breakdown['volatility'] = 10
     elif 0 < vix < 30:
-        score += 6
+        breakdown['volatility'] = 6
 
     fear_greed = float(data.get('FG_Score') or 0)
     if 25 <= fear_greed <= 55:
-        score += 10
+        breakdown['sentiment'] = 10
     elif 55 < fear_greed <= 75:
-        score += 7
+        breakdown['sentiment'] = 7
     elif fear_greed > 0:
-        score += 3
+        breakdown['sentiment'] = 3
+
+    final_score = max(0, min(100, int(round(sum(breakdown.values())))))
+    if final_score >= 90:
+        band = 'Aliniere foarte puternică'
+        band_color = '#2e7d32'
+        interpretation = (
+            'Aproape toți factorii măsurați susțin pozițiile long. Verifică '
+            'totuși verdictul BUY/WAIT, calendarul și riscul înaintea intrării.'
+        )
+    elif final_score >= 75:
+        band = 'Context puternic'
+        band_color = '#4caf50'
+        interpretation = (
+            'Trendul și majoritatea confirmărilor sunt favorabile; caută '
+            'intrări cu trigger și stop clar.'
+        )
+    elif final_score >= 60:
+        band = 'Context favorabil'
+        band_color = '#7cb342'
+        interpretation = (
+            'Fundalul permite cumpărări selective, dar unele confirmări lipsesc '
+            'și verdictul de timing rămâne decisiv.'
+        )
+    elif final_score >= 40:
+        band = 'Context fragil'
+        band_color = '#ff9800'
+        interpretation = (
+            'Semnalele sunt amestecate; evită expunerea agresivă și așteaptă '
+            'confirmări suplimentare.'
+        )
+    else:
+        band = 'Context nefavorabil'
+        band_color = '#f44336'
+        interpretation = (
+            'Condițiile pentru poziții long sunt slabe; protecția capitalului '
+            'și reducerea riscului au prioritate.'
+        )
 
     return {
-        'score': max(0, min(100, int(round(score)))),
+        'score': final_score,
         'confidence': confidence,
+        'confidence_explanation': confidence_explanation,
         'completeness_pct': int(round(completeness * 100)),
+        'band': band,
+        'band_color': band_color,
+        'interpretation': interpretation,
+        'breakdown': breakdown,
     }
 
 def generate_swing_trading_html(data=None, return_signal=False):
@@ -5584,13 +5644,35 @@ def generate_swing_trading_html(data=None, return_signal=False):
                 <div style="padding:14px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;">
                     <div style="font-size:12px;color:#666;text-transform:uppercase;">Scor swing internațional</div>
                     <div style="font-size:24px;font-weight:800;color:#111827;">{international_swing['score']}/100</div>
+                    <div style="font-size:12px;font-weight:700;color:{international_swing['band_color']};margin-top:3px;">{international_swing['band']}</div>
                 </div>
                 <div style="padding:14px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;">
                     <div style="font-size:12px;color:#666;text-transform:uppercase;">Încredere</div>
                     <div style="font-size:24px;font-weight:800;color:#111827;">{international_swing['confidence']}</div>
                     <div style="font-size:11px;color:#888;margin-top:3px;">Date disponibile: {international_swing['completeness_pct']}%</div>
+                    <div style="font-size:11px;color:#888;margin-top:3px;">Calitatea datelor, nu probabilitatea de câștig</div>
                 </div>
             </div>
+            <div style="padding:14px 16px;border-left:5px solid {international_swing['band_color']};border-radius:8px;background:{international_swing['band_color']}0d;margin-bottom:12px;line-height:1.55;">
+                <b style="color:{international_swing['band_color']};">Interpretarea scorului:</b>
+                {international_swing['interpretation']}
+            </div>
+            <details style="margin-bottom:20px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;">
+                <summary style="cursor:pointer;padding:12px 16px;font-weight:700;color:#374151;">Cum se calculează și ce înseamnă intervalele</summary>
+                <div style="padding:0 16px 16px;color:#4b5563;line-height:1.55;">
+                    <p style="margin:4px 0 10px;"><b>Punctaj curent:</b> trend SPX + Nasdaq {international_swing['breakdown']['trend']:g}/40 · timing SMA10 {international_swing['breakdown']['timing']:g}/15 · RSI {international_swing['breakdown']['rsi']:g}/10 · breadth {international_swing['breakdown']['breadth']:g}/15 · VIX {international_swing['breakdown']['volatility']:g}/10 · sentiment Fear &amp; Greed {international_swing['breakdown']['sentiment']:g}/10.</p>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;">
+                        <div><b style="color:#f44336;">0–39 · Nefavorabil</b><br>Prioritate protecției capitalului.</div>
+                        <div><b style="color:#ff9800;">40–59 · Fragil</b><br>Semnale mixte; așteaptă confirmări.</div>
+                        <div><b style="color:#7cb342;">60–74 · Favorabil</b><br>Cumpărări selective doar cu timing bun.</div>
+                        <div><b style="color:#4caf50;">75–89 · Puternic</b><br>Majoritatea factorilor susțin pozițiile long.</div>
+                        <div><b style="color:#2e7d32;">90–100 · Foarte puternic</b><br>Aliniere aproape completă a factorilor măsurați.</div>
+                    </div>
+                    <p style="margin:12px 0 0;"><b>100/100</b> înseamnă că SPX și Nasdaq sunt peste SMA200, SMA50 și SMA10, RSI este sănătos, participarea pieței este largă, VIX este într-o zonă favorabilă și sentimentul susține setupul. Nu înseamnă certitudine și nu declanșează singur cumpărarea: Market Tide, deteriorarea sentimentului, calendarul și regulile de siguranță pot păstra verdictul la WAIT.</p>
+                    <p style="margin:10px 0 0;"><b>Ce înseamnă încrederea {international_swing['confidence'].lower()}:</b> {international_swing['confidence_explanation']} Încrederea măsoară robustețea analizei, nu probabilitatea ca piața să crească și nici randamentul posibil.</p>
+                    <p style="margin:8px 0 0;"><b>Ridicată:</b> minimum 90% din cele 13 câmpuri pentru SPX, Nasdaq, RSI, breadth, VIX și sentiment sunt valide, iar Market Tide este disponibil. <b>Medie:</b> minimum 65% sunt valide. <b>Scăzută:</b> sub 65%.</p>
+                </div>
+            </details>
             
             <!-- MARKET BIAS CARD -->
             {bias_html}

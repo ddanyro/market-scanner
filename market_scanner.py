@@ -4339,6 +4339,48 @@ def _generate_bvb_market_overview_html(
         rsi_points = 0
     bvb_score = int(trend_points + momentum_points + timing_points + rsi_points)
     confidence = 'Ridicată' if sma200 is not None else 'Medie'
+    confidence_explanation = (
+        'Sunt disponibile minimum 200 de ședințe, astfel încât trendul major '
+        'poate fi verificat prin SMA200, alături de SMA50, SMA10 și RSI14.'
+        if sma200 is not None else
+        'SMA200 nu poate fi încă verificată; concluzia se bazează pe SMA50, '
+        'SMA10 și RSI14 și este mai puțin robustă.'
+    )
+    if bvb_score >= 90:
+        score_band = 'Aliniere foarte puternică'
+        score_band_color = '#2e7d32'
+        score_interpretation = (
+            'Trendul, momentum-ul și timingul proxy-ului local sunt aproape '
+            'complet aliniate pentru poziții long.'
+        )
+    elif bvb_score >= 75:
+        score_band = 'Context puternic'
+        score_band_color = '#4caf50'
+        score_interpretation = (
+            'Majoritatea factorilor locali sunt favorabili; intrarea trebuie '
+            'totuși validată prin preț, lichiditate și un stop clar.'
+        )
+    elif bvb_score >= 60:
+        score_band = 'Context favorabil'
+        score_band_color = '#7cb342'
+        score_interpretation = (
+            'Fundalul permite cumpărări selective, dar încă lipsesc unele '
+            'confirmări tehnice.'
+        )
+    elif bvb_score >= 40:
+        score_band = 'Context fragil'
+        score_band_color = '#ff9800'
+        score_interpretation = (
+            'Semnalele locale sunt amestecate; este preferabilă așteptarea '
+            'unei confirmări înainte de creșterea expunerii.'
+        )
+    else:
+        score_band = 'Context nefavorabil'
+        score_band_color = '#f44336'
+        score_interpretation = (
+            'Condițiile pentru poziții long sunt slabe; protejarea capitalului '
+            'are prioritate.'
+        )
 
     above_sma50 = bool(sma50 is not None and price >= sma50)
     above_sma10 = bool(sma10 is not None and price >= sma10)
@@ -4421,10 +4463,30 @@ def _generate_bvb_market_overview_html(
       <div style="padding:22px;">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;">
         <div style="padding:14px;border-left:5px solid {verdict_color};border-radius:8px;background:{verdict_color}12;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Market Bias BVB</div><div style="font-size:24px;font-weight:800;color:{verdict_color};">{bvb_verdict}</div></div>
-        <div style="padding:14px;border:1px solid var(--border-light);border-radius:8px;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Scor swing local</div><div style="font-size:24px;font-weight:800;">{bvb_score}/100</div></div>
-        <div style="padding:14px;border:1px solid var(--border-light);border-radius:8px;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Încredere</div><div style="font-size:24px;font-weight:800;">{confidence}</div></div>
+        <div style="padding:14px;border:1px solid var(--border-light);border-radius:8px;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Scor swing local</div><div style="font-size:24px;font-weight:800;">{bvb_score}/100</div><div style="font-size:12px;font-weight:700;color:{score_band_color};margin-top:3px;">{score_band}</div></div>
+        <div style="padding:14px;border:1px solid var(--border-light);border-radius:8px;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Încredere</div><div style="font-size:24px;font-weight:800;">{confidence}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:3px;">Calitatea istoricului, nu probabilitatea de câștig</div></div>
         <div style="padding:14px;border:1px solid var(--border-light);border-radius:8px;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Proxy local</div><div style="font-size:24px;font-weight:800;">TVBETETF</div></div>
       </div>
+      <div style="padding:14px 16px;border-left:5px solid {score_band_color};border-radius:8px;background:{score_band_color}0d;margin-bottom:12px;line-height:1.55;">
+        <b style="color:{score_band_color};">Interpretarea scorului BVB:</b> {score_interpretation}
+      </div>
+      <details style="margin-bottom:20px;border:1px solid var(--border-light);border-radius:8px;background:#fff;">
+        <summary style="cursor:pointer;padding:12px 16px;font-weight:700;color:var(--text-primary);">Cum se calculează și ce înseamnă intervalele BVB</summary>
+        <div style="padding:0 16px 16px;color:var(--text-secondary);line-height:1.55;">
+          <p style="margin:4px 0 10px;"><b>Punctaj curent:</b> trend major {trend_points}/40 · momentum SMA50 {momentum_points}/25 · timing SMA10 {timing_points}/15 · RSI14 {rsi_points}/20.</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;">
+            <div><b style="color:#f44336;">0–39 · Nefavorabil</b><br>Prioritate protecției capitalului.</div>
+            <div><b style="color:#ff9800;">40–59 · Fragil</b><br>Semnale mixte; așteaptă confirmări.</div>
+            <div><b style="color:#7cb342;">60–74 · Favorabil</b><br>Cumpărări selective cu timing bun.</div>
+            <div><b style="color:#4caf50;">75–89 · Puternic</b><br>Majoritatea factorilor locali sunt favorabili.</div>
+            <div><b style="color:#2e7d32;">90–100 · Foarte puternic</b><br>Aliniere aproape completă a proxy-ului BVB.</div>
+          </div>
+          <p style="margin:12px 0 0;"><b>100/100</b> înseamnă că TVBETETF este peste SMA200, SMA50 și SMA10, iar RSI14 se află în zona sănătoasă 45–69. Nu garantează creșterea întregii piețe și nu validează automat fiecare acțiune BVB sau AeRO: lichiditatea, știrile, calendarul local, concentrarea sectorială și riscul specific emitentului rămân decisive.</p>
+          <p style="margin:10px 0 0;"><b>Ce înseamnă încrederea {confidence.lower()}:</b> {confidence_explanation} Încrederea descrie robustețea analizei proxy-ului TVBETETF, nu probabilitatea de creștere a BVB și nici șansa de succes a unei acțiuni individuale.</p>
+          <p style="margin:8px 0 0;"><b>Ridicată:</b> există minimum 200 de ședințe și pot fi evaluate SMA200, SMA50, SMA10 și RSI14. <b>Medie:</b> istoricul este mai scurt de 200 de ședințe, astfel încât trendul major nu este încă validat.</p>
+          <p style="margin:8px 0 0;">Dacă SMA200 nu poate fi calculată, încrederea rămâne medie, iar scorul maxim posibil este 85/100.</p>
+        </div>
+      </details>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
         <div style="padding:16px;border:1px solid var(--border-light);border-radius:10px;background:#fff;">
           <div style="display:flex;justify-content:space-between;gap:12px;"><b>Trend (SMA200)</b><b style="color:{trend_color};">{trend}</b></div>

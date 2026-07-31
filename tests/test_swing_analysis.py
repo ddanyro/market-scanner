@@ -164,6 +164,11 @@ class TestSwingAnalysis(unittest.TestCase):
         self.assertIn("Scor swing internațional", html)
         self.assertIn("Încredere", html)
         self.assertIn("Date disponibile:", html)
+        self.assertIn("Calitatea datelor, nu probabilitatea de câștig", html)
+        self.assertIn("minimum 90% din cele 13 câmpuri", html)
+        self.assertIn("Cum se calculează și ce înseamnă intervalele", html)
+        self.assertIn("100/100", html)
+        self.assertIn("nu declanșează singur cumpărarea", html)
         self.assertIn("BULLISH", html) # SPX 5000 > 4800
         self.assertIn("Extreme Fear", html) # Score 20
         self.assertIn("OPORTUNITATE (Fear)", html) # PCR 1.2
@@ -200,10 +205,15 @@ class TestSwingAnalysis(unittest.TestCase):
         result = calculate_international_swing_score(complete_data)
         self.assertEqual(result['score'], 100)
         self.assertEqual(result['confidence'], 'Ridicată')
+        self.assertIn('Market Tide', result['confidence_explanation'])
         self.assertEqual(result['completeness_pct'], 100)
+        self.assertEqual(result['band'], 'Aliniere foarte puternică')
+        self.assertEqual(result['breakdown']['trend'], 40)
+        self.assertEqual(result['breakdown']['timing'], 15)
 
         incomplete = calculate_international_swing_score({'SPX_Price': 5100})
         self.assertEqual(incomplete['confidence'], 'Scăzută')
+        self.assertEqual(incomplete['band'], 'Context nefavorabil')
         self.assertLess(incomplete['score'], result['score'])
 
     @patch('market_scanner_analysis.get_swing_trading_data')
