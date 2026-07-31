@@ -4030,7 +4030,79 @@ def assess_stock_fitness(sector, phase):
         if fav in sector: return "✅" # Good Fit
     
     return "⚠️" # Caution/Neutral
-def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filename="index.html", full_state=None):
+def _cached_swing_data_for_ro(state, tide_path='market_tide_cache.json'):
+    """Construiește cardul global din cache, fără reinterogarea pieței SUA."""
+    state = state if isinstance(state, dict) else {}
+    indicators = state.get('market_indicators', {})
+    result = {}
+
+    def add_index(indicator_name, prefix):
+        item = indicators.get(indicator_name, {})
+        history = pd.to_numeric(
+            pd.Series(item.get('history', [])), errors='coerce'
+        ).dropna()
+        if history.empty:
+            return
+        dates = list(item.get('history_dates', []))[-len(history):]
+        sma10 = history.rolling(10).mean()
+        sma50 = history.rolling(50).mean()
+        sma200 = history.rolling(200).mean()
+        delta = history.diff()
+        gain = delta.clip(lower=0).rolling(14).mean()
+        loss = (-delta.clip(upper=0)).rolling(14).mean()
+        rsi = 100 - (100 / (1 + gain / loss.replace(0, np.nan)))
+        result[f'{prefix}_Price'] = float(history.iloc[-1])
+        result[f'{prefix}_SMA10'] = float(sma10.iloc[-1]) if pd.notna(sma10.iloc[-1]) else 0
+        result[f'{prefix}_SMA50'] = float(sma50.iloc[-1]) if pd.notna(sma50.iloc[-1]) else 0
+        result[f'{prefix}_SMA200'] = float(sma200.iloc[-1]) if pd.notna(sma200.iloc[-1]) else 0
+        result[f'{prefix}_RSI'] = float(rsi.iloc[-1]) if pd.notna(rsi.iloc[-1]) else 50
+        result[f'{prefix}_RSI_Weekly'] = result[f'{prefix}_RSI']
+        tail = min(60, len(history))
+        result[f'Chart_{prefix}'] = {
+            'labels': dates[-tail:] if dates else [str(i) for i in range(tail)],
+            'price': history.tail(tail).astype(float).tolist(),
+            'sma10': sma10.tail(tail).fillna(0).astype(float).tolist(),
+            'sma50': sma50.tail(tail).fillna(0).astype(float).tolist(),
+            'sma200': sma200.tail(tail).fillna(0).astype(float).tolist(),
+            'rsi': rsi.tail(tail).fillna(50).astype(float).tolist(),
+        }
+
+    add_index('SPX', 'SPX')
+    add_index('NASDAQ', 'NDX')
+    result['VIX_Current'] = _safe_float_text(
+        indicators.get('VIX', {}).get('value')
+    ) or _safe_float_text(state.get('vix_val')) or 0
+    result['SKEW_Current'] = _safe_float_text(
+        indicators.get('SKEW', {}).get('value')
+    ) or 0
+    result['Rule4_Active'] = False
+    result['Rule4_Debug'] = 'Păstrat din cache în actualizarea BVB'
+
+    try:
+        with open(tide_path, 'r', encoding='utf-8') as handle:
+            tide = json.load(handle).get('data', {})
+    except (OSError, ValueError, TypeError):
+        tide = {}
+    if isinstance(tide, dict) and tide:
+        result['Market_Tide'] = tide
+        above = _safe_float_text(tide.get('SMA50_Above')) or 0
+        below = _safe_float_text(tide.get('SMA50_Below')) or 0
+        result['Breadth_Pct'] = (
+            above / (above + below) * 100 if above + below else 50
+        )
+    else:
+        result['Breadth_Pct'] = 50
+    return result
+
+
+def generate_html_dashboard(
+    portfolio_df,
+    watchlist_df,
+    market_indicators,
+    filename="index.html",
+    full_state=None,
+    swing_data_override=None,
+):
     if full_state is None: full_state = {}
     dashboard_rates = full_state.get('rates', {})
     """Generează dashboard HTML cu 2 tab-uri și indicatori de piață."""
@@ -4578,7 +4650,11 @@ def generate_html_dashboard(portfolio_df, watchlist_df, market_indicators, filen
     vix_cls = vix_val if vix_val != 'N/A' else 'Normal'
 
     # --- RISK MANAGEMENT LOGIC (NEW) ---
-    swing_data = get_swing_trading_data()
+    swing_data = (
+        swing_data_override
+        if isinstance(swing_data_override, dict)
+        else get_swing_trading_data()
+    )
     
     # Extract Metrics
     r_spx_price = swing_data.get('SPX_Price', 0)
@@ -8463,7 +8539,19 @@ def main():
     indicators_data = state.get('market_indicators', {})
     
     print("\n=== Generare Dashboard HTML ===")
-    generate_html_dashboard(portfolio_df, watchlist_df, indicators_data, "index.html", state)
+    cached_swing_data = (
+        _cached_swing_data_for_ro(state) if args.mode == 'ro' else None
+    )
+    if cached_swing_data is not None:
+        print("  -> Contextul SUA este reutilizat din cache; fără scanare SUA.")
+    generate_html_dashboard(
+        portfolio_df,
+        watchlist_df,
+        indicators_data,
+        "index.html",
+        state,
+        swing_data_override=cached_swing_data,
+    )
 
 if __name__ == "__main__":
     main()

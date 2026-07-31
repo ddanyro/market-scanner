@@ -37,6 +37,34 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertIsInstance(desc, str)
         self.assertGreater(len(desc), 0)
 
+    def test_ro_cached_swing_data_reuses_global_indicators(self):
+        dates = pd.bdate_range('2026-05-01', periods=60)
+        state = {
+            'vix_val': 18.5,
+            'market_indicators': {
+                'SPX': {
+                    'history': list(np.linspace(7000, 7500, 60)),
+                    'history_dates': [day.date().isoformat() for day in dates],
+                },
+                'NASDAQ': {
+                    'history': list(np.linspace(24000, 25000, 60)),
+                    'history_dates': [day.date().isoformat() for day in dates],
+                },
+                'VIX': {'value': 18.5},
+                'SKEW': {'value': 142.0},
+            },
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            result = market_scanner._cached_swing_data_for_ro(
+                state, tide_path=os.path.join(temp_dir, 'missing.json')
+            )
+
+        self.assertEqual(result['SPX_Price'], 7500)
+        self.assertEqual(result['NDX_Price'], 25000)
+        self.assertEqual(result['VIX_Current'], 18.5)
+        self.assertEqual(len(result['Chart_SPX']['price']), 60)
+        self.assertEqual(result['Breadth_Pct'], 50)
+
     def test_complete_bvb_csv_parser_includes_main_and_aero(self):
         content = (
             'Simbol;ISIN;Societate;Pret (RON);Data;Segment;Categoria;Volum\n'
