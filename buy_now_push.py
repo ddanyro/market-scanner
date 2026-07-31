@@ -12,6 +12,11 @@ FCM_SCOPE = "https://www.googleapis.com/auth/firebase.messaging"
 FCM_SEND_URL = "https://fcm.googleapis.com/v1/projects/{project_id}/messages:send"
 BUY_NOW_VERDICT = "Candidat valid"
 STATE_VERSION = 2
+MARKET_PUSH_STATE_VERSION = 2
+DEFAULT_MARKET_REPEAT_HOURS = {
+    "romania_bvb": 0.0,
+    "international": 0.0,
+}
 
 
 def _normalized_symbol(value):
@@ -89,15 +94,27 @@ def buy_now_message(symbol):
     return f"Ordin de cumpărare acum: {_normalized_symbol(symbol)}."
 
 
-def _send_firebase_notification(
-    symbol,
+def _send_firebase_text_notification(
+    event_id,
+    message,
+    kind,
     registration_token,
     project_id,
     access_token,
     site_url,
     post,
+    extra_data=None,
 ):
-    message = buy_now_message(symbol)
+    event_id = str(event_id or "").strip()
+    data = {
+        "event_id": event_id,
+        "kind": str(kind or "notification"),
+    }
+    data.update({
+        str(key): str(value)
+        for key, value in (extra_data or {}).items()
+        if value is not None
+    })
     payload = {
         "message": {
             "token": registration_token,
@@ -105,10 +122,7 @@ def _send_firebase_notification(
                 "title": "Market Scanner",
                 "body": message,
             },
-            "data": {
-                "symbol": _normalized_symbol(symbol),
-                "kind": "buy_now",
-            },
+            "data": data,
             "webpush": {
                 "headers": {
                     "Urgency": "high",
@@ -133,6 +147,303 @@ def _send_firebase_notification(
     if not message_id:
         raise RuntimeError("Firebase nu a returnat ID-ul mesajului.")
     return str(message_id)
+
+
+def _send_firebase_notification(
+    symbol,
+    registration_token,
+    project_id,
+    access_token,
+    site_url,
+    post,
+):
+    symbol = _normalized_symbol(symbol)
+    return _send_firebase_text_notification(
+        symbol,
+        buy_now_message(symbol),
+        "buy_now",
+        registration_token,
+        project_id,
+        access_token,
+        site_url,
+        post,
+        extra_data={"symbol": symbol},
+    )
+
+
+def actionable_market_signals(signals):
+    """Selectează numai verdictele generale BUY/CUMPĂRĂ ale piețelor."""
+    actionable = {}
+    for item in signals or []:
+        if not isinstance(item, dict):
+            continue
+        key = str(item.get("key") or "").strip().lower()
+        verdict = str(item.get("verdict") or "").strip()
+        normalized_verdict = verdict.upper()
+        if not key or not (
+            normalized_verdict.startswith("BUY")
+            or normalized_verdict in {"CUMPĂRĂ", "CUMPARA"}
+        ):
+            continue
+        actionable[key] = {
+            "key": key,
+            "label": str(item.get("label") or key).strip(),
+            "verdict": verdict,
+        }
+    return actionable
+
+
+def market_buy_message(signal):
+    label = str(signal.get("label") or "Piața").strip()
+    verdict = str(signal.get("verdict") or "BUY").strip().upper()
+    return f"{label}: {verdict}."
+
+
+def market_buy_closed_message(signal):
+    label = str(signal.get("label") or "Piața").strip()
+    verdict = str(signal.get("verdict") or "NECUNOSCUT").strip().upper()
+    return (
+        f"Fereastra de cumpărare s-a închis — {label}. "
+        f"Verdict curent: {verdict}."
+    )
+
+
+def _notification_time(value):
+    try:
+        parsed = datetime.datetime.fromisoformat(
+            str(value or "").replace("Z", "+00:00")
+        )
+    except (TypeError, ValueError):
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+    return parsed.astimezone(datetime.timezone.utc)
+
+
+def send_new_market_buy_notifications(
+    previous_state,
+    signals,
+    service_account_json=None,
+    registration_tokens=None,
+    site_url=None,
+    post=None,
+    access_token_factory=None,
+    now=None,
+    repeat_hours_by_market=None,
+):
+    """Trimite alerte periodice cât timp piața rămâne în BUY/CUMPĂRĂ."""
+    previous_state = (
+        dict(previous_state) if isinstance(previous_state, dict) else {}
+    )
+    all_current = {}
+    for item in signals or []:
+        if not isinstance(item, dict):
+            continue
+        key = str(item.get("key") or "").strip().lower()
+        if not key:
+            continue
+        all_current[key] = {
+            "key": key,
+            "label": str(item.get("label") or key).strip(),
+            "verdict": str(item.get("verdict") or "DATE INSUFICIENTE").strip(),
+        }
+    current = actionable_market_signals(signals)
+    current_markets = set(current)
+    previous_active_markets = {
+        str(key).strip().lower()
+        for key in previous_state.get("current_markets", [])
+        if str(key).strip()
+    }
+    newly_closed_markets = (
+        previous_active_markets - current_markets
+    ) & set(all_current)
+    pending_close_markets = {
+        str(key).strip().lower()
+        for key in previous_state.get("pending_close_markets", [])
+        if str(key).strip()
+    }
+    pending_close_markets.update(newly_closed_markets)
+    # Dacă piața a revenit la BUY înaintea reîncercării, alerta veche de
+    # închidere nu mai este relevantă.
+    pending_close_markets.difference_update(current_markets)
+    previously_notified = (
+        {
+            str(key).strip().lower()
+            for key in previous_state.get("notified_active_markets", [])
+            if str(key).strip()
+        }
+        if previous_state.get("provider") == "firebase"
+        else set()
+    )
+    still_notified = previously_notified & current_markets
+    site_url = str(
+        site_url
+        or os.environ.get("FIREBASE_SITE_URL")
+        or "https://ddanyro.github.io/market-scanner/"
+    ).strip()
+    post = post or requests.post
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=datetime.timezone.utc)
+    now = now.astimezone(datetime.timezone.utc)
+    repeat_hours = dict(DEFAULT_MARKET_REPEAT_HOURS)
+    repeat_hours.update({
+        str(key).strip().lower(): max(float(value), 0.0)
+        for key, value in (repeat_hours_by_market or {}).items()
+    })
+    previous_notification_times = {
+        str(key).strip().lower(): str(value)
+        for key, value in (
+            previous_state.get("last_notified_at_by_market") or {}
+        ).items()
+        if str(key).strip() and value
+    }
+    pending_markets = []
+    for market_key in sorted(current_markets):
+        if market_key not in still_notified:
+            pending_markets.append(market_key)
+            continue
+        last_notified = _notification_time(
+            previous_notification_times.get(market_key)
+        )
+        interval = repeat_hours.get(market_key, 1.0)
+        if (
+            last_notified is None
+            or (now - last_notified).total_seconds() >= interval * 3600
+        ):
+            pending_markets.append(market_key)
+    errors = {}
+    delivered_markets = []
+    delivered_closed_markets = []
+
+    try:
+        account, tokens, access_token = _delivery_configuration(
+            service_account_json,
+            registration_tokens,
+            access_token_factory,
+        )
+    except Exception as exc:
+        account, tokens, access_token = {}, [], ""
+        errors["configuration"] = str(exc)[:500]
+    configured = bool(account and tokens and access_token)
+
+    if configured:
+        project_id = str(account["project_id"])
+        for market_key in pending_markets:
+            signal = current[market_key]
+            token_errors = []
+            sent_count = 0
+            for registration_token in tokens:
+                try:
+                    _send_firebase_text_notification(
+                        market_key,
+                        market_buy_message(signal),
+                        "market_buy",
+                        registration_token,
+                        project_id,
+                        access_token,
+                        site_url,
+                        post,
+                        extra_data={
+                            "market": market_key,
+                            "verdict": signal["verdict"],
+                        },
+                    )
+                    sent_count += 1
+                except Exception as exc:
+                    token_errors.append(str(exc)[:300])
+            if sent_count:
+                delivered_markets.append(market_key)
+                still_notified.add(market_key)
+                previous_notification_times[market_key] = now.isoformat()
+            if token_errors:
+                errors[market_key] = token_errors
+
+        for market_key in sorted(pending_close_markets):
+            signal = all_current.get(market_key)
+            if not signal:
+                continue
+            token_errors = []
+            sent_count = 0
+            for registration_token in tokens:
+                try:
+                    _send_firebase_text_notification(
+                        f"{market_key}:closed",
+                        market_buy_closed_message(signal),
+                        "market_buy_closed",
+                        registration_token,
+                        project_id,
+                        access_token,
+                        site_url,
+                        post,
+                        extra_data={
+                            "market": market_key,
+                            "verdict": signal["verdict"],
+                        },
+                    )
+                    sent_count += 1
+                except Exception as exc:
+                    token_errors.append(str(exc)[:300])
+            if sent_count:
+                delivered_closed_markets.append(market_key)
+            if token_errors:
+                errors[f"{market_key}:closed"] = token_errors
+
+    pending_close_markets.difference_update(delivered_closed_markets)
+
+    state_core = {
+        "version": MARKET_PUSH_STATE_VERSION,
+        "provider": "firebase",
+        "current_markets": sorted(current_markets),
+        "current_verdicts": {
+            key: current[key]["verdict"] for key in sorted(current)
+        },
+        "notified_active_markets": sorted(still_notified),
+        "pending_close_markets": sorted(pending_close_markets),
+        "last_notified_at_by_market": {
+            key: previous_notification_times[key]
+            for key in sorted(still_notified)
+            if key in previous_notification_times
+        },
+    }
+    previous_core = {key: previous_state.get(key) for key in state_core}
+    if state_core != previous_core:
+        state_core["updated_at"] = now.isoformat()
+    elif previous_state.get("updated_at"):
+        state_core["updated_at"] = previous_state["updated_at"]
+    if delivered_markets or delivered_closed_markets:
+        state_core["last_delivery_at"] = now.isoformat()
+        state_core["last_delivered_markets"] = delivered_markets
+        state_core["last_closed_markets"] = delivered_closed_markets
+    else:
+        for key in (
+            "last_delivery_at", "last_delivered_markets",
+            "last_closed_markets",
+        ):
+            if previous_state.get(key):
+                state_core[key] = previous_state[key]
+
+    diagnostic = {
+        "provider": "firebase",
+        "status": (
+            "configuration_missing"
+            if not configured
+            else "failed"
+            if errors and not (delivered_markets or delivered_closed_markets)
+            else "sent"
+            if delivered_markets or delivered_closed_markets
+            else "no_new_market_signals"
+        ),
+        "current_markets": sorted(current_markets),
+        "pending_markets": pending_markets,
+        "delivered_markets": delivered_markets,
+        "closed_markets": sorted(newly_closed_markets),
+        "delivered_closed_markets": delivered_closed_markets,
+        "pending_close_markets": sorted(pending_close_markets),
+        "target_count": len(tokens),
+        "errors": errors,
+    }
+    return state_core, diagnostic
 
 
 def _delivery_configuration(

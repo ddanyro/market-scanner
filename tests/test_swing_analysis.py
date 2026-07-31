@@ -10,7 +10,11 @@ import os
 # Add parent dir to path to import modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from market_scanner_analysis import get_swing_trading_data, generate_swing_trading_html
+from market_scanner_analysis import (
+    calculate_international_swing_score,
+    generate_swing_trading_html,
+    get_swing_trading_data,
+)
 
 class TestSwingAnalysis(unittest.TestCase):
 
@@ -157,6 +161,9 @@ class TestSwingAnalysis(unittest.TestCase):
         html = generate_swing_trading_html()
         
         self.assertIn("Swing Trading Signal", html)
+        self.assertIn("Scor swing internațional", html)
+        self.assertIn("Încredere", html)
+        self.assertIn("Date disponibile:", html)
         self.assertIn("BULLISH", html) # SPX 5000 > 4800
         self.assertIn("Extreme Fear", html) # Score 20
         self.assertIn("OPORTUNITATE (Fear)", html) # PCR 1.2
@@ -176,6 +183,28 @@ class TestSwingAnalysis(unittest.TestCase):
         self.assertIn("Rally Solid", html) # Breadth Quality
         
         self.assertIn("<canvas id=\"chart_trend_", html)
+
+        _, signal = generate_swing_trading_html(return_signal=True)
+        self.assertEqual(signal['key'], 'international')
+        self.assertIn(signal['verdict'], html)
+
+    def test_international_swing_score_uses_both_indices_and_data_quality(self):
+        complete_data = {
+            'SPX_Price': 5100, 'SPX_SMA200': 4700, 'SPX_SMA50': 5000,
+            'SPX_SMA10': 5050, 'SPX_RSI': 58,
+            'NDX_Price': 18100, 'NDX_SMA200': 16000, 'NDX_SMA50': 17500,
+            'NDX_SMA10': 17900, 'NDX_RSI': 61,
+            'Breadth_Pct': 72, 'VIX_Current': 18, 'FG_Score': 48,
+            'Market_Tide': {'Advancing': 3000, 'Declining': 1800},
+        }
+        result = calculate_international_swing_score(complete_data)
+        self.assertEqual(result['score'], 100)
+        self.assertEqual(result['confidence'], 'Ridicată')
+        self.assertEqual(result['completeness_pct'], 100)
+
+        incomplete = calculate_international_swing_score({'SPX_Price': 5100})
+        self.assertEqual(incomplete['confidence'], 'Scăzută')
+        self.assertLess(incomplete['score'], result['score'])
 
     @patch('market_scanner_analysis.get_swing_trading_data')
     def test_generate_html_missing_data(self, mock_get_data):

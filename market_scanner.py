@@ -4225,7 +4225,9 @@ def _store_us_market_overview_snapshot(state, swing_data):
     return True
 
 
-def _generate_bvb_market_overview_html(portfolio_df, watchlist_df):
+def _generate_bvb_market_overview_html(
+    portfolio_df, watchlist_df, return_signal=False,
+):
     """Context BVB compact, separat complet de scorul SPX/NDX."""
     candidates = []
     for frame in (portfolio_df, watchlist_df):
@@ -4236,13 +4238,22 @@ def _generate_bvb_market_overview_html(portfolio_df, watchlist_df):
             if symbol in {'TVBETETF', 'TVBETETF.RO'}:
                 candidates.append(row)
     if not candidates:
-        return """
+        unavailable_html = """
         <section style="margin:32px 0;">
           <h3 style="margin:0 0 8px;color:var(--text-primary);">România / BVB</h3>
           <div style="padding:16px;border:1px solid var(--border-light);border-radius:12px;background:var(--bg-white);color:var(--text-secondary);">
             Contextul BVB este separat de analiza SUA. Proxy-ul local nu este disponibil în datele curente.
           </div>
         </section>"""
+        unavailable_signal = {
+            'key': 'romania_bvb',
+            'label': 'Piața românească BVB',
+            'verdict': 'DATE INSUFICIENTE',
+        }
+        return (
+            (unavailable_html, unavailable_signal)
+            if return_signal else unavailable_html
+        )
 
     item = candidates[0]
     prices_eur = pd.to_numeric(
@@ -4334,7 +4345,7 @@ def _generate_bvb_market_overview_html(portfolio_df, watchlist_df):
     above_sma200 = bool(sma200 is not None and price >= sma200)
     major_trend_ok = above_sma200 if sma200 is not None else above_sma50
     if major_trend_ok and above_sma10 and (rsi is None or rsi < 70):
-        bvb_verdict = 'TREND FAVORABIL'
+        bvb_verdict = 'CUMPĂRĂ'
         verdict_color = '#4caf50'
     elif major_trend_ok and (not above_sma10 or (rsi is not None and rsi >= 70)):
         bvb_verdict = 'AȘTEAPTĂ CONFIRMAREA'
@@ -4398,7 +4409,7 @@ def _generate_bvb_market_overview_html(portfolio_df, watchlist_df):
         'Nu există încă suficiente date pentru un nivel tehnic de invalidare.'
     )
 
-    return f"""
+    overview_html = f"""
     <section style="margin:32px 0;border:1px solid var(--border-light);border-radius:14px;background:#fff;overflow:hidden;box-shadow:var(--shadow-sm);">
       <div style="padding:20px 24px;background:{verdict_color};color:#fff;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;">
         <div>
@@ -4464,6 +4475,14 @@ def _generate_bvb_market_overview_html(portfolio_df, watchlist_df):
       if (rsiElement) new Chart(rsiElement.getContext('2d'),{{type:'line',data:{{labels:data.labels,datasets:[{{label:'RSI14',data:data.rsi,borderColor:'#f59e0b',backgroundColor:'#f59e0b20',fill:true,borderWidth:2,pointRadius:0,tension:.25,spanGaps:true}}]}},options:{{...common,scales:{{x:{{display:false}},y:{{min:0,max:100,ticks:{{callback:(v)=>v===30||v===70?v:''}}}}}}}}}});
     }})();
     </script>"""
+    signal = {
+        'key': 'romania_bvb',
+        'label': 'Piața românească BVB',
+        'verdict': bvb_verdict,
+        'score': bvb_score,
+        'confidence': confidence,
+    }
+    return (overview_html, signal) if return_signal else overview_html
 
 
 def _generate_bvb_risk_status_html(portfolio_df, watchlist_df):
@@ -7138,7 +7157,19 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     # Generăm cardul de analiză Swing Trading (Trend, F&G, Breadth, Timing)
     print("  -> Generare Analiză Swing Trading (Long-only)...")
     try:
-        swing_html = generate_swing_trading_html(data=swing_data)
+        swing_html, international_market_signal = (
+            generate_swing_trading_html(
+                data=swing_data,
+                return_signal=True,
+            )
+        )
+        bvb_market_html, bvb_market_signal = (
+            _generate_bvb_market_overview_html(
+                portfolio_df,
+                watchlist_df,
+                return_signal=True,
+            )
+        )
         html_head += """
             <section style="margin-top:32px;">
               <h2 style="margin:0;color:var(--text-primary);">SUA — S&amp;P 500 / Nasdaq</h2>
@@ -7146,9 +7177,32 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             </section>
         """
         html_head += swing_html
-        html_head += _generate_bvb_market_overview_html(
-            portfolio_df, watchlist_df
+        html_head += bvb_market_html
+
+        previous_market_push_state = dict(
+            (full_state or {}).get('market_buy_push_state') or {}
         )
+        market_push_state, market_push_diagnostic = (
+            buy_now_push.send_new_market_buy_notifications(
+                previous_market_push_state,
+                [international_market_signal, bvb_market_signal],
+            )
+        )
+        full_state['market_buy_push_state'] = market_push_state
+        if market_push_state != previous_market_push_state:
+            market_utils.save_state(full_state)
+        if market_push_diagnostic['status'] == 'sent':
+            print(
+                "  -> Web push semnal BUY piață: "
+                + ", ".join(
+                    market_push_diagnostic['delivered_markets']
+                )
+            )
+        elif market_push_diagnostic['status'] == 'failed':
+            print(
+                "  ⚠ Web push semnal BUY piață nereușit: "
+                + str(market_push_diagnostic['errors'])
+            )
     except Exception as e:
         print(f"  ⚠ Eroare generare Swing Trading HTML: {e}")
     

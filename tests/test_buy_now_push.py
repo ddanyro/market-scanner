@@ -412,6 +412,258 @@ class BuyNowPushTests(unittest.TestCase):
             self.registration_token,
         )
 
+    def test_market_push_selects_only_buy_and_cumpara_verdicts(self):
+        signals = buy_now_push.actionable_market_signals([
+            {
+                "key": "international",
+                "label": "Piața internațională",
+                "verdict": "BUY (HIGH CONFIDENCE)",
+            },
+            {
+                "key": "romania_bvb",
+                "label": "Piața românească BVB",
+                "verdict": "CUMPĂRĂ",
+            },
+            {
+                "key": "wait_market",
+                "label": "Piața în așteptare",
+                "verdict": "WAIT",
+            },
+        ])
+        self.assertEqual(
+            set(signals), {"international", "romania_bvb"}
+        )
+
+    def test_market_push_repeats_on_every_actionable_run(self):
+        calls = []
+
+        def post(_url, **kwargs):
+            calls.append(kwargs["json"]["message"])
+            return FakeResponse({
+                "name": f"projects/test/messages/{len(calls)}"
+            })
+
+        signals = [
+            {
+                "key": "international",
+                "label": "Piața internațională",
+                "verdict": "BUY",
+            },
+            {
+                "key": "romania_bvb",
+                "label": "Piața românească BVB",
+                "verdict": "CUMPĂRĂ",
+            },
+        ]
+        first_state, first = (
+            buy_now_push.send_new_market_buy_notifications(
+                {}, signals, post=post, **self.delivery_options()
+            )
+        )
+        second_state, second = (
+            buy_now_push.send_new_market_buy_notifications(
+                first_state, signals, post=post, **self.delivery_options()
+            )
+        )
+
+        self.assertEqual(first["status"], "sent")
+        self.assertEqual(
+            first["delivered_markets"],
+            ["international", "romania_bvb"],
+        )
+        self.assertEqual(second["status"], "sent")
+        self.assertEqual(
+            second["delivered_markets"],
+            ["international", "romania_bvb"],
+        )
+        self.assertEqual(len(calls), 4)
+        self.assertEqual(
+            calls[0]["notification"]["body"],
+            "Piața internațională: BUY.",
+        )
+        self.assertEqual(calls[0]["data"]["kind"], "market_buy")
+        self.assertEqual(
+            calls[1]["notification"]["body"],
+            "Piața românească BVB: CUMPĂRĂ.",
+        )
+
+    def test_market_can_notify_again_after_leaving_buy(self):
+        active_state = {
+            "version": 1,
+            "provider": "firebase",
+            "current_markets": ["international"],
+            "current_verdicts": {"international": "BUY"},
+            "notified_active_markets": ["international"],
+        }
+        close_calls = []
+        cleared_state, closed = (
+            buy_now_push.send_new_market_buy_notifications(
+                active_state,
+                [{
+                    "key": "international",
+                    "label": "Piața internațională",
+                    "verdict": "WAIT",
+                }],
+                post=lambda *args, **kwargs: (
+                    close_calls.append(kwargs["json"]["message"])
+                    or FakeResponse({"name": "projects/test/messages/closed"})
+                ),
+                **self.delivery_options(),
+            )
+        )
+        self.assertEqual(
+            closed["delivered_closed_markets"], ["international"]
+        )
+        self.assertEqual(len(close_calls), 1)
+        self.assertEqual(
+            close_calls[0]["data"]["kind"], "market_buy_closed"
+        )
+        self.assertEqual(
+            close_calls[0]["notification"]["body"],
+            "Fereastra de cumpărare s-a închis — Piața internațională. "
+            "Verdict curent: WAIT.",
+        )
+
+        repeated_close_calls = []
+        stable_state, stable = (
+            buy_now_push.send_new_market_buy_notifications(
+                cleared_state,
+                [{
+                    "key": "international",
+                    "label": "Piața internațională",
+                    "verdict": "WAIT",
+                }],
+                post=lambda *args, **kwargs: (
+                    repeated_close_calls.append(kwargs)
+                    or FakeResponse({"name": "unexpected"})
+                ),
+                **self.delivery_options(),
+            )
+        )
+        self.assertEqual(stable["status"], "no_new_market_signals")
+        self.assertEqual(repeated_close_calls, [])
+
+        calls = []
+        _, diagnostic = buy_now_push.send_new_market_buy_notifications(
+            stable_state,
+            [{
+                "key": "international",
+                "label": "Piața internațională",
+                "verdict": "BUY",
+            }],
+            post=lambda *args, **kwargs: (
+                calls.append(kwargs)
+                or FakeResponse({"name": "projects/test/messages/again"})
+            ),
+            **self.delivery_options(),
+        )
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(
+            diagnostic["delivered_markets"], ["international"]
+        )
+
+    def test_failed_market_close_is_retried(self):
+        active_state = {
+            "version": 2,
+            "provider": "firebase",
+            "current_markets": ["romania_bvb"],
+            "current_verdicts": {"romania_bvb": "CUMPĂRĂ"},
+            "notified_active_markets": ["romania_bvb"],
+        }
+        wait_signal = [{
+            "key": "romania_bvb",
+            "label": "Piața românească BVB",
+            "verdict": "PRUDENȚĂ",
+        }]
+        failed_state, failed = (
+            buy_now_push.send_new_market_buy_notifications(
+                active_state,
+                wait_signal,
+                service_account_json="",
+                registration_tokens="",
+                now=self.now,
+            )
+        )
+        self.assertEqual(failed["status"], "configuration_missing")
+        self.assertEqual(
+            failed_state["pending_close_markets"], ["romania_bvb"]
+        )
+
+        calls = []
+        next_state, retried = (
+            buy_now_push.send_new_market_buy_notifications(
+                failed_state,
+                wait_signal,
+                post=lambda *args, **kwargs: (
+                    calls.append(kwargs)
+                    or FakeResponse({"name": "projects/test/messages/close"})
+                ),
+                **self.delivery_options(),
+            )
+        )
+        self.assertEqual(
+            retried["delivered_closed_markets"], ["romania_bvb"]
+        )
+        self.assertEqual(next_state["pending_close_markets"], [])
+        self.assertEqual(len(calls), 1)
+
+    def test_market_buy_reminders_have_no_time_limit(self):
+        calls = []
+        post = lambda *args, **kwargs: (
+            calls.append(kwargs["json"]["message"]["data"]["market"])
+            or FakeResponse({
+                "name": f"projects/test/messages/{len(calls)}"
+            })
+        )
+        signals = [
+            {
+                "key": "international",
+                "label": "Piața internațională",
+                "verdict": "BUY",
+            },
+            {
+                "key": "romania_bvb",
+                "label": "Piața românească BVB",
+                "verdict": "CUMPĂRĂ",
+            },
+        ]
+        first_state, _ = buy_now_push.send_new_market_buy_notifications(
+            {}, signals, post=post, **self.delivery_options()
+        )
+        same_time = self.now
+        second_state, second = (
+            buy_now_push.send_new_market_buy_notifications(
+                first_state,
+                signals,
+                post=post,
+                **self.delivery_options(now=same_time),
+            )
+        )
+        one_second_later = self.now + datetime.timedelta(seconds=1)
+        _, third = buy_now_push.send_new_market_buy_notifications(
+            second_state,
+            signals,
+            post=post,
+            **self.delivery_options(now=one_second_later),
+        )
+
+        self.assertEqual(
+            second["delivered_markets"],
+            ["international", "romania_bvb"],
+        )
+        self.assertEqual(
+            third["delivered_markets"],
+            ["international", "romania_bvb"],
+        )
+        self.assertEqual(
+            calls,
+            [
+                "international", "romania_bvb",
+                "international", "romania_bvb",
+                "international", "romania_bvb",
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

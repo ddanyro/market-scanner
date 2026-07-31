@@ -4843,7 +4843,81 @@ def calculate_market_bias(data):
         'details': breakdown
     }
 
-def generate_swing_trading_html(data=None):
+
+def calculate_international_swing_score(data):
+    """Returnează scorul de pregătire swing și încrederea datelor SUA.
+
+    Scorul măsoară cât de favorabil este contextul pentru poziții long; nu
+    înlocuiește verdictul de timing BUY/WAIT. Încrederea măsoară exclusiv
+    completitudinea datelor folosite de model.
+    """
+    def positive_number(key):
+        try:
+            return float(data.get(key)) > 0
+        except (TypeError, ValueError):
+            return False
+
+    required_fields = (
+        'SPX_Price', 'SPX_SMA200', 'SPX_SMA50', 'SPX_SMA10', 'SPX_RSI',
+        'NDX_Price', 'NDX_SMA200', 'NDX_SMA50', 'NDX_SMA10', 'NDX_RSI',
+        'Breadth_Pct', 'VIX_Current', 'FG_Score',
+    )
+    available = sum(positive_number(key) for key in required_fields)
+    completeness = available / len(required_fields)
+    has_market_tide = bool(data.get('Market_Tide'))
+    if completeness >= 0.9 and has_market_tide:
+        confidence = 'Ridicată'
+    elif completeness >= 0.65:
+        confidence = 'Medie'
+    else:
+        confidence = 'Scăzută'
+
+    score = 0.0
+    # Trend major + intermediar: SPX și Nasdaq au aceeași importanță.
+    for prefix in ('SPX', 'NDX'):
+        price = float(data.get(f'{prefix}_Price') or 0)
+        if price and price > float(data.get(f'{prefix}_SMA200') or 0):
+            score += 10
+        if price and price > float(data.get(f'{prefix}_SMA50') or 0):
+            score += 10
+        if price and price > float(data.get(f'{prefix}_SMA10') or 0):
+            score += 7.5
+
+        rsi = float(data.get(f'{prefix}_RSI') or 0)
+        if 40 <= rsi < 80:
+            score += 5
+        elif 35 <= rsi < 85:
+            score += 2
+
+    breadth = float(data.get('Breadth_Pct') or 0)
+    if breadth >= 70:
+        score += 15
+    elif breadth >= 50:
+        score += 12
+    elif breadth >= 30:
+        score += 5
+
+    vix = float(data.get('VIX_Current') or 0)
+    if 15 <= vix < 25:
+        score += 10
+    elif 0 < vix < 30:
+        score += 6
+
+    fear_greed = float(data.get('FG_Score') or 0)
+    if 25 <= fear_greed <= 55:
+        score += 10
+    elif 55 < fear_greed <= 75:
+        score += 7
+    elif fear_greed > 0:
+        score += 3
+
+    return {
+        'score': max(0, min(100, int(round(score)))),
+        'confidence': confidence,
+        'completeness_pct': int(round(completeness * 100)),
+    }
+
+def generate_swing_trading_html(data=None, return_signal=False):
     """ Generates HTML Card for Swing Trading with Explicit Numerical Values. """
     if data is None:
         data = get_swing_trading_data()
@@ -5307,6 +5381,7 @@ def generate_swing_trading_html(data=None):
 
     # --- Market Bias Calculation ---
     bias = calculate_market_bias(data)
+    international_swing = calculate_international_swing_score(data)
     
     bias_html = f"""
     <div style="grid-column: 1 / -1; background: {bias['color']}22; border-left: 5px solid {bias['color']}; padding: 15px; border-radius: 5px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
@@ -5504,6 +5579,18 @@ def generate_swing_trading_html(data=None):
         </div>
 
         <div style="padding: 24px;">
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;">
+                <div style="padding:14px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;">
+                    <div style="font-size:12px;color:#666;text-transform:uppercase;">Scor swing internațional</div>
+                    <div style="font-size:24px;font-weight:800;color:#111827;">{international_swing['score']}/100</div>
+                </div>
+                <div style="padding:14px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;">
+                    <div style="font-size:12px;color:#666;text-transform:uppercase;">Încredere</div>
+                    <div style="font-size:24px;font-weight:800;color:#111827;">{international_swing['confidence']}</div>
+                    <div style="font-size:11px;color:#888;margin-top:3px;">Date disponibile: {international_swing['completeness_pct']}%</div>
+                </div>
+            </div>
             
             <!-- MARKET BIAS CARD -->
             {bias_html}
@@ -5932,7 +6019,14 @@ def generate_swing_trading_html(data=None):
     </script>
     """
     
-    return html
+    signal = {
+        'key': 'international',
+        'label': 'Piața internațională',
+        'verdict': verdict,
+        'spx_verdict': spx_verdict,
+        'ndx_verdict': ndx_verdict,
+    }
+    return (html, signal) if return_signal else html
 def classify_strategy(data):
     """
     Classifies the trading setup based on Price, SMA, RSI, and Trend.

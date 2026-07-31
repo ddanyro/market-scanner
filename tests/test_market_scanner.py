@@ -101,8 +101,15 @@ class TestMarketAnalysis(unittest.TestCase):
             portfolio, pd.DataFrame()
         )
         self.assertIn('România / BVB', html)
+        self.assertIn('CUMPĂRĂ', html)
         self.assertIn('61.48 RON', html)
         self.assertIn('Datele BVB nu modifică Market Bias SUA', html)
+
+        _, signal = market_scanner._generate_bvb_market_overview_html(
+            portfolio, pd.DataFrame(), return_signal=True
+        )
+        self.assertEqual(signal['key'], 'romania_bvb')
+        self.assertEqual(signal['verdict'], 'CUMPĂRĂ')
 
     def test_bvb_market_risk_is_independent_from_us_rules(self):
         portfolio = pd.DataFrame([{
