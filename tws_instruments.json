@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-07-31T12:16:14.643320+00:00",
+  "fetched_at": "2026-07-31T19:42:24.298384+00:00",
   "source": "IBKR TWS API",
   "instruments": {
     "LQQ.PA": {
@@ -23,7 +23,7 @@
       "ibkr_role": "date și execuție",
       "ibkr_data_only": false,
       "position_held_in_ibkr": false,
-      "fetched_at": "2026-07-31T12:16:14.643320+00:00",
+      "fetched_at": "2026-07-31T19:42:24.298384+00:00",
       "contract": {
         "con_id": 41975920,
         "symbol": "LQQ",
@@ -50,8 +50,8 @@
         "bid": null,
         "ask": null,
         "last": null,
-        "close": 8.965,
-        "volume": 545433.0,
+        "close": 8.711,
+        "volume": 1160094.0,
         "as_of": "2026-07-31"
       },
       "bars": [
@@ -2090,10 +2090,10 @@
         {
           "date": "2026-07-31",
           "open": 8.903,
-          "high": 9.011,
-          "low": 8.903,
-          "close": 8.965,
-          "volume": 545433.0
+          "high": 9.08,
+          "low": 8.7,
+          "close": 8.711,
+          "volume": 1160094.0
         }
       ]
     },
@@ -2116,7 +2116,7 @@
       "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "position_held_in_ibkr": false,
-      "fetched_at": "2026-07-31T12:16:14.643320+00:00",
+      "fetched_at": "2026-07-31T19:42:24.298384+00:00",
       "contract": {
         "con_id": 813325574,
         "symbol": "TVBETETF",
@@ -2143,8 +2143,8 @@
         "bid": null,
         "ask": null,
         "last": null,
-        "close": 61.47,
-        "volume": 31771.0,
+        "close": 61.55,
+        "volume": 39409.0,
         "as_of": "2026-07-31"
       },
       "bars": [
@@ -3551,10 +3551,10 @@
         {
           "date": "2026-07-31",
           "open": 61.29,
-          "high": 61.47,
+          "high": 61.55,
           "low": 60.9,
-          "close": 61.47,
-          "volume": 31771.0
+          "close": 61.55,
+          "volume": 39409.0
         }
       ]
     },
