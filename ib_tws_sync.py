@@ -249,7 +249,9 @@ def fetch_research_instruments(
     cached_payload = _load_instrument_cache(output_file)
     cached_instruments = cached_payload.get('instruments', {})
     fetched_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    result = {}
+    # Sincronizarea limitată la BVB nu trebuie să șteargă din cache
+    # instrumentele americane sau europene sincronizate anterior.
+    result = dict(cached_instruments)
 
     print("\n=== Date TWS pentru instrumentele analizate ===")
     for dashboard_symbol, config in instruments.items():
@@ -310,6 +312,9 @@ def fetch_research_instruments(
                 'ibkr_data_only': (
                     'IBKR' not in config.get('execution_brokers', [])
                 ),
+                'position_held_in_ibkr': bool(
+                    config.get('position_held_in_ibkr')
+                ),
                 'fetched_at': fetched_at,
                 'contract': _serialize_contract_detail(detail),
                 'market_data': market_data,
@@ -346,6 +351,111 @@ def fetch_research_instruments(
         json.dump(payload, handle, ensure_ascii=False, indent=2)
     print(f"Salvat {output_file} cu {len(result)} instrumente.")
     return payload
+
+
+def _romanian_position_symbols(positions):
+    """Extrage numai deținerile românești de tip acțiune/fond din IBKR."""
+    symbols = set()
+    for position in positions or []:
+        contract = getattr(position, 'contract', None)
+        quantity = _finite_number(getattr(position, 'position', None))
+        if contract is None or quantity in (None, 0):
+            continue
+        sec_type = str(getattr(contract, 'secType', '') or '').upper()
+        currency = str(getattr(contract, 'currency', '') or '').upper()
+        exchanges = {
+            str(getattr(contract, field, '') or '').upper()
+            for field in ('exchange', 'primaryExchange')
+        }
+        if sec_type not in {'STK', 'FUND'}:
+            continue
+        if currency != 'RON' and not exchanges.intersection(
+            {'BVB', 'BUCHAREST'}
+        ):
+            continue
+        raw_symbol = str(
+            getattr(contract, 'localSymbol', '')
+            or getattr(contract, 'symbol', '')
+        ).strip().upper().replace(' ', '')
+        if raw_symbol:
+            symbols.add(
+                raw_symbol
+                if raw_symbol.endswith('.RO')
+                else f'{raw_symbol}.RO'
+            )
+    return sorted(symbols)
+
+
+def _cache_timestamp_is_fresh(value, max_age_hours, now=None):
+    try:
+        parsed = datetime.datetime.fromisoformat(
+            str(value or '').replace('Z', '+00:00')
+        )
+    except ValueError:
+        return False
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+    current = now or datetime.datetime.now(datetime.timezone.utc)
+    return (
+        current - parsed.astimezone(datetime.timezone.utc)
+    ).total_seconds() <= max_age_hours * 3600
+
+
+def sync_romanian_position_instruments(
+    output_file='tws_instruments.json', max_age_hours=1,
+):
+    """Actualizează TWS doar pentru BVB deținut/configurat, cu TTL de o oră."""
+    if not HAS_IB_INSYNC:
+        return False
+    cached_payload = _load_instrument_cache(output_file)
+    romanian_cached = [
+        item
+        for symbol, item in cached_payload.get('instruments', {}).items()
+        if isinstance(item, dict)
+        and (
+            str(symbol).upper() == 'TVBETETF.RO'
+            or item.get('position_held_in_ibkr') is True
+        )
+    ]
+    if romanian_cached and all(
+        _cache_timestamp_is_fresh(item.get('fetched_at'), max_age_hours)
+        for item in romanian_cached
+    ):
+        print("  -> Cache TWS BVB sub o oră; nu repetăm sincronizarea.")
+        return True
+
+    ib = IB()
+    for port in (7497, 4001, 7496):
+        try:
+            ib.connect('127.0.0.1', port, clientId=98, timeout=2)
+            break
+        except Exception:
+            pass
+    if not ib.isConnected():
+        print("  -> TWS indisponibil pentru completarea BVB; folosim cache-ul.")
+        return False
+    try:
+        held_symbols = _romanian_position_symbols(ib.positions())
+        instruments = {
+            symbol: config
+            for symbol, config in build_research_instruments(
+                held_symbols
+            ).items()
+            if config.get('market') == 'România / BVB'
+        }
+        for symbol in held_symbols:
+            if symbol in instruments:
+                instruments[symbol]['position_held_in_ibkr'] = True
+        print(
+            "  -> Completare TWS BVB pentru: "
+            + ', '.join(sorted(instruments))
+        )
+        fetch_research_instruments(
+            ib, output_file=output_file, instruments=instruments
+        )
+        return True
+    finally:
+        ib.disconnect()
 
 
 def fetch_active_orders(output_file='tws_orders.csv', research_symbols=None):

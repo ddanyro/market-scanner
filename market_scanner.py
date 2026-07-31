@@ -474,6 +474,34 @@ def _tws_instrument_history_frame(instrument):
     return frame[['Open', 'High', 'Low', 'Close', 'Volume']]
 
 
+def _merge_ohlcv_histories(*frames):
+    """Îmbină istoricele pe ședință; ultima sursă are prioritate."""
+    normalized = []
+    for frame in frames:
+        if frame is None or frame.empty:
+            continue
+        current = frame.copy()
+        normalized_index = pd.to_datetime(
+            current.index, errors='coerce'
+        )
+        if getattr(normalized_index, 'tz', None) is not None:
+            normalized_index = normalized_index.tz_localize(None)
+        current.index = normalized_index.normalize()
+        current = current[~current.index.isna()]
+        columns = [
+            column
+            for column in ('Open', 'High', 'Low', 'Close', 'Volume')
+            if column in current.columns
+        ]
+        if 'Close' in columns:
+            normalized.append(current[columns])
+    if not normalized:
+        return pd.DataFrame()
+    combined = pd.concat(normalized)
+    combined = combined[~combined.index.duplicated(keep='last')]
+    return combined.sort_index().dropna(subset=['Close'])
+
+
 def _tws_instrument_market_price(instrument):
     market_data_snapshot = (instrument or {}).get('market_data', {})
     for field in ('market_price', 'last', 'close'):
@@ -549,54 +577,76 @@ def _download_yahoo_history(symbol, period='1y'):
 
 
 def _load_analysis_history(ticker, download_ticker, period='1y'):
-    """Aplică lanțul de surse; pentru BVB: CSV public BVB → Yahoo → cache TWS."""
+    """Pentru BVB îmbină cache TWS, Yahoo și CSV public, fără duplicate."""
     normalized_ticker = str(ticker or '').upper()
     tws_instrument = _load_tws_instrument(ticker)
     is_bvb = normalized_ticker.endswith('.RO')
 
     if is_bvb:
+        bvb_history = pd.DataFrame()
+        bvb_instrument = None
         try:
             bvb_history, bvb_instrument = (
-                bvb_public_market_data.fetch_history(ticker)
+                bvb_public_market_data.fetch_history(
+                    ticker, min_observations=1
+                )
             )
             print(
                 f"  [BVB public] Istoric pentru "
                 f"{ticker}: {len(bvb_history)} ședințe"
-            )
-            return (
-                bvb_history,
-                bvb_instrument,
-                tws_instrument,
-                _instrument_data_attribution(ticker, bvb_instrument),
             )
         except bvb_public_market_data.BVBPublicStaleDataError as exc:
             print(f"  [BVB] {ticker}: cache-ul public este depășit ({exc})")
         except Exception as exc:
             print(f"  [BVB] {ticker}: CSV/cache public indisponibil ({exc})")
 
-        try:
-            yahoo_history = _download_yahoo_history(download_ticker, period=period)
-        except Exception:
-            yahoo_history = pd.DataFrame()
-        if not yahoo_history.empty:
-            return (
-                yahoo_history,
-                None,
-                tws_instrument,
-                _instrument_data_attribution(ticker, None),
-            )
-
         tws_history = _tws_instrument_history_frame(tws_instrument)
-        if not tws_history.empty:
+        combined_without_yahoo = _merge_ohlcv_histories(
+            tws_history, bvb_history
+        )
+        yahoo_history = pd.DataFrame()
+        if len(combined_without_yahoo) < 60:
+            try:
+                yahoo_history = _download_yahoo_history(
+                    download_ticker, period=period
+                )
+            except Exception:
+                yahoo_history = pd.DataFrame()
+        combined = _merge_ohlcv_histories(
+            tws_history, yahoo_history, bvb_history
+        )
+        if not combined.empty:
+            used_sources = []
+            if not tws_history.empty:
+                used_sources.append('IBKR TWS')
+            if not yahoo_history.empty:
+                used_sources.append('Yahoo Finance')
+            if not bvb_history.empty:
+                used_sources.append('BVB public')
+            selected_instrument = bvb_instrument or tws_instrument
+            if len(used_sources) > 1:
+                selected_instrument = dict(selected_instrument or {})
+                selected_instrument.update({
+                    'data_provider': ' + '.join(used_sources),
+                    'data_broker': 'surse combinate',
+                    'fetched_at': datetime.datetime.now(
+                        datetime.timezone.utc
+                    ).isoformat(),
+                    'market_data': (
+                        (bvb_instrument or tws_instrument or {}).get(
+                            'market_data', {}
+                        )
+                    ),
+                })
             print(
-                f"  [TWS cache] BVB public/Yahoo indisponibile; istoric pentru "
-                f"{ticker}: {len(tws_history)} ședințe"
+                f"  [BVB combinat] {ticker}: {len(combined)} ședințe "
+                f"din {', '.join(used_sources)}"
             )
             return (
-                tws_history,
+                combined,
+                selected_instrument,
                 tws_instrument,
-                tws_instrument,
-                _instrument_data_attribution(ticker, tws_instrument),
+                _instrument_data_attribution(ticker, selected_instrument),
             )
 
         print(
@@ -1585,7 +1635,7 @@ def _research_symbols_due(
         cached = by_symbol.get(normalized)
         ttl_hours = (
             BUY_FINALIST_TTL_HOURS
-            if normalized in priority_symbols
+            if normalized.endswith('.RO') or normalized in priority_symbols
             else EXTERNAL_RESEARCH_TTL_HOURS
         )
         if cached and market_data.is_fresh(cached, ttl_hours=ttl_hours):
@@ -8292,6 +8342,19 @@ def main():
     
     # 1. Încărcăm starea anterioară
     state = market_utils.load_state()
+
+    if args.mode == 'ro' and not os.environ.get('GITHUB_ACTIONS'):
+        print("=== Completare locală BVB din TWS ===")
+        try:
+            import ib_tws_sync
+            ib_tws_sync.sync_romanian_position_instruments(
+                max_age_hours=1
+            )
+        except Exception as tws_bvb_error:
+            print(
+                "  -> Completarea TWS BVB a eșuat; folosim cache-ul: "
+                f"{tws_bvb_error}"
+            )
 
     # 1. Update Portfolio Data
     if args.mode in ['all', 'portfolio']:
