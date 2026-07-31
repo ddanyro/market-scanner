@@ -3459,8 +3459,8 @@
     "Check_Details": "\u2717 Trend (P 52.4 < SMA50 64.6) \u2717 RS (Weak, Val: -27.80) \u2713 RSI (41.3) \u2717 ATR (Risk 11.0%)",
     "Date": "2026-07-31 20:17",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": null,
-    "Data_Broker": null,
+    "Market_Data_Fetched_At": NaN,
+    "Data_Broker": NaN,
     "Execution_Brokers": [
       "IBKR"
     ],
@@ -5193,8 +5193,8 @@
     "Check_Details": "\u2717 Trend (P 8.4 < SMA50 11.1) \u2717 RS (Weak, Val: -25.66) \u2717 RSI (29.3) \u2717 ATR (Risk 12.7%)",
     "Date": "2026-07-31 20:13",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": null,
-    "Data_Broker": null,
+    "Market_Data_Fetched_At": NaN,
+    "Data_Broker": NaN,
     "Execution_Brokers": [
       "IBKR"
     ],
@@ -127605,10 +127605,10 @@
     "Decision": "WAIT",
     "Decision_Color": "#ff9800",
     "Checks_Passed": 3,
-    "Smart_Entry": null,
-    "Smart_Entry_EUR": null,
-    "Smart_Type": null,
-    "Smart_Reason": null,
+    "Smart_Entry": NaN,
+    "Smart_Entry_EUR": NaN,
+    "Smart_Type": NaN,
+    "Smart_Reason": NaN,
     "Strategy": "Pullback",
     "RR_Ratio": 0.85,
     "Volume": 5218807,
@@ -127618,13 +127618,21 @@
     "Check_Details": "\u2713 Trend (P 91.2 > SMA50 88.8) \u2717 RS (Weak, Val: -2.23) \u2713 RSI (53.5) \u2713 ATR (Risk 5.5%)",
     "Date": "2026-07-31 19:52",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": null,
-    "Data_Broker": null,
+    "Market_Data_Fetched_At": NaN,
+    "Data_Broker": NaN,
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "_cached_at": 1785516724.2250347
+    "_cached_at": 1785516724.2250347,
+    "Liquidity_Observations_20D": NaN,
+    "Active_Days_20D": NaN,
+    "Zero_Volume_Days_20D": NaN,
+    "Median_Volume_20D": NaN,
+    "Median_Turnover_20D_RON": NaN,
+    "Average_Turnover_20D_RON": NaN,
+    "Last_Turnover_RON": NaN,
+    "Relative_Volume_20D": NaN
   },
   {
     "Ticker": "SWKS",
@@ -128472,10 +128480,10 @@
     "Decision": "AVOID",
     "Decision_Color": "#f44336",
     "Checks_Passed": 2,
-    "Smart_Entry": null,
-    "Smart_Entry_EUR": null,
-    "Smart_Type": null,
-    "Smart_Reason": null,
+    "Smart_Entry": NaN,
+    "Smart_Entry_EUR": NaN,
+    "Smart_Type": NaN,
+    "Smart_Reason": NaN,
     "Strategy": "Normal",
     "RR_Ratio": 1.0,
     "Volume": 3040232,
@@ -128485,8 +128493,8 @@
     "Check_Details": "\u2717 Trend (P 54.1 < SMA50 59.5) \u2717 RS (Weak, Val: -4.81) \u2713 RSI (47.8) \u2713 ATR (Risk 9.6%)",
     "Date": "2026-07-31 20:06",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": null,
-    "Data_Broker": null,
+    "Market_Data_Fetched_At": NaN,
+    "Data_Broker": NaN,
     "Execution_Brokers": [
       "IBKR"
     ],
@@ -131086,8 +131094,8 @@
     "Check_Details": "\u2717 Trend (P 120.5 < SMA50 152.1) \u2717 RS (Weak, Val: -18.14) \u2717 RSI (29.9) \u2717 ATR (Risk 20.1%)",
     "Date": "2026-07-31 19:54",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": null,
-    "Data_Broker": null,
+    "Market_Data_Fetched_At": NaN,
+    "Data_Broker": NaN,
     "Execution_Brokers": [
       "IBKR"
     ],
@@ -133674,10 +133682,10 @@
     "Decision": "AVOID",
     "Decision_Color": "#f44336",
     "Checks_Passed": 0,
-    "Smart_Entry": null,
-    "Smart_Entry_EUR": null,
-    "Smart_Type": null,
-    "Smart_Reason": null,
+    "Smart_Entry": NaN,
+    "Smart_Entry_EUR": NaN,
+    "Smart_Type": NaN,
+    "Smart_Reason": NaN,
     "Strategy": "Normal",
     "RR_Ratio": 14.89,
     "Volume": 1594553,
@@ -133687,8 +133695,8 @@
     "Check_Details": "\u2717 Trend (P 3.1 < SMA50 4.1) \u2717 RS (Weak, Val: -43.57) \u2717 RSI (36.7) \u2717 ATR (Risk 14.0%)",
     "Date": "2026-07-31 19:52",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": null,
-    "Data_Broker": null,
+    "Market_Data_Fetched_At": NaN,
+    "Data_Broker": NaN,
     "Execution_Brokers": [
       "IBKR"
     ],
@@ -154495,8 +154503,8 @@
     "Check_Details": "\u2717 Trend (P 12.9 < SMA50 13.2) \u2717 RS (Downtrend, Val: 13.05) \u2713 RSI (43.1) \u2713 ATR (Risk 8.2%)",
     "Date": "2026-07-31 20:09",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": null,
-    "Data_Broker": null,
+    "Market_Data_Fetched_At": NaN,
+    "Data_Broker": NaN,
     "Execution_Brokers": [
       "IBKR"
     ],
@@ -155362,8 +155370,8 @@
     "Check_Details": "\u2717 Trend (P 28.9 < SMA50 32.2) \u2717 RS (Weak, Val: -28.31) \u2717 RSI (32.2) \u2713 ATR (Risk 5.0%)",
     "Date": "2026-07-31 19:52",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": null,
-    "Data_Broker": null,
+    "Market_Data_Fetched_At": NaN,
+    "Data_Broker": NaN,
     "Execution_Brokers": [
       "IBKR"
     ],
@@ -157963,8 +157971,8 @@
     "Check_Details": "\u2717 Trend (P 102.7 < SMA50 145.0) \u2717 RS (Weak, Val: -29.68) \u2717 RSI (37.4) \u2717 ATR (Risk 21.4%)",
     "Date": "2026-07-31 20:20",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": null,
-    "Data_Broker": null,
+    "Market_Data_Fetched_At": NaN,
+    "Data_Broker": NaN,
     "Execution_Brokers": [
       "IBKR"
     ],
@@ -158830,8 +158838,8 @@
     "Check_Details": "\u2717 Trend (P 225.1 < SMA50 228.9) \u2717 RS (Downtrend, Val: 6.33) \u2713 RSI (43.8) \u2713 ATR (Risk 6.2%)",
     "Date": "2026-07-31 20:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": null,
-    "Data_Broker": null,
+    "Market_Data_Fetched_At": NaN,
+    "Data_Broker": NaN,
     "Execution_Brokers": [
       "IBKR"
     ],
@@ -159684,10 +159692,10 @@
     "Decision": "AVOID",
     "Decision_Color": "#f44336",
     "Checks_Passed": 2,
-    "Smart_Entry": null,
-    "Smart_Entry_EUR": null,
-    "Smart_Type": null,
-    "Smart_Reason": null,
+    "Smart_Entry": NaN,
+    "Smart_Entry_EUR": NaN,
+    "Smart_Type": NaN,
+    "Smart_Reason": NaN,
     "Strategy": "Pullback",
     "RR_Ratio": 1.45,
     "Volume": 230525,
@@ -159697,8 +159705,8 @@
     "Check_Details": "\u2713 Trend (P 58.3 > SMA50 56.0) \u2717 RS (Downtrend, Val: 6.66) \u2713 RSI (49.1) \u2717 ATR (Risk 10.0%)",
     "Date": "2026-07-31 20:01",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": null,
-    "Data_Broker": null,
+    "Market_Data_Fetched_At": NaN,
+    "Data_Broker": NaN,
     "Execution_Brokers": [
       "IBKR"
     ],
@@ -176223,10 +176231,10 @@
     "Decision": "AVOID",
     "Decision_Color": "#f44336",
     "Checks_Passed": 1,
-    "Smart_Entry": null,
-    "Smart_Entry_EUR": null,
-    "Smart_Type": null,
-    "Smart_Reason": null,
+    "Smart_Entry": NaN,
+    "Smart_Entry_EUR": NaN,
+    "Smart_Type": NaN,
+    "Smart_Reason": NaN,
     "Strategy": "Normal",
     "RR_Ratio": 5.32,
     "Volume": 1127964,
@@ -176236,13 +176244,21 @@
     "Check_Details": "\u2717 Trend (P 22.2 < SMA50 24.6) \u2717 RS (Weak, Val: -23.18) \u2713 RSI (42.3) \u2717 ATR (Risk 11.7%)",
     "Date": "2026-07-31 20:22",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": null,
-    "Data_Broker": null,
+    "Market_Data_Fetched_At": NaN,
+    "Data_Broker": NaN,
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "_cached_at": 1785518536.685163
+    "_cached_at": 1785518536.685163,
+    "Liquidity_Observations_20D": NaN,
+    "Active_Days_20D": NaN,
+    "Zero_Volume_Days_20D": NaN,
+    "Median_Volume_20D": NaN,
+    "Median_Turnover_20D_RON": NaN,
+    "Average_Turnover_20D_RON": NaN,
+    "Last_Turnover_RON": NaN,
+    "Relative_Volume_20D": NaN
   },
   {
     "Ticker": "RBA",
