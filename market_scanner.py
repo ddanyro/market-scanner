@@ -76,6 +76,7 @@ BVB_SHARES_CSV_URL = (
     'https://www.bvb.ro/FinancialInstruments/Markets/'
     'SharesListForDownload.ashx?filetype=csv'
 )
+ROMANIAN_UNIVERSE_SOURCE_URL = tradeville_market_data.TRADEVILLE_LIST_URL
 BVB_DEEP_SCAN_BATCH = 30
 US_DEEP_SCAN_BATCH = 40
 EXTERNAL_RESEARCH_MIN_RR = 1.8
@@ -548,12 +549,36 @@ def _download_yahoo_history(symbol, period='1y'):
 
 
 def _load_analysis_history(ticker, download_ticker, period='1y'):
-    """Aplică lanțul de surse; pentru BVB: Yahoo → TWS → Tradeville."""
+    """Aplică lanțul de surse; pentru BVB: Tradeville/cache → Yahoo → cache TWS."""
     normalized_ticker = str(ticker or '').upper()
     tws_instrument = _load_tws_instrument(ticker)
     is_bvb = normalized_ticker.endswith('.RO')
 
     if is_bvb:
+        try:
+            tradeville_history, tradeville_instrument = (
+                tradeville_market_data.fetch_history(ticker)
+            )
+            source_label = (
+                'cache Tradeville'
+                if tradeville_instrument.get('cache_fallback')
+                else 'Tradeville'
+            )
+            print(
+                f"  [{source_label}] Istoric pentru "
+                f"{ticker}: {len(tradeville_history)} observații"
+            )
+            return (
+                tradeville_history,
+                tradeville_instrument,
+                tws_instrument,
+                _instrument_data_attribution(ticker, tradeville_instrument),
+            )
+        except tradeville_market_data.TradevilleStaleDataError as exc:
+            print(f"  [BVB] {ticker}: Tradeville/cache depășit ({exc})")
+        except Exception as exc:
+            print(f"  [BVB] {ticker}: Tradeville/cache indisponibil ({exc})")
+
         try:
             yahoo_history = _download_yahoo_history(download_ticker, period=period)
         except Exception:
@@ -569,7 +594,7 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
         tws_history = _tws_instrument_history_frame(tws_instrument)
         if not tws_history.empty:
             print(
-                f"  [TWS API] Yahoo indisponibil; istoric IBKR pentru "
+                f"  [TWS cache] Tradeville/Yahoo indisponibile; istoric pentru "
                 f"{ticker}: {len(tws_history)} ședințe"
             )
             return (
@@ -579,27 +604,10 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
                 _instrument_data_attribution(ticker, tws_instrument),
             )
 
-        try:
-            tradeville_history, tradeville_instrument = (
-                tradeville_market_data.fetch_history(ticker)
-            )
-            print(
-                f"  [Tradeville] Yahoo/TWS indisponibile; istoric pentru "
-                f"{ticker}: {len(tradeville_history)} observații"
-            )
-            return (
-                tradeville_history,
-                tradeville_instrument,
-                tws_instrument,
-                _instrument_data_attribution(ticker, tradeville_instrument),
-            )
-        except tradeville_market_data.TradevilleStaleDataError as exc:
-            print(f"  [BVB] {ticker} exclus din analiza curentă: {exc}")
-        except Exception as exc:
-            print(
-                f"  [BVB] {ticker}: date indisponibile în Yahoo, TWS și "
-                f"Tradeville ({exc})"
-            )
+        print(
+            f"  [BVB] {ticker}: date indisponibile în Tradeville/cache, "
+            "Yahoo și cache-ul TWS"
+        )
         return pd.DataFrame(), None, tws_instrument, (
             _instrument_data_attribution(ticker, None)
         )
@@ -918,20 +926,49 @@ def _bvb_liquidity_assessment(item):
     }
 
 
-def fetch_complete_bvb_equity_universe(state, request_session=requests):
-    """Încarcă universul complet BVB/AeRO; la eroare păstrează ultimul cache valid."""
+def fetch_complete_bvb_equity_universe(state, request_session=None):
+    """Descoperă universul BVB/AeRO din lista publică Tradeville, fără API BVB."""
     cached = list((state or {}).get('bvb_equity_universe', []))
+    cached_by_symbol = {
+        str(item.get('symbol', '')).upper(): item
+        for item in cached
+        if isinstance(item, dict)
+    }
     try:
-        response = request_session.get(
-            BVB_SHARES_CSV_URL,
-            headers={'User-Agent': 'Mozilla/5.0'},
+        discovered_symbols = tradeville_market_data.fetch_listed_symbols(
+            session=request_session,
             timeout=30,
         )
-        response.raise_for_status()
-        records = _parse_bvb_equity_universe_csv(response.text)
+        symbols = {
+            str(symbol).upper()
+            for symbol in discovered_symbols
+        } | {
+            str(item.get('bvb_symbol') or item.get('symbol', '')).upper()
+            .removesuffix('.RO')
+            for item in cached
+            if isinstance(item, dict)
+        }
+        records = []
+        for raw_symbol in sorted(symbols):
+            if not re.fullmatch(r'[A-Z0-9]{1,12}', raw_symbol):
+                continue
+            symbol = f'{raw_symbol}.RO'
+            previous = dict(cached_by_symbol.get(symbol, {}))
+            previous.update({
+                'symbol': symbol,
+                'bvb_symbol': raw_symbol,
+                'source': 'Lista publică Tradeville',
+                'source_url': ROMANIAN_UNIVERSE_SOURCE_URL,
+            })
+            records.append(previous)
         if records:
             return records
-    except (requests.RequestException, ValueError, TypeError, pd.errors.ParserError):
+    except (
+        requests.RequestException,
+        tradeville_market_data.TradevilleDataError,
+        ValueError,
+        TypeError,
+    ):
         pass
     return cached
 
@@ -1834,39 +1871,34 @@ def _select_bvb_research_symbols(
 
 
 def _planned_bvb_tws_symbols(state):
-    """Calculează fără mutații lotul BVB ce trebuie verificat în TWS."""
-    bvb_universe = list(state.get('bvb_equity_universe', []))
-    if not bvb_universe:
-        return list(BUY_RESEARCH_UNIVERSES['România / BVB'])
-    watchlist_symbols = set()
-    if os.path.exists('watchlist.csv'):
-        watchlist_file = pd.read_csv('watchlist.csv')
-        if 'symbol' in watchlist_file.columns:
-            watchlist_symbols = {
-                str(symbol).upper()
-                for symbol in watchlist_file['symbol'].dropna().tolist()
-            }
-    watchlist_by_symbol = {
-        str(item.get('Ticker', '')).upper(): item
-        for item in state.get('watchlist', [])
-    }
-    by_symbol = {
-        str(item.get('Ticker', '')).upper(): item
-        for item in state.get('external_buy_research', [])
-    }
-    return _select_bvb_research_symbols(
-        bvb_universe,
-        by_symbol,
-        watchlist_by_symbol,
-        watchlist_symbols,
-    )
+    """Universul larg BVB nu este interogat prin TWS.
+
+    Instrumentele românești deja deținute sau configurate explicit în IBKR
+    continuă să fie sincronizate de ``ib_tws_sync`` prin propriile sale liste.
+    """
+    return []
 
 
-def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False):
+def ensure_buy_research_candidates(
+    state,
+    rates,
+    vix_val,
+    refresh_missing=False,
+    target_markets=None,
+):
     """Cercetează separat universuri externe, fără a le confunda cu watchlistul."""
+    target_markets = (
+        {str(market) for market in target_markets}
+        if target_markets
+        else None
+    )
+    include_bvb = (
+        target_markets is None or 'România / BVB' in target_markets
+    )
+    include_us = target_markets is None or 'SUA' in target_markets
     bvb_universe = (
         fetch_complete_bvb_equity_universe(state)
-        if refresh_missing
+        if refresh_missing and include_bvb
         else list(state.get('bvb_equity_universe', []))
     )
     if bvb_universe:
@@ -1874,7 +1906,7 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
     research_universes = {
         market: list(symbols) for market, symbols in BUY_RESEARCH_UNIVERSES.items()
     }
-    us_universe = load_complete_us_equity_universe()
+    us_universe = load_complete_us_equity_universe() if include_us else []
     if us_universe:
         research_universes['SUA'] = us_universe
     if bvb_universe:
@@ -1928,8 +1960,11 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
     markets_to_research = [
         market for market in research_universes
         if (
-            market not in eligible_markets
-            or market in {'SUA', 'Europa / Nasdaq-100', 'România / BVB'}
+            (target_markets is None or market in target_markets)
+            and (
+                market not in eligible_markets
+                or market in {'SUA', 'Europa / Nasdaq-100', 'România / BVB'}
+            )
         )
     ]
     if not markets_to_research:
@@ -2013,31 +2048,37 @@ def ensure_buy_research_candidates(state, rates, vix_val, refresh_missing=False)
             by_symbol[symbol.upper()] = data
             completed_by_market[market] += 1
     state['external_buy_research'] = list(by_symbol.values())
-    state['bvb_universe_stats'] = {
-        'discovered': len(bvb_universe),
-        'deep_scanned': sum(
-            str(item.get('Ticker', '')).upper().endswith('.RO')
-            for item in by_symbol.values()
-        ),
-        'batch_size': BVB_DEEP_SCAN_BATCH,
-        'last_batch_attempted': attempted_by_market.get('România / BVB', 0),
-        'last_batch_completed': completed_by_market.get('România / BVB', 0),
-        'source': BVB_SHARES_CSV_URL,
-        'updated_at': datetime.datetime.now().isoformat(timespec='seconds'),
-    }
-    us_symbols = set(us_universe)
-    state['us_universe_stats'] = {
-        'discovered': len(us_universe),
-        'deep_scanned': sum(
-            str(item.get('Ticker', '')).upper() in us_symbols
-            for item in by_symbol.values()
-        ),
-        'batch_size': US_DEEP_SCAN_BATCH,
-        'last_batch_attempted': attempted_by_market.get('SUA', 0),
-        'last_batch_completed': completed_by_market.get('SUA', 0),
-        'source': SP500_UNIVERSE_FILE,
-        'updated_at': datetime.datetime.now().isoformat(timespec='seconds'),
-    }
+    if include_bvb:
+        state['bvb_universe_stats'] = {
+            'discovered': len(bvb_universe),
+            'deep_scanned': sum(
+                str(item.get('Ticker', '')).upper().endswith('.RO')
+                for item in by_symbol.values()
+            ),
+            'batch_size': BVB_DEEP_SCAN_BATCH,
+            'last_batch_attempted': attempted_by_market.get(
+                'România / BVB', 0
+            ),
+            'last_batch_completed': completed_by_market.get(
+                'România / BVB', 0
+            ),
+            'source': ROMANIAN_UNIVERSE_SOURCE_URL,
+            'updated_at': datetime.datetime.now().isoformat(timespec='seconds'),
+        }
+    if include_us:
+        us_symbols = set(us_universe)
+        state['us_universe_stats'] = {
+            'discovered': len(us_universe),
+            'deep_scanned': sum(
+                str(item.get('Ticker', '')).upper() in us_symbols
+                for item in by_symbol.values()
+            ),
+            'batch_size': US_DEEP_SCAN_BATCH,
+            'last_batch_attempted': attempted_by_market.get('SUA', 0),
+            'last_batch_completed': completed_by_market.get('SUA', 0),
+            'source': SP500_UNIVERSE_FILE,
+            'updated_at': datetime.datetime.now().isoformat(timespec='seconds'),
+        }
     return state
 
 # Cache settings for long-horizon historical returns (slow to compute)
@@ -8069,19 +8110,43 @@ def update_portfolio_data(state, rates, vix_val, sync_before_load=True):
 # REFACTORED: cache helpers moved to market_data.py
 
 
-def update_watchlist_data(state, rates, vix_val):
+def update_watchlist_data(
+    state,
+    rates,
+    vix_val,
+    *,
+    target_market=None,
+    sync_remote=True,
+    cache_ttl_hours=5,
+):
     """Actualizează datele din watchlist și le salvează în state."""
-    print("\n=== Actualizare Watchlist ===")
+    title = (
+        f"Watchlist — {target_market}"
+        if target_market
+        else "Watchlist"
+    )
+    print(f"\n=== Actualizare {title} ===")
     
     # Sync watchlist from remote
-    sync_watchlist_from_remote()
+    if sync_remote:
+        sync_watchlist_from_remote()
     
     watchlist_tickers = load_watchlist()
+    retained_results = []
+    if target_market:
+        retained_results = [
+            item for item in state.get('watchlist', [])
+            if _buy_candidate_market(item.get('Ticker')) != target_market
+        ]
+        watchlist_tickers = [
+            ticker for ticker in watchlist_tickers
+            if _buy_candidate_market(ticker) == target_market
+        ]
     watchlist_results = []
     
     if not watchlist_tickers:
-         print("Watchlist gol.")
-         state['watchlist'] = []
+         print(f"Niciun simbol pentru {target_market or 'watchlist'}.")
+         state['watchlist'] = retained_results
          return state
 
     total_tickers = len(watchlist_tickers)
@@ -8121,7 +8186,13 @@ def update_watchlist_data(state, rates, vix_val):
             if 'Company_Name' not in cached_data or not cached_data['Company_Name']:
                     missing_fields = True
 
-        if cached_data and market_data.is_fresh(cached_data, ttl_hours=5) and not missing_fields:
+        if (
+            cached_data
+            and market_data.is_fresh(
+                cached_data, ttl_hours=cache_ttl_hours
+            )
+            and not missing_fields
+        ):
             # Use cached data
             watchlist_results.append(cached_data)
             cached_count += 1
@@ -8142,17 +8213,25 @@ def update_watchlist_data(state, rates, vix_val):
         
         print(f"  → {cached_count} cached, {updated_count} updated")
     
-    state['watchlist'] = watchlist_results
+    state['watchlist'] = retained_results + watchlist_results
     return state
 
 def main():
     parser = argparse.ArgumentParser(description="Antigravity Market Scanner")
-    parser.add_argument('--mode', choices=['all', 'portfolio', 'watchlist', 'html-only'], default='all', help='Select update mode')
+    parser.add_argument(
+        '--mode',
+        choices=['all', 'portfolio', 'watchlist', 'ro', 'html-only'],
+        default='all',
+        help='Select update mode',
+    )
     parser.add_argument('--tws', action='store_true', help='Try fetching active orders from local TWS (requires ib_insync)')
     args = parser.parse_args()
     
     # Auto-enable TWS if local (not GitHub Actions) to prioritize live data
-    if not os.environ.get('GITHUB_ACTIONS'):
+    if (
+        not os.environ.get('GITHUB_ACTIONS')
+        and args.mode in {'all', 'portfolio'}
+    ):
         if not args.tws:
             print("Mediu Local detectat: Activare automată TWS Sync.")
             args.tws = True
@@ -8304,7 +8383,7 @@ def main():
     market_indicators = state.get('market_indicators', {})
     vix_val = state.get('vix_val', None)
     
-    if args.mode != 'html-only':
+    if args.mode not in {'html-only', 'ro'}:
         print("=== Actualizare Date Globale ===")
         rates = market_data.get_exchange_rates()
         state['rates'] = rates
@@ -8327,8 +8406,15 @@ def main():
     # 3. Actualizări Secționale
     # Dacă o piață nu are candidați eligibili, extindem universul de cercetare.
     # În modul complet noile simboluri vor fi procesate de update_watchlist_data.
+    target_markets = (
+        {'România / BVB'} if args.mode == 'ro' else None
+    )
     state = ensure_buy_research_candidates(
-        state, rates, vix_val, refresh_missing=False
+        state,
+        rates,
+        vix_val,
+        refresh_missing=False,
+        target_markets=target_markets,
     )
 
     if args.mode in ['all', 'portfolio']:
@@ -8341,11 +8427,28 @@ def main():
         
     if args.mode in ['all', 'watchlist']:
         state = update_watchlist_data(state, rates, vix_val)
+    if args.mode == 'ro':
+        state = update_watchlist_data(
+            state,
+            rates,
+            vix_val,
+            target_market='România / BVB',
+            sync_remote=False,
+            cache_ttl_hours=1,
+        )
     if args.mode in ['all', 'watchlist', 'portfolio']:
         # Cercetarea suplimentară rămâne separată de watchlist și folosește
         # propriul criteriu de triere.
         state = ensure_buy_research_candidates(
             state, rates, vix_val, refresh_missing=True
+        )
+    elif args.mode == 'ro':
+        state = ensure_buy_research_candidates(
+            state,
+            rates,
+            vix_val,
+            refresh_missing=True,
+            target_markets={'România / BVB'},
         )
         
     # 4. Salvare Stare

@@ -1,4 +1,7 @@
 import datetime
+import json
+import os
+import tempfile
 import unittest
 from unittest.mock import Mock
 
@@ -162,6 +165,49 @@ class TestTradevilleMarketData(unittest.TestCase):
             )
 
         session.get.assert_called_once()
+
+    def test_fetch_history_uses_valid_local_cache_when_source_fails(self):
+        rows = []
+        start = datetime.date(2026, 4, 29)
+        for index in range(90):
+            day = start + datetime.timedelta(days=index)
+            rows.append(f"{day.isoformat()},10,11,9,10.5,100")
+        source_frame = tradeville_market_data.parse_chart_payload(
+            _payload(rows),
+            now=datetime.date(2026, 7, 28),
+        )
+        response = Mock()
+        response.raise_for_status.side_effect = (
+            tradeville_market_data.requests.HTTPError("offline")
+        )
+        session = Mock()
+        session.get.return_value = response
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            cache_path = os.path.join(temp_dir, "bvb_market_cache.json")
+            with open(cache_path, "w", encoding="utf-8") as handle:
+                json.dump({
+                    "version": 1,
+                    "symbols": {
+                        "ALR": {
+                            "fetched_at": "2026-07-28T06:00:00+00:00",
+                            "bars": tradeville_market_data._frame_to_cache_rows(
+                                source_frame
+                            ),
+                        }
+                    },
+                }, handle)
+
+            frame, metadata = tradeville_market_data.fetch_history(
+                "ALR.RO",
+                session=session,
+                cache_path=cache_path,
+                now=datetime.date(2026, 7, 28),
+            )
+
+        self.assertEqual(float(frame["Close"].iloc[-1]), 10.5)
+        self.assertTrue(metadata["cache_fallback"])
+        self.assertIn("cache local", metadata["data_provider"])
 
 
 if __name__ == "__main__":

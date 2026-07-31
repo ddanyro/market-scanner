@@ -3,6 +3,39 @@ import re
 import os
 
 class TestHtmlIntegrity(unittest.TestCase):
+
+    def test_romanian_market_has_separate_hourly_update_without_bvb_api(self):
+        root = os.path.join(os.path.dirname(__file__), '..')
+        with open(
+            os.path.join(root, '.github', 'workflows', 'update_ro.yml'),
+            'r',
+            encoding='utf-8',
+        ) as handle:
+            workflow = handle.read()
+        with open(
+            os.path.join(root, 'update_ro.sh'),
+            'r',
+            encoding='utf-8',
+        ) as handle:
+            local_runner = handle.read()
+        with open(
+            os.path.join(root, 'market_scanner.py'),
+            'r',
+            encoding='utf-8',
+        ) as handle:
+            scanner = handle.read()
+
+        self.assertIn("cron: '17 6-17 * * 1-5'", workflow)
+        self.assertIn('python market_scanner.py --mode ro', workflow)
+        self.assertIn('group: market-dashboard-writes', workflow)
+        self.assertIn('bvb_market_cache.json', workflow)
+        self.assertIn('market_scanner.py --mode ro', local_runner)
+        self.assertIn(
+            "['all', 'portfolio', 'watchlist', 'ro', 'html-only']",
+            scanner,
+        )
+        self.assertNotIn('BVB_API_KEY', workflow)
+        self.assertNotIn('BVB_USERNAME', workflow)
     
     def test_volatility_calculator_ids(self):
         """

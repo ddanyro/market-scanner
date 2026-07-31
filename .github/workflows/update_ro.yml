@@ -1,0 +1,52 @@
+name: Update Romanian Market
+
+on:
+  schedule:
+    # O dată pe oră în intervalul care acoperă ședința BVB în ora României.
+    - cron: '17 6-17 * * 1-5'
+  workflow_dispatch:
+
+concurrency:
+  group: market-dashboard-writes
+  cancel-in-progress: false
+
+jobs:
+  update-ro:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.13'
+
+    - name: Install dependencies
+      run: |
+        pip install pandas requests yfinance ib_insync beautifulsoup4 lxml pycryptodome -r requirements.txt
+
+    - name: Update Romanian market
+      env:
+        TZ: 'Europe/Bucharest'
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        PORTFOLIO_PASSWORD: ${{ secrets.PORTFOLIO_PASSWORD }}
+        TWS_ACCOUNT_PASSWORD: ${{ secrets.TWS_ACCOUNT_PASSWORD }}
+        FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        FIREBASE_REGISTRATION_TOKENS: ${{ secrets.FIREBASE_REGISTRATION_TOKENS }}
+        FIREBASE_WEB_CONFIG: ${{ secrets.FIREBASE_WEB_CONFIG }}
+        FIREBASE_VAPID_KEY: ${{ secrets.FIREBASE_VAPID_KEY }}
+        FIREBASE_SITE_URL: https://ddanyro.github.io/market-scanner/
+      run: python market_scanner.py --mode ro
+
+    - name: Commit and push Romanian market changes
+      run: |
+        git config --global user.name 'GitHub Action'
+        git config --global user.email 'action@github.com'
+        git add index.html dashboard_state.json watchlist.csv push/firebase/firebase-messaging-sw.js
+        if [ -f bvb_market_cache.json ]; then git add bvb_market_cache.json; fi
+        git commit -m "Auto-update Romanian market [skip ci]" || echo "No changes to commit"
+        git push origin HEAD:main || (git fetch origin main && git rebase -X theirs origin/main && git push origin HEAD:main)

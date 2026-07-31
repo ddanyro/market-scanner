@@ -7,6 +7,7 @@ strict răspunsul public Tradeville și respinge seriile fără tranzacții rece
 import datetime
 import json
 import math
+import os
 import re
 import threading
 import time
@@ -38,11 +39,13 @@ LAST_VALID_LISTED_SYMBOLS = frozenset({
 })
 DEFAULT_MAX_AGE_DAYS = 10
 DEFAULT_MIN_OBSERVATIONS = 60
+DEFAULT_CACHE_FILE = "bvb_market_cache.json"
 _RETRY_SESSION = None
 _LISTED_SYMBOLS = None
 _REQUEST_LOCK = threading.Lock()
 _LAST_REQUEST_AT = 0.0
 MIN_REQUEST_INTERVAL_SECONDS = 1.0
+_DEFAULT_CACHE = object()
 
 
 class TradevilleDataError(ValueError):
@@ -240,6 +243,107 @@ def parse_chart_payload(
     ]
 
 
+def _frame_to_cache_rows(frame):
+    rows = []
+    for date_index, row in frame.iterrows():
+        rows.append({
+            "date": pd.Timestamp(date_index).date().isoformat(),
+            "open": _finite_number(row.get("Open")),
+            "high": _finite_number(row.get("High")),
+            "low": _finite_number(row.get("Low")),
+            "close": _finite_number(row.get("Close")),
+            "volume": _finite_number(row.get("Volume")) or 0,
+        })
+    return rows
+
+
+def _cache_rows_to_frame(
+    rows,
+    *,
+    now=None,
+    max_age_days=DEFAULT_MAX_AGE_DAYS,
+    min_observations=DEFAULT_MIN_OBSERVATIONS,
+):
+    if not isinstance(rows, list):
+        raise TradevilleDataError("Cache-ul Tradeville este invalid")
+    payload_rows = [
+        (
+            f"{item.get('date')},{item.get('open')},{item.get('high')},"
+            f"{item.get('low')},{item.get('close')},{item.get('volume', 0)}"
+        )
+        for item in rows
+        if isinstance(item, dict)
+    ]
+    return parse_chart_payload(
+        {
+            "data": (
+                "data,deschide,maxim,minim,last,volum\n"
+                + "\n".join(payload_rows)
+                + "\n"
+            )
+        },
+        now=now,
+        max_age_days=max_age_days,
+        min_observations=min_observations,
+    )
+
+
+def _load_cache(cache_path):
+    if not cache_path or not os.path.exists(cache_path):
+        return {}
+    try:
+        with open(cache_path, "r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        return payload if isinstance(payload, dict) else {}
+    except (OSError, ValueError, TypeError):
+        return {}
+
+
+def _save_cache_entry(cache_path, symbol, frame, fetched_at):
+    if not cache_path:
+        return
+    cache = _load_cache(cache_path)
+    cache.setdefault("version", 1)
+    cache.setdefault("symbols", {})
+    cache["symbols"][symbol] = {
+        "fetched_at": fetched_at,
+        "bars": _frame_to_cache_rows(frame),
+    }
+    temp_path = f"{cache_path}.tmp"
+    try:
+        with open(temp_path, "w", encoding="utf-8") as handle:
+            json.dump(cache, handle, ensure_ascii=False, separators=(",", ":"))
+        os.replace(temp_path, cache_path)
+    except OSError:
+        try:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+        except OSError:
+            pass
+
+
+def _cached_history(
+    cache_path,
+    symbol,
+    *,
+    now=None,
+    max_age_days=DEFAULT_MAX_AGE_DAYS,
+    min_observations=DEFAULT_MIN_OBSERVATIONS,
+):
+    entry = (_load_cache(cache_path).get("symbols") or {}).get(symbol)
+    if not isinstance(entry, dict):
+        raise TradevilleDataError(
+            f"Nu există cache Tradeville valid pentru {symbol}"
+        )
+    frame = _cache_rows_to_frame(
+        entry.get("bars"),
+        now=now,
+        max_age_days=max_age_days,
+        min_observations=min_observations,
+    )
+    return frame, entry.get("fetched_at")
+
+
 def fetch_history(
     symbol,
     *,
@@ -248,50 +352,83 @@ def fetch_history(
     now=None,
     max_age_days=DEFAULT_MAX_AGE_DAYS,
     min_observations=DEFAULT_MIN_OBSERVATIONS,
+    cache_path=_DEFAULT_CACHE,
 ):
-    """Descarcă și validează istoricul Tradeville pentru un simbol BVB."""
+    """Descarcă istoricul Tradeville și revine la ultimul cache valid la eroare."""
     bvb_symbol = normalize_bvb_symbol(symbol)
     if not bvb_symbol:
         raise TradevilleDataError("Simbol BVB lipsă")
-    listed_symbols = fetch_listed_symbols(
-        session=session,
-        timeout=timeout,
-    )
-    if bvb_symbol not in listed_symbols:
-        raise TradevilleDataError(
-            f"{bvb_symbol} nu apare în lista publică Tradeville"
-        )
-    client = session or _retry_session()
-    request_kwargs = {
-        "params": {"simbol": bvb_symbol, "lat": ""},
-        "timeout": timeout,
-    }
-    response = (
-        client.get(TRADEVILLE_CHART_URL, **request_kwargs)
-        if session is not None
-        else _throttled_get(client, TRADEVILLE_CHART_URL, **request_kwargs)
-    )
-    response.raise_for_status()
+    if cache_path is _DEFAULT_CACHE:
+        cache_path = DEFAULT_CACHE_FILE if session is None else None
+    fetched_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    cache_fallback = False
     try:
-        payload = response.json()
-    except (ValueError, json.JSONDecodeError) as exc:
-        raise TradevilleDataError("Răspunsul Tradeville nu este JSON") from exc
-    frame = parse_chart_payload(
-        payload,
-        now=now,
-        max_age_days=max_age_days,
-        min_observations=min_observations,
-    )
+        listed_symbols = fetch_listed_symbols(
+            session=session,
+            timeout=timeout,
+        )
+        if bvb_symbol not in listed_symbols:
+            raise TradevilleDataError(
+                f"{bvb_symbol} nu apare în lista publică Tradeville"
+            )
+        client = session or _retry_session()
+        request_kwargs = {
+            "params": {"simbol": bvb_symbol, "lat": ""},
+            "timeout": timeout,
+        }
+        response = (
+            client.get(TRADEVILLE_CHART_URL, **request_kwargs)
+            if session is not None
+            else _throttled_get(client, TRADEVILLE_CHART_URL, **request_kwargs)
+        )
+        response.raise_for_status()
+        try:
+            payload = response.json()
+        except (ValueError, json.JSONDecodeError) as exc:
+            raise TradevilleDataError(
+                "Răspunsul Tradeville nu este JSON"
+            ) from exc
+        frame = parse_chart_payload(
+            payload,
+            now=now,
+            max_age_days=max_age_days,
+            min_observations=min_observations,
+        )
+        _save_cache_entry(cache_path, bvb_symbol, frame, fetched_at)
+    except (
+        requests.RequestException,
+        TradevilleDataError,
+        ValueError,
+        TypeError,
+    ) as source_error:
+        try:
+            frame, cached_at = _cached_history(
+                cache_path,
+                bvb_symbol,
+                now=now,
+                max_age_days=max_age_days,
+                min_observations=min_observations,
+            )
+            fetched_at = cached_at or fetched_at
+            cache_fallback = True
+        except TradevilleDataError:
+            raise source_error
+
     return frame, {
         "symbol": f"{bvb_symbol}.RO",
-        "data_provider": "Tradeville public market data",
+        "data_provider": (
+            "Tradeville public market data (cache local)"
+            if cache_fallback
+            else "Tradeville public market data"
+        ),
         "data_broker": "Tradeville",
-        "fetched_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "fetched_at": fetched_at,
         "market_data": {
             "close": _finite_number(frame["Close"].iloc[-1]),
             "volume": _finite_number(frame["Volume"].iloc[-1]),
             "as_of": frame.index[-1].date().isoformat(),
         },
+        "cache_fallback": cache_fallback,
         "execution_brokers": ["Tradeville"],
         "ibkr_data_only": False,
     }
