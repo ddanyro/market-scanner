@@ -31,11 +31,33 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('bvb_daily_cache.csv', workflow)
         self.assertIn('market_scanner.py --mode ro', local_runner)
         self.assertIn(
-            "['all', 'portfolio', 'watchlist', 'ro', 'html-only']",
+            "'all', 'portfolio', 'watchlist', 'ro', 'international'",
             scanner,
         )
         self.assertNotIn('BVB_API_KEY', workflow)
         self.assertNotIn('BVB_USERNAME', workflow)
+
+    def test_market_update_flows_are_separated(self):
+        root = os.path.join(os.path.dirname(__file__), '..')
+        with open(
+            os.path.join(root, 'update_international.sh'),
+            'r', encoding='utf-8',
+        ) as handle:
+            international = handle.read()
+        with open(
+            os.path.join(root, 'market_scanner.py'),
+            'r', encoding='utf-8',
+        ) as handle:
+            scanner = handle.read()
+        self.assertIn('--mode international', international)
+        self.assertIn('update_portfolio_positions_only', scanner)
+        self.assertIn("args.mode not in {'portfolio', 'html-only'}", scanner)
+        self.assertIn("sync_research_instruments=(args.mode == 'all')", scanner)
+        self.assertIn(
+            "args.mode == 'portfolio' and cached_swing_data is None",
+            scanner,
+        )
+        self.assertIn('if not is_bvb_position:', scanner)
     
     def test_volatility_calculator_ids(self):
         """

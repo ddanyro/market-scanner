@@ -2976,19 +2976,29 @@ def render_buy_recommendations_html(
     if bvb_universe_stats:
         bvb_coverage_html = (
             "<p style='margin:0 0 15px;color:var(--text-secondary);font-size:13px;'>"
-            f"Univers BVB/AeRO descoperit: "
+            f"Watchlist BVB/AeRO: "
+            f"<b>{int(bvb_universe_stats.get('watchlist_symbols') or 0)}</b> simboluri, "
+            "procesate integral separat · univers extern BVB/AeRO: "
             f"<b>{int(bvb_universe_stats.get('discovered') or 0)}</b> simboluri · "
-            f"analiză profundă disponibilă pentru "
+            f"analiză externă profundă disponibilă pentru "
             f"<b>{int(bvb_universe_stats.get('deep_scanned') or 0)}</b> · "
             f"lot rotativ/rulare: {int(bvb_universe_stats.get('batch_size') or 0)}."
             "</p>"
         )
     us_coverage_html = ''
     if us_universe_stats:
+        watchlist_us = int(us_universe_stats.get('watchlist_symbols') or 0)
+        watchlist_europe = int(
+            us_universe_stats.get('watchlist_europe_symbols') or 0
+        )
         us_coverage_html = (
             "<p style='margin:0 0 15px;color:var(--text-secondary);font-size:13px;'>"
-            f"Univers SUA descoperit: <b>{int(us_universe_stats.get('discovered') or 0)}</b> "
-            f"simboluri · analiză profundă disponibilă pentru "
+            f"Watchlist internațional: <b>{watchlist_us + watchlist_europe}</b> "
+            f"simboluri (<b>{watchlist_us}</b> SUA, <b>{watchlist_europe}</b> "
+            "Europa/LQQ), procesate integral separat și reutilizate din cache "
+            "când sunt încă actuale · univers extern S&amp;P 500: "
+            f"<b>{int(us_universe_stats.get('discovered') or 0)}</b> simboluri · "
+            f"analiză externă profundă disponibilă pentru "
             f"<b>{int(us_universe_stats.get('deep_scanned') or 0)}</b> · "
             f"lot rotativ/rulare: {int(us_universe_stats.get('batch_size') or 0)}."
             "</p>"
