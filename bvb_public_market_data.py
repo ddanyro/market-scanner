@@ -25,6 +25,7 @@ DEFAULT_CACHE_FILE = "bvb_daily_cache.csv"
 DEFAULT_MIN_OBSERVATIONS = 60
 DEFAULT_MAX_AGE_DAYS = 10
 DEFAULT_LOOKBACK_DAYS = 150
+DEFAULT_MAX_CONSECUTIVE_ERRORS = 3
 MIN_REQUEST_INTERVAL_SECONDS = 0.20
 CACHE_COLUMNS = [
     "Date",
@@ -39,6 +40,8 @@ CACHE_COLUMNS = [
 ]
 _SESSION = None
 _CACHE_FRAMES = {}
+_REQUESTED_DATES = {}
+_UNAVAILABLE_CACHE_KEYS = set()
 _REQUEST_LOCK = threading.Lock()
 _LAST_REQUEST_AT = 0.0
 
@@ -255,6 +258,7 @@ def fetch_history(
     min_observations=DEFAULT_MIN_OBSERVATIONS,
     max_age_days=DEFAULT_MAX_AGE_DAYS,
     lookback_days=DEFAULT_LOOKBACK_DAYS,
+    max_consecutive_errors=DEFAULT_MAX_CONSECUTIVE_ERRORS,
 ):
     """Returnează OHLCV BVB, completând incremental cache-ul public zilnic."""
     bvb_symbol = normalize_symbol(symbol)
@@ -265,13 +269,32 @@ def fetch_history(
         if now is not None
         else datetime.datetime.now().astimezone().date()
     )
+    cache_key = os.path.abspath(cache_path)
     cache = _load_cache(cache_path)
     existing_dates = set(cache.get("Date", pd.Series(dtype=str)).astype(str))
     symbol_history = _symbol_frame(cache, bvb_symbol)
     source_errors = []
+    consecutive_errors = 0
+    downloaded_days = 0
+    initial_cache_empty = cache.empty
 
-    candidates = _candidate_dates(current_date, lookback_days)
-    refresh_dates = set(candidates[:2])
+    if initial_cache_empty and cache_key not in _UNAVAILABLE_CACHE_KEYS:
+        print(
+            "  [BVB public] Se construiește cache-ul istoric zilnic; "
+            "prima rulare poate dura aproximativ un minut..."
+        )
+
+    candidates = (
+        []
+        if cache_key in _UNAVAILABLE_CACHE_KEYS
+        else _candidate_dates(current_date, lookback_days)
+    )
+    requested_dates = _REQUESTED_DATES.setdefault(cache_key, set())
+    refresh_dates = {
+        trading_date
+        for trading_date in candidates[:2]
+        if trading_date.isoformat() not in requested_dates
+    }
     for trading_date in candidates:
         date_text = trading_date.isoformat()
         enough_history = len(symbol_history) >= int(min_observations)
@@ -282,6 +305,9 @@ def fetch_history(
             if enough_history:
                 break
             continue
+        if date_text in requested_dates:
+            continue
+        requested_dates.add(date_text)
         try:
             daily = fetch_daily_snapshot(
                 trading_date,
@@ -290,12 +316,30 @@ def fetch_history(
             )
         except (requests.RequestException, BVBPublicDataError) as exc:
             source_errors.append(str(exc))
+            consecutive_errors += 1
+            if consecutive_errors >= int(max_consecutive_errors):
+                _UNAVAILABLE_CACHE_KEYS.add(cache_key)
+                print(
+                    "  [BVB public] Sursa nu răspunde; oprim backfillul "
+                    f"după {consecutive_errors} erori consecutive."
+                )
+                break
             continue
+        consecutive_errors = 0
+        downloaded_days += 1
         cache = cache[cache["Date"].astype(str) != date_text]
         if not daily.empty:
             cache = pd.concat([cache, daily], ignore_index=True)
         existing_dates.add(date_text)
         symbol_history = _symbol_frame(cache, bvb_symbol)
+        if downloaded_days % 10 == 0:
+            if not cache.empty:
+                _save_cache(cache_path, cache)
+            print(
+                f"  [BVB public] Backfill: {downloaded_days} zile "
+                f"descărcate, {len(symbol_history)}/{min_observations} "
+                f"ședințe pentru {bvb_symbol}."
+            )
         if (
             len(symbol_history) >= int(min_observations)
             and trading_date not in refresh_dates
