@@ -55,6 +55,8 @@ jobs:
           }
           trap cleanup EXIT
           python -c 'import hashlib,hmac,json,os,pathlib; password=os.environ["PORTFOLIO_PASSWORD"]; token=hmac.new(password.encode(),b"market-scanner-portfolio-chat-v1",hashlib.sha256).hexdigest(); payload={"message":"Răspunde numai cu textul: Chat AI funcțional.","context":{"smoke_test":True},"history":[],"accessToken":token}; pathlib.Path(os.environ["RUNNER_TEMP"],"portfolio-chat-smoke.json").write_text(json.dumps(payload),encoding="utf-8")'
+          # Allow the newly deployed version to reach workers.dev before testing it.
+          sleep 5
           preflight_status="$(curl -sS -o /dev/null -w '%{http_code}' -X OPTIONS "$CHAT_URL" -H 'Origin: https://ddanyro.github.io' -H 'Access-Control-Request-Method: POST')"
           test "$preflight_status" = "204"
           chat_status="$(curl -sS -o "$RUNNER_TEMP/portfolio-chat-response.json" -w '%{http_code}' -X POST "$CHAT_URL" -A 'Mozilla/5.0' -H 'Origin: https://ddanyro.github.io' -H 'Content-Type: application/json' --data-binary "@$RUNNER_TEMP/portfolio-chat-smoke.json")"

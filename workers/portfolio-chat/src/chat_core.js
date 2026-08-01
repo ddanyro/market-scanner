@@ -120,7 +120,11 @@ export function buildCloudflareAIRequest(validated) {
 }
 
 export function extractCloudflareAIAnswer(payload, fallbackReason) {
-  const text = String(payload && (payload.response || payload.result?.response) || "").trim();
+  const chatCompletionText = payload?.choices?.[0]?.message?.content
+    || payload?.result?.choices?.[0]?.message?.content;
+  const text = String(payload && (
+    payload.response || payload.result?.response || chatCompletionText
+  ) || "").trim();
   if (!text) throw new Error("Cloudflare Workers AI nu a returnat text utilizabil.");
   return {
     text,
