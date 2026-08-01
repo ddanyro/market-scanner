@@ -44,11 +44,21 @@ TWS_ORDER_COLUMNS = [
     'Symbol', 'OrderType', 'Action', 'Total_Qty', 'Aux_Price',
     'Limit_Price', 'Stop_Price', 'Trail_Pct', 'Calculated_Stop',
 ]
+TWS_POSITION_COLUMNS = [
+    'Symbol', 'Shares', 'Buy_Price', 'Current_Price', 'Currency',
+]
 
 
 def _write_active_orders_snapshot(orders_data, output_file='tws_orders.csv'):
     """Persistă snapshotul complet, inclusiv cazul valid cu zero ordine."""
     pd.DataFrame(orders_data or [], columns=TWS_ORDER_COLUMNS).to_csv(
+        output_file, index=False
+    )
+
+
+def _write_positions_snapshot(positions_data, output_file='tws_positions.csv'):
+    """Persistă snapshotul complet, inclusiv cazul valid cu zero poziții."""
+    pd.DataFrame(positions_data or [], columns=TWS_POSITION_COLUMNS).to_csv(
         output_file, index=False
     )
 
@@ -612,12 +622,14 @@ def fetch_active_orders(
             })
             print(f"  -> Pos: {sym} x {p.position} (Preț curent TWS: {current_price})")
             
+        _write_positions_snapshot(pos_data)
         if pos_data:
-            pdf = pd.DataFrame(pos_data)
-            pdf.to_csv('tws_positions.csv', index=False)
             print(f"Salvat tws_positions.csv cu {len(pos_data)} poziții.")
         else:
-            print("Nicio poziție deschisă găsită.")
+            print(
+                "Nicio poziție deschisă găsită; cache-ul pozițiilor TWS "
+                "a fost golit."
+            )
 
         # Datele IBKR sunt folosite și pentru instrumente tranzacționate prin
         # alt broker. TVBETETF rămâne executabil exclusiv prin Tradeville.

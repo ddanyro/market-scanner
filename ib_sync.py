@@ -14,6 +14,19 @@ from datetime import datetime
 PORTFOLIO_FILE = 'portfolio.csv'
 CONFIG_FILE = 'ibkr_config.txt'
 
+
+def _can_use_local_tws_snapshot(path='tws_positions.csv', max_age=300):
+    """Snapshoturile TWS locale nu sunt surse valide în GitHub Actions.
+
+    Checkout-ul Git resetează mtime-ul, deci un CSV vechi ar părea proaspăt în
+    cloud și ar putea reintroduce poziții deja închise.
+    """
+    if os.environ.get('GITHUB_ACTIONS') == 'true':
+        return False
+    if not os.path.exists(path):
+        return False
+    return (time.time() - os.path.getmtime(path)) < max_age
+
 def load_config():
     """Citește Token-ul și Query ID-ul din fișierul de configurare."""
     if os.path.exists(CONFIG_FILE):
@@ -46,9 +59,14 @@ def sync_ibkr(allow_flex=True):
         # Verificăm vechimea
         mtime = os.path.getmtime(TWS_FILE_POS)
         age = time.time() - mtime
-        if age < 300: # 5 minute (cache scurt pentru a permite trecerea rapidă la Flex dacă TWS e închis)
+        if _can_use_local_tws_snapshot(TWS_FILE_POS):
             print(f"  -> Găsit fișier TWS recent ({int(age)}s). Folosim ca Sursă PRIMARĂ.")
             use_tws_primary = True
+        elif os.environ.get('GITHUB_ACTIONS') == 'true':
+            print(
+                "  -> GitHub Actions ignoră snapshotul TWS local; "
+                "folosim Flex/cache-ul cloud."
+            )
         else:
             print(f"  -> Fișier TWS vechi ({int(age)}s). Încercăm Flex (Backup).")
     
