@@ -10,6 +10,7 @@ function workerEnv(overrides = {}) {
     OPENAI_API_KEY: "openai-test",
     PORTFOLIO_PASSWORD: "portfolio-test",
     PORTFOLIO_CHAT_RATE_LIMITER: {limit: async () => ({success: true})},
+    AI: {run: async () => ({response: "Fallback test."})},
     ...overrides,
   };
 }
@@ -58,6 +59,38 @@ test("forwards an authenticated request to OpenAI", async (context) => {
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("Access-Control-Allow-Origin"), SITE_ORIGIN);
   assert.equal((await response.json()).text, "Răspuns test.");
+});
+
+test("falls back to Workers AI when OpenAI credit is exhausted", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    error: {code: "credit_balance_exhausted", type: "insufficient_quota"},
+  }), {status: 429, headers: {"Content-Type": "application/json"}});
+  const password = "portfolio-test";
+  let fallbackCalls = 0;
+  const response = await worker.fetch(new Request("https://worker.example", {
+    method: "POST",
+    headers: {Origin: SITE_ORIGIN, "Content-Type": "application/json"},
+    body: JSON.stringify({
+      message: "Ce risc am?", context: {}, history: [],
+      accessToken: await expectedAccessToken(password),
+    }),
+  }), workerEnv({
+    PORTFOLIO_PASSWORD: password,
+    AI: {run: async (model, input) => {
+      fallbackCalls += 1;
+      assert.equal(model, "@cf/openai/gpt-oss-120b");
+      assert.equal(input.messages.at(-1).content, "Ce risc am?");
+      return {response: "Folosește stopul existent."};
+    }},
+  }));
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(fallbackCalls, 1);
+  assert.equal(payload.provider, "cloudflare-workers-ai");
+  assert.equal(payload.degraded, true);
+  assert.match(payload.notice, /fără verificare web live/);
 });
 
 test("returns 429 when the Cloudflare limiter rejects the request", async () => {
