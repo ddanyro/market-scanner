@@ -60,7 +60,7 @@ jobs:
           chat_status="$(curl -sS -o "$RUNNER_TEMP/portfolio-chat-response.json" -w '%{http_code}' -X POST "$CHAT_URL" -A 'Mozilla/5.0' -H 'Origin: https://ddanyro.github.io' -H 'Content-Type: application/json' --data-binary "@$RUNNER_TEMP/portfolio-chat-smoke.json")"
           if [ "$chat_status" != "200" ]; then
             printf 'Portfolio chat smoke test returned HTTP %s: ' "$chat_status"
-            jq -r '.error // "răspuns fără mesaj de eroare"' "$RUNNER_TEMP/portfolio-chat-response.json"
+            jq -r '(.error // "răspuns fără mesaj de eroare") + (if .reason then " [" + .reason + "]" else "" end)' "$RUNNER_TEMP/portfolio-chat-response.json"
             exit 1
           fi
           jq -e '(.text | type == "string" and length > 0) and (.model | type == "string" and length > 0)' "$RUNNER_TEMP/portfolio-chat-response.json" > /dev/null
