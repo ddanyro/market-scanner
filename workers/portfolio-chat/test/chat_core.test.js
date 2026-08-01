@@ -35,7 +35,9 @@ test("builds a bounded Workers AI continuity request without claiming web access
 });
 
 test("extracts and labels a degraded Workers AI answer", () => {
-  const answer = extractCloudflareAIAnswer({response: "Analiză locală."}, "credit_balance_exhausted");
+  const answer = extractCloudflareAIAnswer({
+    choices: [{message: {content: "Analiză locală."}}],
+  }, "credit_balance_exhausted");
   assert.equal(answer.text, "Analiză locală.");
   assert.equal(answer.model, CLOUDFLARE_FALLBACK_MODEL);
   assert.equal(answer.provider, "cloudflare-workers-ai");

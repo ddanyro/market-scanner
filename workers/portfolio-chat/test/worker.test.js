@@ -10,7 +10,7 @@ function workerEnv(overrides = {}) {
     OPENAI_API_KEY: "openai-test",
     PORTFOLIO_PASSWORD: "portfolio-test",
     PORTFOLIO_CHAT_RATE_LIMITER: {limit: async () => ({success: true})},
-    AI: {run: async () => ({response: "Fallback test."})},
+    AI: {run: async () => ({choices: [{message: {content: "Fallback test."}}]})},
     ...overrides,
   };
 }
@@ -82,7 +82,7 @@ test("falls back to Workers AI when OpenAI credit is exhausted", async (context)
       fallbackCalls += 1;
       assert.equal(model, "@cf/openai/gpt-oss-120b");
       assert.equal(input.messages.at(-1).content, "Ce risc am?");
-      return {response: "Folosește stopul existent."};
+      return {choices: [{message: {content: "Folosește stopul existent."}}]};
     }},
   }));
   const payload = await response.json();
