@@ -1,0 +1,54 @@
+name: Deploy Portfolio AI Chat
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "functions/**"
+      - "firebase.json"
+      - ".firebaserc"
+      - ".github/workflows/deploy_portfolio_chat.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: portfolio-ai-chat-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install and test function
+        run: npm ci --prefix functions && npm test --prefix functions
+
+      - name: Prepare Firebase credentials
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/firebase-service-account.json"
+
+      - name: Configure runtime secrets
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PORTFOLIO_PASSWORD: ${{ secrets.PORTFOLIO_PASSWORD }}
+        run: |
+          printf '%s' "$OPENAI_API_KEY" > "$RUNNER_TEMP/openai-api-key.txt"
+          printf '%s' "$PORTFOLIO_PASSWORD" > "$RUNNER_TEMP/portfolio-password.txt"
+          npx firebase-tools functions:secrets:set OPENAI_API_KEY --data-file "$RUNNER_TEMP/openai-api-key.txt" --project alerte-buy
+          npx firebase-tools functions:secrets:set PORTFOLIO_PASSWORD --data-file "$RUNNER_TEMP/portfolio-password.txt" --project alerte-buy
+
+      - name: Deploy Firebase function
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
+        run: npx firebase-tools deploy --only functions:portfolioChat --project alerte-buy --non-interactive
