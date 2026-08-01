@@ -1,5 +1,8 @@
 import {
+  buildCloudflareAIRequest,
   buildOpenAIRequest,
+  CLOUDFLARE_FALLBACK_MODEL,
+  extractCloudflareAIAnswer,
   extractOpenAIAnswer,
   validateChatRequest,
 } from "./chat_core.js";
@@ -16,6 +19,17 @@ function safeOpenAIErrorReason(payload) {
   const code = String(payload?.error?.code || "").trim();
   if (OPENAI_QUOTA_CODES.has(code)) return code;
   return code === "rate_limit_exceeded" ? code : "rate_limit";
+}
+
+async function runCloudflareFallback(env, validated, reason) {
+  if (!env.AI || typeof env.AI.run !== "function") {
+    throw new Error("Bindingul Cloudflare Workers AI nu este configurat.");
+  }
+  const payload = await env.AI.run(
+    CLOUDFLARE_FALLBACK_MODEL,
+    buildCloudflareAIRequest(validated),
+  );
+  return extractCloudflareAIAnswer(payload, reason);
 }
 
 function corsHeaders(origin) {
@@ -75,6 +89,23 @@ export default {
           code: payload?.error?.code,
           type: payload?.error?.type,
         }));
+        if (openAIResponse.status === 429) {
+          try {
+            const fallbackAnswer = await runCloudflareFallback(env, validated, reason);
+            console.log(JSON.stringify({
+              event: "portfolio_chat_cloudflare_fallback_used",
+              reason,
+              model: CLOUDFLARE_FALLBACK_MODEL,
+            }));
+            return jsonResponse(fallbackAnswer, 200, origin);
+          } catch (fallbackError) {
+            console.error(JSON.stringify({
+              event: "portfolio_chat_cloudflare_fallback_failed",
+              reason,
+              message: String(fallbackError && fallbackError.message || fallbackError),
+            }));
+          }
+        }
         return jsonResponse({
           error: openAIResponse.status === 429
             ? (OPENAI_QUOTA_CODES.has(reason)

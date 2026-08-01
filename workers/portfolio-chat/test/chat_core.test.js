@@ -1,8 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  buildCloudflareAIRequest,
   buildOpenAIRequest,
+  CLOUDFLARE_FALLBACK_MODEL,
   expectedAccessToken,
+  extractCloudflareAIAnswer,
   extractOpenAIAnswer,
   validateChatRequest,
 } from "../src/chat_core.js";
@@ -20,6 +23,24 @@ test("validates the derived portfolio token and trims history", async () => {
   }, password);
   assert.equal(result.history.length, 8);
   assert.equal(result.message, "Ce risc am?");
+});
+
+test("builds a bounded Workers AI continuity request without claiming web access", () => {
+  const request = buildCloudflareAIRequest({
+    message: "Ce cumpăr?", contextJson: "{}", history: [{role: "user", content: "Salut"}],
+  });
+  assert.equal(request.max_tokens, 1800);
+  assert.equal(request.messages.at(-1).content, "Ce cumpăr?");
+  assert.match(request.messages[0].content, /Nu ai căutare web live/);
+});
+
+test("extracts and labels a degraded Workers AI answer", () => {
+  const answer = extractCloudflareAIAnswer({response: "Analiză locală."}, "credit_balance_exhausted");
+  assert.equal(answer.text, "Analiză locală.");
+  assert.equal(answer.model, CLOUDFLARE_FALLBACK_MODEL);
+  assert.equal(answer.provider, "cloudflare-workers-ai");
+  assert.equal(answer.degraded, true);
+  assert.match(answer.notice, /fără verificare web live/);
 });
 
 test("rejects an invalid portfolio token", async () => {
