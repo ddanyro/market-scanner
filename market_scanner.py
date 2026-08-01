@@ -1518,6 +1518,29 @@ def _correct_tradeville_manual_snapshot(account_data):
     return corrected
 
 
+def _decrypt_broker_totals_history(
+    encrypted_payload, account_password='', legacy_password=''
+):
+    """Citește istoricul cu cheia stabilă a brokerilor, apoi cu cheia veche."""
+    if not encrypted_payload:
+        return []
+    passwords = []
+    for candidate in (account_password, legacy_password):
+        candidate = str(candidate or '').strip()
+        if candidate and candidate not in passwords:
+            passwords.append(candidate)
+    for candidate in passwords:
+        try:
+            history = json.loads(
+                market_security.decrypt_from_js(encrypted_payload, candidate)
+            )
+        except (ValueError, TypeError, KeyError):
+            continue
+        if isinstance(history, list):
+            return history
+    return []
+
+
 def _promote_validated_external_candidates(result, candidates, filepath='watchlist.csv'):
     """Adaugă în watchlist numai ideile externe validate explicit de AI."""
     valid_symbols = {
@@ -6548,16 +6571,12 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     encrypted_broker_history = (
         (full_state or {}).get('broker_totals_history_enc')
     )
-    if encrypted_broker_history and password:
-        try:
-            broker_totals_history = json.loads(
-                market_security.decrypt_from_js(
-                    encrypted_broker_history,
-                    password,
-                )
-            )
-        except (ValueError, TypeError, KeyError):
-            broker_totals_history = []
+    if encrypted_broker_history:
+        broker_totals_history = _decrypt_broker_totals_history(
+            encrypted_broker_history,
+            account_password=account_password,
+            legacy_password=password,
+        )
     previous_broker_totals_history = list(broker_totals_history)
     broker_totals_history = analysis.update_broker_totals_history(
         broker_totals_history,
@@ -6566,14 +6585,15 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     if broker_totals_history and tws_account_data:
         tws_account_data = dict(tws_account_data)
         tws_account_data['combined_history'] = broker_totals_history
-        if full_state is not None and password:
+        history_password = account_password or password
+        if full_state is not None and history_password:
             full_state['broker_totals_history_enc'] = json.loads(
                 market_security.encrypt_for_js(
                     json.dumps(
                         broker_totals_history,
                         ensure_ascii=False,
                     ),
-                    password,
+                    history_password,
                 )
             )
             if broker_totals_history != previous_broker_totals_history:
