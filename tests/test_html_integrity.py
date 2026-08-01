@@ -421,6 +421,22 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertNotIn('localStorage', auth_content)
         self.assertNotIn('sessionStorage', auth_content)
 
+    def test_portfolio_auth_recovers_from_a_stale_cached_page(self):
+        root = os.path.join(os.path.dirname(__file__), '..')
+        with open(
+            os.path.join(root, 'market_scanner.py'),
+            'r',
+            encoding='utf-8',
+        ) as handle:
+            content = handle.read()
+
+        self.assertIn('reloadIfPortfolioPageIsStale', content)
+        self.assertIn("cache: 'no-store'", content)
+        self.assertIn("freshUrl.searchParams.set('_portfolio_refresh'", content)
+        self.assertIn('const PORTFOLIO_BLOB_VERSION =', content)
+        self.assertIn("encrypted_blob.encode('utf-8')", content)
+        self.assertIn('no-cache, no-store, must-revalidate', content)
+
     def test_empty_order_tables_do_not_trigger_datatables_column_warning(self):
         """Rândurile cu colspan pentru liste goale nu trebuie trimise către DataTables."""
         file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
