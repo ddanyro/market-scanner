@@ -93,6 +93,67 @@ test("falls back to Workers AI when OpenAI credit is exhausted", async (context)
   assert.match(payload.notice, /fără verificare web live/);
 });
 
+test("falls back to Workers AI for a non-429 OpenAI error", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    error: {code: "model_not_found", type: "invalid_request_error"},
+  }), {status: 400, headers: {"Content-Type": "application/json"}});
+  const password = "portfolio-test";
+  const response = await worker.fetch(new Request("https://worker.example", {
+    method: "POST",
+    headers: {Origin: SITE_ORIGIN, "Content-Type": "application/json"},
+    body: JSON.stringify({
+      message: "Ce oportunități sunt?", context: {}, history: [],
+      accessToken: await expectedAccessToken(password),
+    }),
+  }), workerEnv({PORTFOLIO_PASSWORD: password}));
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(payload.provider, "cloudflare-workers-ai");
+  assert.equal(payload.reason, "model_not_found");
+});
+
+test("falls back when OpenAI returns a successful but unusable payload", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    model: "gpt-5.6-sol", output: [],
+  }), {status: 200, headers: {"Content-Type": "application/json"}});
+  const password = "portfolio-test";
+  const response = await worker.fetch(new Request("https://worker.example", {
+    method: "POST",
+    headers: {Origin: SITE_ORIGIN, "Content-Type": "application/json"},
+    body: JSON.stringify({
+      message: "Analizează riscul.", context: {}, history: [],
+      accessToken: await expectedAccessToken(password),
+    }),
+  }), workerEnv({PORTFOLIO_PASSWORD: password}));
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(payload.provider, "cloudflare-workers-ai");
+  assert.equal(payload.reason, "openai_invalid_response");
+});
+
+test("falls back when the OpenAI request has a transport failure", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => { throw new Error("connection reset"); };
+  const password = "portfolio-test";
+  const response = await worker.fetch(new Request("https://worker.example", {
+    method: "POST",
+    headers: {Origin: SITE_ORIGIN, "Content-Type": "application/json"},
+    body: JSON.stringify({
+      message: "Analizează piața.", context: {}, history: [],
+      accessToken: await expectedAccessToken(password),
+    }),
+  }), workerEnv({PORTFOLIO_PASSWORD: password}));
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(payload.provider, "cloudflare-workers-ai");
+  assert.equal(payload.reason, "openai_transport_error");
+});
+
 test("returns 429 when the Cloudflare limiter rejects the request", async () => {
   const password = "portfolio-test";
   const response = await worker.fetch(new Request("https://worker.example", {
@@ -109,4 +170,27 @@ test("returns 429 when the Cloudflare limiter rejects the request", async () => 
     PORTFOLIO_CHAT_RATE_LIMITER: {limit: async () => ({success: false})},
   }));
   assert.equal(response.status, 429);
+});
+
+test("keeps the personal chat available if the rate limiter binding fails", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    model: "gpt-5.6-sol",
+    output: [{type: "message", content: [{type: "output_text", text: "Disponibil.", annotations: []}]}],
+  }), {status: 200, headers: {"Content-Type": "application/json"}});
+  const password = "portfolio-test";
+  const response = await worker.fetch(new Request("https://worker.example", {
+    method: "POST",
+    headers: {Origin: SITE_ORIGIN, "Content-Type": "application/json"},
+    body: JSON.stringify({
+      message: "Test", context: {}, history: [],
+      accessToken: await expectedAccessToken(password),
+    }),
+  }), workerEnv({
+    PORTFOLIO_PASSWORD: password,
+    PORTFOLIO_CHAT_RATE_LIMITER: {limit: async () => { throw new Error("binding unavailable"); }},
+  }));
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).text, "Disponibil.");
 });

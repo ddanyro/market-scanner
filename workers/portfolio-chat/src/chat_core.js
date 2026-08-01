@@ -126,13 +126,21 @@ export function extractCloudflareAIAnswer(payload, fallbackReason) {
     payload.response || payload.result?.response || chatCompletionText
   ) || "").trim();
   if (!text) throw new Error("Cloudflare Workers AI nu a returnat text utilizabil.");
+  const quotaFallback = [
+    "credit_balance_exhausted",
+    "organization_spend_limit_exceeded",
+    "project_spend_limit_exceeded",
+    "organization_usage_limit_exceeded",
+  ].includes(String(fallbackReason || ""));
   return {
     text,
     citations: [],
     model: CLOUDFLARE_FALLBACK_MODEL,
     provider: "cloudflare-workers-ai",
     degraded: true,
-    notice: "Răspuns de continuitate: cheia OpenAI nu are credit disponibil, deci analiza folosește Cloudflare Workers AI și datele dashboardului, fără verificare web live.",
+    notice: quotaFallback
+      ? "Răspuns de continuitate: cheia OpenAI nu are credit disponibil, deci analiza folosește Cloudflare Workers AI și datele dashboardului, fără verificare web live."
+      : "Răspuns de continuitate: OpenAI nu a putut finaliza cererea, deci analiza folosește Cloudflare Workers AI și datele dashboardului, fără verificare web live.",
     reason: fallbackReason,
   };
 }

@@ -6038,9 +6038,12 @@ def generate_html_dashboard(
                     });
                 } catch (error) {
                     if (pending) pending.remove();
+                    const detail = error.message || 'eroare necunoscută';
                     addPortfolioChatMessage(
                         'assistant',
-                        'Chatul AI este temporar indisponibil: ' + (error.message || 'eroare necunoscută'),
+                        detail.toLowerCase().startsWith('chatul ai este temporar indisponibil')
+                            ? detail
+                            : 'Chatul AI este temporar indisponibil: ' + detail,
                         [], true
                     );
                 } finally {
