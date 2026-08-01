@@ -108,3 +108,35 @@ jobs:
         if [ -f bvb_daily_cache.csv ]; then git add bvb_daily_cache.csv; fi
         git commit -m "Auto-update Dashboard [skip ci]" || echo "No changes to commit"
         git push origin HEAD:main || (git fetch origin main && git rebase -X theirs origin/main && git push origin HEAD:main)
+
+    - name: Configure GitHub Pages
+      if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
+      uses: actions/configure-pages@v5
+
+    - name: Build GitHub Pages artifact
+      if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
+      uses: actions/jekyll-build-pages@v1
+      with:
+        source: ./
+        destination: ./_site
+
+    - name: Upload GitHub Pages artifact
+      if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
+      uses: actions/upload-pages-artifact@v4
+      with:
+        path: ./_site
+
+  deploy-pages:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
