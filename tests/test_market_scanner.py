@@ -47,6 +47,39 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertEqual(
             result['Symbol'].tolist(), ['TVBETETF.RO', 'NVDA']
         )
+
+    def test_portfolio_chat_token_does_not_expose_password(self):
+        token = market_scanner._portfolio_chat_access_token('pin-secret')
+        self.assertEqual(len(token), 64)
+        self.assertNotIn('pin-secret', token)
+        self.assertEqual(
+            token,
+            market_scanner._portfolio_chat_access_token('pin-secret'),
+        )
+
+    def test_portfolio_chat_context_is_compact_and_has_market_data(self):
+        snapshot = {
+            'as_of': '2026-08-01T09:00:00',
+            'portfolio': {'position_count': 1},
+            'positions': [{'symbol': 'TVBETETF.RO', 'broker': 'Tradeville'}],
+            'account_liquidity': {'accounts': [{'label': 'Tradeville'}]},
+            'us_market_regime': {'market_stage': 'piață mixtă'},
+            'us_sector_rotation': {'sectors': {'Healthcare': {'status': 'lider'}}},
+        }
+        candidates = [{
+            'symbol': 'WST', 'entry_native': 337.46, 'currency': 'USD',
+            'chart_ohlc_native': [{'open': 1, 'close': 2}],
+        }]
+        context = market_scanner_analysis.build_portfolio_chat_context(
+            snapshot,
+            ai_result={'portfolio_overview': 'Concentrare ridicată.'},
+            buy_candidates=candidates,
+            dashboard_state={'eco_phase': 'Expansion'},
+        )
+        self.assertEqual(context['positions'][0]['broker'], 'Tradeville')
+        self.assertEqual(context['buy_candidates'][0]['currency'], 'USD')
+        self.assertNotIn('chart_ohlc_native', context['buy_candidates'][0])
+        self.assertEqual(context['economic_cycle']['current'], 'Expansion')
         
     def test_event_impact_fomc(self):
         """Test FOMC event impact description."""

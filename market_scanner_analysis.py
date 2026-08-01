@@ -1259,6 +1259,96 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
     return snapshot
 
 
+def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
+                                 buy_candidates=None, dashboard_state=None):
+    """Construiește contextul compact și verificabil pentru chatul portofoliului.
+
+    Seriile OHLC și câmpurile interne voluminoase sunt excluse intenționat. Chatul
+    primește aceleași poziții, lichiditate, context de piață și recomandări care
+    sunt deja folosite în dashboard, plus sursele recente disponibile.
+    """
+    snapshot = snapshot if isinstance(snapshot, dict) else {}
+    ai_result = ai_result if isinstance(ai_result, dict) else {}
+    evidence = evidence if isinstance(evidence, dict) else {}
+    dashboard_state = (
+        dashboard_state if isinstance(dashboard_state, dict) else {}
+    )
+
+    candidate_fields = (
+        'symbol', 'company_name', 'market', 'sector', 'industry', 'decision',
+        'consensus', 'analysts', 'trend', 'strategy', 'currency',
+        'execution_currency', 'price_native', 'entry_native', 'stop_native',
+        'target_native', 'rr_ratio', 'rsi', 'relative_strength',
+        'earnings_risk', 'entry_reason', 'eligible_brokers', 'candidate_source',
+        'strict_eligible', 'data_as_of', 'market_data_source', 'data_age_hours',
+        'liquidity_status', 'liquidity_reason', 'median_turnover_20d_ron',
+        'relative_volume_20d', 'liquidity_position_cap_eur',
+    )
+    compact_candidates = []
+    for raw in list(buy_candidates or [])[:30]:
+        if not isinstance(raw, dict):
+            continue
+        compact_candidates.append({
+            key: raw.get(key) for key in candidate_fields
+            if raw.get(key) not in (None, '', [], {})
+        })
+
+    evidence_items = []
+    for raw in list(evidence.get('items') or [])[:40]:
+        if not isinstance(raw, dict):
+            continue
+        evidence_items.append({
+            key: raw.get(key) for key in (
+                'id', 'symbol', 'type', 'title', 'published_at', 'source',
+                'url', 'summary', 'snippet', 'official',
+            ) if raw.get(key) not in (None, '')
+        })
+
+    market_overviews = dashboard_state.get('market_overviews') or {}
+    return {
+        'schema': 'market-scanner.portfolio-chat.v1',
+        'as_of': snapshot.get('as_of'),
+        'portfolio': snapshot.get('portfolio') or {},
+        'positions': snapshot.get('positions') or [],
+        'broker_liquidity': snapshot.get('account_liquidity') or {},
+        'tvbetetf_lookthrough': snapshot.get('tvbetetf_lookthrough') or {},
+        'market_context': snapshot.get('market_context') or {},
+        'us_market_regime': snapshot.get('us_market_regime') or {},
+        'us_sector_rotation': snapshot.get('us_sector_rotation') or {},
+        'market_overviews': {
+            key: market_overviews.get(key)
+            for key in ('SUA', 'România', 'BVB') if key in market_overviews
+        },
+        'economic_cycle': {
+            'current': dashboard_state.get('eco_phase'),
+            'next': dashboard_state.get('eco_next_phase'),
+        },
+        'rates': dashboard_state.get('rates') or {},
+        'current_ai_analysis': {
+            key: ai_result.get(key) for key in (
+                'portfolio_overview', 'market_read', 'priorities',
+                'position_actions', 'buy_recommendations',
+            ) if ai_result.get(key) not in (None, '', [], {})
+        },
+        'buy_candidates': compact_candidates,
+        'evidence': {
+            'fetched_at': evidence.get('fetched_at'),
+            'status': evidence.get('status'),
+            'items': evidence_items,
+        },
+        'universe_stats': {
+            'romania_bvb': dashboard_state.get('bvb_universe_stats') or {},
+            'international': dashboard_state.get('us_universe_stats') or {},
+        },
+        'data_rules': [
+            'Valorile monetare au moneda indicată explicit; nu presupune EUR.',
+            'TVBETETF este deținut prin Tradeville; celelalte poziții indică brokerul în date.',
+            'Datele locale pot fi întârziate; verifică as_of și data_as_of.',
+            'Nu inventa prețuri, stopuri, știri, rapoarte sau evenimente lipsă.',
+        ],
+    }
+
+
 def _portfolio_snapshot_fingerprint(snapshot):
     account_liquidity = snapshot.get('account_liquidity', {})
     stable = {

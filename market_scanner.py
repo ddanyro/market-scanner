@@ -29,6 +29,8 @@ from base64 import b64encode
 import json
 import copy
 import unicodedata
+import hashlib
+import hmac
 from io import StringIO
 from market_scanner_analysis import (
     generate_market_analysis,
@@ -86,6 +88,17 @@ EXTERNAL_RESEARCH_TTL_HOURS = 5.0
 SP500_UNIVERSE_FILE = 'sp500_tickers.json'
 TWS_INSTRUMENTS_FILE = 'tws_instruments.json'
 TWS_INSTRUMENT_TTL_HOURS = 96
+
+
+def _portfolio_chat_access_token(password):
+    """Token stabil derivat din PIN; PIN-ul și cheia OpenAI nu ajung în HTML."""
+    if not password:
+        return ''
+    return hmac.new(
+        str(password).encode('utf-8'),
+        b'market-scanner-portfolio-chat-v1',
+        hashlib.sha256,
+    ).hexdigest()
 
 
 def _firebase_web_config(value):
@@ -5547,6 +5560,69 @@ def generate_html_dashboard(
             table.dataTable.no-footer {{
                 border-bottom: 1px solid #444;
             }}
+            .portfolio-chat-launcher {{
+                position: fixed; right: 24px; bottom: 24px; z-index: 1200;
+                width: 62px; height: 62px; border: 0; border-radius: 50%;
+                background: linear-gradient(135deg, #7760f9, #4f46e5);
+                color: white; box-shadow: 0 12px 32px rgba(79,70,229,.34);
+                cursor: pointer; font-size: 27px; transition: transform .2s;
+            }}
+            .portfolio-chat-launcher:hover {{ transform: translateY(-2px); }}
+            .portfolio-chat-panel {{
+                position: fixed; right: 24px; bottom: 98px; z-index: 1199;
+                width: min(430px, calc(100vw - 32px)); height: min(680px, calc(100vh - 130px));
+                display: none; flex-direction: column; overflow: hidden;
+                background: var(--bg-white); border: 1px solid var(--border-light);
+                border-radius: 22px; box-shadow: 0 22px 60px rgba(15,23,42,.25);
+            }}
+            .portfolio-chat-panel.open {{ display: flex; }}
+            .portfolio-chat-header {{
+                padding: 17px 18px; color: white;
+                background: linear-gradient(135deg, #7760f9, #4f46e5);
+                display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            }}
+            .portfolio-chat-title {{ font-weight: 800; font-size: 18px; }}
+            .portfolio-chat-subtitle {{ font-size: 11px; opacity: .85; margin-top: 3px; }}
+            .portfolio-chat-close {{
+                border: 0; background: rgba(255,255,255,.18); color: white;
+                width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 21px;
+            }}
+            .portfolio-chat-messages {{
+                flex: 1; overflow-y: auto; padding: 16px; background: var(--bg-light);
+                display: flex; flex-direction: column; gap: 12px;
+            }}
+            .portfolio-chat-message {{
+                max-width: 88%; padding: 11px 13px; border-radius: 16px;
+                line-height: 1.5; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere;
+            }}
+            .portfolio-chat-message.user {{ align-self: flex-end; background: #7760f9; color: white; border-bottom-right-radius: 5px; }}
+            .portfolio-chat-message.assistant {{ align-self: flex-start; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-bottom-left-radius: 5px; }}
+            .portfolio-chat-message.error {{ border-color: #fecaca; color: #b91c1c; }}
+            .portfolio-chat-message a {{ color: #4f46e5; font-weight: 700; }}
+            .portfolio-chat-suggestions {{ padding: 10px 14px 0; display: flex; gap: 7px; overflow-x: auto; }}
+            .portfolio-chat-suggestion {{
+                flex: 0 0 auto; border: 1px solid #c7d2fe; color: #4f46e5;
+                background: #eef2ff; border-radius: 999px; padding: 7px 10px; cursor: pointer; font-size: 12px;
+            }}
+            .portfolio-chat-form {{ padding: 12px 14px 14px; display: flex; gap: 8px; background: var(--bg-white); }}
+            .portfolio-chat-input {{
+                flex: 1; min-width: 0; resize: none; border: 1px solid var(--border-light);
+                border-radius: 13px; padding: 11px 12px; color: var(--text-primary);
+                background: var(--bg-white); font: inherit; max-height: 110px;
+            }}
+            .portfolio-chat-send {{
+                align-self: flex-end; border: 0; border-radius: 12px; padding: 11px 14px;
+                background: #7760f9; color: white; font-weight: 750; cursor: pointer;
+            }}
+            .portfolio-chat-send:disabled {{ opacity: .55; cursor: wait; }}
+            @media (max-width: 640px) {{
+                .portfolio-chat-launcher {{ right: 16px; bottom: 16px; width: 56px; height: 56px; }}
+                .portfolio-chat-panel {{
+                    right: 8px; bottom: 80px; width: calc(100vw - 16px);
+                    height: min(76vh, 680px); border-radius: 18px;
+                }}
+                .portfolio-chat-message {{ max-width: 94%; font-size: 13px; }}
+            }}
             /* Hide sorting icons if they clash or let them be */
         </style>
     """
@@ -5563,6 +5639,8 @@ def generate_html_dashboard(
             // const ENCRYPTED_DATA = { ... }; 
             let portfolioDetailData = {};
             let buyRecommendationDetailData = {};
+            let portfolioChatConfig = null;
+            let portfolioChatHistory = [];
 
 
             async function unlockPortfolioWithCredential(input, options) {
@@ -5728,6 +5806,7 @@ def generate_html_dashboard(
                 initCharts(data.sparklines);
                 portfolioDetailData = data.chart_details || {};
                 buyRecommendationDetailData = data.buy_chart_details || {};
+                portfolioChatConfig = data.portfolio_chat || null;
                 
                 // 4. Re-Init DataTables
                 if (typeof $ !== 'undefined' && $.fn.DataTable) {
@@ -5762,6 +5841,128 @@ def generate_html_dashboard(
                     catch(e) { console.error("Selling Orders DataTable Init Error: ", e); }
                 }
             }
+
+            function togglePortfolioChat(forceOpen) {
+                const panel = document.getElementById('portfolio-chat-panel');
+                if (!panel) return;
+                const shouldOpen = typeof forceOpen === 'boolean'
+                    ? forceOpen : !panel.classList.contains('open');
+                panel.classList.toggle('open', shouldOpen);
+                panel.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
+                if (shouldOpen) {
+                    const input = document.getElementById('portfolio-chat-input');
+                    if (input) setTimeout(function() { input.focus(); }, 50);
+                }
+            }
+
+            function addPortfolioChatMessage(role, text, citations, isError) {
+                const messages = document.getElementById('portfolio-chat-messages');
+                if (!messages) return;
+                const bubble = document.createElement('div');
+                bubble.className = 'portfolio-chat-message ' + role + (isError ? ' error' : '');
+                const content = document.createElement('div');
+                const value = String(text || '');
+                const validCitations = Array.isArray(citations)
+                    ? citations.filter(function(item) {
+                        return item && Number.isInteger(item.start_index)
+                            && Number.isInteger(item.end_index)
+                            && item.start_index >= 0
+                            && item.end_index > item.start_index
+                            && item.end_index <= value.length
+                            && String(item.url || '').toLowerCase().startsWith('https://');
+                    }).sort(function(a, b) { return a.start_index - b.start_index; })
+                    : [];
+                let cursor = 0;
+                validCitations.forEach(function(item) {
+                    if (item.start_index < cursor) return;
+                    content.appendChild(document.createTextNode(
+                        value.slice(cursor, item.start_index)
+                    ));
+                    const link = document.createElement('a');
+                    link.href = item.url;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.textContent = value.slice(item.start_index, item.end_index)
+                        || item.title || 'sursă';
+                    link.title = item.title || item.url;
+                    content.appendChild(link);
+                    cursor = item.end_index;
+                });
+                content.appendChild(document.createTextNode(value.slice(cursor)));
+                bubble.appendChild(content);
+                messages.appendChild(bubble);
+                messages.scrollTop = messages.scrollHeight;
+                return bubble;
+            }
+
+            function usePortfolioChatSuggestion(text) {
+                const input = document.getElementById('portfolio-chat-input');
+                if (!input) return;
+                input.value = text;
+                void sendPortfolioChatMessage();
+            }
+
+            async function sendPortfolioChatMessage() {
+                const input = document.getElementById('portfolio-chat-input');
+                const button = document.getElementById('portfolio-chat-send');
+                if (!input || !button) return;
+                const message = input.value.trim();
+                if (!message) return;
+                if (!portfolioChatConfig || !portfolioChatConfig.endpoint) {
+                    addPortfolioChatMessage(
+                        'assistant',
+                        'Serviciul AI nu este configurat pentru această versiune a dashboardului.',
+                        [], true
+                    );
+                    return;
+                }
+                input.value = '';
+                addPortfolioChatMessage('user', message, []);
+                const priorHistory = portfolioChatHistory.slice(-8);
+                portfolioChatHistory.push({ role: 'user', content: message });
+                button.disabled = true;
+                const pending = addPortfolioChatMessage(
+                    'assistant', 'Analizez datele portofoliului și contextul pieței…', []
+                );
+                try {
+                    const response = await fetch(portfolioChatConfig.endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: message,
+                            history: priorHistory,
+                            context: portfolioChatConfig.context || {},
+                            accessToken: portfolioChatConfig.access_token || ''
+                        })
+                    });
+                    const payload = await response.json().catch(function() { return {}; });
+                    if (!response.ok) {
+                        throw new Error(payload.error || 'Serviciul AI nu a răspuns.');
+                    }
+                    if (pending) pending.remove();
+                    addPortfolioChatMessage(
+                        'assistant', payload.text || 'Nu am primit un răspuns utilizabil.',
+                        payload.citations || []
+                    );
+                    portfolioChatHistory.push({
+                        role: 'assistant', content: payload.text || ''
+                    });
+                } catch (error) {
+                    if (pending) pending.remove();
+                    addPortfolioChatMessage(
+                        'assistant',
+                        'Chatul AI este temporar indisponibil: ' + (error.message || 'eroare necunoscută'),
+                        [], true
+                    );
+                } finally {
+                    button.disabled = false;
+                    input.focus();
+                }
+            }
+
+            window.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') togglePortfolioChat(false);
+            });
             
             function initCharts(sparklines) {
                 if (!sparklines) return;
@@ -6987,6 +7188,17 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             "levels": chart_levels
         }
 
+    portfolio_chat_context = analysis.build_portfolio_chat_context(
+        sizing_snapshot,
+        ai_result=portfolio_ai_result,
+        evidence=new_portfolio_evidence or cached_portfolio_evidence,
+        buy_candidates=buy_candidate_payload,
+        dashboard_state=full_state,
+    )
+    portfolio_chat_endpoint = os.environ.get(
+        'PORTFOLIO_CHAT_API_URL',
+        'https://europe-west1-alerte-buy.cloudfunctions.net/portfolioChat',
+    ).strip()
     full_pf_data = {
         "html": portfolio_rows_html,
         "buying_orders_html": buying_rows_html,
@@ -6996,6 +7208,12 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         "sparklines": sparkline_data,
         "chart_details": portfolio_detail_data,
         "buy_chart_details": buy_recommendation_detail_data,
+        "portfolio_chat": {
+            "endpoint": portfolio_chat_endpoint,
+            "access_token": _portfolio_chat_access_token(password),
+            "context": portfolio_chat_context,
+            "model_label": "GPT-5.6 Sol",
+        },
     }
     # Use password variable (should be defined)
     if not password: password = "1234" # Fallback
@@ -7064,6 +7282,26 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             </div> <!-- End table-container -->
 
             <div id="buy-recommendations-container"></div>
+
+            <aside id="portfolio-chat-panel" class="portfolio-chat-panel" aria-hidden="true" aria-label="Asistent AI pentru portofoliu">
+                <div class="portfolio-chat-header">
+                    <div><div class="portfolio-chat-title">Asistent portofoliu</div><div class="portfolio-chat-subtitle">GPT-5.6 Sol · datele dashboardului + surse web</div></div>
+                    <button type="button" class="portfolio-chat-close" onclick="togglePortfolioChat(false)" aria-label="Închide chatul">×</button>
+                </div>
+                <div class="portfolio-chat-suggestions">
+                    <button type="button" class="portfolio-chat-suggestion" onclick="usePortfolioChatSuggestion('Care sunt cele mai importante riscuri din portofoliu acum?')">Riscuri acum</button>
+                    <button type="button" class="portfolio-chat-suggestion" onclick="usePortfolioChatSuggestion('Ce oportunități executabile există acum în SUA și România?')">Oportunități BUY</button>
+                    <button type="button" class="portfolio-chat-suggestion" onclick="usePortfolioChatSuggestion('Cum influențează calendarul următoarele mele decizii?')">Calendar</button>
+                </div>
+                <div id="portfolio-chat-messages" class="portfolio-chat-messages">
+                    <div class="portfolio-chat-message assistant">Bună! Pot explica portofoliul, stopurile, cash-ul, piețele SUA/BVB și ideile de cumpărare. Pentru informații recente pot verifica și surse publice pe internet.</div>
+                </div>
+                <form class="portfolio-chat-form" onsubmit="event.preventDefault(); sendPortfolioChatMessage();">
+                    <textarea id="portfolio-chat-input" class="portfolio-chat-input" rows="1" maxlength="2000" placeholder="Întreabă despre portofoliu sau piețe…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){{event.preventDefault();sendPortfolioChatMessage();}}"></textarea>
+                    <button id="portfolio-chat-send" type="submit" class="portfolio-chat-send">Trimite</button>
+                </form>
+            </aside>
+            <button type="button" class="portfolio-chat-launcher" onclick="togglePortfolioChat()" aria-label="Deschide asistentul AI" title="Asistent AI portofoliu">💬</button>
             
             <!-- Encrypted Data Injection -->
             <script>
