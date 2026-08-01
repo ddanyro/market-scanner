@@ -44,3 +44,16 @@ jobs:
             '{OPENAI_API_KEY:$openai,PORTFOLIO_PASSWORD:$password}' \
             > "$RUNNER_TEMP/portfolio-chat-secrets.json"
           npx wrangler deploy --secrets-file "$RUNNER_TEMP/portfolio-chat-secrets.json"
+
+      - name: Verify the live authenticated AI chat
+        env:
+          PORTFOLIO_PASSWORD: ${{ secrets.PORTFOLIO_PASSWORD }}
+          CHAT_URL: https://market-scanner-portfolio-chat.daniel-dragomir.workers.dev/
+        run: |
+          python -c 'import hashlib,hmac,json,os,pathlib; password=os.environ["PORTFOLIO_PASSWORD"]; token=hmac.new(password.encode(),b"market-scanner-portfolio-chat-v1",hashlib.sha256).hexdigest(); payload={"message":"Răspunde numai cu textul: Chat AI funcțional.","context":{"smoke_test":True},"history":[],"accessToken":token}; pathlib.Path(os.environ["RUNNER_TEMP"],"portfolio-chat-smoke.json").write_text(json.dumps(payload),encoding="utf-8")'
+          preflight_status="$(curl -sS -o /dev/null -w '%{http_code}' -X OPTIONS "$CHAT_URL" -H 'Origin: https://ddanyro.github.io' -H 'Access-Control-Request-Method: POST')"
+          test "$preflight_status" = "204"
+          chat_status="$(curl -sS -o "$RUNNER_TEMP/portfolio-chat-response.json" -w '%{http_code}' -X POST "$CHAT_URL" -A 'Mozilla/5.0' -H 'Origin: https://ddanyro.github.io' -H 'Content-Type: application/json' --data-binary "@$RUNNER_TEMP/portfolio-chat-smoke.json")"
+          test "$chat_status" = "200"
+          jq -e '(.text | type == "string" and length > 0) and (.model | type == "string" and length > 0)' "$RUNNER_TEMP/portfolio-chat-response.json" > /dev/null
+          rm -f "$RUNNER_TEMP/portfolio-chat-smoke.json" "$RUNNER_TEMP/portfolio-chat-response.json" "$RUNNER_TEMP/portfolio-chat-secrets.json"
