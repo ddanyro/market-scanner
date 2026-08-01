@@ -5512,6 +5512,9 @@ def generate_html_dashboard(
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="theme-color" content="#7760F9">
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="Expires" content="0">
         <title>Market Scanner Dashboard</title>
         <link rel="manifest" href="manifest.webmanifest">
         {firebase_web_push_html}
@@ -5642,6 +5645,42 @@ def generate_html_dashboard(
             let portfolioChatConfig = null;
             let portfolioChatHistory = [];
 
+            async function reloadIfPortfolioPageIsStale() {
+                if (typeof PORTFOLIO_BLOB_VERSION === 'undefined') return false;
+                try {
+                    const freshUrl = new URL(window.location.href);
+                    freshUrl.searchParams.set('_portfolio_refresh', Date.now().toString());
+                    const response = await fetch(freshUrl.href, {
+                        cache: 'no-store',
+                        credentials: 'same-origin',
+                        headers: { 'Cache-Control': 'no-cache' }
+                    });
+                    if (!response.ok) return false;
+                    const freshHtml = await response.text();
+                    const versionMatch = freshHtml.match(
+                        /const PORTFOLIO_BLOB_VERSION = "([a-f0-9]+)";/
+                    );
+                    if (
+                        !versionMatch
+                        || versionMatch[1] === PORTFOLIO_BLOB_VERSION
+                    ) {
+                        return false;
+                    }
+                    sessionStorage.setItem(
+                        'marketScannerOpenPortfolioAfterRefresh',
+                        '1'
+                    );
+                    window.location.replace(freshUrl.href);
+                    return true;
+                } catch (refreshError) {
+                    console.warn(
+                        'Versiunea publicată nu a putut fi verificată.',
+                        refreshError
+                    );
+                    return false;
+                }
+            }
+
 
             async function unlockPortfolioWithCredential(input, options) {
                 const settings = Object.assign(
@@ -5699,8 +5738,14 @@ def generate_html_dashboard(
                     return true;
                 } catch (e) {
                     console.error(e);
+                    if (await reloadIfPortfolioPageIsStale()) {
+                        return false;
+                    }
                     if (!settings.silent) {
-                        alert('Parolă Incorectă sau Eroare Decriptare.');
+                        alert(
+                            'PIN incorect sau datele portofoliului nu au putut '
+                            + 'fi decriptate.'
+                        );
                     }
                     return false;
                 }
@@ -7221,6 +7266,9 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     if not password: password = "1234" # Fallback
     
     encrypted_blob = market_security.encrypt_for_js(json.dumps(full_pf_data), password)
+    portfolio_blob_version = hashlib.sha256(
+        encrypted_blob.encode('utf-8')
+    ).hexdigest()[:20]
     
     html_head += f"""
                 </tbody>
@@ -7307,6 +7355,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             
             <!-- Encrypted Data Injection -->
             <script>
+                const PORTFOLIO_BLOB_VERSION = "{portfolio_blob_version}";
                 const ENCRYPTED_DATA = {encrypted_blob};
             </script>
             
