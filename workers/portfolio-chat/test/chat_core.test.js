@@ -1,22 +1,20 @@
-"use strict";
-
-const test = require("node:test");
-const assert = require("node:assert/strict");
-const {
+import test from "node:test";
+import assert from "node:assert/strict";
+import {
   buildOpenAIRequest,
   expectedAccessToken,
   extractOpenAIAnswer,
   validateChatRequest,
-} = require("./chat_core");
+} from "../src/chat_core.js";
 
-test("validates the derived portfolio token and trims history", () => {
+test("validates the derived portfolio token and trims history", async () => {
   const password = "secret";
   const history = Array.from({length: 12}, (_, index) => ({
     role: index % 2 ? "assistant" : "user", content: `m${index}`,
   }));
-  const result = validateChatRequest({
+  const result = await validateChatRequest({
     message: "Ce risc am?",
-    accessToken: expectedAccessToken(password),
+    accessToken: await expectedAccessToken(password),
     context: {portfolio: {position_count: 2}},
     history,
   }, password);
@@ -24,8 +22,8 @@ test("validates the derived portfolio token and trims history", () => {
   assert.equal(result.message, "Ce risc am?");
 });
 
-test("rejects an invalid portfolio token", () => {
-  assert.throws(() => validateChatRequest({
+test("rejects an invalid portfolio token", async () => {
+  await assert.rejects(() => validateChatRequest({
     message: "Test", accessToken: "bad", context: {},
   }, "secret"), /neautorizat/i);
 });

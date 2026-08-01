@@ -19,6 +19,9 @@ __pycache__/
 node_modules/
 firebase-debug.log
 firebase-debug.*.log
+.dev.vars*
+.wrangler/
+.playwright-mcp/
 
 # Editor files
 *.code-workspace
