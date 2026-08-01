@@ -8,6 +8,7 @@ from unittest.mock import Mock
 
 import ib_sync
 import ib_tws_sync
+import pandas as pd
 
 
 def _contract(symbol, currency, exchange, con_id):
@@ -58,6 +59,20 @@ def _bars():
 
 
 class TestTwsInstrumentSync(unittest.TestCase):
+    def test_empty_order_snapshot_clears_stale_tws_order(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'tws_orders.csv')
+            with open(path, 'w', encoding='utf-8') as handle:
+                handle.write(
+                    'Symbol,OrderType,Action,Total_Qty\n'
+                    'UPBD,TRAIL,SELL,100\n'
+                )
+            ib_tws_sync._write_active_orders_snapshot([], path)
+            result = pd.read_csv(path)
+
+        self.assertTrue(result.empty)
+        self.assertEqual(list(result.columns), ib_tws_sync.TWS_ORDER_COLUMNS)
+
     def test_only_romanian_stock_positions_are_selected_for_ro_sync(self):
         positions = [
             types.SimpleNamespace(

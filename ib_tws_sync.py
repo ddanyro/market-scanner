@@ -40,6 +40,18 @@ RESEARCH_INSTRUMENTS = {
     },
 }
 
+TWS_ORDER_COLUMNS = [
+    'Symbol', 'OrderType', 'Action', 'Total_Qty', 'Aux_Price',
+    'Limit_Price', 'Stop_Price', 'Trail_Pct', 'Calculated_Stop',
+]
+
+
+def _write_active_orders_snapshot(orders_data, output_file='tws_orders.csv'):
+    """Persistă snapshotul complet, inclusiv cazul valid cu zero ordine."""
+    pd.DataFrame(orders_data or [], columns=TWS_ORDER_COLUMNS).to_csv(
+        output_file, index=False
+    )
+
 
 def build_research_instruments(bvb_symbols=None):
     """Extinde sincronizarea TWS cu lotul BVB analizat în rularea curentă."""
@@ -559,12 +571,11 @@ def fetch_active_orders(
                 orders_data.append(data)
                 print(f"  -> {sym}: {order.orderType} (Stop: {calc_stop})")
 
+        _write_active_orders_snapshot(orders_data, output_file)
         if orders_data:
-            df = pd.DataFrame(orders_data)
-            df.to_csv(output_file, index=False)
             print(f"Salvat tws_orders.csv cu {len(orders_data)} înregistrări.")
         else:
-            print("Niciun ordin relevant găsit.")
+            print("Niciun ordin relevant găsit; cache-ul ordinelor a fost golit.")
             
         # === Extragere Poziții (Portofoliu Backup) ===
         # Folosim asta dacă Flex Query dă date vechi (T-1)

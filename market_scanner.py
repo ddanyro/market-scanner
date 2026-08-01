@@ -4629,6 +4629,46 @@ def _generate_bvb_risk_status_html(portfolio_df, watchlist_df):
     return ''.join(cards)
 
 
+def _filter_orders_against_current_positions(orders_df, portfolio_df):
+    """Elimină ordinele SELL pentru instrumente care nu mai sunt deținute.
+
+    Dashboardul este long-only. Dacă lista curentă de poziții este disponibilă,
+    un SELL rămas doar în cache nu trebuie prezentat drept ordin activ.
+    Ordinele BUY nu sunt filtrate prin această regulă.
+    """
+    if (
+        orders_df is None
+        or orders_df.empty
+        or 'Action' not in orders_df.columns
+        or portfolio_df is None
+        or portfolio_df.empty
+        or 'Symbol' not in portfolio_df.columns
+    ):
+        return orders_df
+
+    def aliases(value):
+        symbol = str(value or '').strip().upper()
+        if not symbol or symbol == 'NAN':
+            return set()
+        result = {symbol}
+        if '.' in symbol:
+            result.add(symbol.split('.', 1)[0])
+        return result
+
+    held_aliases = set()
+    for symbol in portfolio_df['Symbol']:
+        held_aliases.update(aliases(symbol))
+
+    keep_rows = []
+    for _, row in orders_df.iterrows():
+        action = str(row.get('Action', '')).strip().upper()
+        keep_rows.append(
+            action != 'SELL'
+            or bool(aliases(row.get('Symbol')) & held_aliases)
+        )
+    return orders_df.loc[keep_rows].copy()
+
+
 def generate_html_dashboard(
     portfolio_df,
     watchlist_df,
@@ -6396,6 +6436,9 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     if orders_list:
         try:
             orders_df = pd.concat(orders_list, ignore_index=True)
+            orders_df = _filter_orders_against_current_positions(
+                orders_df, portfolio_df
+            )
             if not orders_df.empty and 'Action' in orders_df.columns:
                 buy_orders = orders_df[orders_df['Action'].str.upper() == 'BUY']
                 sell_orders = orders_df[orders_df['Action'].str.upper() == 'SELL']
