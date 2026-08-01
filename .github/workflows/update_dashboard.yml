@@ -104,7 +104,7 @@ jobs:
       run: |
         git config --global user.name 'GitHub Action'
         git config --global user.email 'action@github.com'
-        git add index.html dashboard_state.json portfolio.csv watchlist.csv sp500_tickers.json tws_account.enc.json tws_account_risk.json push/firebase/firebase-messaging-sw.js
+        git add index.html dashboard_state.json portfolio.csv portfolio.json watchlist.csv sp500_tickers.json tws_account.enc.json tws_account_risk.json push/firebase/firebase-messaging-sw.js
         if [ -f bvb_daily_cache.csv ]; then git add bvb_daily_cache.csv; fi
         git commit -m "Auto-update Dashboard [skip ci]" || echo "No changes to commit"
         git push origin HEAD:main || (git fetch origin main && git rebase -X theirs origin/main && git push origin HEAD:main)
