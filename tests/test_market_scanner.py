@@ -30,6 +30,22 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertIsInstance(desc, str)
         self.assertGreater(len(desc), 0)
         self.assertIn('inflați', desc.lower())
+
+    def test_stale_sell_order_is_removed_when_position_is_closed(self):
+        orders = pd.DataFrame([
+            {'Symbol': 'UPBD', 'Action': 'SELL', 'OrderType': 'TRAIL'},
+            {'Symbol': 'TVBETETF.RO', 'Action': 'SELL', 'OrderType': 'STP'},
+            {'Symbol': 'NVDA', 'Action': 'BUY', 'OrderType': 'LMT'},
+        ])
+        portfolio = pd.DataFrame([{'Symbol': 'TVBETETF.RO'}])
+
+        result = market_scanner._filter_orders_against_current_positions(
+            orders, portfolio
+        )
+
+        self.assertEqual(
+            result['Symbol'].tolist(), ['TVBETETF.RO', 'NVDA']
+        )
         
     def test_event_impact_fomc(self):
         """Test FOMC event impact description."""
