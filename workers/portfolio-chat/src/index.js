@@ -5,6 +5,18 @@ import {
 } from "./chat_core.js";
 
 const ALLOWED_ORIGIN = "https://ddanyro.github.io";
+const OPENAI_QUOTA_CODES = new Set([
+  "credit_balance_exhausted",
+  "organization_spend_limit_exceeded",
+  "project_spend_limit_exceeded",
+  "organization_usage_limit_exceeded",
+]);
+
+function safeOpenAIErrorReason(payload) {
+  const code = String(payload?.error?.code || "").trim();
+  if (OPENAI_QUOTA_CODES.has(code)) return code;
+  return code === "rate_limit_exceeded" ? code : "rate_limit";
+}
 
 function corsHeaders(origin) {
   return origin === ALLOWED_ORIGIN ? {
@@ -56,6 +68,7 @@ export default {
       });
       const payload = await openAIResponse.json().catch(() => ({}));
       if (!openAIResponse.ok) {
+        const reason = safeOpenAIErrorReason(payload);
         console.error(JSON.stringify({
           event: "openai_portfolio_chat_failed",
           status: openAIResponse.status,
@@ -64,8 +77,11 @@ export default {
         }));
         return jsonResponse({
           error: openAIResponse.status === 429
-            ? "Serviciul AI a atins limita temporară. Reîncearcă în scurt timp."
+            ? (OPENAI_QUOTA_CODES.has(reason)
+              ? "Cheia OpenAI nu are credit disponibil sau a atins limita de utilizare. Verifică Billing și Limits în OpenAI Platform."
+              : "Serviciul AI a atins limita temporară. Reîncearcă în scurt timp.")
             : "Serviciul AI nu a putut genera răspunsul.",
+          ...(openAIResponse.status === 429 ? {reason} : {}),
         }, openAIResponse.status === 429 ? 429 : 502, origin);
       }
       return jsonResponse(extractOpenAIAnswer(payload), 200, origin);
