@@ -4,7 +4,7 @@ import os
 import tempfile
 import types
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import ib_sync
 import ib_tws_sync
@@ -72,6 +72,35 @@ class TestTwsInstrumentSync(unittest.TestCase):
 
         self.assertTrue(result.empty)
         self.assertEqual(list(result.columns), ib_tws_sync.TWS_ORDER_COLUMNS)
+
+    def test_empty_position_snapshot_clears_sold_tws_position(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'tws_positions.csv')
+            with open(path, 'w', encoding='utf-8') as handle:
+                handle.write(
+                    'Symbol,Shares,Buy_Price,Current_Price,Currency\n'
+                    'UPBD,100,21.76,20.16,USD\n'
+                )
+            ib_tws_sync._write_positions_snapshot([], path)
+            result = pd.read_csv(path)
+
+        self.assertTrue(result.empty)
+        self.assertEqual(list(result.columns), ib_tws_sync.TWS_POSITION_COLUMNS)
+
+    def test_github_actions_never_treats_checked_out_tws_cache_as_live(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'tws_positions.csv')
+            with open(path, 'w', encoding='utf-8') as handle:
+                handle.write(
+                    'Symbol,Shares,Buy_Price,Current_Price,Currency\n'
+                    'UPBD,100,21.76,20.16,USD\n'
+                )
+            with patch.dict(
+                os.environ, {'GITHUB_ACTIONS': 'true'}, clear=False
+            ):
+                usable = ib_sync._can_use_local_tws_snapshot(path)
+
+        self.assertFalse(usable)
 
     def test_only_romanian_stock_positions_are_selected_for_ro_sync(self):
         positions = [
