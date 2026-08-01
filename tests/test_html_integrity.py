@@ -301,6 +301,8 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('portfolio_market_context = analysis.build_portfolio_market_context(', content)
         self.assertIn('market_context=portfolio_market_context', content)
         self.assertIn("full_state['broker_totals_history_enc']", content)
+        self.assertIn('history_password = account_password or password', content)
+        self.assertIn('_decrypt_broker_totals_history(', content)
         self.assertIn('market_security.encrypt_for_js(', content)
         self.assertNotIn('initBrokerTotalsMiniChart', content)
         self.assertIn("id='brokerTotalsHistoryButton'", analysis_content)

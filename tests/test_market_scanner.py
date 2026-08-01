@@ -4,6 +4,7 @@ Tests actual functions that exist in the codebase.
 """
 import unittest
 import copy
+import json
 import sys
 import os
 import tempfile
@@ -632,6 +633,44 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(len(history), 3)
         self.assertEqual(history[-1]['net_liquidation'], 301)
         self.assertEqual(history[-1]['total_cash'], 140)
+
+    def test_broker_totals_history_uses_stable_account_password(self):
+        expected = [{
+            'timestamp': '2026-07-30T09:00:00+03:00',
+            'net_liquidation': 300,
+            'total_cash': 140,
+            'currency': 'EUR',
+        }]
+        encrypted = market_security.encrypt_for_js(
+            json.dumps(expected), 'account-password'
+        )
+        self.assertEqual(
+            market_scanner._decrypt_broker_totals_history(
+                encrypted,
+                account_password='account-password',
+                legacy_password='different-page-password',
+            ),
+            expected,
+        )
+
+    def test_broker_totals_history_migrates_legacy_page_password(self):
+        expected = [{
+            'timestamp': '2026-07-30T09:00:00+03:00',
+            'net_liquidation': 300,
+            'total_cash': 140,
+            'currency': 'EUR',
+        }]
+        encrypted = market_security.encrypt_for_js(
+            json.dumps(expected), 'legacy-page-password'
+        )
+        self.assertEqual(
+            market_scanner._decrypt_broker_totals_history(
+                encrypted,
+                account_password='account-password',
+                legacy_password='legacy-page-password',
+            ),
+            expected,
+        )
 
     def test_raw_balance_renderer_adds_combined_card_and_history_chart(self):
         snapshot = {
