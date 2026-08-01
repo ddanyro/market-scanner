@@ -1,25 +1,42 @@
-"use strict";
-
-const crypto = require("node:crypto");
-
 const TOKEN_MESSAGE = "market-scanner-portfolio-chat-v1";
 const MAX_MESSAGE_LENGTH = 2000;
 const MAX_CONTEXT_LENGTH = 180000;
 const MAX_HISTORY_ITEMS = 8;
 
-function expectedAccessToken(password) {
-  return crypto.createHmac("sha256", String(password || ""))
-    .update(TOKEN_MESSAGE)
-    .digest("hex");
+export async function expectedAccessToken(password) {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(String(password || "")),
+    {name: "HMAC", hash: "SHA-256"},
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(TOKEN_MESSAGE));
+  return [...new Uint8Array(signature)]
+    .map((value) => value.toString(16).padStart(2, "0"))
+    .join("");
 }
 
-function safeTokenEqual(received, expected) {
-  const left = Buffer.from(String(received || ""), "utf8");
-  const right = Buffer.from(String(expected || ""), "utf8");
-  return left.length === right.length && crypto.timingSafeEqual(left, right);
+export async function safeTokenEqual(received, expected) {
+  const encoder = new TextEncoder();
+  const [left, right] = await Promise.all([
+    crypto.subtle.digest("SHA-256", encoder.encode(String(received || ""))),
+    crypto.subtle.digest("SHA-256", encoder.encode(String(expected || ""))),
+  ]);
+  if (typeof crypto.subtle.timingSafeEqual === "function") {
+    return crypto.subtle.timingSafeEqual(left, right);
+  }
+  const leftBytes = new Uint8Array(left);
+  const rightBytes = new Uint8Array(right);
+  let mismatch = 0;
+  for (let index = 0; index < leftBytes.length; index += 1) {
+    mismatch |= leftBytes[index] ^ rightBytes[index];
+  }
+  return mismatch === 0;
 }
 
-function validateChatRequest(body, password) {
+export async function validateChatRequest(body, password) {
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     throw Object.assign(new Error("Cerere invalidă."), {statusCode: 400});
   }
@@ -27,12 +44,11 @@ function validateChatRequest(body, password) {
   if (!message || message.length > MAX_MESSAGE_LENGTH) {
     throw Object.assign(new Error("Întrebarea trebuie să aibă între 1 și 2.000 de caractere."), {statusCode: 400});
   }
-  const expected = expectedAccessToken(password);
-  if (!password || !safeTokenEqual(body.accessToken, expected)) {
+  const expected = await expectedAccessToken(password);
+  if (!password || !(await safeTokenEqual(body.accessToken, expected))) {
     throw Object.assign(new Error("Acces neautorizat."), {statusCode: 401});
   }
-  const context = body.context && typeof body.context === "object"
-    ? body.context : {};
+  const context = body.context && typeof body.context === "object" ? body.context : {};
   const contextJson = JSON.stringify(context);
   if (contextJson.length > MAX_CONTEXT_LENGTH) {
     throw Object.assign(new Error("Contextul portofoliului este prea mare."), {statusCode: 413});
@@ -46,7 +62,7 @@ function validateChatRequest(body, password) {
   return {message, context, contextJson, history: cleanHistory};
 }
 
-function buildOpenAIRequest(validated) {
+export function buildOpenAIRequest(validated) {
   const instructions = [
     "Ești asistentul AI al unui dashboard personal de swing trading.",
     "Răspunde în română, clar și practic, fără jargon inutil.",
@@ -81,7 +97,7 @@ function buildOpenAIRequest(validated) {
   };
 }
 
-function extractOpenAIAnswer(payload) {
+export function extractOpenAIAnswer(payload) {
   const message = (payload && Array.isArray(payload.output) ? payload.output : [])
     .find((item) => item && item.type === "message" && Array.isArray(item.content));
   const outputText = message && message.content.find((item) => item && item.type === "output_text");
@@ -98,11 +114,3 @@ function extractOpenAIAnswer(payload) {
     .filter((item) => Number.isInteger(item.start_index) && Number.isInteger(item.end_index));
   return {text, citations, model: String(payload.model || "gpt-5.6-sol")};
 }
-
-module.exports = {
-  buildOpenAIRequest,
-  expectedAccessToken,
-  extractOpenAIAnswer,
-  safeTokenEqual,
-  validateChatRequest,
-};

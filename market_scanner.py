@@ -7195,10 +7195,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         buy_candidates=buy_candidate_payload,
         dashboard_state=full_state,
     )
-    portfolio_chat_endpoint = os.environ.get(
-        'PORTFOLIO_CHAT_API_URL',
-        'https://europe-west1-alerte-buy.cloudfunctions.net/portfolioChat',
-    ).strip()
+    portfolio_chat_endpoint = os.environ.get('PORTFOLIO_CHAT_API_URL', '').strip()
     full_pf_data = {
         "html": portfolio_rows_html,
         "buying_orders_html": buying_rows_html,
