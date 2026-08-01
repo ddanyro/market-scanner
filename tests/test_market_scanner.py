@@ -57,6 +57,22 @@ class TestMarketAnalysis(unittest.TestCase):
             market_scanner._portfolio_chat_access_token('pin-secret'),
         )
 
+    def test_portfolio_json_replaces_nonfinite_numbers_with_null(self):
+        payload = {
+            'valid': 12.5,
+            'missing': float('nan'),
+            'nested': [float('inf'), np.float64('-inf')],
+        }
+
+        cleaned = market_scanner._json_without_nonfinite_numbers(payload)
+        encoded = json.dumps(cleaned, allow_nan=False)
+
+        self.assertEqual(cleaned['valid'], 12.5)
+        self.assertIsNone(cleaned['missing'])
+        self.assertEqual(cleaned['nested'], [None, None])
+        self.assertNotIn('NaN', encoded)
+        self.assertNotIn('Infinity', encoded)
+
     def test_portfolio_chat_context_is_compact_and_has_market_data(self):
         snapshot = {
             'as_of': '2026-08-01T09:00:00',

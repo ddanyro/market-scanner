@@ -782,6 +782,21 @@ def _safe_float_text(value):
         return None
 
 
+def _json_without_nonfinite_numbers(value):
+    """Înlocuiește NaN/Infinity cu null înainte de serializarea pentru JS."""
+    if isinstance(value, dict):
+        return {
+            key: _json_without_nonfinite_numbers(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, (list, tuple)):
+        return [_json_without_nonfinite_numbers(item) for item in value]
+    if isinstance(value, (float, np.floating)):
+        number = float(value)
+        return number if math.isfinite(number) else None
+    return value
+
+
 def _parse_bvb_number(value):
     text = str(value).strip().replace(' ', '')
     if ',' in text and '.' in text:
@@ -7265,7 +7280,11 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     # Use password variable (should be defined)
     if not password: password = "1234" # Fallback
     
-    encrypted_blob = market_security.encrypt_for_js(json.dumps(full_pf_data), password)
+    portfolio_json = json.dumps(
+        _json_without_nonfinite_numbers(full_pf_data),
+        allow_nan=False,
+    )
+    encrypted_blob = market_security.encrypt_for_js(portfolio_json, password)
     portfolio_blob_version = hashlib.sha256(
         encrypted_blob.encode('utf-8')
     ).hexdigest()[:20]
