@@ -4680,6 +4680,30 @@ def _generate_bvb_risk_status_html(portfolio_df, watchlist_df):
     return ''.join(cards)
 
 
+def _concat_order_frames(frames):
+    """Concatenează ordinele fără warning-ul pandas pentru cadre goale/all-NA."""
+    valid_frames = [frame for frame in frames if isinstance(frame, pd.DataFrame)]
+    column_order = []
+    for frame in valid_frames:
+        for column in frame.columns:
+            if column not in column_order:
+                column_order.append(column)
+
+    populated_frames = []
+    for frame in valid_frames:
+        if frame.empty:
+            continue
+        populated = frame.dropna(axis=1, how='all')
+        if populated.shape[1] > 0:
+            populated_frames.append(populated)
+
+    if not populated_frames:
+        return pd.DataFrame(columns=column_order)
+
+    combined = pd.concat(populated_frames, ignore_index=True)
+    return combined.reindex(columns=column_order)
+
+
 def _filter_orders_against_current_positions(orders_df, portfolio_df):
     """Elimină ordinele SELL pentru instrumente care nu mai sunt deținute.
 
@@ -6724,7 +6748,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             
     if orders_list:
         try:
-            orders_df = pd.concat(orders_list, ignore_index=True)
+            orders_df = _concat_order_frames(orders_list)
             orders_df = _filter_orders_against_current_positions(
                 orders_df, portfolio_df
             )

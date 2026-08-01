@@ -9,6 +9,7 @@ import sys
 import os
 import tempfile
 import time
+import warnings
 from unittest.mock import Mock, patch, MagicMock
 import pandas as pd
 import numpy as np
@@ -47,6 +48,26 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertEqual(
             result['Symbol'].tolist(), ['TVBETETF.RO', 'NVDA']
         )
+
+    def test_order_frames_ignore_empty_and_all_na_inputs_without_warning(self):
+        empty = pd.DataFrame(columns=['Symbol', 'Action', 'Note'])
+        ibkr = pd.DataFrame([{
+            'Symbol': 'JPM', 'Action': 'SELL', 'Note': None,
+        }])
+        tradeville = pd.DataFrame([{
+            'Symbol': 'TVBETETF.RO', 'Action': 'SELL', 'Note': 'stop',
+        }])
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('error', FutureWarning)
+            result = market_scanner._concat_order_frames(
+                [empty, ibkr, tradeville]
+            )
+
+        self.assertEqual(result['Symbol'].tolist(), ['JPM', 'TVBETETF.RO'])
+        self.assertEqual(result.columns.tolist(), ['Symbol', 'Action', 'Note'])
+        self.assertTrue(pd.isna(result.loc[0, 'Note']))
+        self.assertEqual(result.loc[1, 'Note'], 'stop')
 
     def test_portfolio_chat_token_does_not_expose_password(self):
         token = market_scanner._portfolio_chat_access_token('pin-secret')
