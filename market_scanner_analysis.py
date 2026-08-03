@@ -2547,7 +2547,19 @@ def _render_buy_recommendation_history(history, candidates=None):
     if not history:
         return ''
     marker_labels = _buy_recommendation_marker_labels(history)
-    display_history = list(history)[
+    # Istoricul brut rămâne complet pentru numărătoare, grafice și audit.
+    # În interfață, ordinele la trigger sunt utile doar cât timp sunt active;
+    # după încheiere păstrăm vizibile exclusiv semnalele Cumpărare acum/Buy now.
+    visible_history = [
+        item for item in history
+        if (
+            bool(item.get('is_current'))
+            or str(item.get('verdict') or '').strip() == 'Candidat valid'
+            or str(item.get('action_label') or '').strip().casefold()
+            in {'cumpărare acum', 'buy now'}
+        )
+    ]
+    display_history = visible_history[
         :BUY_RECOMMENDATION_HISTORY_DISPLAY_LIMIT
     ]
     candidates_by_symbol = {
@@ -2657,12 +2669,13 @@ def _render_buy_recommendation_history(history, candidates=None):
         "padding:13px 15px;'>"
         f"<summary style='cursor:pointer;font-weight:700;'>Istoric recomandări executabile ({len(history)})</summary>"
         "<p style='color:var(--text-secondary);font-size:12px;line-height:1.45;'>"
-        "Istoricul păstrează semnalele care au fost cândva „Cumpărare acum” "
-        "sau „Ordin la trigger”. O intrare încheiată nu mai este o recomandare curentă."
+        "Sunt afișate ordinele active și, dintre cele încheiate, numai semnalele "
+        "„Cumpărare acum / Buy now”. Ordinele la trigger încheiate rămân păstrate "
+        "în arhiva internă, dar nu mai ocupă spațiu în listă."
         + (
             f" Se afișează cele mai recente {len(display_history)} din "
-            f"{len(history)} înregistrări."
-            if len(history) > len(display_history) else ""
+            f"{len(visible_history)} înregistrări eligibile pentru afișare."
+            if len(visible_history) > len(display_history) else ""
         )
         + "</p><div style='display:grid;gap:8px;'>"
         + ''.join(rows) + "</div></details>"

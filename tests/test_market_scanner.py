@@ -2110,13 +2110,51 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             history_html,
         )
         self.assertIn(
-            'Se afișează cele mai recente 50 din 120 înregistrări.',
+            'Se afișează cele mai recente 50 din 120 înregistrări eligibile pentru afișare.',
             history_html,
         )
         self.assertEqual(
             history_html.count('📈 Grafic OHLC · marcaj'),
             50,
         )
+
+    def test_closed_trigger_orders_are_hidden_but_buy_now_history_remains(self):
+        history = [
+            {
+                'history_key': 'ACTIVE|Pregătit la trigger|100|95|115',
+                'symbol': 'ACTIVE',
+                'verdict': 'Pregătit la trigger',
+                'action_label': 'Ordin la trigger',
+                'is_current': True,
+                'last_seen_at': '2026-08-03T12:00:00',
+            },
+            {
+                'history_key': 'OLDTRG|Pregătit la trigger|100|95|115',
+                'symbol': 'OLDTRG',
+                'verdict': 'Pregătit la trigger',
+                'action_label': 'Ordin la trigger',
+                'is_current': False,
+                'last_seen_at': '2026-08-02T12:00:00',
+            },
+            {
+                'history_key': 'OLDBUY|Candidat valid|100|95|115',
+                'symbol': 'OLDBUY',
+                'verdict': 'Candidat valid',
+                'action_label': 'Buy now',
+                'is_current': False,
+                'last_seen_at': '2026-08-01T12:00:00',
+            },
+        ]
+        history_html = (
+            market_scanner_analysis._render_buy_recommendation_history(
+                history
+            )
+        )
+        self.assertIn('Istoric recomandări executabile (3)', history_html)
+        self.assertIn('ACTIVE · Ordin la trigger', history_html)
+        self.assertNotIn('OLDTRG · Ordin la trigger', history_html)
+        self.assertIn('OLDBUY · Buy now', history_html)
+        self.assertIn('numai semnalele „Cumpărare acum / Buy now”', history_html)
 
     def test_history_datetime_uses_romanian_format(self):
         self.assertEqual(
