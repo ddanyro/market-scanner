@@ -31,6 +31,7 @@ import copy
 import unicodedata
 import hashlib
 import hmac
+import html
 from io import StringIO
 from market_scanner_analysis import (
     generate_market_analysis,
@@ -4598,6 +4599,85 @@ def _generate_bvb_market_overview_html(
     return (overview_html, signal) if return_signal else overview_html
 
 
+def _market_signal_allows_ai_stock_analysis(signal):
+    """Permite AI pe candidați numai când verdictul pieței este BUY verde."""
+    verdict = str((signal or {}).get('verdict') or '').strip().upper()
+    market_key = str((signal or {}).get('key') or '').strip().lower()
+    if market_key == 'romania_bvb':
+        return verdict == 'CUMPĂRĂ'
+    if market_key == 'international':
+        return verdict.startswith('BUY')
+    return False
+
+
+def _filter_ai_buy_candidates_by_market_signal(
+    candidates, international_signal, bvb_signal,
+):
+    """Separă candidații trimiși la AI fără a modifica scanarea tehnică."""
+    gates = {
+        'international': _market_signal_allows_ai_stock_analysis(
+            international_signal
+        ),
+        'romania_bvb': _market_signal_allows_ai_stock_analysis(bvb_signal),
+    }
+    allowed = []
+    blocked = []
+    for candidate in candidates or []:
+        market = str(candidate.get('market') or '').strip()
+        gate_key = (
+            'romania_bvb'
+            if market == 'România / BVB'
+            else 'international'
+            if market in {'SUA', 'Europa / Nasdaq-100'}
+            else None
+        )
+        if gate_key and gates[gate_key]:
+            allowed.append(candidate)
+        else:
+            blocked.append(candidate)
+    return allowed, blocked, gates
+
+
+def _render_ai_stock_gate_notice(
+    international_signal, bvb_signal, blocked_candidates,
+):
+    """Explică de ce anumite idei tehnice nu au fost trimise la AI."""
+    if not blocked_candidates:
+        return ''
+    blocked_markets = {
+        str(item.get('market') or '').strip()
+        for item in blocked_candidates
+    }
+    messages = []
+    if blocked_markets & {'SUA', 'Europa / Nasdaq-100'}:
+        verdict = str(
+            (international_signal or {}).get('verdict')
+            or 'DATE INSUFICIENTE'
+        )
+        messages.append(
+            f'SUA/LQQ: analiza AI a candidaților este în pauză '
+            f'(semnal piață: {verdict}).'
+        )
+    if 'România / BVB' in blocked_markets:
+        verdict = str(
+            (bvb_signal or {}).get('verdict')
+            or 'DATE INSUFICIENTE'
+        )
+        messages.append(
+            f'BVB/AeRO: analiza AI a candidaților este în pauză '
+            f'(semnal piață: {verdict}).'
+        )
+    return (
+        "<div style='margin:0 0 14px;padding:11px 13px;border-left:4px solid "
+        "#f59e0b;border-radius:8px;background:#fff7ed;color:var(--text-secondary);"
+        "font-size:13px;line-height:1.5;'>"
+        "<b>Filtru AI după semnalul pieței:</b> "
+        + ' '.join(html.escape(message) for message in messages)
+        + " Datele tehnice și istoricul rămân păstrate; analiza AI pornește "
+        "automat când semnalul relevant devine verde.</div>"
+    )
+
+
 def _generate_bvb_risk_status_html(portfolio_df, watchlist_df):
     """Reguli de risc BVB independente de SPX, VIX și breadth-ul SUA."""
     item = None
@@ -5367,6 +5447,47 @@ def generate_html_dashboard(
             swing_data = _cached_swing_data_for_ro(full_state)
             if swing_data is None:
                 swing_data = fresh_swing_data
+
+    # Semnalele sunt calculate înaintea apelului AI, astfel încât doar
+    # candidații din piața aflată efectiv pe BUY/CUMPĂRĂ să fie trimiși
+    # modelului. Aceleași rezultate sunt reutilizate mai jos la randare.
+    swing_html = ''
+    bvb_market_html = ''
+    international_market_signal = {
+        'key': 'international',
+        'label': 'Piața internațională',
+        'verdict': 'DATE INSUFICIENTE',
+    }
+    bvb_market_signal = {
+        'key': 'romania_bvb',
+        'label': 'Piața românească BVB',
+        'verdict': 'DATE INSUFICIENTE',
+    }
+    try:
+        swing_html, international_market_signal = (
+            generate_swing_trading_html(
+                data=swing_data,
+                return_signal=True,
+            )
+        )
+    except Exception as signal_error:
+        print(
+            "  ⚠ Semnalul internațional nu a putut fi calculat pentru "
+            f"filtrul AI: {signal_error}"
+        )
+    try:
+        bvb_market_html, bvb_market_signal = (
+            _generate_bvb_market_overview_html(
+                portfolio_df,
+                watchlist_df,
+                return_signal=True,
+            )
+        )
+    except Exception as signal_error:
+        print(
+            "  ⚠ Semnalul BVB nu a putut fi calculat pentru filtrul AI: "
+            f"{signal_error}"
+        )
     
     # Extract Metrics
     r_spx_price = swing_data.get('SPX_Price', 0)
@@ -7040,6 +7161,36 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     )
     sizing_snapshot['buy_candidates'] = buy_candidate_payload
     buy_candidate_payload = analysis._size_buy_candidates(sizing_snapshot)
+    ai_buy_candidate_payload, blocked_ai_buy_candidates, ai_market_gates = (
+        _filter_ai_buy_candidates_by_market_signal(
+            buy_candidate_payload,
+            international_market_signal,
+            bvb_market_signal,
+        )
+    )
+    if blocked_ai_buy_candidates:
+        blocked_by_market = {}
+        for candidate in blocked_ai_buy_candidates:
+            market = str(candidate.get('market') or 'Piață necunoscută')
+            blocked_by_market[market] = blocked_by_market.get(market, 0) + 1
+        print(
+            "  -> Filtru AI piață: candidați netrimiși modelului: "
+            + ", ".join(
+                f"{market}={count}"
+                for market, count in sorted(blocked_by_market.items())
+            )
+        )
+    full_state['ai_stock_market_gates'] = {
+        'updated_at': datetime.datetime.now().isoformat(timespec='seconds'),
+        'international': {
+            'enabled': ai_market_gates['international'],
+            'verdict': international_market_signal.get('verdict'),
+        },
+        'romania_bvb': {
+            'enabled': ai_market_gates['romania_bvb'],
+            'verdict': bvb_market_signal.get('verdict'),
+        },
+    }
     previous_buy_history = list(
         (full_state or {}).get('buy_recommendation_history', [])
     )
@@ -7057,7 +7208,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         cached_evidence=cached_portfolio_evidence,
         account_data=tws_account_data,
         market_context=portfolio_market_context,
-        buy_candidates=buy_candidate_payload,
+        buy_candidates=ai_buy_candidate_payload,
         etf_holdings=tvbetetf_holdings,
         sector_rotation=us_sector_rotation,
         us_market_regime=us_market_regime,
@@ -7075,7 +7226,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             buy_now_push.send_new_buy_now_notifications(
                 previous_push_state,
                 portfolio_ai_result,
-                buy_candidate_payload,
+                ai_buy_candidate_payload,
                 event_token=push_event_token,
             )
         )
@@ -7120,12 +7271,17 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         )
     buy_recommendations_html = analysis.render_buy_recommendations_html(
         portfolio_ai_result,
-        buy_candidate_payload,
+        ai_buy_candidate_payload,
         new_portfolio_evidence or cached_portfolio_evidence,
         (full_state or {}).get('bvb_universe_stats'),
         (full_state or {}).get('us_universe_stats'),
         buy_recommendation_history,
     )
+    buy_recommendations_html = _render_ai_stock_gate_notice(
+        international_market_signal,
+        bvb_market_signal,
+        blocked_ai_buy_candidates,
+    ) + buy_recommendations_html
     buy_history_chart_candidates = _build_history_chart_candidates(
         buy_candidate_payload,
         buy_recommendation_history,
@@ -7617,19 +7773,21 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     # Generăm cardul de analiză Swing Trading (Trend, F&G, Breadth, Timing)
     print("  -> Generare Analiză Swing Trading (Long-only)...")
     try:
-        swing_html, international_market_signal = (
-            generate_swing_trading_html(
-                data=swing_data,
-                return_signal=True,
+        if not swing_html:
+            swing_html, international_market_signal = (
+                generate_swing_trading_html(
+                    data=swing_data,
+                    return_signal=True,
+                )
             )
-        )
-        bvb_market_html, bvb_market_signal = (
-            _generate_bvb_market_overview_html(
-                portfolio_df,
-                watchlist_df,
-                return_signal=True,
+        if not bvb_market_html:
+            bvb_market_html, bvb_market_signal = (
+                _generate_bvb_market_overview_html(
+                    portfolio_df,
+                    watchlist_df,
+                    return_signal=True,
+                )
             )
-        )
         html_head += """
             <section style="margin-top:32px;">
               <h2 style="margin:0;color:var(--text-primary);">SUA — S&amp;P 500 / Nasdaq</h2>
