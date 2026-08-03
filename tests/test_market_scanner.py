@@ -217,6 +217,60 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertIn('Aliniere foarte puternică', full_score_html)
         self.assertIn('nu validează automat fiecare acțiune BVB sau AeRO', full_score_html)
 
+    def test_ai_stock_analysis_uses_independent_green_market_gates(self):
+        candidates = [
+            {'symbol': 'AAPL', 'market': 'SUA'},
+            {'symbol': 'LQQ.PA', 'market': 'Europa / Nasdaq-100'},
+            {'symbol': 'TLV.RO', 'market': 'România / BVB'},
+        ]
+        allowed, blocked, gates = (
+            market_scanner._filter_ai_buy_candidates_by_market_signal(
+                candidates,
+                {'key': 'international', 'verdict': 'WAIT (INTERNAL ROT)'},
+                {'key': 'romania_bvb', 'verdict': 'CUMPĂRĂ'},
+            )
+        )
+        self.assertEqual([item['symbol'] for item in allowed], ['TLV.RO'])
+        self.assertEqual(
+            [item['symbol'] for item in blocked],
+            ['AAPL', 'LQQ.PA'],
+        )
+        self.assertFalse(gates['international'])
+        self.assertTrue(gates['romania_bvb'])
+
+    def test_ai_stock_analysis_accepts_buy_variants_for_international(self):
+        candidates = [
+            {'symbol': 'NVDA', 'market': 'SUA'},
+            {'symbol': 'LQQ.PA', 'market': 'Europa / Nasdaq-100'},
+        ]
+        allowed, blocked, gates = (
+            market_scanner._filter_ai_buy_candidates_by_market_signal(
+                candidates,
+                {'key': 'international', 'verdict': 'BUY (HIGH CONFIDENCE)'},
+                {'key': 'romania_bvb', 'verdict': 'AȘTEAPTĂ CONFIRMAREA'},
+            )
+        )
+        self.assertEqual(
+            [item['symbol'] for item in allowed],
+            ['NVDA', 'LQQ.PA'],
+        )
+        self.assertEqual(blocked, [])
+        self.assertTrue(gates['international'])
+        self.assertFalse(gates['romania_bvb'])
+
+    def test_ai_stock_gate_notice_preserves_technical_data_message(self):
+        notice = market_scanner._render_ai_stock_gate_notice(
+            {'key': 'international', 'verdict': 'WAIT'},
+            {'key': 'romania_bvb', 'verdict': 'AȘTEAPTĂ CONFIRMAREA'},
+            [
+                {'market': 'SUA'},
+                {'market': 'România / BVB'},
+            ],
+        )
+        self.assertIn('SUA/LQQ: analiza AI a candidaților este în pauză', notice)
+        self.assertIn('BVB/AeRO: analiza AI a candidaților este în pauză', notice)
+        self.assertIn('Datele tehnice și istoricul rămân păstrate', notice)
+
     def test_bvb_market_risk_is_independent_from_us_rules(self):
         portfolio = pd.DataFrame([{
             'Symbol': 'TVBETETF.RO',
