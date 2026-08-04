@@ -3,22 +3,22 @@
     "Symbol": "AMZN",
     "Company_Name": "Amazon.com, Inc.",
     "Shares": 4,
-    "Current_Price": 235.73,
-    "Price_Native": 271.58,
+    "Current_Price": 246.53,
+    "Price_Native": 284.02,
     "Currency": "USD",
     "Buy_Price": 243.59,
     "Target": 283.86,
-    "Trail_Stop": 0,
-    "Suggested_Stop": 219.66,
+    "Trail_Stop": 215.53,
+    "Suggested_Stop": 229.11,
     "Finviz_ATR": 9.81,
     "Vol_W": 3.31,
     "Vol_M": 2.63,
-    "Trail_Pct": 0.0,
+    "Trail_Pct": 10.53,
     "Investment": 974.35,
     "Entry_Date": "-",
-    "Current_Value": 942.93,
-    "Profit": -31.42,
-    "Profit_Pct": -3.22,
+    "Current_Value": 986.12,
+    "Profit": 11.77,
+    "Profit_Pct": 1.21,
     "Max_Profit": 161.1,
     "Consensus": "Strong Buy",
     "Analysts": 61,
@@ -28,10 +28,9 @@
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 271.6 > SMA200 235.0), RSI 68",
-    "RS_vs_SPX": -2.93,
+    "Sell_Reason": "Trend UP (P 284.0 > SMA200 235.4), RSI 72, Risk 12.6%",
+    "RS_vs_SPX": 1.15,
     "Chart_History": [
-      179.8843,
       183.7643,
       180.1447,
       173.0271,
@@ -120,7 +119,8 @@
       200.3865,
       196.7322,
       204.414,
-      235.7314
+      235.7314,
+      246.5293
     ],
     "Chart_Dates": [
       "2026-03-25",
@@ -215,13 +215,6 @@
       "2026-08-03"
     ],
     "Chart_OHLC": [
-      {
-        "date": "2026-03-24",
-        "open": 180.5006,
-        "high": 181.7158,
-        "low": 179.3635,
-        "close": 179.8843
-      },
       {
         "date": "2026-03-25",
         "open": 183.6341,
@@ -844,10 +837,17 @@
         "high": 237.1636,
         "low": 227.4247,
         "close": 235.7314
+      },
+      {
+        "date": "2026-08-03",
+        "open": 241.5557,
+        "high": 249.2896,
+        "low": 241.304,
+        "close": 246.5293
       }
     ],
-    "Daily_Change": 31.3174,
-    "Date": "2026-08-04 15:03",
+    "Daily_Change": 10.7979,
+    "Date": "2026-08-04 16:13",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -2487,9 +2487,9 @@
       }
     ],
     "Daily_Change": 0.1162,
-    "Date": "2026-08-04 15:03",
+    "Date": "2026-08-04 16:13",
     "Market_Data_Source": "IBKR TWS + BVB public",
-    "Market_Data_Fetched_At": "2026-08-04T12:03:43.853245+00:00",
+    "Market_Data_Fetched_At": "2026-08-04T13:13:57.744241+00:00",
     "Data_Broker": "surse combinate",
     "Execution_Brokers": [
       "Tradeville"
