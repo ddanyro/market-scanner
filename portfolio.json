@@ -3,35 +3,34 @@
     "Symbol": "AMZN",
     "Company_Name": "Amazon.com, Inc.",
     "Shares": 4,
-    "Current_Price": 241.17,
-    "Price_Native": 277.53,
+    "Current_Price": 240.45,
+    "Price_Native": 276.7,
     "Currency": "USD",
     "Buy_Price": 243.87,
     "Target": 284.19,
-    "Trail_Stop": 0,
-    "Suggested_Stop": 225.09,
-    "Finviz_ATR": 9.73,
+    "Trail_Stop": 215.78,
+    "Suggested_Stop": 223.02,
+    "Finviz_ATR": 9.81,
     "Vol_W": 3.31,
     "Vol_M": 2.63,
-    "Trail_Pct": 0.0,
+    "Trail_Pct": 10.53,
     "Investment": 975.47,
     "Entry_Date": "-",
-    "Current_Value": 964.69,
-    "Profit": -10.78,
-    "Profit_Pct": -1.1,
+    "Current_Value": 961.81,
+    "Profit": -13.66,
+    "Profit_Pct": -1.4,
     "Max_Profit": 161.29,
     "Consensus": "Strong Buy",
     "Analysts": 61,
-    "Status": "Neutral",
-    "RSI": 67.88,
-    "RSI_Status": "Neutral",
+    "Status": "Overbought",
+    "RSI": 72.23,
+    "RSI_Status": "Overbought",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 277.5 > SMA200 235.0), RSI 68",
-    "RS_vs_SPX": -4.69,
+    "Sell_Reason": "Trend UP (P 276.7 > SMA200 235.4), RSI 72, Risk 10.3%",
+    "RS_vs_SPX": 1.29,
     "Chart_History": [
-      180.0916,
       183.976,
       180.3522,
       173.2265,
@@ -120,10 +119,10 @@
       200.6173,
       196.9588,
       204.6495,
-      236.003
+      236.003,
+      246.8134
     ],
     "Chart_Dates": [
-      "2026-03-24",
       "2026-03-25",
       "2026-03-26",
       "2026-03-27",
@@ -212,16 +211,10 @@
       "2026-07-28",
       "2026-07-29",
       "2026-07-30",
-      "2026-07-31"
+      "2026-07-31",
+      "2026-08-03"
     ],
     "Chart_OHLC": [
-      {
-        "date": "2026-03-24",
-        "open": 180.7085,
-        "high": 181.9252,
-        "low": 179.5702,
-        "close": 180.0916
-      },
       {
         "date": "2026-03-25",
         "open": 183.8456,
@@ -844,10 +837,17 @@
         "high": 237.4369,
         "low": 227.6867,
         "close": 236.003
+      },
+      {
+        "date": "2026-08-03",
+        "open": 241.834,
+        "high": 249.5768,
+        "low": 241.582,
+        "close": 246.8134
       }
     ],
-    "Daily_Change": 31.3535,
-    "Date": "2026-08-04 14:46",
+    "Daily_Change": 10.8104,
+    "Date": "2026-08-04 15:03",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -2487,9 +2487,9 @@
       }
     ],
     "Daily_Change": 0.1163,
-    "Date": "2026-08-04 14:48",
+    "Date": "2026-08-04 15:05",
     "Market_Data_Source": "IBKR TWS + BVB public",
-    "Market_Data_Fetched_At": "2026-08-04T11:48:17.453016+00:00",
+    "Market_Data_Fetched_At": "2026-08-04T12:05:15.053682+00:00",
     "Data_Broker": "surse combinate",
     "Execution_Brokers": [
       "Tradeville"
