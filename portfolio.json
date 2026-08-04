@@ -3,35 +3,34 @@
     "Symbol": "AMZN",
     "Company_Name": "Amazon.com, Inc.",
     "Shares": 4,
-    "Current_Price": 246.53,
-    "Price_Native": 284.02,
+    "Current_Price": 240.85,
+    "Price_Native": 277.48,
     "Currency": "USD",
     "Buy_Price": 243.59,
     "Target": 283.86,
     "Trail_Stop": 215.53,
-    "Suggested_Stop": 229.11,
-    "Finviz_ATR": 9.81,
+    "Suggested_Stop": 223.54,
+    "Finviz_ATR": 9.82,
     "Vol_W": 3.31,
     "Vol_M": 2.63,
     "Trail_Pct": 10.53,
     "Investment": 974.35,
     "Entry_Date": "-",
-    "Current_Value": 986.12,
-    "Profit": 11.77,
-    "Profit_Pct": 1.21,
+    "Current_Value": 963.42,
+    "Profit": -10.93,
+    "Profit_Pct": -1.12,
     "Max_Profit": 161.1,
     "Consensus": "Strong Buy",
     "Analysts": 61,
-    "Status": "Overbought",
-    "RSI": 72.23,
-    "RSI_Status": "Overbought",
+    "Status": "Neutral",
+    "RSI": 67.09,
+    "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 284.0 > SMA200 235.4), RSI 72, Risk 12.6%",
-    "RS_vs_SPX": 1.15,
+    "Sell_Reason": "Trend UP (P 277.5 > SMA200 235.7), RSI 67, Risk 10.5%",
+    "RS_vs_SPX": -1.83,
     "Chart_History": [
-      183.7643,
       180.1447,
       173.0271,
       174.4246,
@@ -120,10 +119,10 @@
       196.7322,
       204.414,
       235.7314,
-      246.5293
+      246.5293,
+      240.8542
     ],
     "Chart_Dates": [
-      "2026-03-25",
       "2026-03-26",
       "2026-03-27",
       "2026-03-30",
@@ -212,16 +211,10 @@
       "2026-07-29",
       "2026-07-30",
       "2026-07-31",
-      "2026-08-03"
+      "2026-08-03",
+      "2026-08-04"
     ],
     "Chart_OHLC": [
-      {
-        "date": "2026-03-25",
-        "open": 183.6341,
-        "high": 184.9448,
-        "low": 182.1932,
-        "close": 183.7643
-      },
       {
         "date": "2026-03-26",
         "open": 182.8095,
@@ -844,10 +837,17 @@
         "high": 249.2896,
         "low": 241.304,
         "close": 246.5293
+      },
+      {
+        "date": "2026-08-04",
+        "open": 239.6201,
+        "high": 243.9688,
+        "low": 239.4118,
+        "close": 240.8542
       }
     ],
-    "Daily_Change": 10.7979,
-    "Date": "2026-08-04 16:13",
+    "Daily_Change": -5.6751,
+    "Date": "2026-08-04 18:43",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -866,7 +866,7 @@
     "Buy_Price": 5.47,
     "Target": 11.95,
     "Trail_Stop": 11.14,
-    "Suggested_Stop": 11.35,
+    "Suggested_Stop": 11.37,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
@@ -880,12 +880,12 @@
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Overbought",
-    "RSI": 72.42,
+    "RSI": 70.62,
     "RSI_Status": "Overbought",
     "Trend": "Neutral",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Recovery (P 61.5 > SMA50 55.6), RSI 72, Risk 5.0%",
+    "Sell_Reason": "Recovery (P 61.5 > SMA50 55.8), RSI 71, Risk 5.0%",
     "RS_vs_SPX": null,
     "Chart_History": [
       7.3166,
@@ -1064,7 +1064,8 @@
       11.8102,
       11.7111,
       11.7245,
-      11.8407
+      11.8407,
+      11.8083
     ],
     "Chart_Dates": [
       "2025-11-11",
@@ -1243,7 +1244,8 @@
       "2026-07-29",
       "2026-07-30",
       "2026-07-31",
-      "2026-08-03"
+      "2026-08-03",
+      "2026-08-04"
     ],
     "Chart_OHLC": [
       {
@@ -2484,12 +2486,19 @@
         "high": 11.8807,
         "low": 11.7759,
         "close": 11.8407
+      },
+      {
+        "date": "2026-08-04",
+        "open": 11.8407,
+        "high": 11.9188,
+        "low": 11.8083,
+        "close": 11.8083
       }
     ],
-    "Daily_Change": 0.1162,
-    "Date": "2026-08-04 16:13",
+    "Daily_Change": -0.0324,
+    "Date": "2026-08-04 18:43",
     "Market_Data_Source": "IBKR TWS + BVB public",
-    "Market_Data_Fetched_At": "2026-08-04T13:13:57.744241+00:00",
+    "Market_Data_Fetched_At": "2026-08-04T15:43:32.512453+00:00",
     "Data_Broker": "surse combinate",
     "Execution_Brokers": [
       "Tradeville"
