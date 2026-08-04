@@ -6830,7 +6830,16 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             elif rsi_val > 0:
                 rsi_tooltip = "<strong>RSI: Oversold (<30)</strong><br>Supra-vândut. Prețul a scăzut extrem.<br>🔄 <strong>Acțiune:</strong> Posibilă revenire (Bounce) iminentă."
             
-            spark_cell = f'<canvas id="{spark_id}" class="sparkline-container"></canvas>' if spark_id else "-"
+            spark_cell = (
+                f'<canvas id="{spark_id}" class="sparkline-container" '
+                f'role="button" tabindex="0" '
+                f'title="Deschide graficul mare cu recomandările pentru {symbol}" '
+                f'style="cursor:pointer;" '
+                f'onclick="openOrderDetail(\'{symbol}\')" '
+                f'onkeydown="if(event.key===\'Enter\'||event.key===\' \')'
+                f'{{event.preventDefault();openOrderDetail(\'{symbol}\');}}"></canvas>'
+                if spark_id else "-"
+            )
             
             rows_html += f"""
             <tr id="{prefix_id}-row-{symbol}">
@@ -8805,6 +8814,14 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             function openPortfolioDetail(symbol) {
                 const detail = portfolioDetailData[symbol];
                 openMarketDetailWindow(detail, symbol);
+            }
+
+            function openOrderDetail(symbol) {
+                const normalizedSymbol = String(symbol || '').toUpperCase();
+                const detail = buyRecommendationDetailData[normalizedSymbol]
+                    || portfolioDetailData[normalizedSymbol]
+                    || watchlistDetailData[normalizedSymbol];
+                openMarketDetailWindow(detail, normalizedSymbol);
             }
 
             function openWatchlistDetail(symbol) {

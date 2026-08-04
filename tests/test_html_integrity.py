@@ -168,6 +168,21 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("Recomandări de cumpărare marcate punctual", content)
         self.assertIn("_build_history_chart_candidates(", content)
 
+    def test_active_order_mini_charts_prefer_buy_recommendation_details(self):
+        """Mini-graficele ordinelor deschid graficul cu marcajele istorice BUY."""
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        self.assertIn("onclick=\"openOrderDetail(", content)
+        self.assertIn("function openOrderDetail(symbol)", content)
+        self.assertIn(
+            "const detail = buyRecommendationDetailData[normalizedSymbol]",
+            content,
+        )
+        self.assertIn("|| portfolioDetailData[normalizedSymbol]", content)
+        self.assertIn("|| watchlistDetailData[normalizedSymbol]", content)
+
     def test_detail_charts_are_readable_on_mobile(self):
         """Graficul mobil folosește toată lățimea și mută etichetele nivelurilor sub canvas."""
         root = os.path.join(os.path.dirname(__file__), '..')
