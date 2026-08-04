@@ -6829,15 +6829,16 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 rsi_tooltip = "<strong>RSI: Bearish (30-50)</strong><br>Momentum negativ sau neutru-sláb.<br>⛔ <strong>Acțiune:</strong> Prudență. Trendul poate fi descendent."
             elif rsi_val > 0:
                 rsi_tooltip = "<strong>RSI: Oversold (<30)</strong><br>Supra-vândut. Prețul a scăzut extrem.<br>🔄 <strong>Acțiune:</strong> Posibilă revenire (Bounce) iminentă."
-            
+
+            detail_symbol = str(m_symbol or symbol).upper()
             spark_cell = (
                 f'<canvas id="{spark_id}" class="sparkline-container" '
                 f'role="button" tabindex="0" '
-                f'title="Deschide graficul mare cu recomandările pentru {symbol}" '
+                f'title="Deschide graficul mare cu recomandările pentru {detail_symbol}" '
                 f'style="cursor:pointer;" '
-                f'onclick="openOrderDetail(\'{symbol}\')" '
+                f'onclick="openOrderDetail(\'{detail_symbol}\')" '
                 f'onkeydown="if(event.key===\'Enter\'||event.key===\' \')'
-                f'{{event.preventDefault();openOrderDetail(\'{symbol}\');}}"></canvas>'
+                f'{{event.preventDefault();openOrderDetail(\'{detail_symbol}\');}}"></canvas>'
                 if spark_id else "-"
             )
             
