@@ -47,7 +47,9 @@ jobs:
       run: |
         git config --global user.name 'GitHub Action'
         git config --global user.email 'action@github.com'
-        git add index.html dashboard_state.json watchlist.csv push/firebase/firebase-messaging-sw.js
+        git add -u
         if [ -f bvb_daily_cache.csv ]; then git add bvb_daily_cache.csv; fi
-        git commit -m "Auto-update Romanian market [skip ci]" || echo "No changes to commit"
+        # Fără [skip ci]: commitul declanșează fluxul rapid de deploy Pages,
+        # care nu mai rulează scannerul încă o dată.
+        git commit -m "Auto-update Romanian market" || echo "No changes to commit"
         git push origin HEAD:main || (git fetch origin main && git rebase -X theirs origin/main && git push origin HEAD:main)
