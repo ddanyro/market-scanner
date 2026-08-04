@@ -58,6 +58,32 @@ class TestHtmlIntegrity(unittest.TestCase):
             scanner,
         )
         self.assertIn('if not is_bvb_position:', scanner)
+
+    def test_push_uses_fast_pages_deploy_without_rerunning_scanner(self):
+        root = os.path.join(os.path.dirname(__file__), '..')
+        with open(
+            os.path.join(root, '.github', 'workflows', 'update_dashboard.yml'),
+            'r', encoding='utf-8',
+        ) as handle:
+            dashboard_workflow = handle.read()
+        with open(
+            os.path.join(root, '.github', 'workflows', 'update_ro.yml'),
+            'r', encoding='utf-8',
+        ) as handle:
+            ro_workflow = handle.read()
+
+        self.assertIn("'market-dashboard-deploy'", dashboard_workflow)
+        self.assertIn("'market-dashboard-writes'", dashboard_workflow)
+        self.assertIn(
+            "if: ${{ github.event_name != 'push' && ",
+            dashboard_workflow,
+        )
+        self.assertIn('python market_scanner.py --mode $MODE', dashboard_workflow)
+        self.assertIn('git add -u', dashboard_workflow)
+        self.assertIn('git add -u', ro_workflow)
+        self.assertNotIn(
+            'Auto-update Romanian market [skip ci]', ro_workflow,
+        )
     
     def test_volatility_calculator_ids(self):
         """

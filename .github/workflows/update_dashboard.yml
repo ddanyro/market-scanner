@@ -29,8 +29,10 @@ on:
           - ro
 
 concurrency:
-  group: market-dashboard-writes
-  cancel-in-progress: false
+  # Un push publică imediat fișierele deja generate și nu așteaptă după o
+  # scanare programată. Scanările care scriu date rămân serializate cu update_ro.
+  group: ${{ github.event_name == 'push' && 'market-dashboard-deploy' || 'market-dashboard-writes' }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
 
 jobs:
   build:
@@ -43,11 +45,13 @@ jobs:
       uses: actions/checkout@v6
 
     - name: Set up Python
+      if: ${{ github.event_name != 'push' }}
       uses: actions/setup-python@v6
       with:
         python-version: '3.13'
 
     - name: Install dependencies
+      if: ${{ github.event_name != 'push' }}
       run: |
         pip install pandas requests yfinance ib_insync beautifulsoup4 lxml pycryptodome -r requirements.txt
 
@@ -65,7 +69,7 @@ jobs:
           --registration-token "$PUSH_TEST_REGISTRATION_TOKEN"
 
     - name: Retry pending Firebase BUY alerts
-      if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
+      if: ${{ github.event_name != 'push' && (github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '') }}
       env:
         FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
         FIREBASE_REGISTRATION_TOKENS: ${{ secrets.FIREBASE_REGISTRATION_TOKENS }}
@@ -73,7 +77,7 @@ jobs:
       run: python buy_now_push.py --retry-state dashboard_state.json
 
     - name: Run Market Scanner
-      if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
+      if: ${{ github.event_name != 'push' && (github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '') }}
       env:
         TZ: 'Europe/Bucharest'
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -100,10 +104,11 @@ jobs:
         python market_scanner.py --mode $MODE
 
     - name: Commit and Push changes
-      if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
+      if: ${{ github.event_name != 'push' && (github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '') }}
       run: |
         git config --global user.name 'GitHub Action'
         git config --global user.email 'action@github.com'
+        git add -u
         git add index.html dashboard_state.json portfolio.csv portfolio.json watchlist.csv sp500_tickers.json tws_account.enc.json tws_account_risk.json push/firebase/firebase-messaging-sw.js
         if [ -f bvb_daily_cache.csv ]; then git add bvb_daily_cache.csv; fi
         git commit -m "Auto-update Dashboard [skip ci]" || echo "No changes to commit"
