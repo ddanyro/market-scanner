@@ -182,6 +182,8 @@ class TestHtmlIntegrity(unittest.TestCase):
         )
         self.assertIn("|| portfolioDetailData[normalizedSymbol]", content)
         self.assertIn("|| watchlistDetailData[normalizedSymbol]", content)
+        self.assertIn("detail_symbol = str(m_symbol or symbol).upper()", content)
+        self.assertIn("openOrderDetail(\\'{detail_symbol}\\')", content)
 
     def test_detail_charts_are_readable_on_mobile(self):
         """Graficul mobil folosește toată lățimea și mută etichetele nivelurilor sub canvas."""
