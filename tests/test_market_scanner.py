@@ -69,6 +69,61 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertTrue(pd.isna(result.loc[0, 'Note']))
         self.assertEqual(result.loc[1, 'Note'], 'stop')
 
+    def test_remote_run_reuses_encrypted_tws_order_snapshot(self):
+        state = {}
+        password = 'shared-account-cache-password'
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'tws_orders.csv')
+            pd.DataFrame([{
+                'Symbol': 'LQQ', 'OrderType': 'LMT', 'Action': 'BUY',
+                'Total_Qty': 120, 'Limit_Price': 8.95,
+            }]).to_csv(path, index=False)
+            local, changed, source = market_scanner._load_cached_tws_orders(
+                state, password, path,
+            )
+            os.remove(path)
+            remote, remote_changed, remote_source = (
+                market_scanner._load_cached_tws_orders(
+                    state, password, path,
+                )
+            )
+
+        self.assertTrue(changed)
+        self.assertEqual(source, 'tws_local')
+        self.assertEqual(local['Symbol'].tolist(), ['LQQ'])
+        self.assertFalse(remote_changed)
+        self.assertEqual(remote_source, 'tws_encrypted_cache')
+        self.assertEqual(remote['Symbol'].tolist(), ['LQQ'])
+        self.assertNotIn('LQQ', json.dumps(state))
+
+    def test_valid_empty_tws_snapshot_replaces_stale_cached_orders(self):
+        state = {}
+        password = 'shared-account-cache-password'
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'tws_orders.csv')
+            pd.DataFrame([{
+                'Symbol': 'UAL', 'OrderType': 'LMT', 'Action': 'BUY',
+            }]).to_csv(path, index=False)
+            market_scanner._load_cached_tws_orders(state, password, path)
+            pd.DataFrame(columns=market_scanner.TWS_ACTIVE_ORDER_COLUMNS).to_csv(
+                path, index=False,
+            )
+            empty, changed, source = market_scanner._load_cached_tws_orders(
+                state, password, path,
+            )
+            os.remove(path)
+            cached_empty, _, cached_source = (
+                market_scanner._load_cached_tws_orders(
+                    state, password, path,
+                )
+            )
+
+        self.assertTrue(changed)
+        self.assertEqual(source, 'tws_local')
+        self.assertTrue(empty.empty)
+        self.assertEqual(cached_source, 'tws_encrypted_cache')
+        self.assertTrue(cached_empty.empty)
+
     def test_portfolio_chat_token_does_not_expose_password(self):
         token = market_scanner._portfolio_chat_access_token('pin-secret')
         self.assertEqual(len(token), 64)

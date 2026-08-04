@@ -89,6 +89,11 @@ EXTERNAL_RESEARCH_TTL_HOURS = 5.0
 SP500_UNIVERSE_FILE = 'sp500_tickers.json'
 TWS_INSTRUMENTS_FILE = 'tws_instruments.json'
 TWS_INSTRUMENT_TTL_HOURS = 96
+TWS_ACTIVE_ORDERS_CACHE_KEY = 'tws_active_orders_snapshot_enc'
+TWS_ACTIVE_ORDER_COLUMNS = [
+    'Symbol', 'OrderType', 'Action', 'Total_Qty', 'Aux_Price',
+    'Limit_Price', 'Stop_Price', 'Trail_Pct', 'Calculated_Stop',
+]
 
 
 def _portfolio_chat_access_token(password):
@@ -4784,6 +4789,65 @@ def _concat_order_frames(frames):
     return combined.reindex(columns=column_order)
 
 
+def _read_order_snapshot(path):
+    """Citește un snapshot de ordine, inclusiv cazul valid fără rânduri."""
+    try:
+        return pd.read_csv(path)
+    except pd.errors.EmptyDataError:
+        return pd.DataFrame(columns=TWS_ACTIVE_ORDER_COLUMNS)
+
+
+def _normalise_order_snapshot_records(frame):
+    if frame is None or frame.empty:
+        return []
+    columns = list(TWS_ACTIVE_ORDER_COLUMNS)
+    for column in frame.columns:
+        if column not in columns:
+            columns.append(column)
+    normalised = frame.reindex(columns=columns)
+    return _json_without_nonfinite_numbers(normalised.to_dict('records'))
+
+
+def _load_cached_tws_orders(full_state, password, path='tws_orders.csv'):
+    """Încarcă TWS local sau ultimul snapshot criptat pentru rularea remote.
+
+    Existența fișierului local este autoritară, inclusiv atunci când conține
+    zero ordine. Absența lui (cazul GitHub Actions) înseamnă sursă
+    indisponibilă, nu confirmarea că lista ordinelor este goală.
+    """
+    cached_records = None
+    encrypted = (full_state or {}).get(TWS_ACTIVE_ORDERS_CACHE_KEY)
+    if encrypted and password:
+        try:
+            decoded = json.loads(
+                market_security.decrypt_from_js(encrypted, password)
+            )
+            if isinstance(decoded, list):
+                cached_records = decoded
+        except (ValueError, TypeError, KeyError):
+            cached_records = None
+
+    if os.path.exists(path):
+        frame = _read_order_snapshot(path)
+        records = _normalise_order_snapshot_records(frame)
+        changed = records != cached_records
+        if changed and full_state is not None and password:
+            full_state[TWS_ACTIVE_ORDERS_CACHE_KEY] = json.loads(
+                market_security.encrypt_for_js(
+                    json.dumps(records, ensure_ascii=False), password
+                )
+            )
+        return frame, changed, 'tws_local'
+
+    if cached_records is not None:
+        return (
+            pd.DataFrame(cached_records, columns=TWS_ACTIVE_ORDER_COLUMNS),
+            False,
+            'tws_encrypted_cache',
+        )
+    return pd.DataFrame(columns=TWS_ACTIVE_ORDER_COLUMNS), False, 'unavailable'
+
+
 def _filter_orders_against_current_positions(orders_df, portfolio_df):
     """Elimină ordinele SELL pentru instrumente care nu mai sunt deținute.
 
@@ -6868,15 +6932,31 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     
     orders_list = []
     orders_df = pd.DataFrame()
-    if os.path.exists('tws_orders.csv'):
-        try:
-            orders_list.append(pd.read_csv('tws_orders.csv'))
-        except Exception as e:
-            print(f"Error reading tws_orders.csv: {e}")
+    orders_cache_password = (
+        os.environ.get('TWS_ACCOUNT_PASSWORD', '') or password
+    )
+    try:
+        tws_orders_frame, orders_cache_changed, orders_source = (
+            _load_cached_tws_orders(
+                full_state,
+                orders_cache_password,
+            )
+        )
+        orders_list.append(tws_orders_frame)
+        if orders_cache_changed:
+            market_utils.save_state(full_state)
+            print("  -> Snapshotul criptat al ordinelor TWS a fost actualizat.")
+        elif orders_source == 'tws_encrypted_cache':
+            print(
+                "  -> TWS indisponibil în acest mediu; păstrăm ultimul "
+                "snapshot criptat al ordinelor."
+            )
+    except Exception as e:
+        print(f"Error reading encrypted TWS orders snapshot: {e}")
             
     if os.path.exists('tradeville_orders.csv'):
         try:
-            orders_list.append(pd.read_csv('tradeville_orders.csv'))
+            orders_list.append(_read_order_snapshot('tradeville_orders.csv'))
         except Exception as e:
             print(f"Error reading tradeville_orders.csv: {e}")
             
