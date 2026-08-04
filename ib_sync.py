@@ -15,6 +15,39 @@ PORTFOLIO_FILE = 'portfolio.csv'
 CONFIG_FILE = 'ibkr_config.txt'
 
 
+def _remote_position_writes_are_allowed():
+    """Returnează True numai când rescrierea cloud a fost cerută explicit.
+
+    Un raport Flex poate fi întârziat sau poate omite poziții. În GitHub
+    Actions el este util pentru solduri și istoric, dar nu este o confirmare
+    suficientă că o poziție a fost închisă. Pozițiile urmărite rămân astfel
+    autoritatea snapshotului TWS publicat local.
+    """
+    value = os.environ.get('IBKR_ALLOW_REMOTE_POSITION_WRITES', '')
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def _persist_portfolio_positions(frame, path=PORTFOLIO_FILE):
+    """Persistă pozițiile fără ca un snapshot cloud incomplet să șteargă date.
+
+    Returnează ``True`` când fișierul a fost scris și ``False`` când în
+    GitHub Actions a fost păstrat snapshotul local urmărit de Git.
+    """
+    is_github = os.environ.get('GITHUB_ACTIONS') == 'true'
+    if (
+        is_github
+        and os.path.exists(path)
+        and not _remote_position_writes_are_allowed()
+    ):
+        print(
+            "  -> Pozițiile IBKR urmărite sunt păstrate: Flex/cloud "
+            "actualizează soldurile, dar nu poate șterge poziții."
+        )
+        return False
+    frame.to_csv(path, index=False)
+    return True
+
+
 def _can_use_local_tws_snapshot(path='tws_positions.csv', max_age=300):
     """Snapshoturile TWS locale nu sunt surse valide în GitHub Actions.
 
@@ -624,8 +657,11 @@ def sync_ibkr(allow_flex=True):
         if removed > 0:
             print(f"  -> Cleaned up {removed} sold positions (not in TWS anymore)")
 
-    new_df.to_csv(PORTFOLIO_FILE, index=False)
-    print("Portofoliu actualizat cu succes!")
+    positions_written = _persist_portfolio_positions(new_df)
+    if positions_written:
+        print("Portofoliu actualizat cu succes!")
+    else:
+        print("Portofoliul urmărit a rămas neschimbat.")
     return True
 
 
