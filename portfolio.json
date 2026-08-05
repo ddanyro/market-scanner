@@ -847,7 +847,7 @@
       }
     ],
     "Daily_Change": -5.7175,
-    "Date": "2026-08-05 07:56",
+    "Date": "2026-08-05 10:34",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1704,7 +1704,7 @@
       }
     ],
     "Daily_Change": 1.1088,
-    "Date": "2026-08-05 07:56",
+    "Date": "2026-08-05 10:34",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1717,35 +1717,34 @@
     "Symbol": "TVBETETF.RO",
     "Company_Name": "ETF BET Patria-Tradeville",
     "Shares": 2061,
-    "Current_Price": 11.81,
-    "Price_Native": 61.99,
+    "Current_Price": 11.86,
+    "Price_Native": 62.24,
     "Currency": "RON",
     "Buy_Price": 5.47,
-    "Target": 12.37,
+    "Target": 12.38,
     "Trail_Stop": 11.15,
-    "Suggested_Stop": 11.44,
+    "Suggested_Stop": 11.51,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
     "Trail_Pct": 0.0,
     "Investment": 11273.95,
     "Entry_Date": "-",
-    "Current_Value": 24342.46,
-    "Profit": 13068.51,
-    "Profit_Pct": 115.92,
-    "Max_Profit": 14219.64,
+    "Current_Value": 24440.63,
+    "Profit": 13166.68,
+    "Profit_Pct": 116.79,
+    "Max_Profit": 14236.18,
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Overbought",
-    "RSI": 72.26,
+    "RSI": 73.36,
     "RSI_Status": "Overbought",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 62.0 > SMA200 46.9), RSI 72, Risk 5.6%",
+    "Sell_Reason": "Trend UP (P 62.2 > SMA200 47.0), RSI 73, Risk 6.0%",
     "RS_vs_SPX": null,
     "Chart_History": [
-      6.3542,
       6.4028,
       6.4523,
       6.5638,
@@ -1992,10 +1991,10 @@
       11.7138,
       11.7272,
       11.8434,
-      11.811
+      11.811,
+      11.8586
     ],
     "Chart_Dates": [
-      "2025-08-04",
       "2025-08-05",
       "2025-08-06",
       "2025-08-07",
@@ -2242,16 +2241,10 @@
       "2026-07-30",
       "2026-07-31",
       "2026-08-03",
-      "2026-08-04"
+      "2026-08-04",
+      "2026-08-05"
     ],
     "Chart_OHLC": [
-      {
-        "date": "2025-08-04",
-        "open": 6.3332,
-        "high": 6.3904,
-        "low": 6.3323,
-        "close": 6.3542
-      },
       {
         "date": "2025-08-05",
         "open": 6.3828,
@@ -3980,12 +3973,19 @@
         "high": 11.9215,
         "low": 11.811,
         "close": 11.811
+      },
+      {
+        "date": "2026-08-05",
+        "open": 11.811,
+        "high": 11.8624,
+        "low": 11.811,
+        "close": 11.8586
       }
     ],
-    "Daily_Change": -0.0324,
-    "Date": "2026-08-05 07:56",
+    "Daily_Change": 0.0476,
+    "Date": "2026-08-05 10:34",
     "Market_Data_Source": "Yahoo Finance + BVB public",
-    "Market_Data_Fetched_At": "2026-08-05T04:56:54.015965+00:00",
+    "Market_Data_Fetched_At": "2026-08-05T07:34:35.483543+00:00",
     "Data_Broker": "surse combinate",
     "Execution_Brokers": [
       "Tradeville"
