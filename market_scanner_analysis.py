@@ -539,9 +539,9 @@ def _save_ai_calendar_cache(cache):
     except OSError:
         pass
 
-OPENAI_ANALYSIS_MODEL = 'gpt-5.6-sol'
-OPENAI_ANALYSIS_REASONING = {'effort': 'max', 'mode': 'pro'}
-OPENAI_PORTFOLIO_REASONING = {'effort': 'high'}
+OPENAI_ANALYSIS_MODEL = 'gpt-5.6-terra'
+OPENAI_ANALYSIS_REASONING = {'effort': 'low'}
+OPENAI_PORTFOLIO_REASONING = {'effort': 'low'}
 PORTFOLIO_AI_CACHE_VERSION = 16
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 ACTIONABLE_BUY_VERDICTS = {'Candidat valid', 'Pregătit la trigger'}

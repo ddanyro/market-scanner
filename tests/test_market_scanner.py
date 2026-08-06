@@ -3423,10 +3423,10 @@ class TestDynamicEvents(unittest.TestCase):
         self.assertEqual(analyses[event['id']]['verdict'], 'Mixt')
         request = post.call_args
         self.assertEqual(request.args[0], 'https://api.openai.com/v1/responses')
-        self.assertEqual(request.kwargs['json']['model'], 'gpt-5.6-sol')
+        self.assertEqual(request.kwargs['json']['model'], 'gpt-5.6-terra')
         self.assertEqual(
             request.kwargs['json']['reasoning'],
-            {'effort': 'max', 'mode': 'pro'}
+            {'effort': 'low'}
         )
         self.assertNotIn('temperature', request.kwargs['json'])
 
