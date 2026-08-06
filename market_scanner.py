@@ -7547,7 +7547,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             "endpoint": portfolio_chat_endpoint,
             "access_token": _portfolio_chat_access_token(password),
             "context": portfolio_chat_context,
-            "model_label": "GPT-5.6 Sol",
+            "model_label": "GPT-5.6 Terra",
         },
     }
     # Use password variable (should be defined)
@@ -7627,7 +7627,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
 
             <aside id="portfolio-chat-panel" class="portfolio-chat-panel" aria-hidden="true" aria-label="Asistent AI pentru portofoliu">
                 <div class="portfolio-chat-header">
-                    <div><div class="portfolio-chat-title">Asistent portofoliu</div><div class="portfolio-chat-subtitle">GPT-5.6 Sol + fallback Cloudflare · datele dashboardului + surse web când sunt disponibile</div></div>
+                    <div><div class="portfolio-chat-title">Asistent portofoliu</div><div class="portfolio-chat-subtitle">GPT-5.6 Terra + fallback Cloudflare · datele dashboardului + surse web când sunt disponibile</div></div>
                     <button type="button" class="portfolio-chat-close" onclick="togglePortfolioChat(false)" aria-label="Închide chatul">×</button>
                 </div>
                 <div class="portfolio-chat-suggestions">
