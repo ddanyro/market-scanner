@@ -996,7 +996,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
 
         request_json = mock_post.call_args.kwargs['json']
         self.assertEqual(request_json['model'], market_scanner_analysis.OPENAI_ANALYSIS_MODEL)
-        self.assertEqual(request_json['reasoning'], {'effort': 'high'})
+        self.assertEqual(request_json['reasoning'], {'effort': 'low'})
         self.assertEqual(request_json['text']['format']['type'], 'json_schema')
         self.assertTrue(request_json['text']['format']['strict'])
         self.assertIn('TEST · Lipsă stop', html_result)
