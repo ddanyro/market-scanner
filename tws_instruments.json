@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-07-31T19:42:24.298384+00:00",
+  "fetched_at": "2026-08-07T10:23:13.784750+00:00",
   "source": "IBKR TWS API",
   "instruments": {
     "LQQ.PA": {
@@ -12,18 +12,18 @@
       "market": "Europa / Nasdaq-100",
       "instrument_type": "ETF",
       "corporate_fundamentals_applicable": false,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV; ETF-ul nu are earnings sau situa\u021bii financiare de companie",
+      "fundamental_scope": "metadate contract și date OHLCV; ETF-ul nu are earnings sau situații financiare de companie",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "IBKR",
         "Tradeville"
       ],
-      "ibkr_role": "date \u0219i execu\u021bie",
+      "ibkr_role": "date și execuție",
       "ibkr_data_only": false,
       "position_held_in_ibkr": false,
-      "fetched_at": "2026-07-31T19:42:24.298384+00:00",
+      "fetched_at": "2026-08-07T10:23:13.784750+00:00",
       "contract": {
         "con_id": 41975920,
         "symbol": "LQQ",
@@ -41,8 +41,8 @@
         "stock_type": "ETF",
         "valid_exchanges": "SMART,FWB,IBIS,SBF,VSE,CHIXEN,BATEEN,TGATE,BVME.ETF,GETTEX,DXEEN,EUIBSI,AQEUEN,TRWBDE,TRWBIT,TRWBEN",
         "time_zone": "MET",
-        "trading_hours": "20260731:0730-20260731:2300;20260801:CLOSED;20260802:CLOSED;20260803:0730-20260803:2300;20260804:0730-20260804:2300;20260805:0730-20260805:2300",
-        "liquid_hours": "20260731:0900-20260731:1740;20260801:CLOSED;20260802:CLOSED;20260803:0900-20260803:1740;20260804:0900-20260804:1740;20260805:0900-20260805:1740",
+        "trading_hours": "20260806:0730-20260806:2300;20260807:0730-20260807:2300;20260808:CLOSED;20260809:CLOSED;20260810:0730-20260810:2300;20260811:0730-20260811:2300",
+        "liquid_hours": "20260806:0900-20260806:1740;20260807:0900-20260807:1740;20260808:CLOSED;20260809:CLOSED;20260810:0900-20260810:1740;20260811:0900-20260811:1740",
         "isin": "FR0010342592"
       },
       "market_data": {
@@ -50,51 +50,11 @@
         "bid": null,
         "ask": null,
         "last": null,
-        "close": 8.711,
-        "volume": 1160094.0,
-        "as_of": "2026-07-31"
+        "close": 9.616,
+        "volume": 136677.0,
+        "as_of": "2026-08-07"
       },
       "bars": [
-        {
-          "date": "2025-08-01",
-          "open": 6.479,
-          "high": 6.488,
-          "low": 6.145,
-          "close": 6.227,
-          "volume": 3016000.0
-        },
-        {
-          "date": "2025-08-04",
-          "open": 6.256,
-          "high": 6.399,
-          "low": 6.253,
-          "close": 6.381,
-          "volume": 1410600.0
-        },
-        {
-          "date": "2025-08-05",
-          "open": 6.484,
-          "high": 6.499,
-          "low": 6.341,
-          "close": 6.351,
-          "volume": 1262000.0
-        },
-        {
-          "date": "2025-08-06",
-          "open": 6.365,
-          "high": 6.403,
-          "low": 6.303,
-          "close": 6.4,
-          "volume": 1057600.0
-        },
-        {
-          "date": "2025-08-07",
-          "open": 6.457,
-          "high": 6.593,
-          "low": 6.457,
-          "close": 6.506,
-          "volume": 970600.0
-        },
         {
           "date": "2025-08-08",
           "open": 6.51,
@@ -2094,6 +2054,46 @@
           "low": 8.7,
           "close": 8.711,
           "volume": 1160094.0
+        },
+        {
+          "date": "2026-08-03",
+          "open": 8.966,
+          "high": 9.113,
+          "low": 8.793,
+          "close": 9.076,
+          "volume": 945591.0
+        },
+        {
+          "date": "2026-08-04",
+          "open": 9.296,
+          "high": 9.652,
+          "low": 9.248,
+          "close": 9.64,
+          "volume": 928531.0
+        },
+        {
+          "date": "2026-08-05",
+          "open": 9.807,
+          "high": 9.89,
+          "low": 9.641,
+          "close": 9.708,
+          "volume": 745537.0
+        },
+        {
+          "date": "2026-08-06",
+          "open": 9.537,
+          "high": 9.655,
+          "low": 9.36,
+          "close": 9.603,
+          "volume": 519845.0
+        },
+        {
+          "date": "2026-08-07",
+          "open": 9.577,
+          "high": 9.638,
+          "low": 9.571,
+          "close": 9.616,
+          "volume": 136677.0
         }
       ]
     },
@@ -2103,20 +2103,20 @@
         "TVBETETF.RO",
         "TVBETETF"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "ETF",
       "corporate_fundamentals_applicable": false,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV; ETF-ul nu are earnings sau situa\u021bii financiare de companie",
+      "fundamental_scope": "metadate contract și date OHLCV; ETF-ul nu are earnings sau situații financiare de companie",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "position_held_in_ibkr": false,
-      "fetched_at": "2026-07-31T19:42:24.298384+00:00",
+      "fetched_at": "2026-08-07T10:23:13.784750+00:00",
       "contract": {
         "con_id": 813325574,
         "symbol": "TVBETETF",
@@ -2134,8 +2134,8 @@
         "stock_type": "ETF",
         "valid_exchanges": "BVB",
         "time_zone": "MET",
-        "trading_hours": "20260731:0800-20260731:1600;20260801:CLOSED;20260802:CLOSED;20260803:0800-20260803:1600;20260804:0800-20260804:1600;20260805:0800-20260805:1600",
-        "liquid_hours": "20260731:0800-20260731:1600;20260801:CLOSED;20260802:CLOSED;20260803:0800-20260803:1600;20260804:0800-20260804:1600;20260805:0800-20260805:1600",
+        "trading_hours": "20260807:0800-20260807:1600;20260808:CLOSED;20260809:CLOSED;20260810:0800-20260810:1600;20260811:0800-20260811:1600;20260812:0800-20260812:1600",
+        "liquid_hours": "20260807:0800-20260807:1600;20260808:CLOSED;20260809:CLOSED;20260810:0800-20260810:1600;20260811:0800-20260811:1600;20260812:0800-20260812:1600",
         "isin": "ROETF0000019"
       },
       "market_data": {
@@ -2143,9 +2143,9 @@
         "bid": null,
         "ask": null,
         "last": null,
-        "close": 61.55,
-        "volume": 39409.0,
-        "as_of": "2026-07-31"
+        "close": 60.8,
+        "volume": 30039.0,
+        "as_of": "2026-08-07"
       },
       "bars": [
         {
@@ -3514,7 +3514,7 @@
           "high": 62.74,
           "low": 61.7,
           "close": 61.82,
-          "volume": 88374.0
+          "volume": 89827.0
         },
         {
           "date": "2026-07-27",
@@ -3522,7 +3522,7 @@
           "high": 61.95,
           "low": 61.36,
           "close": 61.61,
-          "volume": 80357.0
+          "volume": 86105.0
         },
         {
           "date": "2026-07-28",
@@ -3530,7 +3530,7 @@
           "high": 62.42,
           "low": 61.85,
           "close": 62.26,
-          "volume": 49365.0
+          "volume": 51378.0
         },
         {
           "date": "2026-07-29",
@@ -3538,7 +3538,7 @@
           "high": 62.46,
           "low": 61.98,
           "close": 62.0,
-          "volume": 97807.0
+          "volume": 98644.0
         },
         {
           "date": "2026-07-30",
@@ -3546,7 +3546,7 @@
           "high": 62.11,
           "low": 59.9,
           "close": 61.48,
-          "volume": 136160.0
+          "volume": 137280.0
         },
         {
           "date": "2026-07-31",
@@ -3555,6 +3555,46 @@
           "low": 60.9,
           "close": 61.55,
           "volume": 39409.0
+        },
+        {
+          "date": "2026-08-03",
+          "open": 61.82,
+          "high": 62.37,
+          "low": 61.82,
+          "close": 62.16,
+          "volume": 82283.0
+        },
+        {
+          "date": "2026-08-04",
+          "open": 62.16,
+          "high": 62.57,
+          "low": 61.99,
+          "close": 61.99,
+          "volume": 69561.0
+        },
+        {
+          "date": "2026-08-05",
+          "open": 61.99,
+          "high": 62.31,
+          "low": 61.6,
+          "close": 61.6,
+          "volume": 76025.0
+        },
+        {
+          "date": "2026-08-06",
+          "open": 61.66,
+          "high": 61.79,
+          "low": 60.49,
+          "close": 60.9,
+          "volume": 120191.0
+        },
+        {
+          "date": "2026-08-07",
+          "open": 60.9,
+          "high": 60.99,
+          "low": 60.75,
+          "close": 60.8,
+          "volume": 30039.0
         }
       ]
     },
@@ -3564,17 +3604,17 @@
         "TEL.RO",
         "TEL"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "Equity",
       "corporate_fundamentals_applicable": true,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV",
+      "fundamental_scope": "metadate contract și date OHLCV",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "fetched_at": "2026-07-31T06:40:49.554749+00:00",
       "contract": {
@@ -5016,17 +5056,17 @@
         "TLV.RO",
         "TLV"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "Equity",
       "corporate_fundamentals_applicable": true,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV",
+      "fundamental_scope": "metadate contract și date OHLCV",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "fetched_at": "2026-07-31T06:40:49.554749+00:00",
       "contract": {
@@ -6468,17 +6508,17 @@
         "SNP.RO",
         "SNP"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "Equity",
       "corporate_fundamentals_applicable": true,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV",
+      "fundamental_scope": "metadate contract și date OHLCV",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "fetched_at": "2026-07-31T06:40:49.554749+00:00",
       "contract": {
@@ -7920,17 +7960,17 @@
         "H2O.RO",
         "H2O"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "Equity",
       "corporate_fundamentals_applicable": true,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV",
+      "fundamental_scope": "metadate contract și date OHLCV",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "fetched_at": "2026-07-31T06:40:49.554749+00:00",
       "contract": {
@@ -9372,17 +9412,17 @@
         "BRD.RO",
         "BRD"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "Equity",
       "corporate_fundamentals_applicable": true,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV",
+      "fundamental_scope": "metadate contract și date OHLCV",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "fetched_at": "2026-07-31T06:40:49.554749+00:00",
       "contract": {
@@ -10824,17 +10864,17 @@
         "EAI.RO",
         "EAI"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "Equity",
       "corporate_fundamentals_applicable": true,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV",
+      "fundamental_scope": "metadate contract și date OHLCV",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "fetched_at": "2026-07-31T06:40:49.554749+00:00",
       "contract": {
@@ -11700,17 +11740,17 @@
         "TGN.RO",
         "TGN"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "Equity",
       "corporate_fundamentals_applicable": true,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV",
+      "fundamental_scope": "metadate contract și date OHLCV",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "fetched_at": "2026-07-31T06:40:49.554749+00:00",
       "contract": {
@@ -13152,17 +13192,17 @@
         "RMAH.RO",
         "RMAH"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "Equity",
       "corporate_fundamentals_applicable": true,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV",
+      "fundamental_scope": "metadate contract și date OHLCV",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "fetched_at": "2026-07-31T06:40:49.554749+00:00",
       "contract": {
@@ -14604,17 +14644,17 @@
         "SNO.RO",
         "SNO"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "Equity",
       "corporate_fundamentals_applicable": true,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV",
+      "fundamental_scope": "metadate contract și date OHLCV",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "fetched_at": "2026-07-31T06:40:49.554749+00:00",
       "contract": {
@@ -16056,17 +16096,17 @@
         "GREEN.RO",
         "GREEN"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "Equity",
       "corporate_fundamentals_applicable": true,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV",
+      "fundamental_scope": "metadate contract și date OHLCV",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "fetched_at": "2026-07-31T06:40:49.554749+00:00",
       "contract": {
@@ -17508,17 +17548,17 @@
         "TRP.RO",
         "TRP"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "Equity",
       "corporate_fundamentals_applicable": true,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV",
+      "fundamental_scope": "metadate contract și date OHLCV",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "fetched_at": "2026-07-31T06:40:49.554749+00:00",
       "contract": {
@@ -18960,17 +19000,17 @@
         "IMP.RO",
         "IMP"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "Equity",
       "corporate_fundamentals_applicable": true,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV",
+      "fundamental_scope": "metadate contract și date OHLCV",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "fetched_at": "2026-07-31T06:40:49.554749+00:00",
       "contract": {
@@ -20412,17 +20452,17 @@
         "SMTL.RO",
         "SMTL"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "Equity",
       "corporate_fundamentals_applicable": true,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV",
+      "fundamental_scope": "metadate contract și date OHLCV",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "fetched_at": "2026-07-31T06:40:49.554749+00:00",
       "contract": {
@@ -21864,17 +21904,17 @@
         "PPL.RO",
         "PPL"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "Equity",
       "corporate_fundamentals_applicable": true,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV",
+      "fundamental_scope": "metadate contract și date OHLCV",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "fetched_at": "2026-07-31T06:40:49.554749+00:00",
       "contract": {
@@ -23316,17 +23356,17 @@
         "SOCP.RO",
         "SOCP"
       ],
-      "market": "Rom\u00e2nia / BVB",
+      "market": "România / BVB",
       "instrument_type": "Equity",
       "corporate_fundamentals_applicable": true,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV",
+      "fundamental_scope": "metadate contract și date OHLCV",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "Tradeville"
       ],
-      "ibkr_role": "doar surs\u0103 de date",
+      "ibkr_role": "doar sursă de date",
       "ibkr_data_only": true,
       "fetched_at": "2026-07-31T06:40:49.554749+00:00",
       "contract": {
@@ -24773,14 +24813,14 @@
       "market": "Europa / SP500",
       "instrument_type": "ETF",
       "corporate_fundamentals_applicable": false,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV; ETF-ul nu are earnings sau situa\u021bii financiare de companie",
+      "fundamental_scope": "metadate contract și date OHLCV; ETF-ul nu are earnings sau situații financiare de companie",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "IBKR"
       ],
-      "ibkr_role": "date \u0219i execu\u021bie",
+      "ibkr_role": "date și execuție",
       "ibkr_data_only": false,
       "position_held_in_ibkr": false,
       "contract": {
@@ -24809,14 +24849,14 @@
       "market": "Europa / SP500 Lev",
       "instrument_type": "ETF",
       "corporate_fundamentals_applicable": false,
-      "fundamental_scope": "metadate contract \u0219i date OHLCV; ETF-ul nu are earnings",
+      "fundamental_scope": "metadate contract și date OHLCV; ETF-ul nu are earnings",
       "data_provider": "IBKR TWS API",
       "data_broker": "IBKR",
-      "market_data_mode": "ultima \u00eenchidere istoric\u0103 IBKR",
+      "market_data_mode": "ultima închidere istorică IBKR",
       "execution_brokers": [
         "IBKR"
       ],
-      "ibkr_role": "date \u0219i execu\u021bie",
+      "ibkr_role": "date și execuție",
       "ibkr_data_only": false,
       "position_held_in_ibkr": false,
       "contract": {
