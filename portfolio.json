@@ -840,14 +840,14 @@
       },
       {
         "date": "2026-08-07",
-        "open": 235.9953,
-        "high": 240.6825,
-        "low": 235.8742,
-        "close": 237.3703
+        "open": 236.0499,
+        "high": 240.7381,
+        "low": 235.9287,
+        "close": 237.4252
       }
     ],
-    "Daily_Change": 1.9199,
-    "Date": "2026-08-08 00:14",
+    "Daily_Change": 1.9203,
+    "Date": "2026-08-08 01:03",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -864,7 +864,7 @@
     "Price_Native": 281.88,
     "Currency": "USD",
     "Buy_Price": 252.64,
-    "Target": 285.54,
+    "Target": 287.05,
     "Trail_Stop": 230.92,
     "Suggested_Stop": 227.25,
     "Finviz_ATR": 9.71,
@@ -876,7 +876,7 @@
     "Current_Value": 3413.57,
     "Profit": -123.42,
     "Profit_Pct": -3.49,
-    "Max_Profit": 460.53,
+    "Max_Profit": 481.72,
     "Consensus": "Strong Buy",
     "Analysts": 20,
     "Status": "Neutral",
@@ -884,8 +884,8 @@
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "EXIT",
-    "Sell_Reason": "RS Fail (Falling); ",
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 281.9 > SMA200 238.6), RSI 52, Risk 5.3%",
     "RS_vs_SPX": -0.99,
     "Chart_History": [
       199.2601,
@@ -1703,8 +1703,8 @@
         "close": 243.8262
       }
     ],
-    "Daily_Change": -6.78,
-    "Date": "2026-08-08 00:14",
+    "Daily_Change": -6.7816,
+    "Date": "2026-08-08 01:03",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1741,8 +1741,8 @@
     "RSI_Status": "Overbought",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "REDUCE",
-    "Sell_Reason": "RS Fail (Falling); ",
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 223.0 > SMA200 188.5), RSI 76, Risk 6.2%",
     "RS_vs_SPX": 21.53,
     "Chart_History": [
       166.1663,
@@ -2561,7 +2561,7 @@
       }
     ],
     "Daily_Change": -0.1903,
-    "Date": "2026-08-08 00:14",
+    "Date": "2026-08-08 01:03",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -4237,9 +4237,9 @@
       }
     ],
     "Daily_Change": -0.0095,
-    "Date": "2026-08-08 00:14",
+    "Date": "2026-08-08 01:03",
     "Market_Data_Source": "IBKR TWS + BVB public",
-    "Market_Data_Fetched_At": "2026-08-07T21:14:15.197886+00:00",
+    "Market_Data_Fetched_At": "2026-08-07T22:03:32.444809+00:00",
     "Data_Broker": "surse combinate",
     "Execution_Brokers": [
       "Tradeville"
