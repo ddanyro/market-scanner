@@ -887,12 +887,29 @@
             }
             .portfolio-chat-message {
                 max-width: 88%; padding: 11px 13px; border-radius: 16px;
-                line-height: 1.5; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere;
+                line-height: 1.5; font-size: 14px; overflow-wrap: anywhere;
             }
+            .portfolio-chat-message.user { white-space: pre-wrap; }
             .portfolio-chat-message.user { align-self: flex-end; background: #7760f9; color: white; border-bottom-right-radius: 5px; }
             .portfolio-chat-message.assistant { align-self: flex-start; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-bottom-left-radius: 5px; }
             .portfolio-chat-message.error { border-color: #fecaca; color: #b91c1c; }
             .portfolio-chat-message a { color: #4f46e5; font-weight: 700; }
+            .portfolio-chat-message h1, .portfolio-chat-message h2,
+            .portfolio-chat-message h3, .portfolio-chat-message h4,
+            .portfolio-chat-message h5, .portfolio-chat-message h6 {
+                margin: .75em 0 .35em; line-height: 1.25; font-size: 1.08em;
+            }
+            .portfolio-chat-message h1:first-child, .portfolio-chat-message h2:first-child,
+            .portfolio-chat-message h3:first-child, .portfolio-chat-message h4:first-child { margin-top: 0; }
+            .portfolio-chat-message p { margin: .45em 0; }
+            .portfolio-chat-message p:first-child { margin-top: 0; }
+            .portfolio-chat-message p:last-child { margin-bottom: 0; }
+            .portfolio-chat-message ul, .portfolio-chat-message ol { margin: .4em 0; padding-left: 1.45em; }
+            .portfolio-chat-message li { margin: .22em 0; }
+            .portfolio-chat-message code {
+                padding: .08em .32em; border-radius: 4px; background: #eef2f7;
+                font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em;
+            }
             .portfolio-chat-suggestions { padding: 10px 14px 0; display: flex; gap: 7px; overflow-x: auto; }
             .portfolio-chat-suggestion {
                 flex: 0 0 auto; border: 1px solid #c7d2fe; color: #4f46e5;
@@ -1188,6 +1205,119 @@
                 }
             }
 
+            function appendPortfolioChatInline(parent, value, start, end, citations) {
+                let cursor = start;
+                const citationAt = function(index) {
+                    return citations.find(function(item) { return item.start_index === index; });
+                };
+                while (cursor < end) {
+                    const citation = citationAt(cursor);
+                    if (citation && citation.end_index <= end) {
+                        const link = document.createElement('a');
+                        link.href = citation.url;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.textContent = value.slice(citation.start_index, citation.end_index)
+                            || citation.title || 'sursă';
+                        link.title = citation.title || citation.url;
+                        parent.appendChild(link);
+                        cursor = citation.end_index;
+                        continue;
+                    }
+                    const rest = value.slice(cursor, end);
+                    let match = rest.match(/^\*\*(?=\S)([\s\S]*?\S)\*\*/);
+                    if (match) {
+                        const strong = document.createElement('strong');
+                        appendPortfolioChatInline(strong, value, cursor + 2, cursor + match[0].length - 2, citations);
+                        parent.appendChild(strong);
+                        cursor += match[0].length;
+                        continue;
+                    }
+                    match = rest.match(/^`([^`\n]+)`/);
+                    if (match) {
+                        const code = document.createElement('code');
+                        code.textContent = match[1];
+                        parent.appendChild(code);
+                        cursor += match[0].length;
+                        continue;
+                    }
+                    match = rest.match(/^\[([^\]\n]+)\]\((https:\/\/[^\s)]+)\)/i);
+                    if (match) {
+                        const link = document.createElement('a');
+                        link.href = match[2];
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.textContent = match[1];
+                        parent.appendChild(link);
+                        cursor += match[0].length;
+                        continue;
+                    }
+                    match = rest.match(/^\*(?=\S)([^*\n]*?\S)\*/);
+                    if (match) {
+                        const emphasis = document.createElement('em');
+                        appendPortfolioChatInline(emphasis, value, cursor + 1, cursor + match[0].length - 1, citations);
+                        parent.appendChild(emphasis);
+                        cursor += match[0].length;
+                        continue;
+                    }
+                    parent.appendChild(document.createTextNode(value[cursor]));
+                    cursor += 1;
+                }
+            }
+
+            function renderPortfolioChatMarkdown(container, value, citations) {
+                const lines = [];
+                const linePattern = /.*(?:\n|$)/g;
+                let match;
+                while ((match = linePattern.exec(value)) && match[0]) {
+                    const raw = match[0].replace(/\n$/, '').replace(/\r$/, '');
+                    lines.push({ text: raw, start: match.index });
+                }
+                let index = 0;
+                while (index < lines.length) {
+                    const line = lines[index];
+                    if (!line.text.trim()) { index += 1; continue; }
+                    const heading = line.text.match(/^(#{1,6})\s+(.+)$/);
+                    if (heading) {
+                        const element = document.createElement('h' + heading[1].length);
+                        const contentStart = line.start + heading[1].length + 1;
+                        appendPortfolioChatInline(element, value, contentStart, line.start + line.text.length, citations);
+                        container.appendChild(element);
+                        index += 1;
+                        continue;
+                    }
+                    const listMatch = line.text.match(/^\s*([-+*]|\d+\.)\s+(.+)$/);
+                    if (listMatch) {
+                        const ordered = /\d+\./.test(listMatch[1]);
+                        const list = document.createElement(ordered ? 'ol' : 'ul');
+                        while (index < lines.length) {
+                            const itemLine = lines[index];
+                            const item = itemLine.text.match(/^\s*([-+*]|\d+\.)\s+(.+)$/);
+                            if (!item || /\d+\./.test(item[1]) !== ordered) break;
+                            const listItem = document.createElement('li');
+                            const itemOffset = itemLine.text.indexOf(item[2]);
+                            appendPortfolioChatInline(listItem, value, itemLine.start + itemOffset,
+                                itemLine.start + itemLine.text.length, citations);
+                            list.appendChild(listItem);
+                            index += 1;
+                        }
+                        container.appendChild(list);
+                        continue;
+                    }
+                    const paragraph = document.createElement('p');
+                    while (index < lines.length && lines[index].text.trim()
+                            && !/^(#{1,6})\s+/.test(lines[index].text)
+                            && !/^\s*([-+*]|\d+\.)\s+/.test(lines[index].text)) {
+                        const paragraphLine = lines[index];
+                        if (paragraph.childNodes.length) paragraph.appendChild(document.createElement('br'));
+                        appendPortfolioChatInline(paragraph, value, paragraphLine.start,
+                            paragraphLine.start + paragraphLine.text.length, citations);
+                        index += 1;
+                    }
+                    container.appendChild(paragraph);
+                }
+            }
+
             function addPortfolioChatMessage(role, text, citations, isError) {
                 const messages = document.getElementById('portfolio-chat-messages');
                 if (!messages) return;
@@ -1205,23 +1335,11 @@
                             && String(item.url || '').toLowerCase().startsWith('https://');
                     }).sort(function(a, b) { return a.start_index - b.start_index; })
                     : [];
-                let cursor = 0;
-                validCitations.forEach(function(item) {
-                    if (item.start_index < cursor) return;
-                    content.appendChild(document.createTextNode(
-                        value.slice(cursor, item.start_index)
-                    ));
-                    const link = document.createElement('a');
-                    link.href = item.url;
-                    link.target = '_blank';
-                    link.rel = 'noopener noreferrer';
-                    link.textContent = value.slice(item.start_index, item.end_index)
-                        || item.title || 'sursă';
-                    link.title = item.title || item.url;
-                    content.appendChild(link);
-                    cursor = item.end_index;
-                });
-                content.appendChild(document.createTextNode(value.slice(cursor)));
+                if (role === 'assistant') {
+                    renderPortfolioChatMarkdown(content, value, validCitations);
+                } else {
+                    content.textContent = value;
+                }
                 bubble.appendChild(content);
                 messages.appendChild(bubble);
                 messages.scrollTop = messages.scrollHeight;
@@ -43839,4 +43957,3 @@ drawIndicatorDetail(detail,initialCount);
     </div> <!-- End container -->
     </body>
     </html>
-    
