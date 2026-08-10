@@ -217,6 +217,15 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("detail_symbol = str(m_symbol or symbol).upper()", content)
         self.assertIn("openOrderDetail(\\'{detail_symbol}\\')", content)
 
+    def test_generated_chat_markdown_regexes_keep_newline_escapes(self):
+        """Generatorul nu trebuie să transforme \\n în newline în regexurile JS."""
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        self.assertIn("const linePattern = /.*(?:\\\\n|$)/g;", content)
+        self.assertIn("match[0].replace(/\\\\n$/, '').replace(/\\\\r$/, '')", content)
+
     def test_detail_charts_are_readable_on_mobile(self):
         """Graficul mobil folosește toată lățimea și mută etichetele nivelurilor sub canvas."""
         root = os.path.join(os.path.dirname(__file__), '..')
