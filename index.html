@@ -913,6 +913,19 @@
                 padding: .08em .32em; border-radius: 4px; background: #eef2f7;
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em;
             }
+            .portfolio-chat-table-scroll {
+                max-width: 100%; margin: .55em 0; overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .portfolio-chat-message table {
+                width: max-content; min-width: 100%; border-collapse: collapse;
+                font-size: .92em; white-space: normal;
+            }
+            .portfolio-chat-message th, .portfolio-chat-message td {
+                padding: .45em .55em; border: 1px solid var(--border-light);
+                text-align: left; vertical-align: top;
+            }
+            .portfolio-chat-message th { background: #eef2ff; font-weight: 750; }
             .portfolio-chat-suggestions { padding: 10px 14px 0; display: flex; gap: 7px; overflow-x: auto; flex: 0 0 auto; }
             .portfolio-chat-suggestion {
                 flex: 0 0 auto; border: 1px solid #c7d2fe; color: #4f46e5;
@@ -1270,6 +1283,25 @@
             }
 
             function renderPortfolioChatMarkdown(container, value, citations) {
+                const tableDividerPattern = /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/;
+                const tableCells = function(line) {
+                    let start = /^\s*\|/.test(line.text) ? line.text.indexOf('|') + 1 : 0;
+                    let end = /\|\s*$/.test(line.text) ? line.text.lastIndexOf('|') : line.text.length;
+                    const cells = [];
+                    let cellStart = start;
+                    for (let position = start; position <= end; position += 1) {
+                        if (position !== end && line.text[position] !== '|') continue;
+                        const raw = line.text.slice(cellStart, position);
+                        const leading = raw.length - raw.trimStart().length;
+                        const trailing = raw.length - raw.trimEnd().length;
+                        cells.push({
+                            start: line.start + cellStart + leading,
+                            end: line.start + position - trailing
+                        });
+                        cellStart = position + 1;
+                    }
+                    return cells;
+                };
                 const lines = [];
                 const linePattern = /.*(?:\n|$)/g;
                 let match;
@@ -1281,6 +1313,38 @@
                 while (index < lines.length) {
                     const line = lines[index];
                     if (!line.text.trim()) { index += 1; continue; }
+                    if (line.text.includes('|') && index + 1 < lines.length
+                            && tableDividerPattern.test(lines[index + 1].text)) {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'portfolio-chat-table-scroll';
+                        const table = document.createElement('table');
+                        const head = document.createElement('thead');
+                        const headRow = document.createElement('tr');
+                        tableCells(line).forEach(function(cell) {
+                            const headingCell = document.createElement('th');
+                            appendPortfolioChatInline(headingCell, value, cell.start, cell.end, citations);
+                            headRow.appendChild(headingCell);
+                        });
+                        head.appendChild(headRow);
+                        table.appendChild(head);
+                        index += 2;
+                        const body = document.createElement('tbody');
+                        while (index < lines.length && lines[index].text.trim()
+                                && lines[index].text.includes('|')) {
+                            const bodyRow = document.createElement('tr');
+                            tableCells(lines[index]).forEach(function(cell) {
+                                const dataCell = document.createElement('td');
+                                appendPortfolioChatInline(dataCell, value, cell.start, cell.end, citations);
+                                bodyRow.appendChild(dataCell);
+                            });
+                            body.appendChild(bodyRow);
+                            index += 1;
+                        }
+                        table.appendChild(body);
+                        wrapper.appendChild(table);
+                        container.appendChild(wrapper);
+                        continue;
+                    }
                     const heading = line.text.match(/^(#{1,6})\s+(.+)$/);
                     if (heading) {
                         const element = document.createElement('h' + heading[1].length);
