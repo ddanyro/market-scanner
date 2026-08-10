@@ -847,7 +847,7 @@
       }
     ],
     "Daily_Change": 1.921,
-    "Date": "2026-08-10 09:12",
+    "Date": "2026-08-10 09:49",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -884,8 +884,8 @@
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "EXIT",
-    "Sell_Reason": "RS Fail (Falling); ",
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 281.9 > SMA200 238.5), RSI 52, Risk 5.3%",
     "RS_vs_SPX": -0.94,
     "Chart_History": [
       199.2329,
@@ -1704,7 +1704,7 @@
       }
     ],
     "Daily_Change": -6.6628,
-    "Date": "2026-08-10 09:12",
+    "Date": "2026-08-10 09:49",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1741,8 +1741,8 @@
     "RSI_Status": "Overbought",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "REDUCE",
-    "Sell_Reason": "RS Fail (Falling); ",
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 223.0 > SMA200 188.5), RSI 76, Risk 6.2%",
     "RS_vs_SPX": 21.53,
     "Chart_History": [
       166.224,
@@ -2561,7 +2561,7 @@
       }
     ],
     "Daily_Change": -0.1903,
-    "Date": "2026-08-10 09:12",
+    "Date": "2026-08-10 09:49",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -4237,9 +4237,9 @@
       }
     ],
     "Daily_Change": -0.0096,
-    "Date": "2026-08-10 09:12",
+    "Date": "2026-08-10 09:49",
     "Market_Data_Source": "IBKR TWS + BVB public",
-    "Market_Data_Fetched_At": "2026-08-10T06:12:26.897106+00:00",
+    "Market_Data_Fetched_At": "2026-08-10T06:49:10.862630+00:00",
     "Data_Broker": "surse combinate",
     "Execution_Brokers": [
       "Tradeville"
