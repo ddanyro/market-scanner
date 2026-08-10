@@ -6337,7 +6337,7 @@ def generate_html_dashboard(
                         cursor += match[0].length;
                         continue;
                     }
-                    match = rest.match(/^`([^`\n]+)`/);
+                    match = rest.match(/^`([^`\\n]+)`/);
                     if (match) {
                         const code = document.createElement('code');
                         code.textContent = match[1];
@@ -6345,7 +6345,7 @@ def generate_html_dashboard(
                         cursor += match[0].length;
                         continue;
                     }
-                    match = rest.match(/^\[([^\]\n]+)\]\((https:\/\/[^\s)]+)\)/i);
+                    match = rest.match(/^\[([^\]\\n]+)\]\((https:\/\/[^\s)]+)\)/i);
                     if (match) {
                         const link = document.createElement('a');
                         link.href = match[2];
@@ -6356,7 +6356,7 @@ def generate_html_dashboard(
                         cursor += match[0].length;
                         continue;
                     }
-                    match = rest.match(/^\*(?=\S)([^*\n]*?\S)\*/);
+                    match = rest.match(/^\*(?=\S)([^*\\n]*?\S)\*/);
                     if (match) {
                         const emphasis = document.createElement('em');
                         appendPortfolioChatInline(emphasis, value, cursor + 1, cursor + match[0].length - 1, citations);
@@ -6390,10 +6390,10 @@ def generate_html_dashboard(
                     return cells;
                 };
                 const lines = [];
-                const linePattern = /.*(?:\n|$)/g;
+                const linePattern = /.*(?:\\n|$)/g;
                 let match;
                 while ((match = linePattern.exec(value)) && match[0]) {
-                    const raw = match[0].replace(/\n$/, '').replace(/\r$/, '');
+                    const raw = match[0].replace(/\\n$/, '').replace(/\\r$/, '');
                     lines.push({ text: raw, start: match.index });
                 }
                 let index = 0;
