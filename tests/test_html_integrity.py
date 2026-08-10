@@ -203,11 +203,17 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("onclick=\"openOrderDetail(", content)
         self.assertIn("function openOrderDetail(symbol)", content)
         self.assertIn(
-            "const detail = buyRecommendationDetailData[normalizedSymbol]",
+            "const baseDetail = buyRecommendationDetailData[normalizedSymbol]",
             content,
         )
         self.assertIn("|| portfolioDetailData[normalizedSymbol]", content)
         self.assertIn("|| watchlistDetailData[normalizedSymbol]", content)
+        self.assertIn("activeBuyOrderLevels[levelKey]", content)
+        self.assertIn("(baseDetail.levels || []).concat(orderLevels)", content)
+        self.assertIn(
+            '"active_buy_order_levels": _build_active_buy_order_chart_levels(orders_df)',
+            content,
+        )
         self.assertIn("detail_symbol = str(m_symbol or symbol).upper()", content)
         self.assertIn("openOrderDetail(\\'{detail_symbol}\\')", content)
 

@@ -1508,6 +1508,70 @@ def _build_buy_recommendation_detail_data(
     return details
 
 
+def _build_active_buy_order_chart_levels(orders_df):
+    """Construiește nivelurile de preț pentru ordinele BUY active."""
+    if not isinstance(orders_df, pd.DataFrame) or orders_df.empty:
+        return {}
+    if 'Symbol' not in orders_df.columns or 'Action' not in orders_df.columns:
+        return {}
+
+    def valid_price(row, column):
+        value = _safe_float_text(row.get(column))
+        if value is None or value <= 0 or value >= 1e10:
+            return None
+        return value
+
+    levels_by_symbol = {}
+    buy_orders = orders_df[
+        orders_df['Action'].astype(str).str.upper() == 'BUY'
+    ]
+    for _, order in buy_orders.iterrows():
+        symbol = str(order.get('Symbol') or '').strip().upper()
+        if not symbol:
+            continue
+        order_type = str(order.get('OrderType') or '').strip().upper()
+        limit_price = valid_price(order, 'Limit_Price')
+        stop_price = valid_price(order, 'Stop_Price')
+        if limit_price is None and order_type in {'LMT', 'LIMIT'}:
+            limit_price = (
+                valid_price(order, 'Aux_Price')
+                or stop_price
+            )
+        order_price = (
+            limit_price
+            if order_type in {'LMT', 'LIMIT'}
+            else stop_price
+        )
+        if order_price is None:
+            order_price = valid_price(order, 'Calculated_Stop')
+        if order_price is None:
+            continue
+
+        quantity = (
+            _safe_float_text(order.get('Total_Qty'))
+            or _safe_float_text(order.get('Quantity'))
+            or 0
+        )
+        label = 'Preț ordin'
+        if order_type:
+            label += f' {order_type}'
+        if quantity > 0:
+            label += f' · {quantity:g} acț.'
+        level = {
+            'label': label,
+            'value': round(order_price, 4),
+            'color': '#7c3aed',
+        }
+        symbol_levels = levels_by_symbol.setdefault(symbol, [])
+        if not any(
+            abs(item['value'] - level['value']) < 0.0001
+            and item['label'] == level['label']
+            for item in symbol_levels
+        ):
+            symbol_levels.append(level)
+    return levels_by_symbol
+
+
 def _prepare_external_research_candidate(raw_item):
     """Construiește niveluri tehnice explicite pentru ruta externă independentă."""
     item = dict(raw_item or {})
@@ -5984,6 +6048,7 @@ def generate_html_dashboard(
             // const ENCRYPTED_DATA = { ... }; 
             let portfolioDetailData = {};
             let buyRecommendationDetailData = {};
+            let activeBuyOrderLevels = {};
             let portfolioChatConfig = null;
             let portfolioChatHistory = [];
 
@@ -6193,6 +6258,7 @@ def generate_html_dashboard(
                 initCharts(data.sparklines);
                 portfolioDetailData = data.chart_details || {};
                 buyRecommendationDetailData = data.buy_chart_details || {};
+                activeBuyOrderLevels = data.active_buy_order_levels || {};
                 portfolioChatConfig = data.portfolio_chat || null;
                 
                 // 4. Re-Init DataTables
@@ -7864,6 +7930,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         "sparklines": sparkline_data,
         "chart_details": portfolio_detail_data,
         "buy_chart_details": buy_recommendation_detail_data,
+        "active_buy_order_levels": _build_active_buy_order_chart_levels(orders_df),
         "portfolio_chat": {
             "endpoint": portfolio_chat_endpoint,
             "access_token": _portfolio_chat_access_token(password),
@@ -9267,12 +9334,30 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 openMarketDetailWindow(detail, symbol);
             }
 
-            function openOrderDetail(symbol) {
+            function detailForActiveBuyOrder(symbol) {
                 const normalizedSymbol = String(symbol || '').toUpperCase();
-                const detail = buyRecommendationDetailData[normalizedSymbol]
+                const baseDetail = buyRecommendationDetailData[normalizedSymbol]
                     || portfolioDetailData[normalizedSymbol]
                     || watchlistDetailData[normalizedSymbol];
-                openMarketDetailWindow(detail, normalizedSymbol);
+                const symbolBase = normalizedSymbol.split('.')[0];
+                const levelKey = Object.keys(activeBuyOrderLevels).find(function(key) {
+                    return key === normalizedSymbol || key.split('.')[0] === symbolBase;
+                });
+                const orderLevels = levelKey ? activeBuyOrderLevels[levelKey] : [];
+                const detail = baseDetail && orderLevels.length
+                    ? Object.assign({}, baseDetail, {
+                        levels: (baseDetail.levels || []).concat(orderLevels)
+                    })
+                    : baseDetail;
+                return detail;
+            }
+
+            function openOrderDetail(symbol) {
+                const normalizedSymbol = String(symbol || '').toUpperCase();
+                openMarketDetailWindow(
+                    detailForActiveBuyOrder(normalizedSymbol),
+                    normalizedSymbol
+                );
             }
 
             function openWatchlistDetail(symbol) {
