@@ -1,5 +1,7 @@
 #!/bin/bash
-if [ -d ".venv" ]; then
-    source .venv/bin/activate
+if [ -x ".venv/bin/python" ]; then
+    PYTHON_BIN=".venv/bin/python"
+else
+    PYTHON_BIN="python3"
 fi
-python3 -u market_scanner.py --mode all --tws
+"$PYTHON_BIN" -u market_scanner.py --mode all --tws

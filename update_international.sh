@@ -3,8 +3,10 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-if [ -d ".venv" ]; then
-    source .venv/bin/activate
+if [ -x ".venv/bin/python" ]; then
+    PYTHON_BIN=".venv/bin/python"
+else
+    PYTHON_BIN="python3"
 fi
 
-python3 -u market_scanner.py --mode international
+"$PYTHON_BIN" -u market_scanner.py --mode international
