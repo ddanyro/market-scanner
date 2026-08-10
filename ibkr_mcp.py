@@ -287,7 +287,7 @@ class ReadOnlyOAuthClient:
             state = secrets.token_urlsafe(32)
             from urllib.parse import urlencode
 
-            authorization_url = f"{AUTHORIZATION_URL}?{urlencode({
+            authorization_params = urlencode({
                 'response_type': 'code',
                 'client_id': client_info['client_id'],
                 'redirect_uri': CALLBACK_URL,
@@ -296,7 +296,8 @@ class ReadOnlyOAuthClient:
                 'code_challenge_method': 'S256',
                 'scope': READ_ONLY_SCOPES,
                 'resource': MCP_URL,
-            })}"
+            })
+            authorization_url = f"{AUTHORIZATION_URL}?{authorization_params}"
             await _redirect_handler(authorization_url)
             code, returned_state = await _callback_handler()
             if returned_state is None or not secrets.compare_digest(
