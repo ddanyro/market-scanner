@@ -501,7 +501,7 @@ def _normalise_nav_history(
         values = period.get("nav", []) if isinstance(period, dict) else []
         points = [
             {
-                "date": str(date),
+                "date": _normalise_history_date(date),
                 "nav": round(_number(nav), 2),
                 "currency": str(
                     account.get("base_currency", base_currency)
@@ -513,6 +513,14 @@ def _normalise_nav_history(
         if points:
             return str(account_id), points[-366:]
     return str(account_id), []
+
+
+def _normalise_history_date(value: Any) -> str:
+    """Returnează o dată IBKR fără ghilimelele incluse în payload."""
+    raw = str(value).strip().strip("'\"").strip()
+    if re.fullmatch(r"\d{8}\.0+", raw):
+        return raw[:8]
+    return raw
 
 
 async def _call_with_retry(

@@ -83,6 +83,25 @@ class TestIBKRMCPNormalisation(unittest.TestCase):
         self.assertEqual(points[-1]["nav"], 102)
         self.assertEqual(points[-1]["currency"], "EUR")
 
+    def test_nav_history_removes_quotes_from_ibkr_dates(self):
+        _account_id, points = ibkr_mcp._normalise_nav_history({
+            "accounts": {
+                "U123": {
+                    "base_currency": "EUR",
+                    "periods": {
+                        "1Y": {
+                            "dates": ["'20250811'", '"20250812"', 20250813.0],
+                            "nav": [100, 101, 102],
+                        }
+                    },
+                }
+            }
+        }, "EUR")
+        self.assertEqual(
+            [point["date"] for point in points],
+            ["20250811", "20250812", "20250813"],
+        )
+
 
 class TestIBKRMCPBuildSnapshot(unittest.IsolatedAsyncioTestCase):
     async def test_build_snapshot_maps_read_only_tools(self):
