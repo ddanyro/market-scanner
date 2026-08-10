@@ -1,21 +1,19 @@
 {
-  "fetched_at": "2026-08-07T10:23:15.748541+00:00",
-  "source": "TWS / IBKR API",
+  "fetched_at": "2026-08-10T04:41:07.754263+00:00",
+  "source": "IBKR MCP (read-only)",
   "privacy_mode": "bands_only",
   "sanitized_accounts": [
     {
       "label": "IBKR",
       "base_currency": "EUR",
       "cash_currencies": [
+        "BASE",
         "EUR",
         "USD"
       ],
       "cash_pct_band": "peste 50%",
       "maintenance_margin_pct_band": "sub 5%",
-      "available_funds_status": "pozitiv",
-      "buying_power_status": "pozitiv",
-      "excess_liquidity_status": "pozitiv",
-      "cushion_band": "peste 30%"
+      "available_funds_status": "pozitiv"
     }
   ]
 }
