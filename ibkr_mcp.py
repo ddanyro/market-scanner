@@ -49,6 +49,9 @@ CONTRACT_CACHE_TTL_DAYS = float(
 MARKET_DATA_CONCURRENCY = max(
     1, min(10, int(os.environ.get("IBKR_MCP_MARKET_CONCURRENCY", "5")))
 )
+MARKET_DATA_BATCH_SIZE = max(
+    1, int(os.environ.get("IBKR_MCP_MARKET_BATCH", "70"))
+)
 READ_ONLY_SCOPES = "mcp.read"
 AUTHORIZATION_URL = "https://api.ibkr.com/oauth2/authorize"
 TOKEN_URL = "https://api.ibkr.com/oauth2/api/v1/token"
@@ -840,14 +843,17 @@ async def _fetch_market_instrument(
 
 
 async def _prefetch_market_data_async(
-    symbols: list[str], concurrency: int
+    symbols: list[str], concurrency: int,
+    batch_size: int = MARKET_DATA_BATCH_SIZE,
 ) -> dict[str, Any]:
     cache = _read_market_cache()
-    unique_symbols = list(dict.fromkeys(
+    unique_symbols = sorted(set(
         _market_symbol(symbol) for symbol in symbols if str(symbol).strip()
     ))
-    stats = {"requested": len(unique_symbols), "cached": 0, "updated": 0,
-             "unavailable": 0, "errors": {}}
+    stats = {
+        "requested": len(unique_symbols), "scheduled": 0, "deferred": 0,
+        "cached": 0, "updated": 0, "unavailable": 0, "errors": {},
+    }
     semaphore = asyncio.Semaphore(max(1, min(10, int(concurrency))))
     results = []
     pending_symbols = []
@@ -868,7 +874,25 @@ async def _prefetch_market_data_async(
             ))
             continue
         pending_symbols.append(symbol)
-    if pending_symbols:
+    selected_symbols = pending_symbols
+    batch_size = max(1, int(batch_size))
+    if len(pending_symbols) > batch_size:
+        cursor = int(cache.get("rotation_cursor", 0)) % len(unique_symbols)
+        rotated = unique_symbols[cursor:] + unique_symbols[:cursor]
+        pending_set = set(pending_symbols)
+        selected_symbols = [
+            symbol for symbol in rotated if symbol in pending_set
+        ][:batch_size]
+        last_index = unique_symbols.index(selected_symbols[-1])
+        cache["rotation_cursor"] = (last_index + 1) % len(unique_symbols)
+        stats["deferred"] = len(pending_symbols) - len(selected_symbols)
+    stats["scheduled"] = len(selected_symbols)
+    if selected_symbols:
+        print(
+            f"  [IBKR MCP] Prefetch lot {len(selected_symbols)}/"
+            f"{len(pending_symbols)} simboluri; "
+            f"{stats['deferred']} rămân pentru rulările următoare."
+        )
         async with ReadOnlyMCPSession() as session:
             async def fetch(symbol):
                 async with semaphore:
@@ -876,9 +900,30 @@ async def _prefetch_market_data_async(
                         return await _fetch_market_instrument(session, symbol, cache)
                     except (Exception, asyncio.CancelledError) as exc:
                         return symbol, None, str(exc)
-            results.extend(await asyncio.gather(
-                *(fetch(symbol) for symbol in pending_symbols)
-            ))
+            tasks = [
+                asyncio.create_task(fetch(symbol))
+                for symbol in selected_symbols
+            ]
+            completed = 0
+            for task in asyncio.as_completed(tasks):
+                result = await task
+                results.append(result)
+                completed += 1
+                if (
+                    completed == 1
+                    or completed % 10 == 0
+                    or completed == len(tasks)
+                ):
+                    symbol, instrument, status = result
+                    outcome = (
+                        "actualizat"
+                        if instrument and status == "updated"
+                        else "indisponibil"
+                    )
+                    print(
+                        f"  [IBKR MCP {completed}/{len(tasks)}] "
+                        f"{symbol}: {outcome}"
+                    )
     for symbol, instrument, status in results:
         if status == "cached":
             stats["cached"] += 1
@@ -892,13 +937,17 @@ async def _prefetch_market_data_async(
 
 
 def prefetch_market_data(
-    symbols: list[str], *, concurrency: int = MARKET_DATA_CONCURRENCY
+    symbols: list[str], *, concurrency: int = MARKET_DATA_CONCURRENCY,
+    batch_size: int = MARKET_DATA_BATCH_SIZE,
 ) -> dict[str, Any]:
     """Prefetch local OHLCV + snapshot, fără autentificare interactivă."""
     if not symbols:
-        return {"requested": 0, "cached": 0, "updated": 0,
-                "unavailable": 0, "errors": {}}
-    return asyncio.run(_prefetch_market_data_async(symbols, concurrency))
+        return {"requested": 0, "scheduled": 0, "deferred": 0,
+                "cached": 0, "updated": 0, "unavailable": 0,
+                "errors": {}}
+    return asyncio.run(
+        _prefetch_market_data_async(symbols, concurrency, batch_size)
+    )
 
 
 def _number(value: Any, default: float = 0.0) -> float:
@@ -1139,7 +1188,7 @@ async def _run_cli(args: argparse.Namespace) -> int:
                 "Adaugă cel puțin un simbol după comanda prefetch."
             )
         stats = await _prefetch_market_data_async(
-            args.symbols, MARKET_DATA_CONCURRENCY
+            args.symbols, MARKET_DATA_CONCURRENCY, MARKET_DATA_BATCH_SIZE
         )
         print(json.dumps(stats, ensure_ascii=False, indent=2))
         return 0
