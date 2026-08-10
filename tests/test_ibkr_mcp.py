@@ -184,6 +184,43 @@ class TestIBKRMCPMarketData(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(status, "cached")
         session.call.assert_not_awaited()
 
+    async def test_prefetch_limits_large_universe_to_rotating_batch(self):
+        cache = {
+            "contracts": {}, "instruments": {}, "failures": {},
+            "rotation_cursor": 0,
+        }
+
+        class FakeSession:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *_args):
+                return False
+
+        async def fake_fetch(_session, symbol, target_cache):
+            instrument = {"fetched_at": "2026-08-10T10:00:00+00:00"}
+            target_cache["instruments"][symbol] = instrument
+            return symbol, instrument, "updated"
+
+        with (
+            mock.patch.object(ibkr_mcp, "_read_market_cache", return_value=cache),
+            mock.patch.object(ibkr_mcp, "_write_market_cache"),
+            mock.patch.object(ibkr_mcp, "ReadOnlyMCPSession", FakeSession),
+            mock.patch.object(
+                ibkr_mcp, "_fetch_market_instrument", side_effect=fake_fetch
+            ),
+        ):
+            stats = await ibkr_mcp._prefetch_market_data_async(
+                ["C", "A", "B"], concurrency=2, batch_size=2
+            )
+
+        self.assertEqual(stats["requested"], 3)
+        self.assertEqual(stats["scheduled"], 2)
+        self.assertEqual(stats["deferred"], 1)
+        self.assertEqual(stats["updated"], 2)
+        self.assertEqual(set(cache["instruments"]), {"A", "B"})
+        self.assertEqual(cache["rotation_cursor"], 2)
+
 
 class TestIBKRMCPBuildSnapshot(unittest.IsolatedAsyncioTestCase):
     async def test_build_snapshot_maps_read_only_tools(self):

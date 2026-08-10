@@ -502,10 +502,13 @@ def _prefetch_ibkr_mcp_market_data(symbols, label='watchlist'):
         stats = ibkr_mcp.prefetch_market_data(unique_symbols)
         elapsed = time.perf_counter() - started_at
         print(
-            f"  -> IBKR MCP {label}: {stats.get('updated', 0)} actualizate, "
+            f"  -> IBKR MCP {label}: lot "
+            f"{stats.get('scheduled', 0)}/{stats.get('requested', 0)}, "
+            f"{stats.get('updated', 0)} actualizate, "
             f"{stats.get('cached', 0)} din cache, "
             f"{stats.get('unavailable', 0)} indisponibile "
-            f"în {elapsed:.1f}s."
+            f"în {elapsed:.1f}s; "
+            f"{stats.get('deferred', 0)} amânate."
         )
         stats['elapsed_seconds'] = round(elapsed, 3)
         return stats
@@ -2340,11 +2343,14 @@ def sync_watchlist_from_remote(url="https://betty333ro.github.io/market-scanner/
             df.to_csv(filepath, index=False)
             print(f"  ✅ Watchlist actualizat: {len(df)} simboluri total")
         else:
-            print(f"  ✅ Watchlist la zi ({len(remote_symbols)} simboluri)")
             if os.path.exists(filepath):
                 df = pd.read_csv(filepath)
             else:
                 df = pd.DataFrame(columns=['symbol'])
+            print(
+                f"  ✅ Sursa remote este la zi: {len(remote_symbols)} "
+                f"simboluri; watchlist local cumulativ: {len(df)} simboluri"
+            )
                 
         try:
             import json
