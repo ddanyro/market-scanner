@@ -6380,8 +6380,8 @@ const ibkrCashHistory=${ibkrCashPayload};
 const currency=${JSON.stringify(currency)};
 const money=value=>Number(value).toLocaleString('ro-RO',{style:'currency',currency:currency,maximumFractionDigits:2});
 const dateKey=value=>{
-const raw=String(value||'');
-if(/^\\d{8}$/.test(raw))return raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8)+'T00:00:00';
+const raw=String(value||'').trim().replace(/^['\"]+|['\"]+$/g,'').trim();
+if(/^\\d{8}(?:\\.0+)?$/.test(raw))return raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8)+'T00:00:00';
 if(/^\\d{4}-\\d{2}-\\d{2}$/.test(raw))return raw+'T00:00:00';
 const parsed=new Date(raw);
 return Number.isNaN(parsed.getTime())?raw:parsed.toISOString();
@@ -6395,7 +6395,13 @@ const labels=Array.from(new Set([
 ...history.map(item=>timestampKey(item.timestamp)),
 ...ibkrNavHistory.map(item=>dateKey(item.date)),
 ...ibkrCashHistory.map(item=>dateKey(item.date))
-])).sort((left,right)=>new Date(left).getTime()-new Date(right).getTime());
+])).sort((left,right)=>{
+const leftTime=new Date(left).getTime();
+const rightTime=new Date(right).getTime();
+if(Number.isNaN(leftTime))return Number.isNaN(rightTime)?String(left).localeCompare(String(right)):1;
+if(Number.isNaN(rightTime))return -1;
+return leftTime-rightTime;
+});
 const series=(items,dateField,valueField,keyFunction)=>{
 const values=new Map(items.map(item=>[keyFunction(item[dateField]),Number(item[valueField])]));
 return labels.map(label=>values.has(label)?values.get(label):null);
