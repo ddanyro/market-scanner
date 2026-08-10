@@ -51,20 +51,36 @@ test("rejects an invalid portfolio token", async () => {
   }, "secret"), /neautorizat/i);
 });
 
-test("uses Responses API fields, Sol, web search, and no storage", () => {
+test("uses Responses API fields, Terra, explicit caching, web search, and no storage", () => {
   const request = buildOpenAIRequest({
     message: "Ce cumpăr?", contextJson: "{}", history: [],
   });
-  assert.equal(request.model, "gpt-5.6-sol");
+  assert.equal(request.model, "gpt-5.6-terra");
   assert.equal(request.store, false);
-  assert.deepEqual(request.reasoning, {effort: "high"});
+  assert.deepEqual(request.reasoning, {effort: "low"});
+  assert.equal(request.prompt_cache_key, "market-scanner:portfolio-chat:v2");
+  assert.deepEqual(request.prompt_cache_options, {mode: "explicit", ttl: "30m"});
   assert.deepEqual(request.tools, [{type: "web_search"}]);
-  assert.match(request.instructions, /Nu inventa/);
+  assert.match(request.input[0].content[0].text, /Nu inventa/);
+  assert.deepEqual(
+    request.input[0].content[0].prompt_cache_breakpoint,
+    {mode: "explicit"},
+  );
+  assert.deepEqual(
+    request.input[0].content[1].prompt_cache_breakpoint,
+    {mode: "explicit"},
+  );
 });
 
 test("extracts text and clickable citation coordinates", () => {
   const answer = extractOpenAIAnswer({
-    model: "gpt-5.6-sol-2026-07-01",
+    model: "gpt-5.6-terra",
+    usage: {
+      input_tokens: 1200,
+      output_tokens: 80,
+      total_tokens: 1280,
+      input_tokens_details: {cached_tokens: 900},
+    },
     output: [{type: "message", content: [{
       type: "output_text", text: "Vezi sursa.", annotations: [{
         type: "url_citation", start_index: 5, end_index: 10,
@@ -74,4 +90,7 @@ test("extracts text and clickable citation coordinates", () => {
   });
   assert.equal(answer.text, "Vezi sursa.");
   assert.equal(answer.citations[0].title, "Raport");
+  assert.equal(answer.usage.cached_tokens, 900);
+  assert.equal(answer.usage.uncached_input_tokens, 300);
+  assert.ok(answer.usage.estimated_cost_usd > 0);
 });

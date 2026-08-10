@@ -373,6 +373,7 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("label:'Cash total'", content)
         self.assertIn("label:'NAV IBKR'", content)
         self.assertIn("label:'Cash IBKR'", content)
+        self.assertIn(r"if(/^\\\\d{8}(?:\\\\.0+)?$/", content)
         self.assertIn(
             'history.map(item=>timestampKey(item.timestamp))',
             content,

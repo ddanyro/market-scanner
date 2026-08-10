@@ -148,7 +148,13 @@ export default {
         }, 503, origin);
       }
       try {
-        return jsonResponse(extractOpenAIAnswer(payload), 200, origin);
+        const answer = extractOpenAIAnswer(payload);
+        console.log(JSON.stringify({
+          event: "openai_portfolio_chat_usage",
+          model: answer.model,
+          usage: answer.usage,
+        }));
+        return jsonResponse(answer, 200, origin);
       } catch (parseError) {
         console.error(JSON.stringify({
           event: "openai_portfolio_chat_invalid_response",

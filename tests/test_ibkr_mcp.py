@@ -102,6 +102,88 @@ class TestIBKRMCPNormalisation(unittest.TestCase):
             ["20250811", "20250812", "20250813"],
         )
 
+    def test_contract_selection_requires_exact_symbol_and_expected_country(self):
+        selected = ibkr_mcp._select_contract("LQQ.PA", {
+            "results": [
+                {
+                    "symbol": "LQQ", "country_code": "US",
+                    "exchange": "SMART", "underlying_contract_id": 1,
+                    "sections": [{"security_type": "STK"}],
+                },
+                {
+                    "symbol": "LQQ", "country_code": "FR",
+                    "exchange": "SBF", "underlying_contract_id": 2,
+                    "sections": [{"security_type": "STK"}],
+                },
+                {
+                    "symbol": "LQQU", "country_code": "FR",
+                    "exchange": "SBF", "underlying_contract_id": 3,
+                    "sections": [{"security_type": "STK"}],
+                },
+            ]
+        })
+        self.assertEqual(selected["underlying_contract_id"], 2)
+
+    def test_price_history_normalises_epoch_and_missing_volume(self):
+        bars = ibkr_mcp._normalise_price_history({
+            "time": [1785801600000, 1785888000000],
+            "open": [10, 11], "high": [11, 12], "low": [9, 10],
+            "close": [10.5, 11.5], "volume": [100],
+        })
+        self.assertEqual(len(bars), 2)
+        self.assertTrue(bars[0]["date"].startswith("2026-"))
+        self.assertEqual(bars[1]["volume"], 0)
+
+
+class TestIBKRMCPMarketData(unittest.IsolatedAsyncioTestCase):
+    async def test_fetch_market_instrument_combines_history_and_snapshot(self):
+        class FakeSession:
+            async def call(self, name, arguments=None):
+                if name == "search_contracts":
+                    return {"results": [{
+                        "symbol": "AAPL", "country_code": "US",
+                        "exchange": "NASDAQ", "description": "Apple Inc.",
+                        "underlying_contract_id": 265598,
+                        "sections": [{"security_type": "STK"}],
+                    }]}
+                if name == "get_price_history":
+                    return {
+                        "time": ["2026-08-07T00:00:00Z"],
+                        "open": [220], "high": [225], "low": [219],
+                        "close": [224], "volume": [1_000_000],
+                        "delayed": 0,
+                    }
+                if name == "get_price_snapshot":
+                    return {"last": {"price": 224.5}, "volume": 1_100_000}
+                raise AssertionError(name)
+
+        cache = {"contracts": {}, "instruments": {}}
+        symbol, instrument, status = await ibkr_mcp._fetch_market_instrument(
+            FakeSession(), "AAPL", cache
+        )
+        self.assertEqual(symbol, "AAPL")
+        self.assertEqual(status, "updated")
+        self.assertEqual(instrument["market_data"]["market_price"], 224.5)
+        self.assertEqual(instrument["bars"][0]["close"], 224)
+        self.assertEqual(instrument["data_provider"], "IBKR MCP")
+
+    async def test_fresh_instrument_uses_cache_without_network(self):
+        now = __import__("datetime").datetime.now(
+            __import__("datetime").timezone.utc
+        ).isoformat()
+        instrument = {"fetched_at": now, "bars": [{"close": 10}]}
+        cache = {
+            "contracts": {},
+            "instruments": {"AAPL": instrument},
+        }
+        session = mock.AsyncMock()
+        _symbol, result, status = await ibkr_mcp._fetch_market_instrument(
+            session, "AAPL", cache
+        )
+        self.assertIs(result, instrument)
+        self.assertEqual(status, "cached")
+        session.call.assert_not_awaited()
+
 
 class TestIBKRMCPBuildSnapshot(unittest.IsolatedAsyncioTestCase):
     async def test_build_snapshot_maps_read_only_tools(self):

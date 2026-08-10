@@ -8,6 +8,7 @@ with warnings.catch_warnings():
 import yfinance as yf
 import pandas as pd
 import argparse
+import asyncio
 import sys
 import datetime
 import time
@@ -89,11 +90,16 @@ EXTERNAL_RESEARCH_TTL_HOURS = 5.0
 SP500_UNIVERSE_FILE = 'sp500_tickers.json'
 TWS_INSTRUMENTS_FILE = 'tws_instruments.json'
 TWS_INSTRUMENT_TTL_HOURS = 96
+IBKR_MCP_MARKET_CACHE_FILE = '.ibkr_mcp_market_cache.json'
+IBKR_MCP_MARKET_TTL_HOURS = float(
+    os.environ.get('IBKR_MCP_MARKET_TTL_HOURS', '1')
+)
 TWS_ACTIVE_ORDERS_CACHE_KEY = 'tws_active_orders_snapshot_enc'
 TWS_ACTIVE_ORDER_COLUMNS = [
     'Symbol', 'OrderType', 'Action', 'Total_Qty', 'Aux_Price',
     'Limit_Price', 'Stop_Price', 'Trail_Pct', 'Calculated_Stop',
 ]
+_YAHOO_HISTORY_MEMORY_CACHE = {}
 
 
 def _portfolio_chat_access_token(password):
@@ -466,6 +472,51 @@ def _load_tws_instrument(
     return entry
 
 
+def _load_mcp_market_instrument(symbol, now=None):
+    """Încarcă OHLCV MCP local înaintea cache-ului TWS și Yahoo."""
+    return _load_tws_instrument(
+        symbol,
+        path=IBKR_MCP_MARKET_CACHE_FILE,
+        now=now,
+        max_age_hours=IBKR_MCP_MARKET_TTL_HOURS,
+    )
+
+
+def _prefetch_ibkr_mcp_market_data(symbols, label='watchlist'):
+    """Prefetch MCP numai local; cloudul păstrează sursele existente."""
+    if os.environ.get('GITHUB_ACTIONS') == 'true':
+        return None
+    if os.environ.get('IBKR_MCP_MARKET_DATA_ENABLED', '1').strip().lower() in {
+        '0', 'false', 'no', 'off'
+    }:
+        return None
+    unique_symbols = list(dict.fromkeys(
+        str(symbol).strip().upper()
+        for symbol in symbols or [] if str(symbol).strip()
+    ))
+    if not unique_symbols:
+        return None
+    try:
+        import ibkr_mcp
+        started_at = time.perf_counter()
+        stats = ibkr_mcp.prefetch_market_data(unique_symbols)
+        elapsed = time.perf_counter() - started_at
+        print(
+            f"  -> IBKR MCP {label}: {stats.get('updated', 0)} actualizate, "
+            f"{stats.get('cached', 0)} din cache, "
+            f"{stats.get('unavailable', 0)} indisponibile "
+            f"în {elapsed:.1f}s."
+        )
+        stats['elapsed_seconds'] = round(elapsed, 3)
+        return stats
+    except (Exception, asyncio.CancelledError) as exc:
+        print(
+            f"  -> IBKR MCP market data indisponibil pentru {label}; "
+            f"continuăm cu TWS/Yahoo: {exc}"
+        )
+        return None
+
+
 def _tws_instrument_history_frame(instrument):
     bars = (instrument or {}).get('bars', [])
     if not bars:
@@ -584,6 +635,10 @@ def _download_yahoo_history(symbol, period='1y'):
     import contextlib
     import io
 
+    cache_key = (str(symbol).upper(), str(period))
+    cached = _YAHOO_HISTORY_MEMORY_CACHE.get(cache_key)
+    if cached is not None:
+        return cached.copy()
     with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
         io.StringIO()
     ):
@@ -593,12 +648,15 @@ def _download_yahoo_history(symbol, period='1y'):
             auto_adjust=True,
             progress=False,
         )
-    return _normalize_downloaded_history(frame)
+    normalized = _normalize_downloaded_history(frame)
+    _YAHOO_HISTORY_MEMORY_CACHE[cache_key] = normalized.copy()
+    return normalized
 
 
 def _load_analysis_history(ticker, download_ticker, period='1y'):
     """Pentru BVB îmbină cache TWS, Yahoo și CSV public, fără duplicate."""
     normalized_ticker = str(ticker or '').upper()
+    mcp_instrument = _load_mcp_market_instrument(ticker)
     tws_instrument = _load_tws_instrument(ticker)
     is_bvb = normalized_ticker.endswith('.RO')
 
@@ -620,9 +678,10 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
         except Exception as exc:
             print(f"  [BVB] {ticker}: CSV/cache public indisponibil ({exc})")
 
+        mcp_history = _tws_instrument_history_frame(mcp_instrument)
         tws_history = _tws_instrument_history_frame(tws_instrument)
         combined_without_yahoo = _merge_ohlcv_histories(
-            tws_history, bvb_history
+            tws_history, bvb_history, mcp_history
         )
         yahoo_history = pd.DataFrame()
         if len(combined_without_yahoo) < 60:
@@ -633,17 +692,21 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
             except Exception:
                 yahoo_history = pd.DataFrame()
         combined = _merge_ohlcv_histories(
-            tws_history, yahoo_history, bvb_history
+            tws_history, yahoo_history, bvb_history, mcp_history
         )
         if not combined.empty:
             used_sources = []
+            if not mcp_history.empty:
+                used_sources.append('IBKR MCP')
             if not tws_history.empty:
                 used_sources.append('IBKR TWS')
             if not yahoo_history.empty:
                 used_sources.append('Yahoo Finance')
             if not bvb_history.empty:
                 used_sources.append('BVB public')
-            selected_instrument = bvb_instrument or tws_instrument
+            selected_instrument = (
+                mcp_instrument or tws_instrument or bvb_instrument
+            )
             if len(used_sources) > 1:
                 selected_instrument = dict(selected_instrument or {})
                 selected_instrument.update({
@@ -653,7 +716,7 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
                         datetime.timezone.utc
                     ).isoformat(),
                     'market_data': (
-                        (bvb_instrument or tws_instrument or {}).get(
+                        (mcp_instrument or tws_instrument or bvb_instrument or {}).get(
                             'market_data', {}
                         )
                     ),
@@ -665,18 +728,30 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
             return (
                 combined,
                 selected_instrument,
-                tws_instrument,
+                mcp_instrument or tws_instrument,
                 _instrument_data_attribution(ticker, selected_instrument),
             )
 
         print(
             f"  [BVB] {ticker}: date indisponibile în CSV/cache public, "
-            "Yahoo și cache-ul TWS"
+            "MCP, Yahoo și cache-ul TWS"
         )
-        return pd.DataFrame(), None, tws_instrument, (
+        return pd.DataFrame(), None, mcp_instrument or tws_instrument, (
             _instrument_data_attribution(ticker, None)
         )
 
+    mcp_history = _tws_instrument_history_frame(mcp_instrument)
+    if not mcp_history.empty:
+        print(
+            f"  [IBKR MCP] Istoric pentru {ticker}: "
+            f"{len(mcp_history)} ședințe"
+        )
+        return (
+            mcp_history,
+            mcp_instrument,
+            mcp_instrument,
+            _instrument_data_attribution(ticker, mcp_instrument),
+        )
     tws_history = _tws_instrument_history_frame(tws_instrument)
     if not tws_history.empty:
         print(
@@ -2123,6 +2198,9 @@ def ensure_buy_research_candidates(
                 watchlist_symbols,
                 priority_symbols=priority_symbols,
             )
+        _prefetch_ibkr_mcp_market_data(
+            symbols, label=f"cercetare {market}"
+        )
         attempted_by_market[market] = len(symbols)
         completed_by_market[market] = 0
         for symbol in symbols:
@@ -6208,6 +6286,24 @@ def generate_html_dashboard(
                     if (!response.ok) {
                         throw new Error(payload.error || 'Serviciul AI nu a răspuns.');
                     }
+                    if (payload.usage && typeof payload.usage === 'object') {
+                        try {
+                            const key = 'market-scanner:portfolio-chat-usage';
+                            const history = JSON.parse(
+                                localStorage.getItem(key) || '[]'
+                            );
+                            history.push({
+                                recorded_at: new Date().toISOString(),
+                                model: payload.model || 'gpt-5.6-terra',
+                                usage: payload.usage
+                            });
+                            localStorage.setItem(
+                                key, JSON.stringify(history.slice(-100))
+                            );
+                        } catch (usageError) {
+                            console.warn('Nu am putut salva consumul chatului.', usageError);
+                        }
+                    }
                     if (pending) pending.remove();
                     if (payload.notice) {
                         addPortfolioChatMessage(
@@ -6381,8 +6477,8 @@ const currency=${JSON.stringify(currency)};
 const money=value=>Number(value).toLocaleString('ro-RO',{style:'currency',currency:currency,maximumFractionDigits:2});
 const dateKey=value=>{
 const raw=String(value||'').trim().replace(/^['\"]+|['\"]+$/g,'').trim();
-if(/^\\d{8}(?:\\.0+)?$/.test(raw))return raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8)+'T00:00:00';
-if(/^\\d{4}-\\d{2}-\\d{2}$/.test(raw))return raw+'T00:00:00';
+if(/^\\\\d{8}(?:\\\\.0+)?$/.test(raw))return raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8)+'T00:00:00';
+if(/^\\\\d{4}-\\\\d{2}-\\\\d{2}$/.test(raw))return raw+'T00:00:00';
 const parsed=new Date(raw);
 return Number.isNaN(parsed.getTime())?raw:parsed.toISOString();
 };
@@ -7923,18 +8019,67 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     # Adăugăm analiza AI (News + Calendar)
     # Adăugăm analiza AI (News + Calendar)
     # Load existing AI summary from state (if any)
-    cached_ai = full_state.get('last_ai_summary', None)
+    cached_ai = (
+        full_state.get('last_ai_summary_cache')
+        or full_state.get('last_ai_summary')
+    )
     
     # Generare analiză piață (returnează HTML + Raw Text)
-    market_analysis_html, new_ai_text, ai_score = generate_market_analysis(market_indicators, cached_ai)
+    market_analysis_html, new_ai_text, ai_score, new_news_ai_cache = (
+        generate_market_analysis(
+            market_indicators, cached_ai, return_cache=True
+        )
+    )
     
     # Save new AI text to state if successfully generated
     if new_ai_text:
          full_state['last_ai_summary'] = new_ai_text
+         if new_news_ai_cache:
+             full_state['last_ai_summary_cache'] = new_news_ai_cache
          # generate_html_dashboard este apelată după salvarea inițială a stării.
          # Persistăm imediat rezumatul, altfel cache-ul AI se pierde între rulări.
          market_utils.save_state(full_state)
          print("  -> Rezumat AI salvat în cache (dashboard_state).")
+
+    usage_events = analysis.consume_openai_usage_events()
+    if usage_events:
+        usage_history = list(full_state.get('openai_usage_history', []))
+        usage_history.extend(usage_events)
+        full_state['openai_usage_history'] = usage_history[-500:]
+        totals = dict(full_state.get('openai_usage_totals', {}))
+        for field in (
+            'input_tokens', 'uncached_input_tokens', 'cached_tokens',
+            'cache_write_tokens', 'output_tokens', 'reasoning_tokens',
+            'total_tokens',
+        ):
+            totals[field] = int(totals.get(field) or 0) + sum(
+                int(item.get(field) or 0) for item in usage_events
+            )
+        known_costs = [
+            item.get('estimated_cost_usd') for item in usage_events
+            if item.get('estimated_cost_usd') is not None
+        ]
+        if known_costs:
+            totals['estimated_cost_usd'] = round(
+                float(totals.get('estimated_cost_usd') or 0)
+                + sum(float(value) for value in known_costs),
+                8,
+            )
+        totals['last_updated_at'] = datetime.datetime.now().isoformat(
+            timespec='seconds'
+        )
+        totals['calls'] = int(totals.get('calls') or 0) + len(usage_events)
+        totals['cost_estimate_status'] = (
+            'partial_or_complete'
+            if known_costs else 'rates_not_configured'
+        )
+        full_state['openai_usage_totals'] = totals
+        market_utils.save_state(full_state)
+        print(
+            "  -> Consum OpenAI salvat: "
+            f"{len(usage_events)} apel(uri), "
+            f"{sum(int(item.get('total_tokens') or 0) for item in usage_events)} tokeni."
+        )
     
     html_head += market_analysis_html
 
@@ -9561,6 +9706,41 @@ def update_watchlist_data(
 
     total_tickers = len(watchlist_tickers)
     print(f"Procesare {total_tickers} tickere...")
+
+    def refresh_status(ticker, cached_data):
+        missing_fields = False
+        if cached_data:
+            if str(ticker).upper() in ALWAYS_RESEARCH_SYMBOLS:
+                missing_fields = True
+            if (
+                cached_data.get('Decision') == 'BUY'
+                and not cached_data.get('Smart_Entry')
+            ):
+                missing_fields = True
+            if 'Currency' not in cached_data:
+                missing_fields = True
+            if (
+                'Strategy' not in cached_data
+                or 'Volume' not in cached_data
+            ):
+                missing_fields = True
+            if not cached_data.get('Company_Name'):
+                missing_fields = True
+        fresh = bool(
+            cached_data
+            and market_data.is_fresh(
+                cached_data, ttl_hours=cache_ttl_hours
+            )
+        )
+        return missing_fields, fresh and not missing_fields
+
+    mcp_due_symbols = []
+    for ticker in watchlist_tickers:
+        cached_data = market_data.get_cached_watchlist_ticker(state, ticker)
+        _missing_fields, use_cache = refresh_status(ticker, cached_data)
+        if not use_cache:
+            mcp_due_symbols.append(ticker)
+    _prefetch_ibkr_mcp_market_data(mcp_due_symbols, label=title)
     
     cached_count = 0
     updated_count = 0
@@ -9576,33 +9756,9 @@ def update_watchlist_data(
         # Check cache first
         cached_data = market_data.get_cached_watchlist_ticker(state, ticker)
         
-        # Check if we need to backfill Smart Entry or Currency
-        missing_fields = False
-        if cached_data:
-            # LQQ este reevaluat la fiecare rulare completă deoarece poate fi
-            # cumpărat prin ambele conturi, iar eligibilitatea trebuie să fie actuală.
-            if str(ticker).upper() in ALWAYS_RESEARCH_SYMBOLS:
-                missing_fields = True
-            # 1. Missing Smart Entry for BUY
-            if cached_data.get('Decision') == 'BUY' and not cached_data.get('Smart_Entry'):
-                missing_fields = True
-            # 2. Missing Currency (New field)
-            if 'Currency' not in cached_data:
-                missing_fields = True
-            # 3. Missing Strategy/Volume (New fields)
-            if 'Strategy' not in cached_data or 'Volume' not in cached_data:
-                missing_fields = True
-            # 4. Missing Company Name (New field)
-            if 'Company_Name' not in cached_data or not cached_data['Company_Name']:
-                    missing_fields = True
+        missing_fields, use_cache = refresh_status(ticker, cached_data)
 
-        if (
-            cached_data
-            and market_data.is_fresh(
-                cached_data, ttl_hours=cache_ttl_hours
-            )
-            and not missing_fields
-        ):
+        if use_cache:
             # Use cached data
             watchlist_results.append(cached_data)
             cached_count += 1

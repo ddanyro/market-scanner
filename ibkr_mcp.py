@@ -34,6 +34,21 @@ CALLBACK_URL = f"http://{CALLBACK_HOST}:{CALLBACK_PORT}/callback"
 CREDENTIALS_FILE = Path(
     os.environ.get("IBKR_MCP_CREDENTIALS_FILE", ".ibkr_mcp_credentials.json")
 )
+MARKET_CACHE_FILE = Path(
+    os.environ.get(
+        "IBKR_MCP_MARKET_CACHE_FILE", ".ibkr_mcp_market_cache.json"
+    )
+)
+MARKET_CACHE_VERSION = 1
+MARKET_DATA_TTL_HOURS = float(
+    os.environ.get("IBKR_MCP_MARKET_TTL_HOURS", "1")
+)
+CONTRACT_CACHE_TTL_DAYS = float(
+    os.environ.get("IBKR_MCP_CONTRACT_TTL_DAYS", "30")
+)
+MARKET_DATA_CONCURRENCY = max(
+    1, min(10, int(os.environ.get("IBKR_MCP_MARKET_CONCURRENCY", "5")))
+)
 READ_ONLY_SCOPES = "mcp.read"
 AUTHORIZATION_URL = "https://api.ibkr.com/oauth2/authorize"
 TOKEN_URL = "https://api.ibkr.com/oauth2/api/v1/token"
@@ -409,6 +424,483 @@ async def call_tool(
                 )
 
 
+def _tool_result_json(result: Any, name: str) -> dict[str, Any]:
+    """Extrage rezultatul JSON al unui apel dintr-o sesiune MCP persistentă."""
+    if result.isError:
+        message = " ".join(
+            str(getattr(item, "text", ""))
+            for item in result.content
+        ).strip()
+        raise IBKRMCPError(f"Instrumentul IBKR {name} a eșuat: {message}")
+    if isinstance(result.structuredContent, dict):
+        return result.structuredContent
+    for item in result.content:
+        text = getattr(item, "text", None)
+        if not text:
+            continue
+        try:
+            payload = json.loads(text)
+        except ValueError:
+            continue
+        if isinstance(payload, dict):
+            return payload
+    raise IBKRMCPError(
+        f"Instrumentul IBKR {name} nu a returnat JSON structurat."
+    )
+
+
+class ReadOnlyMCPSession:
+    """O singură conexiune MCP reutilizată de toate simbolurile unei rulări."""
+
+    def __init__(self):
+        self.sdk: dict[str, Any] | None = None
+        self.http_client = None
+        self.stream_context = None
+        self.session_context = None
+        self.session = None
+
+    async def __aenter__(self):
+        try:
+            self.sdk = _load_sdk()
+            token = await ReadOnlyOAuthClient(FileTokenStorage()).access_token(
+                interactive=False
+            )
+            self.http_client = self.sdk["httpx"].AsyncClient(
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "User-Agent": USER_AGENT,
+                },
+                follow_redirects=True,
+                timeout=60,
+            )
+            await self.http_client.__aenter__()
+            self.stream_context = self.sdk["streamable_http_client"](
+                MCP_URL, http_client=self.http_client
+            )
+            read_stream, write_stream, _ = await self.stream_context.__aenter__()
+            self.session_context = self.sdk["ClientSession"](
+                read_stream, write_stream
+            )
+            self.session = await self.session_context.__aenter__()
+            await self.session.initialize()
+            return self
+        except BaseException:
+            await self._close(None, None, None)
+            raise
+
+    async def __aexit__(self, exc_type, exc, traceback):
+        await self._close(exc_type, exc, traceback)
+
+    async def _close(self, exc_type, exc, traceback):
+        for context in (
+            self.session_context, self.stream_context, self.http_client,
+        ):
+            if context is None:
+                continue
+            try:
+                await context.__aexit__(exc_type, exc, traceback)
+            except BaseException:
+                pass
+
+    async def call(self, name: str, arguments=None) -> dict[str, Any]:
+        if name not in ALLOWED_READ_ONLY_TOOLS:
+            raise IBKRMCPError(
+                f"Instrumentul IBKR {name} nu este permis de clientul read-only."
+            )
+        result = await self.session.call_tool(name, arguments or {})
+        return _tool_result_json(result, name)
+
+
+def _read_market_cache(path: Path = MARKET_CACHE_FILE) -> dict[str, Any]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        payload = {}
+    if payload.get("version") != MARKET_CACHE_VERSION:
+        payload = {}
+    payload.setdefault("version", MARKET_CACHE_VERSION)
+    payload.setdefault("contracts", {})
+    payload.setdefault("instruments", {})
+    payload.setdefault("failures", {})
+    for symbol, instrument in payload["instruments"].items():
+        if isinstance(instrument, dict):
+            instrument["ibkr_data_only"] = _market_symbol(symbol) in {
+                "TVBETETF", "TVBETETF.RO",
+            }
+    return payload
+
+
+def _write_market_cache(
+    payload: dict[str, Any], path: Path = MARKET_CACHE_FILE
+) -> None:
+    payload["version"] = MARKET_CACHE_VERSION
+    payload["updated_at"] = datetime.datetime.now(
+        datetime.timezone.utc
+    ).isoformat()
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    temporary.chmod(stat.S_IRUSR | stat.S_IWUSR)
+    os.replace(temporary, path)
+
+
+def _market_symbol(symbol: Any) -> str:
+    value = str(symbol or "").strip().upper()
+    aliases = {"LQQ.FR": "LQQ.PA", "FR.LQQ": "LQQ.PA"}
+    return aliases.get(value, value)
+
+
+def _contract_query(symbol: str) -> str:
+    normalized = _market_symbol(symbol)
+    for suffix in (".RO", ".PA", ".DE", ".AS", ".L", ".MI", ".MC", ".US"):
+        if normalized.endswith(suffix):
+            return normalized[:-len(suffix)]
+    return normalized.replace("-", " ")
+
+
+def _expected_country(symbol: str) -> str:
+    normalized = _market_symbol(symbol)
+    suffix_map = {
+        ".RO": "RO", ".PA": "FR", ".DE": "DE", ".AS": "NL",
+        ".L": "GB", ".MI": "IT", ".MC": "ES",
+    }
+    return next(
+        (country for suffix, country in suffix_map.items()
+         if normalized.endswith(suffix)),
+        "US",
+    )
+
+
+def _select_contract(symbol: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+    normalized_symbol = _market_symbol(symbol)
+    query = _contract_query(symbol).replace(" ", "").replace("-", "")
+    country = _expected_country(symbol)
+    explicit_listing = any(normalized_symbol.endswith(suffix) for suffix in (
+        ".RO", ".PA", ".DE", ".AS", ".L", ".MI", ".MC", ".US",
+    ))
+    candidates = []
+    for item in payload.get("results", []):
+        if not isinstance(item, dict) or not item.get("underlying_contract_id"):
+            continue
+        security_types = {
+            str(section.get("security_type", "")).upper()
+            for section in item.get("sections", [])
+            if isinstance(section, dict)
+        }
+        if "STK" not in security_types and "FUND" not in security_types:
+            continue
+        if (
+            explicit_listing
+            and str(item.get("country_code", "")).upper() != country
+        ):
+            continue
+        result_symbol = str(item.get("symbol", "")).upper()
+        compact = result_symbol.replace(" ", "").replace("-", "")
+        score = 0
+        if compact == query:
+            score += 100
+        elif compact.startswith(query):
+            score += 20
+        if str(item.get("country_code", "")).upper() == country:
+            score += 30
+        if country == "US" and str(item.get("exchange", "")).upper() in {
+            "SMART", "NASDAQ", "NYSE", "ARCA", "AMEX"
+        }:
+            score += 10
+        candidates.append((score, item))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda entry: entry[0], reverse=True)
+    if candidates[0][0] < 100:
+        return None
+    return candidates[0][1]
+
+
+def _iso_timestamp(value: Any) -> str | None:
+    raw = str(value or "").strip()
+    if not raw:
+        return None
+    try:
+        number = float(raw)
+    except ValueError:
+        return raw
+    if number > 1e12:
+        number /= 1000
+    if number > 1e9:
+        return datetime.datetime.fromtimestamp(
+            number, datetime.timezone.utc
+        ).isoformat()
+    return raw
+
+
+def _normalise_price_history(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    columns = {
+        name: payload.get(name, [])
+        for name in ("time", "open", "high", "low", "close", "volume")
+    }
+    row_count = len(columns["close"])
+    bars = []
+    for index in range(row_count):
+        close = _number(columns["close"][index], default=float("nan"))
+        if close != close or close <= 0:
+            continue
+        def at(name, default=close):
+            values = columns[name]
+            return _number(values[index], default) if index < len(values) else default
+        raw_time = columns["time"][index] if index < len(columns["time"]) else ""
+        date = _iso_timestamp(raw_time)
+        if not date:
+            continue
+        bars.append({
+            "date": date,
+            "open": at("open"),
+            "high": at("high"),
+            "low": at("low"),
+            "close": close,
+            "volume": at("volume", 0.0),
+        })
+    return bars
+
+
+def _snapshot_number(value: Any) -> float | None:
+    if isinstance(value, (int, float, str)):
+        number = _number(value, default=float("nan"))
+        return number if number == number and number > 0 else None
+    if isinstance(value, dict):
+        for key in ("price", "value", "last", "close", "mid"):
+            if key in value:
+                found = _snapshot_number(value[key])
+                if found is not None:
+                    return found
+    return None
+
+
+def _fresh_iso(value: Any, max_age_seconds: float) -> bool:
+    try:
+        parsed = datetime.datetime.fromisoformat(
+            str(value).replace("Z", "+00:00")
+        )
+    except (TypeError, ValueError):
+        return False
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+    age = datetime.datetime.now(datetime.timezone.utc) - parsed
+    return age.total_seconds() <= max_age_seconds
+
+
+async def _resolve_market_contract(
+    session: ReadOnlyMCPSession,
+    symbol: str,
+    cache: dict[str, Any],
+) -> dict[str, Any] | None:
+    normalized = _market_symbol(symbol)
+    cached = cache["contracts"].get(normalized)
+    if isinstance(cached, dict):
+        ttl_days = (
+            1 if cached.get("status") == "not_found"
+            else CONTRACT_CACHE_TTL_DAYS
+        )
+        if _fresh_iso(cached.get("resolved_at"), ttl_days * 86400):
+            return cached if cached.get("contract_id") else None
+    response = await session.call(
+        "search_contracts", {"query": _contract_query(normalized)}
+    )
+    match = _select_contract(normalized, response)
+    resolved_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    if match is None:
+        cache["contracts"][normalized] = {
+            "status": "not_found", "resolved_at": resolved_at,
+        }
+        return None
+    contract = {
+        "status": "ok",
+        "resolved_at": resolved_at,
+        "contract_id": int(match["underlying_contract_id"]),
+        "symbol": str(match.get("symbol") or _contract_query(normalized)),
+        "exchange": str(match.get("exchange") or ""),
+        "country_code": str(match.get("country_code") or ""),
+        "description": str(match.get("description") or ""),
+        "issuer": str(match.get("issuer") or ""),
+        "security_type": (
+            "STK"
+            if any(
+                str(section.get("security_type", "")).upper() == "STK"
+                for section in match.get("sections", [])
+                if isinstance(section, dict)
+            )
+            else "FUND"
+        ),
+    }
+    cache["contracts"][normalized] = contract
+    return contract
+
+
+async def _fetch_market_instrument(
+    session: ReadOnlyMCPSession,
+    symbol: str,
+    cache: dict[str, Any],
+) -> tuple[str, dict[str, Any] | None, str | None]:
+    normalized = _market_symbol(symbol)
+    cache.setdefault("failures", {})
+    existing = cache["instruments"].get(normalized)
+    if isinstance(existing, dict) and _fresh_iso(
+        existing.get("fetched_at"), MARKET_DATA_TTL_HOURS * 3600
+    ):
+        return normalized, existing, "cached"
+    recent_failure = cache.get("failures", {}).get(normalized)
+    if isinstance(recent_failure, dict) and _fresh_iso(
+        recent_failure.get("failed_at"), MARKET_DATA_TTL_HOURS * 3600
+    ):
+        return normalized, None, str(
+            recent_failure.get("error") or "market_data_error_cached"
+        )
+    contract = await _resolve_market_contract(session, normalized, cache)
+    if not contract:
+        return normalized, None, "contract_not_found"
+    arguments = {
+        "contract_id": contract["contract_id"],
+        "security_type": contract.get("security_type", "STK"),
+        "period": "ONE_YEAR",
+        "step": "ONE_DAY",
+        "outside_rth": False,
+        "include_corporate_actions": True,
+    }
+    if contract.get("exchange") and _expected_country(normalized) != "US":
+        arguments["exchange"] = contract["exchange"]
+    history_task = session.call("get_price_history", arguments)
+    snapshot_task = session.call(
+        "get_price_snapshot",
+        {
+            "contract_id": contract["contract_id"],
+            **(
+                {"exchange": contract["exchange"]}
+                if contract.get("exchange") and _expected_country(normalized) != "US"
+                else {}
+            ),
+            "market_data_names": [
+                "last", "prior_close", "volume", "open", "low", "high",
+            ],
+        },
+    )
+    history_result, snapshot_result = await asyncio.gather(
+        history_task, snapshot_task, return_exceptions=True
+    )
+    if isinstance(history_result, Exception):
+        error = str(history_result)
+        cache["failures"][normalized] = {
+            "failed_at": datetime.datetime.now(
+                datetime.timezone.utc
+            ).isoformat(),
+            "error": error[:500],
+        }
+        return normalized, None, error
+    bars = _normalise_price_history(history_result)
+    if not bars:
+        error = str(history_result.get("error") or "no_history")
+        cache["failures"][normalized] = {
+            "failed_at": datetime.datetime.now(
+                datetime.timezone.utc
+            ).isoformat(),
+            "error": error[:500],
+        }
+        return normalized, None, error
+    snapshot = snapshot_result if isinstance(snapshot_result, dict) else {}
+    latest = _snapshot_number(snapshot.get("last")) or bars[-1]["close"]
+    fetched_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    aliases = sorted({normalized, _contract_query(normalized), contract["symbol"]})
+    instrument = {
+        "symbol": normalized,
+        "aliases": aliases,
+        "fetched_at": fetched_at,
+        "data_provider": "IBKR MCP",
+        "data_broker": "IBKR",
+        "ibkr_data_only": normalized in {"TVBETETF", "TVBETETF.RO"},
+        "contract": {
+            "conId": contract["contract_id"],
+            "exchange": contract.get("exchange"),
+            "local_symbol": contract.get("symbol"),
+            "long_name": contract.get("description") or contract.get("issuer"),
+            "country_code": contract.get("country_code"),
+        },
+        "market_data": {
+            "market_price": latest,
+            "last": latest,
+            "close": bars[-1]["close"],
+            "prior_close": _snapshot_number(snapshot.get("prior-close")),
+            "volume": _snapshot_number(snapshot.get("volume")),
+            "delayed": history_result.get("delayed"),
+        },
+        "bars": bars,
+    }
+    cache["instruments"][normalized] = instrument
+    cache["failures"].pop(normalized, None)
+    return normalized, instrument, "updated"
+
+
+async def _prefetch_market_data_async(
+    symbols: list[str], concurrency: int
+) -> dict[str, Any]:
+    cache = _read_market_cache()
+    unique_symbols = list(dict.fromkeys(
+        _market_symbol(symbol) for symbol in symbols if str(symbol).strip()
+    ))
+    stats = {"requested": len(unique_symbols), "cached": 0, "updated": 0,
+             "unavailable": 0, "errors": {}}
+    semaphore = asyncio.Semaphore(max(1, min(10, int(concurrency))))
+    results = []
+    pending_symbols = []
+    for symbol in unique_symbols:
+        existing = cache["instruments"].get(symbol)
+        if isinstance(existing, dict) and _fresh_iso(
+            existing.get("fetched_at"), MARKET_DATA_TTL_HOURS * 3600
+        ):
+            results.append((symbol, existing, "cached"))
+            continue
+        recent_failure = cache.get("failures", {}).get(symbol)
+        if isinstance(recent_failure, dict) and _fresh_iso(
+            recent_failure.get("failed_at"), MARKET_DATA_TTL_HOURS * 3600
+        ):
+            results.append((
+                symbol, None,
+                str(recent_failure.get("error") or "market_data_error_cached"),
+            ))
+            continue
+        pending_symbols.append(symbol)
+    if pending_symbols:
+        async with ReadOnlyMCPSession() as session:
+            async def fetch(symbol):
+                async with semaphore:
+                    try:
+                        return await _fetch_market_instrument(session, symbol, cache)
+                    except (Exception, asyncio.CancelledError) as exc:
+                        return symbol, None, str(exc)
+            results.extend(await asyncio.gather(
+                *(fetch(symbol) for symbol in pending_symbols)
+            ))
+    for symbol, instrument, status in results:
+        if status == "cached":
+            stats["cached"] += 1
+        elif status == "updated" and instrument:
+            stats["updated"] += 1
+        else:
+            stats["unavailable"] += 1
+            stats["errors"][symbol] = str(status or "indisponibil")[:240]
+    _write_market_cache(cache)
+    return stats
+
+
+def prefetch_market_data(
+    symbols: list[str], *, concurrency: int = MARKET_DATA_CONCURRENCY
+) -> dict[str, Any]:
+    """Prefetch local OHLCV + snapshot, fără autentificare interactivă."""
+    if not symbols:
+        return {"requested": 0, "cached": 0, "updated": 0,
+                "unavailable": 0, "errors": {}}
+    return asyncio.run(_prefetch_market_data_async(symbols, concurrency))
+
+
 def _number(value: Any, default: float = 0.0) -> float:
     try:
         number = float(str(value).replace(",", ""))
@@ -641,6 +1133,16 @@ def sync_account_snapshot(password: str | None = None) -> dict[str, Any]:
 
 
 async def _run_cli(args: argparse.Namespace) -> int:
+    if args.command == "prefetch":
+        if not args.symbols:
+            raise IBKRMCPError(
+                "Adaugă cel puțin un simbol după comanda prefetch."
+            )
+        stats = await _prefetch_market_data_async(
+            args.symbols, MARKET_DATA_CONCURRENCY
+        )
+        print(json.dumps(stats, ensure_ascii=False, indent=2))
+        return 0
     tools = await list_tools(interactive=True)
     if args.json:
         print(json.dumps(tools, ensure_ascii=False, indent=2))
@@ -656,8 +1158,10 @@ def main() -> int:
         description="Autorizare și diagnostic pentru IBKR MCP read-only"
     )
     parser.add_argument(
-        "command", nargs="?", choices=["login", "tools"], default="tools"
+        "command", nargs="?",
+        choices=["login", "tools", "prefetch"], default="tools",
     )
+    parser.add_argument("symbols", nargs="*")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     try:

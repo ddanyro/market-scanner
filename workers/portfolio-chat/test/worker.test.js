@@ -41,7 +41,7 @@ test("forwards an authenticated request to OpenAI", async (context) => {
     assert.equal(url, "https://api.openai.com/v1/responses");
     assert.equal(options.headers.Authorization, "Bearer openai-test");
     return new Response(JSON.stringify({
-      model: "gpt-5.6-sol",
+      model: "gpt-5.6-terra",
       output: [{type: "message", content: [{type: "output_text", text: "Răspuns test.", annotations: []}]}],
     }), {status: 200, headers: {"Content-Type": "application/json"}});
   };
@@ -118,7 +118,7 @@ test("falls back when OpenAI returns a successful but unusable payload", async (
   const originalFetch = globalThis.fetch;
   context.after(() => { globalThis.fetch = originalFetch; });
   globalThis.fetch = async () => new Response(JSON.stringify({
-    model: "gpt-5.6-sol", output: [],
+    model: "gpt-5.6-terra", output: [],
   }), {status: 200, headers: {"Content-Type": "application/json"}});
   const password = "portfolio-test";
   const response = await worker.fetch(new Request("https://worker.example", {
@@ -176,7 +176,7 @@ test("keeps the personal chat available if the rate limiter binding fails", asyn
   const originalFetch = globalThis.fetch;
   context.after(() => { globalThis.fetch = originalFetch; });
   globalThis.fetch = async () => new Response(JSON.stringify({
-    model: "gpt-5.6-sol",
+    model: "gpt-5.6-terra",
     output: [{type: "message", content: [{type: "output_text", text: "Disponibil.", annotations: []}]}],
   }), {status: 200, headers: {"Content-Type": "application/json"}});
   const password = "portfolio-test";

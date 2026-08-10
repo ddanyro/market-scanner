@@ -548,6 +548,54 @@ class TestMarketAnalysis(unittest.TestCase):
         cache_block = source[source.index("if new_ai_text:"):source.index("html_head += market_analysis_html")]
         self.assertIn("full_state['last_ai_summary'] = new_ai_text", cache_block)
         self.assertIn("market_utils.save_state(full_state)", cache_block)
+
+    @patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key'})
+    @patch('market_scanner_analysis.requests.post')
+    def test_news_ai_reuses_recent_material_cache(self, mock_post):
+        response = Mock()
+        response.status_code = 200
+        response.json.return_value = {
+            'model': 'gpt-5.6-terra',
+            'output_text': (
+                'SENTIMENT_SCORE: 61\n'
+                'REZUMAT_HTML: <p>Context moderat pozitiv.</p>'
+            ),
+            'usage': {
+                'input_tokens': 1200, 'output_tokens': 80,
+                'total_tokens': 1280,
+                'input_tokens_details': {'cached_tokens': 0},
+            },
+        }
+        mock_post.return_value = response
+        news = [{
+            'title': 'Știre stabilă', 'link': 'https://example.com/news',
+            'desc': 'Descriere stabilă',
+        }]
+        indicators = {
+            'VIX': {'value': 15.2}, 'SPX': {'value': 6200},
+        }
+
+        _, text, score, cache = (
+            market_scanner_analysis._generate_news_and_ai_summary_html(
+                news, indicators
+            )
+        )
+        self.assertEqual(score, 61)
+        self.assertIn('Context moderat pozitiv', text)
+        self.assertEqual(mock_post.call_count, 1)
+        request_json = mock_post.call_args.kwargs['json']
+        self.assertEqual(request_json['model'], 'gpt-5.6-terra')
+        self.assertEqual(request_json['prompt_cache_options']['mode'], 'explicit')
+
+        _, cached_text, cached_score, returned_cache = (
+            market_scanner_analysis._generate_news_and_ai_summary_html(
+                news, indicators, cache
+            )
+        )
+        self.assertEqual(mock_post.call_count, 1)
+        self.assertEqual(cached_text, text)
+        self.assertEqual(cached_score, score)
+        self.assertEqual(returned_cache['fingerprint'], cache['fingerprint'])
         
     def test_market_analysis_structure(self):
         """Test market analysis returns correct structure."""
@@ -997,6 +1045,16 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         request_json = mock_post.call_args.kwargs['json']
         self.assertEqual(request_json['model'], market_scanner_analysis.OPENAI_ANALYSIS_MODEL)
         self.assertEqual(request_json['reasoning'], {'effort': 'low'})
+        self.assertEqual(request_json['prompt_cache_options']['mode'], 'explicit')
+        self.assertIn('prompt_cache_key', request_json)
+        self.assertEqual(
+            request_json['input'][0]['content'][0][
+                'prompt_cache_breakpoint'
+            ],
+            {'mode': 'explicit'},
+        )
+        user_payload = json.loads(request_json['input'][1]['content'])
+        self.assertNotIn('rules', user_payload)
         self.assertEqual(request_json['text']['format']['type'], 'json_schema')
         self.assertTrue(request_json['text']['format']['strict'])
         self.assertIn('TEST · Lipsă stop', html_result)
@@ -1009,6 +1067,69 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(cache['result']['priorities'][0]['symbol'], 'TEST')
         self.assertEqual(returned_evidence['items'][0]['source_id'], 'TEST-sec-1')
         self.assertEqual(diagnostic['status'], 'success')
+
+    def test_portfolio_fingerprint_ignores_refresh_timestamps(self):
+        snapshot = {
+            'portfolio': {
+                'position_count': 1, 'total_value_eur': 5000,
+                'positions_without_stop': 0,
+                'positions_with_incomplete_stop_coverage': 0,
+            },
+            'positions': [{
+                'symbol': 'TEST', 'broker': 'IBKR', 'market': 'SUA',
+                'shares': 10, 'current_price_eur': 100,
+                'current_value_eur': 1000, 'active_stops': [{
+                    'value': 92, 'quantity': 10, 'order_type': 'STP',
+                }],
+                'market_data_fetched_at': '2026-08-10T09:00:00',
+                'evidence': [],
+            }],
+            'account_liquidity': {
+                'privacy_mode': 'exact',
+                'fetched_at': '2026-08-10T09:00:00',
+                'accounts': [{'label': 'IBKR', 'cash_total': 10000}],
+            },
+            'market_context': {}, 'buy_candidates': [],
+            'economic_calendar': [], 'tvbetetf_lookthrough': {},
+            'us_sector_rotation': {}, 'us_market_regime': {},
+        }
+        first = market_scanner_analysis._portfolio_snapshot_fingerprint(snapshot)
+        refreshed = json.loads(json.dumps(snapshot))
+        refreshed['account_liquidity']['fetched_at'] = '2026-08-10T09:30:00'
+        refreshed['positions'][0]['market_data_fetched_at'] = '2026-08-10T09:30:00'
+        second = market_scanner_analysis._portfolio_snapshot_fingerprint(refreshed)
+        self.assertEqual(first, second)
+        refreshed['positions'][0]['shares'] = 11
+        self.assertNotEqual(
+            first,
+            market_scanner_analysis._portfolio_snapshot_fingerprint(refreshed),
+        )
+
+    @patch.dict(os.environ, {
+        'OPENAI_TERRA_INPUT_USD_PER_MTOK': '1',
+        'OPENAI_TERRA_CACHED_INPUT_USD_PER_MTOK': '0.1',
+        'OPENAI_TERRA_CACHE_WRITE_USD_PER_MTOK': '1.25',
+        'OPENAI_TERRA_OUTPUT_USD_PER_MTOK': '5',
+    })
+    def test_openai_usage_records_cache_and_estimated_cost(self):
+        usage = market_scanner_analysis._openai_usage_from_response({
+            'model': 'gpt-5.6-terra',
+            'usage': {
+                'input_tokens': 2000,
+                'output_tokens': 100,
+                'total_tokens': 2100,
+                'input_tokens_details': {
+                    'cached_tokens': 1000,
+                    'cache_write_tokens': 500,
+                },
+                'output_tokens_details': {'reasoning_tokens': 25},
+            },
+        }, 'test')
+        self.assertEqual(usage['uncached_input_tokens'], 500)
+        self.assertEqual(usage['cached_tokens'], 1000)
+        self.assertEqual(usage['cache_write_tokens'], 500)
+        self.assertEqual(usage['reasoning_tokens'], 25)
+        self.assertGreater(usage['estimated_cost_usd'], 0)
 
     @patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key'})
     @patch('market_scanner_analysis.get_economic_events', return_value=[])
@@ -1798,11 +1919,44 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(float(frame['Close'].iloc[-1]), 61)
         self.assertIsNone(stale)
 
+    @patch('market_scanner._download_yahoo_history')
+    @patch('market_scanner._load_tws_instrument')
+    @patch('market_scanner._load_mcp_market_instrument')
+    def test_international_history_prefers_mcp_before_tws_and_yahoo(
+        self, load_mcp, load_tws, yahoo_download,
+    ):
+        load_mcp.return_value = {
+            'symbol': 'AAPL',
+            'data_provider': 'IBKR MCP',
+            'data_broker': 'IBKR',
+            'fetched_at': '2026-08-10T08:00:00+00:00',
+            'market_data': {'market_price': 224.5},
+            'bars': [{
+                'date': '2026-08-07', 'open': 220, 'high': 225,
+                'low': 219, 'close': 224, 'volume': 1_000_000,
+            }],
+        }
+        load_tws.return_value = {'bars': [{
+            'date': '2026-08-07', 'open': 1, 'high': 1,
+            'low': 1, 'close': 1, 'volume': 1,
+        }]}
+
+        frame, selected, broker_instrument, attribution = (
+            market_scanner._load_analysis_history('AAPL', 'AAPL')
+        )
+
+        self.assertEqual(float(frame['Close'].iloc[-1]), 224)
+        self.assertIs(selected, load_mcp.return_value)
+        self.assertIs(broker_instrument, load_mcp.return_value)
+        self.assertEqual(attribution['Market_Data_Source'], 'IBKR MCP')
+        yahoo_download.assert_not_called()
+
     @patch('market_scanner.bvb_public_market_data.fetch_history')
+    @patch('market_scanner._load_mcp_market_instrument', return_value=None)
     @patch('market_scanner._load_tws_instrument', return_value=None)
     @patch('market_scanner._download_yahoo_history')
     def test_bvb_history_prefers_public_bvb_before_yahoo_and_tws(
-        self, yahoo_download, _load_tws, bvb_fetch,
+        self, yahoo_download, _load_tws, _load_mcp, bvb_fetch,
     ):
         yahoo_download.return_value = pd.DataFrame()
         bvb_frame = pd.DataFrame(
@@ -1837,10 +1991,11 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         yahoo_download.assert_called_once_with('ALR.RO', period='1y')
 
     @patch('market_scanner.bvb_public_market_data.fetch_history')
+    @patch('market_scanner._load_mcp_market_instrument', return_value=None)
     @patch('market_scanner._load_tws_instrument')
     @patch('market_scanner._download_yahoo_history')
     def test_bvb_history_uses_yahoo_after_public_bvb(
-        self, yahoo_download, load_tws, bvb_fetch,
+        self, yahoo_download, load_tws, _load_mcp, bvb_fetch,
     ):
         bvb_fetch.side_effect = (
             market_scanner.bvb_public_market_data.BVBPublicDataError('offline')
@@ -1876,10 +2031,11 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         )
 
     @patch('market_scanner.bvb_public_market_data.fetch_history')
+    @patch('market_scanner._load_mcp_market_instrument', return_value=None)
     @patch('market_scanner._load_tws_instrument')
     @patch('market_scanner._download_yahoo_history')
     def test_bvb_history_uses_existing_tws_cache_only_as_last_fallback(
-        self, yahoo_download, load_tws, bvb_fetch,
+        self, yahoo_download, load_tws, _load_mcp, bvb_fetch,
     ):
         bvb_fetch.side_effect = (
             market_scanner.bvb_public_market_data.BVBPublicDataError('offline')
@@ -1906,9 +2062,10 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
 
     @patch('market_scanner.market_data.get_finviz_data', return_value={})
     @patch('market_scanner.yf.download')
+    @patch('market_scanner._load_mcp_market_instrument', return_value=None)
     @patch('market_scanner._load_tws_instrument')
     def test_lqq_analysis_prefers_tws_ohlcv_over_yahoo(
-        self, load_tws, yahoo_download, _finviz,
+        self, load_tws, _load_mcp, yahoo_download, _finviz,
     ):
         dates = pd.date_range('2025-09-01', periods=220, freq='B')
         closes = pd.Series(
@@ -2532,6 +2689,8 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             market_scanner,
             '_select_bvb_research_symbols',
             return_value=['TLV.RO'],
+        ), patch.object(
+            market_scanner, '_prefetch_ibkr_mcp_market_data'
         ):
             result = market_scanner.ensure_buy_research_candidates(
                 {},
@@ -2573,7 +2732,9 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
                 '_cached_at': time.time() - 7200,
             }],
         }
-        with patch.dict(
+        with patch.object(
+            market_scanner, '_prefetch_ibkr_mcp_market_data'
+        ), patch.dict(
             market_scanner.BUY_RESEARCH_UNIVERSES,
             {'SUA': ['AAPL']},
             clear=True,

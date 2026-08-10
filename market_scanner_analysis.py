@@ -542,12 +542,128 @@ def _save_ai_calendar_cache(cache):
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-terra'
 OPENAI_ANALYSIS_REASONING = {'effort': 'low'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'low'}
-PORTFOLIO_AI_CACHE_VERSION = 16
+PORTFOLIO_AI_CACHE_VERSION = 17
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
+NEWS_AI_CACHE_VERSION = 2
+NEWS_AI_CACHE_HOURS = 6
+NEWS_AI_MIN_REFRESH_MINUTES = 60
 ACTIONABLE_BUY_VERDICTS = {'Candidat valid', 'Pregătit la trigger'}
 BUY_RECOMMENDATION_HISTORY_DISPLAY_LIMIT = 50
 SEC_TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json'
 SEC_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK{cik:010d}.json'
+_OPENAI_USAGE_EVENTS = []
+
+
+def _optional_float_env(name):
+    """Citește o rată publică opțională fără a atinge secretele API."""
+    try:
+        value = str(os.environ.get(name, '')).strip()
+        return float(value) if value else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _openai_usage_from_response(payload, purpose, model=None):
+    """Normalizează telemetria Responses API și estimează costul dacă există rate."""
+    usage = payload.get('usage') if isinstance(payload, dict) else None
+    if not isinstance(usage, dict):
+        return None
+    input_details = usage.get('input_tokens_details') or {}
+    output_details = usage.get('output_tokens_details') or {}
+    input_tokens = int(usage.get('input_tokens') or 0)
+    output_tokens = int(usage.get('output_tokens') or 0)
+    cached_tokens = int(
+        input_details.get('cached_tokens')
+        or usage.get('cached_tokens')
+        or 0
+    )
+    cache_write_tokens = int(
+        input_details.get('cache_write_tokens')
+        or usage.get('cache_write_tokens')
+        or 0
+    )
+    uncached_input_tokens = max(
+        input_tokens - cached_tokens - cache_write_tokens, 0
+    )
+    long_context = input_tokens > 272_000
+    official_defaults = (
+        {'input': 4.0, 'cached_input': 0.4, 'cache_write': 5.0, 'output': 18.0}
+        if long_context else
+        {'input': 2.0, 'cached_input': 0.2, 'cache_write': 2.5, 'output': 12.0}
+    )
+    env_names = {
+        'input': 'OPENAI_TERRA_INPUT_USD_PER_MTOK',
+        'cached_input': 'OPENAI_TERRA_CACHED_INPUT_USD_PER_MTOK',
+        'cache_write': 'OPENAI_TERRA_CACHE_WRITE_USD_PER_MTOK',
+        'output': 'OPENAI_TERRA_OUTPUT_USD_PER_MTOK',
+    }
+    rates = {
+        key: (
+            _optional_float_env(env_name)
+            if _optional_float_env(env_name) is not None
+            else official_defaults[key]
+        )
+        for key, env_name in env_names.items()
+    }
+    estimated_cost = (
+        uncached_input_tokens * rates['input']
+        + cached_tokens * rates['cached_input']
+        + cache_write_tokens * rates['cache_write']
+        + output_tokens * rates['output']
+    ) / 1_000_000
+    return {
+        'recorded_at': datetime.datetime.now().isoformat(timespec='seconds'),
+        'purpose': str(purpose),
+        'model': str(model or payload.get('model') or OPENAI_ANALYSIS_MODEL),
+        'input_tokens': input_tokens,
+        'uncached_input_tokens': uncached_input_tokens,
+        'cached_tokens': cached_tokens,
+        'cache_write_tokens': cache_write_tokens,
+        'output_tokens': output_tokens,
+        'reasoning_tokens': int(output_details.get('reasoning_tokens') or 0),
+        'total_tokens': int(
+            usage.get('total_tokens') or input_tokens + output_tokens
+        ),
+        'estimated_cost_usd': (
+            round(estimated_cost, 8) if estimated_cost is not None else None
+        ),
+        'pricing_context': 'long' if long_context else 'short',
+        'pricing_rates_usd_per_mtok': rates,
+        'cost_estimate_status': 'token_cost_estimate_standard_tier',
+    }
+
+
+def _record_openai_usage(payload, purpose, model=None):
+    event = _openai_usage_from_response(payload, purpose, model=model)
+    if event:
+        _OPENAI_USAGE_EVENTS.append(event)
+    return event
+
+
+def consume_openai_usage_events():
+    """Returnează telemetria apelurilor din rularea curentă și golește bufferul."""
+    events = list(_OPENAI_USAGE_EVENTS)
+    _OPENAI_USAGE_EVENTS.clear()
+    return events
+
+
+def _cached_system_message(text):
+    """Mesaj stabil marcat explicit pentru Prompt Caching pe GPT-5.6."""
+    return {
+        'role': 'system',
+        'content': [{
+            'type': 'input_text',
+            'text': str(text),
+            'prompt_cache_breakpoint': {'mode': 'explicit'},
+        }],
+    }
+
+
+def _prompt_cache_fields(key):
+    return {
+        'prompt_cache_key': str(key),
+        'prompt_cache_options': {'mode': 'explicit', 'ttl': '30m'},
+    }
 
 
 def _extract_openai_response_text(payload):
@@ -1350,22 +1466,191 @@ def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
 
 
 def _portfolio_snapshot_fingerprint(snapshot):
+    def relative_bucket(value, step_pct=2.0):
+        number = _safe_number(value, None)
+        if number is None or number <= 0:
+            return None
+        return int(round(math.log(number) / math.log(1 + step_pct / 100)))
+
+    def money_bucket(value, step_pct=1.0):
+        number = _safe_number(value, None)
+        if number is None:
+            return None
+        if number == 0:
+            return (0, 0)
+        return (
+            1 if number > 0 else -1,
+            relative_bucket(abs(number), step_pct=step_pct),
+        )
+
+    def position_material(position):
+        return {
+            'symbol': position.get('symbol'),
+            'broker': position.get('broker'),
+            'market': position.get('market'),
+            'sector': position.get('sector'),
+            'industry': position.get('industry'),
+            'shares': position.get('shares'),
+            'buy_price_eur': position.get('buy_price_eur'),
+            'current_price_2pct_bucket': relative_bucket(
+                position.get('current_price_eur')
+            ),
+            'current_value_2pct_bucket': money_bucket(
+                position.get('current_value_eur'), step_pct=2.0
+            ),
+            'active_stops': position.get('active_stops', []),
+            'suggested_stop_eur': position.get('suggested_stop_eur'),
+            'decision': position.get('decision'),
+            'trend': position.get('trend'),
+            'rsi_5pt_bucket': (
+                int(_safe_number(position.get('rsi')) // 5)
+                if _safe_number(position.get('rsi'), None) is not None
+                else None
+            ),
+            'earnings_risk': position.get('earnings_risk'),
+            'data_flags': position.get('data_flags', []),
+            'evidence_ids': sorted(
+                str(item.get('source_id') or item.get('id'))
+                for item in position.get('evidence', [])
+                if isinstance(item, dict) and (item.get('source_id') or item.get('id'))
+            ),
+        }
+
+    def candidate_material(candidate):
+        return {
+            'symbol': candidate.get('symbol'),
+            'market': candidate.get('market'),
+            'candidate_source': candidate.get('candidate_source'),
+            'strict_eligible': candidate.get('strict_eligible'),
+            'decision': candidate.get('decision'),
+            'consensus': candidate.get('consensus'),
+            'entry_1pct_bucket': relative_bucket(
+                candidate.get('entry_native'), step_pct=1.0
+            ),
+            'stop_1pct_bucket': relative_bucket(
+                candidate.get('stop_native'), step_pct=1.0
+            ),
+            'target_1pct_bucket': relative_bucket(
+                candidate.get('target_native'), step_pct=1.0
+            ),
+            'rr_ratio': round(_safe_number(candidate.get('rr_ratio')), 1),
+            'liquidity_status': candidate.get('liquidity_status'),
+            'sector_rotation_status': candidate.get('sector_rotation_status'),
+            'earnings_risk': candidate.get('earnings_risk'),
+            'evidence_ids': sorted(
+                str(item.get('source_id') or item.get('id'))
+                for item in candidate.get('evidence', [])
+                if isinstance(item, dict) and (item.get('source_id') or item.get('id'))
+            ),
+        }
+
+    def liquidity_material(account_liquidity):
+        accounts = []
+        for account in account_liquidity.get('accounts', []):
+            if not isinstance(account, dict):
+                continue
+            clean = {}
+            for key, value in account.items():
+                if key in {'fetched_at', 'updated_at', 'as_of'}:
+                    continue
+                if isinstance(value, (int, float)):
+                    clean[key] = money_bucket(value)
+                elif isinstance(value, dict):
+                    clean[key] = {
+                        sub_key: money_bucket(sub_value)
+                        if isinstance(sub_value, (int, float)) else sub_value
+                        for sub_key, sub_value in value.items()
+                    }
+                elif isinstance(value, list):
+                    clean[key] = value
+                else:
+                    clean[key] = value
+            accounts.append(clean)
+        return {
+            'privacy_mode': account_liquidity.get('privacy_mode'),
+            'accounts': accounts,
+            'risk_flags': account_liquidity.get('risk_flags', []),
+        }
+
+    def market_material(context):
+        result = {}
+        for market, payload in (context or {}).items():
+            if not isinstance(payload, dict):
+                continue
+            result[market] = {
+                'applies_to': payload.get('applies_to', []),
+                'benchmarks': [{
+                    'name': item.get('name'),
+                    'latest_2pct_bucket': relative_bucket(item.get('latest')),
+                    'change_1d_band': round(
+                        _safe_number(item.get('change_1d_pct')) / 0.5
+                    ) if item.get('change_1d_pct') is not None else None,
+                    'change_1m_band': round(
+                        _safe_number(item.get('change_1m_pct'))
+                    ) if item.get('change_1m_pct') is not None else None,
+                    'change_3m_band': round(
+                        _safe_number(item.get('change_3m_pct'))
+                    ) if item.get('change_3m_pct') is not None else None,
+                } for item in payload.get('benchmarks', []) if isinstance(item, dict)],
+            }
+        return result
+
     account_liquidity = snapshot.get('account_liquidity', {})
     stable = {
         'version': PORTFOLIO_AI_CACHE_VERSION,
-        'portfolio': snapshot.get('portfolio', {}),
-        'positions': snapshot.get('positions', []),
-        'account_liquidity': {
-            'privacy_mode': account_liquidity.get('privacy_mode'),
-            'fetched_at': account_liquidity.get('fetched_at'),
-            'accounts': account_liquidity.get('accounts', []),
+        'portfolio': {
+            'position_count': snapshot.get('portfolio', {}).get('position_count'),
+            'positions_without_stop': snapshot.get('portfolio', {}).get(
+                'positions_without_stop'
+            ),
+            'positions_with_incomplete_stop_coverage': snapshot.get(
+                'portfolio', {}
+            ).get('positions_with_incomplete_stop_coverage'),
+            'total_value_1pct_bucket': money_bucket(
+                snapshot.get('portfolio', {}).get('total_value_eur'),
+                step_pct=1.0,
+            ),
         },
-        'market_context': snapshot.get('market_context', {}),
-        'buy_candidates': snapshot.get('buy_candidates', []),
+        'positions': [
+            position_material(item)
+            for item in snapshot.get('positions', []) if isinstance(item, dict)
+        ],
+        'account_liquidity': liquidity_material(account_liquidity),
+        'market_context': market_material(snapshot.get('market_context', {})),
+        'buy_candidates': [
+            candidate_material(item)
+            for item in snapshot.get('buy_candidates', []) if isinstance(item, dict)
+        ],
         'economic_calendar': snapshot.get('economic_calendar', []),
-        'tvbetetf_lookthrough': snapshot.get('tvbetetf_lookthrough', {}),
-        'us_sector_rotation': snapshot.get('us_sector_rotation', {}),
-        'us_market_regime': snapshot.get('us_market_regime', {}),
+        'tvbetetf_lookthrough': {
+            'holdings': [{
+                'symbol': item.get('symbol'),
+                'etf_weight_pct': round(
+                    _safe_number(item.get('etf_weight_pct')), 1
+                ),
+            } for item in snapshot.get('tvbetetf_lookthrough', {}).get(
+                'holdings', []
+            ) if isinstance(item, dict)],
+        },
+        'us_sector_rotation': {
+            key: value.get('status') if isinstance(value, dict) else value
+            for key, value in snapshot.get('us_sector_rotation', {}).items()
+            if key not in {'fetched_at', 'updated_at', 'as_of'}
+        },
+        'us_market_regime': {
+            'economic_phase': snapshot.get('us_market_regime', {}).get(
+                'economic_phase'
+            ),
+            'market_stage': snapshot.get('us_market_regime', {}).get(
+                'market_stage'
+            ),
+            'size_factor': snapshot.get('us_market_regime', {}).get(
+                'size_factor'
+            ),
+            'vix_2pt_band': round(
+                _safe_number(snapshot.get('us_market_regime', {}).get('vix')) / 2
+            ) if snapshot.get('us_market_regime', {}).get('vix') is not None else None,
+        },
     }
     return hashlib.sha256(
         json.dumps(stable, sort_keys=True, ensure_ascii=False).encode('utf-8')
@@ -3327,6 +3612,14 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
         },
         'data': request_snapshot,
     }
+    portfolio_rules = request_payload.pop('rules')
+    portfolio_system_prompt = (
+        'Ești un consilier de risc pentru swing trading long. Răspunzi în română '
+        'clară, directă și ușor de înțeles. Pui concluzia înaintea detaliilor. '
+        'Folosești numai datele primite și explici explicit orice lipsă.\n\n'
+        'REGULI STABILE ALE ANALIZEI:\n- '
+        + '\n- '.join(portfolio_rules)
+    )
     output_schema = {
         'type': 'object',
         'additionalProperties': False,
@@ -3448,6 +3741,9 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                     'model': OPENAI_ANALYSIS_MODEL,
                     'reasoning': attempt['reasoning'],
                     'max_output_tokens': attempt['max_output_tokens'],
+                    **_prompt_cache_fields(
+                        f'market-scanner:portfolio:v{PORTFOLIO_AI_CACHE_VERSION}'
+                    ),
                     'text': {
                         'format': {
                             'type': 'json_schema',
@@ -3458,11 +3754,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                         'verbosity': attempt['verbosity'],
                     },
                     'input': [
-                        {'role': 'system', 'content': (
-                            'Ești un consilier de risc pentru swing trading long. Răspunzi în română '
-                            'clară, directă și ușor de înțeles. Pui concluzia înaintea detaliilor. '
-                            'Folosești numai datele primite și explici explicit orice lipsă.'
-                        )},
+                        _cached_system_message(portfolio_system_prompt),
                         {'role': 'user', 'content': json.dumps(request_payload, ensure_ascii=False)},
                     ],
                 },
@@ -3476,6 +3768,11 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 })
                 continue
             response_payload = response.json()
+            usage_event = _record_openai_usage(
+                response_payload,
+                'portfolio_analysis',
+                model=OPENAI_ANALYSIS_MODEL,
+            )
             result = _validate_portfolio_ai_result(
                 json.loads(_extract_openai_response_text(response_payload)),
                 {item['symbol'] for item in snapshot['positions']},
@@ -3497,6 +3794,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                 'attempt': attempt_number,
                 'model': OPENAI_ANALYSIS_MODEL,
                 'reasoning': attempt['reasoning'],
+                'usage': usage_event,
             }
             return (
                 _render_portfolio_ai_html(snapshot, result, f'OpenAI · {OPENAI_ANALYSIS_MODEL}'),
@@ -3571,6 +3869,9 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                         'model': OPENAI_ANALYSIS_MODEL,
                         'reasoning': retry['reasoning'],
                         'max_output_tokens': retry['max_output_tokens'],
+                        **_prompt_cache_fields(
+                            f'market-scanner:portfolio-recovery:v{PORTFOLIO_AI_CACHE_VERSION}'
+                        ),
                         'text': {
                             'format': {
                                 'type': 'json_schema',
@@ -3581,14 +3882,11 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                             'verbosity': retry['verbosity'],
                         },
                         'input': [
-                            {
-                                'role': 'system',
-                                'content': (
-                                    'Ești un consilier de risc pentru swing trading long. '
-                                    'Răspunzi în română clară și exclusiv în schema JSON cerută. '
-                                    'Analizezi fiecare candidat primit exact o dată.'
-                                ),
-                            },
+                            _cached_system_message(
+                                portfolio_system_prompt
+                                + '\nRăspunzi exclusiv în schema JSON cerută și '
+                                  'analizezi fiecare candidat primit exact o dată.'
+                            ),
                             {
                                 'role': 'user',
                                 'content': json.dumps(
@@ -3608,6 +3906,11 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                     })
                     continue
                 response_payload = response.json()
+                _record_openai_usage(
+                    response_payload,
+                    f'portfolio_recovery:{batch_label}:retry-{retry_number}',
+                    model=OPENAI_ANALYSIS_MODEL,
+                )
                 return _validate_portfolio_ai_result(
                     json.loads(_extract_openai_response_text(response_payload)),
                     {item['symbol'] for item in snapshot['positions']},
@@ -3784,16 +4087,25 @@ def _enrich_events_with_ai(events, indicators):
             json={
                 'model': OPENAI_ANALYSIS_MODEL,
                 'reasoning': OPENAI_ANALYSIS_REASONING,
+                **_prompt_cache_fields('market-scanner:economic-calendar:v2'),
                 'text': {'format': {'type': 'json_object'}, 'verbosity': 'medium'},
                 'input': [
-                    {'role': 'system', 'content': 'Ești un analist macro prudent. Răspunzi exclusiv JSON: {"events": [...]}.'},
+                    _cached_system_message(
+                        'Ești un analist macro prudent. Nu inventezi date și '
+                        'răspunzi exclusiv JSON: {"events": [...]}. Pentru fiecare '
+                        'eveniment separi impactul SUA, Europa și BVB.'
+                    ),
                     {'role': 'user', 'content': json.dumps(prompt, ensure_ascii=False)}
                 ],
             },
             timeout=180,
         )
         response.raise_for_status()
-        parsed = json.loads(_extract_openai_response_text(response.json()))
+        response_payload = response.json()
+        _record_openai_usage(
+            response_payload, 'economic_calendar', model=OPENAI_ANALYSIS_MODEL
+        )
+        parsed = json.loads(_extract_openai_response_text(response_payload))
         allowed = {'Bullish probabil', 'Bearish probabil', 'Mixt', 'Neutru', 'Date insuficiente'}
         for item in parsed.get('events', []):
             event_id = str(item.get('id', ''))
@@ -3910,130 +4222,196 @@ def get_market_news():
 
 
 def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=None):
-    """
-    Generează secțiunea de știri și analiză AI.
-    Returnează (full_html, ai_summary_text, sentiment_score)
-    """
+    """Generează rezumatul știrilor cu cache material și TTL de șase ore."""
     try:
-        # 1. Header
         news_html = "<div class='news-section' style='background: var(--bg-white); padding: 24px; border-radius: var(--radius-md); margin-top: 24px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);'>"
         news_html += "<strong style='color: var(--primary-purple); font-size: 18px; font-weight: 700; display: block; margin-bottom: 16px;'>Market News Overview</strong>"
-        
-        ai_summary_html = ""
-        ai_raw_text = ""
-        ai_sentiment_score = 50 # Default Neutral
         openai_key = ""
-        
-        # Load Key
         if os.path.exists("openai_key.txt"):
             try:
-                with open("openai_key.txt", "r") as f:
-                    openai_key = f.read().strip()
-            except: pass
-            
+                with open("openai_key.txt", "r") as handle:
+                    openai_key = handle.read().strip()
+            except OSError:
+                pass
         if not openai_key:
             openai_key = os.environ.get("OPENAI_API_KEY", "")
-            
-        if openai_key and news_items:
+
+        compact_news = [{
+            'title': str(item.get('title', '')).strip(),
+            'link': str(item.get('link', '')).strip(),
+            'desc': str(item.get('desc', '')).strip(),
+        } for item in news_items[:10]]
+        fingerprint_payload = {
+            'version': NEWS_AI_CACHE_VERSION,
+            'news': compact_news,
+            'vix_band': round(
+                _safe_number(indicators.get('VIX', {}).get('value'))
+            ),
+            'spx_50pt_band': round(
+                _safe_number(indicators.get('SPX', {}).get('value')) / 50
+            ) * 50,
+        }
+        fingerprint = hashlib.sha256(json.dumps(
+            fingerprint_payload, sort_keys=True, ensure_ascii=False
+        ).encode('utf-8')).hexdigest()
+        cached = cached_summary if isinstance(cached_summary, dict) else {}
+        cached_text = (
+            str(cached.get('text') or '')
+            if cached else str(cached_summary or '')
+        )
+        cached_score = int(_safe_number(cached.get('score'), 50)) if cached else 50
+        cached_at = None
+        try:
+            if cached.get('generated_at'):
+                cached_at = datetime.datetime.fromisoformat(
+                    str(cached['generated_at']).replace('Z', '+00:00')
+                )
+                if cached_at.tzinfo is not None:
+                    cached_at = cached_at.astimezone().replace(tzinfo=None)
+        except (TypeError, ValueError):
+            cached_at = None
+        cache_age = (
+            datetime.datetime.now() - cached_at if cached_at else None
+        )
+        cache_is_recent = bool(
+            cached_text
+            and cached.get('version') == NEWS_AI_CACHE_VERSION
+            and cache_age is not None
+            and (
+                cache_age <= datetime.timedelta(
+                    minutes=NEWS_AI_MIN_REFRESH_MINUTES
+                )
+                or (
+                    cached.get('fingerprint') == fingerprint
+                    and cache_age <= datetime.timedelta(hours=NEWS_AI_CACHE_HOURS)
+                )
+            )
+        )
+
+        ai_raw_text = cached_text if cache_is_recent else ''
+        ai_sentiment_score = cached_score if cache_is_recent else 50
+        new_cache = cached if cache_is_recent else None
+        cache_label = cache_is_recent
+        if cache_is_recent:
+            print("  -> Folosim rezumatul știrilor din cache.")
+        elif openai_key and compact_news:
             try:
                 print("Generare rezumat AI (OpenAI)...")
-                # Construct Prompt
-                news_text = "\n".join([f"- {item['title']}: {item['desc']}" for item in news_items[:10]])
-                
-                # Context din indicatori pentru AI
-                vix_val = indicators.get('VIX', {}).get('value', 'N/A')
-                spx_val = indicators.get('SPX', {}).get('value', 'N/A')
-                
-                prompt = (
-                    f"Analizează următoarele știri financiare și indicatori de piață pentru a determina sentimentul general.\n"
-                    f"Context Tehnic: VIX={vix_val}, SPX={spx_val}.\n\n"
-                    f"Știri Recente:\n{news_text}\n\n"
-                    f"Te rog să răspunzi EXACT în următorul format:\n"
-                    f"SENTIMENT_SCORE: <un număr între 0 și 100, unde 0=Extreme Bearish, 50=Neutral, 100=Extreme Bullish>\n"
-                    f"REZUMAT_HTML: <un rezumat succint (max 150 cuvinte) în format HTML (fără tag-uri <html> sau <body>, doar <p>, <b>, <ul> etc.), în limba ROMÂNĂ, analizând riscurile și oportunitățile.>\n"
+                news_text = "\n".join(
+                    f"- {item['title']}: {item['desc']}" for item in compact_news
                 )
-                
-                # OpenAI Request logic
-                url = "https://api.openai.com/v1/responses"
-                headers = {"Content-Type": "application/json", "Authorization": f"Bearer {openai_key}"}
+                prompt = (
+                    "Context tehnic și știri variabile. Analizează sentimentul general.\n"
+                    f"VIX={indicators.get('VIX', {}).get('value', 'N/A')}; "
+                    f"SPX={indicators.get('SPX', {}).get('value', 'N/A')}.\n\n"
+                    f"Știri recente:\n{news_text}"
+                )
+                static_prompt = (
+                    "Ești un analist financiar prudent. Răspunde exact astfel:\n"
+                    "SENTIMENT_SCORE: număr între 0 și 100.\n"
+                    "REZUMAT_HTML: rezumat în română de maximum 150 de cuvinte, "
+                    "folosind numai <p>, <b>, <ul> și <li>, cu riscuri și oportunități."
+                )
                 payload = {
-                    "model": OPENAI_ANALYSIS_MODEL,
-                    "reasoning": OPENAI_ANALYSIS_REASONING,
-                    "text": {"verbosity": "medium"},
-                    "input": [{"role": "system", "content": "Ești un analist financiar expert. Răspunde strict în formatul cerut."}, {"role": "user", "content": prompt}]
+                    'model': OPENAI_ANALYSIS_MODEL,
+                    'reasoning': OPENAI_ANALYSIS_REASONING,
+                    'text': {'verbosity': 'medium'},
+                    **_prompt_cache_fields('market-scanner:news:v2'),
+                    'input': [
+                        _cached_system_message(static_prompt),
+                        {'role': 'user', 'content': prompt},
+                    ],
                 }
-                
-                resp = requests.post(url, headers=headers, json=payload, timeout=180)
-                
-                if resp.status_code == 200:
-                    data = resp.json()
-                    content = _extract_openai_response_text(data)
-                    ai_raw_text = content
-                    
-                    # Parsing Response
-                    score_line = [l for l in content.split('\n') if 'SENTIMENT_SCORE:' in l]
+                response = requests.post(
+                    'https://api.openai.com/v1/responses',
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {openai_key}',
+                    },
+                    json=payload,
+                    timeout=180,
+                )
+                if response.status_code == 200:
+                    response_payload = response.json()
+                    usage_event = _record_openai_usage(
+                        response_payload, 'market_news_summary',
+                        model=OPENAI_ANALYSIS_MODEL,
+                    )
+                    ai_raw_text = _extract_openai_response_text(response_payload)
+                    score_line = [
+                        line for line in ai_raw_text.split('\n')
+                        if 'SENTIMENT_SCORE:' in line
+                    ]
                     if score_line:
                         try:
-                            score_str = score_line[0].split(':')[1].strip()
-                            ai_sentiment_score = int(float(score_str))
-                        except:
+                            ai_sentiment_score = int(float(
+                                score_line[0].split(':', 1)[1].strip()
+                            ))
+                        except (TypeError, ValueError):
                             ai_sentiment_score = 50
-                    
-                    # Extract Summary HTML (everything after SENTIMENT_SCORE line)
-                    summary_part = content
-                    if 'REZUMAT_HTML:' in content:
-                        summary_part = content.split('REZUMAT_HTML:')[1].strip()
-                    elif 'SENTIMENT_SCORE:' in content:
-                         parts = content.split('\n')
-                         summary_part = "\n".join([p for p in parts if 'SENTIMENT_SCORE' not in p]).strip()
-
-                    ai_summary_html = f"<div style='color: var(--text-primary); font-size: 15px; line-height: 1.6; background: var(--light-purple-bg); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 16px; border-left: 3px solid var(--primary-purple);'><strong style='color: var(--primary-purple);'>Analiză OpenAI:</strong><br>{summary_part}</div>"
-                elif resp.status_code == 429:
-                    ai_summary_html = "<div style='color:orange'><strong>Eroare OpenAI (429):</strong> Rate Limit.</div>"
+                    new_cache = {
+                        'version': NEWS_AI_CACHE_VERSION,
+                        'fingerprint': fingerprint,
+                        'generated_at': datetime.datetime.now().isoformat(
+                            timespec='seconds'
+                        ),
+                        'text': ai_raw_text,
+                        'score': ai_sentiment_score,
+                        'model': OPENAI_ANALYSIS_MODEL,
+                        'usage': usage_event,
+                    }
                 else:
-                    ai_summary_html = f"<div style='color:red'>Eroare OpenAI: {resp.status_code}</div>"
-                    print(f"  OpenAI Error: {resp.status_code}")
+                    print(f"  OpenAI Error: {response.status_code}")
+            except (requests.RequestException, ValueError, TypeError) as error:
+                print(f"  Eroare request OpenAI: {error}")
 
-            except Exception as e:
-                print(f"  Eroare request OpenAI: {e}")
-                ai_summary_html = f"<div style='color:red'>Eroare conexiune OpenAI: {str(e)[:50]}</div>"
-        
-        elif not openai_key:
-             # Check for Cached Summary
-             if cached_summary:
-                  print("  -> Folosim rezumat AI din cache.")
-                  # Try to extract previous score if saved in raw text, otherwise default
-                  if 'SENTIMENT_SCORE:' in cached_summary:
-                      try:
-                          ai_sentiment_score = int(float(cached_summary.split('SENTIMENT_SCORE:')[1].split()[0]))
-                      except: pass
-                  
-                  summary_display = cached_summary
-                  if 'REZUMAT_HTML:' in cached_summary:
-                       summary_display = cached_summary.split('REZUMAT_HTML:')[1].strip()
+        if not ai_raw_text and cached_text:
+            ai_raw_text = cached_text
+            ai_sentiment_score = cached_score
+            new_cache = cached or {
+                'version': 1, 'text': cached_text, 'score': cached_score,
+            }
+            cache_label = True
 
-                  ai_summary_html = f"<div style='color: var(--text-primary); font-size: 15px; line-height: 1.6; background: var(--light-purple-bg); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 16px; border-left: 3px solid var(--primary-purple);'><strong style='color: var(--primary-purple);'>Analiză OpenAI (Cached):</strong><br>{summary_display}</div>"
-                  ai_raw_text = cached_summary
-             else:
-                  ai_summary_html = "<div style='color:orange'>Lipsă cheie OpenAI și lipsă cache.</div>"
+        if ai_raw_text:
+            summary_display = ai_raw_text
+            if 'REZUMAT_HTML:' in summary_display:
+                summary_display = summary_display.split(
+                    'REZUMAT_HTML:', 1
+                )[1].strip()
+            elif 'SENTIMENT_SCORE:' in summary_display:
+                summary_display = '\n'.join(
+                    line for line in summary_display.split('\n')
+                    if 'SENTIMENT_SCORE:' not in line
+                ).strip()
+            label = 'Analiză OpenAI (cache)' if cache_label else 'Analiză OpenAI'
+            news_html += (
+                "<div style='color: var(--text-primary); font-size: 15px; "
+                "line-height: 1.6; background: var(--light-purple-bg); "
+                "padding: 16px; border-radius: var(--radius-sm); margin-bottom: 16px; "
+                "border-left: 3px solid var(--primary-purple);'>"
+                f"<strong style='color: var(--primary-purple);'>{label}:</strong><br>"
+                f"{summary_display}</div>"
+            )
+        else:
+            news_html += (
+                "<div style='color:orange'>Analiza AI a știrilor nu este "
+                "disponibilă și nu există cache valid.</div>"
+            )
 
-        # ... Assemble HTML ...
-        if ai_summary_html: news_html += ai_summary_html
-        
-        # Sources
         news_html += "<div style='font-size: 0.8rem; color: #888; margin-top: 10px;'>Surse: "
-        for n in news_items[:3]:
-             news_html += f"<a href='{n['link']}' target='_blank' style='color: #aaa; text-decoration: none; margin-right: 10px;'>{n['title'][:20]}...</a>"
-        news_html += "</div>"
-        news_html += "</div>" # Close news-section
-        
-        return news_html, ai_raw_text, ai_sentiment_score
+        for item in news_items[:3]:
+            title = html.escape(str(item.get('title', ''))[:20])
+            link = html.escape(str(item.get('link', '')), quote=True)
+            news_html += f"<a href='{link}' target='_blank' rel='noopener noreferrer' style='color: #aaa; text-decoration: none; margin-right: 10px;'>{title}...</a>"
+        news_html += "</div></div>"
+        return news_html, ai_raw_text, ai_sentiment_score, new_cache
+    except Exception as error:
+        print(f"Gen Market Analysis Error: {error}")
+        return "<div>Error generating analysis</div>", "", 50, None
 
-    except Exception as e:
-        print(f"Gen Market Analysis Error: {e}")
-        return "<div>Error generating analysis</div>", "", 50
 
-def generate_market_analysis(indicators, cached_ai_summary=None):
+def generate_market_analysis(indicators, cached_ai_summary=None, return_cache=False):
     """Generează o analiză de piață Hibridă (Algoritmică Multi-Factor + AI)."""
     try:
         # 1. Extragere Valori (Safe)
@@ -4052,7 +4430,9 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
         
         # 2. Market News & AI Sentiment
         news_items = get_market_news()
-        news_html, ai_summary_raw, ai_score = _generate_news_and_ai_summary_html(news_items, indicators, cached_ai_summary)
+        news_html, ai_summary_raw, ai_score, news_ai_cache = _generate_news_and_ai_summary_html(
+            news_items, indicators, cached_ai_summary
+        )
         
         # 3. Calcul Scor Algoritmic (0-100, unde 100 = Bullish Perfect)
         # Factori Refined:
@@ -4247,11 +4627,16 @@ def generate_market_analysis(indicators, cached_ai_summary=None):
             </div>
         </div>
         """
-        return html, ai_summary_raw, ai_score
+        result = (html, ai_summary_raw, ai_score)
+        return result + (news_ai_cache,) if return_cache else result
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return f"<div style='color: red;'>Eroare generare analiză: {e}</div>", "", 50
+        result = (
+            f"<div style='color: red;'>Eroare generare analiză: {e}</div>",
+            "", 50,
+        )
+        return result + (None,) if return_cache else result
 
 
 def check_market_structure_break(hist):
