@@ -1740,6 +1740,40 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(detail['markers'][0]['date'], '2026-07-27')
         self.assertEqual(detail['markers'][0]['value'], 10.5)
 
+    def test_active_buy_order_chart_levels_include_order_price(self):
+        orders = pd.DataFrame([
+            {
+                'Symbol': '3USL.MI',
+                'Action': 'BUY',
+                'OrderType': 'LMT',
+                'Total_Qty': 7,
+                'Limit_Price': 160.25,
+            },
+            {
+                'Symbol': 'CC.RO',
+                'Action': 'BUY',
+                'OrderType': 'STP',
+                'Total_Qty': 100,
+                'Stop_Price': 10.75,
+            },
+            {
+                'Symbol': '3USL.MI',
+                'Action': 'SELL',
+                'OrderType': 'STP',
+                'Total_Qty': 7,
+                'Stop_Price': 150,
+            },
+        ])
+        levels = market_scanner._build_active_buy_order_chart_levels(orders)
+        self.assertEqual(set(levels), {'3USL.MI', 'CC.RO'})
+        self.assertEqual(levels['3USL.MI'][0]['value'], 160.25)
+        self.assertEqual(
+            levels['3USL.MI'][0]['label'],
+            'Preț ordin LMT · 7 acț.',
+        )
+        self.assertEqual(levels['3USL.MI'][0]['color'], '#7c3aed')
+        self.assertEqual(levels['CC.RO'][0]['value'], 10.75)
+
     def test_history_chart_candidates_include_symbols_outside_current_list(self):
         history = [{
             'history_key': 'SNN.RO|Pregătit la trigger|14|13|16',

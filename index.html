@@ -964,6 +964,7 @@
             // const ENCRYPTED_DATA = { ... }; 
             let portfolioDetailData = {};
             let buyRecommendationDetailData = {};
+            let activeBuyOrderLevels = {};
             let portfolioChatConfig = null;
             let portfolioChatHistory = [];
 
@@ -1173,6 +1174,7 @@
                 initCharts(data.sparklines);
                 portfolioDetailData = data.chart_details || {};
                 buyRecommendationDetailData = data.buy_chart_details || {};
+                activeBuyOrderLevels = data.active_buy_order_levels || {};
                 portfolioChatConfig = data.portfolio_chat || null;
                 
                 // 4. Re-Init DataTables
@@ -43585,12 +43587,30 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 openMarketDetailWindow(detail, symbol);
             }
 
-            function openOrderDetail(symbol) {
+            function detailForActiveBuyOrder(symbol) {
                 const normalizedSymbol = String(symbol || '').toUpperCase();
-                const detail = buyRecommendationDetailData[normalizedSymbol]
+                const baseDetail = buyRecommendationDetailData[normalizedSymbol]
                     || portfolioDetailData[normalizedSymbol]
                     || watchlistDetailData[normalizedSymbol];
-                openMarketDetailWindow(detail, normalizedSymbol);
+                const symbolBase = normalizedSymbol.split('.')[0];
+                const levelKey = Object.keys(activeBuyOrderLevels).find(function(key) {
+                    return key === normalizedSymbol || key.split('.')[0] === symbolBase;
+                });
+                const orderLevels = levelKey ? activeBuyOrderLevels[levelKey] : [];
+                const detail = baseDetail && orderLevels.length
+                    ? Object.assign({}, baseDetail, {
+                        levels: (baseDetail.levels || []).concat(orderLevels)
+                    })
+                    : baseDetail;
+                return detail;
+            }
+
+            function openOrderDetail(symbol) {
+                const normalizedSymbol = String(symbol || '').toUpperCase();
+                openMarketDetailWindow(
+                    detailForActiveBuyOrder(normalizedSymbol),
+                    normalizedSymbol
+                );
             }
 
             function openWatchlistDetail(symbol) {
