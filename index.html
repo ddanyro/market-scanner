@@ -874,6 +874,7 @@
                 padding: 17px 18px; color: white;
                 background: linear-gradient(135deg, #7760f9, #4f46e5);
                 display: flex; align-items: center; justify-content: space-between; gap: 12px;
+                flex: 0 0 auto;
             }
             .portfolio-chat-title { font-weight: 800; font-size: 18px; }
             .portfolio-chat-subtitle { font-size: 11px; opacity: .85; margin-top: 3px; }
@@ -882,8 +883,10 @@
                 width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 21px;
             }
             .portfolio-chat-messages {
-                flex: 1; overflow-y: auto; padding: 16px; background: var(--bg-light);
+                flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 16px; background: var(--bg-light);
                 display: flex; flex-direction: column; gap: 12px;
+                -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
+                touch-action: pan-y;
             }
             .portfolio-chat-message {
                 max-width: 88%; padding: 11px 13px; border-radius: 16px;
@@ -910,12 +913,12 @@
                 padding: .08em .32em; border-radius: 4px; background: #eef2f7;
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em;
             }
-            .portfolio-chat-suggestions { padding: 10px 14px 0; display: flex; gap: 7px; overflow-x: auto; }
+            .portfolio-chat-suggestions { padding: 10px 14px 0; display: flex; gap: 7px; overflow-x: auto; flex: 0 0 auto; }
             .portfolio-chat-suggestion {
                 flex: 0 0 auto; border: 1px solid #c7d2fe; color: #4f46e5;
                 background: #eef2ff; border-radius: 999px; padding: 7px 10px; cursor: pointer; font-size: 12px;
             }
-            .portfolio-chat-form { padding: 12px 14px 14px; display: flex; gap: 8px; background: var(--bg-white); }
+            .portfolio-chat-form { padding: 12px 14px 14px; display: flex; gap: 8px; background: var(--bg-white); flex: 0 0 auto; }
             .portfolio-chat-input {
                 flex: 1; min-width: 0; resize: none; border: 1px solid var(--border-light);
                 border-radius: 13px; padding: 11px 12px; color: var(--text-primary);
@@ -931,6 +934,7 @@
                 .portfolio-chat-panel {
                     right: 8px; bottom: 80px; width: calc(100vw - 16px);
                     height: min(76vh, 680px); border-radius: 18px;
+                    height: min(76dvh, 680px);
                 }
                 .portfolio-chat-message { max-width: 94%; font-size: 13px; }
             }
