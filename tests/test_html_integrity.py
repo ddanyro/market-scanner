@@ -353,6 +353,11 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('openBrokerTotalsDetail', content)
         self.assertIn('parseIBKRNavHistory', content)
         self.assertIn('parseIBKRCashHistory', content)
+        self.assertIn('data-range="mtd">MTD', content)
+        self.assertIn('data-range="ytd">YTD', content)
+        self.assertIn('data-range="1m">1L', content)
+        self.assertIn('data-range="1y">1A', content)
+        self.assertIn('const applyRange=range=>', content)
         self.assertIn("import ibkr_web_api", content)
         self.assertIn("ibkr_web_api.sync_account_snapshot()", content)
         self.assertLess(

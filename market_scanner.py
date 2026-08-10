@@ -6465,15 +6465,15 @@ def generate_html_dashboard(
 h1{margin:0;font-size:clamp(27px,4vw,44px)}.sub{color:#7760f9;font-weight:700;margin-top:6px}.close{border:1px solid #dfe3ea;background:#fff;padding:10px 16px;border-radius:10px;cursor:pointer}
 .stats{display:grid;grid-template-columns:repeat(2,minmax(180px,1fr));gap:14px;margin-bottom:18px}.stat,.panel{background:#fff;border:1px solid #e1e5ec;border-radius:16px;box-shadow:0 4px 18px rgba(15,23,42,.05)}
 .stat{padding:18px}.label{font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.06em}.value{font-size:clamp(23px,4vw,34px);font-weight:750;margin-top:7px}
-.panel{padding:20px}.chart-wrap{height:min(70vh,720px);min-height:430px;position:relative}.chart-wrap canvas{width:100%!important;height:100%!important}.note{margin:12px 0 0;color:#6b7280;font-size:12px}
-@media(max-width:640px){.page{padding:14px}.stats{grid-template-columns:1fr}.panel{padding:14px}.chart-wrap{height:58vh;min-height:360px}}
+.panel{padding:20px}.chart-toolbar{display:flex;justify-content:flex-end;margin:0 0 12px}.range-controls{display:flex;flex-wrap:wrap;gap:7px}.range-btn{border:1px solid #dfe3ea;background:#fff;color:#4b5563;padding:7px 10px;border-radius:9px;font:700 12px/1 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer}.range-btn:hover{border-color:#9b8cff;color:#5b46d9}.range-btn.active{background:#7760f9;border-color:#7760f9;color:#fff}.chart-wrap{height:min(70vh,720px);min-height:430px;position:relative}.chart-wrap canvas{width:100%!important;height:100%!important}.note{margin:12px 0 0;color:#6b7280;font-size:12px}
+@media(max-width:640px){.page{padding:14px}.top{flex-wrap:wrap}.stats{grid-template-columns:1fr}.panel{padding:14px}.chart-toolbar{justify-content:flex-start}.range-controls{gap:6px}.range-btn{padding:7px 9px}.chart-wrap{height:58vh;min-height:360px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"><\\/script>
 </head><body><main class="page">
 <div class="top"><div><h1>Total IBKR + Tradeville</h1><div class="sub">Istoric valoare totală, cash și NAV IBKR · ${currency}</div></div><button class="close" onclick="window.close()">Închide</button></div>
 <section class="stats"><div class="stat"><div class="label">Valoare totală</div><div class="value">${formatMoney(latest.net_liquidation)}</div></div>
 <div class="stat"><div class="label">Cash total</div><div class="value">${formatMoney(latest.total_cash)}</div></div></section>
-<section class="panel"><div class="chart-wrap"><canvas id="brokerTotalsChart"></canvas></div>
+<section class="panel"><div class="chart-toolbar"><div class="range-controls" role="group" aria-label="Interval grafic"><button class="range-btn" data-range="mtd">MTD</button><button class="range-btn" data-range="ytd">YTD</button><button class="range-btn" data-range="1w">1S</button><button class="range-btn" data-range="1m">1L</button><button class="range-btn" data-range="3m">3L</button><button class="range-btn" data-range="6m">6L</button><button class="range-btn" data-range="1y">1A</button><button class="range-btn active" data-range="all">Tot</button></div></div><div class="chart-wrap"><canvas id="brokerTotalsChart"></canvas></div>
 <p class="note">Totalul și cashul combinat includ IBKR și Tradeville numai în punctele pentru care există ambele snapshoturi. Liniile NAV IBKR și Cash IBKR folosesc istoricul real furnizat de PortfolioAnalyst sau de raportul Flex configurat.</p></section>
 </main><script>
 const history=${payload};
@@ -6524,11 +6524,37 @@ datasets.push({label:'NAV IBKR',data:series(ibkrNavHistory,'date','nav',dateKey)
 if(ibkrCashHistory.length){
 datasets.push({label:'Cash IBKR',data:series(ibkrCashHistory,'date','cash',dateKey),borderColor:'#15803d',backgroundColor:'rgba(21,128,61,.05)',borderWidth:2,borderDash:[7,5],pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:true});
 }
-new Chart(document.getElementById('brokerTotalsChart'),{
+const chart=new Chart(document.getElementById('brokerTotalsChart'),{
 type:'line',
 data:{labels:labels.map(displayDate),datasets},
 options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top'},tooltip:{callbacks:{label:context=>context.parsed.y===null?'':context.dataset.label+': '+money(context.parsed.y)}}},scales:{x:{ticks:{maxRotation:45,minRotation:0,autoSkip:true,maxTicksLimit:10}},y:{ticks:{callback:value=>money(value)}}}}
 });
+const labelTimes=labels.map(value=>{const time=new Date(value).getTime();return Number.isNaN(time)?null:time;});
+const latestTime=Math.max(...labelTimes.filter(Number.isFinite));
+const rangeStart=range=>{
+if(range==='all'||!Number.isFinite(latestTime))return null;
+const end=new Date(latestTime);const start=new Date(latestTime);
+if(range==='mtd')return new Date(end.getFullYear(),end.getMonth(),1).getTime();
+if(range==='ytd')return new Date(end.getFullYear(),0,1).getTime();
+if(range==='1w')start.setDate(start.getDate()-7);
+if(range==='1m')start.setMonth(start.getMonth()-1);
+if(range==='3m')start.setMonth(start.getMonth()-3);
+if(range==='6m')start.setMonth(start.getMonth()-6);
+if(range==='1y')start.setFullYear(start.getFullYear()-1);
+return start.getTime();
+};
+const applyRange=range=>{
+const start=rangeStart(range);
+let indices=labels.map((_,index)=>index).filter(index=>start===null||labelTimes[index]===null||labelTimes[index]>=start);
+if(!indices.length)indices=[labels.length-1];
+chart.data.labels=indices.map(index=>displayDate(labels[index]));
+chart.data.datasets=datasets.map(dataset=>({...dataset,data:indices.map(index=>dataset.data[index])}));
+chart.update();
+document.querySelectorAll('.range-btn').forEach(button=>{
+const active=button.dataset.range===range;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
+});
+};
+document.querySelectorAll('.range-btn').forEach(button=>button.addEventListener('click',()=>applyRange(button.dataset.range)));
 window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();window.close();}});
 <\\/script></body></html>`);
                 popup.document.close();
