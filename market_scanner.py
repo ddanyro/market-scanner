@@ -9673,10 +9673,32 @@ def main():
 
     # 1. Update Portfolio Data
     if args.mode in ['all', 'portfolio']:
-        # TWS este sursa primară locală pentru ordine, poziții, solduri și
-        # instrumente. Web API și Flex sunt încercate numai dacă TWS eșuează.
-        tws_synced = False
-        if args.tws:
+        # MCP este sursa primară locală read-only pentru cont. TWS, Web API și
+        # Flex rămân fallbackuri și nu pot suprascrie un snapshot MCP valid.
+        mcp_synced = False
+        mcp_enabled = (
+            not os.environ.get('GITHUB_ACTIONS')
+            and os.environ.get('IBKR_MCP_ENABLED', '1').strip().lower()
+            not in {'0', 'false', 'no', 'off'}
+        )
+        if mcp_enabled:
+            try:
+                import ibkr_mcp
+                mcp_snapshot = ibkr_mcp.sync_account_snapshot()
+                mcp_synced = True
+                print(
+                    "IBKR MCP read-only: ordine, poziții și solduri "
+                    f"sincronizate pentru "
+                    f"{len(mcp_snapshot.get('accounts', []))} cont(uri)."
+                )
+            except Exception as mcp_error:
+                print(
+                    "IBKR MCP indisponibil; încercăm TWS: "
+                    f"{mcp_error}"
+                )
+
+        tws_synced = mcp_synced
+        if args.tws and not mcp_synced:
              try:
                  import ib_tws_sync
                  tws_synced = bool(
@@ -9783,6 +9805,8 @@ def main():
                  print("Cannot import ib_tws_sync. Skipping TWS sync.")
              except Exception as e:
                  print(f"TWS Sync Error: {e}")
+        elif mcp_synced:
+            print("  -> TWS nu este necesar: snapshotul MCP este valid.")
 
         web_api_enabled = (
             not tws_synced

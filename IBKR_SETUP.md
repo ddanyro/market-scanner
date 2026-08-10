@@ -2,13 +2,27 @@
 
 La rularea locală, scannerul folosește sursele în această ordine:
 
-1. **TWS API** — sursa primară pentru ordine, poziții, solduri și instrumente;
-2. **Client Portal Web API** — fallback dacă TWS nu răspunde;
-3. **Flex Web Service** — fallback cloud sau pentru GitHub Actions;
-4. ultimul cache valid.
+1. **IBKR MCP oficial (read-only)** — sursa primară pentru ordine, poziții,
+   solduri și istoricul PortfolioAnalyst;
+2. **TWS API** — fallback local și sursă pentru instrumentele de cercetare;
+3. **Client Portal Web API** — fallback dacă MCP și TWS nu răspund;
+4. **Flex Web Service** — fallback cloud sau pentru GitHub Actions;
+5. ultimul cache valid.
 
-Dacă TWS răspunde, scannerul nu mai solicită Flex în aceeași rulare și nu
-permite unui fallback să suprascrie snapshotul TWS.
+Dacă MCP sau TWS răspunde, scannerul nu mai solicită Flex în aceeași rulare și
+nu permite unui fallback să suprascrie snapshotul valid.
+
+# Conectare read-only prin IBKR MCP
+
+Prima autorizare se face local și solicită exclusiv `mcp.read`:
+
+```bash
+.venv/bin/python ibkr_mcp.py login
+```
+
+Tokenul OAuth este păstrat local în `.ibkr_mcp_credentials.json`, cu permisiuni
+0600 și exclus din Git. `IBKR_MCP_ENABLED=0` dezactivează sursa fără să schimbe
+fallbackurile. Integrarea nu solicită și refuză explicit `mcp.write`.
 
 # Sincronizare read-only prin Client Portal Web API
 
