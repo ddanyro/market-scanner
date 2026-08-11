@@ -8330,11 +8330,18 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         full_state.get('last_ai_summary_cache')
         or full_state.get('last_ai_summary')
     )
+    previous_calendar_ai_cache = dict(
+        full_state.get('economic_calendar_ai_cache') or {}
+    )
+    calendar_ai_cache = dict(previous_calendar_ai_cache)
     
     # Generare analiză piață (returnează HTML + Raw Text)
     market_analysis_html, new_ai_text, ai_score, new_news_ai_cache = (
         generate_market_analysis(
-            market_indicators, cached_ai, return_cache=True
+            market_indicators,
+            cached_ai,
+            return_cache=True,
+            calendar_ai_cache=calendar_ai_cache,
         )
     )
     
@@ -8347,6 +8354,14 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
          # Persistăm imediat rezumatul, altfel cache-ul AI se pierde între rulări.
          market_utils.save_state(full_state)
          print("  -> Rezumat AI salvat în cache (dashboard_state).")
+
+    if calendar_ai_cache != previous_calendar_ai_cache:
+        full_state['economic_calendar_ai_cache'] = calendar_ai_cache
+        market_utils.save_state(full_state)
+        print(
+            "  -> Cache AI calendar economic salvat persistent: "
+            f"{len(calendar_ai_cache)} evenimente."
+        )
 
     usage_events = analysis.consume_openai_usage_events()
     if usage_events:
