@@ -7,6 +7,7 @@ import {
   expectedAccessToken,
   extractCloudflareAIAnswer,
   extractOpenAIAnswer,
+  selectContextForMessage,
   validateChatRequest,
 } from "../src/chat_core.js";
 
@@ -51,9 +52,41 @@ test("rejects an invalid portfolio token", async () => {
   }, "secret"), /neautorizat/i);
 });
 
-test("uses Responses API fields, Terra, explicit caching, web search, and no storage", () => {
+test("selects only relevant context for focused questions", () => {
+  const context = {
+    schema: "v1",
+    portfolio: {value: 1},
+    positions: [{symbol: "NVDA"}],
+    broker_liquidity: {cash: 10},
+    market_context: {vix: 15},
+    buy_candidates: [{symbol: "MSFT"}],
+    us_sector_rotation: {technology: "strong"},
+    evidence: {items: [{title: "News"}]},
+    rates: {fed: 4},
+  };
+  const news = selectContextForMessage(context, "Care sunt știrile recente?", true);
+  assert.ok(news.evidence);
+  assert.equal(news.buy_candidates, undefined);
+  assert.equal(news.rates, undefined);
+
+  const buy = selectContextForMessage(context, "Ce instrument cumpăr?", false);
+  assert.ok(buy.buy_candidates);
+  assert.ok(buy.us_sector_rotation);
+  assert.equal(buy.evidence, undefined);
+
+  const risk = selectContextForMessage(context, "Ce risc am în portofoliu?", false);
+  assert.ok(risk.positions);
+  assert.ok(risk.broker_liquidity);
+  assert.equal(risk.buy_candidates, undefined);
+  assert.equal(risk.evidence, undefined);
+
+  assert.equal(selectContextForMessage(context, "Ce părere ai?"), context);
+});
+
+test("uses Responses API fields, Terra, explicit caching, conditional web search, and no storage", () => {
   const request = buildOpenAIRequest({
-    message: "Ce cumpăr?", contextJson: "{}", history: [],
+    message: "Care sunt știrile de azi?", contextJson: "{}", history: [],
+    useWebSearch: true,
   });
   assert.equal(request.model, "gpt-5.6-terra");
   assert.equal(request.store, false);

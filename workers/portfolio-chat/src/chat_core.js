@@ -4,6 +4,53 @@ const MAX_CONTEXT_LENGTH = 180000;
 const MAX_HISTORY_ITEMS = 8;
 export const CLOUDFLARE_FALLBACK_MODEL = "@cf/openai/gpt-oss-120b";
 
+const WEB_SEARCH_PATTERNS = [
+  /\b(azi|astăzi|acum|recent|recente|ultima|ultimele|latest|today|current)\b/i,
+  /(știri|stiri|news|presă|presa|internet|web)/i,
+  /(caută|cauta|verifică|verifica|actualizează|actualizeaza)/i,
+  /\b(earnings|rezultate|raportări|raportari|calendar|dividend|cpi|fomc|fed|ecb|bce)\b/i,
+];
+const PORTFOLIO_CONTEXT_PATTERN = /(risc|expunere|concentr|stop|portofoliu|poziți|poziti|position|cash|lichiditate)/i;
+const BUY_CONTEXT_PATTERN = /(cumpăr|cumpar|cumpărare|cumparare|buy|ordin|oportunit|candidat|entry|intrare|instrument)/i;
+const MARKET_CONTEXT_PATTERN = /(piață|piata|market|sector|regim|macro|economie|economic|dobând|doband|vix|spx|s&p|nasdaq|bvb|românia|romania)/i;
+const EVIDENCE_CONTEXT_PATTERN = /(știri|stiri|news|surs|evidence|raport|rezultate|calendar|recent|azi|astăzi|astazi|web|internet)/i;
+
+export function shouldUseWebSearch(message, explicitPreference) {
+  if (explicitPreference === true) return true;
+  if (explicitPreference === false) return false;
+  const text = String(message || "").trim();
+  if (/\b(fără|fara|nu)\s+(web|internet|căutare|cautare)\b/i.test(text)) return false;
+  return WEB_SEARCH_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+export function selectContextForMessage(context, message, useWebSearch = false) {
+  const source = context && typeof context === "object" ? context : {};
+  const text = String(message || "");
+  const wantsPortfolio = PORTFOLIO_CONTEXT_PATTERN.test(text);
+  const wantsBuy = BUY_CONTEXT_PATTERN.test(text);
+  const wantsMarket = wantsBuy || MARKET_CONTEXT_PATTERN.test(text);
+  const wantsEvidence = useWebSearch || EVIDENCE_CONTEXT_PATTERN.test(text);
+  if (!wantsPortfolio && !wantsBuy && !wantsMarket && !wantsEvidence) return source;
+
+  const keys = new Set([
+    "schema", "as_of", "portfolio", "positions", "broker_liquidity",
+    "tvbetetf_lookthrough", "market_context", "data_rules",
+  ]);
+  if (wantsBuy) {
+    ["buy_candidates", "current_ai_analysis", "universe_stats"].forEach((key) => keys.add(key));
+  }
+  if (wantsMarket) {
+    [
+      "us_market_regime", "us_sector_rotation", "market_overviews",
+      "economic_cycle", "rates",
+    ].forEach((key) => keys.add(key));
+  }
+  if (wantsEvidence) keys.add("evidence");
+  return Object.fromEntries(
+    Object.entries(source).filter(([key]) => keys.has(key)),
+  );
+}
+
 export async function expectedAccessToken(password) {
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
@@ -50,8 +97,8 @@ export async function validateChatRequest(body, password) {
     throw Object.assign(new Error("Acces neautorizat."), {statusCode: 401});
   }
   const context = body.context && typeof body.context === "object" ? body.context : {};
-  const contextJson = JSON.stringify(context);
-  if (contextJson.length > MAX_CONTEXT_LENGTH) {
+  const rawContextJson = JSON.stringify(context);
+  if (rawContextJson.length > MAX_CONTEXT_LENGTH) {
     throw Object.assign(new Error("Contextul portofoliului este prea mare."), {statusCode: 413});
   }
   const history = Array.isArray(body.history) ? body.history.slice(-MAX_HISTORY_ITEMS) : [];
@@ -60,21 +107,27 @@ export async function validateChatRequest(body, password) {
     const content = String(item && item.content || "").trim().slice(0, MAX_MESSAGE_LENGTH);
     return content ? [{role, content}] : [];
   });
-  return {message, context, contextJson, history: cleanHistory};
+  const useWebSearch = shouldUseWebSearch(message, body.webSearch);
+  const selectedContext = selectContextForMessage(context, message, useWebSearch);
+  return {
+    message,
+    context: selectedContext,
+    contextJson: JSON.stringify(selectedContext),
+    rawContextChars: rawContextJson.length,
+    history: cleanHistory,
+    useWebSearch,
+  };
 }
 
 export function buildOpenAIRequest(validated) {
   const instructions = buildAssistantInstructions();
-  return {
+  const request = {
     model: "gpt-5.6-terra",
     reasoning: {effort: "low"},
     store: false,
     max_output_tokens: 2200,
     prompt_cache_key: "market-scanner:portfolio-chat:v2",
     prompt_cache_options: {mode: "explicit", ttl: "30m"},
-    tools: [{type: "web_search"}],
-    tool_choice: "auto",
-    include: ["web_search_call.action.sources"],
     input: [
       {
         role: "system",
@@ -98,6 +151,12 @@ export function buildOpenAIRequest(validated) {
       {role: "user", content: [{type: "input_text", text: validated.message}]},
     ],
   };
+  if (validated.useWebSearch) {
+    request.tools = [{type: "web_search"}];
+    request.tool_choice = "auto";
+    request.include = ["web_search_call.action.sources"];
+  }
+  return request;
 }
 
 function buildAssistantInstructions() {
@@ -142,22 +201,27 @@ export function extractCloudflareAIAnswer(payload, fallbackReason) {
     payload.response || payload.result?.response || chatCompletionText
   ) || "").trim();
   if (!text) throw new Error("Cloudflare Workers AI nu a returnat text utilizabil.");
-  const quotaFallback = [
-    "credit_balance_exhausted",
-    "organization_spend_limit_exceeded",
-    "project_spend_limit_exceeded",
-    "organization_usage_limit_exceeded",
-  ].includes(String(fallbackReason || ""));
+  const reason = String(fallbackReason || "openai_unavailable");
+  const notices = {
+    credit_balance_exhausted: "creditul OpenAI este epuizat",
+    organization_spend_limit_exceeded: "limita de cheltuieli OpenAI a organizației a fost atinsă",
+    project_spend_limit_exceeded: "limita de cheltuieli OpenAI a proiectului a fost atinsă",
+    organization_usage_limit_exceeded: "limita de utilizare OpenAI a fost atinsă",
+    rate_limit_exceeded: "OpenAI a limitat temporar rata cererilor",
+    rate_limit: "OpenAI a limitat temporar rata cererilor",
+    openai_timeout: "OpenAI nu a răspuns în timpul alocat",
+    openai_transport_error: "conexiunea către OpenAI a eșuat temporar",
+    openai_invalid_response: "OpenAI a returnat un răspuns neutilizabil",
+  };
+  const detail = notices[reason] || `OpenAI nu a finalizat cererea (${reason})`;
   return {
     text,
     citations: [],
     model: CLOUDFLARE_FALLBACK_MODEL,
     provider: "cloudflare-workers-ai",
     degraded: true,
-    notice: quotaFallback
-      ? "Răspuns de continuitate: cheia OpenAI nu are credit disponibil, deci analiza folosește Cloudflare Workers AI și datele dashboardului, fără verificare web live."
-      : "Răspuns de continuitate: OpenAI nu a putut finaliza cererea, deci analiza folosește Cloudflare Workers AI și datele dashboardului, fără verificare web live.",
-    reason: fallbackReason,
+    notice: `Răspuns de continuitate: ${detail}. Analiza folosește Cloudflare Workers AI și datele dashboardului, fără verificare web live.`,
+    reason,
   };
 }
 
