@@ -2023,6 +2023,47 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             'BVB CSV public zilnic (fără autentificare)',
         )
         yahoo_download.assert_called_once_with('ALR.RO', period='1y')
+        bvb_fetch.assert_called_once_with(
+            'ALR.RO',
+            min_observations=1,
+            lookback_days=(
+                market_scanner.bvb_public_market_data.DEFAULT_LOOKBACK_DAYS
+            ),
+        )
+
+    @patch('market_scanner.bvb_public_market_data.fetch_history')
+    @patch('market_scanner._load_mcp_market_instrument', return_value=None)
+    @patch('market_scanner._load_tws_instrument', return_value=None)
+    @patch('market_scanner._download_yahoo_history')
+    def test_tvbetetf_backfills_enough_public_history_for_sma200(
+        self, yahoo_download, _load_tws, _load_mcp, bvb_fetch,
+    ):
+        dates = pd.bdate_range('2025-08-01', periods=260)
+        closes = np.linspace(40.0, 62.0, len(dates))
+        bvb_fetch.return_value = (
+            pd.DataFrame({
+                'Open': closes,
+                'High': closes,
+                'Low': closes,
+                'Close': closes,
+                'Volume': np.full(len(dates), 100_000),
+            }, index=dates),
+            {
+                'data_provider': 'BVB CSV public zilnic (fără autentificare)',
+                'data_broker': 'BVB public',
+                'market_data': {'close': float(closes[-1])},
+            },
+        )
+
+        frame, _, _, _ = market_scanner._load_analysis_history(
+            'TVBETETF.RO', 'TVBETETF.RO'
+        )
+
+        self.assertEqual(len(frame), 260)
+        bvb_fetch.assert_called_once_with(
+            'TVBETETF.RO', min_observations=260, lookback_days=450
+        )
+        yahoo_download.assert_not_called()
 
     @patch('market_scanner.bvb_public_market_data.fetch_history')
     @patch('market_scanner._load_mcp_market_instrument', return_value=None)

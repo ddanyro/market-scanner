@@ -666,10 +666,26 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
     if is_bvb:
         bvb_history = pd.DataFrame()
         bvb_instrument = None
+        # TVBETETF alimentează SMA200 din dashboard. Snapshotul IBKR poate
+        # începe mai târziu decât istoricul real al instrumentului, deci
+        # forțăm o singură dată backfill-ul cache-ului public BVB până la o
+        # rezervă de 260 de ședințe. Pentru emitenții listați recent păstrăm
+        # pragul minim, altfel istoricul lor valid ar fi respins inutil.
+        needs_sma200_history = normalized_ticker in {
+            'TVBETETF', 'TVBETETF.RO',
+        }
+        bvb_min_observations = 260 if needs_sma200_history else 1
+        bvb_lookback_days = (
+            450
+            if needs_sma200_history
+            else bvb_public_market_data.DEFAULT_LOOKBACK_DAYS
+        )
         try:
             bvb_history, bvb_instrument = (
                 bvb_public_market_data.fetch_history(
-                    ticker, min_observations=1
+                    ticker,
+                    min_observations=bvb_min_observations,
+                    lookback_days=bvb_lookback_days,
                 )
             )
             print(
