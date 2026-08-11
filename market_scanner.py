@@ -703,10 +703,12 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
             tws_history, bvb_history, mcp_history
         )
         yahoo_history = pd.DataFrame()
-        if len(combined_without_yahoo) < 60:
+        required_combined_history = 260 if needs_sma200_history else 60
+        if len(combined_without_yahoo) < required_combined_history:
             try:
+                yahoo_period = '2y' if needs_sma200_history else period
                 yahoo_history = _download_yahoo_history(
-                    download_ticker, period=period
+                    download_ticker, period=yahoo_period
                 )
             except Exception:
                 yahoo_history = pd.DataFrame()

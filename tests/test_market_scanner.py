@@ -2069,6 +2069,53 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
     @patch('market_scanner._load_mcp_market_instrument', return_value=None)
     @patch('market_scanner._load_tws_instrument')
     @patch('market_scanner._download_yahoo_history')
+    def test_tvbetetf_uses_two_year_yahoo_fallback_when_bvb_is_unavailable(
+        self, yahoo_download, load_tws, _load_mcp, bvb_fetch,
+    ):
+        bvb_fetch.side_effect = (
+            market_scanner.bvb_public_market_data.BVBPublicDataError('offline')
+        )
+        tws_dates = pd.bdate_range('2025-11-11', periods=181)
+        load_tws.return_value = {
+            'symbol': 'TVBETETF.RO',
+            'data_provider': 'IBKR TWS API',
+            'data_broker': 'IBKR',
+            'bars': [
+                {
+                    'date': date.date().isoformat(),
+                    'open': close,
+                    'high': close,
+                    'low': close,
+                    'close': close,
+                    'volume': 100_000,
+                }
+                for date, close in zip(
+                    tws_dates, np.linspace(40.0, 62.0, len(tws_dates))
+                )
+            ],
+        }
+        yahoo_dates = pd.bdate_range('2024-08-12', periods=494)
+        yahoo_download.return_value = pd.DataFrame({
+            'Close': np.linspace(25.0, 62.0, len(yahoo_dates)),
+        }, index=yahoo_dates)
+
+        frame, selected, _, attribution = (
+            market_scanner._load_analysis_history(
+                'TVBETETF.RO', 'TVBETETF.RO'
+            )
+        )
+
+        self.assertGreaterEqual(len(frame), 260)
+        yahoo_download.assert_called_once_with(
+            'TVBETETF.RO', period='2y'
+        )
+        self.assertEqual(selected['data_broker'], 'surse combinate')
+        self.assertIn('Yahoo Finance', attribution['Market_Data_Source'])
+
+    @patch('market_scanner.bvb_public_market_data.fetch_history')
+    @patch('market_scanner._load_mcp_market_instrument', return_value=None)
+    @patch('market_scanner._load_tws_instrument')
+    @patch('market_scanner._download_yahoo_history')
     def test_bvb_history_uses_yahoo_after_public_bvb(
         self, yahoo_download, load_tws, _load_mcp, bvb_fetch,
     ):
