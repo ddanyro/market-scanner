@@ -6583,8 +6583,11 @@ def generate_html_dashboard(
                     }
                     if (pending) pending.remove();
                     if (payload.notice) {
+                        const reasonSuffix = payload.reason
+                            ? ' [diagnostic: ' + String(payload.reason) + ']'
+                            : '';
                         addPortfolioChatMessage(
-                            'assistant', payload.notice, [], false
+                            'assistant', payload.notice + reasonSuffix, [], false
                         );
                     }
                     addPortfolioChatMessage(

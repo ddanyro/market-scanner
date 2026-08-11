@@ -65,4 +65,8 @@ jobs:
             jq -r '(.error // "răspuns fără mesaj de eroare") + (if .reason then " [" + .reason + "]" else "" end)' "$RUNNER_TEMP/portfolio-chat-response.json"
             exit 1
           fi
-          jq -e '(.text | type == "string" and length > 0) and (.model | type == "string" and length > 0)' "$RUNNER_TEMP/portfolio-chat-response.json" > /dev/null
+          if ! jq -e '(.text | type == "string" and length > 0) and (.model | type == "string" and length > 0) and .provider == "openai" and .degraded == false' "$RUNNER_TEMP/portfolio-chat-response.json" > /dev/null; then
+            printf 'Portfolio chat is reachable, but the OpenAI provider check failed: '
+            jq -c '{provider, degraded, reason, notice}' "$RUNNER_TEMP/portfolio-chat-response.json"
+            exit 1
+          fi
