@@ -10,7 +10,7 @@
     "Target": 285.13,
     "Trail_Stop": 219.21,
     "Suggested_Stop": 223.27,
-    "Finviz_ATR": 8.6,
+    "Finviz_ATR": 8.64,
     "Vol_W": 2.48,
     "Vol_M": 2.6,
     "Trail_Pct": 10.53,
@@ -847,7 +847,7 @@
       }
     ],
     "Daily_Change": 3.1277,
-    "Date": "2026-08-11 11:04",
+    "Date": "2026-08-11 11:39",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1704,7 +1704,7 @@
       }
     ],
     "Daily_Change": 1.5855,
-    "Date": "2026-08-11 11:04",
+    "Date": "2026-08-11 11:39",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -2561,7 +2561,7 @@
       }
     ],
     "Daily_Change": 0.9444,
-    "Date": "2026-08-11 11:04",
+    "Date": "2026-08-11 11:39",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -2580,7 +2580,7 @@
     "Buy_Price": 5.48,
     "Target": 11.97,
     "Trail_Stop": 11.16,
-    "Suggested_Stop": 11.2,
+    "Suggested_Stop": 11.25,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
@@ -2594,12 +2594,12 @@
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 64.7,
+    "RSI": 58.95,
     "RSI_Status": "Neutral",
     "Trend": "Neutral",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Recovery (P 60.8 > SMA50 56.7), RSI 65, Risk 3.8%",
+    "Sell_Reason": "Recovery (P 60.8 > SMA50 56.4), RSI 59, Risk 3.8%",
     "RS_vs_SPX": null,
     "Chart_History": [
       7.3289,
@@ -2782,8 +2782,7 @@
       11.8281,
       11.7537,
       11.6201,
-      11.6106,
-      11.7842
+      11.6011
     ],
     "Chart_Dates": [
       "2025-11-11",
@@ -2966,8 +2965,7 @@
       "2026-08-04",
       "2026-08-05",
       "2026-08-06",
-      "2026-08-07",
-      "2026-08-10"
+      "2026-08-07"
     ],
     "Chart_OHLC": [
       {
@@ -4185,7 +4183,7 @@
         "date": "2026-07-29",
         "open": 11.8873,
         "high": 11.9178,
-        "low": 11.7823,
+        "low": 11.8262,
         "close": 11.83
       },
       {
@@ -4198,7 +4196,7 @@
       {
         "date": "2026-07-31",
         "open": 11.6946,
-        "high": 11.7671,
+        "high": 11.7442,
         "low": 11.6201,
         "close": 11.7442
       },
@@ -4233,23 +4231,16 @@
       {
         "date": "2026-08-07",
         "open": 11.6201,
-        "high": 11.9216,
-        "low": 11.5648,
-        "close": 11.6106
-      },
-      {
-        "date": "2026-08-10",
-        "open": 11.6278,
-        "high": 11.8835,
-        "low": 11.6278,
-        "close": 11.7842
+        "high": 11.6373,
+        "low": 11.5915,
+        "close": 11.6011
       }
     ],
-    "Daily_Change": 0.1736,
-    "Date": "2026-08-11 11:04",
-    "Market_Data_Source": "IBKR TWS + BVB public",
-    "Market_Data_Fetched_At": "2026-08-11T08:04:06.666930+00:00",
-    "Data_Broker": "surse combinate",
+    "Daily_Change": -0.019,
+    "Date": "2026-08-11 11:39",
+    "Market_Data_Source": "IBKR TWS API",
+    "Market_Data_Fetched_At": "2026-08-07T10:23:13.784750+00:00",
+    "Data_Broker": "IBKR",
     "Execution_Brokers": [
       "Tradeville"
     ],
