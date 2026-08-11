@@ -540,11 +540,13 @@ def _save_ai_calendar_cache(cache):
         pass
 
 OPENAI_ANALYSIS_MODEL = 'gpt-5.6-terra'
+OPENAI_LIGHTWEIGHT_MODEL = 'gpt-5.6-luna'
 OPENAI_ANALYSIS_REASONING = {'effort': 'low'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'low'}
-PORTFOLIO_AI_CACHE_VERSION = 17
+PORTFOLIO_AI_CACHE_VERSION = 18
+PORTFOLIO_AI_MIN_REFRESH_HOURS = 4
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
-NEWS_AI_CACHE_VERSION = 2
+NEWS_AI_CACHE_VERSION = 3
 NEWS_AI_CACHE_HOURS = 6
 NEWS_AI_MIN_REFRESH_MINUTES = 60
 ACTIONABLE_BUY_VERDICTS = {'Candidat valid', 'Pregătit la trigger'}
@@ -585,17 +587,28 @@ def _openai_usage_from_response(payload, purpose, model=None):
     uncached_input_tokens = max(
         input_tokens - cached_tokens - cache_write_tokens, 0
     )
+    resolved_model = str(model or payload.get('model') or OPENAI_ANALYSIS_MODEL)
     long_context = input_tokens > 272_000
-    official_defaults = (
-        {'input': 4.0, 'cached_input': 0.4, 'cache_write': 5.0, 'output': 18.0}
-        if long_context else
-        {'input': 2.0, 'cached_input': 0.2, 'cache_write': 2.5, 'output': 12.0}
-    )
+    is_luna = resolved_model.startswith('gpt-5.6-luna')
+    if is_luna:
+        official_defaults = (
+            {'input': 0.4, 'cached_input': 0.04, 'cache_write': 0.5, 'output': 1.8}
+            if long_context else
+            {'input': 0.2, 'cached_input': 0.02, 'cache_write': 0.25, 'output': 1.2}
+        )
+        env_prefix = 'OPENAI_LUNA'
+    else:
+        official_defaults = (
+            {'input': 4.0, 'cached_input': 0.4, 'cache_write': 5.0, 'output': 18.0}
+            if long_context else
+            {'input': 2.0, 'cached_input': 0.2, 'cache_write': 2.5, 'output': 12.0}
+        )
+        env_prefix = 'OPENAI_TERRA'
     env_names = {
-        'input': 'OPENAI_TERRA_INPUT_USD_PER_MTOK',
-        'cached_input': 'OPENAI_TERRA_CACHED_INPUT_USD_PER_MTOK',
-        'cache_write': 'OPENAI_TERRA_CACHE_WRITE_USD_PER_MTOK',
-        'output': 'OPENAI_TERRA_OUTPUT_USD_PER_MTOK',
+        'input': f'{env_prefix}_INPUT_USD_PER_MTOK',
+        'cached_input': f'{env_prefix}_CACHED_INPUT_USD_PER_MTOK',
+        'cache_write': f'{env_prefix}_CACHE_WRITE_USD_PER_MTOK',
+        'output': f'{env_prefix}_OUTPUT_USD_PER_MTOK',
     }
     rates = {
         key: (
@@ -614,7 +627,7 @@ def _openai_usage_from_response(payload, purpose, model=None):
     return {
         'recorded_at': datetime.datetime.now().isoformat(timespec='seconds'),
         'purpose': str(purpose),
-        'model': str(model or payload.get('model') or OPENAI_ANALYSIS_MODEL),
+        'model': resolved_model,
         'input_tokens': input_tokens,
         'uncached_input_tokens': uncached_input_tokens,
         'cached_tokens': cached_tokens,
@@ -1621,7 +1634,12 @@ def _portfolio_snapshot_fingerprint(snapshot):
             candidate_material(item)
             for item in snapshot.get('buy_candidates', []) if isinstance(item, dict)
         ],
-        'economic_calendar': snapshot.get('economic_calendar', []),
+        'economic_calendar': [{
+            key: event.get(key) for key in (
+                'name', 'country', 'datetime', 'status', 'actual',
+                'forecast', 'previous',
+            )
+        } for event in snapshot.get('economic_calendar', []) if isinstance(event, dict)],
         'tvbetetf_lookthrough': {
             'holdings': [{
                 'symbol': item.get('symbol'),
@@ -1655,6 +1673,72 @@ def _portfolio_snapshot_fingerprint(snapshot):
     return hashlib.sha256(
         json.dumps(stable, sort_keys=True, ensure_ascii=False).encode('utf-8')
     ).hexdigest()
+
+
+def _portfolio_critical_fingerprint(snapshot):
+    """Schimbări care justifică o analiză imediată, chiar în cooldown."""
+    stable = {
+        'positions': [{
+            'symbol': item.get('symbol'),
+            'broker': item.get('broker'),
+            'shares': item.get('shares'),
+            'decision': item.get('decision'),
+            'active_stops': item.get('active_stops', []),
+        } for item in snapshot.get('positions', []) if isinstance(item, dict)],
+        'portfolio_protection': {
+            'positions_without_stop': snapshot.get('portfolio', {}).get(
+                'positions_without_stop'
+            ),
+            'positions_with_incomplete_stop_coverage': snapshot.get(
+                'portfolio', {}
+            ).get('positions_with_incomplete_stop_coverage'),
+        },
+        'buy_candidates': [{
+            'symbol': item.get('symbol'),
+            'market': item.get('market'),
+            'candidate_source': item.get('candidate_source'),
+            'strict_eligible': item.get('strict_eligible'),
+            'decision': item.get('decision'),
+            'entry_native': item.get('entry_native'),
+            'stop_native': item.get('stop_native'),
+            'target_native': item.get('target_native'),
+        } for item in snapshot.get('buy_candidates', []) if isinstance(item, dict)],
+        'liquidity_risk_flags': snapshot.get(
+            'account_liquidity', {}
+        ).get('risk_flags', []),
+    }
+    return hashlib.sha256(
+        json.dumps(stable, sort_keys=True, ensure_ascii=False).encode('utf-8')
+    ).hexdigest()
+
+
+def _portfolio_cache_age_hours(cached, now=None):
+    try:
+        generated_at = datetime.datetime.fromisoformat(
+            str(cached.get('generated_at') or '').replace('Z', '+00:00')
+        )
+        reference = now or datetime.datetime.now(generated_at.tzinfo)
+        if generated_at.tzinfo is None and reference.tzinfo is not None:
+            reference = reference.replace(tzinfo=None)
+        elif generated_at.tzinfo is not None and reference.tzinfo is None:
+            reference = reference.replace(tzinfo=generated_at.tzinfo)
+        return max((reference - generated_at).total_seconds() / 3600, 0)
+    except (AttributeError, TypeError, ValueError):
+        return None
+
+
+def _compact_portfolio_request_snapshot(snapshot):
+    """Elimină seriile de grafic și metadatele brute care nu ajută analiza."""
+    compact = dict(snapshot)
+    bulky_candidate_fields = {
+        'chart_ohlc_native', 'chart_series_native', 'chart_series_dates',
+        'bvb_metadata',
+    }
+    compact['buy_candidates'] = [{
+        key: value for key, value in candidate.items()
+        if key not in bulky_candidate_fields
+    } for candidate in snapshot.get('buy_candidates', []) if isinstance(candidate, dict)]
+    return compact
 
 
 def _size_buy_candidates(snapshot):
@@ -3413,7 +3497,8 @@ def render_buy_recommendations_html(
 def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, cached_evidence=None,
                                    request_session=None, account_data=None, market_context=None,
                                    buy_candidates=None, etf_holdings=None,
-                                   sector_rotation=None, us_market_regime=None):
+                                   sector_rotation=None, us_market_regime=None,
+                                   now=None):
     """Generează o analiză structurată și cache-uibilă, apoi returnează HTML sigur."""
     snapshot = build_portfolio_risk_snapshot(
         portfolio_df,
@@ -3464,29 +3549,51 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
     calendar_effects = _position_calendar_effects(snapshot)
     candidate_calendar_effects = _candidate_calendar_effects(snapshot)
     fingerprint = _portfolio_snapshot_fingerprint(snapshot)
+    critical_fingerprint = _portfolio_critical_fingerprint(snapshot)
     if (
         isinstance(cached, dict)
         and cached.get('version') == PORTFOLIO_AI_CACHE_VERSION
-        and cached.get('fingerprint') == fingerprint
     ):
-        try:
-            result = _validate_portfolio_ai_result(
-                cached.get('result', {}),
-                {item['symbol'] for item in snapshot['positions']},
-                evidence_ids,
-                {item['symbol'] for item in snapshot['buy_candidates']},
-                calendar_effects,
-                candidate_calendar_effects,
-                require_complete_candidates=True,
-            )
-            return (
-                _render_portfolio_ai_html(snapshot, result, 'OpenAI · cache'),
-                cached,
-                evidence_cache,
-                {'status': 'cache_valid', 'message': 'Analiză AI validă preluată din cache.'},
-            )
-        except (ValueError, TypeError):
-            pass
+        exact_match = cached.get('fingerprint') == fingerprint
+        same_critical_state = (
+            cached.get('critical_fingerprint') == critical_fingerprint
+        )
+        cache_age_hours = _portfolio_cache_age_hours(cached, now=now)
+        cooldown_active = (
+            same_critical_state
+            and cache_age_hours is not None
+            and cache_age_hours < PORTFOLIO_AI_MIN_REFRESH_HOURS
+        )
+        if exact_match or cooldown_active:
+            try:
+                result = _validate_portfolio_ai_result(
+                    cached.get('result', {}),
+                    {item['symbol'] for item in snapshot['positions']},
+                    evidence_ids,
+                    {item['symbol'] for item in snapshot['buy_candidates']},
+                    calendar_effects,
+                    candidate_calendar_effects,
+                    require_complete_candidates=True,
+                )
+                status = 'cache_valid' if exact_match else 'cache_cooldown'
+                return (
+                    _render_portfolio_ai_html(snapshot, result, 'OpenAI · cache'),
+                    cached,
+                    evidence_cache,
+                    {
+                        'status': status,
+                        'cache_age_hours': (
+                            round(cache_age_hours, 2)
+                            if cache_age_hours is not None else None
+                        ),
+                        'message': (
+                            'Analiză AI validă preluată din cache; '
+                            'următoarea reevaluare Terra este permisă după 4 ore.'
+                        ),
+                    },
+                )
+            except (ValueError, TypeError):
+                pass
 
     openai_key = os.environ.get('OPENAI_API_KEY', '')
     if not openai_key and os.path.exists('openai_key.txt'):
@@ -3504,7 +3611,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             {'status': reason, 'message': 'Cheia OpenAI sau pozițiile nu sunt disponibile.'},
         )
 
-    request_snapshot = dict(snapshot)
+    request_snapshot = _compact_portfolio_request_snapshot(snapshot)
     request_liquidity = dict(snapshot.get('account_liquidity', {}))
     request_liquidity.pop('combined_history', None)
     request_liquidity.pop('nav_history', None)
@@ -3785,6 +3892,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             new_cache = {
                 'version': PORTFOLIO_AI_CACHE_VERSION,
                 'fingerprint': fingerprint,
+                'critical_fingerprint': critical_fingerprint,
                 'generated_at': snapshot['as_of'],
                 'result': result,
                 'buy_candidates': snapshot['buy_candidates'],
@@ -4003,6 +4111,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
         new_cache = {
             'version': PORTFOLIO_AI_CACHE_VERSION,
             'fingerprint': fingerprint,
+            'critical_fingerprint': critical_fingerprint,
             'generated_at': snapshot['as_of'],
             'result': recovered_core,
             'buy_candidates': snapshot['buy_candidates'],
@@ -4037,13 +4146,32 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
     return _render_portfolio_ai_html(snapshot), None, evidence_cache, diagnostic
 
 
-def _enrich_events_with_ai(events, indicators):
+def _persist_ai_calendar_cache(cache, events, target=None):
+    """Păstrează numai versiunile evenimentelor aflate în fereastra curentă."""
+    active_fingerprints = {_event_fingerprint(event) for event in events}
+    compact = {
+        fingerprint: value for fingerprint, value in cache.items()
+        if fingerprint in active_fingerprints and isinstance(value, dict)
+    }
+    if isinstance(target, dict):
+        target.clear()
+        target.update(compact)
+    else:
+        _save_ai_calendar_cache(compact)
+    return compact
+
+
+def _enrich_events_with_ai(events, indicators, ai_cache=None):
     """O singură cerere JSON pentru calendar; eșecul păstrează analiza deterministă."""
     analyses = {event['id']: _deterministic_event_analysis(event) for event in events}
-    ai_cache = _load_ai_calendar_cache()
+    persistent_target = ai_cache if isinstance(ai_cache, dict) else None
+    working_cache = dict(
+        persistent_target if persistent_target is not None
+        else _load_ai_calendar_cache()
+    )
     pending = []
     for event in events:
-        cached = ai_cache.get(_event_fingerprint(event))
+        cached = working_cache.get(_event_fingerprint(event))
         if isinstance(cached, dict) and cached.get('verdict') in {
             'Bullish probabil', 'Bearish probabil', 'Mixt', 'Neutru', 'Date insuficiente'
         }:
@@ -4058,6 +4186,9 @@ def _enrich_events_with_ai(events, indicators):
         except OSError:
             pass
     if not openai_key or not pending:
+        _persist_ai_calendar_cache(
+            working_cache, events, target=persistent_target
+        )
         return analyses
     compact_events = [{
         key: event.get(key) for key in
@@ -4085,9 +4216,10 @@ def _enrich_events_with_ai(events, indicators):
             'https://api.openai.com/v1/responses',
             headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {openai_key}'},
             json={
-                'model': OPENAI_ANALYSIS_MODEL,
+                'model': OPENAI_LIGHTWEIGHT_MODEL,
                 'reasoning': OPENAI_ANALYSIS_REASONING,
-                **_prompt_cache_fields('market-scanner:economic-calendar:v2'),
+                'max_output_tokens': 6000,
+                **_prompt_cache_fields('market-scanner:economic-calendar:v3'),
                 'text': {'format': {'type': 'json_object'}, 'verbosity': 'medium'},
                 'input': [
                     _cached_system_message(
@@ -4103,7 +4235,7 @@ def _enrich_events_with_ai(events, indicators):
         response.raise_for_status()
         response_payload = response.json()
         _record_openai_usage(
-            response_payload, 'economic_calendar', model=OPENAI_ANALYSIS_MODEL
+            response_payload, 'economic_calendar', model=OPENAI_LIGHTWEIGHT_MODEL
         )
         parsed = json.loads(_extract_openai_response_text(response_payload))
         allowed = {'Bullish probabil', 'Bearish probabil', 'Mixt', 'Neutru', 'Date insuficiente'}
@@ -4118,17 +4250,19 @@ def _enrich_events_with_ai(events, indicators):
                     clean[field] = value.strip()[:1200]
             analyses[event_id] = clean
         for event in pending[:24]:
-            ai_cache[_event_fingerprint(event)] = analyses[event['id']]
-        _save_ai_calendar_cache(ai_cache)
+            working_cache[_event_fingerprint(event)] = analyses[event['id']]
     except (requests.RequestException, ValueError, KeyError, TypeError, AttributeError):
         pass
+    _persist_ai_calendar_cache(
+        working_cache, events, target=persistent_target
+    )
     return analyses
 
 def _render_event_value(label, value):
     shown = '—' if value is None or value == '' else html.escape(str(value))
     return f"<span style='margin-right:12px;'><b>{label}:</b> {shown}</span>"
 
-def _render_calendar(events, indicators):
+def _render_calendar(events, indicators, ai_cache=None):
     if not events:
         return (
             "<div style='margin-top:32px;border-top:2px solid var(--border-light);padding-top:24px;'>"
@@ -4136,7 +4270,7 @@ def _render_calendar(events, indicators):
             "<div style='background:var(--light-purple-bg);padding:16px 20px;border-radius:var(--radius-sm);"
             "color:var(--text-secondary);'>Datele calendarului nu sunt disponibile momentan. Nu au fost generate evenimente fictive.</div></div>"
         )
-    analyses = _enrich_events_with_ai(events, indicators)
+    analyses = _enrich_events_with_ai(events, indicators, ai_cache=ai_cache)
     groups = [('past', 'Ultimele 7 zile'), ('upcoming', 'Următoarele 10 zile')]
     colors = {
         'Bullish probabil': '#2e7d32', 'Bearish probabil': '#c62828',
@@ -4313,10 +4447,11 @@ def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=No
                     "folosind numai <p>, <b>, <ul> și <li>, cu riscuri și oportunități."
                 )
                 payload = {
-                    'model': OPENAI_ANALYSIS_MODEL,
+                    'model': OPENAI_LIGHTWEIGHT_MODEL,
                     'reasoning': OPENAI_ANALYSIS_REASONING,
+                    'max_output_tokens': 1000,
                     'text': {'verbosity': 'medium'},
-                    **_prompt_cache_fields('market-scanner:news:v2'),
+                    **_prompt_cache_fields('market-scanner:news:v3'),
                     'input': [
                         _cached_system_message(static_prompt),
                         {'role': 'user', 'content': prompt},
@@ -4335,7 +4470,7 @@ def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=No
                     response_payload = response.json()
                     usage_event = _record_openai_usage(
                         response_payload, 'market_news_summary',
-                        model=OPENAI_ANALYSIS_MODEL,
+                        model=OPENAI_LIGHTWEIGHT_MODEL,
                     )
                     ai_raw_text = _extract_openai_response_text(response_payload)
                     score_line = [
@@ -4357,7 +4492,7 @@ def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=No
                         ),
                         'text': ai_raw_text,
                         'score': ai_sentiment_score,
-                        'model': OPENAI_ANALYSIS_MODEL,
+                        'model': OPENAI_LIGHTWEIGHT_MODEL,
                         'usage': usage_event,
                     }
                 else:
@@ -4411,7 +4546,10 @@ def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=No
         return "<div>Error generating analysis</div>", "", 50, None
 
 
-def generate_market_analysis(indicators, cached_ai_summary=None, return_cache=False):
+def generate_market_analysis(
+    indicators, cached_ai_summary=None, return_cache=False,
+    calendar_ai_cache=None,
+):
     """Generează o analiză de piață Hibridă (Algoritmică Multi-Factor + AI)."""
     try:
         # 1. Extragere Valori (Safe)
@@ -4590,7 +4728,9 @@ def generate_market_analysis(indicators, cached_ai_summary=None, return_cache=Fa
 
         # 4. Calendar economic real: ultimele 7 zile + următoarele 10 zile.
         events_list = get_economic_events()
-        events_html = _render_calendar(events_list, indicators)
+        events_html = _render_calendar(
+            events_list, indicators, ai_cache=calendar_ai_cache
+        )
 
         # Formatare HTML Final 
         html = f"""

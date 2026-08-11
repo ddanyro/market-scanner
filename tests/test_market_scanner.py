@@ -584,7 +584,10 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertIn('Context moderat pozitiv', text)
         self.assertEqual(mock_post.call_count, 1)
         request_json = mock_post.call_args.kwargs['json']
-        self.assertEqual(request_json['model'], 'gpt-5.6-terra')
+        self.assertEqual(
+            request_json['model'],
+            market_scanner_analysis.OPENAI_LIGHTWEIGHT_MODEL,
+        )
         self.assertEqual(request_json['prompt_cache_options']['mode'], 'explicit')
 
         _, cached_text, cached_score, returned_cache = (
@@ -1130,6 +1133,42 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(usage['cache_write_tokens'], 500)
         self.assertEqual(usage['reasoning_tokens'], 25)
         self.assertGreater(usage['estimated_cost_usd'], 0)
+
+    def test_openai_usage_uses_luna_rates_for_lightweight_jobs(self):
+        usage = market_scanner_analysis._openai_usage_from_response({
+            'model': 'gpt-5.6-luna',
+            'usage': {
+                'input_tokens': 1000,
+                'output_tokens': 1000,
+                'total_tokens': 2000,
+            },
+        }, 'economic_calendar', model='gpt-5.6-luna')
+        self.assertEqual(
+            usage['pricing_rates_usd_per_mtok'],
+            {
+                'input': 0.2, 'cached_input': 0.02,
+                'cache_write': 0.25, 'output': 1.2,
+            },
+        )
+        self.assertAlmostEqual(usage['estimated_cost_usd'], 0.0014)
+
+    def test_portfolio_request_removes_chart_series_from_candidates(self):
+        compact = market_scanner_analysis._compact_portfolio_request_snapshot({
+            'buy_candidates': [{
+                'symbol': 'MSFT', 'entry_native': 100,
+                'chart_series_native': [1, 2, 3],
+                'chart_series_dates': ['2026-08-01'],
+                'chart_ohlc_native': [{'close': 1}],
+                'bvb_metadata': {'large': 'payload'},
+            }],
+        })
+        candidate = compact['buy_candidates'][0]
+        self.assertEqual(candidate['symbol'], 'MSFT')
+        self.assertEqual(candidate['entry_native'], 100)
+        self.assertNotIn('chart_series_native', candidate)
+        self.assertNotIn('chart_series_dates', candidate)
+        self.assertNotIn('chart_ohlc_native', candidate)
+        self.assertNotIn('bvb_metadata', candidate)
 
     @patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key'})
     @patch('market_scanner_analysis.get_economic_events', return_value=[])
@@ -3084,6 +3123,56 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIs(returned_cache, cached)
         self.assertIn('OpenAI · cache', html_result)
 
+    @patch.dict(os.environ, {}, clear=True)
+    @patch('market_scanner_analysis.get_economic_events', return_value=[])
+    @patch('market_scanner_analysis._portfolio_snapshot_fingerprint', return_value='changed')
+    @patch('market_scanner_analysis._portfolio_critical_fingerprint', return_value='same-critical')
+    def test_portfolio_ai_throttles_noncritical_changes_for_four_hours(
+        self, _mock_critical, _mock_fingerprint, _mock_calendar
+    ):
+        now = datetime(2026, 8, 11, 12, 0, 0)
+        cached = {
+            'version': market_scanner_analysis.PORTFOLIO_AI_CACHE_VERSION,
+            'fingerprint': 'old-market-state',
+            'critical_fingerprint': 'same-critical',
+            'generated_at': '2026-08-11T10:00:00',
+            'result': {
+                'portfolio_overview': 'Rezumat recent valid.',
+                'market_read': 'Context recent valid pentru SUA.',
+                'position_actions': [{
+                    'symbol': 'TEST', 'broker': 'IBKR',
+                    'action': 'Urmărește atent',
+                    'plain_reason': 'Protecția trebuie verificată.',
+                    'calendar_effect': 'Nu există evenimente apropiate.',
+                    'next_check': 'Verifică stopul.',
+                }],
+                'buy_recommendations': [],
+                'priorities': [{
+                    'symbol': 'TEST', 'severity': 'mediu',
+                    'issue': 'Protecție', 'evidence': 'Stop neverificat.',
+                    'action': 'Verifică stopul.', 'why': 'Controlează riscul.',
+                    'review_trigger': 'La schimbarea prețului.',
+                    'confidence': 'medie', 'source_ids': [],
+                }],
+            },
+        }
+        html_result, returned_cache, _, diagnostic = (
+            market_scanner_analysis.generate_portfolio_ai_analysis(
+                self.portfolio,
+                pd.DataFrame(),
+                cached=cached,
+                cached_evidence={
+                    'fetched_at': now.isoformat(),
+                    'symbols': ['TEST'], 'items': [],
+                },
+                now=now,
+            )
+        )
+        self.assertEqual(diagnostic['status'], 'cache_cooldown')
+        self.assertEqual(diagnostic['cache_age_hours'], 2.0)
+        self.assertIs(returned_cache, cached)
+        self.assertIn('OpenAI · cache', html_result)
+
     def test_buy_renderer_hides_missing_ai_result_from_suggestions(self):
         html_result = market_scanner_analysis.render_buy_recommendations_html(
             {},
@@ -3706,12 +3795,50 @@ class TestDynamicEvents(unittest.TestCase):
         self.assertEqual(analyses[event['id']]['verdict'], 'Mixt')
         request = post.call_args
         self.assertEqual(request.args[0], 'https://api.openai.com/v1/responses')
-        self.assertEqual(request.kwargs['json']['model'], 'gpt-5.6-terra')
+        self.assertEqual(
+            request.kwargs['json']['model'],
+            market_scanner_analysis.OPENAI_LIGHTWEIGHT_MODEL,
+        )
         self.assertEqual(
             request.kwargs['json']['reasoning'],
             {'effort': 'low'}
         )
         self.assertNotIn('temperature', request.kwargs['json'])
+
+    def test_economic_calendar_reuses_persistent_ai_cache(self):
+        event = market_scanner_analysis._normalise_macro_event({
+            'id': 'fed-cache-1', 'title': 'Fed Interest Rate Decision',
+            'country': 'US', 'date': '2026-07-29T18:00:00Z',
+            'forecast': '4.25%', 'previous': '4.50%',
+        }, self.now)
+        item = market_scanner_analysis._deterministic_event_analysis(event)
+        item.update({'id': event['id'], 'verdict': 'Mixt'})
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {
+            'model': 'gpt-5.6-luna',
+            'output_text': json.dumps({'events': [item]}),
+        }
+        cache = {}
+        with patch.dict('os.environ', {'OPENAI_API_KEY': 'test-key'}), \
+             patch(
+                 'market_scanner_analysis.requests.post',
+                 return_value=response,
+             ) as post:
+            first = market_scanner_analysis._enrich_events_with_ai(
+                [event], {}, ai_cache=cache
+            )
+            second = market_scanner_analysis._enrich_events_with_ai(
+                [event], {}, ai_cache=cache
+            )
+        self.assertEqual(post.call_count, 1)
+        self.assertEqual(len(cache), 1)
+        self.assertEqual(first[event['id']]['verdict'], 'Mixt')
+        self.assertEqual(second[event['id']]['verdict'], 'Mixt')
+        self.assertEqual(
+            post.call_args.kwargs['json']['model'],
+            market_scanner_analysis.OPENAI_LIGHTWEIGHT_MODEL,
+        )
 
     def test_extracts_text_from_responses_api(self):
         payload = {
