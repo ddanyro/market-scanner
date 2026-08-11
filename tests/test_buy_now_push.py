@@ -434,7 +434,7 @@ class BuyNowPushTests(unittest.TestCase):
             set(signals), {"international", "romania_bvb"}
         )
 
-    def test_market_push_repeats_on_every_actionable_run(self):
+    def test_market_push_does_not_repeat_during_cooldown(self):
         calls = []
 
         def post(_url, **kwargs):
@@ -471,12 +471,9 @@ class BuyNowPushTests(unittest.TestCase):
             first["delivered_markets"],
             ["international", "romania_bvb"],
         )
-        self.assertEqual(second["status"], "sent")
-        self.assertEqual(
-            second["delivered_markets"],
-            ["international", "romania_bvb"],
-        )
-        self.assertEqual(len(calls), 4)
+        self.assertEqual(second["status"], "no_new_market_signals")
+        self.assertEqual(second["delivered_markets"], [])
+        self.assertEqual(len(calls), 2)
         self.assertEqual(
             calls[0]["notification"]["body"],
             "Piața internațională: BUY.",
@@ -607,7 +604,7 @@ class BuyNowPushTests(unittest.TestCase):
         self.assertEqual(next_state["pending_close_markets"], [])
         self.assertEqual(len(calls), 1)
 
-    def test_market_buy_reminders_have_no_time_limit(self):
+    def test_market_buy_reminders_repeat_after_four_hours(self):
         calls = []
         post = lambda *args, **kwargs: (
             calls.append(kwargs["json"]["message"]["data"]["market"])
@@ -639,26 +636,32 @@ class BuyNowPushTests(unittest.TestCase):
                 **self.delivery_options(now=same_time),
             )
         )
-        one_second_later = self.now + datetime.timedelta(seconds=1)
-        _, third = buy_now_push.send_new_market_buy_notifications(
+        before_cooldown = self.now + datetime.timedelta(
+            hours=3, minutes=59
+        )
+        third_state, third = buy_now_push.send_new_market_buy_notifications(
             second_state,
             signals,
             post=post,
-            **self.delivery_options(now=one_second_later),
+            **self.delivery_options(now=before_cooldown),
+        )
+        at_cooldown = self.now + datetime.timedelta(hours=4)
+        _, fourth = buy_now_push.send_new_market_buy_notifications(
+            third_state,
+            signals,
+            post=post,
+            **self.delivery_options(now=at_cooldown),
         )
 
+        self.assertEqual(second["delivered_markets"], [])
+        self.assertEqual(third["delivered_markets"], [])
         self.assertEqual(
-            second["delivered_markets"],
-            ["international", "romania_bvb"],
-        )
-        self.assertEqual(
-            third["delivered_markets"],
+            fourth["delivered_markets"],
             ["international", "romania_bvb"],
         )
         self.assertEqual(
             calls,
             [
-                "international", "romania_bvb",
                 "international", "romania_bvb",
                 "international", "romania_bvb",
             ],
