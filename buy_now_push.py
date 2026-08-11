@@ -14,8 +14,8 @@ BUY_NOW_VERDICT = "Candidat valid"
 STATE_VERSION = 2
 MARKET_PUSH_STATE_VERSION = 2
 DEFAULT_MARKET_REPEAT_HOURS = {
-    "romania_bvb": 0.0,
-    "international": 0.0,
+    "romania_bvb": 4.0,
+    "international": 4.0,
 }
 
 
@@ -231,7 +231,7 @@ def send_new_market_buy_notifications(
     now=None,
     repeat_hours_by_market=None,
 ):
-    """Trimite alerte periodice cât timp piața rămâne în BUY/CUMPĂRĂ."""
+    """Alertează la intrarea în BUY și apoi cel mult o dată la 4 ore."""
     previous_state = (
         dict(previous_state) if isinstance(previous_state, dict) else {}
     )
