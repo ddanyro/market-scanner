@@ -29,10 +29,13 @@ on:
           - ro
 
 concurrency:
-  # Un push publică imediat fișierele deja generate și nu așteaptă după o
-  # scanare programată. Scanările care scriu date rămân serializate cu update_ro.
-  group: ${{ github.event_name == 'push' && 'market-dashboard-deploy' || 'market-dashboard-writes' }}
-  cancel-in-progress: ${{ github.event_name == 'push' }}
+  # Toate rulările care pot publica dashboardul sunt serializate. Dacă un deploy
+  # rapid de la push rulează în paralel cu o scanare, artefactul mai vechi poate
+  # ajunge ultimul în GitHub Pages și poate suprascrie temporar datele noi.
+  # Grupul este comun și cu update_ro.yml, astfel încât ordinea publicării să
+  # rămână aceeași cu ordinea actualizărilor din main.
+  group: market-dashboard-writes
+  cancel-in-progress: false
 
 jobs:
   build:
