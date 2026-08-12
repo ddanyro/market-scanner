@@ -543,7 +543,7 @@ OPENAI_ANALYSIS_MODEL = 'gpt-5.6-terra'
 OPENAI_LIGHTWEIGHT_MODEL = 'gpt-5.6-luna'
 OPENAI_ANALYSIS_REASONING = {'effort': 'low'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'low'}
-PORTFOLIO_AI_CACHE_VERSION = 18
+PORTFOLIO_AI_CACHE_VERSION = 19
 PORTFOLIO_AI_MIN_REFRESH_HOURS = 4
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 NEWS_AI_CACHE_VERSION = 3
@@ -873,6 +873,25 @@ def update_broker_totals_history(history, account_data, observed_at=None,
     return valid[-max(1, int(max_points)):]
 
 
+def _snapshot_freshness(value, now):
+    """Returnează timestampul, vechimea și starea stale pentru o sursă."""
+    try:
+        fetched = datetime.datetime.fromisoformat(
+            str(value).replace('Z', '+00:00')
+        )
+        if fetched.tzinfo is None:
+            fetched = fetched.replace(tzinfo=datetime.timezone.utc)
+        age_hours = max(
+            (
+                now - fetched.astimezone(datetime.timezone.utc)
+            ).total_seconds() / 3600,
+            0,
+        )
+        return value, round(age_hours, 2), age_hours > 24
+    except (TypeError, ValueError):
+        return value, None, True
+
+
 def _normalize_tws_account_data(account_data, now=None):
     now = now or datetime.datetime.now(datetime.timezone.utc)
     result = {
@@ -890,18 +909,14 @@ def _normalize_tws_account_data(account_data, now=None):
     if not isinstance(account_data, dict):
         result['risk_flags'].append('Sumarul cash/marjă TWS nu este disponibil')
         return result
+    result['source'] = str(account_data.get('source', result['source']))
     if account_data.get('privacy_mode') == 'bands_only':
         result['privacy_mode'] = 'bands_only'
     fetched_at = account_data.get('fetched_at')
-    result['fetched_at'] = fetched_at
-    try:
-        fetched = datetime.datetime.fromisoformat(str(fetched_at).replace('Z', '+00:00'))
-        if fetched.tzinfo is None:
-            fetched = fetched.replace(tzinfo=datetime.timezone.utc)
-        age_hours = max((now - fetched.astimezone(datetime.timezone.utc)).total_seconds() / 3600, 0)
-        result['age_hours'] = round(age_hours, 2)
-        result['stale'] = age_hours > 24
-    except (TypeError, ValueError):
+    (
+        result['fetched_at'], result['age_hours'], result['stale']
+    ) = _snapshot_freshness(fetched_at, now)
+    if result['age_hours'] is None:
         result['risk_flags'].append('Timestampul sumarului TWS este invalid')
 
     raw_accounts = account_data.get('accounts', [])
@@ -911,13 +926,44 @@ def _normalize_tws_account_data(account_data, now=None):
     )
     if result['privacy_mode'] == 'bands_only':
         raw_accounts = account_data.get('sanitized_accounts', [])
+    account_freshness = []
     for raw_account in raw_accounts:
         if not isinstance(raw_account, dict):
             continue
+        account_fetched_at = raw_account.get('fetched_at') or fetched_at
+        (
+            account_fetched_at,
+            account_age_hours,
+            account_stale,
+        ) = _snapshot_freshness(account_fetched_at, now)
+        account_kind = _broker_account_kind(raw_account)
+        account_label = str(
+            raw_account.get('label', f"Cont {len(result['accounts']) + 1}")
+        )
+        broker_name = {
+            'ibkr': 'IBKR',
+            'tradeville': 'Tradeville',
+        }.get(account_kind, account_label)
+        account_freshness.append({
+            'fetched_at': account_fetched_at,
+            'age_hours': account_age_hours,
+            'stale': account_stale,
+        })
+        if account_age_hours is None:
+            result['risk_flags'].append(
+                f'Timestampul sumarului {broker_name} este invalid'
+            )
+        elif account_stale:
+            result['risk_flags'].append(
+                f'Datele cash/marjă {broker_name} sunt mai vechi de 24 de ore'
+            )
         if result['privacy_mode'] == 'bands_only':
             sanitized = {
-                'label': str(raw_account.get('label', f"Cont {len(result['accounts']) + 1}")),
+                'label': account_label,
                 'base_currency': str(raw_account.get('base_currency', 'BASE')),
+                'fetched_at': account_fetched_at,
+                'age_hours': account_age_hours,
+                'stale': account_stale,
                 'cash_currencies': [
                     str(currency) for currency in raw_account.get('cash_currencies', [])
                 ],
@@ -970,15 +1016,15 @@ def _normalize_tws_account_data(account_data, now=None):
         net_liquidation = summary.get('NetLiquidation', 0)
         total_cash = summary.get('TotalCashValue', 0)
         margin_requirement = summary.get('MaintMarginReq', 0)
-        account_label = str(
-            raw_account.get('label', f"Cont {len(result['accounts']) + 1}")
-        )
-        if _broker_account_kind(raw_account) == 'ibkr' and ibkr_account_count == 1:
+        if account_kind == 'ibkr' and ibkr_account_count == 1:
             account_label = 'IBKR'
         result['accounts'].append({
             'label': account_label,
             'source': str(raw_account.get('source', account_data.get('source', result['source']))),
             'base_currency': str(raw_account.get('base_currency', 'BASE')),
+            'fetched_at': account_fetched_at,
+            'age_hours': account_age_hours,
+            'stale': account_stale,
             'summary': summary,
             'cash_by_currency': cash_by_currency,
             'cash_pct_of_net_liquidation': (
@@ -1000,8 +1046,15 @@ def _normalize_tws_account_data(account_data, now=None):
         if net_liquidation > 0 and total_cash / net_liquidation < 0.05:
             result['risk_flags'].append('Cash-ul de bază este sub 5% din Net Liquidation')
 
-    if result['stale']:
-        result['risk_flags'].append('Datele cash/marjă TWS sunt mai vechi de 24 de ore')
+    valid_freshness = [
+        item for item in account_freshness
+        if item['age_hours'] is not None
+    ]
+    if valid_freshness:
+        freshest = min(valid_freshness, key=lambda item: item['age_hours'])
+        result['fetched_at'] = freshest['fetched_at']
+        result['age_hours'] = freshest['age_hours']
+        result['stale'] = all(item['stale'] for item in valid_freshness)
     if not result['accounts']:
         result['risk_flags'].append('TWS nu a returnat un sumar de cont utilizabil')
     result['combined_history'] = [
@@ -1898,6 +1951,16 @@ def _size_buy_candidates(snapshot):
                     'sizing_reason': f'Soldul {broker} nu este disponibil.',
                 })
             continue
+        if account.get('stale'):
+            for candidate in broker_candidates:
+                candidate['sizing_by_broker'].append({
+                    'broker': broker,
+                    'sizing_status': 'indisponibil',
+                    'sizing_reason': (
+                        f'Soldul {broker} este mai vechi de 24 de ore.'
+                    ),
+                })
+            continue
 
         summary = account.get('summary', {})
         net_liquidation = _safe_number(summary.get('NetLiquidation'))
@@ -2616,7 +2679,7 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
                 f"<b>{html.escape(str(account.get('label', 'Cont broker')))}</b>"
                 f"<div style='font-size:11px;color:var(--text-secondary);margin:3px 0 10px;'>"
                 f"{html.escape(str(account.get('source', liquidity.get('source', ''))))} · "
-                f"{html.escape(str(liquidity.get('fetched_at', 'dată indisponibilă')))}</div>"
+                f"{html.escape(str(account.get('fetched_at') or liquidity.get('fetched_at', 'dată indisponibilă')))}</div>"
                 "<div style='display:grid;gap:5px;color:var(--text-secondary);font-size:13px;'>"
                 + ''.join(balance_rows + cash_rows) + "</div></div>"
             )

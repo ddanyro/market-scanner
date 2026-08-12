@@ -771,6 +771,51 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         )
         self.assertEqual(normalized['accounts'][0]['label'], 'IBKR')
 
+    def test_stale_tradeville_snapshot_does_not_mark_fresh_ibkr_as_stale(self):
+        now = datetime(2026, 8, 12, 8, 0, tzinfo=timezone.utc)
+        account_data = {
+            'fetched_at': '2026-07-30T08:00:00+00:00',
+            'source': 'IBKR TWS + Tradeville manual',
+            'accounts': [
+                {
+                    'label': 'IBKR',
+                    'source': 'IBKR MCP (read-only)',
+                    'fetched_at': '2026-08-12T07:00:00+00:00',
+                    'base_currency': 'EUR',
+                    'summary': {
+                        'NetLiquidation': 100000,
+                        'TotalCashValue': 50000,
+                    },
+                },
+                {
+                    'label': 'Tradeville',
+                    'source': 'Tradeville manual',
+                    'fetched_at': '2026-07-30T08:00:00+00:00',
+                    'base_currency': 'EUR',
+                    'summary': {
+                        'NetLiquidation': 50000,
+                        'TotalCashValue': 20000,
+                    },
+                },
+            ],
+        }
+
+        normalized = market_scanner_analysis._normalize_tws_account_data(
+            account_data, now=now
+        )
+
+        accounts = {
+            account['label']: account for account in normalized['accounts']
+        }
+        self.assertFalse(normalized['stale'])
+        self.assertEqual(normalized['fetched_at'], '2026-08-12T07:00:00+00:00')
+        self.assertEqual(accounts['IBKR']['age_hours'], 1.0)
+        self.assertFalse(accounts['IBKR']['stale'])
+        self.assertTrue(accounts['Tradeville']['stale'])
+        flags = ' '.join(normalized['risk_flags'])
+        self.assertIn('Tradeville sunt mai vechi', flags)
+        self.assertNotIn('IBKR sunt mai vechi', flags)
+
     def test_combined_broker_totals_sum_nav_and_cash_once(self):
         account_data = {
             'accounts': [
