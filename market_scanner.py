@@ -7453,6 +7453,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         else:
             tws_account_data = dict(tws_account_data)
             tws_account_data['source'] = 'IBKR TWS + Tradeville manual'
+            ibkr_fetched_at = tws_account_data.get('fetched_at')
+            tradeville_fetched_at = tradeville_account_data.get('fetched_at')
             ibkr_accounts = []
             raw_ibkr_accounts = list(tws_account_data.get('accounts', []))
             for index, raw_account in enumerate(raw_ibkr_accounts, start=1):
@@ -7462,19 +7464,38 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     else f'IBKR {index}'
                 )
                 ibkr_account['source'] = 'IBKR TWS'
+                ibkr_account.setdefault('fetched_at', ibkr_fetched_at)
                 ibkr_accounts.append(ibkr_account)
+            tradeville_accounts = []
+            for raw_account in tradeville_account_data.get('accounts', []):
+                tradeville_account = dict(raw_account)
+                tradeville_account.setdefault(
+                    'fetched_at', tradeville_fetched_at
+                )
+                tradeville_accounts.append(tradeville_account)
             tws_account_data['accounts'] = (
                 ibkr_accounts
-                + list(tradeville_account_data.get('accounts', []))
+                + tradeville_accounts
             )
             timestamps = [
                 value for value in (
-                    tws_account_data.get('fetched_at'),
-                    tradeville_account_data.get('fetched_at'),
+                    ibkr_fetched_at,
+                    tradeville_fetched_at,
                 ) if value
             ]
             if timestamps:
-                tws_account_data['fetched_at'] = min(timestamps)
+                # Timestampul agregat descrie cea mai proaspătă sursă. Fiecare
+                # cont păstrează separat timestampul propriu, astfel încât un
+                # snapshot Tradeville vechi să nu marcheze IBKR ca stale.
+                tws_account_data['fetched_at'] = max(
+                    timestamps,
+                    key=lambda value: (
+                        _parse_snapshot_timestamp(value)
+                        or datetime.datetime.min.replace(
+                            tzinfo=datetime.timezone.utc
+                        )
+                    ),
+                )
 
     # Istoricul agregat rămâne criptat în starea publicată. Totalul este
     # disponibil numai când există atât IBKR, cât și Tradeville în aceeași
