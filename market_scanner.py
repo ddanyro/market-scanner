@@ -6347,7 +6347,7 @@ def generate_html_dashboard(
                     }
 
                     const rest = value.slice(cursor, end);
-                    let match = rest.match(/^\*\*(?=\S)([\s\S]*?\S)\*\*/);
+                    let match = rest.match(/^\\*\\*(?=\\S)([\\s\\S]*?\\S)\\*\\*/);
                     if (match) {
                         const strong = document.createElement('strong');
                         appendPortfolioChatInline(strong, value, cursor + 2, cursor + match[0].length - 2, citations);
@@ -6363,7 +6363,7 @@ def generate_html_dashboard(
                         cursor += match[0].length;
                         continue;
                     }
-                    match = rest.match(/^\[([^\]\\n]+)\]\((https:\/\/[^\s)]+)\)/i);
+                    match = rest.match(/^\\[([^\\]\\n]+)\\]\\((https:\\/\\/[^\\s)]+)\\)/i);
                     if (match) {
                         const link = document.createElement('a');
                         link.href = match[2];
@@ -6374,7 +6374,7 @@ def generate_html_dashboard(
                         cursor += match[0].length;
                         continue;
                     }
-                    match = rest.match(/^\*(?=\S)([^*\\n]*?\S)\*/);
+                    match = rest.match(/^\\*(?=\\S)([^*\\n]*?\\S)\\*/);
                     if (match) {
                         const emphasis = document.createElement('em');
                         appendPortfolioChatInline(emphasis, value, cursor + 1, cursor + match[0].length - 1, citations);
@@ -6388,10 +6388,10 @@ def generate_html_dashboard(
             }
 
             function renderPortfolioChatMarkdown(container, value, citations) {
-                const tableDividerPattern = /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/;
+                const tableDividerPattern = /^\\s*\\|?\\s*:?-{3,}:?\\s*(\\|\\s*:?-{3,}:?\\s*)+\\|?\\s*$/;
                 const tableCells = function(line) {
-                    let start = /^\s*\|/.test(line.text) ? line.text.indexOf('|') + 1 : 0;
-                    let end = /\|\s*$/.test(line.text) ? line.text.lastIndexOf('|') : line.text.length;
+                    let start = /^\\s*\\|/.test(line.text) ? line.text.indexOf('|') + 1 : 0;
+                    let end = /\\|\\s*$/.test(line.text) ? line.text.lastIndexOf('|') : line.text.length;
                     const cells = [];
                     let cellStart = start;
                     for (let position = start; position <= end; position += 1) {
@@ -6450,7 +6450,7 @@ def generate_html_dashboard(
                         container.appendChild(wrapper);
                         continue;
                     }
-                    const heading = line.text.match(/^(#{1,6})\s+(.+)$/);
+                    const heading = line.text.match(/^(#{1,6})\\s+(.+)$/);
                     if (heading) {
                         const element = document.createElement('h' + heading[1].length);
                         const contentStart = line.start + heading[1].length + 1;
@@ -6459,14 +6459,14 @@ def generate_html_dashboard(
                         index += 1;
                         continue;
                     }
-                    const listMatch = line.text.match(/^\s*([-+*]|\d+\.)\s+(.+)$/);
+                    const listMatch = line.text.match(/^\\s*([-+*]|\\d+\\.)\\s+(.+)$/);
                     if (listMatch) {
-                        const ordered = /\d+\./.test(listMatch[1]);
+                        const ordered = /\\d+\\./.test(listMatch[1]);
                         const list = document.createElement(ordered ? 'ol' : 'ul');
                         while (index < lines.length) {
                             const itemLine = lines[index];
-                            const item = itemLine.text.match(/^\s*([-+*]|\d+\.)\s+(.+)$/);
-                            if (!item || /\d+\./.test(item[1]) !== ordered) break;
+                            const item = itemLine.text.match(/^\\s*([-+*]|\\d+\\.)\\s+(.+)$/);
+                            if (!item || /\\d+\\./.test(item[1]) !== ordered) break;
                             const listItem = document.createElement('li');
                             const itemOffset = itemLine.text.indexOf(item[2]);
                             appendPortfolioChatInline(listItem, value, itemLine.start + itemOffset,
@@ -6479,8 +6479,8 @@ def generate_html_dashboard(
                     }
                     const paragraph = document.createElement('p');
                     while (index < lines.length && lines[index].text.trim()
-                            && !/^(#{1,6})\s+/.test(lines[index].text)
-                            && !/^\s*([-+*]|\d+\.)\s+/.test(lines[index].text)) {
+                            && !/^(#{1,6})\\s+/.test(lines[index].text)
+                            && !/^\\s*([-+*]|\\d+\\.)\\s+/.test(lines[index].text)) {
                         const paragraphLine = lines[index];
                         if (paragraph.childNodes.length) paragraph.appendChild(document.createElement('br'));
                         appendPortfolioChatInline(paragraph, value, paragraphLine.start,

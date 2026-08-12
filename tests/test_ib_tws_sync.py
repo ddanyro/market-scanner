@@ -59,6 +59,29 @@ def _bars():
 
 
 class TestTwsInstrumentSync(unittest.TestCase):
+    def test_missing_event_loop_is_recreated_for_tws_fallback(self):
+        replacement_loop = Mock()
+        with (
+            patch.object(
+                ib_tws_sync.asyncio,
+                'get_event_loop',
+                side_effect=RuntimeError('no current event loop'),
+            ),
+            patch.object(
+                ib_tws_sync.asyncio,
+                'new_event_loop',
+                return_value=replacement_loop,
+            ) as new_event_loop,
+            patch.object(
+                ib_tws_sync.asyncio, 'set_event_loop'
+            ) as set_event_loop,
+        ):
+            result = ib_tws_sync._ensure_event_loop()
+
+        self.assertIs(result, replacement_loop)
+        new_event_loop.assert_called_once_with()
+        set_event_loop.assert_called_once_with(replacement_loop)
+
     def test_empty_order_snapshot_clears_stale_tws_order(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             path = os.path.join(temp_dir, 'tws_orders.csv')
