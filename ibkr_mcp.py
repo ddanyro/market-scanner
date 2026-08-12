@@ -75,6 +75,10 @@ class IBKRMCPError(RuntimeError):
     """Raised when the official IBKR MCP source cannot be used."""
 
 
+class IBKRMCPAuthorizationRequired(IBKRMCPError):
+    """Raised when IBKR requires a new interactive OAuth authorisation."""
+
+
 def _load_sdk():
     try:
         import httpx
@@ -296,7 +300,7 @@ class ReadOnlyOAuthClient:
                 if refreshed:
                     return refreshed
             if not interactive:
-                raise IBKRMCPError(
+                raise IBKRMCPAuthorizationRequired(
                     "Sesiunea IBKR MCP a expirat; rulează o dată "
                     "python ibkr_mcp.py login."
                 )
@@ -346,7 +350,9 @@ async def list_tools(*, interactive: bool = True) -> list[dict[str, Any]]:
     sdk = _load_sdk()
     storage = FileTokenStorage()
     if not interactive and not CREDENTIALS_FILE.exists():
-        raise IBKRMCPError("IBKR MCP nu este încă autorizat local.")
+        raise IBKRMCPAuthorizationRequired(
+            "IBKR MCP nu este încă autorizat local."
+        )
     token = await ReadOnlyOAuthClient(storage).access_token(
         interactive=interactive
     )
@@ -1065,12 +1071,15 @@ def _normalise_history_date(value: Any) -> str:
 
 
 async def _call_with_retry(
-    name: str, *, required: bool = True, attempts: int = 2
+    name: str, *, required: bool = True, attempts: int = 2,
+    interactive: bool = False,
 ) -> dict[str, Any]:
     last_error: Exception | None = None
     for attempt in range(attempts):
         try:
-            return await call_tool(name, interactive=False)
+            return await call_tool(name, interactive=interactive)
+        except IBKRMCPAuthorizationRequired:
+            raise
         except Exception as exc:
             last_error = exc
             if attempt + 1 < attempts:
@@ -1081,16 +1090,24 @@ async def _call_with_retry(
     return {}
 
 
-async def build_account_snapshot() -> dict[str, Any]:
+async def build_account_snapshot(*, interactive: bool = False) -> dict[str, Any]:
     """Read the authorised account without exposing any mutation tools."""
-    summary = await _call_with_retry("get_account_summary")
-    positions = await _call_with_retry("get_account_positions")
-    orders = await _call_with_retry("get_account_orders")
+    summary = await _call_with_retry(
+        "get_account_summary", interactive=interactive
+    )
+    positions = await _call_with_retry(
+        "get_account_positions", interactive=interactive
+    )
+    orders = await _call_with_retry(
+        "get_account_orders", interactive=interactive
+    )
     balances = await _call_with_retry(
-        "get_account_balances", required=False, attempts=2
+        "get_account_balances", required=False, attempts=2,
+        interactive=interactive,
     )
     performance = await _call_with_retry(
-        "get_pa_performance_all_periods", required=False, attempts=1
+        "get_pa_performance_all_periods", required=False, attempts=1,
+        interactive=interactive,
     )
 
     base_currency = str(summary.get("currency", "EUR")).upper() or "EUR"
@@ -1155,9 +1172,11 @@ async def build_account_snapshot() -> dict[str, Any]:
     }
 
 
-def sync_account_snapshot(password: str | None = None) -> dict[str, Any]:
+def sync_account_snapshot(
+    password: str | None = None, *, interactive: bool = False,
+) -> dict[str, Any]:
     """Persist MCP account, position and order snapshots for the dashboard."""
-    payload = asyncio.run(build_account_snapshot())
+    payload = asyncio.run(build_account_snapshot(interactive=interactive))
     position_rows = payload.pop("_position_rows")
     order_rows = payload.pop("_order_rows")
 

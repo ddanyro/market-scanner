@@ -223,6 +223,37 @@ class TestIBKRMCPMarketData(unittest.IsolatedAsyncioTestCase):
 
 
 class TestIBKRMCPBuildSnapshot(unittest.IsolatedAsyncioTestCase):
+    async def test_authorisation_required_is_not_hidden_by_retry(self):
+        error = ibkr_mcp.IBKRMCPAuthorizationRequired("login required")
+        with mock.patch.object(
+            ibkr_mcp,
+            "call_tool",
+            new=mock.AsyncMock(side_effect=error),
+        ) as call_tool:
+            with self.assertRaises(ibkr_mcp.IBKRMCPAuthorizationRequired):
+                await ibkr_mcp._call_with_retry(
+                    "get_account_summary", attempts=2
+                )
+
+        call_tool.assert_awaited_once_with(
+            "get_account_summary", interactive=False
+        )
+
+    async def test_retry_forwards_interactive_reauthorisation(self):
+        with mock.patch.object(
+            ibkr_mcp,
+            "call_tool",
+            new=mock.AsyncMock(return_value={"ok": True}),
+        ) as call_tool:
+            result = await ibkr_mcp._call_with_retry(
+                "get_account_summary", interactive=True
+            )
+
+        self.assertEqual(result, {"ok": True})
+        call_tool.assert_awaited_once_with(
+            "get_account_summary", interactive=True
+        )
+
     async def test_build_snapshot_maps_read_only_tools(self):
         responses = {
             "get_account_summary": {
