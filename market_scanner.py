@@ -10193,6 +10193,36 @@ def main():
                     f"sincronizate pentru "
                     f"{len(mcp_snapshot.get('accounts', []))} cont(uri)."
                 )
+            except ibkr_mcp.IBKRMCPAuthorizationRequired as mcp_error:
+                interactive_reauth = bool(
+                    getattr(sys.stdin, 'isatty', lambda: False)()
+                )
+                if interactive_reauth:
+                    print(
+                        "IBKR MCP necesită reautorizare; deschidem automat "
+                        "pagina securizată IBKR..."
+                    )
+                    try:
+                        mcp_snapshot = ibkr_mcp.sync_account_snapshot(
+                            interactive=True
+                        )
+                        mcp_synced = True
+                        print(
+                            "IBKR MCP reautorizat read-only: ordine, poziții "
+                            "și solduri sincronizate pentru "
+                            f"{len(mcp_snapshot.get('accounts', []))} "
+                            "cont(uri)."
+                        )
+                    except Exception as reauth_error:
+                        print(
+                            "Reautorizarea IBKR MCP nu a reușit; încercăm "
+                            f"TWS: {reauth_error}"
+                        )
+                else:
+                    print(
+                        "IBKR MCP indisponibil; încercăm TWS: "
+                        f"{mcp_error}"
+                    )
             except Exception as mcp_error:
                 print(
                     "IBKR MCP indisponibil; încercăm TWS: "
