@@ -4448,19 +4448,42 @@ def _store_us_market_overview_snapshot(state, swing_data):
     return True
 
 
-def _generate_bvb_market_overview_html(
-    portfolio_df, watchlist_df, return_signal=False,
-):
-    """Context BVB compact, separat complet de scorul SPX/NDX."""
+def _select_best_bvb_proxy_row(portfolio_df, watchlist_df):
+    """Alege TVBETETF cu cel mai complet istoric disponibil.
+
+    Rulările BVB pot produce temporar un snapshot scurt, în timp ce portofoliul
+    sau watchlistul încă păstrează seria completă. Alegerea primei apariții
+    făcea ca 200+ ședințe să fie înlocuite în interfață de numai câteva zile.
+    """
     candidates = []
     for frame in (portfolio_df, watchlist_df):
         if not isinstance(frame, pd.DataFrame) or frame.empty:
             continue
         for _, row in frame.iterrows():
             symbol = str(row.get('Symbol') or row.get('Ticker') or '').upper()
-            if symbol in {'TVBETETF', 'TVBETETF.RO'}:
-                candidates.append(row)
+            if symbol not in {'TVBETETF', 'TVBETETF.RO'}:
+                continue
+            history = pd.to_numeric(
+                pd.Series(row.get('Chart_History', []) or []), errors='coerce'
+            )
+            valid_history = history[
+                history.notna() & np.isfinite(history) & (history > 0)
+            ]
+            candidates.append((len(valid_history), row))
+
     if not candidates:
+        return None
+    # max() păstrează prima apariție la egalitate, deci portofoliul rămâne
+    # preferat față de watchlist când seriile au aceeași lungime.
+    return max(candidates, key=lambda candidate: candidate[0])[1]
+
+
+def _generate_bvb_market_overview_html(
+    portfolio_df, watchlist_df, return_signal=False,
+):
+    """Context BVB compact, separat complet de scorul SPX/NDX."""
+    item = _select_best_bvb_proxy_row(portfolio_df, watchlist_df)
+    if item is None:
         unavailable_html = """
         <section style="margin:32px 0;">
           <h3 style="margin:0 0 8px;color:var(--text-primary);">România / BVB</h3>
@@ -4478,7 +4501,6 @@ def _generate_bvb_market_overview_html(
             if return_signal else unavailable_html
         )
 
-    item = candidates[0]
     prices_eur = pd.to_numeric(
         pd.Series(item.get('Chart_History', []) or []), errors='coerce'
     ).dropna()
@@ -4851,17 +4873,7 @@ def _render_ai_stock_gate_notice(
 
 def _generate_bvb_risk_status_html(portfolio_df, watchlist_df):
     """Reguli de risc BVB independente de SPX, VIX și breadth-ul SUA."""
-    item = None
-    for frame in (portfolio_df, watchlist_df):
-        if not isinstance(frame, pd.DataFrame) or frame.empty:
-            continue
-        for _, row in frame.iterrows():
-            symbol = str(row.get('Symbol') or row.get('Ticker') or '').upper()
-            if symbol in {'TVBETETF', 'TVBETETF.RO'}:
-                item = row
-                break
-        if item is not None:
-            break
+    item = _select_best_bvb_proxy_row(portfolio_df, watchlist_df)
     if item is None:
         return """
         <div class="market-risk-card market-risk-unavailable">
