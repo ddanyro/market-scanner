@@ -129253,215 +129253,6 @@
     "_cached_at": 1786516334.8498347
   },
   {
-    "Ticker": "EAI.RO",
-    "Currency": "RON",
-    "Price": 2.87,
-    "Price_Native": 15.06,
-    "Target": null,
-    "Pct_To_Target": null,
-    "Consensus": "-",
-    "Analysts": 0,
-    "Company_Name": "",
-    "Industry": "-",
-    "Sector": "-",
-    "Trend": "Neutral",
-    "RSI": 28.66,
-    "RSI_Status": "Oversold",
-    "ATR_14": 0.07,
-    "Finviz_ATR": null,
-    "Vol_W": null,
-    "Vol_M": null,
-    "Stop_Loss": 2.73,
-    "SMA_50": NaN,
-    "SMA_200": NaN,
-    "VIX_Tag": "Normal",
-    "Chart_History": [
-      3.1075,
-      3.0083,
-      3.0732,
-      3.077,
-      3.0159,
-      3.035,
-      3.0083,
-      2.9395,
-      2.9586,
-      3.0159,
-      3.0083,
-      2.9968,
-      2.8899,
-      2.8632,
-      2.8632,
-      2.8746
-    ],
-    "Chart_Dates": [
-      "2026-07-21",
-      "2026-07-22",
-      "2026-07-23",
-      "2026-07-24",
-      "2026-07-27",
-      "2026-07-28",
-      "2026-07-29",
-      "2026-07-30",
-      "2026-07-31",
-      "2026-08-03",
-      "2026-08-04",
-      "2026-08-05",
-      "2026-08-06",
-      "2026-08-07",
-      "2026-08-10",
-      "2026-08-11"
-    ],
-    "Chart_OHLC": [
-      {
-        "date": "2026-07-21",
-        "open": 3.0541,
-        "high": 3.3938,
-        "low": 3.0541,
-        "close": 3.1075
-      },
-      {
-        "date": "2026-07-22",
-        "open": 3.1075,
-        "high": 3.1075,
-        "low": 2.9586,
-        "close": 3.0083
-      },
-      {
-        "date": "2026-07-23",
-        "open": 3.0541,
-        "high": 3.1304,
-        "low": 3.0235,
-        "close": 3.0732
-      },
-      {
-        "date": "2026-07-24",
-        "open": 3.0846,
-        "high": 3.0923,
-        "low": 3.0541,
-        "close": 3.077
-      },
-      {
-        "date": "2026-07-27",
-        "open": 3.0541,
-        "high": 3.0541,
-        "low": 3.0083,
-        "close": 3.0159
-      },
-      {
-        "date": "2026-07-28",
-        "open": 3.0235,
-        "high": 3.0503,
-        "low": 2.9968,
-        "close": 3.035
-      },
-      {
-        "date": "2026-07-29",
-        "open": 3.0464,
-        "high": 3.0541,
-        "low": 2.9586,
-        "close": 3.0083
-      },
-      {
-        "date": "2026-07-30",
-        "open": 3.035,
-        "high": 3.035,
-        "low": 2.8823,
-        "close": 2.9395
-      },
-      {
-        "date": "2026-07-31",
-        "open": 2.9395,
-        "high": 2.9586,
-        "low": 2.9166,
-        "close": 2.9586
-      },
-      {
-        "date": "2026-08-03",
-        "open": 2.9777,
-        "high": 3.0159,
-        "low": 2.9472,
-        "close": 3.0159
-      },
-      {
-        "date": "2026-08-04",
-        "open": 3.0159,
-        "high": 3.0426,
-        "low": 2.9968,
-        "close": 3.0083
-      },
-      {
-        "date": "2026-08-05",
-        "open": 3.0083,
-        "high": 3.0541,
-        "low": 2.9854,
-        "close": 2.9968
-      },
-      {
-        "date": "2026-08-06",
-        "open": 2.9968,
-        "high": 2.9968,
-        "low": 2.8899,
-        "close": 2.8899
-      },
-      {
-        "date": "2026-08-07",
-        "open": 2.9205,
-        "high": 2.9205,
-        "low": 2.8479,
-        "close": 2.8632
-      },
-      {
-        "date": "2026-08-10",
-        "open": 2.8517,
-        "high": 2.9014,
-        "low": 2.8517,
-        "close": 2.8632
-      },
-      {
-        "date": "2026-08-11",
-        "open": 2.909,
-        "high": 2.909,
-        "low": 2.8632,
-        "close": 2.8746
-      }
-    ],
-    "Daily_Change": 0.0114,
-    "RS_vs_SPX": null,
-    "RS_Benchmark": "TVBETETF.RO",
-    "RS_Status": "Neutral",
-    "Decision": "AVOID",
-    "Decision_Color": "#f44336",
-    "Checks_Passed": 1,
-    "Smart_Entry": null,
-    "Smart_Entry_EUR": null,
-    "Smart_Type": null,
-    "Smart_Reason": null,
-    "Strategy": "Reversal (Oversold)",
-    "RR_Ratio": 0,
-    "Volume": 14991,
-    "Avg_Volume": 55795,
-    "Earnings_Danger": false,
-    "Earnings_Msg": "",
-    "Check_Details": "\u2717 Trend (P 2.9 < SMA50 nan) \u2717 RS (Weak, Val: N/A) \u2717 RSI (28.7) \u2713 ATR (Risk 5.1%)",
-    "Date": "2026-08-12 09:32",
-    "Market_Data_Source": "Yahoo Finance + BVB public",
-    "Market_Data_Fetched_At": "2026-08-12T06:32:15.008334+00:00",
-    "Data_Broker": "surse combinate",
-    "Execution_Brokers": [
-      "Tradeville"
-    ],
-    "IBKR_Data_Only": false,
-    "Liquidity_Observations_20D": 16,
-    "Active_Days_20D": 16,
-    "Zero_Volume_Days_20D": 0,
-    "Median_Volume_20D": 42194.5,
-    "Median_Turnover_20D_RON": 662616.52,
-    "Average_Turnover_20D_RON": 871687.07,
-    "Last_Turnover_RON": 225764.46,
-    "Relative_Volume_20D": 0.355,
-    "_cached_at": 1786516335.8294334
-  },
-  {
     "Ticker": "FFIV",
     "Currency": "USD",
     "Price": 358.81,
@@ -158418,5 +158209,223 @@
     ],
     "IBKR_Data_Only": false,
     "_cached_at": 1786516481.2968643
+  },
+  {
+    "Ticker": "EAI.RO",
+    "Currency": "RON",
+    "Price": 2.87,
+    "Price_Native": 15.06,
+    "Target": null,
+    "Pct_To_Target": null,
+    "Consensus": "None",
+    "Analysts": 1,
+    "Company_Name": "Electro-Alfa International",
+    "Industry": "Electrical Equipm...",
+    "Sector": "Industrials",
+    "Trend": "Neutral",
+    "RSI": 30.39,
+    "RSI_Status": "Neutral",
+    "ATR_14": 0.07,
+    "Finviz_ATR": null,
+    "Vol_W": null,
+    "Vol_M": null,
+    "Stop_Loss": 2.74,
+    "SMA_50": NaN,
+    "SMA_200": NaN,
+    "VIX_Tag": "Normal",
+    "Chart_History": [
+      3.1075,
+      3.0083,
+      3.0732,
+      3.077,
+      3.0159,
+      3.035,
+      3.0083,
+      2.9395,
+      2.9586,
+      3.0159,
+      3.0083,
+      2.9968,
+      2.8899,
+      2.8632,
+      2.8632,
+      2.8746,
+      2.8823
+    ],
+    "Chart_Dates": [
+      "2026-07-21",
+      "2026-07-22",
+      "2026-07-23",
+      "2026-07-24",
+      "2026-07-27",
+      "2026-07-28",
+      "2026-07-29",
+      "2026-07-30",
+      "2026-07-31",
+      "2026-08-03",
+      "2026-08-04",
+      "2026-08-05",
+      "2026-08-06",
+      "2026-08-07",
+      "2026-08-10",
+      "2026-08-11",
+      "2026-08-12"
+    ],
+    "Chart_OHLC": [
+      {
+        "date": "2026-07-21",
+        "open": 3.0541,
+        "high": 3.3938,
+        "low": 3.0541,
+        "close": 3.1075
+      },
+      {
+        "date": "2026-07-22",
+        "open": 3.1075,
+        "high": 3.1075,
+        "low": 2.9586,
+        "close": 3.0083
+      },
+      {
+        "date": "2026-07-23",
+        "open": 3.0541,
+        "high": 3.1304,
+        "low": 3.0235,
+        "close": 3.0732
+      },
+      {
+        "date": "2026-07-24",
+        "open": 3.0846,
+        "high": 3.0923,
+        "low": 3.0541,
+        "close": 3.077
+      },
+      {
+        "date": "2026-07-27",
+        "open": 3.0541,
+        "high": 3.0541,
+        "low": 3.0083,
+        "close": 3.0159
+      },
+      {
+        "date": "2026-07-28",
+        "open": 3.0235,
+        "high": 3.0503,
+        "low": 2.9968,
+        "close": 3.035
+      },
+      {
+        "date": "2026-07-29",
+        "open": 3.0464,
+        "high": 3.0541,
+        "low": 2.9586,
+        "close": 3.0083
+      },
+      {
+        "date": "2026-07-30",
+        "open": 3.035,
+        "high": 3.035,
+        "low": 2.8823,
+        "close": 2.9395
+      },
+      {
+        "date": "2026-07-31",
+        "open": 2.9395,
+        "high": 2.9586,
+        "low": 2.9166,
+        "close": 2.9586
+      },
+      {
+        "date": "2026-08-03",
+        "open": 2.9777,
+        "high": 3.0159,
+        "low": 2.9472,
+        "close": 3.0159
+      },
+      {
+        "date": "2026-08-04",
+        "open": 3.0159,
+        "high": 3.0426,
+        "low": 2.9968,
+        "close": 3.0083
+      },
+      {
+        "date": "2026-08-05",
+        "open": 3.0083,
+        "high": 3.0541,
+        "low": 2.9854,
+        "close": 2.9968
+      },
+      {
+        "date": "2026-08-06",
+        "open": 2.9968,
+        "high": 2.9968,
+        "low": 2.8899,
+        "close": 2.8899
+      },
+      {
+        "date": "2026-08-07",
+        "open": 2.9205,
+        "high": 2.9205,
+        "low": 2.8479,
+        "close": 2.8632
+      },
+      {
+        "date": "2026-08-10",
+        "open": 2.8517,
+        "high": 2.9014,
+        "low": 2.8517,
+        "close": 2.8632
+      },
+      {
+        "date": "2026-08-11",
+        "open": 2.909,
+        "high": 2.909,
+        "low": 2.8632,
+        "close": 2.8746
+      },
+      {
+        "date": "2026-08-12",
+        "open": 2.8823,
+        "high": 2.8823,
+        "low": 2.8556,
+        "close": 2.8823
+      }
+    ],
+    "Daily_Change": 0.0077,
+    "RS_vs_SPX": null,
+    "RS_Benchmark": "TVBETETF.RO",
+    "RS_Status": "Neutral",
+    "Decision": "AVOID",
+    "Decision_Color": "#f44336",
+    "Checks_Passed": 1,
+    "Smart_Entry": null,
+    "Smart_Entry_EUR": null,
+    "Smart_Type": null,
+    "Smart_Reason": null,
+    "Strategy": "Normal",
+    "RR_Ratio": 0,
+    "Volume": 503,
+    "Avg_Volume": 65974,
+    "Earnings_Danger": false,
+    "Earnings_Msg": "",
+    "Check_Details": "\u2717 Trend (P 2.9 < SMA50 nan) \u2717 RS (Weak, Val: N/A) \u2717 RSI (30.4) \u2713 ATR (Risk 4.6%)",
+    "Date": "2026-08-12 10:54",
+    "Market_Data_Source": "Yahoo Finance + BVB public",
+    "Market_Data_Fetched_At": "2026-08-12T07:54:37.579295+00:00",
+    "Data_Broker": "surse combinate",
+    "Execution_Brokers": [
+      "Tradeville"
+    ],
+    "IBKR_Data_Only": false,
+    "Liquidity_Observations_20D": 17,
+    "Active_Days_20D": 17,
+    "Zero_Volume_Days_20D": 0,
+    "Median_Volume_20D": 34647.0,
+    "Median_Turnover_20D_RON": 557816.71,
+    "Average_Turnover_20D_RON": 820858.15,
+    "Last_Turnover_RON": 7595.3,
+    "Relative_Volume_20D": 0.015,
+    "_cached_at": 1786521278.0353744
   }
 ]
