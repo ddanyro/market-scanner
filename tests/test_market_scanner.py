@@ -272,6 +272,32 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertIn('Aliniere foarte puternică', full_score_html)
         self.assertIn('nu validează automat fiecare acțiune BVB sau AeRO', full_score_html)
 
+    def test_bvb_overview_and_risk_prefer_longest_proxy_history(self):
+        short_portfolio_snapshot = pd.DataFrame([{
+            'Symbol': 'TVBETETF.RO',
+            'Price_Native': 61.71,
+            'RSI': 47.7,
+            'Chart_History': list(np.linspace(60.7, 61.71, 17)),
+        }])
+        complete_watchlist_history = pd.DataFrame([{
+            'Symbol': 'TVBETETF.RO',
+            'Price_Native': 61.71,
+            'RSI': 55,
+            'Chart_History': list(np.linspace(45, 61.71, 260)),
+        }])
+
+        html = market_scanner._generate_bvb_market_overview_html(
+            short_portfolio_snapshot, complete_watchlist_history
+        )
+        risk_html = market_scanner._generate_bvb_risk_status_html(
+            short_portfolio_snapshot, complete_watchlist_history
+        )
+
+        self.assertIn('SMA200:', html)
+        self.assertNotIn('17/200 ședințe', html)
+        self.assertIn('260/200 ȘEDINȚE', risk_html)
+        self.assertNotIn('NEEVALUATĂ', risk_html)
+
     def test_ai_stock_analysis_uses_independent_green_market_gates(self):
         candidates = [
             {'symbol': 'AAPL', 'market': 'SUA'},
