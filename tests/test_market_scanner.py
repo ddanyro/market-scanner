@@ -298,6 +298,34 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertIn('260/200 ȘEDINȚE', risk_html)
         self.assertNotIn('NEEVALUATĂ', risk_html)
 
+    def test_portfolio_refresh_preserves_and_extends_longer_chart_history(self):
+        previous = [{
+            'Symbol': 'TVBETETF.RO',
+            'Current_Price': 11.70,
+            'Chart_Dates': ['2026-01-01', '2026-01-02', '2026-01-03'],
+            'Chart_History': [10.0, 10.2, 10.4],
+            'Chart_OHLC': [{'close': 10.0}, {'close': 10.2}, {'close': 10.4}],
+        }]
+        partial_refresh = [{
+            'Symbol': 'TVBETETF.RO',
+            'Current_Price': 11.90,
+            'Chart_Dates': ['2026-01-03', '2026-01-04'],
+            'Chart_History': [10.5, 10.7],
+            'Chart_OHLC': [{'close': 10.5}, {'close': 10.7}],
+        }]
+
+        result = market_scanner._preserve_portfolio_chart_history(
+            previous, partial_refresh
+        )
+
+        self.assertEqual(result[0]['Current_Price'], 11.90)
+        self.assertEqual(
+            result[0]['Chart_Dates'],
+            ['2026-01-01', '2026-01-02', '2026-01-03', '2026-01-04'],
+        )
+        self.assertEqual(result[0]['Chart_History'], [10.0, 10.2, 10.5, 10.7])
+        self.assertEqual(len(result[0]['Chart_OHLC']), 4)
+
     def test_ai_stock_analysis_uses_independent_green_market_gates(self):
         candidates = [
             {'symbol': 'AAPL', 'market': 'SUA'},

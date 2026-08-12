@@ -4478,6 +4478,85 @@ def _select_best_bvb_proxy_row(portfolio_df, watchlist_df):
     return max(candidates, key=lambda candidate: candidate[0])[1]
 
 
+def _preserve_portfolio_chart_history(previous_items, updated_items):
+    """Nu permite unui refresh parțial să scurteze istoricul unei poziții.
+
+    Pozițiile dispărute nu sunt readăugate. Pentru simbolurile încă deținute,
+    observațiile noi sunt îmbinate după dată cu istoricul anterior, iar
+    metadatele curente (preț, cantitate, stop etc.) rămân cele proaspete.
+    """
+    previous_by_symbol = {
+        str(item.get('Symbol') or '').upper(): item
+        for item in previous_items or []
+        if isinstance(item, dict) and item.get('Symbol')
+    }
+    merged_items = []
+    for raw_item in updated_items or []:
+        item = dict(raw_item)
+        symbol = str(item.get('Symbol') or '').upper()
+        previous = previous_by_symbol.get(symbol)
+        if not previous:
+            merged_items.append(item)
+            continue
+
+        old_history = list(previous.get('Chart_History') or [])
+        new_history = list(item.get('Chart_History') or [])
+        old_dates = list(previous.get('Chart_Dates') or [])
+        new_dates = list(item.get('Chart_Dates') or [])
+        can_merge_by_date = (
+            old_history and new_history
+            and len(old_history) == len(old_dates)
+            and len(new_history) == len(new_dates)
+            and all(str(value).strip() for value in old_dates + new_dates)
+        )
+
+        if can_merge_by_date:
+            history_by_date = {}
+            ordered_dates = []
+            for date, value in zip(old_dates, old_history):
+                key = str(date)
+                if key not in history_by_date:
+                    ordered_dates.append(key)
+                history_by_date[key] = value
+            for date, value in zip(new_dates, new_history):
+                key = str(date)
+                if key not in history_by_date:
+                    ordered_dates.append(key)
+                history_by_date[key] = value
+            if len(ordered_dates) > len(new_history):
+                item['Chart_Dates'] = ordered_dates
+                item['Chart_History'] = [
+                    history_by_date[date] for date in ordered_dates
+                ]
+
+                old_ohlc = list(previous.get('Chart_OHLC') or [])
+                new_ohlc = list(item.get('Chart_OHLC') or [])
+                if (
+                    len(old_ohlc) == len(old_dates)
+                    and len(new_ohlc) == len(new_dates)
+                ):
+                    ohlc_by_date = {
+                        str(date): value
+                        for date, value in zip(old_dates, old_ohlc)
+                    }
+                    ohlc_by_date.update({
+                        str(date): value
+                        for date, value in zip(new_dates, new_ohlc)
+                    })
+                    item['Chart_OHLC'] = [
+                        ohlc_by_date.get(date) for date in ordered_dates
+                    ]
+        elif len(old_history) > len(new_history):
+            item['Chart_History'] = old_history
+            item['Chart_Dates'] = old_dates
+            old_ohlc = list(previous.get('Chart_OHLC') or [])
+            if old_ohlc:
+                item['Chart_OHLC'] = old_ohlc
+
+        merged_items.append(item)
+    return merged_items
+
+
 def _generate_bvb_market_overview_html(
     portfolio_df, watchlist_df, return_signal=False,
 ):
@@ -9973,7 +10052,9 @@ def update_portfolio_data(state, rates, vix_val, sync_before_load=True):
             if data:
                 portfolio_results.append(data)
     
-    state['portfolio'] = portfolio_results
+    state['portfolio'] = _preserve_portfolio_chart_history(
+        state.get('portfolio', []), portfolio_results
+    )
     return state
 
 
@@ -10025,7 +10106,9 @@ def update_portfolio_positions_only(state, rates, vix_val):
         )
         if data:
             portfolio_results.append(data)
-    state['portfolio'] = portfolio_results
+    state['portfolio'] = _preserve_portfolio_chart_history(
+        state.get('portfolio', []), portfolio_results
+    )
     return state
 
 
