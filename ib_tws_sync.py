@@ -49,6 +49,21 @@ TWS_POSITION_COLUMNS = [
 ]
 
 
+def _ensure_event_loop():
+    """Asigură un event loop utilizabil pentru ib_insync.
+
+    Apelurile MCP folosesc ``asyncio.run()``, care închide și elimină event
+    loop-ul curent. Versiunile ib_insync bazate pe ``get_event_loop()`` au
+    nevoie ca următorul fallback TWS să creeze explicit unul nou.
+    """
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    return loop
+
+
 def _write_active_orders_snapshot(orders_data, output_file='tws_orders.csv'):
     """Persistă snapshotul complet, inclusiv cazul valid cu zero ordine."""
     pd.DataFrame(orders_data or [], columns=TWS_ORDER_COLUMNS).to_csv(
@@ -446,6 +461,7 @@ def sync_romanian_position_instruments(
         print("  -> Cache TWS BVB sub o oră; nu repetăm sincronizarea.")
         return True
 
+    _ensure_event_loop()
     ib = IB()
     for port in (7497, 4001, 7496):
         try:
@@ -493,6 +509,7 @@ def fetch_active_orders(
         return False
 
     print("\n=== Conectare TWS pentru Ordine Active ===")
+    _ensure_event_loop()
     ib = IB()
     
     ports = [7497, 4001, 7496] # Porturi standard TWS/Gateway
