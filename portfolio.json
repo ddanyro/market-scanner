@@ -29,7 +29,7 @@
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
     "Sell_Reason": "Trend UP (P 267.3 > SMA200 237.3), RSI 57, Risk 5.3%",
-    "RS_vs_SPX": -3.75,
+    "RS_vs_SPX": -3.17,
     "Chart_History": [
       181.8077,
       184.574,
@@ -856,7 +856,7 @@
       }
     ],
     "Daily_Change": -4.3283,
-    "Date": "2026-08-13 03:05",
+    "Date": "2026-08-13 05:11",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -889,13 +889,13 @@
     "Consensus": "Strong Buy",
     "Analysts": 20,
     "Status": "Neutral",
-    "RSI": 51.9,
+    "RSI": 51.74,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 281.6 > SMA200 239.4), RSI 52, Risk 5.2%",
-    "RS_vs_SPX": 3.56,
+    "Sell_Decision": "EXIT",
+    "Sell_Reason": "RS Fail (Falling); ",
+    "RS_vs_SPX": 5.55,
     "Chart_History": [
       201.6403,
       205.0114,
@@ -906,7 +906,7 @@
       221.9707,
       223.6086,
       220.1508,
-      214.5699,
+      214.57,
       221.5807,
       221.5201,
       214.6739,
@@ -917,7 +917,7 @@
       208.3564,
       204.968,
       210.6182,
-      207.5592,
+      207.5591,
       207.7238,
       210.3149,
       222.222,
@@ -1106,9 +1106,9 @@
       },
       {
         "date": "2026-04-08",
-        "open": 213.114,
+        "open": 213.1141,
         "high": 219.2496,
-        "low": 213.114,
+        "low": 213.1141,
         "close": 216.6498
       },
       {
@@ -1142,21 +1142,21 @@
       {
         "date": "2026-04-15",
         "open": 222.82,
-        "high": 223.6433,
-        "low": 218.747,
+        "high": 223.6432,
+        "low": 218.7469,
         "close": 220.1508
       },
       {
         "date": "2026-04-16",
         "open": 220.4368,
         "high": 221.4507,
-        "low": 213.4953,
-        "close": 214.5699
+        "low": 213.4954,
+        "close": 214.57
       },
       {
         "date": "2026-04-17",
         "open": 217.8024,
-        "high": 224.2238,
+        "high": 224.2239,
         "low": 217.8024,
         "close": 221.5807
       },
@@ -1225,10 +1225,10 @@
       },
       {
         "date": "2026-05-01",
-        "open": 211.0776,
-        "high": 211.9702,
+        "open": 211.0775,
+        "high": 211.9701,
         "low": 206.1379,
-        "close": 207.5592
+        "close": 207.5591
       },
       {
         "date": "2026-05-04",
@@ -1722,7 +1722,7 @@
       }
     ],
     "Daily_Change": 0.2516,
-    "Date": "2026-08-13 03:05",
+    "Date": "2026-08-13 05:11",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1761,7 +1761,7 @@
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
     "Sell_Reason": "Trend UP (P 9.6 > SMA200 8.1), RSI 55, Risk 6.8%",
-    "RS_vs_SPX": -4.04,
+    "RS_vs_SPX": -3.46,
     "Chart_History": [
       6.503,
       6.97,
@@ -2588,7 +2588,7 @@
       }
     ],
     "Daily_Change": -0.038,
-    "Date": "2026-08-13 03:05",
+    "Date": "2026-08-13 05:11",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -2625,9 +2625,9 @@
     "RSI_Status": "Overbought",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 222.8 > SMA200 189.2), RSI 73, Risk 5.6%",
-    "RS_vs_SPX": 22.47,
+    "Sell_Decision": "REDUCE",
+    "Sell_Reason": "RS Fail (Falling); ",
+    "RS_vs_SPX": 23.04,
     "Chart_History": [
       169.3498,
       171.3869,
@@ -3454,7 +3454,7 @@
       }
     ],
     "Daily_Change": -0.9542,
-    "Date": "2026-08-13 03:05",
+    "Date": "2026-08-13 05:11",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -3470,7 +3470,7 @@
     "Current_Price": 11.75,
     "Price_Native": 61.5,
     "Currency": "RON",
-    "Buy_Price": 5.49,
+    "Buy_Price": 5.48,
     "Target": 11.99,
     "Trail_Stop": 11.18,
     "Suggested_Stop": 11.36,
@@ -3478,12 +3478,12 @@
     "Vol_W": null,
     "Vol_M": null,
     "Trail_Pct": 0.0,
-    "Investment": 11305.18,
+    "Investment": 11303.88,
     "Entry_Date": "-",
-    "Current_Value": 24216.95,
-    "Profit": 12911.77,
+    "Current_Value": 24214.17,
+    "Profit": 12910.29,
     "Profit_Pct": 114.21,
-    "Max_Profit": 13400.04,
+    "Max_Profit": 13398.51,
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
@@ -3738,23 +3738,23 @@
       11.3603,
       11.3431,
       11.3775,
-      11.6335,
-      11.8399,
-      11.8399,
-      11.7329,
-      11.731,
-      11.859,
-      11.7921,
-      11.6813,
-      11.7482,
-      11.8762,
-      11.773,
-      11.7692,
-      11.5972,
-      11.6259,
-      11.7291,
-      11.7501,
-      11.7501
+      11.6322,
+      11.8385,
+      11.8385,
+      11.7316,
+      11.7296,
+      11.8576,
+      11.7908,
+      11.68,
+      11.7468,
+      11.8748,
+      11.7717,
+      11.7679,
+      11.5959,
+      11.6246,
+      11.7277,
+      11.7487,
+      11.7487
     ],
     "Chart_Dates": [
       "2025-07-25",
@@ -5722,126 +5722,126 @@
       },
       {
         "date": "2026-07-21",
-        "open": 11.4348,
-        "high": 11.7501,
-        "low": 11.4291,
-        "close": 11.6335
+        "open": 11.4335,
+        "high": 11.7487,
+        "low": 11.4278,
+        "close": 11.6322
       },
       {
         "date": "2026-07-22",
-        "open": 11.6928,
-        "high": 11.8819,
-        "low": 11.6928,
-        "close": 11.8399
+        "open": 11.6914,
+        "high": 11.8806,
+        "low": 11.6914,
+        "close": 11.8385
       },
       {
         "date": "2026-07-23",
-        "open": 11.8743,
-        "high": 11.9717,
-        "low": 11.8303,
-        "close": 11.8399
+        "open": 11.8729,
+        "high": 11.9704,
+        "low": 11.829,
+        "close": 11.8385
       },
       {
         "date": "2026-07-24",
-        "open": 11.9068,
-        "high": 11.987,
-        "low": 11.7883,
-        "close": 11.7329
+        "open": 11.9054,
+        "high": 11.9856,
+        "low": 11.787,
+        "close": 11.7316
       },
       {
         "date": "2026-07-27",
-        "open": 11.7692,
-        "high": 11.8361,
-        "low": 11.7233,
-        "close": 11.731
+        "open": 11.7679,
+        "high": 11.8347,
+        "low": 11.722,
+        "close": 11.7296
       },
       {
         "date": "2026-07-28",
-        "open": 11.817,
-        "high": 11.9259,
-        "low": 11.817,
-        "close": 11.859
+        "open": 11.8156,
+        "high": 11.9245,
+        "low": 11.8156,
+        "close": 11.8576
       },
       {
         "date": "2026-07-29",
-        "open": 11.9029,
-        "high": 11.9335,
-        "low": 11.7979,
-        "close": 11.7921
+        "open": 11.9016,
+        "high": 11.9321,
+        "low": 11.7965,
+        "close": 11.7908
       },
       {
         "date": "2026-07-30",
-        "open": 11.8456,
-        "high": 11.8666,
-        "low": 11.4444,
-        "close": 11.6813
+        "open": 11.8443,
+        "high": 11.8653,
+        "low": 11.4431,
+        "close": 11.68
       },
       {
         "date": "2026-07-31",
-        "open": 11.71,
-        "high": 11.7826,
-        "low": 11.6355,
-        "close": 11.7482
+        "open": 11.7086,
+        "high": 11.7812,
+        "low": 11.6341,
+        "close": 11.7468
       },
       {
         "date": "2026-08-03",
-        "open": 11.8112,
-        "high": 11.9163,
-        "low": 11.8112,
-        "close": 11.8762
+        "open": 11.8099,
+        "high": 11.915,
+        "low": 11.8099,
+        "close": 11.8748
       },
       {
         "date": "2026-08-04",
-        "open": 11.8762,
-        "high": 11.9545,
-        "low": 11.8437,
-        "close": 11.773
+        "open": 11.8748,
+        "high": 11.9532,
+        "low": 11.8424,
+        "close": 11.7717
       },
       {
         "date": "2026-08-05",
-        "open": 11.8437,
-        "high": 11.9049,
-        "low": 11.7692,
-        "close": 11.7692
+        "open": 11.8424,
+        "high": 11.9035,
+        "low": 11.7679,
+        "close": 11.7679
       },
       {
         "date": "2026-08-06",
-        "open": 11.7807,
-        "high": 11.8055,
-        "low": 11.5571,
-        "close": 11.5972
+        "open": 11.7793,
+        "high": 11.8041,
+        "low": 11.5558,
+        "close": 11.5959
       },
       {
         "date": "2026-08-07",
-        "open": 11.6355,
-        "high": 11.9373,
-        "low": 11.5801,
-        "close": 11.6259
+        "open": 11.6341,
+        "high": 11.936,
+        "low": 11.5787,
+        "close": 11.6246
       },
       {
         "date": "2026-08-10",
-        "open": 11.6431,
-        "high": 11.8991,
-        "low": 11.6431,
-        "close": 11.7291
+        "open": 11.6418,
+        "high": 11.8978,
+        "low": 11.6418,
+        "close": 11.7277
       },
       {
         "date": "2026-08-11",
-        "open": 11.8036,
-        "high": 11.8456,
-        "low": 11.7501,
-        "close": 11.7501
+        "open": 11.8022,
+        "high": 11.8443,
+        "low": 11.7487,
+        "close": 11.7487
       },
       {
         "date": "2026-08-12",
-        "open": 11.7826,
-        "high": 11.838,
-        "low": 11.7539,
-        "close": 11.7501
+        "open": 11.7812,
+        "high": 11.8366,
+        "low": 11.7526,
+        "close": 11.7487
       }
     ],
     "Daily_Change": 0.0,
-    "Date": "2026-08-13 03:05",
+    "Date": "2026-08-13 05:11",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
