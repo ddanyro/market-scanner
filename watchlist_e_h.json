@@ -159170,8 +159170,8 @@
   {
     "Ticker": "EAI.RO",
     "Currency": "RON",
-    "Price": 3.04,
-    "Price_Native": 15.18,
+    "Price": 3.13,
+    "Price_Native": 15.66,
     "Target": null,
     "Pct_To_Target": null,
     "Consensus": "None",
@@ -159180,13 +159180,13 @@
     "Industry": "Electrical Equipm...",
     "Sector": "Industrials",
     "Trend": "Neutral",
-    "RSI": 64.09,
+    "RSI": 64.32,
     "RSI_Status": "Neutral",
     "ATR_14": 0.08,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
-    "Stop_Loss": 2.88,
+    "Stop_Loss": 2.98,
     "SMA_50": 2.69,
     "SMA_200": NaN,
     "VIX_Tag": "Normal",
@@ -159280,7 +159280,7 @@
       3.0,
       3.012,
       3.036,
-      3.128
+      3.132
     ],
     "Chart_Dates": [
       "2026-04-06",
@@ -160003,11 +160003,11 @@
         "open": 3.052,
         "high": 3.132,
         "low": 3.048,
-        "close": 3.128
+        "close": 3.132
       }
     ],
-    "Daily_Change": 0.092,
-    "RS_vs_SPX": 19.37,
+    "Daily_Change": 0.096,
+    "RS_vs_SPX": 19.66,
     "RS_Benchmark": "TVBETETF.RO",
     "RS_Status": "Strong",
     "Decision": "WAIT",
@@ -160019,14 +160019,14 @@
     "Smart_Reason": null,
     "Strategy": "Normal",
     "RR_Ratio": 0,
-    "Volume": 15150,
+    "Volume": 15740,
     "Avg_Volume": 65576,
     "Earnings_Danger": false,
     "Earnings_Msg": "",
-    "Check_Details": "\u2713 Trend (P 3.0 > SMA50 2.7) \u2717 RS (Downtrend, Val: 19.37) \u2713 RSI (64.1) \u2713 ATR (Risk 5.0%)",
-    "Date": "2026-08-13 16:50",
+    "Check_Details": "\u2713 Trend (P 3.1 > SMA50 2.7) \u2717 RS (Downtrend, Val: 19.66) \u2713 RSI (64.3) \u2713 ATR (Risk 4.9%)",
+    "Date": "2026-08-13 18:16",
     "Market_Data_Source": "Yahoo Finance + BVB public",
-    "Market_Data_Fetched_At": "2026-08-13T13:50:47.283756+00:00",
+    "Market_Data_Fetched_At": "2026-08-13T15:16:57.994302+00:00",
     "Data_Broker": "surse combinate",
     "Execution_Brokers": [
       "Tradeville"
@@ -160037,9 +160037,9 @@
     "Zero_Volume_Days_20D": 0,
     "Median_Volume_20D": 42194.5,
     "Median_Turnover_20D_RON": 662616.52,
-    "Average_Turnover_20D_RON": 1175915.35,
-    "Last_Turnover_RON": 236946.01,
-    "Relative_Volume_20D": 0.359,
-    "_cached_at": 1786629047.8659756
+    "Average_Turnover_20D_RON": 1176392.47,
+    "Last_Turnover_RON": 246488.4,
+    "Relative_Volume_20D": 0.373,
+    "_cached_at": 1786634218.9362495
   }
 ]
