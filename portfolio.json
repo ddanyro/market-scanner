@@ -856,7 +856,7 @@
       }
     ],
     "Daily_Change": -4.3244,
-    "Date": "2026-08-13 14:02",
+    "Date": "2026-08-13 14:39",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -893,8 +893,8 @@
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "EXIT",
-    "Sell_Reason": "RS Fail (Falling); ",
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 281.6 > SMA200 239.7), RSI 52, Risk 5.2%",
     "RS_vs_SPX": 4.97,
     "Chart_History": [
       201.71,
@@ -914,13 +914,13 @@
       213.1253,
       209.9045,
       209.2638,
-      208.1642,
+      208.1643,
       204.779,
       210.424,
       207.3677,
       207.5322,
       210.121,
-      222.017,
+      222.0171,
       235.9651,
       234.354,
       236.9698,
@@ -1141,7 +1141,7 @@
       },
       {
         "date": "2026-04-15",
-        "open": 222.6145,
+        "open": 222.6144,
         "high": 223.437,
         "low": 218.5452,
         "close": 219.9478
@@ -1150,13 +1150,13 @@
         "date": "2026-04-16",
         "open": 220.2335,
         "high": 221.2465,
-        "low": 213.2984,
+        "low": 213.2985,
         "close": 214.372
       },
       {
         "date": "2026-04-17",
         "open": 217.6015,
-        "high": 224.017,
+        "high": 224.0171,
         "low": 217.6015,
         "close": 221.3764
       },
@@ -1169,7 +1169,7 @@
       },
       {
         "date": "2026-04-21",
-        "open": 220.2855,
+        "open": 220.2854,
         "high": 220.9521,
         "low": 212.7443,
         "close": 214.4759
@@ -1205,9 +1205,9 @@
       {
         "date": "2026-04-28",
         "open": 209.3158,
-        "high": 212.4326,
+        "high": 212.4327,
         "low": 205.437,
-        "close": 208.1642
+        "close": 208.1643
       },
       {
         "date": "2026-04-29",
@@ -1226,7 +1226,7 @@
       {
         "date": "2026-05-01",
         "open": 210.8829,
-        "high": 211.7747,
+        "high": 211.7746,
         "low": 205.9478,
         "close": 207.3677
       },
@@ -1249,7 +1249,7 @@
         "open": 217.0733,
         "high": 223.6361,
         "low": 216.1383,
-        "close": 222.017
+        "close": 222.0171
       },
       {
         "date": "2026-05-07",
@@ -1722,7 +1722,7 @@
       }
     ],
     "Daily_Change": 0.2514,
-    "Date": "2026-08-13 14:02",
+    "Date": "2026-08-13 14:39",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1735,33 +1735,33 @@
     "Symbol": "LQQ",
     "Company_Name": "LQQ \u2014 Nasdaq-100 Daily (2x) Leveraged UCITS ETF",
     "Shares": 400,
-    "Current_Price": 9.78,
-    "Price_Native": 9.78,
+    "Current_Price": 9.77,
+    "Price_Native": 9.77,
     "Currency": "EUR",
     "Buy_Price": 9.61,
     "Target": 10.75,
     "Trail_Stop": 8.99,
-    "Suggested_Stop": 9.13,
+    "Suggested_Stop": 9.12,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
     "Trail_Pct": 7.33,
     "Investment": 3842.2,
     "Entry_Date": "-",
-    "Current_Value": 3912.0,
-    "Profit": 69.8,
-    "Profit_Pct": 1.82,
-    "Max_Profit": 459.54,
+    "Current_Value": 3909.6,
+    "Profit": 67.4,
+    "Profit_Pct": 1.75,
+    "Max_Profit": 457.14,
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 57.03,
+    "RSI": 56.93,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 9.8 > SMA200 8.2), RSI 57, Risk 8.1%",
-    "RS_vs_SPX": -2.16,
+    "Sell_Reason": "Trend UP (P 9.8 > SMA200 8.2), RSI 57, Risk 8.0%",
+    "RS_vs_SPX": -2.22,
     "Chart_History": [
       6.503,
       6.97,
@@ -1854,7 +1854,7 @@
       9.686,
       9.748,
       9.648,
-      9.78
+      9.774
     ],
     "Chart_Dates": [
       "2026-04-07",
@@ -2593,11 +2593,11 @@
         "open": 9.782,
         "high": 9.794,
         "low": 9.75,
-        "close": 9.78
+        "close": 9.774
       }
     ],
-    "Daily_Change": 0.132,
-    "Date": "2026-08-13 14:02",
+    "Daily_Change": 0.126,
+    "Date": "2026-08-13 14:39",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -2634,8 +2634,8 @@
     "RSI_Status": "Overbought",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "REDUCE",
-    "Sell_Reason": "RS Fail (Falling); ",
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 222.8 > SMA200 189.2), RSI 73, Risk 5.6%",
     "RS_vs_SPX": 22.47,
     "Chart_History": [
       169.3498,
@@ -3463,7 +3463,7 @@
       }
     ],
     "Daily_Change": -0.9533,
-    "Date": "2026-08-13 14:02",
+    "Date": "2026-08-13 14:39",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -3477,26 +3477,26 @@
     "Company_Name": "ETF BET Patria-Tradeville",
     "Shares": 2061,
     "Current_Price": 12.39,
-    "Price_Native": 61.95,
+    "Price_Native": 61.97,
     "Currency": "RON",
     "Buy_Price": 5.74,
     "Target": 12.99,
     "Trail_Stop": 11.7,
-    "Suggested_Stop": 11.99,
+    "Suggested_Stop": 12.0,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
     "Trail_Pct": 0.0,
     "Investment": 11834.26,
     "Entry_Date": "-",
-    "Current_Value": 25535.79,
-    "Profit": 13701.53,
-    "Profit_Pct": 115.78,
-    "Max_Profit": 14930.18,
+    "Current_Value": 25544.03,
+    "Profit": 13709.77,
+    "Profit_Pct": 115.85,
+    "Max_Profit": 14938.42,
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 66.35,
+    "RSI": 66.46,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
@@ -3764,7 +3764,7 @@
       12.278,
       12.3,
       12.3,
-      12.39
+      12.394
     ],
     "Chart_Dates": [
       "2025-07-25",
@@ -5855,11 +5855,11 @@
         "open": 12.38,
         "high": 12.454,
         "low": 12.364,
-        "close": 12.39
+        "close": 12.394
       }
     ],
-    "Daily_Change": 0.09,
-    "Date": "2026-08-13 14:02",
+    "Daily_Change": 0.094,
+    "Date": "2026-08-13 14:39",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
