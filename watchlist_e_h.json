@@ -49124,7 +49124,7 @@
     "Industry": "Electrical Equipm...",
     "Sector": "Industrials",
     "Trend": "Neutral",
-    "RSI": 64.55,
+    "RSI": 64.78,
     "RSI_Status": "Neutral",
     "ATR_14": 0.07,
     "Finviz_ATR": null,
@@ -49224,7 +49224,7 @@
       2.8731,
       2.896,
       2.9876,
-      2.9914
+      2.9952
     ],
     "Chart_Dates": [
       "2026-04-07",
@@ -49945,15 +49945,15 @@
       {
         "date": "2026-08-14",
         "open": 2.9914,
-        "high": 2.9914,
+        "high": 2.9952,
         "low": 2.9838,
-        "close": 2.9914
+        "close": 2.9952
       }
     ],
-    "Daily_Change": 0.0038,
-    "RS_vs_SPX": null,
+    "Daily_Change": 0.0076,
+    "RS_vs_SPX": 21.13,
     "RS_Benchmark": "TVBETETF.RO",
-    "RS_Status": "Neutral",
+    "RS_Status": "Strong",
     "Decision": "WAIT",
     "Decision_Color": "#ff9800",
     "Checks_Passed": 3,
@@ -49963,14 +49963,14 @@
     "Smart_Reason": null,
     "Strategy": "Normal",
     "RR_Ratio": 0,
-    "Volume": 9668,
+    "Volume": 28402,
     "Avg_Volume": 65527,
     "Earnings_Danger": false,
     "Earnings_Msg": "",
-    "Check_Details": "\u2713 Trend (P 3.0 > SMA50 2.6) \u2717 RS (Weak, Val: N/A) \u2713 RSI (64.6) \u2713 ATR (Risk 4.6%)",
-    "Date": "2026-08-14 16:45",
+    "Check_Details": "\u2713 Trend (P 3.0 > SMA50 2.6) \u2717 RS (Downtrend, Val: 21.13) \u2713 RSI (64.8) \u2713 ATR (Risk 4.6%)",
+    "Date": "2026-08-14 18:08",
     "Market_Data_Source": "Yahoo Finance + BVB public",
-    "Market_Data_Fetched_At": "2026-08-14T13:45:44.098503+00:00",
+    "Market_Data_Fetched_At": "2026-08-14T15:08:02.492995+00:00",
     "Data_Broker": "surse combinate",
     "Execution_Brokers": [
       "Tradeville"
@@ -49981,9 +49981,9 @@
     "Zero_Volume_Days_20D": 0,
     "Median_Volume_20D": 32230.5,
     "Median_Turnover_20D_RON": 512948.26,
-    "Average_Turnover_20D_RON": 974633.89,
-    "Last_Turnover_RON": 151594.24,
-    "Relative_Volume_20D": 0.3,
-    "_cached_at": 1786715144.8550048
+    "Average_Turnover_20D_RON": 989349.75,
+    "Last_Turnover_RON": 445911.39,
+    "Relative_Volume_20D": 0.881,
+    "_cached_at": 1786720083.062301
   }
 ]
