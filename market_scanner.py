@@ -3602,17 +3602,15 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
 
 
         
-        # Stop loss logic: Prioritate Manual > IBKR Order > Calculated
+        # Stopul activ IBKR este triggerul live; cel manual rămâne fallback.
         trail_stop_manual = float(row.get('trail_stop', 0))
         trail_stop_ibkr = float(row.get('trail_stop_ibkr', 0))
         
-        if trail_stop_manual > 0:
-            # Avem stop manual setat în CSV (deja în moneda potrivită sau EUR dacă userul a pus direct)
-            # Dacă tickerul e EUR (SXRZ.DE), rate e 1. Deci input 252.1 devine 252.1.
-            trail_stop_price = trail_stop_manual * rate
-        elif trail_stop_ibkr > 0:
-            # Avem stop din IBKR Orders (dacă ar merge Flex)
+        if trail_stop_ibkr > 0:
+            # Valoare live din TWS, în moneda instrumentului.
             trail_stop_price = trail_stop_ibkr * rate
+        elif trail_stop_manual > 0:
+            trail_stop_price = trail_stop_manual * rate
         elif trail_pct > 0:
             # Fallback: calculăm dinamic din procent
             trail_stop_price = current_price * (1 - trail_pct / 100)
@@ -5103,6 +5101,21 @@ def _load_cached_tws_orders(full_state, password, path='tws_orders.csv'):
             'tws_encrypted_cache',
         )
     return pd.DataFrame(columns=TWS_ACTIVE_ORDER_COLUMNS), False, 'unavailable'
+
+
+def _orders_snapshot_password(default_password):
+    """Cheia folosită exclusiv pentru snapshotul ordinelor active.
+
+    Pe calculator cheia locală a portofoliului poate fi diferită de PIN-ul
+    folosit de GitHub Pages. Variabila dedicată permite publicarea aceluiași
+    snapshot criptat pentru PIN-ul remote, fără a expune sau a include PIN-ul
+    în repository.
+    """
+    return (
+        os.environ.get('PORTFOLIO_ORDER_CACHE_PASSWORD', '')
+        or os.environ.get('TWS_ACCOUNT_PASSWORD', '')
+        or default_password
+    )
 
 
 def _filter_orders_against_current_positions(orders_df, portfolio_df):
@@ -7431,9 +7444,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     
     orders_list = []
     orders_df = pd.DataFrame()
-    orders_cache_password = (
-        os.environ.get('TWS_ACCOUNT_PASSWORD', '') or password
-    )
+    orders_cache_password = _orders_snapshot_password(password)
     try:
         tws_orders_frame, orders_cache_changed, orders_source = (
             _load_cached_tws_orders(
@@ -7488,7 +7499,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         selling_rows_html = '<tr><td colspan="15" style="text-align:center;">Niciun ordin de vânzare activ în IBKR / Tradeville.</td></tr>'
 
     # Encrypt Data
-    account_password = os.environ.get('TWS_ACCOUNT_PASSWORD', '') or password
+    account_password = _orders_snapshot_password(password)
     tws_account_data = None
     if os.path.exists('tws_account.json'):
         try:
@@ -10345,114 +10356,127 @@ def main():
                     f"{mcp_error}"
                 )
 
+        # MCP rămâne sursa primară pentru poziții și solduri. Ordinele active,
+        # în special trailing stop-ul curent calculat de IBKR, trebuie însă
+        # citite din TWS la fiecare rulare locală: snapshotul MCP poate fi
+        # valid pentru cont, dar nu actualizează întotdeauna triggerul curent.
         tws_synced = mcp_synced
-        if args.tws and not mcp_synced:
-             try:
-                 import ib_tws_sync
-                 tws_synced = bool(
-                     ib_tws_sync.fetch_active_orders(
-                         research_symbols=(
-                             _planned_bvb_tws_symbols(state)
-                             if args.mode == 'all' else []
-                         ),
-                         sync_research_instruments=(args.mode == 'all'),
-                     )
-                 )
-                 
-                 # Apply TWS Orders to Local CSV immediately
-                 if os.path.exists('tws_orders.csv') and os.path.exists('portfolio.csv'):
-                     print("Applying TWS Orders to portfolio.csv...")
-                     p_df = pd.read_csv('portfolio.csv')
-                     t_df = pd.read_csv('tws_orders.csv')
-                     
-                     changed = False
-                     for _, row in t_df.iterrows():
-                         sym = str(row.get('Symbol', ''))
-                         stop = float(row.get('Calculated_Stop', 0))
-                         pct = float(row.get('Trail_Pct', 0))
-                         
-                         mask = p_df['Symbol'] == sym
-                         if mask.any():
-                             if stop > 0:
-                                 p_df.loc[mask, 'Trail_Stop'] = stop # Update direct Trail_Stop
-                                 changed = True
-                             if pct > 0:
-                                 p_df.loc[mask, 'Trail_Pct'] = pct
-                                 changed = True
-                     
-                     if changed:
-                         p_df.to_csv('portfolio.csv', index=False)
-                         print("Portfolio CSV updated with live orders.")
+        if args.tws:
+            if mcp_synced:
+                print(
+                    "  -> MCP păstrează pozițiile/soldurile; actualizăm "
+                    "ordinele active din TWS."
+                )
+            try:
+                import ib_tws_sync
+                tws_synced = bool(
+                    ib_tws_sync.fetch_active_orders(
+                        research_symbols=(
+                            _planned_bvb_tws_symbols(state)
+                            if args.mode == 'all' else []
+                        ),
+                        sync_research_instruments=(args.mode == 'all'),
+                    )
+                )
+                
+                # Apply TWS Orders to Local CSV immediately
+                if os.path.exists('tws_orders.csv') and os.path.exists('portfolio.csv'):
+                    print("Applying TWS Orders to portfolio.csv...")
+                    p_df = pd.read_csv('portfolio.csv')
+                    t_df = pd.read_csv('tws_orders.csv')
+                    
+                    changed = False
+                    for _, row in t_df.iterrows():
+                        sym = str(row.get('Symbol', ''))
+                        stop = float(row.get('Calculated_Stop', 0))
+                        pct = float(row.get('Trail_Pct', 0))
+                        
+                        mask = p_df['Symbol'] == sym
+                        if mask.any():
+                            if stop > 0:
+                                # TWS este sursa live pentru triggerul unui
+                                # trailing stop; păstrăm și câmpul IBKR ca
+                                # analiza să nu aleagă un nivel manual vechi.
+                                p_df.loc[mask, 'Trail_Stop'] = stop
+                                p_df.loc[mask, 'Trail_Stop_IBKR'] = stop
+                                changed = True
+                            if pct > 0:
+                                p_df.loc[mask, 'Trail_Pct'] = pct
+                                changed = True
+                    
+                    if changed:
+                        p_df.to_csv('portfolio.csv', index=False)
+                        print("Portfolio CSV updated with live orders.")
 
-                 # Apply TWS Positions to Local CSV (Sync Size & Entry)
-                 if False and os.path.exists('tws_positions.csv'): # Logic moved to update_portfolio_data
-                     print("Merging TWS Positions (Shares/AvgPrice) into portfolio.csv...")
-                     try:
-                         pos_df = pd.read_csv('tws_positions.csv')
-                         # Load portfolio again to be fresh
-                         p_df = pd.read_csv('portfolio.csv') if os.path.exists('portfolio.csv') else pd.DataFrame(columns=['Symbol', 'Shares', 'Buy_Price', 'Currency', 'Trail_Pct', 'Trail_Stop'])
-                         
-                         p_changed = False
-                         
-                         # 1. Update Existing & Add New
-                         for _, row in pos_df.iterrows():
-                             sym = str(row.get('Symbol', ''))
-                             shares = float(row.get('Shares', 0))
-                             price = float(row.get('Buy_Price', 0))
-                             curr = str(row.get('Currency', 'USD'))
-                             
-                             if shares == 0: continue # Ignore closed
-                             
-                             mask = p_df['Symbol'] == sym
-                             if sym == 'AMPX':
-                                  print(f"DEBUG MERGE AMPX: TWS Price={price}, TWS Shares={shares}")
-                                  if mask.any():
-                                      print(f"DEBUG MERGE AMPX: CSV Price={p_df.loc[mask, 'Buy_Price'].values[0]}")
-                             if mask.any():
-                                 # Update existing
-                                 current_shares = float(p_df.loc[mask, 'Shares'].values[0])
-                                 current_price = float(p_df.loc[mask, 'Buy_Price'].values[0])
-                                 
-                                 # Update only if different
-                                 if abs(current_shares - shares) > 0.0001 or abs(current_price - price) > 0.01:
-                                      p_df.loc[mask, 'Shares'] = shares
-                                      p_df.loc[mask, 'Buy_Price'] = price  # Re-enabled: TWS AvgPrice is correct (native currency)
-                                      p_df.loc[mask, 'Currency'] = curr # Optional
-                                      p_changed = True
-                                      print(f"  Updated {sym}: {shares} shares @ {price}")
-                             else:
-                                 # Add New Position
-                                 new_row = {
-                                     'Symbol': sym, 
-                                     'Shares': shares, 
-                                     'Buy_Price': price, 
-                                     'Currency': curr,
-                                     'Trail_Pct': 15,    # Default
-                                     'Trail_Stop': 0, 
-                                     'Investment': shares * price 
-                                 }
-                                 # Align columns
-                                 for col in p_df.columns:
-                                     if col not in new_row: new_row[col] = 0
-                                     
-                                 p_df = pd.concat([p_df, pd.DataFrame([new_row])], ignore_index=True)
-                                 p_changed = True
-                                 print(f"  Added New Pos {sym}: {shares} shares @ {price}")
+                # Apply TWS Positions to Local CSV (Sync Size & Entry)
+                if False and os.path.exists('tws_positions.csv'): # Logic moved to update_portfolio_data
+                    print("Merging TWS Positions (Shares/AvgPrice) into portfolio.csv...")
+                    try:
+                        pos_df = pd.read_csv('tws_positions.csv')
+                        # Load portfolio again to be fresh
+                        p_df = pd.read_csv('portfolio.csv') if os.path.exists('portfolio.csv') else pd.DataFrame(columns=['Symbol', 'Shares', 'Buy_Price', 'Currency', 'Trail_Pct', 'Trail_Stop'])
+                        
+                        p_changed = False
+                        
+                        # 1. Update Existing & Add New
+                        for _, row in pos_df.iterrows():
+                            sym = str(row.get('Symbol', ''))
+                            shares = float(row.get('Shares', 0))
+                            price = float(row.get('Buy_Price', 0))
+                            curr = str(row.get('Currency', 'USD'))
+                            
+                            if shares == 0: continue # Ignore closed
+                            
+                            mask = p_df['Symbol'] == sym
+                            if sym == 'AMPX':
+                                 print(f"DEBUG MERGE AMPX: TWS Price={price}, TWS Shares={shares}")
+                                 if mask.any():
+                                     print(f"DEBUG MERGE AMPX: CSV Price={p_df.loc[mask, 'Buy_Price'].values[0]}")
+                            if mask.any():
+                                # Update existing
+                                current_shares = float(p_df.loc[mask, 'Shares'].values[0])
+                                current_price = float(p_df.loc[mask, 'Buy_Price'].values[0])
+                                
+                                # Update only if different
+                                if abs(current_shares - shares) > 0.0001 or abs(current_price - price) > 0.01:
+                                     p_df.loc[mask, 'Shares'] = shares
+                                     p_df.loc[mask, 'Buy_Price'] = price  # Re-enabled: TWS AvgPrice is correct (native currency)
+                                     p_df.loc[mask, 'Currency'] = curr # Optional
+                                     p_changed = True
+                                     print(f"  Updated {sym}: {shares} shares @ {price}")
+                            else:
+                                # Add New Position
+                                new_row = {
+                                    'Symbol': sym, 
+                                    'Shares': shares, 
+                                    'Buy_Price': price, 
+                                    'Currency': curr,
+                                    'Trail_Pct': 15,    # Default
+                                    'Trail_Stop': 0, 
+                                    'Investment': shares * price 
+                                }
+                                # Align columns
+                                for col in p_df.columns:
+                                    if col not in new_row: new_row[col] = 0
+                                    
+                                p_df = pd.concat([p_df, pd.DataFrame([new_row])], ignore_index=True)
+                                p_changed = True
+                                print(f"  Added New Pos {sym}: {shares} shares @ {price}")
 
-                         # 2. (Optional) Mark closed positions? 
-                         # For now, we only update active TWS positions. We don't delete positions not in TWS to be safe.
-                         
-                         if p_changed:
-                             p_df.to_csv('portfolio.csv', index=False)
-                             print("Portfolio CSV positions synchronized.")
-                             
-                     except Exception as e:
-                         print(f"Error merging TWS positions: {e}")
-                         
-             except ImportError:
-                 print("Cannot import ib_tws_sync. Skipping TWS sync.")
-             except Exception as e:
-                 print(f"TWS Sync Error: {e}")
+                        # 2. (Optional) Mark closed positions? 
+                        # For now, we only update active TWS positions. We don't delete positions not in TWS to be safe.
+                        
+                        if p_changed:
+                            p_df.to_csv('portfolio.csv', index=False)
+                            print("Portfolio CSV positions synchronized.")
+                            
+                    except Exception as e:
+                        print(f"Error merging TWS positions: {e}")
+                        
+            except ImportError:
+                print("Cannot import ib_tws_sync. Skipping TWS sync.")
+            except Exception as e:
+                print(f"TWS Sync Error: {e}")
         elif mcp_synced:
             print("  -> TWS nu este necesar: snapshotul MCP este valid.")
 
@@ -10613,9 +10637,12 @@ def main():
     indicators_data = state.get('market_indicators', {})
     
     print("\n=== Generare Dashboard HTML ===")
+    # html-only este utilizat pentru a republica dashboardul (de exemplu
+    # după sincronizarea unui stop TWS). Nu are voie să pornească scanări de
+    # piață sau apeluri AI: păstrăm ultimul context complet din cache.
     cached_swing_data = (
         _cached_swing_data_for_ro(state)
-        if args.mode in {'ro', 'portfolio'} else None
+        if args.mode in {'ro', 'portfolio', 'html-only'} else None
     )
     if args.mode == 'portfolio' and cached_swing_data is None:
         # Un dict gol oprește explicit fallback-ul din renderer către o
@@ -10629,10 +10656,10 @@ def main():
             "  -> Snapshotul SUA lipsește sau este invalid; îl inițializăm "
             "o singură dată, separat de datele BVB."
         )
-    elif args.mode == 'portfolio':
+    elif args.mode in {'portfolio', 'html-only'}:
         print(
             "  -> Contextul global nu este disponibil în cache; modul "
-            "portofoliu nu pornește o scanare de piață suplimentară."
+            "portofoliu/html-only nu pornește o scanare de piață suplimentară."
         )
     generate_html_dashboard(
         portfolio_df,

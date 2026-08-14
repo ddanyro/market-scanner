@@ -88,6 +88,9 @@ jobs:
         IBKR_TOKEN: ${{ secrets.IBKR_TOKEN }}
         IBKR_QUERY_ID: ${{ secrets.IBKR_QUERY_ID }}
         PORTFOLIO_PASSWORD: ${{ secrets.PORTFOLIO_PASSWORD }}
+        # Snapshotul ordinelor TWS trebuie criptat cu aceeași cheie pe local
+        # și remote. În Actions folosim PIN-ul remote, fără să îl expunem.
+        PORTFOLIO_ORDER_CACHE_PASSWORD: ${{ secrets.PORTFOLIO_PASSWORD }}
         PORTFOLIO_CHAT_API_URL: ${{ secrets.PORTFOLIO_CHAT_API_URL }}
         TWS_ACCOUNT_PASSWORD: ${{ secrets.TWS_ACCOUNT_PASSWORD }}
         FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
