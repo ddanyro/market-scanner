@@ -33,6 +33,7 @@ import unicodedata
 import hashlib
 import hmac
 import html
+from zoneinfo import ZoneInfo
 from io import StringIO
 from market_scanner_analysis import (
     generate_market_analysis,
@@ -5331,6 +5332,61 @@ def _current_month_portfolio_change(history, now=None):
     return round(points[-1][1] - points[0][1], 2)
 
 
+def _previous_weekday(day):
+    candidate = day - datetime.timedelta(days=1)
+    while candidate.weekday() >= 5:
+        candidate -= datetime.timedelta(days=1)
+    return candidate
+
+
+def _market_post_close_state(now, timezone_name, close_hour):
+    """Returnează ultima ședință terminată și dacă suntem în fereastra post-close."""
+    local_now = now.astimezone(ZoneInfo(timezone_name))
+    is_weekend = local_now.weekday() >= 5
+    close_time = datetime.time(close_hour, 0)
+    post_close = is_weekend or local_now.time().replace(tzinfo=None) >= close_time
+    session_day = (
+        _previous_weekday(local_now.date())
+        if is_weekend or not post_close
+        else local_now.date()
+    )
+    return {
+        'timezone': timezone_name,
+        'local_time': local_now.isoformat(timespec='seconds'),
+        'close_time': f'{close_hour:02d}:00',
+        'post_close': post_close,
+        'session_date': session_day.isoformat(),
+    }
+
+
+def _closed_market_ai_schedule(full_state, now=None):
+    """Permite o singură rundă AI după închiderea BVB și a pieței SUA."""
+    current_time = now or datetime.datetime.now(datetime.timezone.utc)
+    if current_time.tzinfo is None:
+        current_time = current_time.replace(tzinfo=datetime.timezone.utc)
+    bvb = _market_post_close_state(
+        current_time, 'Europe/Bucharest', 18
+    )
+    usa = _market_post_close_state(
+        current_time, 'America/New_York', 16
+    )
+    session_key = (
+        f"BVB:{bvb['session_date']}|SUA:{usa['session_date']}"
+    )
+    last_session = str(
+        (full_state or {}).get('last_closed_market_ai_session') or ''
+    )
+    both_closed = bool(bvb['post_close'] and usa['post_close'])
+    return {
+        'allowed': both_closed and session_key != last_session,
+        'both_closed': both_closed,
+        'session_key': session_key,
+        'last_session_key': last_session,
+        'bvb': bvb,
+        'usa': usa,
+    }
+
+
 def generate_html_dashboard(
     portfolio_df,
     watchlist_df,
@@ -5341,6 +5397,34 @@ def generate_html_dashboard(
 ):
     if full_state is None: full_state = {}
     dashboard_rates = full_state.get('rates', {})
+    ai_schedule = _closed_market_ai_schedule(full_state)
+    ai_calls_allowed = bool(ai_schedule['allowed'])
+    if ai_calls_allowed:
+        # Rezervăm ședința înaintea apelurilor: o rerulare sau un al doilea
+        # proces nu poate plăti încă o dată aceeași analiză.
+        full_state['last_closed_market_ai_session'] = (
+            ai_schedule['session_key']
+        )
+        full_state['last_closed_market_ai_attempt_at'] = (
+            datetime.datetime.now(datetime.timezone.utc).isoformat(
+                timespec='seconds'
+            )
+        )
+        full_state['last_closed_market_ai_schedule'] = ai_schedule
+        market_utils.save_state(full_state)
+        print(
+            "  -> Fereastră AI post-închidere activă: "
+            + ai_schedule['session_key']
+        )
+    else:
+        reason = (
+            'piețele nu sunt încă ambele închise'
+            if not ai_schedule['both_closed']
+            else 'analiza ședinței a fost deja rulată'
+        )
+        print(
+            "  -> Analize AI numai din cache: " + reason + "."
+        )
     """Generează dashboard HTML cu 2 tab-uri și indicatori de piață."""
     
     css = """
@@ -8026,6 +8110,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         etf_holdings=tvbetetf_holdings,
         sector_rotation=us_sector_rotation,
         us_market_regime=us_market_regime,
+        allow_ai=ai_calls_allowed,
+        force_ai_refresh=ai_calls_allowed,
     )
     portfolio_ai_result = (new_portfolio_ai_cache or {}).get('result', {})
     if isinstance(portfolio_ai_result.get('buy_recommendations'), list):
@@ -8658,6 +8744,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             cached_ai,
             return_cache=True,
             calendar_ai_cache=calendar_ai_cache,
+            allow_ai=ai_calls_allowed,
         )
     )
     

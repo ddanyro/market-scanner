@@ -33,6 +33,89 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertGreater(len(desc), 0)
         self.assertIn('inflați', desc.lower())
 
+    def test_ai_schedule_waits_for_both_bvb_and_us_close(self):
+        before_us_close = datetime(
+            2026, 8, 17, 19, 30, tzinfo=timezone.utc
+        )  # 22:30 București, 15:30 New York
+        after_both_close = datetime(
+            2026, 8, 17, 20, 5, tzinfo=timezone.utc
+        )  # 23:05 București, 16:05 New York
+
+        waiting = market_scanner._closed_market_ai_schedule(
+            {}, now=before_us_close
+        )
+        ready = market_scanner._closed_market_ai_schedule(
+            {}, now=after_both_close
+        )
+        repeated = market_scanner._closed_market_ai_schedule(
+            {'last_closed_market_ai_session': ready['session_key']},
+            now=after_both_close,
+        )
+
+        self.assertFalse(waiting['allowed'])
+        self.assertTrue(waiting['bvb']['post_close'])
+        self.assertFalse(waiting['usa']['post_close'])
+        self.assertTrue(ready['allowed'])
+        self.assertEqual(
+            ready['session_key'], 'BVB:2026-08-17|SUA:2026-08-17'
+        )
+        self.assertFalse(repeated['allowed'])
+
+    def test_ai_schedule_weekend_reuses_last_weekday_only_once(self):
+        saturday = datetime(2026, 8, 15, 10, 0, tzinfo=timezone.utc)
+        first = market_scanner._closed_market_ai_schedule({}, now=saturday)
+        second = market_scanner._closed_market_ai_schedule(
+            {'last_closed_market_ai_session': first['session_key']},
+            now=saturday,
+        )
+
+        self.assertTrue(first['allowed'])
+        self.assertEqual(
+            first['session_key'], 'BVB:2026-08-14|SUA:2026-08-14'
+        )
+        self.assertFalse(second['allowed'])
+
+    @patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key'})
+    @patch('market_scanner_analysis.requests.post')
+    def test_calendar_ai_is_cache_only_outside_post_close_window(self, post):
+        now = datetime(2026, 8, 17, 12, 0)
+        event = market_scanner_analysis._normalise_macro_event({
+            'id': 'fed-scheduled',
+            'title': 'Fed Interest Rate Decision',
+            'country': 'US',
+            'date': '2026-08-18T18:00:00Z',
+            'forecast': '4.25%',
+            'previous': '4.50%',
+        }, now)
+
+        analyses = market_scanner_analysis._enrich_events_with_ai(
+            [event], {}, ai_cache={}, allow_ai=False
+        )
+
+        post.assert_not_called()
+        self.assertIn(event['id'], analyses)
+        self.assertIn(
+            analyses[event['id']]['verdict'],
+            {'Bullish probabil', 'Bearish probabil', 'Mixt', 'Neutru', 'Date insuficiente'},
+        )
+
+    @patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key'})
+    @patch('market_scanner_analysis.requests.post')
+    def test_news_ai_is_cache_only_outside_post_close_window(self, post):
+        html_result, summary, score, cache = (
+            market_scanner_analysis._generate_news_and_ai_summary_html(
+                [{'title': 'Test', 'link': 'https://example.com', 'desc': 'News'}],
+                {},
+                allow_ai=False,
+            )
+        )
+
+        post.assert_not_called()
+        self.assertIn('Market News Overview', html_result)
+        self.assertEqual(summary, '')
+        self.assertEqual(score, 50)
+        self.assertIsNone(cache)
+
     def test_stale_sell_order_is_removed_when_position_is_closed(self):
         orders = pd.DataFrame([
             {'Symbol': 'UPBD', 'Action': 'SELL', 'OrderType': 'TRAIL'},
@@ -775,6 +858,27 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(position['active_stops'], [])
         self.assertIsNone(position['primary_stop_eur'])
         self.assertIn('Fără ordin stop activ identificat', position['data_flags'])
+
+    @patch('market_scanner_analysis.requests.post')
+    @patch(
+        'market_scanner_analysis.collect_portfolio_evidence',
+        return_value={'fetched_at': None, 'symbols': [], 'items': []},
+    )
+    @patch('market_scanner_analysis.get_economic_events', return_value=[])
+    def test_portfolio_ai_does_not_call_api_outside_scheduled_window(
+        self, _events, _evidence, post
+    ):
+        _, cache, _, diagnostic = (
+            market_scanner_analysis.generate_portfolio_ai_analysis(
+                self.portfolio,
+                pd.DataFrame(),
+                allow_ai=False,
+            )
+        )
+
+        post.assert_not_called()
+        self.assertIsNone(cache)
+        self.assertEqual(diagnostic['status'], 'scheduled_wait')
 
     def test_snapshot_detects_partial_stop_coverage(self):
         orders = pd.DataFrame([{

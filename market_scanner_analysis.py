@@ -3561,7 +3561,8 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
                                    request_session=None, account_data=None, market_context=None,
                                    buy_candidates=None, etf_holdings=None,
                                    sector_rotation=None, us_market_regime=None,
-                                   now=None):
+                                   now=None, allow_ai=True,
+                                   force_ai_refresh=False):
     """Generează o analiză structurată și cache-uibilă, apoi returnează HTML sigur."""
     snapshot = build_portfolio_risk_snapshot(
         portfolio_df,
@@ -3613,7 +3614,40 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
     candidate_calendar_effects = _candidate_calendar_effects(snapshot)
     fingerprint = _portfolio_snapshot_fingerprint(snapshot)
     critical_fingerprint = _portfolio_critical_fingerprint(snapshot)
+    if not allow_ai:
+        cached_result = (
+            cached.get('result')
+            if isinstance(cached, dict) else None
+        )
+        if isinstance(cached_result, dict) and cached_result:
+            return (
+                _render_portfolio_ai_html(
+                    snapshot, cached_result, 'OpenAI · cache post-închidere'
+                ),
+                cached,
+                evidence_cache,
+                {
+                    'status': 'scheduled_cache',
+                    'message': (
+                        'Analiza AI rulează o singură dată după închiderea '
+                        'BVB și a pieței SUA; este afișat ultimul cache.'
+                    ),
+                },
+            )
+        return (
+            _render_portfolio_ai_html(snapshot),
+            None,
+            evidence_cache,
+            {
+                'status': 'scheduled_wait',
+                'message': (
+                    'Prima analiză AI va rula după închiderea ambelor piețe.'
+                ),
+            },
+        )
     if (
+        not force_ai_refresh
+        and
         isinstance(cached, dict)
         and cached.get('version') == PORTFOLIO_AI_CACHE_VERSION
     ):
@@ -4224,7 +4258,7 @@ def _persist_ai_calendar_cache(cache, events, target=None):
     return compact
 
 
-def _enrich_events_with_ai(events, indicators, ai_cache=None):
+def _enrich_events_with_ai(events, indicators, ai_cache=None, allow_ai=True):
     """O singură cerere JSON pentru calendar; eșecul păstrează analiza deterministă."""
     analyses = {event['id']: _deterministic_event_analysis(event) for event in events}
     persistent_target = ai_cache if isinstance(ai_cache, dict) else None
@@ -4248,7 +4282,7 @@ def _enrich_events_with_ai(events, indicators, ai_cache=None):
                 openai_key = handle.read().strip()
         except OSError:
             pass
-    if not openai_key or not pending:
+    if not allow_ai or not openai_key or not pending:
         _persist_ai_calendar_cache(
             working_cache, events, target=persistent_target
         )
@@ -4325,7 +4359,7 @@ def _render_event_value(label, value):
     shown = '—' if value is None or value == '' else html.escape(str(value))
     return f"<span style='margin-right:12px;'><b>{label}:</b> {shown}</span>"
 
-def _render_calendar(events, indicators, ai_cache=None):
+def _render_calendar(events, indicators, ai_cache=None, allow_ai=True):
     if not events:
         return (
             "<div style='margin-top:32px;border-top:2px solid var(--border-light);padding-top:24px;'>"
@@ -4333,7 +4367,9 @@ def _render_calendar(events, indicators, ai_cache=None):
             "<div style='background:var(--light-purple-bg);padding:16px 20px;border-radius:var(--radius-sm);"
             "color:var(--text-secondary);'>Datele calendarului nu sunt disponibile momentan. Nu au fost generate evenimente fictive.</div></div>"
         )
-    analyses = _enrich_events_with_ai(events, indicators, ai_cache=ai_cache)
+    analyses = _enrich_events_with_ai(
+        events, indicators, ai_cache=ai_cache, allow_ai=allow_ai
+    )
     groups = [('past', 'Ultimele 7 zile'), ('upcoming', 'Următoarele 10 zile')]
     colors = {
         'Bullish probabil': '#2e7d32', 'Bearish probabil': '#c62828',
@@ -4418,7 +4454,9 @@ def get_market_news():
         return []
 
 
-def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=None):
+def _generate_news_and_ai_summary_html(
+    news_items, indicators, cached_summary=None, allow_ai=True
+):
     """Generează rezumatul știrilor cu cache material și TTL de șase ore."""
     try:
         news_html = "<div class='news-section' style='background: var(--bg-white); padding: 24px; border-radius: var(--radius-md); margin-top: 24px; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);'>"
@@ -4491,7 +4529,7 @@ def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=No
         cache_label = cache_is_recent
         if cache_is_recent:
             print("  -> Folosim rezumatul știrilor din cache.")
-        elif openai_key and compact_news:
+        elif allow_ai and openai_key and compact_news:
             try:
                 print("Generare rezumat AI (OpenAI)...")
                 news_text = "\n".join(
@@ -4611,7 +4649,7 @@ def _generate_news_and_ai_summary_html(news_items, indicators, cached_summary=No
 
 def generate_market_analysis(
     indicators, cached_ai_summary=None, return_cache=False,
-    calendar_ai_cache=None,
+    calendar_ai_cache=None, allow_ai=True,
 ):
     """Generează o analiză de piață Hibridă (Algoritmică Multi-Factor + AI)."""
     try:
@@ -4632,7 +4670,7 @@ def generate_market_analysis(
         # 2. Market News & AI Sentiment
         news_items = get_market_news()
         news_html, ai_summary_raw, ai_score, news_ai_cache = _generate_news_and_ai_summary_html(
-            news_items, indicators, cached_ai_summary
+            news_items, indicators, cached_ai_summary, allow_ai=allow_ai
         )
         
         # 3. Calcul Scor Algoritmic (0-100, unde 100 = Bullish Perfect)
@@ -4792,7 +4830,8 @@ def generate_market_analysis(
         # 4. Calendar economic real: ultimele 7 zile + următoarele 10 zile.
         events_list = get_economic_events()
         events_html = _render_calendar(
-            events_list, indicators, ai_cache=calendar_ai_cache
+            events_list, indicators, ai_cache=calendar_ai_cache,
+            allow_ai=allow_ai,
         )
 
         # Formatare HTML Final 
