@@ -43,6 +43,7 @@ RESEARCH_INSTRUMENTS = {
 TWS_ORDER_COLUMNS = [
     'Symbol', 'OrderType', 'Action', 'Total_Qty', 'Aux_Price',
     'Limit_Price', 'Stop_Price', 'Trail_Pct', 'Calculated_Stop',
+    'Currency',
 ]
 TWS_POSITION_COLUMNS = [
     'Symbol', 'Shares', 'Buy_Price', 'Current_Price', 'Currency',
@@ -574,6 +575,7 @@ def fetch_active_orders(
                 # Extragere date
                 data = {
                     'Symbol': sym,
+                    'Currency': str(contract.currency or '').upper(),
                     'OrderType': order.orderType,
                     'Action': order.action, # BUY/SELL
                     'Total_Qty': order.totalQuantity,

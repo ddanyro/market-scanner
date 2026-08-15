@@ -144,6 +144,40 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertFalse(changed)
         self.assertEqual(source, 'encrypted_cache_invalid')
 
+    def test_active_buy_orders_total_is_converted_to_eur(self):
+        orders = pd.DataFrame([
+            {
+                'Symbol': 'NVDA', 'Action': 'BUY', 'OrderType': 'LMT',
+                'Total_Qty': 2, 'Limit_Price': 100, 'Currency': 'USD',
+            },
+            {
+                'Symbol': 'LQQ', 'Action': 'BUY', 'OrderType': 'LMT',
+                'Total_Qty': 10, 'Limit_Price': 9, 'Currency': 'EUR',
+            },
+            {
+                'Symbol': 'RTX', 'Action': 'SELL', 'OrderType': 'TRAIL',
+                'Total_Qty': 5, 'Calculated_Stop': 200, 'Currency': 'USD',
+            },
+        ])
+        total = market_scanner._active_buy_orders_total_eur(
+            orders, {'EUR': 1, 'USD': 0.9}
+        )
+        self.assertEqual(total, 270)
+
+    def test_current_month_portfolio_change_uses_month_endpoints(self):
+        history = [
+            {'timestamp': '2026-07-31T23:00:00+03:00', 'net_liquidation': 90},
+            {'timestamp': '2026-08-01T08:00:00+03:00', 'net_liquidation': 100},
+            {'timestamp': '2026-08-10T08:00:00+03:00', 'net_liquidation': 112.5},
+        ]
+        result = market_scanner._current_month_portfolio_change(
+            history,
+            now=datetime(
+                2026, 8, 15, tzinfo=timezone(timedelta(hours=3))
+            ),
+        )
+        self.assertEqual(result, 12.5)
+
     def test_portfolio_chat_token_does_not_expose_password(self):
         token = market_scanner._portfolio_chat_access_token('pin-secret')
         self.assertEqual(len(token), 64)
