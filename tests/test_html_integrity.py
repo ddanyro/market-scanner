@@ -607,7 +607,21 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('_size_buy_candidates(', analysis_content)
         self.assertIn("economic_calendar și piața poziției", analysis_content)
         self.assertIn("<b>Calendar:</b>", analysis_content)
-        self.assertIn("'economic_calendar': snapshot.get('economic_calendar', [])", analysis_content)
+        self.assertIn(
+            "'economic_calendar': snapshot.get('economic_calendar', [])",
+            analysis_content,
+        )
+
+    def test_portfolio_summary_contains_buy_orders_and_monthly_pl_cards(self):
+        file_path = os.path.join(
+            os.path.dirname(__file__), '..', 'market_scanner.py'
+        )
+        with open(file_path, 'r', encoding='utf-8') as handle:
+            content = handle.read()
+        self.assertIn('<h3>Ordine cumpărare</h3>', content)
+        self.assertIn('<h3>P/L luna curentă</h3>', content)
+        self.assertIn('_active_buy_orders_total_eur(', content)
+        self.assertIn('_current_month_portfolio_change(', content)
 
     def test_watchlist_mini_chart_opens_detail_window(self):
         """Mini-graficul watchlistului deschide aceeași fereastră OHLC, fără a schimba click-ul simbolului."""

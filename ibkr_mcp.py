@@ -1021,6 +1021,9 @@ def _normalise_orders(payload: dict[str, Any]) -> list[dict[str, Any]]:
             stop_price = _number(stop_match.group(1))
         rows.append({
             "Symbol": symbol,
+            "Currency": str(
+                item.get("currency") or item.get("currency_code") or ""
+            ).upper(),
             "OrderType": order_type,
             "Action": str(item.get("side", "")).upper(),
             "Total_Qty": _number(item.get("total_shares_qty")),
@@ -1194,6 +1197,7 @@ def sync_account_snapshot(
         columns=[
             "Symbol", "OrderType", "Action", "Total_Qty", "Aux_Price",
             "Limit_Price", "Stop_Price", "Trail_Pct", "Calculated_Stop",
+            "Currency",
         ],
     ).to_csv("tws_orders.csv", index=False)
     ibkr_web_api.persist_account_snapshot(payload, password=password)

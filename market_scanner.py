@@ -98,6 +98,7 @@ TWS_ACTIVE_ORDERS_CACHE_KEY = 'tws_active_orders_snapshot_enc'
 TWS_ACTIVE_ORDER_COLUMNS = [
     'Symbol', 'OrderType', 'Action', 'Total_Qty', 'Aux_Price',
     'Limit_Price', 'Stop_Price', 'Trail_Pct', 'Calculated_Stop',
+    'Currency',
 ]
 _YAHOO_HISTORY_MEMORY_CACHE = {}
 
@@ -5227,6 +5228,109 @@ def _filter_orders_against_current_positions(orders_df, portfolio_df):
     return orders_df.loc[keep_rows].copy()
 
 
+def _active_buy_orders_total_eur(
+    orders_df, rates, portfolio_df=None, watchlist_df=None,
+):
+    """Calculează valoarea ordinelor BUY active, normalizată în EUR."""
+    if (
+        not isinstance(orders_df, pd.DataFrame)
+        or orders_df.empty
+        or 'Action' not in orders_df.columns
+    ):
+        return 0.0
+
+    currency_by_symbol = {}
+    for frame, symbol_column in (
+        (portfolio_df, 'Symbol'), (watchlist_df, 'Ticker')
+    ):
+        if not isinstance(frame, pd.DataFrame) or frame.empty:
+            continue
+        if symbol_column not in frame.columns:
+            continue
+        for _, item in frame.iterrows():
+            symbol = str(item.get(symbol_column) or '').strip().upper()
+            currency = str(item.get('Currency') or '').strip().upper()
+            if symbol and currency and currency != 'NAN':
+                currency_by_symbol[symbol] = currency
+                currency_by_symbol.setdefault(symbol.split('.', 1)[0], currency)
+
+    rates = rates if isinstance(rates, dict) else {}
+
+    def positive_number(row, *columns):
+        for column in columns:
+            value = _safe_float_text(row.get(column))
+            if value is not None and 0 < value < 1e10:
+                return value
+        return 0.0
+
+    total_eur = 0.0
+    buy_orders = orders_df[
+        orders_df['Action'].astype(str).str.upper() == 'BUY'
+    ]
+    for _, order in buy_orders.iterrows():
+        quantity = positive_number(order, 'Total_Qty', 'Quantity')
+        order_type = str(order.get('OrderType') or '').strip().upper()
+        if order_type in {'LMT', 'LIMIT'}:
+            price = positive_number(
+                order, 'Limit_Price', 'Aux_Price', 'Stop_Price'
+            )
+        else:
+            price = positive_number(
+                order, 'Stop_Price', 'Aux_Price', 'Limit_Price',
+                'Calculated_Stop',
+            )
+        if quantity <= 0 or price <= 0:
+            continue
+
+        symbol = str(order.get('Symbol') or '').strip().upper()
+        currency = str(order.get('Currency') or '').strip().upper()
+        if not currency or currency == 'NAN':
+            currency = (
+                currency_by_symbol.get(symbol)
+                or currency_by_symbol.get(symbol.split('.', 1)[0])
+            )
+        if not currency:
+            if symbol.endswith('.RO'):
+                currency = 'RON'
+            elif symbol.endswith(('.PA', '.DE', '.AS')) or symbol == 'LQQ':
+                currency = 'EUR'
+            elif symbol.endswith('.L'):
+                currency = 'GBP'
+            else:
+                currency = 'USD'
+
+        rate = 1.0 if currency == 'EUR' else _safe_float_text(
+            rates.get(currency)
+        )
+        if rate is None or rate <= 0:
+            continue
+        total_eur += quantity * price * rate
+    return round(total_eur, 2)
+
+
+def _current_month_portfolio_change(history, now=None):
+    """Variația valorii totale între primul și ultimul snapshot din lună."""
+    current_time = now or datetime.datetime.now().astimezone()
+    points = []
+    for item in history or []:
+        if not isinstance(item, dict):
+            continue
+        timestamp = _parse_snapshot_timestamp(item.get('timestamp'))
+        value = _safe_float_text(item.get('net_liquidation'))
+        if timestamp is None or value is None:
+            continue
+        local_timestamp = timestamp.astimezone(current_time.tzinfo)
+        if (
+            local_timestamp.year == current_time.year
+            and local_timestamp.month == current_time.month
+        ):
+            points.append((local_timestamp, value))
+    if len(points) < 2:
+        return None
+    points.sort(key=lambda point: point[0])
+    return round(points[-1][1] - points[0][1], 2)
+
+
 def generate_html_dashboard(
     portfolio_df,
     watchlist_df,
@@ -5512,7 +5616,7 @@ def generate_html_dashboard(
         /* Cards */
         .summary {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: var(--spacing-unit);
             margin-bottom: calc(var(--spacing-unit) * 2);
         }
@@ -5550,7 +5654,7 @@ def generate_html_dashboard(
         }
         
         .summary-card .value { 
-            font-size: clamp(28px, 4vw, 36px);
+            font-size: clamp(24px, 2.2vw, 36px);
             font-weight: 700;
             color: var(--text-primary);
         }
@@ -5766,6 +5870,12 @@ def generate_html_dashboard(
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        @media (min-width: 769px) and (max-width: 1200px) {
+            .summary {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
         
         /* Mobile Responsive */
         @media (max-width: 768px) {
@@ -5778,7 +5888,7 @@ def generate_html_dashboard(
             }
             
             .summary {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 16px;
             }
             
@@ -5821,7 +5931,7 @@ def generate_html_dashboard(
             }
             
             .summary-card .value {
-                font-size: 28px;
+                font-size: 24px;
             }
 
             .market-risk-grid {
@@ -7112,6 +7222,14 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     <div class="summary-card">
                         <h3>Total P/L la Stop</h3>
                         <div class="value {'positive' if total_pl_at_stop >= 0 else 'negative'}">€{total_pl_at_stop:,.2f}</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Ordine cumpărare</h3>
+                        <div class="value">__ACTIVE_BUY_ORDERS_TOTAL_EUR__</div>
+                    </div>
+                    <div class="summary-card" title="Variația valorii totale de la primul snapshot al lunii; transferurile externe pot influența rezultatul.">
+                        <h3>P/L luna curentă</h3>
+                        <div class="value __CURRENT_MONTH_PL_CLASS__">__CURRENT_MONTH_PL_EUR__</div>
                     </div>
 
                 </div>
@@ -10028,6 +10146,33 @@ drawIndicatorDetail(detail,initialCount);
     </html>
     """
     
+    active_buy_total_eur = _active_buy_orders_total_eur(
+        orders_df,
+        (full_state or {}).get('rates', {}),
+        portfolio_df=portfolio_df,
+        watchlist_df=watchlist_df,
+    )
+    current_month_pl = _current_month_portfolio_change(
+        broker_totals_history
+    )
+    current_month_pl_display = (
+        f"€{current_month_pl:,.2f}"
+        if current_month_pl is not None else 'N/D'
+    )
+    current_month_pl_class = (
+        'positive' if current_month_pl is not None and current_month_pl >= 0
+        else 'negative' if current_month_pl is not None
+        else ''
+    )
+    html_head = html_head.replace(
+        '__ACTIVE_BUY_ORDERS_TOTAL_EUR__',
+        f'€{active_buy_total_eur:,.2f}',
+    ).replace(
+        '__CURRENT_MONTH_PL_EUR__', current_month_pl_display
+    ).replace(
+        '__CURRENT_MONTH_PL_CLASS__', current_month_pl_class
+    )
+
     full_html = html_head + html_footer
     
     with open(filename, 'w') as f:
