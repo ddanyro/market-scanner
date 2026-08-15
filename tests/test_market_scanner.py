@@ -799,6 +799,58 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             payload,
         )
 
+    def test_account_snapshot_is_portable_between_local_and_remote(self):
+        payload = {
+            'source': 'IBKR TWS',
+            'accounts': [{
+                'label': 'IBKR',
+                'summary': {'NetLiquidation': 89006.99},
+            }],
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            raw_path = os.path.join(temp_dir, 'tws_account.json')
+            encrypted_path = os.path.join(
+                temp_dir, 'tws_account.enc.json'
+            )
+            with open(raw_path, 'w', encoding='utf-8') as handle:
+                json.dump(payload, handle)
+            local, local_source = (
+                market_scanner._load_portable_account_snapshot(
+                    raw_path, encrypted_path, 'shared-remote-password'
+                )
+            )
+            os.remove(raw_path)
+            remote, remote_source = (
+                market_scanner._load_portable_account_snapshot(
+                    raw_path, encrypted_path, 'shared-remote-password'
+                )
+            )
+
+        self.assertEqual(local_source, 'local')
+        self.assertEqual(remote_source, 'encrypted_cache')
+        self.assertEqual(local, payload)
+        self.assertEqual(remote, payload)
+
+    def test_wrong_account_snapshot_password_is_explicit(self):
+        payload = {'accounts': [{'label': 'IBKR'}]}
+        with tempfile.TemporaryDirectory() as temp_dir:
+            raw_path = os.path.join(temp_dir, 'tws_account.json')
+            encrypted_path = os.path.join(
+                temp_dir, 'tws_account.enc.json'
+            )
+            with open(raw_path, 'w', encoding='utf-8') as handle:
+                json.dump(payload, handle)
+            market_scanner._load_portable_account_snapshot(
+                raw_path, encrypted_path, 'shared-remote-password'
+            )
+            os.remove(raw_path)
+            remote, source = market_scanner._load_portable_account_snapshot(
+                raw_path, encrypted_path, 'wrong-password'
+            )
+
+        self.assertIsNone(remote)
+        self.assertEqual(source, 'encrypted_cache_invalid')
+
     def test_manual_tradeville_snapshot_keeps_broker_source_and_ratios(self):
         account_data = {
             'fetched_at': datetime.now().astimezone().isoformat(),
