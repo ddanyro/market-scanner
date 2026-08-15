@@ -5100,6 +5100,15 @@ def _load_cached_tws_orders(full_state, password, path='tws_orders.csv'):
             False,
             'tws_encrypted_cache',
         )
+    if encrypted:
+        # Nu confunda o cheie greșită/un payload corupt cu lipsa legitimă a
+        # sursei. Rularea remote trebuie să oprească publicarea în acest caz,
+        # altfel ar șterge ordinele IBKR din dashboard.
+        return (
+            pd.DataFrame(columns=TWS_ACTIVE_ORDER_COLUMNS),
+            False,
+            'encrypted_cache_invalid',
+        )
     return pd.DataFrame(columns=TWS_ACTIVE_ORDER_COLUMNS), False, 'unavailable'
 
 
@@ -7453,6 +7462,16 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             )
         )
         orders_list.append(tws_orders_frame)
+        if orders_source == 'encrypted_cache_invalid':
+            message = (
+                "Snapshotul criptat al ordinelor IBKR nu poate fi "
+                "decriptat cu cheia configurată."
+            )
+            if os.environ.get('GITHUB_ACTIONS') == 'true':
+                raise RuntimeError(
+                    message + " Oprim deploy-ul pentru a nu publica tabele incomplete."
+                )
+            print(f"  -> AVERTISMENT: {message}")
         if orders_cache_changed:
             market_utils.save_state(full_state)
             print("  -> Snapshotul criptat al ordinelor TWS a fost actualizat.")
@@ -7463,6 +7482,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             )
     except Exception as e:
         print(f"Error reading encrypted TWS orders snapshot: {e}")
+        if os.environ.get('GITHUB_ACTIONS') == 'true':
+            raise
             
     if os.path.exists('tradeville_orders.csv'):
         try:

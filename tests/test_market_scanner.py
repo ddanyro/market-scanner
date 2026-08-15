@@ -124,6 +124,26 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertEqual(cached_source, 'tws_encrypted_cache')
         self.assertTrue(cached_empty.empty)
 
+    def test_wrong_order_cache_password_is_not_treated_as_no_orders(self):
+        state = {}
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'tws_orders.csv')
+            pd.DataFrame([{
+                'Symbol': 'RTX', 'OrderType': 'TRAIL', 'Action': 'SELL',
+                'Total_Qty': 5,
+            }]).to_csv(path, index=False)
+            market_scanner._load_cached_tws_orders(
+                state, 'remote-shared-password', path,
+            )
+            os.remove(path)
+            frame, changed, source = market_scanner._load_cached_tws_orders(
+                state, 'different-local-password', path,
+            )
+
+        self.assertTrue(frame.empty)
+        self.assertFalse(changed)
+        self.assertEqual(source, 'encrypted_cache_invalid')
+
     def test_portfolio_chat_token_does_not_expose_password(self):
         token = market_scanner._portfolio_chat_access_token('pin-secret')
         self.assertEqual(len(token), 64)
