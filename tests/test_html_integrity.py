@@ -339,12 +339,15 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("portfolioAi.innerHTML = data.portfolio_ai_html || ''", content)
         self.assertIn('"portfolio_ai_html": portfolio_ai_html', content)
         self.assertIn('generate_portfolio_ai_analysis(', content)
-        self.assertIn("with open('tws_account.json', 'r'", content)
-        self.assertIn("with open('tws_account.enc.json', 'r'", content)
+        self.assertIn(
+            "'tws_account.json', 'tws_account.enc.json', account_password",
+            content,
+        )
         self.assertIn('market_security.decrypt_from_js(', content)
         self.assertIn("with open('tws_account_risk.json', 'r'", content)
-        self.assertIn("os.environ.get('TWS_ACCOUNT_PASSWORD', '') or password", content)
-        self.assertIn("with open('tradeville_account.enc.json', 'r'", content)
+        self.assertIn("account_password = _orders_snapshot_password(password)", content)
+        self.assertIn("_load_portable_account_snapshot(", content)
+        self.assertIn("'tradeville_account.enc.json'", content)
         self.assertIn("'IBKR TWS + Tradeville manual'", content)
         self.assertIn("ibkr_account['source'] = 'IBKR TWS'", content)
         self.assertIn("'IBKR' if len(raw_ibkr_accounts) == 1", content)

@@ -775,7 +775,8 @@ def fetch_active_orders(
             print(f"Salvat tws_account.json cu sumar pentru {len(accounts)} cont(uri).")
 
             account_password = (
-                os.environ.get('TWS_ACCOUNT_PASSWORD', '')
+                os.environ.get('PORTFOLIO_ORDER_CACHE_PASSWORD', '')
+                or os.environ.get('TWS_ACCOUNT_PASSWORD', '')
                 or os.environ.get('PORTFOLIO_PASSWORD', '')
             )
             if not account_password and os.path.exists('password.txt'):
@@ -796,7 +797,7 @@ def fetch_active_orders(
             else:
                 print(
                     "  -> Snapshotul TWS nu a fost criptat: "
-                    "TWS_ACCOUNT_PASSWORD/PORTFOLIO_PASSWORD indisponibil."
+                    "cheia comună a portofoliului este indisponibilă."
                 )
 
             def ratio_band(numerator, denominator):

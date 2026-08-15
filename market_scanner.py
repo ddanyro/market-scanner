@@ -5127,6 +5127,66 @@ def _orders_snapshot_password(default_password):
     )
 
 
+def _write_portable_account_snapshot(path, payload, password):
+    """Persistă un snapshot exact cu cheia comună local/remote.
+
+    Evită rescrierea dacă fișierul existent se decriptează cu aceeași cheie și
+    conține deja aceleași date.
+    """
+    if not isinstance(payload, dict) or not password:
+        return False
+    try:
+        with open(path, 'r', encoding='utf-8') as handle:
+            existing_encrypted = json.load(handle)
+        existing_payload = json.loads(
+            market_security.decrypt_from_js(existing_encrypted, password)
+        )
+        if existing_payload == payload:
+            return False
+    except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
+        pass
+
+    encrypted = market_security.encrypt_for_js(
+        json.dumps(payload, ensure_ascii=False), password
+    )
+    temporary_path = f'{path}.tmp'
+    with open(temporary_path, 'w', encoding='utf-8') as handle:
+        handle.write(encrypted)
+    os.replace(temporary_path, path)
+    return True
+
+
+def _load_portable_account_snapshot(raw_path, encrypted_path, password):
+    """Încarcă snapshotul local sau copia criptată destinată rulării remote."""
+    if os.path.exists(raw_path):
+        try:
+            with open(raw_path, 'r', encoding='utf-8') as handle:
+                payload = json.load(handle)
+            if not isinstance(payload, dict):
+                return None, 'local_invalid'
+            _write_portable_account_snapshot(
+                encrypted_path, payload, password
+            )
+            return payload, 'local'
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            return None, 'local_invalid'
+
+    if os.path.exists(encrypted_path):
+        try:
+            with open(encrypted_path, 'r', encoding='utf-8') as handle:
+                encrypted_payload = json.load(handle)
+            payload = json.loads(
+                market_security.decrypt_from_js(encrypted_payload, password)
+            )
+            if isinstance(payload, dict):
+                return payload, 'encrypted_cache'
+        except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
+            pass
+        return None, 'encrypted_cache_invalid'
+
+    return None, 'unavailable'
+
+
 def _filter_orders_against_current_positions(orders_df, portfolio_df):
     """Elimină ordinele SELL pentru instrumente care nu mai sunt deținute.
 
@@ -7521,23 +7581,17 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
 
     # Encrypt Data
     account_password = _orders_snapshot_password(password)
-    tws_account_data = None
-    if os.path.exists('tws_account.json'):
-        try:
-            with open('tws_account.json', 'r', encoding='utf-8') as handle:
-                tws_account_data = json.load(handle)
-        except (OSError, ValueError, TypeError):
-            tws_account_data = None
-    elif os.path.exists('tws_account.enc.json') and password:
-        try:
-            with open('tws_account.enc.json', 'r', encoding='utf-8') as handle:
-                encrypted_account_payload = json.load(handle)
-            decrypted_account = market_security.decrypt_from_js(
-                encrypted_account_payload, account_password
-            )
-            tws_account_data = json.loads(decrypted_account)
-        except (OSError, ValueError, TypeError, KeyError):
-            tws_account_data = None
+    tws_account_data, tws_account_source = _load_portable_account_snapshot(
+        'tws_account.json', 'tws_account.enc.json', account_password
+    )
+    if (
+        tws_account_source in {'local_invalid', 'encrypted_cache_invalid'}
+        and os.environ.get('GITHUB_ACTIONS') == 'true'
+    ):
+        raise RuntimeError(
+            "Snapshotul exact IBKR nu poate fi decriptat. Oprim deploy-ul "
+            "pentru a nu elimina soldurile brute din dashboard."
+        )
     if tws_account_data is None and os.path.exists('tws_account_risk.json'):
         try:
             with open('tws_account_risk.json', 'r', encoding='utf-8') as handle:
@@ -7545,23 +7599,23 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         except (OSError, ValueError, TypeError):
             tws_account_data = None
 
-    tradeville_account_data = None
-    if os.path.exists('tradeville_account.json'):
-        try:
-            with open('tradeville_account.json', 'r', encoding='utf-8') as handle:
-                tradeville_account_data = json.load(handle)
-        except (OSError, ValueError, TypeError):
-            tradeville_account_data = None
-    elif os.path.exists('tradeville_account.enc.json') and account_password:
-        try:
-            with open('tradeville_account.enc.json', 'r', encoding='utf-8') as handle:
-                encrypted_tradeville_payload = json.load(handle)
-            decrypted_tradeville = market_security.decrypt_from_js(
-                encrypted_tradeville_payload, account_password
-            )
-            tradeville_account_data = json.loads(decrypted_tradeville)
-        except (OSError, ValueError, TypeError, KeyError):
-            tradeville_account_data = None
+    tradeville_account_data, tradeville_account_source = (
+        _load_portable_account_snapshot(
+            'tradeville_account.json',
+            'tradeville_account.enc.json',
+            account_password,
+        )
+    )
+    if (
+        tradeville_account_source in {
+            'local_invalid', 'encrypted_cache_invalid'
+        }
+        and os.environ.get('GITHUB_ACTIONS') == 'true'
+    ):
+        raise RuntimeError(
+            "Snapshotul exact Tradeville nu poate fi decriptat. Oprim "
+            "deploy-ul pentru a nu elimina soldurile brute din dashboard."
+        )
 
     # Snapshoturile exacte pot fi analizate împreună, dar conturile rămân
     # distincte. Nu amestecăm un fallback pe benzi cu valori exacte.
