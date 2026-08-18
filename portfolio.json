@@ -27,8 +27,8 @@
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "EXIT",
-    "Sell_Reason": "RS Fail (Falling); ",
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 262.6 > SMA200 237.7), RSI 53, Risk 3.7%",
     "RS_vs_SPX": -5.64,
     "Chart_History": [
       181.8077,
@@ -883,7 +883,7 @@
       }
     ],
     "Daily_Change": -2.1425,
-    "Date": "2026-08-18 08:33",
+    "Date": "2026-08-18 09:26",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1749,7 +1749,7 @@
       }
     ],
     "Daily_Change": -0.8898,
-    "Date": "2026-08-18 08:33",
+    "Date": "2026-08-18 09:26",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1786,8 +1786,8 @@
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "REDUCE",
-    "Sell_Reason": "RS Fail (Falling); ",
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 289.2 > SMA200 240.6), RSI 59, Risk 7.7%",
     "RS_vs_SPX": 6.02,
     "Chart_History": [
       201.71,
@@ -1800,7 +1800,7 @@
       222.7063,
       219.2625,
       213.7041,
-      220.6866,
+      220.6867,
       220.6262,
       213.8077,
       207.9041,
@@ -2057,7 +2057,7 @@
         "open": 216.9235,
         "high": 223.3191,
         "low": 216.9235,
-        "close": 220.6866
+        "close": 220.6867
       },
       {
         "date": "2026-04-20",
@@ -2077,7 +2077,7 @@
         "date": "2026-04-22",
         "open": 215.7756,
         "high": 215.9655,
-        "low": 201.379,
+        "low": 201.3791,
         "close": 207.9041
       },
       {
@@ -2117,16 +2117,16 @@
       },
       {
         "date": "2026-04-30",
-        "open": 203.9425,
-        "high": 210.6488,
-        "low": 203.58,
+        "open": 203.9424,
+        "high": 210.6487,
+        "low": 203.5799,
         "close": 209.7684
       },
       {
         "date": "2026-05-01",
-        "open": 210.2259,
+        "open": 210.2258,
         "high": 211.1148,
-        "low": 205.3062,
+        "low": 205.3061,
         "close": 206.7216
       },
       {
@@ -2642,7 +2642,7 @@
       }
     ],
     "Daily_Change": 5.4944,
-    "Date": "2026-08-18 08:33",
+    "Date": "2026-08-18 09:26",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -3535,7 +3535,7 @@
       }
     ],
     "Daily_Change": -0.116,
-    "Date": "2026-08-18 08:33",
+    "Date": "2026-08-18 09:26",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -4401,7 +4401,7 @@
       }
     ],
     "Daily_Change": -4.9243,
-    "Date": "2026-08-18 08:33",
+    "Date": "2026-08-18 09:26",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -4678,15 +4678,15 @@
       },
       {
         "date": "2026-04-13",
-        "open": 172.9942,
+        "open": 172.9941,
         "high": 174.0574,
-        "low": 171.6051,
+        "low": 171.605,
         "close": 172.7026
       },
       {
         "date": "2026-04-14",
         "open": 172.6512,
-        "high": 175.1978,
+        "high": 175.1979,
         "low": 172.2739,
         "close": 173.9031
       },
@@ -4713,16 +4713,16 @@
       },
       {
         "date": "2026-04-20",
-        "open": 169.6071,
-        "high": 170.113,
-        "low": 167.0347,
+        "open": 169.6072,
+        "high": 170.1131,
+        "low": 167.0348,
         "close": 167.8836
       },
       {
         "date": "2026-04-21",
         "open": 166.8718,
         "high": 168.5953,
-        "low": 159.9521,
+        "low": 159.952,
         "close": 160.4923
       },
       {
@@ -4736,7 +4736,7 @@
         "date": "2026-04-23",
         "open": 155.5104,
         "high": 156.6079,
-        "low": 152.2005,
+        "low": 152.2006,
         "close": 153.744
       },
       {
@@ -4755,7 +4755,7 @@
       },
       {
         "date": "2026-04-28",
-        "open": 150.2712,
+        "open": 150.2713,
         "high": 150.7343,
         "low": 147.776,
         "close": 150.64
@@ -4798,7 +4798,7 @@
       {
         "date": "2026-05-06",
         "open": 149.8768,
-        "high": 152.7065,
+        "high": 152.7064,
         "low": 148.8307,
         "close": 151.5489
       },
@@ -4875,7 +4875,7 @@
       {
         "date": "2026-05-21",
         "open": 149.7053,
-        "high": 151.9262,
+        "high": 151.9261,
         "low": 148.5906,
         "close": 150.8972
       },
@@ -5294,7 +5294,7 @@
       }
     ],
     "Daily_Change": 2.7818,
-    "Date": "2026-08-18 08:33",
+    "Date": "2026-08-18 09:26",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -7708,7 +7708,7 @@
       }
     ],
     "Daily_Change": -0.09,
-    "Date": "2026-08-18 08:34",
+    "Date": "2026-08-18 09:26",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
