@@ -2301,6 +2301,62 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(float(frame['Close'].iloc[-1]), 61)
         self.assertIsNone(stale)
 
+    def test_tws_metadata_keeps_exact_listing_alias_without_bars(self):
+        payload = {
+            'instruments': {
+                '3USL.MI': {
+                    'aliases': ['3USL.MI', '3USL.BVME', '3USL'],
+                    'bars': [],
+                },
+            },
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'tws_instruments.json')
+            with open(path, 'w', encoding='utf-8') as handle:
+                json.dump(payload, handle)
+            metadata = market_scanner._load_tws_instrument_metadata(
+                '3USL', path=path
+            )
+
+        self.assertEqual(metadata['aliases'][0], '3USL.MI')
+
+    @patch('market_scanner._load_tws_instrument_metadata')
+    @patch('market_scanner._download_yahoo_history')
+    @patch('market_scanner._load_tws_instrument', return_value=None)
+    @patch('market_scanner._load_mcp_market_instrument', return_value=None)
+    def test_international_fallback_rejects_two_point_wrong_listing(
+        self, _load_mcp, _load_tws, yahoo_download, load_metadata,
+    ):
+        load_metadata.return_value = {
+            'aliases': ['3USL.MI', '3USL.BVME', '3USL'],
+            'data_provider': 'IBKR TWS API',
+            'data_broker': 'IBKR',
+        }
+        short = pd.DataFrame(
+            {'Close': [153.9, 164.7]},
+            index=pd.to_datetime(['2026-07-17', '2026-08-18']),
+        )
+        dates = pd.bdate_range('2026-04-01', periods=90)
+        complete = pd.DataFrame(
+            {'Close': np.linspace(140.0, 165.0, len(dates))},
+            index=dates,
+        )
+        yahoo_download.side_effect = lambda symbol, period='1y': {
+            '3USL.MI': complete,
+            '3USL.BVME': pd.DataFrame(),
+            '3USL': short,
+        }.get(symbol, pd.DataFrame())
+
+        frame, _, instrument, attribution = (
+            market_scanner._load_analysis_history('3USL', '3USL')
+        )
+
+        self.assertEqual(len(frame), 90)
+        self.assertEqual(yahoo_download.call_args_list[0].args[0], '3USL.MI')
+        self.assertIs(instrument, load_metadata.return_value)
+        self.assertEqual(attribution['Market_Data_Source'], 'Yahoo Finance')
+        self.assertIsNone(attribution['Data_Broker'])
+
     @patch('market_scanner._download_yahoo_history')
     @patch('market_scanner._load_tws_instrument')
     @patch('market_scanner._load_mcp_market_instrument')

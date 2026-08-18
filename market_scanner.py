@@ -474,6 +474,49 @@ def _load_tws_instrument(
     return entry
 
 
+def _load_tws_instrument_metadata(
+    symbol, path=TWS_INSTRUMENTS_FILE,
+):
+    """Încarcă aliasurile contractului chiar dacă istoricul TWS lipsește.
+
+    Metadatele contractului rămân utile pentru fallback: de exemplu 3USL este
+    listat la Milano (3USL.MI), nu la Paris (3USL.PA).
+    """
+    try:
+        with open(path, 'r', encoding='utf-8') as handle:
+            payload = json.load(handle)
+    except (OSError, ValueError, TypeError):
+        return None
+    instruments = payload.get('instruments', {})
+    normalized = str(symbol or '').strip().upper()
+    entry = instruments.get(normalized)
+    if not isinstance(entry, dict):
+        entry = next(
+            (
+                candidate for candidate in instruments.values()
+                if normalized in {
+                    str(alias).upper()
+                    for alias in candidate.get('aliases', [])
+                }
+            ),
+            None,
+        )
+    return entry if isinstance(entry, dict) else None
+
+
+def _preferred_yahoo_history_symbols(ticker, download_ticker):
+    """Pune aliasul exact al bursei înaintea simbolului fără sufix."""
+    metadata = _load_tws_instrument_metadata(ticker) or {}
+    aliases = [
+        str(alias).strip().upper()
+        for alias in metadata.get('aliases', [])
+        if str(alias).strip()
+    ]
+    exact_aliases = [alias for alias in aliases if '.' in alias]
+    candidates = exact_aliases + [str(download_ticker or '').upper()]
+    return list(dict.fromkeys(candidate for candidate in candidates if candidate))
+
+
 def _load_mcp_market_instrument(symbol, now=None):
     """Încarcă OHLCV MCP local înaintea cache-ului TWS și Yahoo."""
     return _load_tws_instrument(
@@ -787,14 +830,43 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
             tws_instrument,
             _instrument_data_attribution(ticker, tws_instrument),
         )
-    try:
-        yahoo_history = _download_yahoo_history(download_ticker, period=period)
-    except Exception:
-        yahoo_history = pd.DataFrame()
+    yahoo_history = pd.DataFrame()
+    selected_yahoo_symbol = str(download_ticker or '').upper()
+    # Indicatorii și graficul nu trebuie construite dintr-o potrivire Yahoo
+    # accidentală cu numai una-două ședințe. Contractul IBKR oferă aliasul
+    # listării corecte, iar rezultatul scurt rămâne doar ultimul fallback.
+    best_short_history = pd.DataFrame()
+    for yahoo_symbol in _preferred_yahoo_history_symbols(
+        ticker, download_ticker
+    ):
+        try:
+            candidate = _download_yahoo_history(
+                yahoo_symbol, period=period
+            )
+        except Exception:
+            candidate = pd.DataFrame()
+        if len(candidate) > len(best_short_history):
+            best_short_history = candidate
+            selected_yahoo_symbol = yahoo_symbol
+        if len(candidate) >= 20:
+            yahoo_history = candidate
+            selected_yahoo_symbol = yahoo_symbol
+            break
+    if yahoo_history.empty:
+        yahoo_history = best_short_history
+    if (
+        not yahoo_history.empty
+        and selected_yahoo_symbol != str(download_ticker or '').upper()
+    ):
+        print(
+            f"  [Yahoo fallback] Folosim listarea exactă "
+            f"{selected_yahoo_symbol} pentru {ticker}: "
+            f"{len(yahoo_history)} ședințe"
+        )
     return (
         yahoo_history,
         None,
-        tws_instrument,
+        tws_instrument or _load_tws_instrument_metadata(ticker),
         _instrument_data_attribution(ticker, None),
     )
 
