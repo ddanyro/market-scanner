@@ -107,6 +107,90 @@ def build_research_instruments(bvb_symbols=None):
     return instruments
 
 
+def _listing_suffix(contract):
+    exchanges = {
+        str(getattr(contract, field, '') or '').upper()
+        for field in ('exchange', 'primaryExchange')
+    }
+    suffix_by_exchange = {
+        'SBF': '.PA',
+        'BVME': '.MI',
+        'BVME.ETF': '.MI',
+        'IBIS': '.DE',
+        'IBIS2': '.DE',
+        'XETRA': '.DE',
+        'AEB': '.AS',
+        'LSE': '.L',
+        'LSEETF': '.L',
+        'BVB': '.RO',
+        'BUCHAREST': '.RO',
+    }
+    return next(
+        (
+            suffix
+            for exchange, suffix in suffix_by_exchange.items()
+            if exchange in exchanges
+        ),
+        '',
+    )
+
+
+def build_position_instruments(positions):
+    """Folosește contractele exacte ale pozițiilor IBKR, fără ghicirea bursei."""
+    instruments = {}
+    for position in positions or []:
+        contract = getattr(position, 'contract', None)
+        quantity = _finite_number(getattr(position, 'position', None))
+        if contract is None or quantity in (None, 0):
+            continue
+        sec_type = str(getattr(contract, 'secType', '') or '').upper()
+        if sec_type not in {'STK', 'FUND'}:
+            continue
+        symbol = str(getattr(contract, 'symbol', '') or '').strip().upper()
+        if not symbol:
+            continue
+        currency = str(
+            getattr(contract, 'currency', '') or 'USD'
+        ).upper()
+        suffix = _listing_suffix(contract)
+        aliases = [symbol]
+        if suffix:
+            aliases.append(f'{symbol}{suffix}')
+        exchanges = {
+            str(getattr(contract, field, '') or '').upper()
+            for field in ('exchange', 'primaryExchange')
+        }
+        is_etf = (
+            sec_type == 'FUND'
+            or symbol in {'LQQ', '3USL'}
+            or any('ETF' in exchange for exchange in exchanges)
+        )
+        market = (
+            'România / BVB' if currency == 'RON'
+            else 'SUA' if currency == 'USD'
+            else 'Europa / Nasdaq-100'
+        )
+        instruments[symbol] = {
+            'query_symbol': symbol,
+            'aliases': list(dict.fromkeys(aliases)),
+            'currency': currency,
+            'preferred_exchanges': [
+                value for value in (
+                    str(getattr(contract, 'primaryExchange', '') or ''),
+                    str(getattr(contract, 'exchange', '') or ''),
+                ) if value
+            ],
+            'market': market,
+            'execution_brokers': ['IBKR'],
+            'ibkr_role': 'date și execuție',
+            'instrument_type': 'ETF' if is_etf else 'Equity',
+            'corporate_fundamentals_applicable': not is_etf,
+            'position_held_in_ibkr': True,
+            '_exact_contract': contract,
+        }
+    return instruments
+
+
 def _finite_number(value):
     try:
         number = float(value)
@@ -281,6 +365,7 @@ def _load_instrument_cache(path):
 
 def fetch_research_instruments(
     ib, output_file='tws_instruments.json', instruments=None,
+    max_age_hours=1,
 ):
     """Extrage prin TWS date pentru analiză, independent de brokerul de execuție."""
     instruments = instruments or RESEARCH_INSTRUMENTS
@@ -293,8 +378,34 @@ def fetch_research_instruments(
 
     print("\n=== Date TWS pentru instrumentele analizate ===")
     for dashboard_symbol, config in instruments.items():
+        cached = cached_instruments.get(dashboard_symbol)
+        if (
+            isinstance(cached, dict)
+            and cached.get('bars')
+            and _cache_timestamp_is_fresh(
+                cached.get('fetched_at'), max_age_hours
+            )
+        ):
+            result[dashboard_symbol] = cached
+            print(
+                f"  -> {dashboard_symbol}: cache IBKR sub "
+                f"{max_age_hours:g}h; nu repetăm istoricul."
+            )
+            continue
         try:
-            detail = _resolve_research_contract(ib, config)
+            exact_contract = config.get('_exact_contract')
+            if exact_contract is not None:
+                qualified = ib.qualifyContracts(exact_contract) or [
+                    exact_contract
+                ]
+                details = ib.reqContractDetails(qualified[0]) or []
+                if not details:
+                    raise ValueError(
+                        'Detaliile contractului IBKR deținut lipsesc'
+                    )
+                detail = details[0]
+            else:
+                detail = _resolve_research_contract(ib, config)
             contract = detail.contract
             bars = ib.reqHistoricalData(
                 contract,
@@ -364,7 +475,6 @@ def fetch_research_instruments(
                 f"execuție {execution_text}"
             )
         except Exception as exc:
-            cached = cached_instruments.get(dashboard_symbol)
             if isinstance(cached, dict) and cached.get('bars'):
                 cached = dict(cached)
                 cached['cache_fallback'] = True
@@ -650,23 +760,26 @@ def fetch_active_orders(
                 "a fost golit."
             )
 
-        # Datele IBKR sunt folosite și pentru instrumente tranzacționate prin
-        # alt broker. TVBETETF rămâne executabil exclusiv prin Tradeville.
-        if sync_research_instruments:
-            try:
-                fetch_research_instruments(
-                    ib,
-                    instruments=build_research_instruments(research_symbols),
-                )
-            except Exception as instrument_ex:
+        # Istoricul pozițiilor IBKR este cerut pe contractele exacte deja
+        # deținute. Astfel LQQ/3USL nu mai trec întâi prin ghicirea Yahoo a
+        # sufixului. În modul complet adăugăm și universul de cercetare.
+        try:
+            instruments = build_position_instruments(positions)
+            if sync_research_instruments:
+                research = build_research_instruments(research_symbols)
+                research.update(instruments)
+                instruments = research
+            if instruments:
+                fetch_research_instruments(ib, instruments=instruments)
+            if not sync_research_instruments:
                 print(
-                    "  -> Avertisment la sincronizarea instrumentelor TWS: "
-                    f"{instrument_ex}"
+                    "  -> Modul portofoliu: istoricul IBKR a fost cerut "
+                    "numai pentru pozițiile deținute."
                 )
-        else:
+        except Exception as instrument_ex:
             print(
-                "  -> Modul portofoliu: nu sincronizăm instrumente de "
-                "cercetare din afara pozițiilor deținute."
+                "  -> Avertisment la sincronizarea instrumentelor TWS: "
+                f"{instrument_ex}"
             )
 
         # === Extragere sumar cont (cash, lichiditate și marjă) ===

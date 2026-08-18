@@ -3054,14 +3054,9 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                     else:
                         print(f"    Trying {alt_ticker}...")
                         time.sleep(1)
-                        df_alt = yf.download(alt_ticker, period="1y", auto_adjust=True, progress=False)
-                        if not df_alt.empty:
-                            if isinstance(df_alt.columns, pd.MultiIndex):
-                                try:
-                                    df_alt.columns = df_alt.columns.droplevel(1)
-                                except:
-                                    pass
-                            df_alt = df_alt.dropna(subset=['Close'])
+                        df_alt = _download_yahoo_history(
+                            alt_ticker, period='1y'
+                        )
                         if not df_alt.empty:
                              ticker_cache[alt_ticker] = df_alt # Cache successful alt
 

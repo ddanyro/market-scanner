@@ -59,6 +59,55 @@ def _bars():
 
 
 class TestTwsInstrumentSync(unittest.TestCase):
+    def test_held_european_positions_keep_exact_ibkr_contract_and_alias(self):
+        positions = [
+            types.SimpleNamespace(
+                position=13,
+                contract=_contract('3USL', 'EUR', 'BVME.ETF', 301),
+            ),
+            types.SimpleNamespace(
+                position=400,
+                contract=_contract('LQQ', 'EUR', 'SBF', 302),
+            ),
+        ]
+
+        instruments = ib_tws_sync.build_position_instruments(positions)
+
+        self.assertEqual(set(instruments), {'3USL', 'LQQ'})
+        self.assertIn('3USL.MI', instruments['3USL']['aliases'])
+        self.assertIn('LQQ.PA', instruments['LQQ']['aliases'])
+        self.assertIs(
+            instruments['3USL']['_exact_contract'],
+            positions[0].contract,
+        )
+        self.assertEqual(instruments['3USL']['instrument_type'], 'ETF')
+        self.assertFalse(
+            instruments['LQQ']['corporate_fundamentals_applicable']
+        )
+        self.assertTrue(instruments['LQQ']['position_held_in_ibkr'])
+
+    def test_held_position_history_uses_exact_contract_without_symbol_search(self):
+        contract = _contract('LQQ', 'EUR', 'SBF', 401)
+        detail = _detail(contract, 'Amundi Nasdaq-100 Daily 2x')
+        ib = Mock()
+        ib.qualifyContracts.return_value = [contract]
+        ib.reqContractDetails.return_value = [detail]
+        ib.reqHistoricalData.return_value = _bars()
+        instruments = ib_tws_sync.build_position_instruments([
+            types.SimpleNamespace(position=400, contract=contract)
+        ])
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'tws_instruments.json')
+            payload = ib_tws_sync.fetch_research_instruments(
+                ib, output_file=path, instruments=instruments
+            )
+
+        ib.reqMatchingSymbols.assert_not_called()
+        ib.qualifyContracts.assert_called_once_with(contract)
+        self.assertEqual(len(payload['instruments']['LQQ']['bars']), 90)
+        self.assertIn('LQQ.PA', payload['instruments']['LQQ']['aliases'])
+
     def test_missing_event_loop_is_recreated_for_tws_fallback(self):
         replacement_loop = Mock()
         with (
