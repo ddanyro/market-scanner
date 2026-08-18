@@ -27,8 +27,8 @@
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "EXIT",
-    "Sell_Reason": "RS Fail (Falling); ",
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 163.4 > SMA200 135.1), RSI 54, Risk 9.1%",
     "RS_vs_SPX": 1.34,
     "Chart_History": [
       117.88,
@@ -847,7 +847,7 @@
       }
     ],
     "Daily_Change": -5.84,
-    "Date": "2026-08-18 23:27",
+    "Date": "2026-08-18 23:46",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1713,7 +1713,7 @@
       }
     ],
     "Daily_Change": -20.5295,
-    "Date": "2026-08-18 23:27",
+    "Date": "2026-08-18 23:46",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1750,8 +1750,8 @@
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "EXIT",
-    "Sell_Reason": "RS Fail (Falling); ",
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 259.5 > SMA200 238.0), RSI 51, Risk 2.5%",
     "RS_vs_SPX": -5.5,
     "Chart_History": [
       181.8077,
@@ -2615,7 +2615,7 @@
       }
     ],
     "Daily_Change": -1.767,
-    "Date": "2026-08-18 23:27",
+    "Date": "2026-08-18 23:46",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -2653,7 +2653,7 @@
     "Trend": "Strong Bearish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "EXIT",
-    "Sell_Reason": "Structure Fail (Sub SMA50: 310.59 < 346.88); RS Fail (Falling); ",
+    "Sell_Reason": "Structure Fail (Sub SMA50: 310.59 < 346.88); ",
     "RS_vs_SPX": -18.38,
     "Chart_History": [
       283.5458,
@@ -3481,7 +3481,7 @@
       }
     ],
     "Daily_Change": -28.3195,
-    "Date": "2026-08-18 23:27",
+    "Date": "2026-08-18 23:46",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -4356,7 +4356,7 @@
       }
     ],
     "Daily_Change": -12.1885,
-    "Date": "2026-08-18 23:27",
+    "Date": "2026-08-18 23:46",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -4420,7 +4420,7 @@
       227.3244,
       227.5047,
       230.3426,
-      243.3835,
+      243.3836,
       258.674,
       256.9078,
       259.7754,
@@ -4635,9 +4635,9 @@
       },
       {
         "date": "2026-04-13",
-        "open": 238.6379,
+        "open": 238.638,
         "high": 243.2602,
-        "low": 236.6922,
+        "low": 236.6923,
         "close": 243.1083
       },
       {
@@ -4650,22 +4650,22 @@
       {
         "date": "2026-04-15",
         "open": 244.0385,
-        "high": 244.9402,
+        "high": 244.9401,
         "low": 239.5776,
         "close": 241.1152
       },
       {
         "date": "2026-04-16",
         "open": 241.4284,
-        "high": 242.5388,
+        "high": 242.5389,
         "low": 233.8259,
         "close": 235.0028
       },
       {
         "date": "2026-04-17",
-        "open": 238.543,
-        "high": 245.576,
-        "low": 238.543,
+        "open": 238.5431,
+        "high": 245.5761,
+        "low": 238.5431,
         "close": 242.6812
       },
       {
@@ -4678,7 +4678,7 @@
       {
         "date": "2026-04-21",
         "open": 241.4853,
-        "high": 242.2162,
+        "high": 242.2161,
         "low": 233.2185,
         "close": 235.1167
       },
@@ -4686,7 +4686,7 @@
         "date": "2026-04-22",
         "open": 237.2807,
         "high": 237.4895,
-        "low": 221.4493,
+        "low": 221.4494,
         "close": 228.6247
       },
       {
@@ -4735,7 +4735,7 @@
         "date": "2026-05-01",
         "open": 231.1779,
         "high": 232.1555,
-        "low": 225.7679,
+        "low": 225.7678,
         "close": 227.3244
       },
       {
@@ -4757,7 +4757,7 @@
         "open": 237.9641,
         "high": 245.1584,
         "low": 236.939,
-        "close": 243.3835
+        "close": 243.3836
       },
       {
         "date": "2026-05-07",
@@ -5258,7 +5258,7 @@
       }
     ],
     "Daily_Change": 3.3535,
-    "Date": "2026-08-18 23:27",
+    "Date": "2026-08-18 23:46",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -5295,8 +5295,8 @@
     "RSI_Status": "Neutral",
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "EXIT",
-    "Sell_Reason": "RS Fail (Falling); ",
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 9.6 > SMA200 8.2), RSI 51, Risk 2.6%",
     "RS_vs_SPX": -8.3,
     "Chart_History": [
       6.503,
@@ -6160,7 +6160,7 @@
       }
     ],
     "Daily_Change": -0.301,
-    "Date": "2026-08-18 23:27",
+    "Date": "2026-08-18 23:46",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -7012,7 +7012,7 @@
       },
       {
         "date": "2026-08-18",
-        "open": 307.971,
+        "open": 308.0945,
         "high": 312.6197,
         "low": 301.5405,
         "close": 311.524
@@ -7026,7 +7026,7 @@
       }
     ],
     "Daily_Change": -15.124,
-    "Date": "2026-08-18 23:27",
+    "Date": "2026-08-18 23:46",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -7878,7 +7878,7 @@
       },
       {
         "date": "2026-08-18",
-        "open": 909.245,
+        "open": 909.53,
         "high": 929.7365,
         "low": 880.308,
         "close": 893.722
@@ -7892,7 +7892,7 @@
       }
     ],
     "Daily_Change": -67.4405,
-    "Date": "2026-08-18 23:27",
+    "Date": "2026-08-18 23:46",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -7930,7 +7930,7 @@
     "Trend": "Strong Bearish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "EXIT",
-    "Sell_Reason": "Structure Fail (Sub SMA50: 142.79 < 148.90); RS Fail (Falling); ",
+    "Sell_Reason": "Structure Fail (Sub SMA50: 142.79 < 148.90); ",
     "RS_vs_SPX": -28.32,
     "Chart_History": [
       118.6431,
@@ -8767,7 +8767,7 @@
       }
     ],
     "Daily_Change": -3.667,
-    "Date": "2026-08-18 23:27",
+    "Date": "2026-08-18 23:46",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -9669,7 +9669,7 @@
       }
     ],
     "Daily_Change": 3.6575,
-    "Date": "2026-08-18 23:27",
+    "Date": "2026-08-18 23:46",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -12092,7 +12092,7 @@
       }
     ],
     "Daily_Change": 0.0382,
-    "Date": "2026-08-18 23:27",
+    "Date": "2026-08-18 23:46",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -12130,7 +12130,7 @@
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
     "Sell_Decision": "EXIT",
-    "Sell_Reason": "Structure Fail (Sub SMA50: 272.54 < 295.55); RS Fail (Falling); ",
+    "Sell_Reason": "Structure Fail (Sub SMA50: 272.54 < 295.55); ",
     "RS_vs_SPX": -19.68,
     "Chart_History": [
       242.647,
@@ -12967,7 +12967,7 @@
       }
     ],
     "Daily_Change": -18.8955,
-    "Date": "2026-08-18 23:27",
+    "Date": "2026-08-18 23:46",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
