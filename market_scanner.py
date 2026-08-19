@@ -5781,6 +5781,11 @@ def generate_html_dashboard(
             border: 1px solid var(--border-light);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             animation: fadeIn 0.6s ease-out backwards;
+            min-width: 0;
+            container-type: inline-size;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         
         .summary-card:nth-child(1) { animation-delay: 0.1s; }
@@ -5802,12 +5807,27 @@ def generate_html_dashboard(
             text-transform: uppercase;
             letter-spacing: 0.05em;
             margin-bottom: 12px;
+            min-height: 2.6em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .summary-card .value { 
-            font-size: clamp(24px, 2.2vw, 36px);
+            font-size: clamp(18px, 1.65vw, 32px);
             font-weight: 700;
             color: var(--text-primary);
+            line-height: 1.1;
+            letter-spacing: -0.035em;
+            white-space: nowrap;
+            max-width: 100%;
+            font-variant-numeric: tabular-nums;
+        }
+
+        @supports (font-size: 1cqi) {
+            .summary-card .value {
+                font-size: clamp(18px, 10cqi, 32px);
+            }
         }
 
         /* Market risk: 5 carduri pe un singur rând desktop, responsive mobil. */
@@ -6044,7 +6064,7 @@ def generate_html_dashboard(
             }
             
             .summary-card {
-                padding: 20px;
+                padding: 16px 12px;
             }
 
             .market-risk-grid {
@@ -6082,7 +6102,7 @@ def generate_html_dashboard(
             }
             
             .summary-card .value {
-                font-size: 24px;
+                font-size: clamp(17px, 6vw, 22px);
             }
 
             .market-risk-grid {

@@ -4,6 +4,19 @@ import os
 
 class TestHtmlIntegrity(unittest.TestCase):
 
+    def test_portfolio_summary_values_fit_responsive_cards(self):
+        root = os.path.join(os.path.dirname(__file__), '..')
+        with open(
+            os.path.join(root, 'market_scanner.py'),
+            'r', encoding='utf-8',
+        ) as handle:
+            scanner = handle.read()
+
+        self.assertIn('container-type: inline-size;', scanner)
+        self.assertIn('font-size: clamp(18px, 10cqi, 32px);', scanner)
+        self.assertIn('font-variant-numeric: tabular-nums;', scanner)
+        self.assertIn('white-space: nowrap;', scanner)
+
     def test_romanian_market_has_separate_hourly_update_without_bvb_api(self):
         root = os.path.join(os.path.dirname(__file__), '..')
         with open(
