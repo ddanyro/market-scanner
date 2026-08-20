@@ -3,33 +3,33 @@
     "Symbol": "3USL",
     "Company_Name": "WISDOMTREE SP500 3X DAILY",
     "Shares": 13,
-    "Current_Price": 163.42,
-    "Price_Native": 163.42,
+    "Current_Price": 163.53,
+    "Price_Native": 163.53,
     "Currency": "EUR",
     "Buy_Price": 165.35,
-    "Target": 175.54,
+    "Target": 174.81,
     "Trail_Stop": 148.81,
-    "Suggested_Stop": 155.34,
+    "Suggested_Stop": 156.01,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
     "Trail_Pct": 10.0,
     "Investment": 2149.56,
     "Entry_Date": "-",
-    "Current_Value": 2124.46,
-    "Profit": -25.1,
-    "Profit_Pct": -1.17,
-    "Max_Profit": 132.43,
+    "Current_Value": 2125.89,
+    "Profit": -23.67,
+    "Profit_Pct": -1.1,
+    "Max_Profit": 123.03,
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 53.7,
+    "RSI": 53.86,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 163.4 > SMA200 135.3), RSI 54, Risk 8.9%",
-    "RS_vs_SPX": 0.88,
+    "Sell_Reason": "Trend UP (P 163.5 > SMA200 135.4), RSI 54, Risk 9.0%",
+    "RS_vs_SPX": -0.67,
     "Chart_History": [
       117.88,
       123.55,
@@ -122,7 +122,8 @@
       169.26,
       163.42,
       168.74,
-      164.45
+      164.45,
+      163.53
     ],
     "Chart_Dates": [
       "2026-04-13",
@@ -216,7 +217,8 @@
       "2026-08-14",
       "2026-08-18",
       "2026-08-17",
-      "2026-08-19"
+      "2026-08-19",
+      "2026-08-20"
     ],
     "Chart_OHLC": [
       {
@@ -862,10 +864,17 @@
         "high": 165.35,
         "low": 162.94,
         "close": 164.45
+      },
+      {
+        "date": "2026-08-20",
+        "open": 163.53,
+        "high": 163.53,
+        "low": 163.53,
+        "close": 163.53
       }
     ],
-    "Daily_Change": -5.32,
-    "Date": "2026-08-20 09:30",
+    "Daily_Change": 0.11,
+    "Date": "2026-08-20 10:22",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1740,7 +1749,7 @@
       }
     ],
     "Daily_Change": -15.3913,
-    "Date": "2026-08-20 09:30",
+    "Date": "2026-08-20 10:22",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -2651,7 +2660,7 @@
       }
     ],
     "Daily_Change": 5.4731,
-    "Date": "2026-08-20 09:30",
+    "Date": "2026-08-20 10:22",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -2662,7 +2671,7 @@
   },
   {
     "Symbol": "CLS",
-    "Company_Name": "Celestica Inc.",
+    "Company_Name": "Celestica, Inc.",
     "Shares": 3,
     "Current_Price": 258.11,
     "Price_Native": 301.36,
@@ -3526,7 +3535,7 @@
       }
     ],
     "Daily_Change": -7.9055,
-    "Date": "2026-08-20 09:30",
+    "Date": "2026-08-20 10:23",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -4437,7 +4446,7 @@
       }
     ],
     "Daily_Change": -7.8541,
-    "Date": "2026-08-20 09:30",
+    "Date": "2026-08-20 10:23",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -4448,7 +4457,7 @@
   },
   {
     "Symbol": "JPM",
-    "Company_Name": "JPMorgan Chase & Co.",
+    "Company_Name": "JP Morgan Chase & Co.",
     "Shares": 8,
     "Current_Price": 305.99,
     "Price_Native": 357.26,
@@ -5294,7 +5303,7 @@
       }
     ],
     "Daily_Change": -5.1304,
-    "Date": "2026-08-20 09:30",
+    "Date": "2026-08-20 10:23",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -5307,33 +5316,33 @@
     "Symbol": "LQQ",
     "Company_Name": "LQQ \u2014 Nasdaq-100 Daily (2x) Leveraged UCITS ETF",
     "Shares": 400,
-    "Current_Price": 9.55,
-    "Price_Native": 9.55,
+    "Current_Price": 9.51,
+    "Price_Native": 9.51,
     "Currency": "EUR",
     "Buy_Price": 9.61,
     "Target": 10.6,
     "Trail_Stop": 9.3,
-    "Suggested_Stop": 8.94,
+    "Suggested_Stop": 8.96,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
     "Trail_Pct": 7.33,
     "Investment": 3842.2,
     "Entry_Date": "-",
-    "Current_Value": 3820.0,
-    "Profit": -22.2,
-    "Profit_Pct": -0.58,
+    "Current_Value": 3805.2,
+    "Profit": -37.0,
+    "Profit_Pct": -0.96,
     "Max_Profit": 398.8,
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 50.02,
+    "RSI": 49.28,
     "RSI_Status": "Neutral",
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 9.6 > SMA200 8.2), RSI 50, Risk 2.6%",
-    "RS_vs_SPX": -8.37,
+    "Sell_Decision": "EXIT",
+    "Sell_Reason": "Structure Fail (Sub SMA50: 9.51 < 9.65); ",
+    "RS_vs_SPX": -10.53,
     "Chart_History": [
       6.503,
       6.97,
@@ -5430,7 +5439,8 @@
       9.851,
       9.979,
       9.55,
-      9.477
+      9.477,
+      9.513
     ],
     "Chart_Dates": [
       "2026-04-07",
@@ -5528,7 +5538,8 @@
       "2026-08-14",
       "2026-08-17",
       "2026-08-18",
-      "2026-08-19"
+      "2026-08-19",
+      "2026-08-20"
     ],
     "Chart_OHLC": [
       {
@@ -6202,10 +6213,17 @@
         "high": 9.606,
         "low": 9.35,
         "close": 9.477
+      },
+      {
+        "date": "2026-08-20",
+        "open": 9.503,
+        "high": 9.524,
+        "low": 9.503,
+        "close": 9.513
       }
     ],
-    "Daily_Change": -0.429,
-    "Date": "2026-08-20 09:30",
+    "Daily_Change": -0.037,
+    "Date": "2026-08-20 10:23",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -7080,7 +7098,7 @@
       }
     ],
     "Daily_Change": -17.7724,
-    "Date": "2026-08-20 09:30",
+    "Date": "2026-08-20 10:23",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -7955,7 +7973,7 @@
       }
     ],
     "Daily_Change": -3.1262,
-    "Date": "2026-08-20 09:30",
+    "Date": "2026-08-20 10:23",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -8839,7 +8857,7 @@
       }
     ],
     "Daily_Change": 0.8737,
-    "Date": "2026-08-20 09:30",
+    "Date": "2026-08-20 10:23",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -8887,19 +8905,19 @@
       174.0272,
       172.2511,
       171.2233,
-      172.4135,
+      172.4134,
       168.6559,
       166.4966,
       166.9812,
       166.4456,
       159.1175,
       153.7957,
-      152.4271,
+      152.427,
       148.1424,
       147.3943,
       149.3496,
-      146.8928,
-      149.6812,
+      146.8927,
+      149.6811,
       147.9129,
       146.9863,
       146.9608,
@@ -9130,7 +9148,7 @@
         "open": 171.1723,
         "high": 173.6971,
         "low": 170.7982,
-        "close": 172.4135
+        "close": 172.4134
       },
       {
         "date": "2026-04-15",
@@ -9179,12 +9197,12 @@
         "open": 154.1783,
         "high": 155.2665,
         "low": 150.8968,
-        "close": 152.4271
+        "close": 152.427
       },
       {
         "date": "2026-04-24",
-        "open": 151.1349,
-        "high": 151.1349,
+        "open": 151.1348,
+        "high": 151.1348,
         "low": 145.9066,
         "close": 148.1424
       },
@@ -9207,14 +9225,14 @@
         "open": 149.2476,
         "high": 149.8512,
         "low": 146.0341,
-        "close": 146.8928
+        "close": 146.8927
       },
       {
         "date": "2026-04-30",
-        "open": 147.6154,
+        "open": 147.6153,
         "high": 150.1742,
         "low": 147.4793,
-        "close": 149.6812
+        "close": 149.6811
       },
       {
         "date": "2026-05-01",
@@ -9241,14 +9259,14 @@
         "date": "2026-05-06",
         "open": 148.593,
         "high": 151.3984,
-        "low": 147.5558,
+        "low": 147.5559,
         "close": 150.2507
       },
       {
         "date": "2026-05-07",
         "open": 150.0807,
         "high": 150.8033,
-        "low": 147.6494,
+        "low": 147.6493,
         "close": 150.2847
       },
       {
@@ -9260,7 +9278,7 @@
       },
       {
         "date": "2026-05-11",
-        "open": 148.9076,
+        "open": 148.9075,
         "high": 152.9626,
         "low": 148.4315,
         "close": 151.8405
@@ -9750,7 +9768,7 @@
       }
     ],
     "Daily_Change": -4.4024,
-    "Date": "2026-08-20 09:30",
+    "Date": "2026-08-20 10:23",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -9763,32 +9781,32 @@
     "Symbol": "TVBETETF.RO",
     "Company_Name": "ETF BET Patria-Tradeville",
     "Shares": 2061,
-    "Current_Price": 11.79,
-    "Price_Native": 61.82,
+    "Current_Price": 11.86,
+    "Price_Native": 62.2,
     "Currency": "RON",
     "Buy_Price": 5.48,
-    "Target": 12.29,
+    "Target": 11.96,
     "Trail_Stop": 11.16,
-    "Suggested_Stop": 11.46,
+    "Suggested_Stop": 11.54,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
     "Trail_Pct": 0.0,
     "Investment": 11284.27,
     "Entry_Date": "-",
-    "Current_Value": 24297.92,
-    "Profit": 13013.66,
-    "Profit_Pct": 115.33,
-    "Max_Profit": 14040.34,
+    "Current_Value": 24447.28,
+    "Profit": 13163.01,
+    "Profit_Pct": 116.65,
+    "Max_Profit": 13375.26,
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 63.79,
+    "RSI": 60.85,
     "RSI_Status": "Neutral",
-    "Trend": "Strong Bullish",
+    "Trend": "Neutral",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 61.8 > SMA200 48.3), RSI 64, Risk 5.4%",
+    "Sell_Reason": "Consolidation, RSI 61, Risk 5.9%",
     "RS_vs_SPX": null,
     "Chart_History": [
       6.2905,
@@ -10055,7 +10073,8 @@
       11.7684,
       11.6826,
       11.7207,
-      11.7894
+      11.7894,
+      11.8619
     ],
     "Chart_Dates": [
       "2025-07-25",
@@ -10322,7 +10341,8 @@
       "2026-08-14",
       "2026-08-17",
       "2026-08-18",
-      "2026-08-19"
+      "2026-08-19",
+      "2026-08-20"
     ],
     "Chart_OHLC": [
       {
@@ -12179,10 +12199,17 @@
         "high": 11.8619,
         "low": 11.7455,
         "close": 11.7894
+      },
+      {
+        "date": "2026-08-20",
+        "open": 11.8199,
+        "high": 11.8619,
+        "low": 11.8199,
+        "close": 11.8619
       }
     ],
-    "Daily_Change": 0.0687,
-    "Date": "2026-08-20 09:30",
+    "Daily_Change": 0.0725,
+    "Date": "2026-08-20 10:23",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -13066,7 +13093,7 @@
       }
     ],
     "Daily_Change": -9.884,
-    "Date": "2026-08-20 09:30",
+    "Date": "2026-08-20 10:23",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
