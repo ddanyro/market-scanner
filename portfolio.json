@@ -3,23 +3,23 @@
     "Symbol": "3USL",
     "Company_Name": "WISDOMTREE SP500 3X DAILY",
     "Shares": 13,
-    "Current_Price": 160.82,
-    "Price_Native": 160.82,
+    "Current_Price": 160.89,
+    "Price_Native": 160.89,
     "Currency": "EUR",
     "Buy_Price": 165.35,
-    "Target": 172.89,
+    "Target": 172.96,
     "Trail_Stop": 148.81,
-    "Suggested_Stop": 152.78,
+    "Suggested_Stop": 152.85,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
     "Trail_Pct": 10.0,
     "Investment": 2149.56,
     "Entry_Date": "-",
-    "Current_Value": 2090.67,
-    "Profit": -58.89,
-    "Profit_Pct": -2.74,
-    "Max_Profit": 97.97,
+    "Current_Value": 2091.57,
+    "Profit": -57.99,
+    "Profit_Pct": -2.7,
+    "Max_Profit": 98.87,
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
@@ -28,7 +28,7 @@
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 160.8 > SMA200 135.4), RSI 50, Risk 7.5%",
+    "Sell_Reason": "Trend UP (P 160.9 > SMA200 135.4), RSI 50, Risk 7.5%",
     "RS_vs_SPX": -2.33,
     "Chart_History": [
       117.88,
@@ -874,7 +874,7 @@
       }
     ],
     "Daily_Change": -2.53,
-    "Date": "2026-08-20 16:29",
+    "Date": "2026-08-20 16:33",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -887,33 +887,33 @@
     "Symbol": "AMD",
     "Company_Name": "Advanced Micro Devices, Inc.",
     "Shares": 4,
-    "Current_Price": 398.72,
-    "Price_Native": 466.94,
+    "Current_Price": 403.02,
+    "Price_Native": 471.98,
     "Currency": "USD",
     "Buy_Price": 414.35,
     "Target": 532.06,
     "Trail_Stop": 394.61,
-    "Suggested_Stop": 353.25,
-    "Finviz_ATR": 29.26,
+    "Suggested_Stop": 361.57,
+    "Finviz_ATR": 28.82,
     "Vol_W": 4.28,
     "Vol_M": 5.7,
     "Trail_Pct": 10.16,
     "Investment": 1657.42,
     "Entry_Date": "-",
-    "Current_Value": 1594.88,
-    "Profit": -62.54,
-    "Profit_Pct": -3.77,
+    "Current_Value": 1612.09,
+    "Profit": -45.32,
+    "Profit_Pct": -2.73,
     "Max_Profit": 470.81,
     "Consensus": "Strong Buy",
     "Analysts": 47,
     "Status": "Neutral",
-    "RSI": 44.16,
+    "RSI": 45.45,
     "RSI_Status": "Neutral",
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
     "Sell_Decision": "EXIT",
-    "Sell_Reason": "Structure Fail (Sub SMA50: 466.94 < 509.94); ",
-    "RS_vs_SPX": -11.14,
+    "Sell_Reason": "Structure Fail (Sub SMA50: 471.98 < 509.87); ",
+    "RS_vs_SPX": -8.45,
     "Chart_History": [
       204.1967,
       210.9794,
@@ -1006,7 +1006,8 @@
       439.2376,
       413.6206,
       432.0734,
-      398.2761
+      398.2761,
+      403.0237
     ],
     "Chart_Dates": [
       "2026-04-09",
@@ -1100,7 +1101,8 @@
       "2026-08-14",
       "2026-08-18",
       "2026-08-17",
-      "2026-08-19"
+      "2026-08-19",
+      "2026-08-20"
     ],
     "Chart_OHLC": [
       {
@@ -1746,10 +1748,17 @@
         "high": 415.8579,
         "low": 394.9714,
         "close": 398.2761
+      },
+      {
+        "date": "2026-08-20",
+        "open": 397.8448,
+        "high": 403.4592,
+        "low": 397.5374,
+        "close": 403.0237
       }
     ],
-    "Daily_Change": -15.3445,
-    "Date": "2026-08-20 16:29",
+    "Daily_Change": 4.7476,
+    "Date": "2026-08-20 16:33",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1762,33 +1771,33 @@
     "Symbol": "AMZN",
     "Company_Name": "Amazon.com, Inc.",
     "Shares": 4,
-    "Current_Price": 224.6,
-    "Price_Native": 263.03,
+    "Current_Price": 224.64,
+    "Price_Native": 263.08,
     "Currency": "USD",
     "Buy_Price": 239.63,
     "Target": 281.47,
     "Trail_Stop": 220.03,
-    "Suggested_Stop": 208.45,
-    "Finviz_ATR": 7.61,
+    "Suggested_Stop": 212.58,
+    "Finviz_ATR": 7.59,
     "Vol_W": 2.15,
     "Vol_M": 2.56,
     "Trail_Pct": 8.88,
     "Investment": 958.52,
     "Entry_Date": "-",
-    "Current_Value": 898.41,
-    "Profit": -60.11,
-    "Profit_Pct": -6.27,
+    "Current_Value": 898.58,
+    "Profit": -59.94,
+    "Profit_Pct": -6.25,
     "Max_Profit": 167.36,
     "Consensus": "Strong Buy",
     "Analysts": 60,
     "Status": "Neutral",
-    "RSI": 55.64,
+    "RSI": 53.26,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 263.0 > SMA200 238.2), RSI 56, Risk 2.0%",
-    "RS_vs_SPX": -3.49,
+    "Sell_Reason": "Trend UP (P 263.1 > SMA200 238.3), RSI 53, Risk 2.1%",
+    "RS_vs_SPX": -6.93,
     "Chart_History": [
       181.8077,
       184.4038,
@@ -1885,7 +1894,8 @@
       224.2768,
       223.1326,
       221.5444,
-      227.0008
+      227.0008,
+      224.644
     ],
     "Chart_Dates": [
       "2026-04-02",
@@ -1983,7 +1993,8 @@
       "2026-08-14",
       "2026-08-17",
       "2026-08-18",
-      "2026-08-19"
+      "2026-08-19",
+      "2026-08-20"
     ],
     "Chart_OHLC": [
       {
@@ -2657,10 +2668,17 @@
         "high": 227.479,
         "low": 220.8015,
         "close": 227.0008
+      },
+      {
+        "date": "2026-08-20",
+        "open": 224.4946,
+        "high": 224.738,
+        "low": 223.4144,
+        "close": 224.644
       }
     ],
-    "Daily_Change": 5.4564,
-    "Date": "2026-08-20 16:29",
+    "Daily_Change": -2.3568,
+    "Date": "2026-08-20 16:33",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -2671,35 +2689,35 @@
   },
   {
     "Symbol": "CLS",
-    "Company_Name": "Celestica Inc.",
+    "Company_Name": "Celestica, Inc.",
     "Shares": 3,
-    "Current_Price": 257.88,
-    "Price_Native": 302.0,
+    "Current_Price": 255.61,
+    "Price_Native": 299.34,
     "Currency": "USD",
     "Buy_Price": 277.8,
     "Target": 398.25,
     "Trail_Stop": 247.55,
-    "Suggested_Stop": 213.25,
-    "Finviz_ATR": 24.24,
+    "Suggested_Stop": 215.86,
+    "Finviz_ATR": 23.85,
     "Vol_W": 6.6,
     "Vol_M": 7.17,
     "Trail_Pct": 13.47,
     "Investment": 833.41,
     "Entry_Date": "-",
-    "Current_Value": 773.63,
-    "Profit": -59.77,
-    "Profit_Pct": -7.17,
+    "Current_Value": 766.82,
+    "Profit": -66.59,
+    "Profit_Pct": -7.99,
     "Max_Profit": 361.34,
     "Consensus": "Strong Buy",
     "Analysts": 17,
     "Status": "Neutral",
-    "RSI": 42.01,
+    "RSI": 41.59,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bearish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "EXIT",
-    "Sell_Reason": "Structure Fail (Sub SMA50: 302.00 < 345.18); Momentum Fail (RSI 42.0 < 45); ",
-    "RS_vs_SPX": -22.44,
+    "Sell_Reason": "Structure Fail (Sub SMA50: 299.34 < 343.73); Momentum Fail (RSI 41.6 < 45); ",
+    "RS_vs_SPX": -20.02,
     "Chart_History": [
       283.3159,
       302.4779,
@@ -2792,7 +2810,8 @@
       286.0992,
       265.2128,
       290.6676,
-      257.3313
+      257.3313,
+      255.6064
     ],
     "Chart_Dates": [
       "2026-04-09",
@@ -2886,7 +2905,8 @@
       "2026-08-14",
       "2026-08-18",
       "2026-08-17",
-      "2026-08-19"
+      "2026-08-19",
+      "2026-08-20"
     ],
     "Chart_OHLC": [
       {
@@ -3532,10 +3552,17 @@
         "high": 268.3466,
         "low": 249.7658,
         "close": 257.3313
+      },
+      {
+        "date": "2026-08-20",
+        "open": 266.4083,
+        "high": 258.6335,
+        "low": 254.8892,
+        "close": 255.6064
       }
     ],
-    "Daily_Change": -7.8815,
-    "Date": "2026-08-20 16:29",
+    "Daily_Change": -1.7249,
+    "Date": "2026-08-20 16:33",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -3548,33 +3575,33 @@
     "Symbol": "HWM",
     "Company_Name": "Howmet Aerospace Inc.",
     "Shares": 28,
-    "Current_Price": 241.31,
-    "Price_Native": 282.6,
+    "Current_Price": 240.84,
+    "Price_Native": 282.05,
     "Currency": "USD",
     "Buy_Price": 243.42,
     "Target": 292.55,
     "Trail_Stop": 235.84,
-    "Suggested_Stop": 226.81,
-    "Finviz_ATR": 8.31,
+    "Suggested_Stop": 226.95,
+    "Finviz_ATR": 8.19,
     "Vol_W": 2.8,
     "Vol_M": 3.05,
     "Trail_Pct": 6.5,
     "Investment": 6815.83,
     "Entry_Date": "-",
-    "Current_Value": 6756.74,
-    "Profit": -59.09,
-    "Profit_Pct": -0.87,
+    "Current_Value": 6743.59,
+    "Profit": -72.24,
+    "Profit_Pct": -1.06,
     "Max_Profit": 1375.46,
     "Consensus": "Strong Buy",
     "Analysts": 20,
     "Status": "Neutral",
-    "RSI": 51.16,
+    "RSI": 49.84,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 282.6 > SMA200 241.9), RSI 51, Risk 2.3%",
-    "RS_vs_SPX": 4.6,
+    "Sell_Reason": "Trend UP (P 282.0 > SMA200 241.9), RSI 50, Risk 2.1%",
+    "RS_vs_SPX": 4.05,
     "Chart_History": [
       201.71,
       204.4914,
@@ -3671,7 +3698,8 @@
       246.9308,
       246.8796,
       249.8938,
-      242.0636
+      242.0636,
+      240.8425
     ],
     "Chart_Dates": [
       "2026-04-02",
@@ -3769,7 +3797,8 @@
       "2026-08-14",
       "2026-08-17",
       "2026-08-18",
-      "2026-08-19"
+      "2026-08-19",
+      "2026-08-20"
     ],
     "Chart_OHLC": [
       {
@@ -3844,9 +3873,9 @@
       },
       {
         "date": "2026-04-17",
-        "open": 214.4125,
+        "open": 214.4126,
         "high": 220.7341,
-        "low": 214.4125,
+        "low": 214.4126,
         "close": 218.1321
       },
       {
@@ -3935,7 +3964,7 @@
       },
       {
         "date": "2026-05-06",
-        "open": 213.8921,
+        "open": 213.8922,
         "high": 220.3587,
         "low": 212.9708,
         "close": 218.7634
@@ -4443,10 +4472,17 @@
         "high": 250.5343,
         "low": 241.6708,
         "close": 242.0636
+      },
+      {
+        "date": "2026-08-20",
+        "open": 250.5343,
+        "high": 241.4658,
+        "low": 239.6086,
+        "close": 240.8425
       }
     ],
-    "Daily_Change": -7.8302,
-    "Date": "2026-08-20 16:29",
+    "Daily_Change": -1.2211,
+    "Date": "2026-08-20 16:33",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -4457,35 +4493,35 @@
   },
   {
     "Symbol": "JPM",
-    "Company_Name": "JPMorgan Chase & Co.",
+    "Company_Name": "JP Morgan Chase & Co.",
     "Shares": 8,
-    "Current_Price": 304.42,
-    "Price_Native": 356.51,
+    "Current_Price": 304.53,
+    "Price_Native": 356.63,
     "Currency": "USD",
     "Buy_Price": 305.8,
     "Target": 321.37,
     "Trail_Stop": 291.78,
-    "Suggested_Stop": 295.05,
-    "Finviz_ATR": 6.02,
+    "Suggested_Stop": 295.46,
+    "Finviz_ATR": 5.9,
     "Vol_W": 1.44,
     "Vol_M": 1.65,
     "Trail_Pct": 4.5,
     "Investment": 2446.42,
     "Entry_Date": "-",
-    "Current_Value": 2435.39,
-    "Profit": -11.03,
-    "Profit_Pct": -0.45,
+    "Current_Value": 2436.21,
+    "Profit": -10.21,
+    "Profit_Pct": -0.42,
     "Max_Profit": 124.5,
     "Consensus": "Buy",
     "Analysts": 21,
     "Status": "Neutral",
-    "RSI": 55.52,
+    "RSI": 54.66,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 356.5 > SMA200 313.4), RSI 56, Risk 4.2%",
-    "RS_vs_SPX": 13.29,
+    "Sell_Reason": "Trend UP (P 356.6 > SMA200 313.6), RSI 55, Risk 4.2%",
+    "RS_vs_SPX": 16.0,
     "Chart_History": [
       266.6501,
       264.4739,
@@ -4576,7 +4612,8 @@
       309.8291,
       308.2237,
       310.1792,
-      305.0643
+      305.0643,
+      304.5264
     ],
     "Chart_Dates": [
       "2026-04-13",
@@ -4668,7 +4705,8 @@
       "2026-08-14",
       "2026-08-17",
       "2026-08-18",
-      "2026-08-19"
+      "2026-08-19",
+      "2026-08-20"
     ],
     "Chart_OHLC": [
       {
@@ -5300,10 +5338,17 @@
         "high": 310.0084,
         "low": 303.6895,
         "close": 305.0643
+      },
+      {
+        "date": "2026-08-20",
+        "open": 309.9743,
+        "high": 305.3547,
+        "low": 303.4761,
+        "close": 304.5264
       }
     ],
-    "Daily_Change": -5.1149,
-    "Date": "2026-08-20 16:29",
+    "Daily_Change": -0.5379,
+    "Date": "2026-08-20 16:33",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -5316,33 +5361,33 @@
     "Symbol": "LRCX",
     "Company_Name": "Lam Research Corporation",
     "Shares": 1,
-    "Current_Price": 258.09,
-    "Price_Native": 302.25,
+    "Current_Price": 262.18,
+    "Price_Native": 307.04,
     "Currency": "USD",
     "Buy_Price": 274.1,
     "Target": 326.13,
     "Trail_Stop": 246.9,
-    "Suggested_Stop": 225.99,
-    "Finviz_ATR": 21.29,
+    "Suggested_Stop": 232.45,
+    "Finviz_ATR": 20.89,
     "Vol_W": 5.24,
     "Vol_M": 5.8,
     "Trail_Pct": 12.0,
     "Investment": 274.1,
     "Entry_Date": "-",
-    "Current_Value": 258.09,
-    "Profit": -16.01,
-    "Profit_Pct": -5.84,
+    "Current_Value": 262.18,
+    "Profit": -11.92,
+    "Profit_Pct": -4.35,
     "Max_Profit": 52.03,
     "Consensus": "Strong Buy",
     "Analysts": 31,
     "Status": "Neutral",
-    "RSI": 46.2,
+    "RSI": 46.17,
     "RSI_Status": "Neutral",
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
     "Sell_Decision": "EXIT",
-    "Sell_Reason": "Structure Fail (Sub SMA50: 302.25 < 337.74); ",
-    "RS_vs_SPX": -8.44,
+    "Sell_Reason": "Structure Fail (Sub SMA50: 307.04 < 337.34); ",
+    "RS_vs_SPX": -7.36,
     "Chart_History": [
       223.1268,
       226.8515,
@@ -5435,7 +5480,8 @@
       283.8022,
       280.0109,
       293.605,
-      262.2925
+      262.2925,
+      262.1815
     ],
     "Chart_Dates": [
       "2026-04-09",
@@ -5529,7 +5575,8 @@
       "2026-08-14",
       "2026-08-18",
       "2026-08-17",
-      "2026-08-19"
+      "2026-08-19",
+      "2026-08-20"
     ],
     "Chart_OHLC": [
       {
@@ -6175,10 +6222,17 @@
         "high": 280.5659,
         "low": 260.5078,
         "close": 262.2925
+      },
+      {
+        "date": "2026-08-20",
+        "open": 260.6316,
+        "high": 263.838,
+        "low": 258.689,
+        "close": 262.1815
       }
     ],
-    "Daily_Change": -17.7184,
-    "Date": "2026-08-20 16:29",
+    "Daily_Change": -0.111,
+    "Date": "2026-08-20 16:33",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -6191,33 +6245,33 @@
     "Symbol": "MU",
     "Company_Name": "Micron Technology, Inc.",
     "Shares": 2,
-    "Current_Price": 799.13,
-    "Price_Native": 935.86,
+    "Current_Price": 804.51,
+    "Price_Native": 942.16,
     "Currency": "USD",
     "Buy_Price": 815.9,
     "Target": 1337.03,
     "Trail_Stop": 723.72,
-    "Suggested_Stop": 690.99,
-    "Finviz_ATR": 68.57,
+    "Suggested_Stop": 708.46,
+    "Finviz_ATR": 66.92,
     "Vol_W": 5.08,
     "Vol_M": 7.06,
     "Trail_Pct": 12.7,
     "Investment": 1631.8,
     "Entry_Date": "-",
-    "Current_Value": 1598.26,
-    "Profit": -33.54,
-    "Profit_Pct": -2.06,
+    "Current_Value": 1609.02,
+    "Profit": -22.78,
+    "Profit_Pct": -1.4,
     "Max_Profit": 1042.25,
     "Consensus": "Strong Buy",
     "Analysts": 43,
     "Status": "Neutral",
-    "RSI": 51.81,
+    "RSI": 52.3,
     "RSI_Status": "Neutral",
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
     "Sell_Decision": "EXIT",
-    "Sell_Reason": "Structure Fail (Sub SMA50: 935.86 < 962.27); ",
-    "RS_vs_SPX": 0.92,
+    "Sell_Reason": "Structure Fail (Sub SMA50: 942.16 < 962.40); ",
+    "RS_vs_SPX": -2.2,
     "Chart_History": [
       363.665,
       362.0723,
@@ -6310,7 +6364,8 @@
       829.7005,
       803.315,
       863.9334,
-      800.1982
+      800.1982,
+      804.5104
     ],
     "Chart_Dates": [
       "2026-04-09",
@@ -6404,7 +6459,8 @@
       "2026-08-14",
       "2026-08-18",
       "2026-08-17",
-      "2026-08-19"
+      "2026-08-19",
+      "2026-08-20"
     ],
     "Chart_OHLC": [
       {
@@ -7050,10 +7106,17 @@
         "high": 819.744,
         "low": 781.4722,
         "close": 800.1982
+      },
+      {
+        "date": "2026-08-20",
+        "open": 799.2504,
+        "high": 809.4972,
+        "low": 797.7902,
+        "close": 804.5104
       }
     ],
-    "Daily_Change": -3.1168,
-    "Date": "2026-08-20 16:29",
+    "Daily_Change": 4.3122,
+    "Date": "2026-08-20 16:33",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -7066,33 +7129,33 @@
     "Symbol": "ORCL",
     "Company_Name": "Oracle Corporation",
     "Shares": 8,
-    "Current_Price": 123.27,
-    "Price_Native": 144.36,
+    "Current_Price": 123.7,
+    "Price_Native": 144.86,
     "Currency": "USD",
     "Buy_Price": 125.63,
     "Target": 213.01,
     "Trail_Stop": 111.02,
-    "Suggested_Stop": 111.12,
-    "Finviz_ATR": 6.99,
+    "Suggested_Stop": 112.14,
+    "Finviz_ATR": 6.88,
     "Vol_W": 4.43,
     "Vol_M": 5.01,
     "Trail_Pct": 11.0,
     "Investment": 1005.04,
     "Entry_Date": "-",
-    "Current_Value": 986.15,
-    "Profit": -18.89,
-    "Profit_Pct": -1.88,
+    "Current_Value": 989.57,
+    "Profit": -15.47,
+    "Profit_Pct": -1.54,
     "Max_Profit": 699.0,
     "Consensus": "Buy",
     "Analysts": 41,
     "Status": "Neutral",
-    "RSI": 50.4,
+    "RSI": 51.31,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bearish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "EXIT",
-    "Sell_Reason": "Structure Fail (Sub SMA50: 144.36 < 147.56); ",
-    "RS_vs_SPX": -28.95,
+    "Sell_Reason": "Structure Fail (Sub SMA50: 144.86 < 146.35); ",
+    "RS_vs_SPX": -27.58,
     "Chart_History": [
       118.547,
       118.4833,
@@ -7186,7 +7249,8 @@
       125.2244,
       123.2044,
       121.9284,
-      122.7994
+      122.7994,
+      123.696
     ],
     "Chart_Dates": [
       "2026-04-09",
@@ -7281,7 +7345,8 @@
       "2026-08-17",
       "2026-04-08",
       "2026-08-18",
-      "2026-08-19"
+      "2026-08-19",
+      "2026-08-20"
     ],
     "Chart_OHLC": [
       {
@@ -7934,10 +7999,17 @@
         "high": 124.7377,
         "low": 117.3515,
         "close": 122.7994
+      },
+      {
+        "date": "2026-08-20",
+        "open": 121.8473,
+        "high": 123.815,
+        "low": 122.2358,
+        "close": 123.696
       }
     ],
-    "Daily_Change": 0.871,
-    "Date": "2026-08-20 16:29",
+    "Daily_Change": 0.8966,
+    "Date": "2026-08-20 16:33",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -7950,33 +8022,33 @@
     "Symbol": "RTX",
     "Company_Name": "RTX Corporation",
     "Shares": 5,
-    "Current_Price": 187.92,
-    "Price_Native": 220.07,
+    "Current_Price": 186.02,
+    "Price_Native": 217.85,
     "Currency": "USD",
     "Buy_Price": 183.76,
     "Target": 202.25,
     "Trail_Stop": 185.6,
-    "Suggested_Stop": 180.77,
-    "Finviz_ATR": 4.65,
+    "Suggested_Stop": 179.0,
+    "Finviz_ATR": 4.57,
     "Vol_W": 1.92,
     "Vol_M": 2.21,
     "Trail_Pct": 4.0,
     "Investment": 918.8,
     "Entry_Date": "-",
-    "Current_Value": 939.59,
-    "Profit": 20.79,
-    "Profit_Pct": 2.26,
+    "Current_Value": 930.11,
+    "Profit": 11.31,
+    "Profit_Pct": 1.23,
     "Max_Profit": 92.48,
     "Consensus": "Buy",
     "Analysts": 22,
     "Status": "Neutral",
-    "RSI": 60.82,
+    "RSI": 56.34,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 220.1 > SMA200 189.8), RSI 61, Risk 1.2%",
-    "RS_vs_SPX": 19.83,
+    "Sell_Reason": "Trend UP (P 217.9 > SMA200 190.0), RSI 56, Risk 0.2%",
+    "RS_vs_SPX": 20.07,
     "Chart_History": [
       169.3498,
       171.2289,
@@ -7992,11 +8064,11 @@
       165.9403,
       158.6345,
       153.3289,
-      151.9643,
+      151.9644,
       147.6927,
       146.9469,
-      148.8962,
-      146.4468,
+      148.8963,
+      146.4469,
       149.2268,
       147.4639,
       146.5401,
@@ -8004,10 +8076,10 @@
       149.7946,
       149.8285,
       149.2437,
-      151.3795,
+      151.3796,
       151.6169,
       150.9558,
-      148.8962,
+      148.8963,
       145.0823,
       149.1251,
       147.8877,
@@ -8073,7 +8145,8 @@
       190.3941,
       189.2584,
       192.5459,
-      188.1569
+      188.1569,
+      186.0221
     ],
     "Chart_Dates": [
       "2026-04-02",
@@ -8171,7 +8244,8 @@
       "2026-08-14",
       "2026-08-17",
       "2026-08-18",
-      "2026-08-19"
+      "2026-08-19",
+      "2026-08-20"
     ],
     "Chart_OHLC": [
       {
@@ -8227,7 +8301,7 @@
         "date": "2026-04-14",
         "open": 170.6527,
         "high": 173.1699,
-        "low": 170.2797,
+        "low": 170.2798,
         "close": 171.8901
       },
       {
@@ -8262,7 +8336,7 @@
         "date": "2026-04-21",
         "open": 164.9402,
         "high": 166.6438,
-        "low": 158.1006,
+        "low": 158.1005,
         "close": 158.6345
       },
       {
@@ -8277,7 +8351,7 @@
         "open": 153.7103,
         "high": 154.7951,
         "low": 150.4388,
-        "close": 151.9643
+        "close": 151.9644
       },
       {
         "date": "2026-04-24",
@@ -8297,21 +8371,21 @@
         "date": "2026-04-28",
         "open": 148.5318,
         "high": 148.9895,
-        "low": 146.0654,
-        "close": 148.8962
+        "low": 146.0655,
+        "close": 148.8963
       },
       {
         "date": "2026-04-29",
         "open": 148.7945,
         "high": 149.3963,
         "low": 145.5908,
-        "close": 146.4468
+        "close": 146.4469
       },
       {
         "date": "2026-04-30",
-        "open": 147.1672,
-        "high": 149.7183,
-        "low": 147.0316,
+        "open": 147.1673,
+        "high": 149.7184,
+        "low": 147.0317,
         "close": 149.2268
       },
       {
@@ -8345,8 +8419,8 @@
       {
         "date": "2026-05-07",
         "open": 149.6251,
-        "high": 150.3455,
-        "low": 147.2011,
+        "high": 150.3456,
+        "low": 147.2012,
         "close": 149.8285
       },
       {
@@ -8361,7 +8435,7 @@
         "open": 148.4555,
         "high": 152.4983,
         "low": 147.9809,
-        "close": 151.3795
+        "close": 151.3796
       },
       {
         "date": "2026-05-12",
@@ -8382,7 +8456,7 @@
         "open": 150.9558,
         "high": 151.6253,
         "low": 148.5742,
-        "close": 148.8962
+        "close": 148.8963
       },
       {
         "date": "2026-05-15",
@@ -8415,7 +8489,7 @@
       {
         "date": "2026-05-21",
         "open": 147.9724,
-        "high": 150.1676,
+        "high": 150.1675,
         "low": 146.8706,
         "close": 149.1505
       },
@@ -8845,10 +8919,17 @@
         "high": 193.3315,
         "low": 188.0459,
         "close": 188.1569
+      },
+      {
+        "date": "2026-08-20",
+        "open": 192.9216,
+        "high": 187.0938,
+        "low": 185.8599,
+        "close": 186.0221
       }
     ],
-    "Daily_Change": -4.389,
-    "Date": "2026-08-20 16:29",
+    "Daily_Change": -2.1348,
+    "Date": "2026-08-20 16:33",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -8862,10 +8943,10 @@
     "Company_Name": "ETF BET Patria-Tradeville",
     "Shares": 2061,
     "Current_Price": 11.84,
-    "Price_Native": 62.19,
+    "Price_Native": 62.2,
     "Currency": "RON",
     "Buy_Price": 5.47,
-    "Target": 12.32,
+    "Target": 11.95,
     "Trail_Stop": 11.14,
     "Suggested_Stop": 11.52,
     "Finviz_ATR": null,
@@ -8874,19 +8955,19 @@
     "Trail_Pct": 0.0,
     "Investment": 11266.86,
     "Entry_Date": "-",
-    "Current_Value": 24405.65,
-    "Profit": 13138.79,
-    "Profit_Pct": 116.61,
-    "Max_Profit": 14134.45,
+    "Current_Value": 24409.57,
+    "Profit": 13142.71,
+    "Profit_Pct": 116.65,
+    "Max_Profit": 13354.63,
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 66.3,
+    "RSI": 60.85,
     "RSI_Status": "Neutral",
-    "Trend": "Strong Bullish",
+    "Trend": "Neutral",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 62.2 > SMA200 48.4), RSI 66, Risk 5.9%",
+    "Sell_Reason": "Consolidation, RSI 61, Risk 5.9%",
     "RS_vs_SPX": null,
     "Chart_History": [
       6.2905,
@@ -9154,7 +9235,7 @@
       11.6646,
       11.7027,
       11.7712,
-      11.8417
+      11.8436
     ],
     "Chart_Dates": [
       "2025-07-25",
@@ -11285,11 +11366,11 @@
         "open": 11.8017,
         "high": 11.8512,
         "low": 11.8017,
-        "close": 11.8417
+        "close": 11.8436
       }
     ],
-    "Daily_Change": 0.0705,
-    "Date": "2026-08-20 16:29",
+    "Daily_Change": 0.0724,
+    "Date": "2026-08-20 16:33",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -11302,33 +11383,33 @@
     "Symbol": "VRT",
     "Company_Name": "Vertiv Holdings Co",
     "Shares": 8,
-    "Current_Price": 220.99,
-    "Price_Native": 258.8,
+    "Current_Price": 219.79,
+    "Price_Native": 257.4,
     "Currency": "USD",
     "Buy_Price": 243.47,
     "Target": 290.9,
     "Trail_Stop": 216.3,
-    "Suggested_Stop": 193.81,
-    "Finviz_ATR": 17.02,
+    "Suggested_Stop": 195.1,
+    "Finviz_ATR": 16.58,
     "Vol_W": 4.21,
     "Vol_M": 5.79,
     "Trail_Pct": 10.01,
     "Investment": 1947.75,
     "Entry_Date": "-",
-    "Current_Value": 1767.91,
-    "Profit": -179.83,
-    "Profit_Pct": -9.23,
+    "Current_Value": 1758.35,
+    "Profit": -189.39,
+    "Profit_Pct": -9.72,
     "Max_Profit": 379.44,
     "Consensus": "Strong Buy",
     "Analysts": 26,
     "Status": "Neutral",
-    "RSI": 41.47,
+    "RSI": 40.3,
     "RSI_Status": "Neutral",
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
     "Sell_Decision": "EXIT",
-    "Sell_Reason": "Structure Fail (Sub SMA50: 258.80 < 294.76); ",
-    "RS_vs_SPX": -23.11,
+    "Sell_Reason": "Structure Fail (Sub SMA50: 257.40 < 294.12); Momentum Fail (RSI 40.3 < 45); ",
+    "RS_vs_SPX": -23.19,
     "Chart_History": [
       242.647,
       248.1529,
@@ -11422,7 +11503,8 @@
       250.91,
       232.7219,
       249.706,
-      222.8679
+      222.8679,
+      219.7939
     ],
     "Chart_Dates": [
       "2026-04-08",
@@ -11517,7 +11599,8 @@
       "2026-08-14",
       "2026-08-18",
       "2026-08-17",
-      "2026-08-19"
+      "2026-08-19",
+      "2026-08-20"
     ],
     "Chart_OHLC": [
       {
@@ -12170,10 +12253,17 @@
         "high": 235.2921,
         "low": 218.6923,
         "close": 222.8679
+      },
+      {
+        "date": "2026-08-20",
+        "open": 233.1147,
+        "high": 222.0055,
+        "low": 219.5932,
+        "close": 219.7939
       }
     ],
-    "Daily_Change": -9.854,
-    "Date": "2026-08-20 16:29",
+    "Daily_Change": -3.074,
+    "Date": "2026-08-20 16:33",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
