@@ -27,8 +27,8 @@
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "EXIT",
-    "Sell_Reason": "RS Fail (Falling); ",
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 160.8 > SMA200 135.6), RSI 49, Risk 7.4%",
     "RS_vs_SPX": -1.19,
     "Chart_History": [
       117.88,
@@ -883,7 +883,7 @@
       }
     ],
     "Daily_Change": -3.66,
-    "Date": "2026-08-22 00:02",
+    "Date": "2026-08-22 00:14",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -920,8 +920,8 @@
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "EXIT",
-    "Sell_Reason": "RS Fail (Falling); ",
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 258.6 > SMA200 238.3), RSI 50, Risk 0.4%",
     "RS_vs_SPX": -7.07,
     "Chart_History": [
       181.8077,
@@ -1805,14 +1805,14 @@
       },
       {
         "date": "2026-08-21",
-        "open": 223.202,
-        "high": 223.4845,
-        "low": 220.022,
-        "close": 221.3873
+        "open": 223.2281,
+        "high": 223.5106,
+        "low": 220.0477,
+        "close": 221.4131
       }
     ],
-    "Daily_Change": -1.2668,
-    "Date": "2026-08-22 00:02",
+    "Daily_Change": -1.2671,
+    "Date": "2026-08-22 00:14",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1823,7 +1823,7 @@
   },
   {
     "Symbol": "CLS",
-    "Company_Name": "Celestica Inc.",
+    "Company_Name": "Celestica, Inc.",
     "Shares": 3,
     "Current_Price": 253.88,
     "Price_Native": 296.55,
@@ -1850,7 +1850,7 @@
     "Trend": "Strong Bearish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "EXIT",
-    "Sell_Reason": "Structure Fail (Sub SMA50: 296.55 < 342.46); Momentum Fail (RSI 41.0 < 45); RS Fail (Falling); ",
+    "Sell_Reason": "Structure Fail (Sub SMA50: 296.55 < 342.46); Momentum Fail (RSI 41.0 < 45); ",
     "RS_vs_SPX": -16.98,
     "Chart_History": [
       283.3159,
@@ -2704,8 +2704,8 @@
         "close": 253.8764
       }
     ],
-    "Daily_Change": -4.6652,
-    "Date": "2026-08-22 00:02",
+    "Daily_Change": -4.6658,
+    "Date": "2026-08-22 00:14",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -3591,14 +3591,14 @@
       },
       {
         "date": "2026-08-21",
-        "open": 272.1199,
+        "open": 271.0926,
         "high": 273.1815,
         "low": 260.126,
         "close": 268.8154
       }
     ],
-    "Daily_Change": 2.9703,
-    "Date": "2026-08-22 00:02",
+    "Daily_Change": 2.9707,
+    "Date": "2026-08-22 00:14",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -4490,8 +4490,8 @@
         "close": 827.6604
       }
     ],
-    "Daily_Change": -6.4628,
-    "Date": "2026-08-22 00:02",
+    "Daily_Change": -6.4635,
+    "Date": "2026-08-22 00:14",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -4507,10 +4507,10 @@
     "Current_Price": 125.39,
     "Price_Native": 146.47,
     "Currency": "USD",
-    "Buy_Price": 125.94,
-    "Target": 213.53,
-    "Trail_Stop": 111.29,
-    "Suggested_Stop": 114.27,
+    "Buy_Price": 125.95,
+    "Target": 213.55,
+    "Trail_Stop": 111.3,
+    "Suggested_Stop": 114.28,
     "Finviz_ATR": 7.05,
     "Vol_W": 4.16,
     "Vol_M": 5.01,
@@ -4528,8 +4528,8 @@
     "RSI_Status": "Neutral",
     "Trend": "Bearish Rally",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "EXIT",
-    "Sell_Reason": "RS Fail (Falling); ",
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Recovery (P 146.5 > SMA50 145.2), RSI 53, Risk 11.2%",
     "RS_vs_SPX": -29.31,
     "Chart_History": [
       118.547,
@@ -5386,14 +5386,14 @@
       },
       {
         "date": "2026-08-21",
-        "open": 123.02,
-        "high": 126.9662,
-        "low": 122.0656,
-        "close": 125.3783
+        "open": 123.0344,
+        "high": 126.981,
+        "low": 122.0799,
+        "close": 125.393
       }
     ],
-    "Daily_Change": 3.7664,
-    "Date": "2026-08-22 00:03",
+    "Daily_Change": 3.7669,
+    "Date": "2026-08-22 00:14",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -7780,7 +7780,7 @@
       }
     ],
     "Daily_Change": 0.0,
-    "Date": "2026-08-22 00:03",
+    "Date": "2026-08-22 00:14",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
