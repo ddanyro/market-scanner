@@ -463,6 +463,56 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertEqual(result[0]['Chart_History'], [10.0, 10.2, 10.5, 10.7])
         self.assertEqual(len(result[0]['Chart_OHLC']), 4)
 
+    def test_portfolio_refresh_drops_misaligned_cached_chart_history(self):
+        previous = [{
+            'Symbol': 'TVBETETF.RO',
+            'Chart_Dates': ['2026-08-24', '2026-08-25'],
+            'Chart_History': [58.8, 59.0, 59.2],
+        }]
+        fresh = [{
+            'Symbol': 'TVBETETF.RO',
+            'RSI': 36.82,
+            'Chart_Dates': ['2026-08-27', '2026-08-28'],
+            'Chart_History': [59.4, 59.2],
+        }]
+
+        result = market_scanner._preserve_portfolio_chart_history(
+            previous, fresh
+        )
+
+        self.assertEqual(result[0]['Chart_Dates'], fresh[0]['Chart_Dates'])
+        self.assertEqual(result[0]['Chart_History'], fresh[0]['Chart_History'])
+
+    def test_bvb_overview_uses_portfolio_rsi_and_blocks_buy_when_weak(self):
+        portfolio = pd.DataFrame([{
+            'Symbol': 'TVBETETF.RO',
+            'Price_Native': 59.2,
+            'RSI': 36.82,
+            # Istoricul bullish ar produce separat un RSI sănătos; valoarea
+            # proaspătă din analiza portofoliului trebuie să rămână autoritară.
+            'Chart_History': list(np.linspace(45, 59.2, 263)),
+            'Chart_Dates': [
+                f'2026-session-{index}' for index in range(262)
+            ],
+        }])
+
+        html, signal = market_scanner._generate_bvb_market_overview_html(
+            portfolio, pd.DataFrame(), return_signal=True
+        )
+        risk_html = market_scanner._generate_bvb_risk_status_html(
+            portfolio, pd.DataFrame()
+        )
+
+        self.assertEqual(signal['verdict'], 'AȘTEAPTĂ CONFIRMAREA')
+        self.assertIn(
+            'Scor swing local</div><div style="font-size:24px;'
+            'font-weight:800;">88/100</div>',
+            html,
+        )
+        self.assertIn('RSI14 este 36.8', html)
+        self.assertIn('Regula #4 (RSI14 &lt; 40)', risk_html)
+        self.assertIn('MOMENTUM SLAB', risk_html)
+
     def test_ai_stock_analysis_uses_independent_green_market_gates(self):
         candidates = [
             {'symbol': 'AAPL', 'market': 'SUA'},

@@ -4545,6 +4545,23 @@ def _select_best_bvb_proxy_row(portfolio_df, watchlist_df):
     return max(candidates, key=lambda candidate: candidate[0])[1]
 
 
+def _aligned_bvb_chart_history(item):
+    """Returnează istoricul numeric aliniat cu datele disponibile."""
+    raw_history = list(item.get('Chart_History', []) or [])
+    dates = list(item.get('Chart_Dates', []) or [])
+    if dates and len(raw_history) != len(dates):
+        aligned_length = min(len(raw_history), len(dates))
+        raw_history = raw_history[-aligned_length:]
+        dates = dates[-aligned_length:]
+
+    numeric = pd.to_numeric(pd.Series(raw_history), errors='coerce')
+    valid = numeric.notna() & np.isfinite(numeric) & (numeric > 0)
+    history = numeric[valid].reset_index(drop=True)
+    if dates:
+        dates = [date for date, keep in zip(dates, valid) if keep]
+    return history, dates
+
+
 def _preserve_portfolio_chart_history(previous_items, updated_items):
     """Nu permite unui refresh parțial să scurteze istoricul unei poziții.
 
@@ -4613,7 +4630,13 @@ def _preserve_portfolio_chart_history(previous_items, updated_items):
                     item['Chart_OHLC'] = [
                         ohlc_by_date.get(date) for date in ordered_dates
                     ]
-        elif len(old_history) > len(new_history):
+        elif (
+            len(old_history) > len(new_history)
+            and len(old_history) == len(old_dates)
+        ):
+            # Nu perpetuăm un snapshot corupt (de exemplu 263 prețuri și
+            # 262 date). În acest caz seria proaspătă este mai sigură decât
+            # istoricul mai lung, dar imposibil de aliniat cronologic.
             item['Chart_History'] = old_history
             item['Chart_Dates'] = old_dates
             old_ohlc = list(previous.get('Chart_OHLC') or [])
@@ -4647,9 +4670,7 @@ def _generate_bvb_market_overview_html(
             if return_signal else unavailable_html
         )
 
-    prices_eur = pd.to_numeric(
-        pd.Series(item.get('Chart_History', []) or []), errors='coerce'
-    ).dropna()
+    prices_eur, dates = _aligned_bvb_chart_history(item)
     price = (
         _safe_float_text(item.get('Price_Native'))
         or (float(prices_eur.iloc[-1]) if not prices_eur.empty else 0)
@@ -4662,26 +4683,26 @@ def _generate_bvb_market_overview_html(
     else:
         native_scale = 1.0
     prices = prices_eur * native_scale
-    dates = list(item.get('Chart_Dates', []) or [])[-len(prices):]
-    if len(dates) != len(prices):
+    if not dates:
         dates = [str(index + 1) for index in range(len(prices))]
 
     sma10_series = prices.rolling(10).mean()
     sma50_series = prices.rolling(50).mean()
     sma200_series = prices.rolling(200).mean()
-    delta = prices.diff()
-    gain = delta.clip(lower=0).rolling(14).mean()
-    loss = (-delta.clip(upper=0)).rolling(14).mean()
-    rsi_series = 100 - (100 / (1 + gain / loss.replace(0, np.nan)))
+    # Folosim aceeași metodă Wilder ca analiza portofoliului. Valoarea RSI
+    # curentă din rând este autoritară deoarece este calculată pe cadrul OHLC
+    # proaspăt, înainte ca istoricul compact pentru grafic să fie păstrat.
+    rsi_series = calculate_rsi(pd.DataFrame({'Close': prices}))
 
     sma10 = float(sma10_series.iloc[-1]) if len(prices) >= 10 else None
     sma50 = float(sma50_series.iloc[-1]) if len(prices) >= 50 else None
     sma200 = float(sma200_series.iloc[-1]) if len(prices) >= 200 else None
-    rsi = (
-        float(rsi_series.iloc[-1])
-        if not rsi_series.empty and pd.notna(rsi_series.iloc[-1])
-        else _safe_float_text(item.get('RSI'))
-    )
+    stored_rsi = _safe_float_text(item.get('RSI'))
+    rsi = stored_rsi
+    if rsi is None and not rsi_series.empty and pd.notna(rsi_series.iloc[-1]):
+        rsi = float(rsi_series.iloc[-1])
+    if rsi is not None and not rsi_series.empty:
+        rsi_series.iloc[-1] = rsi
     if price and sma50:
         trend = 'Peste SMA50' if price >= sma50 else 'Sub SMA50'
         trend_color = '#4caf50' if price >= sma50 else '#f44336'
@@ -4777,10 +4798,11 @@ def _generate_bvb_market_overview_html(
     above_sma10 = bool(sma10 is not None and price >= sma10)
     above_sma200 = bool(sma200 is not None and price >= sma200)
     major_trend_ok = above_sma200 if sma200 is not None else above_sma50
-    if major_trend_ok and above_sma10 and (rsi is None or rsi < 70):
+    healthy_rsi = rsi is None or 45 <= rsi < 70
+    if major_trend_ok and above_sma10 and healthy_rsi:
         bvb_verdict = 'CUMPĂRĂ'
         verdict_color = '#4caf50'
-    elif major_trend_ok and (not above_sma10 or (rsi is not None and rsi >= 70)):
+    elif major_trend_ok and (not above_sma10 or not healthy_rsi):
         bvb_verdict = 'AȘTEAPTĂ CONFIRMAREA'
         verdict_color = '#ff9800'
     elif not above_sma50:
@@ -5027,9 +5049,7 @@ def _generate_bvb_risk_status_html(portfolio_df, watchlist_df):
           <div class="risk-action">TVBETETF lipsește</div>
         </div>"""
 
-    history_eur = pd.to_numeric(
-        pd.Series(item.get('Chart_History', []) or []), errors='coerce'
-    ).dropna()
+    history_eur, _ = _aligned_bvb_chart_history(item)
     price = _safe_float_text(item.get('Price_Native')) or 0
     if price and not history_eur.empty and float(history_eur.iloc[-1]) > 0:
         history = history_eur * (price / float(history_eur.iloc[-1]))
