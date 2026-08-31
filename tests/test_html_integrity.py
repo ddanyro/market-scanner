@@ -170,6 +170,8 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("formatRomanianDate(item.date,false,true)", content)
         self.assertIn("function formatRomanianDate(", content)
         self.assertIn("Istoric zilnic real afișat liniar", content)
+        self.assertIn("'NASDAQ', 'BVB'", content)
+        self.assertIn("'BVB': 'TVBETETF", content)
 
     def test_portfolio_mini_chart_opens_encrypted_candlestick_details(self):
         """Doar mini-graficul portofoliului deschide istoricul mare, păstrat în payload-ul criptat."""

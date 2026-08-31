@@ -4607,6 +4607,22 @@ def _refresh_bvb_proxy_from_market_data(state):
     rsi_series = calculate_rsi(working)
     last_rsi = rsi_series.iloc[-1] if not rsi_series.empty else None
     last_close = float(chart['Close'].iloc[-1])
+    ohlc_history = []
+    if all(column in working.columns for column in ('Open', 'High', 'Low', 'Close')):
+        for date_value, row in working.tail(90).iterrows():
+            values = [row['Open'], row['High'], row['Low'], row['Close']]
+            if any(pd.isna(value) for value in values):
+                continue
+            ohlc_history.append({
+                'date': (
+                    date_value.strftime('%Y-%m-%d')
+                    if hasattr(date_value, 'strftime') else str(date_value)
+                ),
+                'open': round(float(row['Open']), 4),
+                'high': round(float(row['High']), 4),
+                'low': round(float(row['Low']), 4),
+                'close': round(float(row['Close']), 4),
+            })
     proxy = {
         'Symbol': 'TVBETETF.RO',
         'Ticker': 'TVBETETF.RO',
@@ -4622,6 +4638,7 @@ def _refresh_bvb_proxy_from_market_data(state):
             if hasattr(value, 'strftime') else str(value)
             for value in chart.index
         ],
+        'OHLC_History': ohlc_history,
         **(attribution or {}),
         'BVB_Proxy_Refreshed_At': datetime.datetime.now(
             datetime.timezone.utc
@@ -4634,6 +4651,41 @@ def _refresh_bvb_proxy_from_market_data(state):
         f"ultima {last_close:.4f} RON, sursă {source}."
     )
     return True
+
+
+def _bvb_market_indicator_from_proxy(proxy):
+    """Transformă proxy-ul TVBETETF în coloana BVB din indicatorii de piață."""
+    if not isinstance(proxy, dict):
+        return None
+    raw_history = list(proxy.get('Chart_History', []) or [])
+    raw_dates = list(proxy.get('Chart_Dates', []) or [])
+    pairs = []
+    offset = max(0, len(raw_dates) - len(raw_history))
+    aligned_dates = raw_dates[offset:]
+    if len(aligned_dates) < len(raw_history):
+        aligned_dates = [''] * (len(raw_history) - len(aligned_dates)) + aligned_dates
+    for date_value, value in zip(aligned_dates, raw_history):
+        numeric = _safe_float_text(value)
+        if numeric is not None and numeric > 0:
+            pairs.append((str(date_value or ''), float(numeric)))
+    if not pairs:
+        return None
+    dates = [item[0] for item in pairs]
+    history = [item[1] for item in pairs]
+    change = history[-1] - history[-2] if len(history) >= 2 else 0.0
+    return {
+        'value': round(history[-1], 2),
+        'change': round(change, 2),
+        'status': 'Normal',
+        'description': 'TVBETETF',
+        'sparkline': history[-30:],
+        'history': history[-60:],
+        'history_dates': dates[-60:],
+        'ohlc': list(proxy.get('OHLC_History', []) or [])[-90:],
+        'ticker': 'TVBETETF.RO',
+        'currency': 'RON',
+        'market_data_source': proxy.get('Market_Data_Source'),
+    }
 
 
 def _select_best_bvb_proxy_row(portfolio_df, watchlist_df, full_state=None):
@@ -5655,6 +5707,12 @@ def generate_html_dashboard(
     swing_data_override=None,
 ):
     if full_state is None: full_state = {}
+    market_indicators = dict(market_indicators or {})
+    bvb_indicator = _bvb_market_indicator_from_proxy(
+        full_state.get('bvb_proxy')
+    )
+    if bvb_indicator:
+        market_indicators['BVB'] = bvb_indicator
     dashboard_rates = full_state.get('rates', {})
     ai_schedule = _closed_market_ai_schedule(full_state)
     ai_calls_allowed = bool(ai_schedule['allowed'])
@@ -8755,7 +8813,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     """
     
     # Ordinea indicatorilor
-    indicator_order = ['VIX3M', 'VIX', 'VIX1D', 'VIX9D', 'VXN', 'LTV', 'SKEW', 'MOVE', 'Crypto Fear', 'GVZ', 'OVX', 'SPX', 'NASDAQ']
+    indicator_order = ['VIX3M', 'VIX', 'VIX1D', 'VIX9D', 'VXN', 'LTV', 'SKEW', 'MOVE', 'Crypto Fear', 'GVZ', 'OVX', 'SPX', 'NASDAQ', 'BVB']
     
     # Mapping Display Names
     display_map = {
@@ -8842,7 +8900,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             change = market_indicators[name].get('change', 0)
             
             # Colorare inversă (stock logic vs volatility logic)
-            if name == 'SPX' or name == 'NASDAQ' or name == 'Crypto Fear':
+            if name in {'SPX', 'NASDAQ', 'BVB', 'Crypto Fear'}:
                 if change > 0:
                     change_color = '#4caf50'
                     arrow = '↑'
@@ -9952,7 +10010,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         'GVZ': 'Volatilitatea implicită a aurului, derivată din opțiunile pe ETF-ul GLD.',
         'OVX': 'Volatilitatea implicită a petrolului, derivată din opțiunile pe ETF-ul USO.',
         'SPX': 'Indicele S&P 500, reper pentru acțiunile americane cu capitalizare mare.',
-        'NASDAQ': 'Nasdaq Composite, reper cu expunere ridicată la tehnologie și companii de creștere.'
+        'NASDAQ': 'Nasdaq Composite, reper cu expunere ridicată la tehnologie și companii de creștere.',
+        'BVB': 'TVBETETF, proxy lichid pentru direcția pieței principale de acțiuni din România.'
     }
     indicator_detail_data = {}
     for name in indicator_order:
@@ -10247,7 +10306,7 @@ drawIndicatorDetail(detail,initialCount);
                 if (detail && detail.kind === 'buy_recommendation') {
                     return 'Lumânările arată evoluția zilnică a prețului. Triunghiurile numerotate C1, C2 etc. sunt recomandări punctuale din istoric; liniile orizontale rămân rezervate numai nivelurilor curente de entry, stop și target. Confirmă triggerul și spreadul înaintea ordinului.';
                 }
-                if (name === 'SPX' || name === 'NASDAQ') {
+                if (name === 'SPX' || name === 'NASDAQ' || name === 'BVB') {
                     return 'Creșterea indicelui indică aprecierea pieței. Direcția trebuie evaluată împreună cu trendul, volatilitatea și participarea acțiunilor.';
                 }
                 if (name === 'Crypto Fear') {

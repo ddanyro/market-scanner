@@ -602,6 +602,24 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertIn('TVBETETF &lt; SMA200', risk_html)
         self.assertIn('DOAR POZIȚII BVB', risk_html)
 
+    def test_bvb_proxy_becomes_market_indicator(self):
+        dates = pd.bdate_range('2026-07-01', periods=35)
+        proxy = {
+            'Chart_History': list(np.linspace(58.0, 61.4, 35)),
+            'Chart_Dates': [date.date().isoformat() for date in dates],
+            'Market_Data_Source': 'IBKR TWS + BVB public',
+        }
+
+        indicator = market_scanner._bvb_market_indicator_from_proxy(proxy)
+
+        self.assertEqual(indicator['value'], 61.4)
+        self.assertGreater(indicator['change'], 0)
+        self.assertEqual(indicator['description'], 'TVBETETF')
+        self.assertEqual(indicator['ticker'], 'TVBETETF.RO')
+        self.assertEqual(indicator['currency'], 'RON')
+        self.assertEqual(len(indicator['sparkline']), 30)
+        self.assertIn('IBKR TWS', indicator['market_data_source'])
+
     @patch('market_scanner._refresh_bvb_proxy_from_market_data', return_value=True)
     @patch('market_scanner._prefetch_ibkr_mcp_market_data')
     @patch('market_scanner.process_portfolio_ticker')
