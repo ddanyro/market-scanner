@@ -4515,7 +4515,7 @@ def _store_us_market_overview_snapshot(state, swing_data):
     return True
 
 
-def _select_best_bvb_proxy_row(portfolio_df, watchlist_df):
+def _select_best_bvb_proxy_row(portfolio_df, watchlist_df, full_state=None):
     """Alege TVBETETF cu cel mai complet istoric disponibil.
 
     Rulările BVB pot produce temporar un snapshot scurt, în timp ce portofoliul
@@ -4523,7 +4523,16 @@ def _select_best_bvb_proxy_row(portfolio_df, watchlist_df):
     făcea ca 200+ ședințe să fie înlocuite în interfață de numai câteva zile.
     """
     candidates = []
-    for frame in (portfolio_df, watchlist_df):
+    frames = [portfolio_df, watchlist_df]
+    if isinstance(full_state, dict):
+        cached_proxy = full_state.get('bvb_proxy')
+        if isinstance(cached_proxy, dict) and cached_proxy:
+            frames.append(pd.DataFrame([cached_proxy]))
+        cached_wl = full_state.get('watchlist')
+        if isinstance(cached_wl, list) and cached_wl:
+            frames.append(pd.DataFrame(cached_wl))
+
+    for frame in frames:
         if not isinstance(frame, pd.DataFrame) or frame.empty:
             continue
         for _, row in frame.iterrows():
@@ -4539,10 +4548,48 @@ def _select_best_bvb_proxy_row(portfolio_df, watchlist_df):
             candidates.append((len(valid_history), row))
 
     if not candidates:
+        try:
+            df, selected_inst, tws_inst, data_attr = _load_analysis_history(
+                'TVBETETF.RO', 'TVBETETF.RO', period='2y'
+            )
+            if df is not None and not df.empty:
+                df = df.dropna(subset=['Close'])
+                rsi_series = calculate_rsi(df)
+                last_row = df.iloc[-1]
+                chart_history = df['Close'].tail(260).tolist()
+                chart_dates = [
+                    d.strftime('%Y-%m-%d') if hasattr(d, 'strftime') else str(d)
+                    for d in df.index[-len(chart_history):]
+                ]
+                proxy_row = {
+                    'Symbol': 'TVBETETF.RO',
+                    'Ticker': 'TVBETETF.RO',
+                    'Price_Native': float(last_row['Close']),
+                    'Current_Price': float(last_row['Close']),
+                    'RSI': (
+                        float(rsi_series.iloc[-1])
+                        if not rsi_series.empty and pd.notna(rsi_series.iloc[-1])
+                        else None
+                    ),
+                    'Chart_History': chart_history,
+                    'Chart_Dates': chart_dates,
+                }
+                candidates.append((len(chart_history), pd.Series(proxy_row)))
+        except Exception:
+            pass
+
+    if not candidates:
         return None
-    # max() păstrează prima apariție la egalitate, deci portofoliul rămâne
-    # preferat față de watchlist când seriile au aceeași lungime.
-    return max(candidates, key=lambda candidate: candidate[0])[1]
+    best = max(candidates, key=lambda candidate: candidate[0])[1]
+    if isinstance(full_state, dict):
+        try:
+            if hasattr(best, 'to_dict'):
+                full_state['bvb_proxy'] = best.to_dict()
+            elif isinstance(best, dict):
+                full_state['bvb_proxy'] = copy.deepcopy(best)
+        except Exception:
+            pass
+    return best
 
 
 def _aligned_bvb_chart_history(item):
@@ -4648,10 +4695,12 @@ def _preserve_portfolio_chart_history(previous_items, updated_items):
 
 
 def _generate_bvb_market_overview_html(
-    portfolio_df, watchlist_df, return_signal=False,
+    portfolio_df, watchlist_df, return_signal=False, full_state=None,
 ):
     """Context BVB compact, separat complet de scorul SPX/NDX."""
-    item = _select_best_bvb_proxy_row(portfolio_df, watchlist_df)
+    item = _select_best_bvb_proxy_row(
+        portfolio_df, watchlist_df, full_state=full_state
+    )
     if item is None:
         unavailable_html = """
         <section style="margin:32px 0;">
@@ -5039,9 +5088,11 @@ def _render_ai_stock_gate_notice(
     )
 
 
-def _generate_bvb_risk_status_html(portfolio_df, watchlist_df):
+def _generate_bvb_risk_status_html(portfolio_df, watchlist_df, full_state=None):
     """Reguli de risc BVB independente de SPX, VIX și breadth-ul SUA."""
-    item = _select_best_bvb_proxy_row(portfolio_df, watchlist_df)
+    item = _select_best_bvb_proxy_row(
+        portfolio_df, watchlist_df, full_state=full_state
+    )
     if item is None:
         return """
         <div class="market-risk-card market-risk-unavailable">
@@ -6185,6 +6236,7 @@ def generate_html_dashboard(
                 portfolio_df,
                 watchlist_df,
                 return_signal=True,
+                full_state=full_state,
             )
         )
     except Exception as signal_error:
@@ -6270,7 +6322,7 @@ def generate_html_dashboard(
     </div>
     """
     bvb_risk_cards_html = _generate_bvb_risk_status_html(
-        portfolio_df, watchlist_df
+        portfolio_df, watchlist_df, full_state=full_state
     )
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 

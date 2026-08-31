@@ -584,6 +584,24 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertNotIn('VIX', html)
         self.assertNotIn('SPX', html)
 
+    def test_bvb_market_risk_uses_cached_proxy_when_absent_from_portfolio_and_watchlist(self):
+        full_state = {
+            'bvb_proxy': {
+                'Symbol': 'TVBETETF.RO',
+                'Price_Native': 59.5,
+                'RSI': 52.0,
+                'Chart_History': list(np.linspace(50, 59.5, 260)),
+                'Chart_Dates': [f'2026-session-{i}' for i in range(260)],
+            }
+        }
+        risk_html = market_scanner._generate_bvb_risk_status_html(
+            pd.DataFrame(), pd.DataFrame(), full_state=full_state
+        )
+        self.assertNotIn('INDISPONIBIL', risk_html)
+        self.assertNotIn('TVBETETF lipsește', risk_html)
+        self.assertIn('TVBETETF &lt; SMA200', risk_html)
+        self.assertIn('DOAR POZIȚII BVB', risk_html)
+
     @patch('market_scanner.process_portfolio_ticker')
     @patch('market_scanner.load_portfolio')
     def test_portfolio_only_mode_processes_only_held_symbols(
