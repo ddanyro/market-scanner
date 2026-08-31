@@ -602,10 +602,12 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertIn('TVBETETF &lt; SMA200', risk_html)
         self.assertIn('DOAR POZIȚII BVB', risk_html)
 
+    @patch('market_scanner._refresh_bvb_proxy_from_market_data', return_value=True)
+    @patch('market_scanner._prefetch_ibkr_mcp_market_data')
     @patch('market_scanner.process_portfolio_ticker')
     @patch('market_scanner.load_portfolio')
     def test_portfolio_only_mode_processes_only_held_symbols(
-        self, mock_load_portfolio, mock_process
+        self, mock_load_portfolio, mock_process, mock_prefetch, mock_refresh
     ):
         mock_load_portfolio.return_value = pd.DataFrame([
             {'symbol': 'JPM'},
@@ -634,6 +636,56 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertEqual(
             [item['Symbol'] for item in result['portfolio']],
             ['JPM', 'TVBETETF.RO'],
+        )
+        mock_prefetch.assert_called_once_with(
+            ['TVBETETF.RO', 'JPM'], label='portofoliu + TVBETETF'
+        )
+        mock_refresh.assert_called_once_with(state)
+
+    def test_portfolio_ibkr_research_always_includes_tvbetetf(self):
+        self.assertEqual(
+            market_scanner._portfolio_ibkr_research_symbols(
+                {}, mode='portfolio'
+            ),
+            ['TVBETETF.RO'],
+        )
+
+    @patch('market_scanner._load_analysis_history')
+    def test_refresh_bvb_proxy_persists_ibkr_combined_history(self, load_history):
+        dates = pd.bdate_range('2025-09-01', periods=260)
+        closes = np.linspace(48.0, 61.0, len(dates))
+        history = pd.DataFrame({
+            'Open': closes,
+            'High': closes,
+            'Low': closes,
+            'Close': closes,
+            'Volume': np.full(len(dates), 100_000),
+        }, index=dates)
+        load_history.return_value = (
+            history,
+            {},
+            {
+                'market_data': {
+                    'close': 61.25,
+                    'as_of': dates[-1].date().isoformat(),
+                },
+            },
+            {
+                'Market_Data_Source': 'IBKR TWS + BVB public',
+                'Data_Broker': 'surse combinate',
+                'IBKR_Data_Only': True,
+            },
+        )
+        state = {}
+
+        refreshed = market_scanner._refresh_bvb_proxy_from_market_data(state)
+
+        self.assertTrue(refreshed)
+        self.assertEqual(state['bvb_proxy']['Price_Native'], 61.25)
+        self.assertEqual(state['bvb_proxy']['Chart_History'][-1], 61.25)
+        self.assertEqual(len(state['bvb_proxy']['Chart_History']), 260)
+        self.assertIn(
+            'IBKR TWS', state['bvb_proxy']['Market_Data_Source']
         )
 
     def test_complete_bvb_csv_parser_includes_main_and_aero(self):
@@ -2588,7 +2640,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
     @patch('market_scanner._load_mcp_market_instrument', return_value=None)
     @patch('market_scanner._load_tws_instrument')
     @patch('market_scanner._download_yahoo_history')
-    def test_bvb_history_uses_yahoo_after_public_bvb(
+    def test_bvb_history_prefers_fresh_ibkr_bar_over_yahoo(
         self, yahoo_download, load_tws, _load_mcp, bvb_fetch,
     ):
         bvb_fetch.side_effect = (
@@ -2617,7 +2669,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             market_scanner._load_analysis_history('ALR.RO', 'ALR.RO')
         )
 
-        self.assertEqual(float(frame['Close'].iloc[-1]), 10.25)
+        self.assertEqual(float(frame['Close'].iloc[-1]), 1.05)
         self.assertEqual(selected['data_broker'], 'surse combinate')
         self.assertEqual(
             attribution['Market_Data_Source'],

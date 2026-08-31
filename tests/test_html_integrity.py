@@ -65,7 +65,8 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('--mode international', international)
         self.assertIn('update_portfolio_positions_only', scanner)
         self.assertIn("args.mode not in {'portfolio', 'html-only'}", scanner)
-        self.assertIn("sync_research_instruments=(args.mode == 'all')", scanner)
+        self.assertIn("'TVBETETF.RO'", scanner)
+        self.assertIn('sync_research_instruments=True', scanner)
         self.assertIn(
             "args.mode == 'portfolio' and cached_swing_data is None",
             scanner,
