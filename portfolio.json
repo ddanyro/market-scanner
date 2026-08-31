@@ -27,9 +27,9 @@
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "EXIT",
-    "Sell_Reason": "RS Fail (Falling); ",
-    "RS_vs_SPX": 9.74,
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 161.2 > SMA200 136.9), RSI 49, Risk 6.6%",
+    "RS_vs_SPX": 6.98,
     "Chart_History": [
       134.72,
       134.96,
@@ -856,7 +856,7 @@
       }
     ],
     "Daily_Change": -5.85,
-    "Date": "2026-08-31 23:43",
+    "Date": "2026-09-01 00:42",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -875,7 +875,7 @@
     "Buy_Price": 794.43,
     "Target": 1064.04,
     "Trail_Stop": 734.38,
-    "Suggested_Stop": 696.31,
+    "Suggested_Stop": 701.46,
     "Finviz_ATR": 45.58,
     "Vol_W": 3.99,
     "Vol_M": 4.05,
@@ -889,13 +889,13 @@
     "Consensus": "Buy",
     "Analysts": 33,
     "Status": "Neutral",
-    "RSI": 35.57,
+    "RSI": 35.46,
     "RSI_Status": "Neutral",
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
     "Sell_Decision": "EXIT",
-    "Sell_Reason": "Structure Fail (Sub SMA50: 898.53 < 1031.38); Momentum Fail (RSI 35.6 < 45); RS Fail (Falling); ",
-    "RS_vs_SPX": -8.02,
+    "Sell_Reason": "Structure Fail (Sub SMA50: 898.53 < 1027.43); Momentum Fail (RSI 35.5 < 45); ",
+    "RS_vs_SPX": -7.8,
     "Chart_History": [
       969.9954,
       988.8953,
@@ -986,7 +986,7 @@
       797.6365,
       820.3246,
       820.9615,
-      785.8101,
+      784.8982,
       773.3648
     ],
     "Chart_Dates": [
@@ -1708,10 +1708,10 @@
       },
       {
         "date": "2026-08-28",
-        "open": 817.4,
-        "high": 817.4,
-        "low": 785.2931,
-        "close": 785.8101
+        "open": 816.4515,
+        "high": 816.4515,
+        "low": 784.3818,
+        "close": 784.8982
       },
       {
         "date": "2026-08-31",
@@ -1721,8 +1721,8 @@
         "close": 773.3648
       }
     ],
-    "Daily_Change": -47.5967,
-    "Date": "2026-08-31 23:43",
+    "Daily_Change": -11.5334,
+    "Date": "2026-09-01 00:42",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1741,7 +1741,7 @@
     "Buy_Price": 822.4,
     "Target": 1355.9,
     "Trail_Stop": 770.32,
-    "Suggested_Stop": 737.98,
+    "Suggested_Stop": 737.57,
     "Finviz_ATR": 58.21,
     "Vol_W": 4.41,
     "Vol_M": 5.67,
@@ -1755,13 +1755,13 @@
     "Consensus": "Strong Buy",
     "Analysts": 44,
     "Status": "Neutral",
-    "RSI": 53.6,
+    "RSI": 53.76,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "REDUCE",
-    "Sell_Reason": "RS Fail (Falling); ",
-    "RS_vs_SPX": -5.07,
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 958.7 > SMA200 591.9), RSI 54, Risk 6.6%",
+    "RS_vs_SPX": 6.88,
     "Chart_History": [
       419.5095,
       414.5527,
@@ -1852,7 +1852,7 @@
       803.0073,
       807.6809,
       805.0902,
-      803.8454,
+      802.9126,
       825.1789
     ],
     "Chart_Dates": [
@@ -2574,10 +2574,10 @@
       },
       {
         "date": "2026-08-28",
-        "open": 792.1522,
-        "high": 815.8575,
-        "low": 783.3629,
-        "close": 803.8454
+        "open": 791.2329,
+        "high": 814.9108,
+        "low": 782.4538,
+        "close": 802.9126
       },
       {
         "date": "2026-08-31",
@@ -2587,8 +2587,8 @@
         "close": 825.1789
       }
     ],
-    "Daily_Change": 20.0887,
-    "Date": "2026-08-31 23:43",
+    "Daily_Change": 22.2663,
+    "Date": "2026-09-01 00:42",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -2607,7 +2607,7 @@
     "Buy_Price": 126.63,
     "Target": 214.7,
     "Trail_Stop": 117.96,
-    "Suggested_Stop": 117.56,
+    "Suggested_Stop": 118.07,
     "Finviz_ATR": 6.3,
     "Vol_W": 3.17,
     "Vol_M": 4.37,
@@ -2621,13 +2621,13 @@
     "Consensus": "Buy",
     "Analysts": 42,
     "Status": "Neutral",
-    "RSI": 54.3,
+    "RSI": 54.17,
     "RSI_Status": "Neutral",
     "Trend": "Bearish Rally",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Recovery (P 149.1 > SMA50 141.4), RSI 54, Risk 8.1%",
-    "RS_vs_SPX": -38.03,
+    "Sell_Reason": "Recovery (P 149.1 > SMA50 140.7), RSI 54, Risk 8.1%",
+    "RS_vs_SPX": -34.07,
     "Chart_History": [
       160.8218,
       151.1982,
@@ -2718,7 +2718,7 @@
       124.5949,
       128.1324,
       130.7748,
-      129.9874,
+      129.8366,
       128.3476
     ],
     "Chart_Dates": [
@@ -3440,10 +3440,10 @@
       },
       {
         "date": "2026-08-28",
-        "open": 132.3571,
-        "high": 132.6932,
-        "low": 129.0051,
-        "close": 129.9874
+        "open": 132.2035,
+        "high": 132.5392,
+        "low": 128.8554,
+        "close": 129.8366
       },
       {
         "date": "2026-08-31",
@@ -3453,8 +3453,8 @@
         "close": 128.3476
       }
     ],
-    "Daily_Change": -2.4272,
-    "Date": "2026-08-31 23:43",
+    "Daily_Change": -1.489,
+    "Date": "2026-09-01 00:42",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -3473,7 +3473,7 @@
     "Buy_Price": 308.42,
     "Target": 320.63,
     "Trail_Stop": 292.89,
-    "Suggested_Stop": 299.77,
+    "Suggested_Stop": 297.79,
     "Finviz_ATR": 17.94,
     "Vol_W": 5.6,
     "Vol_M": 4.58,
@@ -3487,13 +3487,13 @@
     "Consensus": "Buy",
     "Analysts": 50,
     "Status": "Neutral",
-    "RSI": 60.12,
+    "RSI": 58.98,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 382.1 > SMA200 229.6), RSI 60, Risk 10.9%",
-    "RS_vs_SPX": 35.5,
+    "Sell_Reason": "Trend UP (P 382.1 > SMA200 230.4), RSI 59, Risk 10.9%",
+    "RS_vs_SPX": 36.37,
     "Chart_History": [
       155.9588,
       149.0819,
@@ -3584,7 +3584,7 @@
       292.5519,
       292.0441,
       329.519,
-      320.1991,
+      319.8275,
       328.8993
     ],
     "Chart_Dates": [
@@ -4306,10 +4306,10 @@
       },
       {
         "date": "2026-08-28",
-        "open": 325.0849,
-        "high": 326.1707,
-        "low": 306.3343,
-        "close": 320.1991
+        "open": 324.7077,
+        "high": 325.7922,
+        "low": 305.9789,
+        "close": 319.8275
       },
       {
         "date": "2026-08-31",
@@ -4319,8 +4319,8 @@
         "close": 328.8993
       }
     ],
-    "Daily_Change": -0.6197,
-    "Date": "2026-08-31 23:43",
+    "Daily_Change": 9.0718,
+    "Date": "2026-09-01 00:42",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -4339,7 +4339,7 @@
     "Buy_Price": 15.41,
     "Target": 18.55,
     "Trail_Stop": 15.34,
-    "Suggested_Stop": 15.69,
+    "Suggested_Stop": 15.75,
     "Finviz_ATR": 0.58,
     "Vol_W": 2.83,
     "Vol_M": 2.51,
@@ -4353,13 +4353,13 @@
     "Consensus": "Buy",
     "Analysts": 14,
     "Status": "Neutral",
-    "RSI": 65.5,
+    "RSI": 65.93,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 19.4 > SMA200 16.3), RSI 65, Risk 7.9%",
-    "RS_vs_SPX": 8.94,
+    "Sell_Reason": "Trend UP (P 19.4 > SMA200 16.3), RSI 66, Risk 7.9%",
+    "RS_vs_SPX": 8.12,
     "Chart_History": [
       17.4724,
       17.5467,
@@ -4450,7 +4450,7 @@
       15.3635,
       15.286,
       15.7078,
-      15.9673,
+      15.9488,
       16.6545
     ],
     "Chart_Dates": [
@@ -5172,10 +5172,10 @@
       },
       {
         "date": "2026-08-28",
-        "open": 15.7777,
-        "high": 15.9759,
-        "low": 15.6657,
-        "close": 15.9673
+        "open": 15.7594,
+        "high": 15.9574,
+        "low": 15.6475,
+        "close": 15.9488
       },
       {
         "date": "2026-08-31",
@@ -5185,8 +5185,8 @@
         "close": 16.6545
       }
     ],
-    "Daily_Change": 0.9467,
-    "Date": "2026-08-31 23:43",
+    "Daily_Change": 0.7057,
+    "Date": "2026-09-01 00:42",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
