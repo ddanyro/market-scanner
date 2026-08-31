@@ -702,7 +702,7 @@ def _download_yahoo_history(symbol, period='1y'):
 
 
 def _load_analysis_history(ticker, download_ticker, period='1y'):
-    """Pentru BVB îmbină cache TWS, Yahoo și CSV public, fără duplicate."""
+    """Pentru BVB îmbină sursele, cu IBKR prioritar pe aceeași dată."""
     normalized_ticker = str(ticker or '').upper()
     mcp_instrument = _load_mcp_market_instrument(ticker)
     tws_instrument = _load_tws_instrument(ticker)
@@ -745,7 +745,7 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
         mcp_history = _tws_instrument_history_frame(mcp_instrument)
         tws_history = _tws_instrument_history_frame(tws_instrument)
         combined_without_yahoo = _merge_ohlcv_histories(
-            tws_history, bvb_history, mcp_history
+            bvb_history, tws_history, mcp_history
         )
         yahoo_history = pd.DataFrame()
         required_combined_history = 260 if needs_sma200_history else 60
@@ -757,8 +757,12 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
                 )
             except Exception:
                 yahoo_history = pd.DataFrame()
+        # Ordinea stabilește prioritatea pentru date duplicate: Yahoo oferă
+        # backfill-ul, BVB public completează istoricul oficial, iar un
+        # snapshot IBKR proaspăt (TWS/MCP) stabilește ultima bară folosită
+        # de preț, RSI și mediile mobile.
         combined = _merge_ohlcv_histories(
-            tws_history, yahoo_history, bvb_history, mcp_history
+            yahoo_history, bvb_history, tws_history, mcp_history
         )
         if not combined.empty:
             used_sources = []
@@ -2185,6 +2189,37 @@ def _planned_bvb_tws_symbols(state):
     continuă să fie sincronizate de ``ib_tws_sync`` prin propriile sale liste.
     """
     return []
+
+
+def _portfolio_ibkr_research_symbols(state=None, mode='portfolio'):
+    """Instrumente de piață cerute explicit la sincronizarea portofoliului."""
+    symbols = ['TVBETETF.RO']
+    if mode == 'all':
+        symbols.extend(_planned_bvb_tws_symbols(state or {}))
+    return list(dict.fromkeys(
+        str(symbol).strip().upper() for symbol in symbols if symbol
+    ))
+
+
+def _portfolio_market_data_symbols(portfolio_data):
+    """Pozițiile deținute plus proxy-ul BVB, pentru prefetch-ul IBKR MCP."""
+    # Proxy-ul este primul ca să intre sigur în lotul MCP chiar dacă
+    # portofoliul are mai multe poziții decât limita unui singur prefetch.
+    symbols = ['TVBETETF.RO']
+    if isinstance(portfolio_data, pd.DataFrame) and not portfolio_data.empty:
+        symbol_column = next(
+            (
+                column for column in ('symbol', 'Symbol', 'Ticker')
+                if column in portfolio_data.columns
+            ),
+            None,
+        )
+        if symbol_column:
+            symbols.extend(portfolio_data[symbol_column].dropna().tolist())
+    return list(dict.fromkeys(
+        str(symbol).strip().upper() for symbol in symbols
+        if str(symbol).strip()
+    ))
 
 
 def ensure_buy_research_candidates(
@@ -4512,6 +4547,92 @@ def _store_us_market_overview_snapshot(state, swing_data):
         'updated_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
         'data': copy.deepcopy(swing_data),
     }
+    return True
+
+
+def _refresh_bvb_proxy_from_market_data(state):
+    """Reconstruiește TVBETETF din istoricul combinat, inclusiv IBKR proaspăt."""
+    if not isinstance(state, dict):
+        return False
+    try:
+        history, _, ibkr_instrument, attribution = _load_analysis_history(
+            'TVBETETF.RO', 'TVBETETF.RO', period='2y'
+        )
+    except Exception as exc:
+        print(f"  [TVBETETF] Proxy-ul BVB nu a putut fi actualizat: {exc}")
+        return False
+    if history is None or history.empty or 'Close' not in history.columns:
+        print("  [TVBETETF] Nu există istoric valid pentru proxy-ul BVB.")
+        return False
+
+    working = history.copy().dropna(subset=['Close'])
+    working = working[
+        pd.to_numeric(working['Close'], errors='coerce').notna()
+    ]
+    if working.empty:
+        return False
+
+    # Istoricul IBKR conține de regulă deja bara curentă. Dacă snapshotul
+    # oferă și o cotație pentru aceeași dată, aceasta are prioritate.
+    ibkr_price = _tws_instrument_market_price(ibkr_instrument)
+    market_snapshot = (
+        (ibkr_instrument or {}).get('market_data', {})
+        if isinstance(ibkr_instrument, dict) else {}
+    )
+    market_as_of = market_snapshot.get('as_of')
+    if ibkr_price and market_as_of:
+        try:
+            bar_date = pd.Timestamp(market_as_of).tz_localize(None).normalize()
+            normalized_index = pd.DatetimeIndex(working.index).tz_localize(None)
+            normalized_index = normalized_index.normalize()
+            matching = np.flatnonzero(normalized_index == bar_date)
+            if len(matching):
+                position = int(matching[-1])
+                close_column = working.columns.get_loc('Close')
+                working.iat[position, close_column] = ibkr_price
+                for column, reducer in (('High', max), ('Low', min)):
+                    if column in working.columns:
+                        column_position = working.columns.get_loc(column)
+                        old_value = _safe_float_text(
+                            working.iat[position, column_position]
+                        )
+                        working.iat[position, column_position] = (
+                            reducer(old_value, ibkr_price)
+                            if old_value is not None else ibkr_price
+                        )
+        except (TypeError, ValueError):
+            pass
+
+    chart = working.tail(260)
+    rsi_series = calculate_rsi(working)
+    last_rsi = rsi_series.iloc[-1] if not rsi_series.empty else None
+    last_close = float(chart['Close'].iloc[-1])
+    proxy = {
+        'Symbol': 'TVBETETF.RO',
+        'Ticker': 'TVBETETF.RO',
+        'Price_Native': last_close,
+        'Current_Price': last_close,
+        'RSI': (
+            float(last_rsi) if last_rsi is not None and pd.notna(last_rsi)
+            else None
+        ),
+        'Chart_History': [float(value) for value in chart['Close'].tolist()],
+        'Chart_Dates': [
+            value.strftime('%Y-%m-%d')
+            if hasattr(value, 'strftime') else str(value)
+            for value in chart.index
+        ],
+        **(attribution or {}),
+        'BVB_Proxy_Refreshed_At': datetime.datetime.now(
+            datetime.timezone.utc
+        ).isoformat(),
+    }
+    state['bvb_proxy'] = proxy
+    source = proxy.get('Market_Data_Source') or 'sursă necunoscută'
+    print(
+        f"  [TVBETETF] Proxy BVB actualizat: {len(chart)} ședințe, "
+        f"ultima {last_close:.4f} RON, sursă {source}."
+    )
     return True
 
 
@@ -10440,6 +10561,11 @@ def update_portfolio_data(state, rates, vix_val, sync_before_load=True):
             print(f"Sincronizare IBKR a eșuat sau nu este disponibilă: {e}")
         
     portfolio_data = load_portfolio()
+    _prefetch_ibkr_mcp_market_data(
+        _portfolio_market_data_symbols(portfolio_data),
+        label='portofoliu + TVBETETF',
+    )
+    _refresh_bvb_proxy_from_market_data(state)
     
     
     # === Legacy TWS Merge Logic Removed ===
@@ -10544,6 +10670,11 @@ def update_portfolio_positions_only(state, rates, vix_val):
     """
     print("\n=== Actualizare strictă a pozițiilor deținute ===")
     portfolio_data = load_portfolio()
+    _prefetch_ibkr_mcp_market_data(
+        _portfolio_market_data_symbols(portfolio_data),
+        label='portofoliu + TVBETETF',
+    )
+    _refresh_bvb_proxy_from_market_data(state)
     portfolio_results = []
     swing = _cached_swing_data_for_ro(state) or {}
     chart = swing.get('Chart_SPX', {}) if isinstance(swing, dict) else {}
@@ -10837,11 +10968,12 @@ def main():
                 import ib_tws_sync
                 tws_synced = bool(
                     ib_tws_sync.fetch_active_orders(
-                        research_symbols=(
-                            _planned_bvb_tws_symbols(state)
-                            if args.mode == 'all' else []
+                        research_symbols=_portfolio_ibkr_research_symbols(
+                            state, mode=args.mode
                         ),
-                        sync_research_instruments=(args.mode == 'all'),
+                        # TVBETETF este sursă de date pentru riscul BVB chiar
+                        # dacă nu este o poziție deținută la IBKR.
+                        sync_research_instruments=True,
                     )
                 )
                 
