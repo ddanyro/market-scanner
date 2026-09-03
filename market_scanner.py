@@ -5365,6 +5365,56 @@ def _read_order_snapshot(path):
         return pd.DataFrame(columns=TWS_ACTIVE_ORDER_COLUMNS)
 
 
+def _tradeville_stop_orders_from_portfolio(
+    path='tradeville_portfolio.csv', explicit_orders=None,
+):
+    """Expune stopurile fixe/manuale Tradeville ca ordine SELL în dashboard."""
+    try:
+        portfolio = pd.read_csv(path)
+    except (OSError, pd.errors.EmptyDataError, pd.errors.ParserError):
+        return pd.DataFrame(columns=TWS_ACTIVE_ORDER_COLUMNS)
+    required = {'Symbol', 'Shares', 'Trail_Stop'}
+    if portfolio.empty or not required.issubset(portfolio.columns):
+        return pd.DataFrame(columns=TWS_ACTIVE_ORDER_COLUMNS)
+
+    explicit_sell_symbols = set()
+    if isinstance(explicit_orders, pd.DataFrame) and not explicit_orders.empty:
+        actions = explicit_orders.get(
+            'Action', pd.Series('', index=explicit_orders.index)
+        ).astype(str).str.upper()
+        symbols = explicit_orders.get(
+            'Symbol', pd.Series('', index=explicit_orders.index)
+        ).astype(str).str.strip().str.upper()
+        explicit_sell_symbols = set(symbols[actions.eq('SELL')])
+
+    records = []
+    for _, row in portfolio.iterrows():
+        symbol = str(row.get('Symbol') or '').strip().upper()
+        shares = _safe_float_text(row.get('Shares')) or 0
+        stop = _safe_float_text(row.get('Trail_Stop')) or 0
+        if (
+            not symbol or symbol == 'NAN' or shares <= 0 or stop <= 0
+            or symbol in explicit_sell_symbols
+        ):
+            continue
+        trail_pct = _safe_float_text(row.get('Trail_Pct')) or 0
+        records.append({
+            'Symbol': symbol,
+            'OrderType': 'TRAIL' if trail_pct > 0 else 'STP',
+            'Action': 'SELL',
+            'Total_Qty': shares,
+            'Aux_Price': stop if trail_pct > 0 else 0,
+            'Limit_Price': 0,
+            'Stop_Price': stop,
+            'Trail_Pct': trail_pct,
+            'Calculated_Stop': stop,
+            'Order_Source': 'Tradeville manual',
+        })
+    return pd.DataFrame(records).reindex(
+        columns=TWS_ACTIVE_ORDER_COLUMNS + ['Order_Source']
+    )
+
+
 def _normalise_order_snapshot_records(frame):
     if frame is None or frame.empty:
         return []
@@ -8087,9 +8137,15 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             
     if os.path.exists('tradeville_orders.csv'):
         try:
-            orders_list.append(_read_order_snapshot('tradeville_orders.csv'))
+            tradeville_orders = _read_order_snapshot('tradeville_orders.csv')
+            orders_list.append(tradeville_orders)
+            orders_list.append(_tradeville_stop_orders_from_portfolio(
+                explicit_orders=tradeville_orders
+            ))
         except Exception as e:
             print(f"Error reading tradeville_orders.csv: {e}")
+    else:
+        orders_list.append(_tradeville_stop_orders_from_portfolio())
             
     if orders_list:
         try:

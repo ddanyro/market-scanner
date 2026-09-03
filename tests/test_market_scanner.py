@@ -152,6 +152,43 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertTrue(pd.isna(result.loc[0, 'Note']))
         self.assertEqual(result.loc[1, 'Note'], 'stop')
 
+    def test_tradeville_manual_stop_becomes_active_sell_order(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'tradeville_portfolio.csv')
+            pd.DataFrame([{
+                'Symbol': 'TVBETETF.RO',
+                'Shares': 3253,
+                'Trail_Pct': 0,
+                'Trail_Stop': 56.81,
+            }]).to_csv(path, index=False)
+
+            result = market_scanner._tradeville_stop_orders_from_portfolio(path)
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result.iloc[0]['Symbol'], 'TVBETETF.RO')
+        self.assertEqual(result.iloc[0]['Action'], 'SELL')
+        self.assertEqual(result.iloc[0]['OrderType'], 'STP')
+        self.assertEqual(float(result.iloc[0]['Total_Qty']), 3253)
+        self.assertEqual(float(result.iloc[0]['Stop_Price']), 56.81)
+        self.assertEqual(result.iloc[0]['Order_Source'], 'Tradeville manual')
+
+    def test_explicit_tradeville_sell_order_is_not_duplicated(self):
+        explicit = pd.DataFrame([{
+            'Symbol': 'TVBETETF.RO', 'Action': 'SELL', 'OrderType': 'STP',
+        }])
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'tradeville_portfolio.csv')
+            pd.DataFrame([{
+                'Symbol': 'TVBETETF.RO', 'Shares': 3253,
+                'Trail_Stop': 56.81,
+            }]).to_csv(path, index=False)
+
+            result = market_scanner._tradeville_stop_orders_from_portfolio(
+                path, explicit_orders=explicit
+            )
+
+        self.assertTrue(result.empty)
+
     def test_remote_run_reuses_encrypted_tws_order_snapshot(self):
         state = {}
         password = 'shared-account-cache-password'
