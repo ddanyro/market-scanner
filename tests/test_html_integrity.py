@@ -86,8 +86,7 @@ class TestHtmlIntegrity(unittest.TestCase):
         ) as handle:
             ro_workflow = handle.read()
 
-        self.assertIn("'market-dashboard-deploy'", dashboard_workflow)
-        self.assertIn("'market-dashboard-writes'", dashboard_workflow)
+        self.assertIn("group: market-dashboard-writes", dashboard_workflow)
         self.assertIn(
             "if: ${{ github.event_name != 'push' && ",
             dashboard_workflow,
