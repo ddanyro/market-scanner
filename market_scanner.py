@@ -7978,7 +7978,11 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             
             if t_data is not None:
                 m_symbol = t_data.get('Symbol', t_data.get('Ticker', symbol))
-                company_name = t_data.get('Company_Name', '').replace("'", "\\'")
+                company_name_raw = t_data.get('Company_Name', '')
+                company_name = (
+                    '' if pd.isna(company_name_raw)
+                    else str(company_name_raw).replace("'", "\\'")
+                )
                 curr_price = float(t_data.get('Price', t_data.get('Current_Price', 0)))
                 
                 spark_id = f"spark_order_{chart_id}"
@@ -7994,7 +7998,10 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 
                 suggested_stop = t_data.get('Stop_Loss', t_data.get('Suggested_Stop', 0))
                 
-                trend_val = t_data.get('Trend', 'Neutral')
+                trend_raw = t_data.get('Trend', 'Neutral')
+                trend_val = (
+                    'Neutral' if pd.isna(trend_raw) else str(trend_raw)
+                )
                 trend_cls = trend_val.replace(' ', '-')
                 rsi_val = t_data.get('RSI', 0.0)
                 rsi_status = t_data.get('RSI_Status', 'Neutral')
