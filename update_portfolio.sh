@@ -14,6 +14,7 @@ GENERATED_FILES=(
     "index.html"
     "portfolio.csv"
     "portfolio.json"
+    "tradeville_account.enc.json"
     "tws_account.enc.json"
     "tws_account_risk.json"
 )
@@ -115,7 +116,7 @@ else
 
     # O actualizare automată poate ajunge pe main cât timp rulează scannerul.
     # Rebase-ul păstrează commitul local mai nou pentru fișierele generate.
-    git pull --rebase -X theirs "$REMOTE_NAME" "$BRANCH_NAME"
+    git pull --rebase --autostash -X theirs "$REMOTE_NAME" "$BRANCH_NAME"
     git push "$REMOTE_NAME" "$BRANCH_NAME"
 fi
 
