@@ -171,6 +171,8 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("function formatRomanianDate(", content)
         self.assertIn("function bindDetailChartTooltip(canvas)", content)
         self.assertIn("function updateDetailChartTooltip(canvas, event)", content)
+        self.assertIn(r"+'\\nDeschidere: '", content)
+        self.assertNotIn(r"+'\nDeschidere: '", content)
         self.assertIn("Deschidere: '+formatDetailNumber(item.open", content)
         self.assertIn("Închidere: '+formatDetailNumber(item.close", content)
         self.assertIn('id="chartTooltip"', content)

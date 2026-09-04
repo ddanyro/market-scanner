@@ -10531,13 +10531,13 @@ drawIndicatorDetail(detail,initialCount);
                 if(state.kind==='candles'){
                     const item=state.items[index];
                     text=formatRomanianDate(item.date,false,false)
-                        +'\nDeschidere: '+formatDetailNumber(item.open,state.currency)
-                        +'\nMaxim: '+formatDetailNumber(item.high,state.currency)
-                        +'\nMinim: '+formatDetailNumber(item.low,state.currency)
-                        +'\nÎnchidere: '+formatDetailNumber(item.close,state.currency);
+                        +'\\nDeschidere: '+formatDetailNumber(item.open,state.currency)
+                        +'\\nMaxim: '+formatDetailNumber(item.high,state.currency)
+                        +'\\nMinim: '+formatDetailNumber(item.low,state.currency)
+                        +'\\nÎnchidere: '+formatDetailNumber(item.close,state.currency);
                 }else{
                     text=formatRomanianDate(state.dates[index],false,false)
-                        +'\nValoare: '+formatDetailNumber(state.items[index],state.currency);
+                        +'\\nValoare: '+formatDetailNumber(state.items[index],state.currency);
                 }
                 tooltip.textContent=text;
                 tooltip.style.display='block';
