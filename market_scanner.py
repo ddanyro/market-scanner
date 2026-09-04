@@ -10227,7 +10227,7 @@ h1{margin:0 0 6px;font-size:clamp(28px,4vw,44px)}.ticker{color:#7760f9;font-weig
 .stat{padding:18px}.label{font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.06em}.num{font-size:25px;font-weight:750;margin-top:6px}
 .panel{padding:20px;margin-bottom:18px}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .buttons{display:flex;gap:8px}.range{border:1px solid #dfe3ea;background:#fff;color:#4b5563;padding:7px 12px;border-radius:8px;cursor:pointer;font-weight:650}.range.active{background:#7760f9;color:#fff;border-color:#7760f9}
-.chart-wrap{height:min(68vh,680px);min-height:420px;position:relative}canvas{display:block;width:100%;height:100%}.details{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.chart-wrap{height:min(68vh,680px);min-height:420px;position:relative}canvas{display:block;width:100%;height:100%}.chart-tooltip{position:absolute;z-index:4;display:none;pointer-events:none;min-width:178px;padding:10px 12px;border:1px solid #dfe3ea;border-radius:10px;background:rgba(17,24,39,.94);color:#fff;box-shadow:0 8px 24px rgba(15,23,42,.22);font-size:12px;line-height:1.55;white-space:pre-line;font-variant-numeric:tabular-nums}.details{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .details h2{margin:0 0 10px;font-size:18px}.details p{margin:0;color:#4b5563;line-height:1.65}.note{font-size:12px;color:#6b7280;margin-top:10px}
 .level-legend{display:none}.level-item{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:8px 10px;border:1px solid #e5e7eb;border-radius:9px;background:#f8fafc;font-size:12px;color:#374151}.level-name{display:flex;align-items:center;gap:7px;min-width:0;font-weight:700}.level-swatch{width:18px;height:3px;border-radius:999px;flex:0 0 auto}.level-value{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:750}
 .marker-legend{margin-top:14px;padding-top:13px;border-top:1px solid #e5e7eb}.marker-legend-title{font-size:13px;font-weight:750;margin-bottom:8px}.marker-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:7px}.marker-item{display:flex;align-items:center;gap:8px;font-size:12px;color:#4b5563;background:#f8fafc;border-radius:8px;padding:7px 9px}.marker-badge{display:inline-flex;align-items:center;justify-content:center;min-width:30px;padding:3px 6px;border-radius:6px;color:#fff;font-weight:800}
@@ -10243,7 +10243,7 @@ h1{margin:0 0 6px;font-size:clamp(28px,4vw,44px)}.ticker{color:#7760f9;font-weig
 <div class="stat"><div class="label">Interval</div><div class="num" style="font-size:18px">${escapeIndicatorText(detail.rangeDescription || '—')}</div></div>
 </section>
 <section class="panel"><div class="toolbar"><strong id="chartTitle">Grafic zilnic${detail.currency?' · '+escapeIndicatorText(detail.currency):''}</strong><div class="buttons"><button class="range" data-count="22">1L</button><button class="range active" data-count="66">3L</button><button class="range" data-count="9999">Tot</button></div></div>
-<div class="chart-wrap"><canvas id="indicatorChart"></canvas></div>${renderHorizontalLevelLegend(detail.levels || [], detail.currency)}<div class="note" id="chartNote"></div>${renderRecommendationMarkerLegend(detail.markers || [], detail.currency)}</section>
+<div class="chart-wrap"><canvas id="indicatorChart" aria-label="Grafic interactiv: ține cursorul deasupra pentru detalii"></canvas><div class="chart-tooltip" id="chartTooltip" role="status" aria-live="polite"></div></div>${renderHorizontalLevelLegend(detail.levels || [], detail.currency)}<div class="note" id="chartNote"></div>${renderRecommendationMarkerLegend(detail.markers || [], detail.currency)}</section>
 <section class="details"><div class="panel"><h2>Ce măsoară</h2><p>${escapeIndicatorText(detail.explanation || 'Detalii indisponibile.')}</p></div>
 <div class="panel"><h2>Cum se interpretează</h2><p>${escapeIndicatorText(indicatorInterpretation(indicatorName, detail))}</p></div></section>
 </main><script>
@@ -10254,6 +10254,8 @@ ${drawCandles.toString()}
 ${drawLineSeries.toString()}
 ${drawHorizontalLevels.toString()}
 ${drawRecommendationMarkers.toString()}
+${bindDetailChartTooltip.toString()}
+${updateDetailChartTooltip.toString()}
 ${detailChartLayout.toString()}
 ${detailChartTickIndexes.toString()}
 ${formatIndicatorNumber.toString()}
@@ -10264,6 +10266,7 @@ window.addEventListener('resize',()=>{const active=document.querySelector('.rang
 window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();window.close();}});
 const initialCount=window.matchMedia('(max-width: 640px)').matches?22:66;
 document.querySelectorAll('.range').forEach(button=>button.classList.toggle('active',Number(button.dataset.count)===initialCount));
+bindDetailChartTooltip(document.getElementById('indicatorChart'));
 drawIndicatorDetail(detail,initialCount);
 <\\/script></body></html>`);
                 popup.document.close();
@@ -10472,6 +10475,7 @@ drawIndicatorDetail(detail,initialCount);
                 ctx.font=pad.axisFont;ctx.textAlign='right';ctx.textBaseline='middle';
                 for(let i=0;i<=5;i++){const value=max-(max-min)*i/5;const py=pad.top+chartH*i/5;ctx.strokeStyle='#e8ebf1';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.left,py);ctx.lineTo(width-pad.right,py);ctx.stroke();ctx.fillStyle='#6b7280';ctx.fillText(formatDetailNumber(value,currency),pad.left-8,py);}
                 const step=chartW/candles.length, body=Math.max(2,Math.min(13,step*.62));
+                canvas._detailHoverState={kind:'candles',items:candles,currency,pad,chartW,chartH};
                 candles.forEach((item,index)=>{const x=pad.left+step*(index+.5);const open=Number(item.open),close=Number(item.close),high=Number(item.high),low=Number(item.low);const color=close>=open?'#16a34a':'#ef4444';ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(x,y(high));ctx.lineTo(x,y(low));ctx.stroke();const top=Math.min(y(open),y(close));const h=Math.max(1.5,Math.abs(y(open)-y(close)));ctx.fillRect(x-body/2,top,body,h);});
                 ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle='#6b7280';ctx.font=pad.axisFont;
                 detailChartTickIndexes(candles.length,chartW).forEach(index=>{const item=candles[index];const x=pad.left+step*(index+.5);ctx.fillText(formatRomanianDate(item.date,false,true),x,height-pad.bottom+9);});
@@ -10486,6 +10490,7 @@ drawIndicatorDetail(detail,initialCount);
                 const pad=detailChartLayout(width,currency,levels.length>0,true);
                 const chartW=width-pad.left-pad.right,chartH=height-pad.top-pad.bottom;
                 ctx.clearRect(0,0,width,height);if(!series.length)return;
+                canvas._detailHoverState={kind:'line',items:series,dates:dates||[],currency,pad,chartW,chartH};
                 const firstDate=dates&&dates.length?String(dates[0]||'').slice(0,10):'';
                 const visibleMarkers=(markers||[]).filter(marker=>!firstDate||!marker.date||String(marker.date).slice(0,10)>=firstDate);
                 const levelValues=levels.map(x=>Number(x.value)).filter(Number.isFinite);
@@ -10498,6 +10503,51 @@ drawIndicatorDetail(detail,initialCount);
                 detailChartTickIndexes(series.length,chartW).forEach(index=>{const x=pad.left+chartW*(index/Math.max(1,series.length-1));const label=dates&&dates[index]?formatRomanianDate(dates[index],false,true):String(index+1);ctx.fillText(label,x,height-pad.bottom+10);});
                 drawHorizontalLevels(ctx,width,pad,min,max,levels,currency);
                 drawRecommendationMarkers(ctx,width,pad,min,max,dates||[],visibleMarkers,false);
+            }
+
+            function bindDetailChartTooltip(canvas) {
+                if (!canvas || canvas._detailTooltipBound) return;
+                canvas._detailTooltipBound=true;
+                canvas.addEventListener('mousemove',event=>updateDetailChartTooltip(canvas,event));
+                canvas.addEventListener('mouseleave',()=>{
+                    const tooltip=document.getElementById('chartTooltip');
+                    if(tooltip)tooltip.style.display='none';
+                });
+            }
+
+            function updateDetailChartTooltip(canvas, event) {
+                const state=canvas&&canvas._detailHoverState;
+                const tooltip=document.getElementById('chartTooltip');
+                if(!state||!tooltip||!state.items.length)return;
+                const rect=canvas.getBoundingClientRect();
+                const x=event.clientX-rect.left,y=event.clientY-rect.top;
+                const pad=state.pad;
+                if(x<pad.left||x>pad.left+state.chartW||y<pad.top||y>pad.top+state.chartH){tooltip.style.display='none';return;}
+                const relative=(x-pad.left)/state.chartW;
+                const index=state.kind==='candles'
+                    ? Math.max(0,Math.min(state.items.length-1,Math.floor(relative*state.items.length)))
+                    : Math.max(0,Math.min(state.items.length-1,Math.round(relative*Math.max(0,state.items.length-1))));
+                let text='';
+                if(state.kind==='candles'){
+                    const item=state.items[index];
+                    text=formatRomanianDate(item.date,false,false)
+                        +'\nDeschidere: '+formatDetailNumber(item.open,state.currency)
+                        +'\nMaxim: '+formatDetailNumber(item.high,state.currency)
+                        +'\nMinim: '+formatDetailNumber(item.low,state.currency)
+                        +'\nÎnchidere: '+formatDetailNumber(item.close,state.currency);
+                }else{
+                    text=formatRomanianDate(state.dates[index],false,false)
+                        +'\nValoare: '+formatDetailNumber(state.items[index],state.currency);
+                }
+                tooltip.textContent=text;
+                tooltip.style.display='block';
+                const wrap=canvas.parentElement;
+                const tooltipWidth=tooltip.offsetWidth,tooltipHeight=tooltip.offsetHeight;
+                let left=x+14,top=y-tooltipHeight-12;
+                if(left+tooltipWidth>wrap.clientWidth-6)left=x-tooltipWidth-14;
+                if(top<6)top=y+14;
+                tooltip.style.left=Math.max(6,left)+'px';
+                tooltip.style.top=Math.max(6,Math.min(top,wrap.clientHeight-tooltipHeight-6))+'px';
             }
 
             function drawHorizontalLevels(ctx, width, pad, min, max, levels, currency) {
