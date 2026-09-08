@@ -1930,17 +1930,34 @@ def _enrich_ibkr_candidate_context(items, limit=8):
             str(item.get('Ticker') or ''),
         ),
     )
-    selected = [
+    research_selected = [
         item for item in ranked
         if str(item.get('Decision') or '').upper() in {'BUY', 'WAIT'}
     ][:limit]
-    selected_rank = {
+    # Option chains are operationally useful for the US candidates.  Rank
+    # them independently so BVB/European names cannot consume the limited
+    # three-symbol options budget.  Every remaining US name is an explicit
+    # control observation rather than an implicit neutral-score observation.
+    options_eligible = [
+        item for item in ranked
+        if str(item.get('Decision') or '').upper() in {'BUY', 'WAIT'}
+        and str(item.get('Market') or '') == 'SUA'
+    ]
+    options_rank = {
         str(item.get('Ticker') or '').upper(): rank
-        for rank, item in enumerate(selected, start=1)
+        for rank, item in enumerate(options_eligible, start=1)
     }
+    options_selected = options_eligible[:3]
+    fetch_selected = []
+    fetch_symbols = set()
+    for item in options_selected + research_selected:
+        symbol = str(item.get('Ticker') or '').upper()
+        if symbol and symbol not in fetch_symbols and len(fetch_selected) < limit:
+            fetch_selected.append(item)
+            fetch_symbols.add(symbol)
     contexts = {}
     if (
-        selected
+        fetch_selected
         and os.environ.get('GITHUB_ACTIONS') != 'true'
         and os.environ.get('IBKR_MCP_RESEARCH_ENABLED', '1').lower()
         not in {'0', 'false', 'no', 'off'}
@@ -1950,22 +1967,27 @@ def _enrich_ibkr_candidate_context(items, limit=8):
             contexts = ibkr_mcp.prefetch_candidate_context([{
                 'symbol': item.get('Ticker'),
                 'price': item.get('Price_Native') or item.get('Price'),
-            } for item in selected])
+            } for item in fetch_selected])
         except Exception as exc:
             print(f"  -> Contextul IBKR MCP themes/options este indisponibil: {exc}")
     for item in candidates:
         symbol = str(item.get('Ticker') or '').upper()
         context = contexts.get(symbol, {})
-        rank = selected_rank.get(symbol)
+        rank = options_rank.get(symbol)
         item['Options_Collection_Eligible'] = rank is not None
         item['Options_Collection_Rank'] = rank
         item['Options_Collection_Selected'] = bool(rank and rank <= 3)
         if context.get('company_context'):
             item['Company_Context'] = context['company_context']
-        if context.get('options_context'):
+        if item['Options_Collection_Selected'] and context.get('options_context'):
             item['Options_Context'] = context['options_context']
+        elif not item['Options_Collection_Selected']:
+            # Do not let a historic option payload turn a current control
+            # observation into an apparently observed one.
+            item.pop('Options_Context', None)
         item['Options_Data_Available'] = bool(
-            isinstance(item.get('Options_Context'), dict)
+            item['Options_Collection_Selected']
+            and isinstance(item.get('Options_Context'), dict)
             and item['Options_Context'].get('available')
         )
         item.update(enhanced_scoring.calculate_scores(item))
@@ -8484,6 +8506,10 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         us_market_regime=us_market_regime,
         bvb_universe=(full_state or {}).get('bvb_equity_universe', []),
     )
+    if run_mode == 'portfolio':
+        strict_buy_candidates = _enrich_ibkr_candidate_context(
+            strict_buy_candidates
+        )
     candidate_rates = (full_state or {}).get('rates', {})
     buy_candidate_payload = []
     for item in strict_buy_candidates:

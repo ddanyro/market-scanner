@@ -23,6 +23,46 @@ import market_scanner
 import market_security
 
 
+class TestPortfolioOptionsContext(unittest.TestCase):
+    @patch.dict(os.environ, {
+        'IBKR_MCP_RESEARCH_ENABLED': '1',
+        'GITHUB_ACTIONS': 'false',
+    })
+    @patch('ibkr_mcp.prefetch_candidate_context')
+    def test_us_options_budget_and_control_cohort_are_separate(self, prefetch):
+        prefetch.return_value = {
+            'AAPL': {
+                'options_context': {
+                    'available': True,
+                    'average_spread_pct': 1.0,
+                    'quoted_contract_ratio': 1.0,
+                }
+            },
+            'MSFT': {'options_context': {'available': False}},
+            'NVDA': {'options_context': {'available': False}},
+        }
+        candidates = [
+            {'Ticker': 'ALW.RO', 'Market': 'România / BVB', 'Decision': 'BUY', 'RSI': 55},
+            {'Ticker': 'AAPL', 'Market': 'SUA', 'Decision': 'BUY', 'RSI': 55, 'Price_Native': 100},
+            {'Ticker': 'MSFT', 'Market': 'SUA', 'Decision': 'BUY', 'RSI': 55, 'Price_Native': 100},
+            {'Ticker': 'NVDA', 'Market': 'SUA', 'Decision': 'WAIT', 'RSI': 55, 'RS_vs_SPX': 10, 'Price_Native': 100},
+            {'Ticker': 'JPM', 'Market': 'SUA', 'Decision': 'WAIT', 'RSI': 55, 'Price_Native': 100},
+        ]
+
+        enriched = market_scanner._enrich_ibkr_candidate_context(candidates)
+        by_symbol = {item['Ticker']: item for item in enriched}
+        requested = [item['symbol'] for item in prefetch.call_args.args[0]]
+
+        self.assertEqual(requested[:3], ['AAPL', 'MSFT', 'NVDA'])
+        self.assertFalse(by_symbol['ALW.RO']['Options_Collection_Eligible'])
+        self.assertTrue(by_symbol['AAPL']['Options_Data_Available'])
+        self.assertTrue(by_symbol['NVDA']['Options_Collection_Selected'])
+        self.assertTrue(by_symbol['JPM']['Options_Collection_Eligible'])
+        self.assertFalse(by_symbol['JPM']['Options_Collection_Selected'])
+        self.assertFalse(by_symbol['JPM']['Options_Data_Available'])
+        self.assertNotIn('Options_Context', by_symbol['JPM'])
+
+
 class TestMarketAnalysis(unittest.TestCase):
     """Test market analysis functions."""
     
