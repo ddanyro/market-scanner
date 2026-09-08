@@ -1,12 +1,12 @@
 # Enhanced Scoring forward validation
 
-Generated: 2026-09-08T13:19:31+00:00
+Generated: 2026-09-08T15:42:27+00:00
 
 ## Data coverage
 
 ```csv
 partition,predictions,execution_eligible_pct,options_pct,portfolio_fit_pct,matured_1d,matured_5d,matured_10d,matured_20d,matured_60d
-calibration,53,96.22641509433963,11.320754716981133,88.67924528301887,0,0,0,0,0
+calibration,98,97.95918367346938,6.122448979591836,75.51020408163265,0,0,0,0,0
 holdout_locked,0,,,,0,0,0,0,0
 ```
 
@@ -425,7 +425,7 @@ holdout_locked,60,adjusted,90+,0,,,,,,
 ```csv
 partition,options_cohort,options_data_quality,predictions,baseline_score_mean,raw_score_mean,availability_adjusted_raw_mean,portfolio_fit_coverage_pct,net_alpha_spy_1d_n,net_alpha_spy_1d_mean,net_alpha_spy_5d_n,net_alpha_spy_5d_mean,net_alpha_spy_10d_n,net_alpha_spy_10d_mean,net_alpha_spy_20d_n,net_alpha_spy_20d_mean,net_alpha_spy_60d_n,net_alpha_spy_60d_mean
 calibration,eligible_control_without_options,unavailable,15,82.0,67.368,,100.0,0,,0,,0,,0,,0,
-calibration,not_eligible,unavailable,29,71.55172413793103,61.9296551724138,,79.3103448275862,0,,0,,0,,0,,0,
+calibration,not_eligible,unavailable,74,74.66216216216216,65.14135135135135,69.12333333333332,67.56756756756756,0,,0,,0,,0,,0,
 calibration,options_observed,unavailable,6,80.0,68.30666666666666,,100.0,0,,0,,0,,0,,0,
 calibration,selected_but_unavailable,unavailable,3,80.0,68.99,,100.0,0,,0,,0,,0,,0,
 ```
@@ -437,55 +437,55 @@ data is never classified as an observed score of 50.
 
 ```csv
 partition,cohort,predictions,raw_score_mean,adjusted_score_mean,net_alpha_spy_1d_n,net_alpha_spy_1d_mean,net_alpha_spy_1d_median,net_alpha_spy_1d_win_rate,net_alpha_spy_1d_average_gain,net_alpha_spy_1d_average_loss,net_alpha_spy_1d_expectancy,net_alpha_spy_5d_n,net_alpha_spy_5d_mean,net_alpha_spy_5d_median,net_alpha_spy_5d_win_rate,net_alpha_spy_5d_average_gain,net_alpha_spy_5d_average_loss,net_alpha_spy_5d_expectancy,net_alpha_spy_10d_n,net_alpha_spy_10d_mean,net_alpha_spy_10d_median,net_alpha_spy_10d_win_rate,net_alpha_spy_10d_average_gain,net_alpha_spy_10d_average_loss,net_alpha_spy_10d_expectancy,net_alpha_spy_20d_n,net_alpha_spy_20d_mean,net_alpha_spy_20d_median,net_alpha_spy_20d_win_rate,net_alpha_spy_20d_average_gain,net_alpha_spy_20d_average_loss,net_alpha_spy_20d_expectancy,net_alpha_spy_60d_n,net_alpha_spy_60d_mean,net_alpha_spy_60d_median,net_alpha_spy_60d_win_rate,net_alpha_spy_60d_average_gain,net_alpha_spy_60d_average_loss,net_alpha_spy_60d_expectancy
-calibration,missing,6,58.083333333333336,,0,,,,,,,0,,,,,,,0,,,,,,,0,,,,,,,0,,,,,,
-calibration,other_observed,10,58.053,57.629000000000005,0,,,,,,,0,,,,,,,0,,,,,,,0,,,,,,,0,,,,,,
-calibration,raw_medium_fit_good,37,67.41243243243244,72.02675675675675,0,,,,,,,0,,,,,,,0,,,,,,,0,,,,,,,0,,,,,,
+calibration,missing,24,62.867916666666666,,0,,,,,,,0,,,,,,,0,,,,,,,0,,,,,,,0,,,,,,
+calibration,other_observed,21,62.834761904761905,63.839523809523804,0,,,,,,,0,,,,,,,0,,,,,,,0,,,,,,,0,,,,,,
+calibration,raw_medium_fit_good,53,68.2911320754717,72.70867924528301,0,,,,,,,0,,,,,,,0,,,,,,,0,,,,,,,0,,,,,,
 ```
 
 ## Component contribution and redundancy
 
 ```csv
 partition,horizon,component,n,pearson_forward_alpha,spearman_forward_alpha,max_abs_component_correlation,incremental_r2
-calibration,1,technical_score,0,,,0.4816623123196194,
-calibration,1,momentum_score,0,,,0.6163817544844312,
-calibration,1,research_score,0,,,0.6184831349056517,
-calibration,1,volatility_score,0,,,0.5105380164282325,
-calibration,1,liquidity_score,0,,,0.44481681543157897,
-calibration,1,options_score,0,,,0.44481681543157897,
+calibration,1,technical_score,0,,,0.3254378807761707,
+calibration,1,momentum_score,0,,,0.5574910750392302,
+calibration,1,research_score,0,,,0.4019231477846134,
+calibration,1,volatility_score,0,,,0.3753629312784547,
+calibration,1,liquidity_score,0,,,0.3753629312784547,
+calibration,1,options_score,0,,,0.28931796492725775,
 calibration,1,relative_opportunity_score,0,,,,
-calibration,1,risk_reward_score,0,,,0.6184831349056517,
-calibration,5,technical_score,0,,,0.4816623123196194,
-calibration,5,momentum_score,0,,,0.6163817544844312,
-calibration,5,research_score,0,,,0.6184831349056517,
-calibration,5,volatility_score,0,,,0.5105380164282325,
-calibration,5,liquidity_score,0,,,0.44481681543157897,
-calibration,5,options_score,0,,,0.44481681543157897,
+calibration,1,risk_reward_score,0,,,0.5574910750392302,
+calibration,5,technical_score,0,,,0.3254378807761707,
+calibration,5,momentum_score,0,,,0.5574910750392302,
+calibration,5,research_score,0,,,0.4019231477846134,
+calibration,5,volatility_score,0,,,0.3753629312784547,
+calibration,5,liquidity_score,0,,,0.3753629312784547,
+calibration,5,options_score,0,,,0.28931796492725775,
 calibration,5,relative_opportunity_score,0,,,,
-calibration,5,risk_reward_score,0,,,0.6184831349056517,
-calibration,10,technical_score,0,,,0.4816623123196194,
-calibration,10,momentum_score,0,,,0.6163817544844312,
-calibration,10,research_score,0,,,0.6184831349056517,
-calibration,10,volatility_score,0,,,0.5105380164282325,
-calibration,10,liquidity_score,0,,,0.44481681543157897,
-calibration,10,options_score,0,,,0.44481681543157897,
+calibration,5,risk_reward_score,0,,,0.5574910750392302,
+calibration,10,technical_score,0,,,0.3254378807761707,
+calibration,10,momentum_score,0,,,0.5574910750392302,
+calibration,10,research_score,0,,,0.4019231477846134,
+calibration,10,volatility_score,0,,,0.3753629312784547,
+calibration,10,liquidity_score,0,,,0.3753629312784547,
+calibration,10,options_score,0,,,0.28931796492725775,
 calibration,10,relative_opportunity_score,0,,,,
-calibration,10,risk_reward_score,0,,,0.6184831349056517,
-calibration,20,technical_score,0,,,0.4816623123196194,
-calibration,20,momentum_score,0,,,0.6163817544844312,
-calibration,20,research_score,0,,,0.6184831349056517,
-calibration,20,volatility_score,0,,,0.5105380164282325,
-calibration,20,liquidity_score,0,,,0.44481681543157897,
-calibration,20,options_score,0,,,0.44481681543157897,
+calibration,10,risk_reward_score,0,,,0.5574910750392302,
+calibration,20,technical_score,0,,,0.3254378807761707,
+calibration,20,momentum_score,0,,,0.5574910750392302,
+calibration,20,research_score,0,,,0.4019231477846134,
+calibration,20,volatility_score,0,,,0.3753629312784547,
+calibration,20,liquidity_score,0,,,0.3753629312784547,
+calibration,20,options_score,0,,,0.28931796492725775,
 calibration,20,relative_opportunity_score,0,,,,
-calibration,20,risk_reward_score,0,,,0.6184831349056517,
-calibration,60,technical_score,0,,,0.4816623123196194,
-calibration,60,momentum_score,0,,,0.6163817544844312,
-calibration,60,research_score,0,,,0.6184831349056517,
-calibration,60,volatility_score,0,,,0.5105380164282325,
-calibration,60,liquidity_score,0,,,0.44481681543157897,
-calibration,60,options_score,0,,,0.44481681543157897,
+calibration,20,risk_reward_score,0,,,0.5574910750392302,
+calibration,60,technical_score,0,,,0.3254378807761707,
+calibration,60,momentum_score,0,,,0.5574910750392302,
+calibration,60,research_score,0,,,0.4019231477846134,
+calibration,60,volatility_score,0,,,0.3753629312784547,
+calibration,60,liquidity_score,0,,,0.3753629312784547,
+calibration,60,options_score,0,,,0.28931796492725775,
 calibration,60,relative_opportunity_score,0,,,,
-calibration,60,risk_reward_score,0,,,0.6184831349056517,
+calibration,60,risk_reward_score,0,,,0.5574910750392302,
 holdout_locked,1,technical_score,0,,,,
 holdout_locked,1,momentum_score,0,,,,
 holdout_locked,1,research_score,0,,,,
