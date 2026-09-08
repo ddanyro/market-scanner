@@ -4,6 +4,7 @@ import json
 import pandas as pd
 
 import evaluate_shadow_forward
+import merge_shadow_ledgers
 import shadow_validation
 
 
@@ -102,6 +103,55 @@ def test_hash_chain_detects_snapshot_tampering(tmp_path):
         assert "Invalid snapshot hash" in str(exc)
     else:
         raise AssertionError("tampered ledger was accepted")
+
+
+def test_concurrent_legacy_ledgers_are_merged_by_snapshot_id(tmp_path):
+    first = tmp_path / "first.jsonl"
+    second = tmp_path / "second.jsonl"
+    output = tmp_path / "merged.jsonl"
+    base = shadow_validation.build_snapshot(
+        [candidate()], {}, "2026-09-08T10:00:00Z", "portfolio"
+    )
+    # Legacy rows have no chain dependency and model the existing ledger data.
+    base["schema"] = "market-scanner.shadow-prediction.v1"
+    base.pop("content_hash", None)
+    base.pop("previous_snapshot_hash", None)
+    left = json.loads(json.dumps(base))
+    right = json.loads(json.dumps(base))
+    left.update(snapshot_id="left", recorded_at="2026-09-08T10:01:00Z")
+    right.update(snapshot_id="right", recorded_at="2026-09-08T10:02:00Z")
+    left["predictions"][0]["recorded_at"] = left["recorded_at"]
+    right["predictions"][0]["recorded_at"] = right["recorded_at"]
+    first.write_text(json.dumps(left) + "\n")
+    second.write_text(json.dumps(left) + "\n" + json.dumps(right) + "\n")
+    merged = merge_shadow_ledgers.merge_ledgers([first, second])
+    merge_shadow_ledgers.write_merged(output, merged)
+    assert [row["snapshot_id"] for row in shadow_validation.load_ledger(output)] == [
+        "left", "right",
+    ]
+
+
+def test_hash_validation_accepts_concurrent_children_of_known_parent(tmp_path):
+    path = tmp_path / "branched.jsonl"
+    root = shadow_validation.build_snapshot(
+        [candidate()], {}, "2026-09-08T10:00:00Z", "portfolio"
+    )
+    children = []
+    for timestamp, symbol in (
+        ("2026-09-08T10:01:00Z", "LEFT"),
+        ("2026-09-08T10:02:00Z", "RIGHT"),
+    ):
+        child = shadow_validation.build_snapshot(
+            [candidate(symbol=symbol)], {}, timestamp, "portfolio"
+        )
+        child["previous_snapshot_hash"] = root["content_hash"]
+        child["content_hash"] = shadow_validation._content_hash(child)
+        child["snapshot_id"] = child["content_hash"][:24]
+        children.append(child)
+    path.write_text("".join(
+        json.dumps(item) + "\n" for item in [root, *children]
+    ))
+    assert len(shadow_validation.load_ledger(path)) == 3
 
 
 def test_locked_holdout_partition_is_preregistered():

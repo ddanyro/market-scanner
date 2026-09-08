@@ -353,7 +353,7 @@ def load_ledger(path=LEDGER_PATH):
     target = Path(path)
     if not target.exists():
         return snapshots
-    previous_hash = None
+    seen_hashes = set()
     for line_number, line in enumerate(target.read_text(encoding="utf-8").splitlines(), 1):
         if not line.strip():
             continue
@@ -366,10 +366,13 @@ def load_ledger(path=LEDGER_PATH):
                 raise ValueError(f"Invalid snapshot hash at line {line_number}")
             if payload.get("snapshot_id") != payload["content_hash"][:24]:
                 raise ValueError(f"Invalid snapshot id at line {line_number}")
-            if payload.get("previous_snapshot_hash") != previous_hash:
-                raise ValueError(f"Broken snapshot hash chain at line {line_number}")
+            parent_hash = payload.get("previous_snapshot_hash")
+            if seen_hashes and parent_hash not in seen_hashes:
+                raise ValueError(f"Unknown snapshot parent at line {line_number}")
+            if not seen_hashes and parent_hash is not None:
+                raise ValueError(f"Broken snapshot root at line {line_number}")
         snapshots.append(payload)
-        previous_hash = payload.get("content_hash") or _content_hash(payload)
+        seen_hashes.add(payload.get("content_hash") or _content_hash(payload))
     return snapshots
 
 
