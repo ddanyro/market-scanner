@@ -1,15 +1,15 @@
 # Enhanced shadow forward-validation readiness
 
-Generated: 2026-09-08T17:59:04+00:00
+Generated: 2026-09-08T18:30:49+00:00
 
 ## Coverage
 
-- Snapshots: **13**
-- Predictions: **113**
-- Execution-eligible predictions: **108** (95.6%)
-- Options observed: **6** (5.3%)
-- Options quality: **{"legacy_unknown": 53, "unavailable": 60}**
-- Portfolio Fit observed: **77** (68.1%)
+- Snapshots: **14**
+- Predictions: **128**
+- Execution-eligible predictions: **123** (96.1%)
+- Options observed: **6** (4.7%)
+- Options quality: **{"legacy_unknown": 53, "unavailable": 75}**
+- Portfolio Fit observed: **86** (67.2%)
 - Locked-holdout snapshots: **0**
 - Integrity errors: **0**
 - Matured 1D/5D/10D/20D/60D outcomes: **not evaluated in the collection job**
