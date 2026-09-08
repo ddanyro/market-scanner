@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "policy_id": "enhanced-v1-2026-09-preregistered",
+  "created_at": "2026-09-08T00:00:00+03:00",
+  "collection_start": "2026-09-08",
+  "calibration_end": "2026-12-31",
+  "holdout_start": "2027-01-01",
+  "holdout_end": "2027-06-30",
+  "holdout_is_locked": true,
+  "score_version": "ibkr-enhanced-v1-shadow",
+  "authoritative_decision": "baseline",
+  "thresholds_may_use_holdout": false,
+  "weights_may_use_holdout": false,
+  "primary_success_metric": "net_excess_return",
+  "secondary_metrics": [
+    "expectancy",
+    "max_drawdown",
+    "risk_adjusted_return",
+    "regime_consistency"
+  ],
+  "forward_horizons_sessions": [1, 5, 10, 20, 60],
+  "notes": "Dates are preregistered before forward outcomes. Holdout data must never be used for calibration, threshold selection, or weight changes."
+}

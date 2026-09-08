@@ -13,6 +13,7 @@ import math
 import tempfile
 import urllib.parse
 from bs4 import BeautifulSoup
+import enhanced_scoring
 
 
 def _utc_now_naive():
@@ -297,13 +298,18 @@ def fetch_us_sector_rotation(cached=None, ticker_factory=yf.Ticker):
     """Măsoară rotația SUA față de SPY; păstrează cache-ul dacă datele lipsesc."""
     try:
         histories = {}
-        for ticker in ['SPY'] + list(US_SECTOR_ETFS.values()):
-            history = ticker_factory(ticker).history(
-                period='6mo', interval='1d', auto_adjust=True
-            )
-            if history is None or history.empty or 'Close' not in history:
-                raise ValueError(f'Istoric indisponibil pentru {ticker}')
-            histories[ticker] = history['Close'].dropna().astype(float)
+        required_tickers = ['SPY'] + list(US_SECTOR_ETFS.values())
+        for ticker in required_tickers + ['QQQ', '^IRX']:
+            try:
+                history = ticker_factory(ticker).history(
+                    period='6mo', interval='1d', auto_adjust=True
+                )
+                if history is None or history.empty or 'Close' not in history:
+                    raise ValueError(f'Istoric indisponibil pentru {ticker}')
+                histories[ticker] = history['Close'].dropna().astype(float)
+            except Exception:
+                if ticker in required_tickers:
+                    raise
         spy = histories['SPY']
 
         def period_return(series, sessions):
@@ -339,6 +345,8 @@ def fetch_us_sector_rotation(cached=None, ticker_factory=yf.Ticker):
                 size_factor = 0.8
             sectors[sector] = {
                 'etf': ticker,
+                'price_at_snapshot': round(float(close.iloc[-1]), 6),
+                'price_timestamp': str(close.index[-1]),
                 'status': status,
                 'return_1m_pct': round(return_1m, 2),
                 'return_3m_pct': round(return_3m, 2),
@@ -349,11 +357,33 @@ def fetch_us_sector_rotation(cached=None, ticker_factory=yf.Ticker):
             }
         if not sectors:
             raise ValueError('Niciun sector valid')
+        benchmark_snapshots = {}
+        for ticker in ['SPY', 'QQQ'] + list(US_SECTOR_ETFS.values()):
+            series = histories.get(ticker)
+            if series is None or series.empty:
+                continue
+            benchmark_snapshots[ticker] = {
+                'ticker': ticker,
+                'available': True,
+                'price': round(float(series.iloc[-1]), 6),
+                'price_timestamp': str(series.index[-1]),
+                'source': 'Yahoo Finance adjusted close',
+            }
+        cash = histories.get('^IRX')
+        if cash is not None and not cash.empty:
+            benchmark_snapshots['CASH_USD'] = {
+                'ticker': '^IRX',
+                'available': True,
+                'annual_yield_pct': round(float(cash.iloc[-1]), 6),
+                'price_timestamp': str(cash.index[-1]),
+                'source': 'Yahoo Finance 13-week Treasury yield proxy',
+            }
         return {
             'as_of': datetime.datetime.now().isoformat(timespec='seconds'),
             'benchmark': 'SPY',
             'benchmark_return_1m_pct': round(spy_1m, 2),
             'benchmark_return_3m_pct': round(spy_3m, 2),
+            'benchmark_snapshots': benchmark_snapshots,
             'sectors': sectors,
             'source': 'Yahoo Finance market data',
         }
@@ -707,6 +737,10 @@ def _safe_number(value, default=0.0):
         return default
 
 
+def _clamp_score(value):
+    return max(0.0, min(100.0, float(value)))
+
+
 def _execution_currency(candidate):
     currency = str(
         candidate.get('execution_currency')
@@ -892,6 +926,77 @@ def _snapshot_freshness(value, now):
         return value, None, True
 
 
+def _normalize_ibkr_allocation(payload):
+    """Flatten the flexible PA allocation response to name -> weight maps."""
+    result = {
+        'realtime': bool((payload or {}).get('realtime')),
+        'currency': (payload or {}).get('currency'),
+        'date': (payload or {}).get('date'),
+        'dimensions': {},
+    }
+    allocations = (payload or {}).get('allocations', {})
+    entries = allocations.items() if isinstance(allocations, dict) else []
+
+    def collect_items(value):
+        found = []
+        if isinstance(value, dict):
+            items = value.get('items')
+            if isinstance(items, list):
+                found.extend(item for item in items if isinstance(item, dict))
+            for nested in value.values():
+                if isinstance(nested, (dict, list)):
+                    found.extend(collect_items(nested))
+        elif isinstance(value, list):
+            for nested in value:
+                if isinstance(nested, (dict, list)):
+                    found.extend(collect_items(nested))
+        return found
+
+    for dimension, value in entries:
+        weights = {}
+        for item in collect_items(value):
+            name = str(item.get('name') or '').strip()
+            weight = _safe_number(item.get('weight'), None)
+            if name and weight is not None:
+                weights[name] = max(weights.get(name, 0), weight)
+        if weights:
+            result['dimensions'][str(dimension).upper()] = weights
+    return result
+
+
+def _normalize_ibkr_performance(payload):
+    accounts = (payload or {}).get('accounts', {})
+    if not isinstance(accounts, dict) or not accounts:
+        return {}
+    account_id, account = next(iter(accounts.items()))
+    periods = account.get('periods', {}) if isinstance(account, dict) else {}
+    normalized = {}
+    for name, period in periods.items() if isinstance(periods, dict) else []:
+        if not isinstance(period, dict):
+            continue
+        cps = [_safe_number(value, None) for value in period.get('cps', [])]
+        cps = [value for value in cps if value is not None]
+        nav = [_safe_number(value, None) for value in period.get('nav', [])]
+        nav = [value for value in nav if value is not None and value > 0]
+        peak = 0
+        max_drawdown = 0
+        for value in nav:
+            peak = max(peak, value)
+            if peak > 0:
+                max_drawdown = min(max_drawdown, (value - peak) / peak)
+        normalized[str(name)] = {
+            'return_pct': round(cps[-1] * 100, 3) if cps else None,
+            'start_nav': round(nav[0], 2) if nav else None,
+            'end_nav': round(nav[-1], 2) if nav else None,
+            'max_drawdown_pct': round(max_drawdown * 100, 3) if nav else None,
+        }
+    return {
+        'account_id': str(account_id),
+        'method': payload.get('portfolio_measure'),
+        'periods': normalized,
+    }
+
+
 def _normalize_tws_account_data(account_data, now=None):
     now = now or datetime.datetime.now(datetime.timezone.utc)
     result = {
@@ -905,10 +1010,23 @@ def _normalize_tws_account_data(account_data, now=None):
         'combined_history': [],
         'nav_history': [],
         'cash_history': [],
+        'portfolio_allocation': {},
+        'account_performance': {},
+        'trade_journal': [],
     }
     if not isinstance(account_data, dict):
         result['risk_flags'].append('Sumarul cash/marjă TWS nu este disponibil')
         return result
+    result['portfolio_allocation'] = _normalize_ibkr_allocation(
+        account_data.get('portfolio_allocation', {})
+    )
+    result['account_performance'] = _normalize_ibkr_performance(
+        account_data.get('account_performance', {})
+    )
+    result['trade_journal'] = [
+        item for item in account_data.get('trade_journal', [])
+        if isinstance(item, dict)
+    ]
     result['source'] = str(account_data.get('source', result['source']))
     if account_data.get('privacy_mode') == 'bands_only':
         result['privacy_mode'] = 'bands_only'
@@ -1345,6 +1463,17 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
             'sector': str(row.get('Sector', '')).strip() or None,
             'industry': str(row.get('Industry', '')).strip() or None,
             'shares': shares,
+            'contract_id': row.get('Contract_ID'),
+            'asset_class': row.get('Asset_Class'),
+            'market_value_ibkr': _safe_number(
+                row.get('Market_Value_IBKR'), None
+            ),
+            'daily_pnl_ibkr': _safe_number(
+                row.get('Daily_PnL_IBKR'), None
+            ),
+            'unrealized_pnl_ibkr': _safe_number(
+                row.get('Unrealized_PnL_IBKR'), None
+            ),
             'current_price_eur': price or None,
             'buy_price_eur': buy_price or None,
             'profit_pct': _safe_number(row.get('Profit_Pct')),
@@ -1916,6 +2045,7 @@ def _size_buy_candidates(snapshot):
         return candidates
 
     accounts = liquidity.get('accounts', [])
+    allocation = liquidity.get('portfolio_allocation', {})
     broker_weights = {}
     for position in snapshot.get('positions', []):
         broker = str(position.get('broker') or '')
@@ -1979,6 +2109,88 @@ def _size_buy_candidates(snapshot):
 
         preliminary = []
         for candidate in broker_candidates:
+            sector = str(candidate.get('sector') or 'Necunoscut')
+            dimensions = allocation.get('dimensions', {})
+
+            def allocation_weight(dimension, names):
+                weights = dimensions.get(dimension, {})
+                for expected in names:
+                    expected = str(expected).casefold()
+                    for label, weight in weights.items():
+                        if expected and (
+                            expected in str(label).casefold()
+                            or str(label).casefold() in expected
+                        ):
+                            return _safe_number(weight)
+                return None
+
+            sector_weight = allocation_weight('SECTOR', [sector])
+            fit_sources = []
+            if sector_weight is not None:
+                fit_sources.append('IBKR_SECTOR')
+            if sector_weight is None and net_liquidation > 0:
+                sector_weight = direct_sector_values.get(sector, 0) / net_liquidation
+                fit_sources.append('DIRECT_SECTOR_POSITIONS')
+            market = str(candidate.get('market') or '')
+            country_names = (
+                ['Romania', 'România'] if 'România' in market
+                else ['United States', 'USA', 'US'] if market == 'SUA'
+                else []
+            )
+            region_names = (
+                ['Europe', 'Europa'] if 'Europa' in market or 'România' in market
+                else ['North America', 'America de Nord'] if market == 'SUA'
+                else []
+            )
+            country_weight = allocation_weight('COUNTRY', country_names)
+            region_weight = allocation_weight('REGION', region_names)
+            if country_weight is not None:
+                fit_sources.append('IBKR_COUNTRY')
+            if region_weight is not None:
+                fit_sources.append('IBKR_REGION')
+
+            # Existing 10% sector cap anchors the fit curve. Country/region
+            # use broad soft limits because the scanner previously had none.
+            fit_parts = []
+            if sector_weight is not None:
+                fit_parts.append(_clamp_score(
+                    100 if sector_weight <= 0.05
+                    else 100 - (sector_weight - 0.05) / 0.20 * 100
+                ))
+            if country_weight is not None:
+                fit_parts.append(_clamp_score(
+                    100 if country_weight <= 0.40
+                    else 100 - (country_weight - 0.40) / 0.35 * 100
+                ))
+            if region_weight is not None:
+                fit_parts.append(_clamp_score(
+                    100 if region_weight <= 0.60
+                    else 100 - (region_weight - 0.60) / 0.30 * 100
+                ))
+            portfolio_fit_available = bool(fit_parts)
+            portfolio_fit = min(fit_parts) if fit_parts else None
+            candidate.update({
+                'portfolio_fit_available': portfolio_fit_available,
+                'portfolio_fit_observed_score': (
+                    round(portfolio_fit, 2)
+                    if portfolio_fit_available else None
+                ),
+                'portfolio_fit_source': (
+                    '+'.join(fit_sources) if fit_sources else 'MISSING'
+                ),
+                'ibkr_sector_weight_pct': (
+                    round(sector_weight * 100, 2)
+                    if sector_weight is not None else None
+                ),
+                'ibkr_country_weight_pct': (
+                    round(country_weight * 100, 2)
+                    if country_weight is not None else None
+                ),
+                'ibkr_region_weight_pct': (
+                    round(region_weight * 100, 2)
+                    if region_weight is not None else None
+                ),
+            })
             entry = _safe_number(candidate.get('entry_eur'))
             stop = _safe_number(candidate.get('stop_eur'))
             stop_risk_pct = (
@@ -2098,6 +2310,51 @@ def _size_buy_candidates(snapshot):
         rows = candidate.get('sizing_by_broker') or []
         if rows:
             candidate.update(rows[0])
+        observed_fit = _safe_number(
+            candidate.get('portfolio_fit_observed_score'), None
+        )
+        fit_available = bool(
+            candidate.get('portfolio_fit_available')
+            and observed_fit is not None
+        )
+        candidate.update(enhanced_scoring.calculate_scores(
+            candidate,
+            portfolio_fit_score=observed_fit if fit_available else 50,
+        ))
+        candidate['portfolio_fit_available'] = fit_available
+        candidate['portfolio_fit_observed_score'] = (
+            round(observed_fit, 2) if fit_available else None
+        )
+        net_liquidation = _safe_number(
+            candidate.get('broker_net_liquidation_eur'), 0
+        )
+        hypothetical_amount = _safe_number(
+            candidate.get('conditional_amount_eur'), 0
+        )
+        purchase_weight = (
+            hypothetical_amount / net_liquidation * 100
+            if net_liquidation > 0 and hypothetical_amount > 0 else 0
+        )
+        candidate['hypothetical_purchase_weight_pct'] = round(
+            purchase_weight, 4
+        )
+        for dimension in ('sector', 'country', 'region'):
+            before = _safe_number(
+                candidate.get(f'ibkr_{dimension}_weight_pct'), None
+            )
+            candidate[
+                f'hypothetical_{dimension}_weight_after_pct'
+            ] = (
+                round(before + purchase_weight, 4)
+                if before is not None else None
+            )
+        symbol_before = _safe_number(
+            candidate.get('combined_pretrade_portfolio_weight_pct'), None
+        )
+        candidate['hypothetical_symbol_weight_after_pct'] = (
+            round(symbol_before + purchase_weight, 4)
+            if symbol_before is not None else None
+        )
     return candidates
 
 
@@ -2855,6 +3112,17 @@ def update_buy_recommendation_history(
                 _execution_value(candidate, 'target_native', 'target_eur'), 4
             ),
             'rr_ratio': round(_safe_number(candidate.get('rr_ratio')), 3),
+            'raw_stock_score': _safe_number(
+                candidate.get('raw_stock_score'), None
+            ),
+            'portfolio_adjusted_score': _safe_number(
+                candidate.get('portfolio_adjusted_score'), None
+            ),
+            'score_version': candidate.get('score_version'),
+            'volatility_regime': candidate.get('volatility_regime'),
+            'portfolio_fit_score': _safe_number(
+                candidate.get('portfolio_fit_score'), None
+            ),
             'eligible_brokers': list(candidate.get('eligible_brokers') or []),
             'why_now': str(recommendation.get('why_now') or '')[:700],
             'main_risk': str(recommendation.get('main_risk') or '')[:700],
@@ -2931,6 +3199,58 @@ def update_buy_recommendation_history_from_cache(
         recorded_at=cached_analysis.get('generated_at'),
         limit=limit,
     )
+
+
+def link_trade_journal_to_recommendations(trades, recommendation_history):
+    """Attach only recommendation evidence that existed before each trade."""
+    history_by_symbol = {}
+    for item in recommendation_history or []:
+        if not isinstance(item, dict):
+            continue
+        symbol = str(item.get('symbol') or '').upper()
+        if symbol:
+            history_by_symbol.setdefault(symbol, []).append(item)
+    for rows in history_by_symbol.values():
+        rows.sort(key=lambda item: str(item.get('first_seen_at') or ''))
+    linked = []
+    for raw in trades or []:
+        if not isinstance(raw, dict):
+            continue
+        trade = dict(raw)
+        symbol = str(trade.get('symbol') or '').upper()
+        trade_time = str(trade.get('trade_time') or '')
+        eligible = [
+            item for item in history_by_symbol.get(symbol, [])
+            if str(item.get('first_seen_at') or '') <= trade_time
+        ]
+        if eligible and str(trade.get('side') or '').upper() in {'BUY', 'BOT'}:
+            recommendation = eligible[-1]
+            trade.update({
+                'initial_score': recommendation.get(
+                    'portfolio_adjusted_score',
+                    recommendation.get('raw_stock_score'),
+                ),
+                'raw_stock_score_at_entry': recommendation.get(
+                    'raw_stock_score'
+                ),
+                'portfolio_state_at_entry': {
+                    'portfolio_fit_score': recommendation.get(
+                        'portfolio_fit_score'
+                    ),
+                    'volatility_regime': recommendation.get(
+                        'volatility_regime'
+                    ),
+                    'score_version': recommendation.get('score_version'),
+                },
+                'stop_price': recommendation.get(
+                    'stop_native', recommendation.get('stop_eur')
+                ),
+                'target_at_entry': recommendation.get(
+                    'target_native', recommendation.get('target_eur')
+                ),
+            })
+        linked.append(trade)
+    return linked
 
 
 def _buy_recommendation_marker_labels(history):

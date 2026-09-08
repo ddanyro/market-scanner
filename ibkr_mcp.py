@@ -39,7 +39,7 @@ MARKET_CACHE_FILE = Path(
         "IBKR_MCP_MARKET_CACHE_FILE", ".ibkr_mcp_market_cache.json"
     )
 )
-MARKET_CACHE_VERSION = 1
+MARKET_CACHE_VERSION = 2
 MARKET_DATA_TTL_HOURS = float(
     os.environ.get("IBKR_MCP_MARKET_TTL_HOURS", "1")
 )
@@ -52,6 +52,10 @@ MARKET_DATA_CONCURRENCY = max(
 MARKET_DATA_BATCH_SIZE = max(
     1, int(os.environ.get("IBKR_MCP_MARKET_BATCH", "70"))
 )
+RESEARCH_TTL_HOURS = float(os.environ.get("IBKR_MCP_RESEARCH_TTL_HOURS", "168"))
+OPTIONS_TTL_HOURS = float(os.environ.get("IBKR_MCP_OPTIONS_TTL_HOURS", "6"))
+RESEARCH_BATCH_SIZE = max(1, int(os.environ.get("IBKR_MCP_RESEARCH_BATCH", "8")))
+OPTIONS_BATCH_SIZE = max(0, int(os.environ.get("IBKR_MCP_OPTIONS_BATCH", "3")))
 READ_ONLY_SCOPES = "mcp.read"
 AUTHORIZATION_URL = "https://api.ibkr.com/oauth2/authorize"
 TOKEN_URL = "https://api.ibkr.com/oauth2/api/v1/token"
@@ -67,8 +71,40 @@ ALLOWED_READ_ONLY_TOOLS = {
     "get_pa_performance_all_periods",
     "get_price_history",
     "get_price_snapshot",
+    "get_company_connections",
+    "get_company_themes",
+    "get_option_data",
+    "get_option_parameters",
     "search_contracts",
+    "search_investment_topics",
+    "get_theme_details",
 }
+
+# A single snapshot request is cheaper than multiple per-field calls.  The
+# groups document which consumer owns each value and keep display-only fields
+# out of the decision logic unless explicitly promoted later.
+SNAPSHOT_FIELD_GROUPS = {
+    "quote": (
+        "last", "bid_ask", "top_status", "prior_close", "volume",
+        "open", "low", "high",
+    ),
+    "ranking": (
+        "avg_90d_usd_volume", "year_to_date_change",
+        "cumulative_perf_1d", "cumulative_perf_1w",
+        "cumulative_perf_1m", "cumulative_perf_ytd",
+        "cumulative_perf_1y",
+    ),
+    "risk": (
+        "implied_volatility_percentile", "implied_vol_underlying",
+        "historical_vol", "misc_statistics",
+    ),
+    "display": ("dividend_yield",),
+}
+SNAPSHOT_FIELDS = tuple(dict.fromkeys(
+    field
+    for fields in SNAPSHOT_FIELD_GROUPS.values()
+    for field in fields
+))
 
 
 class IBKRMCPError(RuntimeError):
@@ -531,6 +567,9 @@ def _read_market_cache(path: Path = MARKET_CACHE_FILE) -> dict[str, Any]:
     payload.setdefault("contracts", {})
     payload.setdefault("instruments", {})
     payload.setdefault("failures", {})
+    payload.setdefault("company_context", {})
+    payload.setdefault("options_context", {})
+    payload.setdefault("topic_discovery", {})
     for symbol, instrument in payload["instruments"].items():
         if isinstance(instrument, dict):
             instrument["ibkr_data_only"] = _market_symbol(symbol) in {
@@ -686,6 +725,114 @@ def _snapshot_number(value: Any) -> float | None:
     return None
 
 
+def _snapshot_scalar(value: Any) -> float | None:
+    """Extract a signed finite scalar from the heterogeneous snapshot shape."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float, str)):
+        number = _number(value, default=float("nan"))
+        return number if number == number else None
+    if isinstance(value, dict):
+        for key in (
+            "value", "price", "last", "close", "mid", "annual_iv",
+            "iv", "percent", "percentage", "change",
+        ):
+            if key in value:
+                found = _snapshot_scalar(value[key])
+                if found is not None:
+                    return found
+    return None
+
+
+def _snapshot_key(payload: dict[str, Any], field: str) -> Any:
+    """IBKR responds with hyphenated keys although requests use underscores."""
+    return payload.get(field.replace("_", "-"), payload.get(field))
+
+
+def _snapshot_bid_ask(value: Any) -> tuple[float | None, float | None]:
+    if not isinstance(value, dict):
+        return None, None
+    bid = _snapshot_scalar(value.get("bid"))
+    ask = _snapshot_scalar(value.get("ask"))
+    if bid is None and isinstance(value.get("bid-price"), (dict, int, float, str)):
+        bid = _snapshot_scalar(value.get("bid-price"))
+    if ask is None and isinstance(value.get("ask-price"), (dict, int, float, str)):
+        ask = _snapshot_scalar(value.get("ask-price"))
+    return bid, ask
+
+
+def _snapshot_status(value: Any) -> str | None:
+    if isinstance(value, str):
+        return value.strip().upper() or None
+    if isinstance(value, dict):
+        for key in ("status", "value", "top_status", "top-status"):
+            status = value.get(key)
+            if isinstance(status, str) and status.strip():
+                return status.strip().upper()
+    return None
+
+
+def _snapshot_named_scalar(value: Any, *name_parts: str) -> float | None:
+    """Find a scalar whose nested key contains one of the requested names."""
+    if not isinstance(value, dict):
+        return _snapshot_scalar(value)
+    lowered = tuple(part.lower() for part in name_parts)
+    for key, nested in value.items():
+        normalized = str(key).lower().replace("_", "-")
+        if any(part in normalized for part in lowered):
+            found = _snapshot_scalar(nested)
+            if found is not None:
+                return found
+    for nested in value.values():
+        if isinstance(nested, dict):
+            found = _snapshot_named_scalar(nested, *name_parts)
+            if found is not None:
+                return found
+    return _snapshot_scalar(value)
+
+
+def _normalise_snapshot_metrics(snapshot: dict[str, Any]) -> dict[str, Any]:
+    """Keep raw MCP evidence and stable scalar fields for scanner consumers."""
+    raw = {
+        field: _snapshot_key(snapshot, field)
+        for field in SNAPSHOT_FIELDS
+        if _snapshot_key(snapshot, field) is not None
+    }
+    bid, ask = _snapshot_bid_ask(raw.get("bid_ask"))
+    midpoint = (bid + ask) / 2 if bid and ask and bid > 0 and ask > 0 else None
+    spread_pct = (
+        (ask - bid) / midpoint * 100
+        if midpoint and ask >= bid else None
+    )
+    scalars = {
+        field: _snapshot_scalar(raw.get(field))
+        for field in SNAPSHOT_FIELDS
+        if field not in {"bid_ask", "top_status", "misc_statistics"}
+    }
+    return {
+        "groups": {
+            group: [field for field in fields if field in raw]
+            for group, fields in SNAPSHOT_FIELD_GROUPS.items()
+        },
+        "raw": raw,
+        "scalars": {key: value for key, value in scalars.items() if value is not None},
+        "bid": bid,
+        "ask": ask,
+        "midpoint": midpoint,
+        "spread_pct": spread_pct,
+        "top_status": _snapshot_status(raw.get("top_status")),
+        "derived": {
+            "iv_percentile_52w": _snapshot_named_scalar(
+                raw.get("implied_volatility_percentile"), "52"
+            ),
+            "historical_vol": _snapshot_scalar(raw.get("historical_vol")),
+            "implied_vol_underlying": _snapshot_scalar(
+                raw.get("implied_vol_underlying")
+            ),
+        },
+    }
+
+
 def _fresh_iso(value: Any, max_age_seconds: float) -> bool:
     try:
         parsed = datetime.datetime.fromisoformat(
@@ -741,6 +888,11 @@ async def _resolve_market_contract(
             )
             else "FUND"
         ),
+        "sections": sorted({
+            str(section.get("security_type", "")).upper()
+            for section in match.get("sections", [])
+            if isinstance(section, dict) and section.get("security_type")
+        }),
     }
     cache["contracts"][normalized] = contract
     return contract
@@ -788,9 +940,7 @@ async def _fetch_market_instrument(
                 if contract.get("exchange") and _expected_country(normalized) != "US"
                 else {}
             ),
-            "market_data_names": [
-                "last", "prior_close", "volume", "open", "low", "high",
-            ],
+            "market_data_names": list(SNAPSHOT_FIELDS),
         },
     )
     history_result, snapshot_result = await asyncio.gather(
@@ -816,6 +966,7 @@ async def _fetch_market_instrument(
         }
         return normalized, None, error
     snapshot = snapshot_result if isinstance(snapshot_result, dict) else {}
+    snapshot_metrics = _normalise_snapshot_metrics(snapshot)
     latest = _snapshot_number(snapshot.get("last")) or bars[-1]["close"]
     fetched_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
     aliases = sorted({normalized, _contract_query(normalized), contract["symbol"]})
@@ -840,6 +991,14 @@ async def _fetch_market_instrument(
             "prior_close": _snapshot_number(snapshot.get("prior-close")),
             "volume": _snapshot_number(snapshot.get("volume")),
             "delayed": history_result.get("delayed"),
+            "quote": {
+                "bid": snapshot_metrics.get("bid"),
+                "ask": snapshot_metrics.get("ask"),
+                "midpoint": snapshot_metrics.get("midpoint"),
+                "spread_pct": snapshot_metrics.get("spread_pct"),
+                "top_status": snapshot_metrics.get("top_status"),
+            },
+            "snapshot_metrics": snapshot_metrics,
         },
         "bars": bars,
     }
@@ -956,6 +1115,273 @@ def prefetch_market_data(
     )
 
 
+def _nested_named_items(value: Any, names: set[str]) -> list[dict[str, Any]]:
+    rows = []
+    if isinstance(value, dict):
+        for key, nested in value.items():
+            if str(key).lower() in names and isinstance(nested, list):
+                rows.extend(item for item in nested if isinstance(item, dict))
+            if isinstance(nested, (dict, list)):
+                rows.extend(_nested_named_items(nested, names))
+    elif isinstance(value, list):
+        for nested in value:
+            if isinstance(nested, (dict, list)):
+                rows.extend(_nested_named_items(nested, names))
+    return rows
+
+
+async def _fetch_company_context(session, symbol, cache, contract):
+    existing = cache["company_context"].get(symbol)
+    if isinstance(existing, dict) and _fresh_iso(
+        existing.get("fetched_at"), RESEARCH_TTL_HOURS * 3600
+    ):
+        return existing
+    themes_result, connections_result = await asyncio.gather(
+        session.call("get_company_themes", {
+            "contract_id": contract["contract_id"],
+            "max_themes": 5,
+            "max_companies": 5,
+        }),
+        session.call("get_company_connections", {
+            "contract_id": contract["contract_id"],
+            "max": 20,
+        }),
+        return_exceptions=True,
+    )
+    themes = themes_result if isinstance(themes_result, dict) else {}
+    connections = connections_result if isinstance(connections_result, dict) else {}
+    linked_themes = themes.get("linked_themes", [])
+    if not isinstance(linked_themes, list):
+        linked_themes = []
+    peers = _nested_named_items(themes, {"companies", "peers", "linked_companies"})
+    context = {
+        "available": bool(themes or connections),
+        "fetched_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "theme_count": len(linked_themes),
+        "peer_count": len(peers),
+        "peer_rank": 1 if peers else None,
+        "themes": linked_themes,
+        "connections": connections.get("groups", []),
+        "source": "IBKR MCP company research",
+    }
+    cache["company_context"][symbol] = context
+    return context
+
+
+def _expiration_sort_key(item):
+    raw = str(item.get("date") or "")
+    try:
+        parsed = datetime.datetime.strptime(raw, "%Y%m%d").date()
+    except ValueError:
+        parsed = datetime.date.max
+    days = (parsed - datetime.date.today()).days
+    preferred = 0 if 21 <= days <= 75 else 1
+    regular = 0 if item.get("regular") else 1
+    return preferred, regular, abs(days - 45), parsed
+
+
+async def _fetch_options_context(session, symbol, cache, contract, spot):
+    existing = cache["options_context"].get(symbol)
+    if isinstance(existing, dict) and _fresh_iso(
+        existing.get("fetched_at"), OPTIONS_TTL_HOURS * 3600
+    ):
+        return existing
+    if "OPT" not in set(contract.get("sections", [])) or not spot or spot <= 0:
+        context = {
+            "available": False,
+            "fetched_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "reason": "option chain unavailable",
+        }
+        cache["options_context"][symbol] = context
+        return context
+    parameters = await session.call("get_option_parameters", {
+        "underlying_contract_id": contract["contract_id"],
+        "option_sec_type": "OPT",
+    })
+    expirations = parameters.get("expirations", [])
+    expirations = [item for item in expirations if isinstance(item, dict)]
+    if not expirations:
+        return {"available": False, "reason": "no expirations"}
+    expiration = sorted(expirations, key=_expiration_sort_key)[0]
+    chain = await session.call("get_option_data", {
+        "expiration_id": expiration["id"],
+        "min_strike": round(spot * 0.85, 4),
+        "max_strike": round(spot * 1.15, 4),
+    })
+    rows = chain.get("contracts", [])
+    rows = [item for item in rows if isinstance(item, dict)]
+    rows.sort(key=lambda item: abs(_number(item.get("strike")) - spot))
+    selected = rows[:5]
+    exchange = str(chain.get("exchange") or parameters.get("current_exchange") or "SMART")
+    requests = []
+    labels = []
+    for row in selected:
+        for side in ("call", "put"):
+            contract_id = row.get(f"{side}_contract_id")
+            if not contract_id:
+                continue
+            labels.append((side, _number(row.get("strike"))))
+            requests.append(session.call("get_price_snapshot", {
+                "contract_id": int(contract_id),
+                "exchange": exchange,
+                "market_data_names": [
+                    "bid_ask", "option_volume", "option_open_interest",
+                    "option_midpoint_iv", "top_status",
+                ],
+            }))
+    snapshots = await asyncio.gather(*requests, return_exceptions=True)
+    details = []
+    for (side, strike), payload in zip(labels, snapshots):
+        if not isinstance(payload, dict):
+            continue
+        bid, ask = _snapshot_bid_ask(_snapshot_key(payload, "bid_ask"))
+        midpoint = (bid + ask) / 2 if bid and ask else None
+        spread = (ask - bid) / midpoint * 100 if midpoint and ask >= bid else None
+        details.append({
+            "side": side,
+            "strike": strike,
+            "bid": bid,
+            "ask": ask,
+            "spread_pct": spread,
+            "volume": _snapshot_scalar(_snapshot_key(payload, "option_volume")),
+            "open_interest": _snapshot_scalar(
+                _snapshot_key(payload, "option_open_interest")
+            ),
+            "iv": _snapshot_scalar(_snapshot_key(payload, "option_midpoint_iv")),
+            "quote_status": _snapshot_status(_snapshot_key(payload, "top_status")),
+        })
+    calls = [item for item in details if item["side"] == "call"]
+    puts = [item for item in details if item["side"] == "put"]
+    call_volume = sum(item["volume"] or 0 for item in calls)
+    put_volume = sum(item["volume"] or 0 for item in puts)
+    call_oi = sum(item["open_interest"] or 0 for item in calls)
+    put_oi = sum(item["open_interest"] or 0 for item in puts)
+    spreads = [item["spread_pct"] for item in details if item["spread_pct"] is not None]
+    quoted = [item for item in details if item["bid"] and item["ask"]]
+    context = {
+        "available": bool(details),
+        "fetched_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "expiration": expiration.get("date"),
+        "exchange": exchange,
+        "contracts_sampled": len(details),
+        "quoted_contract_ratio": len(quoted) / len(details) if details else 0,
+        "average_spread_pct": sum(spreads) / len(spreads) if spreads else None,
+        "put_call_volume_ratio": put_volume / call_volume if call_volume > 0 else None,
+        "put_call_open_interest_ratio": put_oi / call_oi if call_oi > 0 else None,
+        "contracts": details,
+        "source": "IBKR MCP option chain snapshots",
+    }
+    cache["options_context"][symbol] = context
+    return context
+
+
+async def _prefetch_candidate_context_async(candidates):
+    cache = _read_market_cache()
+    normalized = []
+    for item in candidates or []:
+        if isinstance(item, dict):
+            symbol = _market_symbol(item.get("symbol"))
+            spot = _number(item.get("price"))
+        else:
+            symbol = _market_symbol(item)
+            spot = 0
+        if symbol and symbol not in {entry[0] for entry in normalized}:
+            normalized.append((symbol, spot))
+    research = normalized[:RESEARCH_BATCH_SIZE]
+    options_symbols = normalized[:OPTIONS_BATCH_SIZE]
+    async with ReadOnlyMCPSession() as session:
+        for symbol, spot in research:
+            contract = await _resolve_market_contract(session, symbol, cache)
+            if not contract:
+                continue
+            try:
+                await _fetch_company_context(session, symbol, cache, contract)
+            except Exception as exc:
+                cache["failures"][f"research:{symbol}"] = {
+                    "failed_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                    "error": str(exc)[:500],
+                }
+            if (symbol, spot) in options_symbols:
+                try:
+                    await _fetch_options_context(session, symbol, cache, contract, spot)
+                except Exception as exc:
+                    cache["failures"][f"options:{symbol}"] = {
+                        "failed_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                        "error": str(exc)[:500],
+                    }
+    _write_market_cache(cache)
+    return {
+        symbol: {
+            "company_context": cache["company_context"].get(symbol, {}),
+            "options_context": cache["options_context"].get(symbol, {}),
+        }
+        for symbol, _spot in normalized
+    }
+
+
+def prefetch_candidate_context(candidates):
+    """Lazy research for already-ranked candidates, never the full universe."""
+    if not candidates:
+        return {}
+    return asyncio.run(_prefetch_candidate_context_async(candidates))
+
+
+async def _discover_topic_candidates_async(queries):
+    cache = _read_market_cache()
+    cached = cache.get("topic_discovery", {})
+    if isinstance(cached, dict) and _fresh_iso(
+        cached.get("fetched_at"), RESEARCH_TTL_HOURS * 3600
+    ):
+        return cached
+    discovered = []
+    async with ReadOnlyMCPSession() as session:
+        for query in queries:
+            search = await session.call(
+                "search_investment_topics", {"query": query, "max": 3}
+            )
+            themes = search.get("themes", [])
+            if not themes:
+                continue
+            theme = themes[0]
+            if not isinstance(theme, dict) or not theme.get("key"):
+                continue
+            details = await session.call("get_theme_details", {
+                "key": theme["key"], "max": 12, "offset": 0, "max_funds": 0,
+            })
+            for company in details.get("linked_companies", []):
+                if not isinstance(company, dict):
+                    continue
+                symbol = str(company.get("symbol") or "").strip().upper()
+                if symbol:
+                    discovered.append({
+                        "symbol": symbol,
+                        "topic": details.get("name") or theme.get("name") or query,
+                        "theme_key": theme["key"],
+                        "rank": company.get("rank"),
+                        "contract_id": company.get("contract_id"),
+                    })
+    result = {
+        "fetched_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "queries": list(queries),
+        "candidates": list({item["symbol"]: item for item in discovered}.values()),
+        "source": "IBKR MCP investment topics",
+    }
+    cache["topic_discovery"] = result
+    _write_market_cache(cache)
+    return result
+
+
+def discover_topic_candidates(queries=None):
+    """Weekly thematic discovery; scoring remains in the market scanner."""
+    if queries is None:
+        configured = os.environ.get(
+            "IBKR_MCP_DISCOVERY_TOPICS",
+            "ai,semiconductor,cybersecurity,energy",
+        )
+        queries = [item.strip() for item in configured.split(",") if item.strip()]
+    return asyncio.run(_discover_topic_candidates_async(tuple(queries)))
+
+
 def _number(value: Any, default: float = 0.0) -> float:
     try:
         number = float(str(value).replace(",", ""))
@@ -977,6 +1403,11 @@ def _normalise_positions(payload: dict[str, Any]) -> list[dict[str, Any]]:
             "Buy_Price": _number(item.get("average_price")),
             "Current_Price": _number(item.get("market_price")),
             "Currency": str(item.get("currency", "")).upper() or "USD",
+            "Contract_ID": item.get("contract_id"),
+            "Asset_Class": str(item.get("asset_class") or ""),
+            "Market_Value_IBKR": _number(item.get("market_value")),
+            "Daily_PnL_IBKR": _number(item.get("daily_pnl")),
+            "Unrealized_PnL_IBKR": _number(item.get("unrealized_pnl")),
         })
     return rows
 
@@ -1075,12 +1506,14 @@ def _normalise_history_date(value: Any) -> str:
 
 async def _call_with_retry(
     name: str, *, required: bool = True, attempts: int = 2,
-    interactive: bool = False,
+    interactive: bool = False, arguments: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     last_error: Exception | None = None
     for attempt in range(attempts):
         try:
-            return await call_tool(name, interactive=interactive)
+            return await call_tool(
+                name, arguments=arguments, interactive=interactive
+            )
         except IBKRMCPAuthorizationRequired:
             raise
         except Exception as exc:
@@ -1091,6 +1524,91 @@ async def _call_with_retry(
         raise IBKRMCPError(f"IBKR MCP {name} indisponibil: {last_error}")
     print(f"  -> IBKR MCP {name} indisponibil; continuăm fără el.")
     return {}
+
+
+def _normalise_trades(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    """Persist an analysis-ready journal while leaving future score links null."""
+    rows = []
+    for item in payload.get("trades", []):
+        if not isinstance(item, dict):
+            continue
+        symbol = str(item.get("symbol") or "").strip().upper()
+        if not symbol:
+            continue
+        rows.append({
+            "trade_id": str(item.get("trade_id") or ""),
+            "order_id": item.get("order_id"),
+            "symbol": symbol,
+            "side": str(item.get("side") or "").upper(),
+            "size": _number(item.get("size")),
+            "price": _number(item.get("price")),
+            "currency": str(item.get("currency") or "").upper(),
+            "commission": _number(item.get("commission")),
+            "net_amount": _number(item.get("net_amount")),
+            "realized_pnl": _number(item.get("realized_pnl")),
+            "trade_time": str(item.get("trade_time") or ""),
+            "order_type": str(item.get("order_type") or ""),
+            "stop_price": _number(item.get("stop_price")),
+            "security_type": str(item.get("sec_type") or ""),
+            # Filled by the scanner when a contemporaneous recommendation is
+            # available; never back-filled with invented historical evidence.
+            "initial_score": None,
+            "portfolio_state_at_entry": None,
+            "target_at_entry": None,
+            "outcome": None,
+            "entry_price": None,
+            "exit_price": None,
+            "holding_period_days": None,
+        })
+    rows.sort(key=lambda item: item.get("trade_time") or "")
+    open_lots: dict[str, list[dict[str, Any]]] = {}
+    for row in rows:
+        symbol = row["symbol"]
+        size = abs(_number(row.get("size")))
+        if row["side"] in {"BUY", "BOT"}:
+            open_lots.setdefault(symbol, []).append({
+                "remaining": size,
+                "price": row["price"],
+                "time": row["trade_time"],
+            })
+            row["entry_price"] = row["price"]
+            continue
+        if row["side"] not in {"SELL", "SLD"}:
+            continue
+        remaining = size
+        matched = []
+        for lot in open_lots.get(symbol, []):
+            if remaining <= 0:
+                break
+            quantity = min(remaining, lot["remaining"])
+            if quantity <= 0:
+                continue
+            matched.append((lot, quantity))
+            lot["remaining"] -= quantity
+            remaining -= quantity
+        if matched:
+            matched_size = sum(quantity for _lot, quantity in matched)
+            row["entry_price"] = sum(
+                lot["price"] * quantity for lot, quantity in matched
+            ) / matched_size
+            row["exit_price"] = row["price"]
+            try:
+                entry_time = min(
+                    datetime.datetime.fromisoformat(
+                        str(lot["time"]).replace("Z", "+00:00")
+                    ) for lot, _quantity in matched
+                )
+                exit_time = datetime.datetime.fromisoformat(
+                    str(row["trade_time"]).replace("Z", "+00:00")
+                )
+                row["holding_period_days"] = round(
+                    (exit_time - entry_time).total_seconds() / 86400, 3
+                )
+            except (TypeError, ValueError):
+                pass
+        pnl = _number(row.get("realized_pnl"))
+        row["outcome"] = "win" if pnl > 0 else "loss" if pnl < 0 else "flat"
+    return rows
 
 
 async def build_account_snapshot(*, interactive: bool = False) -> dict[str, Any]:
@@ -1111,6 +1629,14 @@ async def build_account_snapshot(*, interactive: bool = False) -> dict[str, Any]
     performance = await _call_with_retry(
         "get_pa_performance_all_periods", required=False, attempts=1,
         interactive=interactive,
+    )
+    allocation = await _call_with_retry(
+        "get_pa_allocation", arguments={"type": "ALL"}, required=False,
+        attempts=1, interactive=interactive,
+    )
+    trades = await _call_with_retry(
+        "get_account_trades", arguments={"period": "DAYS_90"},
+        required=False, attempts=1, interactive=interactive,
     )
 
     base_currency = str(summary.get("currency", "EUR")).upper() or "EUR"
@@ -1170,6 +1696,9 @@ async def build_account_snapshot(*, interactive: bool = False) -> dict[str, Any]
         "positions": positions.get("positions", []),
         "nav_history": nav_history,
         "cash_history": cash_history,
+        "portfolio_allocation": allocation,
+        "account_performance": performance,
+        "trade_journal": _normalise_trades(trades),
         "_position_rows": _normalise_positions(positions),
         "_order_rows": _normalise_orders(orders),
     }
@@ -1190,6 +1719,8 @@ def sync_account_snapshot(
         position_rows,
         columns=[
             "Symbol", "Shares", "Buy_Price", "Current_Price", "Currency",
+            "Contract_ID", "Asset_Class", "Market_Value_IBKR",
+            "Daily_PnL_IBKR", "Unrealized_PnL_IBKR",
         ],
     ).to_csv("tws_positions.csv", index=False)
     pd.DataFrame(

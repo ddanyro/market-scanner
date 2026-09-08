@@ -1,0 +1,26 @@
+{
+  "daily_snapshots": 251,
+  "parse_failures": 0,
+  "recommendations": 291505,
+  "tickers": 1757,
+  "first_date": "2026-01-01",
+  "last_date": "2026-09-08",
+  "options_observed": 0,
+  "portfolio_fit_observed": 0,
+  "outcome_counts": {
+    "1": 208251,
+    "5": 202047,
+    "10": 192018,
+    "20": 172536,
+    "60": 110137
+  },
+  "rejected_price_paths": {
+    "1": 97,
+    "5": 331,
+    "10": 524,
+    "20": 781,
+    "60": 1081
+  },
+  "ibkr_trades": 159,
+  "ibkr_trades_matched": 59
+}

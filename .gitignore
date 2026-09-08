@@ -28,5 +28,8 @@ firebase-debug.*.log
 .ibkr_mcp_credentials.json
 .ibkr_mcp_market_cache.json
 
+# Large local validation dataset; aggregated reports remain versioned.
+analysis/enhanced_scoring_validation/recommendations_with_outcomes.csv
+
 # Editor files
 *.code-workspace

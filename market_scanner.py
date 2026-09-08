@@ -47,6 +47,8 @@ import market_security
 import market_data
 import bvb_public_market_data
 import buy_now_push
+import enhanced_scoring
+import shadow_validation
 
 BUY_RESEARCH_UNIVERSES = {
     'SUA': [
@@ -631,6 +633,38 @@ def _tws_instrument_market_price(instrument):
         except (TypeError, ValueError):
             continue
     return None
+
+
+def _ibkr_enhanced_market_fields(instrument):
+    """Flatten cached MCP evidence without inventing unavailable values."""
+    market_snapshot = (instrument or {}).get('market_data', {})
+    metrics = market_snapshot.get('snapshot_metrics', {})
+    if not isinstance(metrics, dict):
+        return {}
+    scalars = metrics.get('scalars', {})
+    derived = metrics.get('derived', {})
+    quote = market_snapshot.get('quote', {})
+    raw = metrics.get('raw', {})
+    fields = {
+        'Bid': quote.get('bid'),
+        'Ask': quote.get('ask'),
+        'Spread_Pct': quote.get('spread_pct'),
+        'Quote_Status': quote.get('top_status'),
+        'Avg_90D_USD_Volume': scalars.get('avg_90d_usd_volume'),
+        'Historical_Vol': derived.get('historical_vol'),
+        'Implied_Volatility': derived.get('implied_vol_underlying'),
+        'IV_Percentile': derived.get('iv_percentile_52w'),
+        'YTD_Change_IBKR': scalars.get('year_to_date_change'),
+        'Perf_1D_IBKR': scalars.get('cumulative_perf_1d'),
+        'Perf_1W_IBKR': scalars.get('cumulative_perf_1w'),
+        'Perf_1M_IBKR': scalars.get('cumulative_perf_1m'),
+        'Perf_YTD_IBKR': scalars.get('cumulative_perf_ytd'),
+        'Perf_1Y_IBKR': scalars.get('cumulative_perf_1y'),
+        'Dividend_Yield_IBKR': scalars.get('dividend_yield'),
+        'IBKR_Misc_Statistics': raw.get('misc_statistics'),
+        'IBKR_Snapshot_Groups': metrics.get('groups', {}),
+    }
+    return {key: value for key, value in fields.items() if value is not None}
 
 
 def _instrument_data_attribution(symbol, instrument):
@@ -1884,6 +1918,60 @@ def _external_research_score(item):
     return score
 
 
+def _enrich_ibkr_candidate_context(items, limit=8):
+    """Fetch themes/options only for the strongest already-scanned names."""
+    candidates = [dict(item) for item in (items or []) if isinstance(item, dict)]
+    if not candidates:
+        return candidates
+    ranked = sorted(
+        candidates,
+        key=lambda item: (
+            -_external_research_score(_prepare_external_research_candidate(item)),
+            str(item.get('Ticker') or ''),
+        ),
+    )
+    selected = [
+        item for item in ranked
+        if str(item.get('Decision') or '').upper() in {'BUY', 'WAIT'}
+    ][:limit]
+    selected_rank = {
+        str(item.get('Ticker') or '').upper(): rank
+        for rank, item in enumerate(selected, start=1)
+    }
+    contexts = {}
+    if (
+        selected
+        and os.environ.get('GITHUB_ACTIONS') != 'true'
+        and os.environ.get('IBKR_MCP_RESEARCH_ENABLED', '1').lower()
+        not in {'0', 'false', 'no', 'off'}
+    ):
+        try:
+            import ibkr_mcp
+            contexts = ibkr_mcp.prefetch_candidate_context([{
+                'symbol': item.get('Ticker'),
+                'price': item.get('Price_Native') or item.get('Price'),
+            } for item in selected])
+        except Exception as exc:
+            print(f"  -> Contextul IBKR MCP themes/options este indisponibil: {exc}")
+    for item in candidates:
+        symbol = str(item.get('Ticker') or '').upper()
+        context = contexts.get(symbol, {})
+        rank = selected_rank.get(symbol)
+        item['Options_Collection_Eligible'] = rank is not None
+        item['Options_Collection_Rank'] = rank
+        item['Options_Collection_Selected'] = bool(rank and rank <= 3)
+        if context.get('company_context'):
+            item['Company_Context'] = context['company_context']
+        if context.get('options_context'):
+            item['Options_Context'] = context['options_context']
+        item['Options_Data_Available'] = bool(
+            isinstance(item.get('Options_Context'), dict)
+            and item['Options_Context'].get('available')
+        )
+        item.update(enhanced_scoring.calculate_scores(item))
+    return candidates
+
+
 def _external_candidate_has_reliable_levels(item):
     """Validează nivelurile externe fără a impune filtrul strict al watchlistului."""
     symbol = str(item.get('Ticker', '')).upper()
@@ -2250,6 +2338,33 @@ def ensure_buy_research_candidates(
         market: list(symbols) for market, symbols in BUY_RESEARCH_UNIVERSES.items()
     }
     us_universe = load_complete_us_equity_universe() if include_us else []
+    topic_priority_symbols = set()
+    if (
+        refresh_missing and include_us and len(us_universe) >= 50
+        and os.environ.get('GITHUB_ACTIONS') != 'true'
+        and os.environ.get('IBKR_MCP_DISCOVERY_ENABLED', '1').lower()
+        not in {'0', 'false', 'no', 'off'}
+    ):
+        try:
+            import ibkr_mcp
+            topic_discovery = ibkr_mcp.discover_topic_candidates()
+            state['ibkr_topic_discovery'] = topic_discovery
+            topic_priority_symbols = {
+                str(item.get('symbol') or '').upper()
+                for item in topic_discovery.get('candidates', [])
+                if item.get('symbol')
+            }
+            us_universe = list(dict.fromkeys(
+                list(topic_priority_symbols) + us_universe
+            ))
+        except Exception as exc:
+            print(f"  -> Candidate discovery IBKR MCP indisponibil: {exc}")
+    elif isinstance(state.get('ibkr_topic_discovery'), dict):
+        topic_priority_symbols = {
+            str(item.get('symbol') or '').upper()
+            for item in state['ibkr_topic_discovery'].get('candidates', [])
+            if item.get('symbol')
+        }
     if us_universe:
         research_universes['SUA'] = us_universe
     if bvb_universe:
@@ -2357,6 +2472,8 @@ def ensure_buy_research_candidates(
             fallback_by_symbol=watchlist_by_symbol,
             limit=priority_limit,
         )
+        if market == 'SUA':
+            priority_symbols.update(topic_priority_symbols)
         if market == 'România / BVB':
             symbols = _select_bvb_research_symbols(
                 bvb_universe,
@@ -2407,7 +2524,9 @@ def ensure_buy_research_candidates(
                 data['BVB_Metadata'] = bvb_metadata[symbol]
             by_symbol[symbol.upper()] = data
             completed_by_market[market] += 1
-    state['external_buy_research'] = list(by_symbol.values())
+    state['external_buy_research'] = _enrich_ibkr_candidate_context(
+        list(by_symbol.values())
+    )
     if include_bvb:
         state['bvb_universe_stats'] = {
             'discovered': len(bvb_universe),
@@ -3812,6 +3931,9 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
 
             sell_reason = ", ".join(positive_factors)
 
+        enhanced_market_fields = _ibkr_enhanced_market_fields(
+            selected_market_instrument
+        )
         result = {
             'Symbol': ticker,
             'Company_Name': company_name,
@@ -3819,6 +3941,11 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             'Current_Price': round(current_price, 2),
             'Price_Native': round(current_price_native, 2),
             'Currency': currency,
+            'Contract_ID': row.get('contract_id'),
+            'Asset_Class': row.get('asset_class'),
+            'Market_Value_IBKR': row.get('market_value_ibkr'),
+            'Daily_PnL_IBKR': row.get('daily_pnl_ibkr'),
+            'Unrealized_PnL_IBKR': row.get('unrealized_pnl_ibkr'),
             'Buy_Price': round(buy_price, 2),
             'Target': target_display,  # None dacă nu există
             'Trail_Stop': round(trail_stop_price, 2),
@@ -3850,7 +3977,19 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             'Daily_Change': round(daily_change, 4),
             'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
             **data_attribution,
+            **enhanced_market_fields,
         }
+        portfolio_score_input = dict(result, Decision='HOLD', ATR_14=last_atr)
+        portfolio_scores = enhanced_scoring.calculate_scores(
+            portfolio_score_input
+        )
+        result.update({
+            key: value for key, value in portfolio_scores.items()
+            if key in {
+                'volatility_score', 'liquidity_score', 'risk_score',
+                'volatility_regime', 'score_version',
+            }
+        })
         return result
         
     except Exception as e:
@@ -4180,6 +4319,9 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             if ticker.upper().endswith('.RO')
             else {}
         )
+        enhanced_market_fields = _ibkr_enhanced_market_fields(
+            selected_market_instrument
+        )
 
         result = {
             'Ticker': ticker,
@@ -4236,8 +4378,10 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'Check_Details': " ".join(check_details),
             'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
             **data_attribution,
+            **enhanced_market_fields,
         }
         result.update(bvb_liquidity_metrics)
+        result.update(enhanced_scoring.calculate_scores(result))
         return result
         
     except Exception as e:
@@ -5755,6 +5899,7 @@ def generate_html_dashboard(
     filename="index.html",
     full_state=None,
     swing_data_override=None,
+    run_mode=None,
 ):
     if full_state is None: full_state = {}
     market_indicators = dict(market_indicators or {})
@@ -8386,6 +8531,59 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             'volume': item.get('Volume'),
             'strategy': item.get('Strategy'),
             'relative_strength': item.get('RS_vs_SPX'),
+            'bid': item.get('Bid'),
+            'ask': item.get('Ask'),
+            'spread_pct': item.get('Spread_Pct'),
+            'quote_status': item.get('Quote_Status'),
+            'avg_90d_usd_volume': item.get('Avg_90D_USD_Volume'),
+            'historical_vol': item.get('Historical_Vol'),
+            'implied_volatility': item.get('Implied_Volatility'),
+            'iv_percentile': item.get('IV_Percentile'),
+            'performance_ibkr': {
+                '1d': item.get('Perf_1D_IBKR'),
+                '1w': item.get('Perf_1W_IBKR'),
+                '1m': item.get('Perf_1M_IBKR'),
+                'ytd': item.get('Perf_YTD_IBKR'),
+                '1y': item.get('Perf_1Y_IBKR'),
+            },
+            'current_decision': item.get(
+                'current_decision', item.get('Decision')
+            ),
+            'enhanced_decision': item.get(
+                'enhanced_decision', item.get('Decision')
+            ),
+            'enhanced_decision_reason': item.get(
+                'enhanced_decision_reason', ''
+            ),
+            'raw_stock_score': item.get('raw_stock_score'),
+            'portfolio_adjusted_score': item.get(
+                'portfolio_adjusted_score'
+            ),
+            'enhanced_stop': item.get('enhanced_stop'),
+            'enhanced_stop_distance_pct': item.get(
+                'enhanced_stop_distance_pct'
+            ),
+            'options_collection_eligible': bool(
+                item.get('Options_Collection_Eligible')
+            ),
+            'options_collection_rank': item.get(
+                'Options_Collection_Rank'
+            ),
+            'options_collection_selected': bool(
+                item.get('Options_Collection_Selected')
+            ),
+            'options_data_available': bool(
+                item.get('Options_Data_Available')
+            ),
+            'options_context': item.get('Options_Context'),
+            'score_components': {
+                key: item.get(key) for key in (
+                    'technical_score', 'momentum_score', 'research_score',
+                    'volatility_score', 'liquidity_score', 'options_score',
+                    'relative_opportunity_score', 'risk_reward_score',
+                    'portfolio_fit_score', 'risk_score',
+                )
+            },
             'data_as_of': item.get('Date'),
             'market_data_source': item.get('Market_Data_Source'),
             'market_data_fetched_at': item.get(
@@ -8460,6 +8658,33 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     )
     sizing_snapshot['buy_candidates'] = buy_candidate_payload
     buy_candidate_payload = analysis._size_buy_candidates(sizing_snapshot)
+    if (
+        run_mode in {'all', 'watchlist', 'portfolio', 'international'}
+        and not os.environ.get('PYTEST_CURRENT_TEST')
+        and os.environ.get('SHADOW_VALIDATION_ENABLED', '1').lower()
+        not in {'0', 'false', 'no', 'off'}
+    ):
+        try:
+            shadow_snapshot = shadow_validation.append_snapshot(
+                buy_candidate_payload,
+                full_state,
+                run_mode=run_mode,
+            )
+            shadow_validation.generate_readiness_report()
+            full_state['shadow_validation_latest'] = {
+                key: shadow_snapshot.get(key) for key in (
+                    'snapshot_id', 'recorded_at', 'sample_partition',
+                    'candidate_count', 'policy_id', 'policy_hash',
+                )
+            }
+            market_utils.save_state(full_state)
+            print(
+                '  -> Shadow validation: '
+                f"{shadow_snapshot['candidate_count']} predicții "
+                'point-in-time salvate.'
+            )
+        except Exception as exc:
+            print(f'  ⚠ Shadow validation indisponibilă: {exc}')
     ai_buy_candidate_payload, blocked_ai_buy_candidates, ai_market_gates = (
         _filter_ai_buy_candidates_by_market_signal(
             buy_candidate_payload,
@@ -8562,6 +8787,15 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         full_state['buy_recommendation_history'] = (
             buy_recommendation_history
         )
+    raw_trade_journal = (
+        tws_account_data.get('trade_journal', [])
+        if isinstance(tws_account_data, dict) else []
+    )
+    full_state['ibkr_trade_journal'] = (
+        analysis.link_trade_journal_to_recommendations(
+            raw_trade_journal, buy_recommendation_history
+        )
+    )
     promoted_symbols = _promote_validated_external_candidates(
         portfolio_ai_result, buy_candidate_payload
     )
@@ -9327,6 +9561,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         <th>Analysts</th>
                         <th>Sector</th>
                         <th style="color: #9c27b0;">Decizie</th>
+                        <th style="color: #7c3aed;">Enhanced</th>
+                        <th>Raw / Adj.</th>
                         <th style="width: 90px; color: #E91E63;" onmousemove="showTooltip(event, '<strong>Smart Entry Price (Tactic)</strong><br><br>Sugestie de preț bazată pe analiză tehnică (Fibonacci, S/R, Patterns) pentru intrări optimizate.<br><br>⚡ <strong>STOP:</strong> Intrare pe momentum (Breakout/Engulfing).<br>📉 <strong>LIMIT:</strong> Intrare pe corecție (Fib/Support).')" onmouseout="hideTooltip()">Entry</th>
                         <th onmousemove="showTooltip(event, '<strong>RS vs SPX (Relative Strength vs S&P 500) pe 60 de zile.</strong><br><br>Reprezintă diferența dintre randamentul acțiunii și randamentul indexului S&P 500 în ultimele 60 de zile.<br><br><em>Exemplu:</em><br>Dacă acțiunea a crescut cu 20% și S&P 500 cu 5% => <strong>RS = +15%</strong>.<br>Dacă valoarea este pozitivă, acțiunea performează mai bine decât piața.')" onmouseout="hideTooltip()">RS vs SPX</th>
                         <th>Trend</th>
@@ -9439,6 +9675,21 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             rr_val = row.get('RR_Ratio', 0)
             rr_display = f"1:{rr_val:.1f}" if rr_val > 0 else "-"
             rr_color = "#4caf50" if rr_val >= 3 else "#ff9800" if rr_val >= 2 else "#f44336" if rr_val > 0 else "#888"
+            enhanced_decision = row.get(
+                'enhanced_decision', row.get('Decision', '-')
+            )
+            enhanced_reason = html.escape(str(
+                row.get('enhanced_decision_reason') or
+                'Shadow score: nicio modificare față de baseline.'
+            ), quote=True)
+            raw_score = _safe_float_text(row.get('raw_stock_score'))
+            adjusted_score = _safe_float_text(
+                row.get('portfolio_adjusted_score')
+            )
+            score_display = (
+                f"{raw_score:.1f} / {adjusted_score:.1f}"
+                if raw_score is not None and adjusted_score is not None else '-'
+            )
 
             # Strategy Badge
             strat = row.get('Strategy', '-')
@@ -9491,6 +9742,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         <td>{analysts}</td>
                         <td style="font-size: 0.8rem; color: #aaa;">{sector}</td>
                         <td style="font-weight: 700; color: {row.get('Decision_Color', '#888')};" onmousemove="showTooltip(event, '{row.get('Check_Details', '')}')" onmouseout="hideTooltip()">{row.get('Decision', '-')} ({row.get('Checks_Passed', 0)}/4)</td>
+                        <td style="font-weight:700;color:{'#ff9800' if enhanced_decision != row.get('Decision') else '#7c3aed'};" onmousemove="showTooltip(event, '{enhanced_reason}')" onmouseout="hideTooltip()">{enhanced_decision}</td>
+                        <td style="font-variant-numeric:tabular-nums;">{score_display}</td>
                         <td style="text-align: center;">{smart_entry_html}</td>
                         <td style="color: {'#4caf50' if row.get('RS_vs_SPX', 0) and row.get('RS_vs_SPX', 0) > 0 else '#f44336'};">{row.get('RS_vs_SPX', '-') if row.get('RS_vs_SPX') is not None else '-'}%</td>
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
@@ -11025,7 +11278,9 @@ def update_watchlist_data(
         
         print(f"  → {cached_count} cached, {updated_count} updated")
     
-    state['watchlist'] = retained_results + watchlist_results
+    state['watchlist'] = retained_results + _enrich_ibkr_candidate_context(
+        watchlist_results
+    )
     return state
 
 def main():
@@ -11438,6 +11693,7 @@ def main():
         "index.html",
         state,
         swing_data_override=cached_swing_data,
+        run_mode=args.mode,
     )
 
 if __name__ == "__main__":

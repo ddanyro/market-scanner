@@ -137,6 +137,8 @@ class TestIBKRMCPNormalisation(unittest.TestCase):
 
 class TestIBKRMCPMarketData(unittest.IsolatedAsyncioTestCase):
     async def test_fetch_market_instrument_combines_history_and_snapshot(self):
+        requested_snapshot_fields = []
+
         class FakeSession:
             async def call(self, name, arguments=None):
                 if name == "search_contracts":
@@ -154,7 +156,17 @@ class TestIBKRMCPMarketData(unittest.IsolatedAsyncioTestCase):
                         "delayed": 0,
                     }
                 if name == "get_price_snapshot":
-                    return {"last": {"price": 224.5}, "volume": 1_100_000}
+                    requested_snapshot_fields.extend(arguments["market_data_names"])
+                    return {
+                        "last": {"price": 224.5},
+                        "volume": 1_100_000,
+                        "bid-ask": {"bid": 224.4, "ask": 224.6},
+                        "top-status": "REALTIME",
+                        "historical-vol": 0.24,
+                        "implied-vol-underlying": {"annual_iv": 0.31},
+                        "implied-volatility-percentile": {"52-week": 0.82},
+                        "avg-90d-usd-volume": 2_000_000_000,
+                    }
                 raise AssertionError(name)
 
         cache = {"contracts": {}, "instruments": {}}
@@ -166,6 +178,14 @@ class TestIBKRMCPMarketData(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(instrument["market_data"]["market_price"], 224.5)
         self.assertEqual(instrument["bars"][0]["close"], 224)
         self.assertEqual(instrument["data_provider"], "IBKR MCP")
+        self.assertIn("bid_ask", requested_snapshot_fields)
+        self.assertIn("implied_volatility_percentile", requested_snapshot_fields)
+        quote = instrument["market_data"]["quote"]
+        self.assertEqual(quote["top_status"], "REALTIME")
+        self.assertAlmostEqual(quote["spread_pct"], 0.08908686, places=5)
+        metrics = instrument["market_data"]["snapshot_metrics"]
+        self.assertEqual(metrics["derived"]["iv_percentile_52w"], 0.82)
+        self.assertEqual(metrics["derived"]["historical_vol"], 0.24)
 
     async def test_fresh_instrument_uses_cache_without_network(self):
         now = __import__("datetime").datetime.now(
@@ -236,7 +256,7 @@ class TestIBKRMCPBuildSnapshot(unittest.IsolatedAsyncioTestCase):
                 )
 
         call_tool.assert_awaited_once_with(
-            "get_account_summary", interactive=False
+            "get_account_summary", arguments=None, interactive=False
         )
 
     async def test_retry_forwards_interactive_reauthorisation(self):
@@ -251,7 +271,7 @@ class TestIBKRMCPBuildSnapshot(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(result, {"ok": True})
         call_tool.assert_awaited_once_with(
-            "get_account_summary", interactive=True
+            "get_account_summary", arguments=None, interactive=True
         )
 
     async def test_build_snapshot_maps_read_only_tools(self):
@@ -280,6 +300,17 @@ class TestIBKRMCPBuildSnapshot(unittest.IsolatedAsyncioTestCase):
                     }
                 }
             },
+            "get_pa_allocation": {
+                "realtime": True,
+                "allocations": {"SECTOR": {"long_positions": {"items": []}}},
+            },
+            "get_account_trades": {
+                "trades": [{
+                    "trade_id": "T1", "symbol": "AAPL", "side": "BUY",
+                    "size": 2, "price": 200, "commission": 1,
+                    "realized_pnl": 0, "trade_time": "2026-08-01T10:00:00Z",
+                }]
+            },
         }
 
         async def fake_call(name, **_kwargs):
@@ -297,6 +328,9 @@ class TestIBKRMCPBuildSnapshot(unittest.IsolatedAsyncioTestCase):
             payload["accounts"][0]["cash_by_currency"]["USD"], 100
         )
         self.assertEqual(payload["nav_history"][0]["nav"], 1000)
+        self.assertTrue(payload["portfolio_allocation"]["realtime"])
+        self.assertEqual(payload["trade_journal"][0]["symbol"], "AAPL")
+        self.assertIsNone(payload["trade_journal"][0]["initial_score"])
 
 
 if __name__ == "__main__":

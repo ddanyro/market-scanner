@@ -127,7 +127,12 @@ def sync_ibkr(allow_flex=True):
                       'Investment': invest,
                       'Trail_Pct': 0,
                       'Trail_Stop_IBKR': 0,
-                      'Currency': str(r.get('Currency', 'USD'))
+                      'Currency': str(r.get('Currency', 'USD')),
+                      'Contract_ID': r.get('Contract_ID'),
+                      'Asset_Class': str(r.get('Asset_Class', '')),
+                      'Market_Value_IBKR': float(r.get('Market_Value_IBKR', 0) or 0),
+                      'Daily_PnL_IBKR': float(r.get('Daily_PnL_IBKR', 0) or 0),
+                      'Unrealized_PnL_IBKR': float(r.get('Unrealized_PnL_IBKR', 0) or 0),
                   })
              print(f"  -> Încărcate {len(positions)} poziții din TWS.")
         except Exception as ex:

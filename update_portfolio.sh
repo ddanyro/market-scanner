@@ -17,6 +17,20 @@ GENERATED_FILES=(
     "tradeville_account.enc.json"
     "tws_account.enc.json"
     "tws_account_risk.json"
+    "shadow_predictions.jsonl"
+    "analysis/shadow_forward_validation/readiness_report.md"
+    "analysis/shadow_forward_validation/forward_validation_report.md"
+    "analysis/shadow_forward_validation/labelled_predictions.csv"
+    "analysis/shadow_forward_validation/coverage.csv"
+    "analysis/shadow_forward_validation/performance.csv"
+    "analysis/shadow_forward_validation/model_performance.csv"
+    "analysis/shadow_forward_validation/score_buckets_forward.csv"
+    "analysis/shadow_forward_validation/risk_metrics.csv"
+    "analysis/shadow_forward_validation/options_control.csv"
+    "analysis/shadow_forward_validation/market_regimes_forward.csv"
+    "analysis/shadow_forward_validation/component_analysis.csv"
+    "analysis/shadow_forward_validation/portfolio_fit_analysis.csv"
+    "analysis/shadow_forward_validation/decision_disagreements.csv"
 )
 
 log_step() {
@@ -95,6 +109,11 @@ fi
 
 log_step "Actualizare portofoliu"
 "$PYTHON_BIN" -u market_scanner.py --mode portfolio --tws
+
+log_step "Evaluare forward shadow"
+if ! "$PYTHON_BIN" -u evaluate_shadow_forward.py; then
+    echo "Avertisment: evaluarea outcome-urilor nu a reușit; predicțiile contemporane au fost păstrate." >&2
+fi
 
 log_step "Pregătire fișiere generate"
 FILES_TO_ADD=()
