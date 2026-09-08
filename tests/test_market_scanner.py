@@ -65,6 +65,28 @@ class TestPortfolioOptionsContext(unittest.TestCase):
 
 class TestMarketAnalysis(unittest.TestCase):
     """Test market analysis functions."""
+
+    def test_market_indicator_history_falls_back_when_six_months_is_empty(self):
+        dates = pd.date_range('2026-09-02', periods=5, freq='B')
+        valid = pd.DataFrame({
+            'Open': [15.0] * 5,
+            'High': [16.0] * 5,
+            'Low': [14.0] * 5,
+            'Close': [15.1, 15.2, 15.3, 15.4, 15.5],
+        }, index=dates)
+        ticker_data = Mock()
+        ticker_data.history.side_effect = [pd.DataFrame(), valid]
+
+        history, period = market_scanner._download_market_indicator_history(
+            ticker_data
+        )
+
+        self.assertEqual(period, '3mo')
+        self.assertEqual(len(history), 5)
+        self.assertEqual(
+            [call.kwargs['period'] for call in ticker_data.history.call_args_list],
+            ['6mo', '3mo'],
+        )
     
     def test_event_impact_cpi(self):
         """Test CPI event impact description."""

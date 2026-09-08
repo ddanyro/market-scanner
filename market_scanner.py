@@ -3058,6 +3058,28 @@ def calculate_historical_monthly_returns(cache_file=HISTORICAL_RETURNS_FILE, ttl
 
     return returns
 
+def _download_market_indicator_history(
+    ticker_data,
+    periods=('6mo', '3mo', '1mo', '5d'),
+):
+    """Returnează primul istoric Yahoo valid, cu fallback pe perioade scurte."""
+    for period in periods:
+        try:
+            history = ticker_data.history(period=period)
+        except Exception as error:
+            print(
+                f"  ⚠ Istoric Yahoo indisponibil pentru {period}: "
+                f"{str(error)[:80]}"
+            )
+            continue
+        if history is None or history.empty or 'Close' not in history.columns:
+            continue
+        history = history.dropna(subset=['Close'])
+        if not history.empty:
+            return history, period
+    return pd.DataFrame(), None
+
+
 def get_market_indicators():
     """Preia indicatori volum și sentiment, cu persistență locală."""
     indicators = {}
@@ -3105,10 +3127,11 @@ def get_market_indicators():
         try:
             time.sleep(0.5)
             data = yf.Ticker(ticker)
-            # Încercăm să luăm istoric scurt pentru update, sau lung dacă nu avem local
-            hist = data.history(period="6mo")
-            if not hist.empty:
-                hist = hist.dropna(subset=['Close'])
+            # Unele simboluri Yahoo (în special ^VIX) pot refuza punctual
+            # perioada 6mo, deși perioadele 3mo/1mo/5d funcționează.
+            hist, history_period = _download_market_indicator_history(data)
+            if history_period and history_period != '6mo':
+                print(f"  ℹ {name}: fallback Yahoo {history_period}")
             
             current_val = None
             
@@ -3188,7 +3211,8 @@ def get_market_indicators():
                     'history': data_points[-60:],
                     'history_dates': [x['date'] for x in history_db[name]][-60:],
                     'ohlc': ohlc_data,
-                    'ticker': ticker
+                    'ticker': ticker,
+                    'history_period': history_period
                 }
             else:
                 print(f"  ⚠ {name}: Nu există date (nici Yahoo, nici Local)")
@@ -11813,7 +11837,11 @@ def main():
         market_indicators = get_market_indicators()
         state['market_indicators'] = market_indicators
         
-        vix_val = get_vix_data()
+        # Aceeași valoare VIX alimentează tabelul, scoringul și regulile de risc.
+        # Cererea separată pe 5d rămâne doar fallback dacă indicatorul lipsește.
+        vix_val = _safe_float_text(
+            market_indicators.get('VIX', {}).get('value')
+        ) or get_vix_data()
         if vix_val:
             state['vix_val'] = vix_val
             print(f"VIX: {vix_val:.2f}")

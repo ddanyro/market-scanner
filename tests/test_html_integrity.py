@@ -157,6 +157,8 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("onclick=\"openIndicatorDetail('", content)
         self.assertIn("window.open('', '_blank')", content)
         self.assertIn("'ohlc': ohlc_data", content)
+        self.assertIn("_download_market_indicator_history(data)", content)
+        self.assertIn("fallback Yahoo", content)
         self.assertIn("'history': data_points[-60:]", content)
         self.assertIn("'history_dates': [x['date'] for x in history_db[name]][-60:]", content)
         self.assertIn("hasUsableIndicatorOhlc(detail.ohlc)", content)
