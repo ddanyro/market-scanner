@@ -20,7 +20,8 @@ from typing import Any
 LEDGER_PATH = Path("shadow_predictions.jsonl")
 POLICY_PATH = Path("shadow_validation_policy.json")
 REPORT_PATH = Path("analysis/shadow_forward_validation/readiness_report.md")
-SCHEMA = "market-scanner.shadow-prediction.v1"
+SCHEMA = "market-scanner.shadow-prediction.v2"
+LEGACY_SCHEMAS = {"market-scanner.shadow-prediction.v1"}
 COMPONENTS = (
     "technical_score", "momentum_score", "research_score",
     "volatility_score", "liquidity_score", "options_score",
@@ -58,6 +59,29 @@ def load_policy(path=POLICY_PATH):
 def policy_hash(policy):
     canonical = json.dumps(policy, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _content_hash(payload):
+    canonical = dict(payload)
+    canonical.pop("content_hash", None)
+    canonical.pop("snapshot_id", None)
+    encoded = json.dumps(
+        canonical, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    )
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def _market_timezone(candidate):
+    explicit = candidate.get("market_timezone")
+    if explicit:
+        return str(explicit)
+    market = str(candidate.get("market") or "").casefold()
+    symbol = str(candidate.get("symbol") or "").upper()
+    if market == "sua":
+        return "America/New_York"
+    if "rom" in market or symbol.endswith(".RO"):
+        return "Europe/Bucharest"
+    return "Europe/Paris" if symbol.endswith(".PA") else "UTC"
 
 
 def sample_partition(timestamp, policy):
@@ -122,6 +146,7 @@ def _entry_snapshot(candidate):
             price is not None
             and (data_age_hours is None or data_age_hours <= 1.0)
         ),
+        "market_timezone": _market_timezone(candidate),
     }
 
 
@@ -151,6 +176,9 @@ def _portfolio_snapshot(candidate):
             candidate.get("hypothetical_purchase_weight_pct")
         ),
         "hypothetical_units": _number(candidate.get("conditional_units")),
+        "fit_score_posttrade_observed": _number(
+            candidate.get("portfolio_fit_posttrade_observed_score")
+        ),
     }
 
 
@@ -179,6 +207,16 @@ def _options_snapshot(candidate):
         "quoted_contract_ratio": _number(context.get("quoted_contract_ratio")),
         "put_call_volume_ratio": _number(context.get("put_call_volume_ratio")),
         "put_call_open_interest_ratio": _number(context.get("put_call_open_interest_ratio")),
+        "data_quality": context.get("data_quality", "unavailable"),
+        "analytics_available": bool(context.get("analytics_available")),
+        "quote_coverage_ratio": _number(context.get("quote_coverage_ratio")),
+        "volume_coverage_ratio": _number(context.get("volume_coverage_ratio")),
+        "open_interest_coverage_ratio": _number(
+            context.get("open_interest_coverage_ratio")
+        ),
+        "contract_iv_coverage_ratio": _number(
+            context.get("contract_iv_coverage_ratio")
+        ),
     }
 
 
@@ -213,11 +251,20 @@ def _candidate_record(candidate, state, timestamp):
         "enhanced_decision_reason": candidate.get("enhanced_decision_reason"),
         "score_version": candidate.get("score_version"),
         "raw_score": _number(candidate.get("raw_stock_score")),
+        "raw_score_availability_adjusted": _number(
+            candidate.get("raw_stock_score_availability_adjusted")
+        ),
         "portfolio_fit_observed": portfolio["fit_score_observed"],
         "adjusted_score_formula": _number(candidate.get("portfolio_adjusted_score")),
         "adjusted_score_observed_fit": (
             _number(candidate.get("portfolio_adjusted_score"))
             if portfolio["available"] else None
+        ),
+        "adjusted_score_posttrade_fit": _number(
+            candidate.get("portfolio_adjusted_posttrade_score")
+        ),
+        "adjusted_score_availability_posttrade": _number(
+            candidate.get("portfolio_adjusted_availability_score")
         ),
         "components": components,
         "feature_availability": {
@@ -254,14 +301,10 @@ def build_snapshot(candidates, state, recorded_at=None, run_mode=None):
         for item in candidates or []
         if isinstance(item, dict) and item.get("symbol")
     ]
-    identity_material = json.dumps({
-        "timestamp": timestamp,
-        "mode": run_mode,
-        "symbols": [item["symbol"] for item in records],
-    }, sort_keys=True)
-    return {
+    snapshot = {
         "schema": SCHEMA,
-        "snapshot_id": hashlib.sha256(identity_material.encode()).hexdigest()[:24],
+        "snapshot_id": None,
+        "previous_snapshot_hash": None,
         "recorded_at": timestamp,
         "run_mode": run_mode,
         "score_mode": "shadow",
@@ -273,6 +316,10 @@ def build_snapshot(candidates, state, recorded_at=None, run_mode=None):
         "candidate_count": len(records),
         "predictions": records,
     }
+    snapshot["content_hash"] = _content_hash(snapshot)
+    snapshot["snapshot_id"] = snapshot["content_hash"][:24]
+    snapshot["content_hash"] = _content_hash(snapshot)
+    return snapshot
 
 
 def append_snapshot(candidates, state, recorded_at=None, run_mode=None, path=LEDGER_PATH):
@@ -282,6 +329,18 @@ def append_snapshot(candidates, state, recorded_at=None, run_mode=None, path=LED
     payload = json.dumps(snapshot, separators=(",", ":"), ensure_ascii=False)
     with target.open("a+", encoding="utf-8") as handle:
         fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        handle.seek(0)
+        existing_lines = [line for line in handle.read().splitlines() if line.strip()]
+        if existing_lines:
+            previous = json.loads(existing_lines[-1])
+            snapshot["previous_snapshot_hash"] = (
+                previous.get("content_hash") or _content_hash(previous)
+            )
+        snapshot["content_hash"] = _content_hash(snapshot)
+        snapshot["snapshot_id"] = snapshot["content_hash"][:24]
+        snapshot["content_hash"] = _content_hash(snapshot)
+        payload = json.dumps(snapshot, separators=(",", ":"), ensure_ascii=False)
+        handle.seek(0, os.SEEK_END)
         handle.write(payload + "\n")
         handle.flush()
         os.fsync(handle.fileno())
@@ -294,18 +353,67 @@ def load_ledger(path=LEDGER_PATH):
     target = Path(path)
     if not target.exists():
         return snapshots
+    previous_hash = None
     for line_number, line in enumerate(target.read_text(encoding="utf-8").splitlines(), 1):
         if not line.strip():
             continue
         payload = json.loads(line)
-        if payload.get("schema") != SCHEMA:
+        schema = payload.get("schema")
+        if schema not in LEGACY_SCHEMAS | {SCHEMA}:
             raise ValueError(f"Unknown shadow schema at line {line_number}")
+        if schema == SCHEMA:
+            if payload.get("content_hash") != _content_hash(payload):
+                raise ValueError(f"Invalid snapshot hash at line {line_number}")
+            if payload.get("snapshot_id") != payload["content_hash"][:24]:
+                raise ValueError(f"Invalid snapshot id at line {line_number}")
+            if payload.get("previous_snapshot_hash") != previous_hash:
+                raise ValueError(f"Broken snapshot hash chain at line {line_number}")
         snapshots.append(payload)
+        previous_hash = payload.get("content_hash") or _content_hash(payload)
     return snapshots
+
+
+def validate_ledger(snapshots):
+    """Return deterministic integrity errors without mutating the ledger."""
+    errors = []
+    snapshot_ids = set()
+    observations = set()
+    score_fields = (
+        "baseline_score", "raw_score", "raw_score_availability_adjusted",
+        "portfolio_fit_observed", "adjusted_score_formula",
+        "adjusted_score_observed_fit", "adjusted_score_posttrade_fit",
+    )
+    forbidden = ("forward", "outcome", "mae", "mfe", "future_return")
+    for snapshot in snapshots:
+        snapshot_id = snapshot.get("snapshot_id")
+        if snapshot_id in snapshot_ids:
+            errors.append(f"duplicate snapshot_id: {snapshot_id}")
+        snapshot_ids.add(snapshot_id)
+        timestamp = snapshot.get("recorded_at")
+        for prediction in snapshot.get("predictions", []):
+            symbol = prediction.get("symbol")
+            key = (timestamp, symbol)
+            if key in observations:
+                errors.append(f"duplicate ticker/timestamp: {symbol} {timestamp}")
+            observations.add(key)
+            if prediction.get("recorded_at") != timestamp:
+                errors.append(f"timestamp mismatch: {symbol} {timestamp}")
+            for field in score_fields:
+                value = _number(prediction.get(field))
+                if value is not None and not 0 <= value <= 100:
+                    errors.append(f"impossible {field}: {symbol}={value}")
+            for field in prediction:
+                if any(token in field.casefold() for token in forbidden):
+                    errors.append(f"future field in snapshot: {symbol}.{field}")
+            options = prediction.get("options") or {}
+            if not options.get("data_available") and options.get("observed_score") is not None:
+                errors.append(f"unavailable options has observed score: {symbol}")
+    return errors
 
 
 def generate_readiness_report(path=REPORT_PATH, ledger_path=LEDGER_PATH):
     snapshots = load_ledger(ledger_path)
+    integrity_errors = validate_ledger(snapshots)
     predictions = [item for snap in snapshots for item in snap.get("predictions", [])]
     options = sum(bool(item.get("options", {}).get("data_available")) for item in predictions)
     fit = sum(bool(item.get("portfolio", {}).get("available")) for item in predictions)
@@ -315,6 +423,10 @@ def generate_readiness_report(path=REPORT_PATH, ledger_path=LEDGER_PATH):
     )
     holdout = sum(snap.get("sample_partition") == "holdout_locked" for snap in snapshots)
     options_pct = options / len(predictions) * 100 if predictions else 0.0
+    options_quality = {}
+    for item in predictions:
+        quality = str(item.get("options", {}).get("data_quality") or "legacy_unknown")
+        options_quality[quality] = options_quality.get(quality, 0) + 1
     fit_pct = fit / len(predictions) * 100 if predictions else 0.0
     executable_pct = executable / len(predictions) * 100 if predictions else 0.0
     report = f"""# Enhanced shadow forward-validation readiness
@@ -327,8 +439,10 @@ Generated: {_utc_timestamp()}
 - Predictions: **{len(predictions)}**
 - Execution-eligible predictions: **{executable}** ({executable_pct:.1f}%)
 - Options observed: **{options}** ({options_pct:.1f}%)
+- Options quality: **{json.dumps(options_quality, sort_keys=True)}**
 - Portfolio Fit observed: **{fit}** ({fit_pct:.1f}%)
 - Locked-holdout snapshots: **{holdout}**
+- Integrity errors: **{len(integrity_errors)}**
 - Matured 1D/5D/10D/20D/60D outcomes: **not evaluated in the collection job**
 
 ## Performance status
@@ -348,4 +462,19 @@ the locked holdout cannot be used for calibration, thresholds, or weights.
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(report, encoding="utf-8")
+    coverage_path = target.parent / "collection_coverage.json"
+    coverage_path.write_text(json.dumps({
+        "generated_at": _utc_timestamp(),
+        "ledger_path": str(ledger_path),
+        "last_snapshot_id": snapshots[-1].get("snapshot_id") if snapshots else None,
+        "snapshots": len(snapshots),
+        "predictions": len(predictions),
+        "execution_eligible": executable,
+        "options_observed": options,
+        "options_quality": options_quality,
+        "portfolio_fit_observed": fit,
+        "locked_holdout_snapshots": holdout,
+        "performance_outcomes_evaluated": False,
+        "integrity_errors": integrity_errors,
+    }, indent=2), encoding="utf-8")
     return report

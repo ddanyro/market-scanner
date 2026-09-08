@@ -1,5 +1,5 @@
-partition,options_cohort,predictions,baseline_score_mean,raw_score_mean,portfolio_fit_coverage_pct,net_alpha_spy_1d_n,net_alpha_spy_1d_mean,net_alpha_spy_5d_n,net_alpha_spy_5d_mean,net_alpha_spy_10d_n,net_alpha_spy_10d_mean,net_alpha_spy_20d_n,net_alpha_spy_20d_mean,net_alpha_spy_60d_n,net_alpha_spy_60d_mean
-calibration,eligible_control_without_options,10,82.0,67.368,100.0,0,,0,,0,,0,,0,
-calibration,not_eligible,28,71.60714285714286,62.26892857142858,78.57142857142857,0,,0,,0,,0,,0,
-calibration,options_observed,3,80.0,68.30666666666667,100.0,0,,0,,0,,0,,0,
-calibration,selected_but_unavailable,3,80.0,68.99,100.0,0,,0,,0,,0,,0,
+partition,options_cohort,options_data_quality,predictions,baseline_score_mean,raw_score_mean,availability_adjusted_raw_mean,portfolio_fit_coverage_pct,net_alpha_spy_1d_n,net_alpha_spy_1d_mean,net_alpha_spy_5d_n,net_alpha_spy_5d_mean,net_alpha_spy_10d_n,net_alpha_spy_10d_mean,net_alpha_spy_20d_n,net_alpha_spy_20d_mean,net_alpha_spy_60d_n,net_alpha_spy_60d_mean
+calibration,eligible_control_without_options,unavailable,15,82.0,67.368,,100.0,0,,0,,0,,0,,0,
+calibration,not_eligible,unavailable,29,71.55172413793103,61.9296551724138,,79.3103448275862,0,,0,,0,,0,,0,
+calibration,options_observed,unavailable,6,80.0,68.30666666666666,,100.0,0,,0,,0,,0,,0,
+calibration,selected_but_unavailable,unavailable,3,80.0,68.99,,100.0,0,,0,,0,,0,,0,

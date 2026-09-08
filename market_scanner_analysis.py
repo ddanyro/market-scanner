@@ -741,6 +741,28 @@ def _clamp_score(value):
     return max(0.0, min(100.0, float(value)))
 
 
+def _portfolio_fit_from_weights(sector_weight=None, country_weight=None,
+                                region_weight=None):
+    """Return the registered concentration fit for fractional allocations."""
+    fit_parts = []
+    if sector_weight is not None:
+        fit_parts.append(_clamp_score(
+            100 if sector_weight <= 0.05
+            else 100 - (sector_weight - 0.05) / 0.20 * 100
+        ))
+    if country_weight is not None:
+        fit_parts.append(_clamp_score(
+            100 if country_weight <= 0.40
+            else 100 - (country_weight - 0.40) / 0.35 * 100
+        ))
+    if region_weight is not None:
+        fit_parts.append(_clamp_score(
+            100 if region_weight <= 0.60
+            else 100 - (region_weight - 0.60) / 0.30 * 100
+        ))
+    return min(fit_parts) if fit_parts else None
+
+
 def _execution_currency(candidate):
     currency = str(
         candidate.get('execution_currency')
@@ -2151,24 +2173,10 @@ def _size_buy_candidates(snapshot):
 
             # Existing 10% sector cap anchors the fit curve. Country/region
             # use broad soft limits because the scanner previously had none.
-            fit_parts = []
-            if sector_weight is not None:
-                fit_parts.append(_clamp_score(
-                    100 if sector_weight <= 0.05
-                    else 100 - (sector_weight - 0.05) / 0.20 * 100
-                ))
-            if country_weight is not None:
-                fit_parts.append(_clamp_score(
-                    100 if country_weight <= 0.40
-                    else 100 - (country_weight - 0.40) / 0.35 * 100
-                ))
-            if region_weight is not None:
-                fit_parts.append(_clamp_score(
-                    100 if region_weight <= 0.60
-                    else 100 - (region_weight - 0.60) / 0.30 * 100
-                ))
-            portfolio_fit_available = bool(fit_parts)
-            portfolio_fit = min(fit_parts) if fit_parts else None
+            portfolio_fit = _portfolio_fit_from_weights(
+                sector_weight, country_weight, region_weight
+            )
+            portfolio_fit_available = portfolio_fit is not None
             candidate.update({
                 'portfolio_fit_available': portfolio_fit_available,
                 'portfolio_fit_observed_score': (
@@ -2348,6 +2356,34 @@ def _size_buy_candidates(snapshot):
                 round(before + purchase_weight, 4)
                 if before is not None else None
             )
+        posttrade_fit = _portfolio_fit_from_weights(*[
+            (
+                _safe_number(
+                    candidate.get(f'hypothetical_{dimension}_weight_after_pct'),
+                    None,
+                ) / 100
+                if _safe_number(
+                    candidate.get(f'hypothetical_{dimension}_weight_after_pct'),
+                    None,
+                ) is not None else None
+            )
+            for dimension in ('sector', 'country', 'region')
+        ])
+        candidate['portfolio_fit_posttrade_observed_score'] = (
+            round(posttrade_fit, 2) if posttrade_fit is not None else None
+        )
+        raw_score = _safe_number(candidate.get('raw_stock_score'), None)
+        candidate['portfolio_adjusted_posttrade_score'] = (
+            round(raw_score * 0.85 + posttrade_fit * 0.15, 2)
+            if raw_score is not None and posttrade_fit is not None else None
+        )
+        availability_raw = _safe_number(
+            candidate.get('raw_stock_score_availability_adjusted'), None
+        )
+        candidate['portfolio_adjusted_availability_score'] = (
+            round(availability_raw * 0.85 + posttrade_fit * 0.15, 2)
+            if availability_raw is not None and posttrade_fit is not None else None
+        )
         symbol_before = _safe_number(
             candidate.get('combined_pretrade_portfolio_weight_pct'), None
         )

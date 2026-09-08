@@ -5,6 +5,21 @@ import ibkr_mcp
 
 
 class TestIBKRMCPNormalisation(unittest.TestCase):
+    def test_snapshot_scalar_understands_ibkr_named_metrics(self):
+        self.assertEqual(ibkr_mcp._snapshot_scalar({"volume": 123}), 123)
+        self.assertEqual(ibkr_mcp._snapshot_scalar({"annual_pct": 0.31}), 0.31)
+        self.assertEqual(ibkr_mcp._snapshot_scalar({"yield_pct": 2.4}), 2.4)
+
+    def test_quote_only_options_are_not_classified_as_full_analytics(self):
+        context = ibkr_mcp._annotate_options_quality({
+            "contracts": [{
+                "bid": 1, "ask": 1.2, "volume": None,
+                "open_interest": None, "iv": None,
+            }]
+        })
+        self.assertEqual(context["data_quality"], "quote_only")
+        self.assertFalse(context["analytics_available"])
+
     def test_write_scope_is_always_rejected(self):
         with self.assertRaisesRegex(ibkr_mcp.IBKRMCPError, "mcp.write"):
             ibkr_mcp._assert_read_only_token({
@@ -186,6 +201,14 @@ class TestIBKRMCPMarketData(unittest.IsolatedAsyncioTestCase):
         metrics = instrument["market_data"]["snapshot_metrics"]
         self.assertEqual(metrics["derived"]["iv_percentile_52w"], 0.82)
         self.assertEqual(metrics["derived"]["historical_vol"], 0.24)
+
+    async def test_nested_volume_and_historical_vol_are_propagated(self):
+        metrics = ibkr_mcp._normalise_snapshot_metrics({
+            "avg-90d-usd-volume": {"volume": 329_000_000},
+            "historical-vol": {"annual_pct": 0.312},
+        })
+        self.assertEqual(metrics["scalars"]["avg_90d_usd_volume"], 329_000_000)
+        self.assertEqual(metrics["derived"]["historical_vol"], 0.312)
 
     async def test_fresh_instrument_uses_cache_without_network(self):
         now = __import__("datetime").datetime.now(

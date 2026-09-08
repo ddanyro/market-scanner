@@ -85,12 +85,39 @@ def test_append_only_ledger_round_trip(tmp_path):
     assert len(loaded) == 2
     assert [item["predictions"][0]["symbol"] for item in loaded] == ["AAA", "BBB"]
     assert len(path.read_text().splitlines()) == 2
+    assert loaded[1]["previous_snapshot_hash"] == loaded[0]["content_hash"]
+
+
+def test_hash_chain_detects_snapshot_tampering(tmp_path):
+    path = tmp_path / "ledger.jsonl"
+    shadow_validation.append_snapshot(
+        [candidate()], {}, "2026-09-08T10:00:00Z", "portfolio", path
+    )
+    payload = json.loads(path.read_text())
+    payload["predictions"][0]["raw_score"] = 99
+    path.write_text(json.dumps(payload) + "\n")
+    try:
+        shadow_validation.load_ledger(path)
+    except ValueError as exc:
+        assert "Invalid snapshot hash" in str(exc)
+    else:
+        raise AssertionError("tampered ledger was accepted")
 
 
 def test_locked_holdout_partition_is_preregistered():
     policy = shadow_validation.load_policy()
     assert shadow_validation.sample_partition("2026-12-31T23:00:00Z", policy) == "calibration"
     assert shadow_validation.sample_partition("2027-01-01T00:00:00Z", policy) == "holdout_locked"
+
+
+def test_signal_day_uses_market_timezone():
+    snapshot = shadow_validation.build_snapshot(
+        [candidate()], {}, recorded_at="2026-09-09T00:30:00Z"
+    )
+    row = snapshot["predictions"][0]
+    assert row["entry"]["market_timezone"] == "America/New_York"
+    flat = evaluate_shadow_forward.flatten_ledger([snapshot])
+    assert str(flat.iloc[0].signal_day.date()) == "2026-09-08"
 
 
 class FakeTicker:
@@ -137,6 +164,14 @@ def test_cost_model_contains_commission_spread_slippage_and_fx():
     assert cost is not None
     assert cost > 1.0  # Exit half-spread plus commission, slippage and FX.
     assert cost < 2.0  # Entry at ask is not charged the entry spread twice.
+
+
+def test_missing_spread_does_not_become_zero_cost():
+    snapshot = shadow_validation.build_snapshot(
+        [candidate(spread_pct=None)], {}, recorded_at="2026-09-08T10:00:00Z"
+    )
+    flat = evaluate_shadow_forward.flatten_ledger([snapshot])
+    assert evaluate_shadow_forward._cost_pct(flat.iloc[0]) is None
 
 
 def test_component_and_portfolio_diagnostics_do_not_invent_small_sample_signal():

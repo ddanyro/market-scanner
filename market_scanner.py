@@ -1519,6 +1519,121 @@ def _build_history_chart_candidates(
     return list(candidates_by_symbol.values())
 
 
+def _enhanced_ui_detail(candidate):
+    """Normalizează scorurile shadow și observațiile Options pentru interfață."""
+    candidate = candidate or {}
+    options_context = candidate.get('options_context') or {}
+    contracts = options_context.get('contracts') or []
+    contracts = [item for item in contracts if isinstance(item, dict)]
+
+    def total_for(side, field):
+        values = [
+            value
+            for item in contracts
+            if item.get('side') == side
+            for value in [_safe_float_text(item.get(field))]
+            if value is not None
+        ]
+        return sum(values) if values else None
+
+    contract_ivs = [
+        value for value in (
+            _safe_float_text(item.get('iv')) for item in contracts
+        ) if value is not None
+    ]
+    eligible = bool(candidate.get('options_collection_eligible'))
+    selected = bool(candidate.get('options_collection_selected'))
+    available = bool(candidate.get('options_data_available'))
+    if selected and available:
+        cohort = 'OPTIONS OBSERVAT'
+    elif selected:
+        cohort = 'OPTIONS SELECTAT — DATE INDISPONIBILE'
+    elif eligible:
+        cohort = 'CONTROL FĂRĂ OPTIONS'
+    else:
+        cohort = 'NEELIGIBIL OPTIONS'
+
+    components = candidate.get('score_components') or {}
+    component_keys = (
+        'technical_score', 'momentum_score', 'research_score',
+        'volatility_score', 'liquidity_score', 'options_score',
+        'relative_opportunity_score', 'risk_reward_score',
+        'risk_score',
+    )
+    return {
+        'raw_score': _safe_float_text(candidate.get('raw_stock_score')),
+        'raw_score_availability_adjusted': _safe_float_text(
+            candidate.get('raw_stock_score_availability_adjusted')
+        ),
+        'portfolio_fit': (
+            _safe_float_text(candidate.get('portfolio_fit_observed_score'))
+            if candidate.get('portfolio_fit_available') else None
+        ),
+        'portfolio_fit_source': candidate.get('portfolio_fit_source'),
+        'adjusted_score': _safe_float_text(
+            candidate.get('portfolio_adjusted_score')
+        ),
+        'portfolio_fit_posttrade': _safe_float_text(
+            candidate.get('portfolio_fit_posttrade_observed_score')
+        ),
+        'adjusted_score_posttrade': _safe_float_text(
+            candidate.get('portfolio_adjusted_posttrade_score')
+        ),
+        'components': {
+            key: _safe_float_text(components.get(key))
+            for key in component_keys
+        },
+        'options': {
+            'score': _safe_float_text(components.get('options_score')),
+            'score_observed': available,
+            'eligible': eligible,
+            'selected': selected,
+            'available': available,
+            'selection_rank': candidate.get('options_collection_rank'),
+            'cohort': cohort,
+            'data_quality': options_context.get('data_quality', 'unavailable'),
+            'analytics_available': bool(options_context.get('analytics_available')),
+            'volume_coverage_ratio': _safe_float_text(
+                options_context.get('volume_coverage_ratio')
+            ),
+            'open_interest_coverage_ratio': _safe_float_text(
+                options_context.get('open_interest_coverage_ratio')
+            ),
+            'contract_iv_coverage_ratio': _safe_float_text(
+                options_context.get('contract_iv_coverage_ratio')
+            ),
+            'implied_volatility': (
+                _safe_float_text(candidate.get('implied_volatility'))
+                if _safe_float_text(candidate.get('implied_volatility')) is not None
+                else (
+                    sum(contract_ivs) / len(contract_ivs)
+                    if contract_ivs else None
+                )
+            ),
+            'iv_percentile': _safe_float_text(candidate.get('iv_percentile')),
+            'average_spread_pct': _safe_float_text(
+                options_context.get('average_spread_pct')
+            ),
+            'quoted_contract_ratio': _safe_float_text(
+                options_context.get('quoted_contract_ratio')
+            ),
+            'call_volume': total_for('call', 'volume'),
+            'put_volume': total_for('put', 'volume'),
+            'call_open_interest': total_for('call', 'open_interest'),
+            'put_open_interest': total_for('put', 'open_interest'),
+            'put_call_volume_ratio': _safe_float_text(
+                options_context.get('put_call_volume_ratio')
+            ),
+            'put_call_open_interest_ratio': _safe_float_text(
+                options_context.get('put_call_open_interest_ratio')
+            ),
+            'contracts_sampled': options_context.get('contracts_sampled'),
+            'expiration': options_context.get('expiration'),
+            'fetched_at': options_context.get('fetched_at'),
+        },
+    }
+
+
 def _build_buy_recommendation_detail_data(
     candidates, ai_result=None, recommendation_history=None,
 ):
@@ -1634,6 +1749,7 @@ def _build_buy_recommendation_detail_data(
             'seriesDates': candidate.get('chart_series_dates') or [],
             'levels': levels,
             'markers': markers,
+            'enhanced': _enhanced_ui_detail(candidate),
         }
     return details
 
@@ -8582,6 +8698,10 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 'enhanced_decision_reason', ''
             ),
             'raw_stock_score': item.get('raw_stock_score'),
+            'raw_stock_score_availability_adjusted': item.get(
+                'raw_stock_score_availability_adjusted'
+            ),
+            'options_score_observed': item.get('options_score_observed'),
             'portfolio_adjusted_score': item.get(
                 'portfolio_adjusted_score'
             ),
@@ -8684,6 +8804,11 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     )
     sizing_snapshot['buy_candidates'] = buy_candidate_payload
     buy_candidate_payload = analysis._size_buy_candidates(sizing_snapshot)
+    enhanced_candidate_by_symbol = {
+        str(item.get('symbol') or '').upper(): item
+        for item in buy_candidate_payload
+        if item.get('symbol')
+    }
     if (
         run_mode in {'all', 'watchlist', 'portfolio', 'international'}
         and not os.environ.get('PYTEST_CURRENT_TEST')
@@ -9589,6 +9714,10 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         <th style="color: #9c27b0;">Decizie</th>
                         <th style="color: #7c3aed;">Enhanced</th>
                         <th>Raw / Adj.</th>
+                        <th>Options Score</th>
+                        <th>Cohortă Options</th>
+                        <th>Portfolio Fit</th>
+                        <th>Scor detaliat</th>
                         <th style="width: 90px; color: #E91E63;" onmousemove="showTooltip(event, '<strong>Smart Entry Price (Tactic)</strong><br><br>Sugestie de preț bazată pe analiză tehnică (Fibonacci, S/R, Patterns) pentru intrări optimizate.<br><br>⚡ <strong>STOP:</strong> Intrare pe momentum (Breakout/Engulfing).<br>📉 <strong>LIMIT:</strong> Intrare pe corecție (Fib/Support).')" onmouseout="hideTooltip()">Entry</th>
                         <th onmousemove="showTooltip(event, '<strong>RS vs SPX (Relative Strength vs S&P 500) pe 60 de zile.</strong><br><br>Reprezintă diferența dintre randamentul acțiunii și randamentul indexului S&P 500 în ultimele 60 de zile.<br><br><em>Exemplu:</em><br>Dacă acțiunea a crescut cu 20% și S&P 500 cu 5% => <strong>RS = +15%</strong>.<br>Dacă valoarea este pozitivă, acțiunea performează mai bine decât piața.')" onmouseout="hideTooltip()">RS vs SPX</th>
                         <th>Trend</th>
@@ -9701,20 +9830,51 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             rr_val = row.get('RR_Ratio', 0)
             rr_display = f"1:{rr_val:.1f}" if rr_val > 0 else "-"
             rr_color = "#4caf50" if rr_val >= 3 else "#ff9800" if rr_val >= 2 else "#f44336" if rr_val > 0 else "#888"
-            enhanced_decision = row.get(
-                'enhanced_decision', row.get('Decision', '-')
+            ticker_symbol = str(row.get('Ticker') or '').upper()
+            enhanced_candidate = enhanced_candidate_by_symbol.get(
+                ticker_symbol, {}
+            )
+            enhanced_decision = enhanced_candidate.get(
+                'enhanced_decision', row.get('enhanced_decision', row.get('Decision', '-'))
             )
             enhanced_reason = html.escape(str(
+                enhanced_candidate.get('enhanced_decision_reason') or
                 row.get('enhanced_decision_reason') or
                 'Shadow score: nicio modificare față de baseline.'
             ), quote=True)
-            raw_score = _safe_float_text(row.get('raw_stock_score'))
+            raw_score = _safe_float_text(
+                enhanced_candidate.get('raw_stock_score')
+            )
             adjusted_score = _safe_float_text(
-                row.get('portfolio_adjusted_score')
+                enhanced_candidate.get('portfolio_adjusted_score')
             )
             score_display = (
                 f"{raw_score:.1f} / {adjusted_score:.1f}"
                 if raw_score is not None and adjusted_score is not None else '-'
+            )
+            enhanced_detail = _enhanced_ui_detail(enhanced_candidate)
+            options_detail = enhanced_detail['options']
+            options_score = options_detail.get('score')
+            options_score_display = (
+                f"{options_score:.1f}"
+                if options_detail.get('score_observed') and options_score is not None
+                else f"{options_score:.1f}*"
+                if options_score is not None else '-'
+            )
+            options_cohort_display = (
+                options_detail.get('cohort') if enhanced_candidate else '-'
+            )
+            portfolio_fit = enhanced_detail.get('portfolio_fit')
+            portfolio_fit_display = (
+                f"{portfolio_fit:.1f}"
+                if portfolio_fit is not None else '-'
+            )
+            score_detail_button = (
+                f'<button type="button" class="detail-score-button" '
+                f'style="border:1px solid #7c3aed;background:#f5f3ff;color:#6d28d9;'
+                f'padding:5px 9px;border-radius:8px;font-weight:700;cursor:pointer;" '
+                f'onclick="openWatchlistDetail(\'{ticker_symbol}\')">Detalii</button>'
+                if enhanced_candidate else '-'
             )
 
             # Strategy Badge
@@ -9770,6 +9930,10 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         <td style="font-weight: 700; color: {row.get('Decision_Color', '#888')};" onmousemove="showTooltip(event, '{row.get('Check_Details', '')}')" onmouseout="hideTooltip()">{row.get('Decision', '-')} ({row.get('Checks_Passed', 0)}/4)</td>
                         <td style="font-weight:700;color:{'#ff9800' if enhanced_decision != row.get('Decision') else '#7c3aed'};" onmousemove="showTooltip(event, '{enhanced_reason}')" onmouseout="hideTooltip()">{enhanced_decision}</td>
                         <td style="font-variant-numeric:tabular-nums;">{score_display}</td>
+                        <td style="font-variant-numeric:tabular-nums;" title="* = fallback neutru; nu există observație Options">{options_score_display}</td>
+                        <td style="font-size:.72rem;font-weight:700;white-space:nowrap;">{options_cohort_display}</td>
+                        <td style="font-variant-numeric:tabular-nums;">{portfolio_fit_display}</td>
+                        <td>{score_detail_button}</td>
                         <td style="text-align: center;">{smart_entry_html}</td>
                         <td style="color: {'#4caf50' if row.get('RS_vs_SPX', 0) and row.get('RS_vs_SPX', 0) > 0 else '#f44336'};">{row.get('RS_vs_SPX', '-') if row.get('RS_vs_SPX') is not None else '-'}%</td>
                         <td class="trend-{trend_cls}">{row['Trend']}</td>
@@ -10222,15 +10386,15 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         var minRsSpx = parseFloat($('#filter-rs-spx').val());
                         var sector = $('#filter-sector').val() ? $('#filter-sector').val().toLowerCase().trim() : "";
 
-                        // Indices Updated for new columns (R:R at 5, Strategy at 13)
+                        // Indici după coloanele Enhanced/Options/Portfolio Fit.
                         var rowTargetPct = parseFloat(data[4].replace('%', '')) || -9999;
-                        var rowConsensus = data[6] || "";       // Was 5
-                        var rowAnalysts = parseFloat(data[7]) || 0; // Was 6
-                        var rowDecision = data[9] || "";        // Was 8
-                        var rowTrend = data[12] || "";          // Was 11
-                        var rowStatus = data[17] || "";         // Was 15
-                        var rowStrategy = data[13] || "";
-                        var rowRsSpx = parseFloat(data[11].replace('%', '').replace('+', ''));
+                        var rowConsensus = data[6] || "";
+                        var rowAnalysts = parseFloat(data[7]) || 0;
+                        var rowDecision = data[9] || "";
+                        var rowTrend = data[18] || "";
+                        var rowStatus = data[23] || "";
+                        var rowStrategy = data[19] || "";
+                        var rowRsSpx = parseFloat(data[17].replace('%', '').replace('+', ''));
                         if (isNaN(rowRsSpx)) rowRsSpx = -9999;
                         var rowSector = data[8] ? data[8].toLowerCase().trim() : "";
 
@@ -10377,6 +10541,9 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     if not watchlist_df.empty:
         for _, row in watchlist_df.iterrows():
             ticker = str(row['Ticker'])
+            enhanced_candidate = enhanced_candidate_by_symbol.get(
+                ticker.upper(), {}
+            )
             native_detail = _chart_detail_native_payload(
                 row,
                 ticker,
@@ -10433,7 +10600,11 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 'ohlc': native_detail['ohlc'],
                 'series': native_detail['series'],
                 'seriesDates': native_detail['seriesDates'],
-                'levels': watchlist_levels
+                'levels': watchlist_levels,
+                'enhanced': (
+                    _enhanced_ui_detail(enhanced_candidate)
+                    if enhanced_candidate else None
+                ),
             }
     watchlist_detail_json = json.dumps(watchlist_detail_data, ensure_ascii=False).replace('</', '<\\/')
 
@@ -10490,6 +10661,74 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 openMarketDetailWindow(detail, symbol);
             }
 
+            function renderEnhancedDetail(enhanced) {
+                if (!enhanced) return '';
+                const options = enhanced.options || {};
+                const labels = {
+                    technical_score: 'Technical',
+                    momentum_score: 'Momentum / RS',
+                    research_score: 'Research',
+                    volatility_score: 'Volatility',
+                    liquidity_score: 'Liquidity',
+                    options_score: 'Options',
+                    relative_opportunity_score: 'Relative Opportunity',
+                    risk_reward_score: 'Risk / Reward',
+                    risk_score: 'Risk'
+                };
+                const score = value => Number.isFinite(Number(value))
+                    ? Number(value).toLocaleString('ro-RO', {
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1
+                    }) : '—';
+                const metric = (value, suffix) => Number.isFinite(Number(value))
+                    ? Number(value).toLocaleString('ro-RO', {
+                        maximumFractionDigits: 2
+                    }) + (suffix || '') : '—';
+                const observed = Boolean(options.available);
+                const optionValue = (value, suffix) => observed
+                    ? metric(value, suffix) : '—';
+                const componentRows = Object.entries(labels).map(([key, label]) =>
+                    "<div class='enhanced-metric'><span>" + escapeIndicatorText(label)
+                    + "</span><b>" + score((enhanced.components || {})[key])
+                    + "</b></div>"
+                ).join('');
+                const fallback = options.score_observed
+                    ? '' : " <small class='fallback'>(fallback neutru)</small>";
+                const rank = options.selection_rank
+                    ? ' · rang #' + escapeIndicatorText(options.selection_rank) : '';
+                return "<section class='panel enhanced-panel'>"
+                    + "<div class='enhanced-title'><div><h2>Enhanced Scoring · shadow mode</h2>"
+                    + "<p>Aceste valori nu înlocuiesc încă decizia autoritară BUY/WAIT/AVOID.</p></div>"
+                    + "<span class='cohort-badge'>" + escapeIndicatorText(options.cohort || '—')
+                    + rank + "</span></div>"
+                    + "<div class='enhanced-summary'>"
+                    + "<div class='enhanced-card'><span>Raw Score</span><b>" + score(enhanced.raw_score) + "</b></div>"
+                    + "<div class='enhanced-card'><span>Raw fără fallback Options</span><b>" + score(enhanced.raw_score_availability_adjusted) + "</b></div>"
+                    + "<div class='enhanced-card'><span>Portfolio Fit</span><b>" + score(enhanced.portfolio_fit) + "</b></div>"
+                    + "<div class='enhanced-card'><span>Adjusted Score</span><b>" + score(enhanced.adjusted_score) + "</b></div>"
+                    + "<div class='enhanced-card'><span>Portfolio Fit după cumpărare</span><b>" + score(enhanced.portfolio_fit_posttrade) + "</b></div>"
+                    + "<div class='enhanced-card'><span>Adjusted post-trade</span><b>" + score(enhanced.adjusted_score_posttrade) + "</b></div>"
+                    + "<div class='enhanced-card'><span>Options Score</span><b>" + score(options.score) + fallback + "</b></div>"
+                    + "</div>"
+                    + "<h3>Options IBKR MCP</h3><div class='enhanced-grid'>"
+                    + "<div class='enhanced-metric'><span>Calitatea datelor</span><b>" + escapeIndicatorText(options.data_quality || 'unavailable') + "</b></div>"
+                    + "<div class='enhanced-metric'><span>IV</span><b>" + optionValue(options.implied_volatility, '') + "</b></div>"
+                    + "<div class='enhanced-metric'><span>IV Percentile</span><b>" + optionValue(options.iv_percentile, '') + "</b></div>"
+                    + "<div class='enhanced-metric'><span>Spread mediu</span><b>" + optionValue(options.average_spread_pct, '%') + "</b></div>"
+                    + "<div class='enhanced-metric'><span>Contracte cotate</span><b>" + optionValue(options.quoted_contract_ratio == null ? null : Number(options.quoted_contract_ratio) * 100, '%') + "</b></div>"
+                    + "<div class='enhanced-metric'><span>Call Volume</span><b>" + optionValue(options.call_volume, '') + "</b></div>"
+                    + "<div class='enhanced-metric'><span>Put Volume</span><b>" + optionValue(options.put_volume, '') + "</b></div>"
+                    + "<div class='enhanced-metric'><span>Call Open Interest</span><b>" + optionValue(options.call_open_interest, '') + "</b></div>"
+                    + "<div class='enhanced-metric'><span>Put Open Interest</span><b>" + optionValue(options.put_open_interest, '') + "</b></div>"
+                    + "<div class='enhanced-metric'><span>Acoperire volum</span><b>" + metric(options.volume_coverage_ratio == null ? null : Number(options.volume_coverage_ratio) * 100, '%') + "</b></div>"
+                    + "<div class='enhanced-metric'><span>Acoperire OI</span><b>" + metric(options.open_interest_coverage_ratio == null ? null : Number(options.open_interest_coverage_ratio) * 100, '%') + "</b></div>"
+                    + "<div class='enhanced-metric'><span>Acoperire IV contracte</span><b>" + metric(options.contract_iv_coverage_ratio == null ? null : Number(options.contract_iv_coverage_ratio) * 100, '%') + "</b></div>"
+                    + "</div><h3>Componentele scorului</h3>"
+                    + "<div class='enhanced-grid'>" + componentRows + "</div>"
+                    + "<p class='enhanced-footnote'>* Un Options Score neutru nu reprezintă o observație atunci când datele sunt indisponibile. "
+                    + "Cohorta de control este afișată separat pentru a evita această confuzie.</p></section>";
+            }
+
             function openMarketDetailWindow(detail, indicatorName) {
                 if (!detail) return;
                 const popup = window.open('', '_blank');
@@ -10517,6 +10756,7 @@ h1{margin:0 0 6px;font-size:clamp(28px,4vw,44px)}.ticker{color:#7760f9;font-weig
 .details h2{margin:0 0 10px;font-size:18px}.details p{margin:0;color:#4b5563;line-height:1.65}.note{font-size:12px;color:#6b7280;margin-top:10px}
 .level-legend{display:none}.level-item{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:8px 10px;border:1px solid #e5e7eb;border-radius:9px;background:#f8fafc;font-size:12px;color:#374151}.level-name{display:flex;align-items:center;gap:7px;min-width:0;font-weight:700}.level-swatch{width:18px;height:3px;border-radius:999px;flex:0 0 auto}.level-value{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:750}
 .marker-legend{margin-top:14px;padding-top:13px;border-top:1px solid #e5e7eb}.marker-legend-title{font-size:13px;font-weight:750;margin-bottom:8px}.marker-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:7px}.marker-item{display:flex;align-items:center;gap:8px;font-size:12px;color:#4b5563;background:#f8fafc;border-radius:8px;padding:7px 9px}.marker-badge{display:inline-flex;align-items:center;justify-content:center;min-width:30px;padding:3px 6px;border-radius:6px;color:#fff;font-weight:800}
+.enhanced-title{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}.enhanced-title h2{margin:0 0 5px}.enhanced-title p,.enhanced-footnote{margin:0;color:#6b7280;font-size:12px}.cohort-badge{background:#ede9fe;color:#6d28d9;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:800}.enhanced-summary{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:10px;margin:16px 0}.enhanced-card,.enhanced-metric{border:1px solid #e5e7eb;background:#f8fafc;border-radius:11px;padding:11px}.enhanced-card span,.enhanced-metric span{display:block;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.04em}.enhanced-card b{display:block;margin-top:5px;font-size:22px}.enhanced-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin:9px 0 16px}.enhanced-metric{display:flex;align-items:center;justify-content:space-between;gap:10px}.enhanced-metric span{display:inline}.enhanced-metric b{font-variant-numeric:tabular-nums}.enhanced-panel h3{font-size:14px;margin:18px 0 4px}.fallback{display:block;color:#b45309;font-size:10px}
 @media(max-width:760px){.page{padding:14px}.stats,.details{grid-template-columns:1fr 1fr}.panel{padding:16px}.chart-wrap{min-height:360px;height:min(56vh,520px)}.level-legend{display:grid;grid-template-columns:1fr;gap:6px;margin-top:10px}.note{font-size:11px;line-height:1.45}}@media(max-width:560px){.toolbar{align-items:flex-start}.toolbar .buttons{width:100%}.toolbar .range{flex:1}.stats,.details{grid-template-columns:1fr}.panel{padding:14px}.chart-wrap{height:min(54vh,480px)}}
 </style>
 </head>
@@ -10528,6 +10768,7 @@ h1{margin:0 0 6px;font-size:clamp(28px,4vw,44px)}.ticker{color:#7760f9;font-weig
 <div class="stat"><div class="label">Status</div><div class="num">${escapeIndicatorText(detail.status)}</div></div>
 <div class="stat"><div class="label">Interval</div><div class="num" style="font-size:18px">${escapeIndicatorText(detail.rangeDescription || '—')}</div></div>
 </section>
+${renderEnhancedDetail(detail.enhanced)}
 <section class="panel"><div class="toolbar"><strong id="chartTitle">Grafic zilnic${detail.currency?' · '+escapeIndicatorText(detail.currency):''}</strong><div class="buttons"><button class="range" data-count="22">1L</button><button class="range active" data-count="66">3L</button><button class="range" data-count="9999">Tot</button></div></div>
 <div class="chart-wrap"><canvas id="indicatorChart" aria-label="Grafic interactiv: ține cursorul deasupra pentru detalii"></canvas><div class="chart-tooltip" id="chartTooltip" role="status" aria-live="polite"></div></div>${renderHorizontalLevelLegend(detail.levels || [], detail.currency)}<div class="note" id="chartNote"></div>${renderRecommendationMarkerLegend(detail.markers || [], detail.currency)}</section>
 <section class="details"><div class="panel"><h2>Ce măsoară</h2><p>${escapeIndicatorText(detail.explanation || 'Detalii indisponibile.')}</p></div>

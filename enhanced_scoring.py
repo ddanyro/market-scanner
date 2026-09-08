@@ -142,6 +142,9 @@ def options_score(item: dict[str, Any]) -> float:
     put_call_volume = _number(context.get("put_call_volume_ratio"))
     if put_call_volume is not None and put_call_volume > 1.5:
         score -= min((put_call_volume - 1.5) * 15, 25)
+    put_call_oi = _number(context.get("put_call_open_interest_ratio"))
+    if put_call_oi is not None and put_call_oi > 1.5:
+        score -= min((put_call_oi - 1.5) * 10, 15)
     quoted = _number(context.get("quoted_contract_ratio"))
     if quoted is not None:
         score += (quoted - 0.5) * 20
@@ -178,6 +181,17 @@ def calculate_scores(
         "risk_reward_score": risk_reward_score(item),
     }
     raw = sum(components[key] * weight for key, weight in RAW_SCORE_WEIGHTS.items())
+    options_context = item.get("Options_Context") or item.get("options_context") or {}
+    options_observed = bool(
+        isinstance(options_context, dict) and options_context.get("available")
+    )
+    observed_weights = dict(RAW_SCORE_WEIGHTS)
+    if not options_observed:
+        observed_weights.pop("options_score")
+    observed_weight_total = sum(observed_weights.values())
+    availability_adjusted_raw = sum(
+        components[key] * weight for key, weight in observed_weights.items()
+    ) / observed_weight_total
     fit = _clamp(portfolio_fit_score if portfolio_fit_score is not None else 50)
     adjusted = raw * PORTFOLIO_RAW_WEIGHT + fit * PORTFOLIO_FIT_WEIGHT
     risk = (
@@ -220,6 +234,14 @@ def calculate_scores(
         **{key: round(value, 2) for key, value in components.items()},
         "portfolio_fit_score": round(fit, 2),
         "raw_stock_score": round(raw, 2),
+        # Diagnostic only: preserves the registered score while allowing a
+        # fair observed-vs-control analysis when option evidence is missing.
+        "raw_stock_score_availability_adjusted": round(
+            availability_adjusted_raw, 2
+        ),
+        "options_score_observed": (
+            round(components["options_score"], 2) if options_observed else None
+        ),
         "portfolio_adjusted_score": round(adjusted, 2),
         "risk_score": round(_clamp(risk), 2),
         "volatility_regime": regime,

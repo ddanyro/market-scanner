@@ -52,6 +52,8 @@ def test_missing_optional_ibkr_data_is_neutral_not_failure():
     assert result["options_score"] == 50
     assert result["portfolio_fit_score"] == 50
     assert result["enhanced_decision"] == "WAIT"
+    assert result["options_score_observed"] is None
+    assert result["raw_stock_score_availability_adjusted"] != result["raw_stock_score"]
 
 
 def test_ibkr_allocation_is_flattened_for_portfolio_fit():
@@ -73,6 +75,25 @@ def test_ibkr_allocation_is_flattened_for_portfolio_fit():
     })
     assert result["realtime"] is True
     assert result["dimensions"]["SECTOR"]["Technology"] == 0.22
+
+
+def test_portfolio_fit_can_be_recalculated_after_hypothetical_purchase():
+    before = analysis._portfolio_fit_from_weights(0.06, 0.18, 0.18)
+    after = analysis._portfolio_fit_from_weights(0.09, 0.21, 0.21)
+    assert before == 95
+    assert after == 80
+
+
+def test_options_open_interest_contributes_when_observed():
+    common = {
+        "available": True, "average_spread_pct": 2,
+        "quoted_contract_ratio": 1,
+    }
+    neutral = enhanced_scoring.options_score({"Options_Context": common})
+    bearish = enhanced_scoring.options_score({
+        "Options_Context": {**common, "put_call_open_interest_ratio": 2.5}
+    })
+    assert bearish < neutral
 
 
 def test_trade_journal_links_only_prior_recommendations():

@@ -49,8 +49,17 @@ def flatten_ledger(snapshots):
                 "sector": prediction.get("sector"),
                 "baseline_score": prediction.get("baseline_score"),
                 "raw_score": prediction.get("raw_score"),
+                "raw_score_availability_adjusted": prediction.get(
+                    "raw_score_availability_adjusted"
+                ),
                 "portfolio_fit": prediction.get("portfolio_fit_observed"),
                 "adjusted_score": prediction.get("adjusted_score_observed_fit"),
+                "adjusted_score_posttrade": prediction.get(
+                    "adjusted_score_posttrade_fit"
+                ),
+                "adjusted_score_availability_posttrade": prediction.get(
+                    "adjusted_score_availability_posttrade"
+                ),
                 "baseline_decision": prediction.get("baseline_decision"),
                 "enhanced_decision": prediction.get("enhanced_decision_shadow"),
                 "entry_price": prediction.get("entry", {}).get("price"),
@@ -58,8 +67,14 @@ def flatten_ledger(snapshots):
                 "execution_eligible": prediction.get("entry", {}).get("fresh_for_execution"),
                 "data_age_hours": prediction.get("entry", {}).get("data_age_hours"),
                 "currency": prediction.get("entry", {}).get("currency"),
+                "market_timezone": prediction.get("entry", {}).get(
+                    "market_timezone", "UTC"
+                ),
                 "options_available": prediction.get("options", {}).get("data_available"),
                 "options_cohort": prediction.get("options", {}).get("cohort"),
+                "options_data_quality": prediction.get("options", {}).get(
+                    "data_quality", "unavailable"
+                ),
                 "portfolio_fit_available": prediction.get("portfolio", {}).get("available"),
                 "market_regime": snapshot.get("market_regime", {}).get("market_stage"),
                 "vix": snapshot.get("market_regime", {}).get("vix"),
@@ -75,9 +90,19 @@ def flatten_ledger(snapshots):
             rows.append(row)
     frame = pd.DataFrame(rows)
     if not frame.empty:
-        frame["signal_day"] = pd.to_datetime(
-            frame.recorded_at, utc=True
-        ).dt.tz_convert(None).dt.normalize()
+        def local_signal_day(row):
+            value = pd.Timestamp(row.recorded_at)
+            if value.tzinfo is None:
+                value = value.tz_localize("UTC")
+            else:
+                value = value.tz_convert("UTC")
+            try:
+                value = value.tz_convert(row.market_timezone or "UTC")
+            except (TypeError, ValueError, KeyError):
+                value = value.tz_convert("UTC")
+            return value.tz_localize(None).normalize()
+
+        frame["signal_day"] = frame.apply(local_signal_day, axis=1)
         # Legacy rows recorded before quote-freshness was added remain valid
         # immutable observations, but cannot be treated as executable signals.
         frame["execution_eligible"] = frame["execution_eligible"].fillna(False).astype(bool)
@@ -126,7 +151,10 @@ def _cost_pct(row):
         _number(assumptions.get("minimum_commission_per_order"), 1.0),
         units * _number(assumptions.get("commission_per_share"), 0.005),
     ) / notional * 100
-    captured_spread = _number(assumptions.get("spread_pct_at_signal"), 0.0)
+    captured_spread = _number(assumptions.get("spread_pct_at_signal"))
+    # A missing spread is unknown cost, not a free execution assumption.
+    if captured_spread is None:
+        return None
     # Entry at the captured ask already pays the entry-side spread relative
     # to the later close series. Charge only an estimated exit half-spread;
     # a last-price entry must pay both sides explicitly.
@@ -161,7 +189,10 @@ def label_matured_predictions(frame, now=None, ticker_factory=yf.Ticker):
         return frame
     now = now or dt.datetime.now(dt.timezone.utc)
     result = frame.copy()
-    result["signal_day"] = pd.to_datetime(result.recorded_at, utc=True).dt.tz_convert(None).dt.normalize()
+    if "signal_day" not in result:
+        result = flatten_ledger([]) if result.empty else result
+    if "signal_day" not in result:
+        raise ValueError("signal_day must be derived by flatten_ledger")
     start = (result.signal_day.min() - pd.Timedelta(days=10)).date().isoformat()
     end = (pd.Timestamp(now).tz_convert(None) + pd.Timedelta(days=2)).date().isoformat()
     needed = set(result.symbol.dropna().astype(str)) | {"SPY", "QQQ"}
@@ -400,12 +431,18 @@ def options_control_table(labelled):
     rows = []
     for partition in ("calibration", "holdout_locked"):
         sample = labelled[labelled.sample_partition == partition]
-        for cohort, group in sample.groupby("options_cohort", dropna=False):
+        for (cohort, quality), group in sample.groupby(
+            ["options_cohort", "options_data_quality"], dropna=False
+        ):
             row = {
                 "partition": partition, "options_cohort": cohort,
+                "options_data_quality": quality,
                 "predictions": len(group),
                 "baseline_score_mean": group.baseline_score.mean(),
                 "raw_score_mean": group.raw_score.mean(),
+                "availability_adjusted_raw_mean": (
+                    group.raw_score_availability_adjusted.mean()
+                ),
                 "portfolio_fit_coverage_pct": group.portfolio_fit_available.mean() * 100,
             }
             for horizon in HORIZONS:
@@ -465,6 +502,51 @@ def risk_table(labelled):
     return pd.DataFrame(rows)
 
 
+def validation_verdict(labelled, risk, minimum_holdout=100):
+    """Apply fixed promotion gates without changing scores or decisions."""
+    holdout = labelled[
+        (labelled.sample_partition == "holdout_locked")
+        & (labelled.outcome_status_20d == "matured")
+        & labelled.execution_eligible
+    ]
+    if len(holdout) < minimum_holdout:
+        return "CONTINUE SHADOW", (
+            f"locked holdout has {len(holdout)}/{minimum_holdout} matured observations"
+        )
+    baseline = holdout[holdout.baseline_decision == "BUY"]
+    enhanced = holdout[holdout.adjusted_score >= 75]
+    baseline_alpha = baseline.net_alpha_spy_pct_20d.dropna()
+    enhanced_alpha = enhanced.net_alpha_spy_pct_20d.dropna()
+    enhanced_risk = risk[
+        (risk.partition == "holdout_locked")
+        & (risk.model == "enhanced_adjusted")
+    ]
+    baseline_risk = risk[
+        (risk.partition == "holdout_locked") & (risk.model == "baseline")
+    ]
+    if len(enhanced_alpha) < minimum_holdout:
+        return "CONTINUE SHADOW", "enhanced holdout sample is below the fixed minimum"
+    drawdown_ok = True
+    if not enhanced_risk.empty and not baseline_risk.empty:
+        enhanced_dd = enhanced_risk.iloc[0].max_drawdown_pct
+        baseline_dd = baseline_risk.iloc[0].max_drawdown_pct
+        if pd.notna(enhanced_dd) and pd.notna(baseline_dd):
+            drawdown_ok = enhanced_dd >= baseline_dd
+    regime_means = enhanced.groupby("market_regime").net_alpha_spy_pct_20d.mean().dropna()
+    regime_ok = len(regime_means) >= 2 and (regime_means > 0).mean() >= 0.6
+    baseline_mean = baseline_alpha.mean() if len(baseline_alpha) else np.nan
+    gates = {
+        "positive_net_alpha": enhanced_alpha.mean() > 0,
+        "beats_baseline": pd.isna(baseline_mean) or enhanced_alpha.mean() > baseline_mean,
+        "positive_expectancy": enhanced_alpha.mean() > 0,
+        "drawdown_not_worse": drawdown_ok,
+        "regime_consistency": regime_ok,
+    }
+    if all(gates.values()):
+        return "PROMOTE ENHANCED", json.dumps(gates, sort_keys=True)
+    return "RECALIBRATE ENHANCED", json.dumps(gates, sort_keys=True)
+
+
 def write_report(labelled, performance, model_performance, buckets, risk,
                  options_control, regimes, components, portfolio_fit,
                  disagreements, output_dir=OUTPUT_DIR):
@@ -485,11 +567,7 @@ def write_report(labelled, performance, model_performance, buckets, risk,
             return "_No observations._"
         text = frame.to_csv(index=False).strip().splitlines()
         return "```csv\n" + "\n".join(text) + "\n```"
-    holdout_matured = int((
-        (labelled.sample_partition == "holdout_locked")
-        & (labelled.get("outcome_status_20d", pd.Series(dtype=str)) == "matured")
-    ).sum())
-    verdict = "CONTINUE SHADOW" if holdout_matured < 100 else "CONTINUE SHADOW"
+    verdict, verdict_reason = validation_verdict(labelled, risk)
     report = f"""# Enhanced Scoring forward validation
 
 Generated: {dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')}
@@ -552,6 +630,8 @@ observations are available; this avoids unstable attribution on tiny samples.
 ## Preliminary verdict
 
 **{verdict}**
+
+Reason: `{verdict_reason}`
 
 Promotion requires positive and robust **net excess return**, acceptable
 expectancy/drawdown and consistency across regimes in the locked holdout.

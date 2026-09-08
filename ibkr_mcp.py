@@ -735,7 +735,8 @@ def _snapshot_scalar(value: Any) -> float | None:
     if isinstance(value, dict):
         for key in (
             "value", "price", "last", "close", "mid", "annual_iv",
-            "iv", "percent", "percentage", "change",
+            "annual_pct", "iv", "percent", "percentage", "change",
+            "change_pct", "volume", "yield_pct",
         ):
             if key in value:
                 found = _snapshot_scalar(value[key])
@@ -1180,12 +1181,58 @@ def _expiration_sort_key(item):
     return preferred, regular, abs(days - 45), parsed
 
 
+def _annotate_options_quality(context):
+    """Classify cached and fresh chains without treating quotes as analytics."""
+    details = [
+        item for item in (context.get("contracts") or [])
+        if isinstance(item, dict)
+    ]
+    count = len(details)
+    fields = {
+        "quote_coverage_ratio": (
+            sum(bool(item.get("bid") and item.get("ask")) for item in details) / count
+            if count else 0
+        ),
+        "volume_coverage_ratio": (
+            sum(item.get("volume") is not None for item in details) / count
+            if count else 0
+        ),
+        "open_interest_coverage_ratio": (
+            sum(item.get("open_interest") is not None for item in details) / count
+            if count else 0
+        ),
+        "contract_iv_coverage_ratio": (
+            sum(item.get("iv") is not None for item in details) / count
+            if count else 0
+        ),
+    }
+    analytics = (
+        fields["volume_coverage_ratio"],
+        fields["open_interest_coverage_ratio"],
+        fields["contract_iv_coverage_ratio"],
+    )
+    if not details:
+        quality = "unavailable"
+    elif all(value >= 0.5 for value in analytics):
+        quality = "complete"
+    elif any(value > 0 for value in analytics):
+        quality = "partial"
+    elif fields["quote_coverage_ratio"] > 0:
+        quality = "quote_only"
+    else:
+        quality = "contracts_only"
+    context.update(fields)
+    context["data_quality"] = quality
+    context["analytics_available"] = quality in {"complete", "partial"}
+    return context
+
+
 async def _fetch_options_context(session, symbol, cache, contract, spot):
     existing = cache["options_context"].get(symbol)
     if isinstance(existing, dict) and _fresh_iso(
         existing.get("fetched_at"), OPTIONS_TTL_HOURS * 3600
     ):
-        return existing
+        return _annotate_options_quality(existing)
     if "OPT" not in set(contract.get("sections", [])) or not spot or spot <= 0:
         context = {
             "available": False,
@@ -1271,6 +1318,7 @@ async def _fetch_options_context(session, symbol, cache, contract, spot):
         "contracts": details,
         "source": "IBKR MCP option chain snapshots",
     }
+    _annotate_options_quality(context)
     cache["options_context"][symbol] = context
     return context
 

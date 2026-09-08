@@ -2303,6 +2303,52 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(detail['markers'][0]['date'], '2026-07-27')
         self.assertEqual(detail['markers'][0]['value'], 10.5)
 
+    def test_enhanced_detail_exposes_options_fit_and_components(self):
+        candidate = {
+            'symbol': 'NVDA',
+            'raw_stock_score': 82.5,
+            'portfolio_fit_available': True,
+            'portfolio_fit_observed_score': 37.5,
+            'portfolio_adjusted_score': 75.75,
+            'options_collection_eligible': True,
+            'options_collection_selected': True,
+            'options_collection_rank': 1,
+            'options_data_available': True,
+            'implied_volatility': 42.1,
+            'iv_percentile': 68,
+            'score_components': {
+                'technical_score': 88,
+                'momentum_score': 81,
+                'research_score': 74,
+                'volatility_score': 65,
+                'liquidity_score': 92,
+                'options_score': 77,
+                'relative_opportunity_score': 80,
+                'risk_reward_score': 70,
+                'risk_score': 76,
+            },
+            'options_context': {
+                'available': True,
+                'average_spread_pct': 1.25,
+                'quoted_contract_ratio': 0.8,
+                'contracts_sampled': 4,
+                'contracts': [
+                    {'side': 'call', 'volume': 120, 'open_interest': 900, 'iv': 41},
+                    {'side': 'put', 'volume': 80, 'open_interest': 700, 'iv': 43},
+                ],
+            },
+        }
+
+        enhanced = market_scanner._enhanced_ui_detail(candidate)
+
+        self.assertEqual(enhanced['raw_score'], 82.5)
+        self.assertEqual(enhanced['portfolio_fit'], 37.5)
+        self.assertEqual(enhanced['components']['options_score'], 77)
+        self.assertEqual(enhanced['options']['cohort'], 'OPTIONS OBSERVAT')
+        self.assertEqual(enhanced['options']['call_volume'], 120)
+        self.assertEqual(enhanced['options']['put_open_interest'], 700)
+        self.assertEqual(enhanced['options']['average_spread_pct'], 1.25)
+
     def test_active_buy_order_chart_levels_include_order_price(self):
         orders = pd.DataFrame([
             {

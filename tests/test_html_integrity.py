@@ -179,6 +179,21 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("'NASDAQ', 'BVB'", content)
         self.assertIn("'BVB': 'TVBETETF", content)
 
+    def test_watchlist_exposes_enhanced_options_and_portfolio_fit_details(self):
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        self.assertIn('<th>Options Score</th>', content)
+        self.assertIn('<th>Cohortă Options</th>', content)
+        self.assertIn('<th>Portfolio Fit</th>', content)
+        self.assertIn('function renderEnhancedDetail(enhanced)', content)
+        self.assertIn('Options IBKR MCP', content)
+        self.assertIn('Componentele scorului', content)
+        self.assertIn('${renderEnhancedDetail(detail.enhanced)}', content)
+        self.assertIn("var rowTrend = data[18]", content)
+        self.assertIn("var rowStatus = data[23]", content)
+
     def test_portfolio_mini_chart_opens_encrypted_candlestick_details(self):
         """Doar mini-graficul portofoliului deschide istoricul mare, păstrat în payload-ul criptat."""
         file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
