@@ -169,12 +169,16 @@ def _portfolio_snapshot(candidate):
         "available": fit_available,
         "fit_score_observed": fit,
         "fit_source": candidate.get("portfolio_fit_source"),
-        "formula_fallback_used": not fit_available,
+        "formula_fallback_used": False,
+        "adjustment_applied": bool(
+            candidate.get("portfolio_adjustment_applied") and fit_available
+        ),
         "exposure_before": before,
         "exposure_after": after,
         "hypothetical_purchase_weight_pct": _number(
             candidate.get("hypothetical_purchase_weight_pct")
         ),
+        "marginal_exposure_pct": _number(candidate.get("marginal_exposure_pct")),
         "hypothetical_units": _number(candidate.get("conditional_units")),
         "fit_score_posttrade_observed": _number(
             candidate.get("portfolio_fit_posttrade_observed_score")
@@ -184,22 +188,34 @@ def _portfolio_snapshot(candidate):
 
 def _options_snapshot(candidate):
     available = bool(candidate.get("options_data_available"))
+    partial = bool(candidate.get("options_data_partial"))
     selected = bool(candidate.get("options_collection_selected"))
     context = candidate.get("options_context") or {}
     if not isinstance(context, dict):
         context = {}
+    contracts = [
+        row for row in (context.get("contracts") or [])
+        if isinstance(row, dict)
+    ]
+    option_volume = sum(
+        _number(row.get("volume"), 0) or 0 for row in contracts
+    ) if contracts else None
+    open_interest = sum(
+        _number(row.get("open_interest"), 0) or 0 for row in contracts
+    ) if contracts else None
     return {
         "collection_eligible": bool(candidate.get("options_collection_eligible")),
         "selection_rank": _number(candidate.get("options_collection_rank")),
         "selected_for_operational_fetch": selected,
         "data_available": available,
-        "cohort": (
-            "options_observed" if available
-            else "selected_but_unavailable" if selected
-            else "eligible_control_without_options"
-            if candidate.get("options_collection_eligible")
-            else "not_eligible"
+        "data_partial": partial,
+        "cohort": candidate.get("options_cohort") or (
+            "OPTIONS_AVAILABLE" if available else "OPTIONS_DATA_PARTIAL"
+            if partial else "OPTIONS_UNAVAILABLE" if candidate.get(
+                "options_collection_eligible"
+            ) else "OPTIONS_NOT_ELIGIBLE"
         ),
+        "eligibility_reason": candidate.get("options_eligibility_reason"),
         "formula_score": _number(candidate.get("options_score")),
         "observed_score": _number(candidate.get("options_score")) if available else None,
         "neutral_fallback_explicit": not available,
@@ -217,6 +233,23 @@ def _options_snapshot(candidate):
         "contract_iv_coverage_ratio": _number(
             context.get("contract_iv_coverage_ratio")
         ),
+        "fetched_at": context.get("fetched_at"),
+        "expiration": context.get("expiration"),
+        "expirations": context.get("expirations") or [],
+        "implied_volatility": _number(candidate.get("implied_volatility")),
+        "iv_percentile": _number(candidate.get("iv_percentile")),
+        "option_volume": option_volume,
+        "open_interest": open_interest,
+        "sampled_bid_ask": [
+            {
+                "side": row.get("side"),
+                "strike": _number(row.get("strike")),
+                "bid": _number(row.get("bid")),
+                "ask": _number(row.get("ask")),
+            }
+            for row in contracts
+        ],
+        "raw_context": context,
     }
 
 
@@ -245,6 +278,14 @@ def _candidate_record(candidate, state, timestamp):
         "market": candidate.get("market"),
         "sector": candidate.get("sector"),
         "industry": candidate.get("industry"),
+        "instrument_metadata": {
+            "country": candidate.get("country"),
+            "exchange": candidate.get("exchange"),
+            "security_type": candidate.get("security_type"),
+            "currency": candidate.get("execution_currency") or candidate.get("currency"),
+            "contract_id": candidate.get("contract_id"),
+            "source": candidate.get("market_metadata_source"),
+        },
         "baseline_score": _number(candidate.get("technical_score")),
         "baseline_decision": candidate.get("decision"),
         "enhanced_decision_shadow": candidate.get("enhanced_decision"),
@@ -256,6 +297,7 @@ def _candidate_record(candidate, state, timestamp):
         ),
         "portfolio_fit_observed": portfolio["fit_score_observed"],
         "adjusted_score_formula": _number(candidate.get("portfolio_adjusted_score")),
+        "portfolio_adjustment_applied": portfolio["adjustment_applied"],
         "adjusted_score_observed_fit": (
             _number(candidate.get("portfolio_adjusted_score"))
             if portfolio["available"] else None
@@ -279,7 +321,8 @@ def _candidate_record(candidate, state, timestamp):
         "point_in_time_features": {
             key: candidate.get(key) for key in (
                 "trend", "rsi", "relative_strength", "consensus", "analysts",
-                "atr_eur", "rr_ratio", "earnings_risk", "historical_vol",
+                "checks_passed", "atr_eur", "rr_ratio", "earnings_risk",
+                "relative_volume_20d", "historical_vol",
                 "implied_volatility", "iv_percentile", "avg_90d_usd_volume",
                 "quote_status", "spread_pct", "volatility_regime",
             )

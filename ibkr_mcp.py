@@ -139,7 +139,16 @@ class FileTokenStorage:
 
     def _read(self) -> dict[str, Any]:
         if not self.path.exists():
-            return {}
+            raw_environment = os.environ.get("IBKR_MCP_CREDENTIALS_JSON", "")
+            if not raw_environment.strip():
+                return {}
+            try:
+                payload = json.loads(raw_environment)
+            except (TypeError, ValueError) as exc:
+                raise IBKRMCPError(
+                    "IBKR_MCP_CREDENTIALS_JSON nu conține JSON valid."
+                ) from exc
+            return payload if isinstance(payload, dict) else {}
         try:
             return json.loads(self.path.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
@@ -880,6 +889,7 @@ async def _resolve_market_contract(
         "country_code": str(match.get("country_code") or ""),
         "description": str(match.get("description") or ""),
         "issuer": str(match.get("issuer") or ""),
+        "currency": str(match.get("currency") or "").upper(),
         "security_type": (
             "STK"
             if any(
@@ -897,6 +907,73 @@ async def _resolve_market_contract(
     }
     cache["contracts"][normalized] = contract
     return contract
+
+
+def get_cached_contract_metadata(symbol: str) -> dict[str, Any]:
+    """Return immutable search_contracts metadata without opening MCP."""
+    cache = _read_market_cache()
+    value = cache.get("contracts", {}).get(_market_symbol(symbol))
+    return dict(value) if isinstance(value, dict) and value.get("contract_id") else {}
+
+
+def get_cached_contract_metadata_map(symbols) -> dict[str, dict[str, Any]]:
+    """Load the private contract cache once for a scanner batch."""
+    cache = _read_market_cache().get("contracts", {})
+    result = {}
+    for symbol in symbols or []:
+        requested = str(symbol or "").strip().upper()
+        normalized = _market_symbol(symbol)
+        value = cache.get(normalized)
+        if isinstance(value, dict) and value.get("contract_id"):
+            result[normalized] = dict(value)
+            if requested:
+                result[requested] = dict(value)
+    return result
+
+
+async def _resolve_contract_metadata_async(symbols) -> dict[str, dict[str, Any]]:
+    """Resolve missing canonical contracts through search_contracts."""
+    cache = _read_market_cache()
+    result: dict[str, dict[str, Any]] = {}
+    async with ReadOnlyMCPSession() as session:
+        for raw_symbol in symbols or []:
+            requested = str(raw_symbol or "").strip().upper()
+            if not requested:
+                continue
+            contract = await _resolve_market_contract(
+                session, requested, cache
+            )
+            if contract:
+                result[requested] = dict(contract)
+                result[_market_symbol(requested)] = dict(contract)
+    _write_market_cache(cache)
+    return result
+
+
+def resolve_contract_metadata(symbols) -> dict[str, dict[str, Any]]:
+    """Public, cached search_contracts fallback for a bounded symbol batch."""
+    requested = [str(value or "").strip().upper() for value in symbols or []]
+    cached = get_cached_contract_metadata_map(requested)
+    missing = [value for value in requested if value and value not in cached]
+    if missing:
+        cached.update(asyncio.run(_resolve_contract_metadata_async(missing)))
+    return cached
+
+
+def runtime_enabled() -> bool:
+    """True only when MCP use is explicitly usable in this environment."""
+    configured = os.environ.get("IBKR_MCP_RESEARCH_ENABLED", "1").lower()
+    if configured in {"0", "false", "no", "off"}:
+        return False
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        opt_in = os.environ.get("IBKR_MCP_GITHUB_ACTIONS_ENABLED", "0").lower()
+        if opt_in not in {"1", "true", "yes", "on"}:
+            return False
+        return bool(
+            os.environ.get("IBKR_MCP_CREDENTIALS_JSON", "").strip()
+            or CREDENTIALS_FILE.exists()
+        )
+    return True
 
 
 async def _fetch_market_instrument(
@@ -1211,7 +1288,10 @@ def _annotate_options_quality(context):
         fields["open_interest_coverage_ratio"],
         fields["contract_iv_coverage_ratio"],
     )
-    if not details:
+    chain_contracts_count = int(context.get("chain_contracts_count") or 0)
+    if not details and chain_contracts_count > 0:
+        quality = "contracts_only"
+    elif not details:
         quality = "unavailable"
     elif all(value >= 0.5 for value in analytics):
         quality = "complete"
@@ -1277,6 +1357,10 @@ async def _fetch_options_context(session, symbol, cache, contract, spot):
                 ],
             }))
     snapshots = await asyncio.gather(*requests, return_exceptions=True)
+    snapshot_errors = [
+        str(payload)[:500] for payload in snapshots
+        if isinstance(payload, BaseException)
+    ]
     details = []
     for (side, strike), payload in zip(labels, snapshots):
         if not isinstance(payload, dict):
@@ -1309,8 +1393,13 @@ async def _fetch_options_context(session, symbol, cache, contract, spot):
         "available": bool(details),
         "fetched_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "expiration": expiration.get("date"),
+        "expirations": [item.get("date") for item in expirations if item.get("date")],
         "exchange": exchange,
         "contracts_sampled": len(details),
+        "chain_contracts_count": len(rows),
+        "chain_contracts_sampled": selected,
+        "snapshot_error_count": len(snapshot_errors),
+        "snapshot_errors": snapshot_errors[:3],
         "quoted_contract_ratio": len(quoted) / len(details) if details else 0,
         "average_spread_pct": sum(spreads) / len(spreads) if spreads else None,
         "put_call_volume_ratio": put_volume / call_volume if call_volume > 0 else None,
@@ -1362,6 +1451,7 @@ async def _prefetch_candidate_context_async(candidates):
         symbol: {
             "company_context": cache["company_context"].get(symbol, {}),
             "options_context": cache["options_context"].get(symbol, {}),
+            "instrument_metadata": dict(cache["contracts"].get(symbol, {})),
         }
         for symbol, _spot in normalized
     }

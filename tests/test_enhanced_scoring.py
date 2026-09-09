@@ -50,7 +50,9 @@ def test_missing_optional_ibkr_data_is_neutral_not_failure():
     })
     assert result["liquidity_score"] == 50
     assert result["options_score"] == 50
-    assert result["portfolio_fit_score"] == 50
+    assert result["portfolio_fit_score"] is None
+    assert result["portfolio_adjustment_applied"] is False
+    assert result["portfolio_adjusted_score"] == result["raw_stock_score"]
     assert result["enhanced_decision"] == "WAIT"
     assert result["options_score_observed"] is None
     assert result["raw_stock_score_availability_adjusted"] != result["raw_stock_score"]

@@ -2327,7 +2327,7 @@ def _size_buy_candidates(snapshot):
         )
         candidate.update(enhanced_scoring.calculate_scores(
             candidate,
-            portfolio_fit_score=observed_fit if fit_available else 50,
+            portfolio_fit_score=observed_fit if fit_available else None,
         ))
         candidate['portfolio_fit_available'] = fit_available
         candidate['portfolio_fit_observed_score'] = (
@@ -2346,6 +2346,7 @@ def _size_buy_candidates(snapshot):
         candidate['hypothetical_purchase_weight_pct'] = round(
             purchase_weight, 4
         )
+        candidate['marginal_exposure_pct'] = round(purchase_weight, 4)
         for dimension in ('sector', 'country', 'region'):
             before = _safe_number(
                 candidate.get(f'ibkr_{dimension}_weight_pct'), None

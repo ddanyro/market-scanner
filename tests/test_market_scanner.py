@@ -3,6 +3,7 @@ Unit tests for Market Scanner application - Updated version.
 Tests actual functions that exist in the codebase.
 """
 import unittest
+import asyncio
 import copy
 import json
 import sys
@@ -25,21 +26,62 @@ import market_security
 
 class TestPortfolioOptionsContext(unittest.TestCase):
     @patch.dict(os.environ, {
+        'IBKR_MCP_RESEARCH_ENABLED': '1', 'GITHUB_ACTIONS': 'false',
+    })
+    @patch('ibkr_mcp.get_cached_contract_metadata_map')
+    @patch('ibkr_mcp.prefetch_candidate_context')
+    def test_mcp_timeout_does_not_abort_scanner(
+        self, prefetch, cached_contracts,
+    ):
+        cached_contracts.return_value = {'AAPL': {
+            'contract_id': 1, 'country_code': 'US', 'exchange': 'NASDAQ',
+            'security_type': 'STK', 'sections': ['STK', 'OPT'],
+        }}
+        prefetch.side_effect = asyncio.CancelledError('timeout')
+        row = market_scanner._enrich_ibkr_candidate_context([{
+            'Ticker': 'AAPL', 'Decision': 'BUY', 'Price_Native': 100,
+        }])[0]
+        self.assertEqual(row['Options_Cohort'], 'OPTIONS_UNAVAILABLE')
+        self.assertFalse(row['Options_Data_Available'])
+        self.assertIsNone(row['Options_Score'])
+
+    @patch.dict(os.environ, {
         'IBKR_MCP_RESEARCH_ENABLED': '1',
         'GITHUB_ACTIONS': 'false',
     })
+    @patch('ibkr_mcp.get_cached_contract_metadata_map')
     @patch('ibkr_mcp.prefetch_candidate_context')
-    def test_us_options_budget_and_control_cohort_are_separate(self, prefetch):
+    def test_us_options_budget_and_control_cohort_are_separate(
+        self, prefetch, cached_contracts,
+    ):
+        cached_contracts.return_value = {
+            symbol: {
+                'contract_id': index, 'symbol': symbol,
+                'country_code': 'US', 'exchange': 'NASDAQ',
+                'security_type': 'STK', 'sections': ['STK', 'OPT'],
+            }
+            for index, symbol in enumerate(
+                ('AAPL', 'MSFT', 'NVDA', 'JPM'), start=1
+            )
+        }
         prefetch.return_value = {
             'AAPL': {
+                'instrument_metadata': cached_contracts.return_value['AAPL'],
                 'options_context': {
                     'available': True,
+                    'data_quality': 'complete',
                     'average_spread_pct': 1.0,
                     'quoted_contract_ratio': 1.0,
                 }
             },
-            'MSFT': {'options_context': {'available': False}},
-            'NVDA': {'options_context': {'available': False}},
+            'MSFT': {
+                'instrument_metadata': cached_contracts.return_value['MSFT'],
+                'options_context': {'available': False},
+            },
+            'NVDA': {
+                'instrument_metadata': cached_contracts.return_value['NVDA'],
+                'options_context': {'available': False},
+            },
         }
         candidates = [
             {'Ticker': 'ALW.RO', 'Market': 'România / BVB', 'Decision': 'BUY', 'RSI': 55},
@@ -56,11 +98,44 @@ class TestPortfolioOptionsContext(unittest.TestCase):
         self.assertEqual(requested[:3], ['AAPL', 'MSFT', 'NVDA'])
         self.assertFalse(by_symbol['ALW.RO']['Options_Collection_Eligible'])
         self.assertTrue(by_symbol['AAPL']['Options_Data_Available'])
+        self.assertEqual(by_symbol['AAPL']['Options_Cohort'], 'OPTIONS_AVAILABLE')
         self.assertTrue(by_symbol['NVDA']['Options_Collection_Selected'])
         self.assertTrue(by_symbol['JPM']['Options_Collection_Eligible'])
         self.assertFalse(by_symbol['JPM']['Options_Collection_Selected'])
         self.assertFalse(by_symbol['JPM']['Options_Data_Available'])
-        self.assertNotIn('Options_Context', by_symbol['JPM'])
+        self.assertEqual(by_symbol['JPM']['Options_Cohort'], 'OPTIONS_UNAVAILABLE')
+        self.assertFalse(by_symbol['JPM']['Options_Context']['score_available'])
+
+    @patch.dict(os.environ, {
+        'IBKR_MCP_RESEARCH_ENABLED': '1', 'GITHUB_ACTIONS': 'false',
+    })
+    @patch('ibkr_mcp.get_cached_contract_metadata_map')
+    @patch('ibkr_mcp.prefetch_candidate_context')
+    def test_partial_options_are_not_observed_as_neutral_50(
+        self, prefetch, cached_contracts,
+    ):
+        contract = {
+            'contract_id': 1, 'symbol': 'AAPL', 'country_code': 'US',
+            'exchange': 'NASDAQ', 'security_type': 'STK',
+            'sections': ['STK', 'OPT'],
+        }
+        cached_contracts.return_value = {'AAPL': contract}
+        prefetch.return_value = {'AAPL': {
+            'instrument_metadata': contract,
+            'options_context': {
+                'available': True, 'data_quality': 'partial',
+                'average_spread_pct': 1.2,
+            },
+        }}
+        row = market_scanner._enrich_ibkr_candidate_context([{
+            'Ticker': 'AAPL', 'Decision': 'BUY', 'Price_Native': 100,
+        }])[0]
+        self.assertEqual(row['Options_Cohort'], 'OPTIONS_DATA_PARTIAL')
+        self.assertTrue(row['Options_Data_Partial'])
+        self.assertFalse(row['Options_Data_Available'])
+        self.assertIsNone(row['Options_Score'])
+        self.assertIsNone(row['options_score_observed'])
+
 
 
 class TestMarketAnalysis(unittest.TestCase):
@@ -2366,7 +2441,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(enhanced['raw_score'], 82.5)
         self.assertEqual(enhanced['portfolio_fit'], 37.5)
         self.assertEqual(enhanced['components']['options_score'], 77)
-        self.assertEqual(enhanced['options']['cohort'], 'OPTIONS OBSERVAT')
+        self.assertEqual(enhanced['options']['cohort'], 'OPTIONS AVAILABLE')
         self.assertEqual(enhanced['options']['call_volume'], 120)
         self.assertEqual(enhanced['options']['put_open_interest'], 700)
         self.assertEqual(enhanced['options']['average_spread_pct'], 1.25)

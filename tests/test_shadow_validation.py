@@ -48,7 +48,37 @@ def test_snapshot_preserves_observed_fit_and_explicit_missing_options():
     assert row["portfolio"]["formula_fallback_used"] is False
     assert row["options"]["observed_score"] is None
     assert row["options"]["neutral_fallback_explicit"] is True
-    assert row["options"]["cohort"] == "eligible_control_without_options"
+    assert row["options"]["cohort"] == "OPTIONS_UNAVAILABLE"
+
+
+def test_snapshot_preserves_metadata_and_raw_options_provenance():
+    row = shadow_validation.build_snapshot([candidate(
+        country="US", exchange="NASDAQ", security_type="STK",
+        contract_id=265598,
+        market_metadata_source="IBKR_MCP_SEARCH_CONTRACTS",
+        implied_volatility=0.31, iv_percentile=0.82,
+        options_collection_selected=True,
+        options_data_available=True,
+        options_cohort="OPTIONS_AVAILABLE",
+        options_context={
+            "available": True, "score_available": True,
+            "data_quality": "complete", "fetched_at": "2026-09-08T09:59:00Z",
+            "expirations": ["2026-09-18"],
+            "contracts": [{
+                "side": "call", "strike": 100, "bid": 2, "ask": 2.2,
+                "volume": 120, "open_interest": 500,
+            }],
+        },
+    )], {}, recorded_at="2026-09-08T10:00:00Z")["predictions"][0]
+    assert row["instrument_metadata"] == {
+        "country": "US", "exchange": "NASDAQ", "security_type": "STK",
+        "currency": "USD", "contract_id": 265598,
+        "source": "IBKR_MCP_SEARCH_CONTRACTS",
+    }
+    assert row["options"]["option_volume"] == 120
+    assert row["options"]["open_interest"] == 500
+    assert row["options"]["sampled_bid_ask"][0]["ask"] == 2.2
+    assert row["options"]["fetched_at"] == "2026-09-08T09:59:00Z"
 
 
 def test_missing_fit_is_not_serialized_as_real_50():

@@ -133,7 +133,11 @@ def liquidity_score(item: dict[str, Any]) -> float:
 
 def options_score(item: dict[str, Any]) -> float:
     context = item.get("Options_Context") or item.get("options_context") or {}
-    if not isinstance(context, dict) or not context.get("available"):
+    if (
+        not isinstance(context, dict)
+        or not context.get("available")
+        or context.get("score_available") is False
+    ):
         return 50.0
     score = 65.0
     spread = _number(context.get("average_spread_pct"))
@@ -183,7 +187,9 @@ def calculate_scores(
     raw = sum(components[key] * weight for key, weight in RAW_SCORE_WEIGHTS.items())
     options_context = item.get("Options_Context") or item.get("options_context") or {}
     options_observed = bool(
-        isinstance(options_context, dict) and options_context.get("available")
+        isinstance(options_context, dict)
+        and options_context.get("available")
+        and options_context.get("score_available", True)
     )
     observed_weights = dict(RAW_SCORE_WEIGHTS)
     if not options_observed:
@@ -192,13 +198,19 @@ def calculate_scores(
     availability_adjusted_raw = sum(
         components[key] * weight for key, weight in observed_weights.items()
     ) / observed_weight_total
-    fit = _clamp(portfolio_fit_score if portfolio_fit_score is not None else 50)
-    adjusted = raw * PORTFOLIO_RAW_WEIGHT + fit * PORTFOLIO_FIT_WEIGHT
+    fit_available = portfolio_fit_score is not None
+    fit = _clamp(portfolio_fit_score) if fit_available else None
+    adjusted = (
+        raw * PORTFOLIO_RAW_WEIGHT + fit * PORTFOLIO_FIT_WEIGHT
+        if fit_available else raw
+    )
+    # Risk Score keeps its registered neutral fallback and exact formula.
+    risk_fit = fit if fit_available else 50
     risk = (
         components["volatility_score"] * 0.4
         + components["liquidity_score"] * 0.3
         + components["options_score"] * 0.15
-        + fit * 0.15
+        + risk_fit * 0.15
     )
     current = str(item.get("Decision") or item.get("decision") or "WAIT").upper()
     enhanced = current
@@ -215,7 +227,7 @@ def calculate_scores(
             reasons.append("Liquidity Score is below 30")
         if iv_rank is not None and iv_rank >= 90 and vol_score < 35:
             reasons.append("IV percentile is extreme")
-        if fit < 30:
+        if fit_available and fit < 30:
             reasons.append("Portfolio Concentration Penalty")
         if reasons:
             enhanced = "WAIT"
@@ -232,7 +244,9 @@ def calculate_scores(
     )
     return {
         **{key: round(value, 2) for key, value in components.items()},
-        "portfolio_fit_score": round(fit, 2),
+        "portfolio_fit_available": fit_available,
+        "portfolio_fit_score": round(fit, 2) if fit_available else None,
+        "portfolio_adjustment_applied": fit_available,
         "raw_stock_score": round(raw, 2),
         # Diagnostic only: preserves the registered score while allowing a
         # fair observed-vs-control analysis when option evidence is missing.

@@ -48,6 +48,7 @@ import market_data
 import bvb_public_market_data
 import buy_now_push
 import enhanced_scoring
+import instrument_metadata
 import shadow_validation
 
 BUY_RESEARCH_UNIVERSES = {
@@ -530,9 +531,7 @@ def _load_mcp_market_instrument(symbol, now=None):
 
 
 def _prefetch_ibkr_mcp_market_data(symbols, label='watchlist'):
-    """Prefetch MCP numai local; cloudul păstrează sursele existente."""
-    if os.environ.get('GITHUB_ACTIONS') == 'true':
-        return None
+    """Prefetch MCP when the current environment is explicitly authorised."""
     if os.environ.get('IBKR_MCP_MARKET_DATA_ENABLED', '1').strip().lower() in {
         '0', 'false', 'no', 'off'
     }:
@@ -545,6 +544,8 @@ def _prefetch_ibkr_mcp_market_data(symbols, label='watchlist'):
         return None
     try:
         import ibkr_mcp
+        if not ibkr_mcp.runtime_enabled():
+            return None
         started_at = time.perf_counter()
         stats = ibkr_mcp.prefetch_market_data(unique_symbols)
         elapsed = time.perf_counter() - started_at
@@ -1233,10 +1234,34 @@ def fetch_complete_bvb_equity_universe(state, request_session=None):
 
 
 def _buy_candidate_market(symbol):
-    normalized = str(symbol).upper()
-    if normalized in {'LQQ.PA', 'LQQ.FR', 'FR.LQQ'}:
-        return 'Europa / Nasdaq-100'
-    return 'România / BVB' if normalized.endswith('.RO') else 'SUA'
+    return instrument_metadata.canonical_metadata({
+        'Ticker': symbol,
+    }).get('market')
+
+
+def _canonicalize_instrument_items(items, context_by_symbol=None):
+    """Apply one metadata contract to watchlist, portfolio and snapshots."""
+    rows = [dict(item) for item in (items or []) if isinstance(item, dict)]
+    symbols = [
+        str(item.get('Ticker') or item.get('Symbol') or item.get('symbol') or '')
+        for item in rows
+    ]
+    contracts = {}
+    try:
+        import ibkr_mcp
+        contracts = ibkr_mcp.get_cached_contract_metadata_map(symbols)
+    except Exception:
+        contracts = {}
+    context_by_symbol = context_by_symbol or {}
+    result = []
+    for item in rows:
+        symbol = str(
+            item.get('Ticker') or item.get('Symbol') or item.get('symbol') or ''
+        ).upper()
+        context = context_by_symbol.get(symbol, {})
+        contract = context.get('instrument_metadata') or contracts.get(symbol)
+        result.append(instrument_metadata.apply_metadata(item, contract))
+    return result
 
 
 def _buy_candidate_brokers(symbol):
@@ -1544,14 +1569,16 @@ def _enhanced_ui_detail(candidate):
     eligible = bool(candidate.get('options_collection_eligible'))
     selected = bool(candidate.get('options_collection_selected'))
     available = bool(candidate.get('options_data_available'))
-    if selected and available:
-        cohort = 'OPTIONS OBSERVAT'
-    elif selected:
-        cohort = 'OPTIONS SELECTAT — DATE INDISPONIBILE'
-    elif eligible:
-        cohort = 'CONTROL FĂRĂ OPTIONS'
-    else:
-        cohort = 'NEELIGIBIL OPTIONS'
+    partial = bool(candidate.get('options_data_partial'))
+    cohort_value = candidate.get('options_cohort')
+    if not cohort_value:
+        cohort_value = (
+            'OPTIONS_AVAILABLE' if available else
+            'OPTIONS_DATA_PARTIAL' if partial else
+            'OPTIONS_UNAVAILABLE' if eligible else
+            'OPTIONS_NOT_ELIGIBLE'
+        )
+    cohort = str(cohort_value).replace('_', ' ')
 
     components = candidate.get('score_components') or {}
     component_keys = (
@@ -1570,6 +1597,9 @@ def _enhanced_ui_detail(candidate):
             if candidate.get('portfolio_fit_available') else None
         ),
         'portfolio_fit_source': candidate.get('portfolio_fit_source'),
+        'portfolio_adjustment_applied': bool(
+            candidate.get('portfolio_adjustment_applied')
+        ),
         'adjusted_score': _safe_float_text(
             candidate.get('portfolio_adjusted_score')
         ),
@@ -1584,11 +1614,17 @@ def _enhanced_ui_detail(candidate):
             for key in component_keys
         },
         'options': {
-            'score': _safe_float_text(components.get('options_score')),
+            'score': (
+                _safe_float_text(candidate.get('options_score_observed'))
+                if available else None
+            ),
+            'formula_score': _safe_float_text(components.get('options_score')),
             'score_observed': available,
             'eligible': eligible,
             'selected': selected,
             'available': available,
+            'partial': partial,
+            'eligibility_reason': candidate.get('options_eligibility_reason'),
             'selection_rank': candidate.get('options_collection_rank'),
             'cohort': cohort,
             'data_quality': options_context.get('data_quality', 'unavailable'),
@@ -2036,7 +2072,7 @@ def _external_research_score(item):
 
 def _enrich_ibkr_candidate_context(items, limit=8):
     """Fetch themes/options only for the strongest already-scanned names."""
-    candidates = [dict(item) for item in (items or []) if isinstance(item, dict)]
+    candidates = _canonicalize_instrument_items(items)
     if not candidates:
         return candidates
     ranked = sorted(
@@ -2054,16 +2090,18 @@ def _enrich_ibkr_candidate_context(items, limit=8):
     # them independently so BVB/European names cannot consume the limited
     # three-symbol options budget.  Every remaining US name is an explicit
     # control observation rather than an implicit neutral-score observation.
-    options_eligible = [
+    options_candidates = [
         item for item in ranked
         if str(item.get('Decision') or '').upper() in {'BUY', 'WAIT'}
         and str(item.get('Market') or '') == 'SUA'
+        and str(item.get('Security_Type') or '').upper() in {'STK', 'FUND'}
+        and item.get('Options_Supported') is not False
     ]
     options_rank = {
         str(item.get('Ticker') or '').upper(): rank
-        for rank, item in enumerate(options_eligible, start=1)
+        for rank, item in enumerate(options_candidates, start=1)
     }
-    options_selected = options_eligible[:3]
+    options_selected = options_candidates[:3]
     fetch_selected = []
     fetch_symbols = set()
     for item in options_selected + research_selected:
@@ -2072,27 +2110,54 @@ def _enrich_ibkr_candidate_context(items, limit=8):
             fetch_selected.append(item)
             fetch_symbols.add(symbol)
     contexts = {}
-    if (
-        fetch_selected
-        and os.environ.get('GITHUB_ACTIONS') != 'true'
-        and os.environ.get('IBKR_MCP_RESEARCH_ENABLED', '1').lower()
-        not in {'0', 'false', 'no', 'off'}
-    ):
+    if fetch_selected:
         try:
             import ibkr_mcp
-            contexts = ibkr_mcp.prefetch_candidate_context([{
-                'symbol': item.get('Ticker'),
-                'price': item.get('Price_Native') or item.get('Price'),
-            } for item in fetch_selected])
-        except Exception as exc:
+            if ibkr_mcp.runtime_enabled():
+                contexts = ibkr_mcp.prefetch_candidate_context([{
+                    'symbol': item.get('Ticker'),
+                    'price': item.get('Price_Native') or item.get('Price'),
+                } for item in fetch_selected])
+        except (Exception, asyncio.CancelledError) as exc:
             print(f"  -> Contextul IBKR MCP themes/options este indisponibil: {exc}")
+    candidates = _canonicalize_instrument_items(candidates, contexts)
+    cohort_counts = {
+        'OPTIONS_AVAILABLE': 0,
+        'OPTIONS_UNAVAILABLE': 0,
+        'OPTIONS_DATA_PARTIAL': 0,
+        'OPTIONS_NOT_ELIGIBLE': 0,
+    }
     for item in candidates:
         symbol = str(item.get('Ticker') or '').upper()
         context = contexts.get(symbol, {})
         rank = options_rank.get(symbol)
-        item['Options_Collection_Eligible'] = rank is not None
+        decision_eligible = str(item.get('Decision') or '').upper() in {'BUY', 'WAIT'}
+        market_eligible = item.get('Market') == 'SUA'
+        security_eligible = str(item.get('Security_Type') or '').upper() in {
+            'STK', 'FUND',
+        }
+        chain_supported = item.get('Options_Supported') is True
+        eligible = bool(
+            decision_eligible and market_eligible
+            and security_eligible and chain_supported
+        )
+        reasons = []
+        if not decision_eligible:
+            reasons.append('decision_not_buy_or_wait')
+        if not market_eligible:
+            reasons.append('market_not_usa')
+        if not security_eligible:
+            reasons.append('security_type_not_supported')
+        if not chain_supported:
+            reasons.append('option_chain_not_advertised')
+        item['Options_Collection_Eligible'] = eligible
+        item['Options_Eligibility_Reason'] = (
+            'eligible' if eligible else ';'.join(reasons)
+        )
         item['Options_Collection_Rank'] = rank
-        item['Options_Collection_Selected'] = bool(rank and rank <= 3)
+        item['Options_Collection_Selected'] = bool(
+            eligible and rank and rank <= 3
+        )
         if context.get('company_context'):
             item['Company_Context'] = context['company_context']
         if item['Options_Collection_Selected'] and context.get('options_context'):
@@ -2101,12 +2166,40 @@ def _enrich_ibkr_candidate_context(items, limit=8):
             # Do not let a historic option payload turn a current control
             # observation into an apparently observed one.
             item.pop('Options_Context', None)
-        item['Options_Data_Available'] = bool(
+        option_context = item.get('Options_Context') or {}
+        quality = str(option_context.get('data_quality') or 'unavailable')
+        partial = bool(
             item['Options_Collection_Selected']
-            and isinstance(item.get('Options_Context'), dict)
-            and item['Options_Context'].get('available')
+            and quality in {'partial', 'quote_only', 'contracts_only'}
         )
+        available = bool(
+            item['Options_Collection_Selected']
+            and option_context.get('available')
+            and quality == 'complete'
+        )
+        item['Options_Data_Available'] = available
+        item['Options_Data_Partial'] = partial
+        if available:
+            cohort = 'OPTIONS_AVAILABLE'
+        elif partial:
+            cohort = 'OPTIONS_DATA_PARTIAL'
+        elif eligible:
+            cohort = 'OPTIONS_UNAVAILABLE'
+        else:
+            cohort = 'OPTIONS_NOT_ELIGIBLE'
+        item['Options_Cohort'] = cohort
+        cohort_counts[cohort] += 1
+        if isinstance(option_context, dict):
+            option_context['score_available'] = available
+            item['Options_Context'] = option_context
         item.update(enhanced_scoring.calculate_scores(item))
+        item['Options_Score'] = (
+            item.get('options_score') if available else None
+        )
+    print(
+        '  -> Cohorte Options: '
+        + ', '.join(f'{key}={value}' for key, value in cohort_counts.items())
+    )
     return candidates
 
 
@@ -4141,6 +4234,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             **data_attribution,
             **enhanced_market_fields,
         }
+        result = instrument_metadata.apply_metadata(result)
         portfolio_score_input = dict(result, Decision='HOLD', ATR_14=last_atr)
         portfolio_scores = enhanced_scoring.calculate_scores(
             portfolio_score_input
@@ -4542,6 +4636,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             **data_attribution,
             **enhanced_market_fields,
         }
+        result = instrument_metadata.apply_metadata(result)
         result.update(bvb_liquidity_metrics)
         result.update(enhanced_scoring.calculate_scores(result))
         return result
@@ -8646,7 +8741,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         us_market_regime=us_market_regime,
         bvb_universe=(full_state or {}).get('bvb_equity_universe', []),
     )
-    if run_mode == 'portfolio':
+    if run_mode in {'portfolio', 'all', 'international'}:
         strict_buy_candidates = _enrich_ibkr_candidate_context(
             strict_buy_candidates
         )
@@ -8682,6 +8777,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             'analysts': item.get('Analysts'),
             'trend': item.get('Trend'),
             'rsi': item.get('RSI'),
+            'checks_passed': item.get('Checks_Passed'),
             'earnings_risk': bool(item.get('Earnings_Danger')),
             'entry_reason': item.get('Smart_Reason'),
             'price_native': item.get('Price_Native'),
@@ -8695,6 +8791,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             'chart_series_dates': native_chart_detail['seriesDates'],
             'atr_eur': item.get('ATR_14'),
             'volume': item.get('Volume'),
+            'relative_volume_20d': item.get('Relative_Volume_20D'),
             'strategy': item.get('Strategy'),
             'relative_strength': item.get('RS_vs_SPX'),
             'bid': item.get('Bid'),
@@ -8729,6 +8826,12 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             'portfolio_adjusted_score': item.get(
                 'portfolio_adjusted_score'
             ),
+            'portfolio_adjustment_applied': bool(
+                item.get('portfolio_adjustment_applied')
+            ),
+            'portfolio_fit_available': bool(
+                item.get('portfolio_fit_available')
+            ),
             'enhanced_stop': item.get('enhanced_stop'),
             'enhanced_stop_distance_pct': item.get(
                 'enhanced_stop_distance_pct'
@@ -8745,7 +8848,19 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             'options_data_available': bool(
                 item.get('Options_Data_Available')
             ),
+            'options_data_partial': bool(item.get('Options_Data_Partial')),
+            'options_cohort': item.get('Options_Cohort'),
+            'options_eligibility_reason': item.get(
+                'Options_Eligibility_Reason'
+            ),
             'options_context': item.get('Options_Context'),
+            'company_context': item.get('Company_Context'),
+            'country': item.get('Country'),
+            'exchange': item.get('Exchange'),
+            'security_type': item.get('Security_Type'),
+            'contract_id': item.get('Contract_ID'),
+            'market_metadata_source': item.get('Market_Metadata_Source'),
+            'instrument_metadata': item.get('Instrument_Metadata'),
             'score_components': {
                 key: item.get(key) for key in (
                     'technical_score', 'momentum_score', 'research_score',
@@ -9882,8 +9997,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             options_score_display = (
                 f"{options_score:.1f}"
                 if options_detail.get('score_observed') and options_score is not None
-                else f"{options_score:.1f}*"
-                if options_score is not None else '-'
+                else 'N/A'
             )
             options_cohort_display = (
                 options_detail.get('cohort') if enhanced_candidate else '-'
@@ -9891,7 +10005,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             portfolio_fit = enhanced_detail.get('portfolio_fit')
             portfolio_fit_display = (
                 f"{portfolio_fit:.1f}"
-                if portfolio_fit is not None else '-'
+                if portfolio_fit is not None else 'N/A'
             )
             score_detail_button = (
                 f'<button type="button" class="detail-score-button" '
@@ -9954,7 +10068,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         <td style="font-weight: 700; color: {row.get('Decision_Color', '#888')};" onmousemove="showTooltip(event, '{row.get('Check_Details', '')}')" onmouseout="hideTooltip()">{row.get('Decision', '-')} ({row.get('Checks_Passed', 0)}/4)</td>
                         <td style="font-weight:700;color:{'#ff9800' if enhanced_decision != row.get('Decision') else '#7c3aed'};" onmousemove="showTooltip(event, '{enhanced_reason}')" onmouseout="hideTooltip()">{enhanced_decision}</td>
                         <td style="font-variant-numeric:tabular-nums;">{score_display}</td>
-                        <td style="font-variant-numeric:tabular-nums;" title="* = fallback neutru; nu există observație Options">{options_score_display}</td>
+                        <td style="font-variant-numeric:tabular-nums;" title="N/A = Options nu sunt disponibile ca observație completă">{options_score_display}</td>
                         <td style="font-size:.72rem;font-weight:700;white-space:nowrap;">{options_cohort_display}</td>
                         <td style="font-variant-numeric:tabular-nums;">{portfolio_fit_display}</td>
                         <td>{score_detail_button}</td>
@@ -10716,8 +10830,15 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     + "</span><b>" + score((enhanced.components || {})[key])
                     + "</b></div>"
                 ).join('');
-                const fallback = options.score_observed
-                    ? '' : " <small class='fallback'>(fallback neutru)</small>";
+                const optionsScore = options.score_observed
+                    ? score(options.score)
+                    : options.partial
+                    ? 'N/A — OPTIONS DATA PARTIAL'
+                    : 'N/A — OPTIONS NOT AVAILABLE';
+                const portfolioFit = enhanced.portfolio_fit === null
+                    || enhanced.portfolio_fit === undefined
+                    ? 'N/A — PORTFOLIO FIT NOT AVAILABLE'
+                    : score(enhanced.portfolio_fit);
                 const rank = options.selection_rank
                     ? ' · rang #' + escapeIndicatorText(options.selection_rank) : '';
                 return "<section class='panel enhanced-panel'>"
@@ -10728,11 +10849,11 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     + "<div class='enhanced-summary'>"
                     + "<div class='enhanced-card'><span>Raw Score</span><b>" + score(enhanced.raw_score) + "</b></div>"
                     + "<div class='enhanced-card'><span>Raw fără fallback Options</span><b>" + score(enhanced.raw_score_availability_adjusted) + "</b></div>"
-                    + "<div class='enhanced-card'><span>Portfolio Fit</span><b>" + score(enhanced.portfolio_fit) + "</b></div>"
+                    + "<div class='enhanced-card'><span>Portfolio Fit</span><b>" + portfolioFit + "</b></div>"
                     + "<div class='enhanced-card'><span>Adjusted Score</span><b>" + score(enhanced.adjusted_score) + "</b></div>"
                     + "<div class='enhanced-card'><span>Portfolio Fit după cumpărare</span><b>" + score(enhanced.portfolio_fit_posttrade) + "</b></div>"
                     + "<div class='enhanced-card'><span>Adjusted post-trade</span><b>" + score(enhanced.adjusted_score_posttrade) + "</b></div>"
-                    + "<div class='enhanced-card'><span>Options Score</span><b>" + score(options.score) + fallback + "</b></div>"
+                    + "<div class='enhanced-card'><span>Options Score</span><b>" + optionsScore + "</b></div>"
                     + "</div>"
                     + "<h3>Options IBKR MCP</h3><div class='enhanced-grid'>"
                     + "<div class='enhanced-metric'><span>Calitatea datelor</span><b>" + escapeIndicatorText(options.data_quality || 'unavailable') + "</b></div>"
@@ -11372,7 +11493,8 @@ def update_portfolio_data(state, rates, vix_val, sync_before_load=True):
                 portfolio_results.append(data)
     
     state['portfolio'] = _preserve_portfolio_chart_history(
-        state.get('portfolio', []), portfolio_results
+        state.get('portfolio', []),
+        _canonicalize_instrument_items(portfolio_results),
     )
     return state
 
@@ -11431,7 +11553,8 @@ def update_portfolio_positions_only(state, rates, vix_val):
         if data:
             portfolio_results.append(data)
     state['portfolio'] = _preserve_portfolio_chart_history(
-        state.get('portfolio', []), portfolio_results
+        state.get('portfolio', []),
+        _canonicalize_instrument_items(portfolio_results),
     )
     return state
 
@@ -11520,6 +11643,21 @@ def update_watchlist_data(
         _missing_fields, use_cache = refresh_status(ticker, cached_data)
         if not use_cache:
             mcp_due_symbols.append(ticker)
+    # Metadata contract/exchange must converge even when the Yahoo row itself
+    # is still fresh.  The existing MCP prefetcher keeps this bounded through
+    # its deterministic rotating batch and persistent contract cache.
+    try:
+        import ibkr_mcp
+        cached_contracts = ibkr_mcp.get_cached_contract_metadata_map(
+            watchlist_tickers
+        )
+        mcp_due_symbols.extend(
+            ticker for ticker in watchlist_tickers
+            if str(ticker).strip().upper() not in cached_contracts
+        )
+    except Exception:
+        pass
+    mcp_due_symbols = list(dict.fromkeys(mcp_due_symbols))
     _prefetch_ibkr_mcp_market_data(mcp_due_symbols, label=title)
     
     cached_count = 0

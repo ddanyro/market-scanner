@@ -1,10 +1,35 @@
 import unittest
+import os
 from unittest import mock
 
 import ibkr_mcp
 
 
 class TestIBKRMCPNormalisation(unittest.TestCase):
+    def test_github_actions_requires_explicit_opt_in_and_credentials(self):
+        with mock.patch.dict(os.environ, {
+            "GITHUB_ACTIONS": "true",
+            "IBKR_MCP_RESEARCH_ENABLED": "1",
+            "IBKR_MCP_GITHUB_ACTIONS_ENABLED": "0",
+            "IBKR_MCP_CREDENTIALS_JSON": "",
+        }, clear=False):
+            self.assertFalse(ibkr_mcp.runtime_enabled())
+        with mock.patch.dict(os.environ, {
+            "GITHUB_ACTIONS": "true",
+            "IBKR_MCP_RESEARCH_ENABLED": "1",
+            "IBKR_MCP_GITHUB_ACTIONS_ENABLED": "1",
+            "IBKR_MCP_CREDENTIALS_JSON": '{"access_token":"x","scope":"mcp.read"}',
+        }, clear=False):
+            self.assertTrue(ibkr_mcp.runtime_enabled())
+
+    def test_contract_cache_map_preserves_requested_alias(self):
+        with mock.patch.object(ibkr_mcp, "_read_market_cache", return_value={
+            "contracts": {"LQQ.PA": {"contract_id": 42}}
+        }):
+            result = ibkr_mcp.get_cached_contract_metadata_map(["LQQ.FR"])
+        self.assertEqual(result["LQQ.FR"]["contract_id"], 42)
+        self.assertEqual(result["LQQ.PA"]["contract_id"], 42)
+
     def test_snapshot_scalar_understands_ibkr_named_metrics(self):
         self.assertEqual(ibkr_mcp._snapshot_scalar({"volume": 123}), 123)
         self.assertEqual(ibkr_mcp._snapshot_scalar({"annual_pct": 0.31}), 0.31)
@@ -18,6 +43,14 @@ class TestIBKRMCPNormalisation(unittest.TestCase):
             }]
         })
         self.assertEqual(context["data_quality"], "quote_only")
+        self.assertFalse(context["analytics_available"])
+
+    def test_chain_without_snapshots_is_partial_contract_evidence(self):
+        context = ibkr_mcp._annotate_options_quality({
+            "contracts": [], "chain_contracts_count": 5,
+            "snapshot_error_count": 10,
+        })
+        self.assertEqual(context["data_quality"], "contracts_only")
         self.assertFalse(context["analytics_available"])
 
     def test_write_scope_is_always_rejected(self):
