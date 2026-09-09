@@ -1,6 +1,6 @@
 partition,options_cohort,options_data_quality,predictions,baseline_score_mean,raw_score_mean,availability_adjusted_raw_mean,portfolio_fit_coverage_pct,net_alpha_spy_1d_n,net_alpha_spy_1d_mean,net_alpha_spy_5d_n,net_alpha_spy_5d_mean,net_alpha_spy_10d_n,net_alpha_spy_10d_mean,net_alpha_spy_20d_n,net_alpha_spy_20d_mean,net_alpha_spy_60d_n,net_alpha_spy_60d_mean
 calibration,OPTIONS_DATA_PARTIAL,quote_only,2,87.5,70.30000000000001,72.555,100.0,0,,0,,0,,0,,0,
-calibration,OPTIONS_NOT_ELIGIBLE,unavailable,15,85.33333333333333,64.918,66.57466666666666,20.0,0,,0,,0,,0,,0,
+calibration,OPTIONS_NOT_ELIGIBLE,unavailable,16,84.6875,64.22999999999999,65.81,25.0,0,,0,,0,,0,,0,
 calibration,OPTIONS_UNAVAILABLE,unavailable,13,83.46153846153847,68.73076923076924,70.81,100.0,0,,0,,0,,0,,0,
 calibration,eligible_control_without_options,unavailable,35,87.14285714285714,69.676,73.78400000000002,100.0,0,,0,,0,,0,,0,
 calibration,not_eligible,unavailable,164,78.41463414634147,64.96939024390244,67.35762962962963,52.4390243902439,0,,0,,0,,0,,0,
