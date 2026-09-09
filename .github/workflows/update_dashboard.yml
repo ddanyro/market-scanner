@@ -135,6 +135,8 @@ jobs:
         if [ -f analysis/shadow_forward_validation/component_analysis.csv ]; then git add analysis/shadow_forward_validation/component_analysis.csv; fi
         if [ -f analysis/shadow_forward_validation/portfolio_fit_analysis.csv ]; then git add analysis/shadow_forward_validation/portfolio_fit_analysis.csv; fi
         if [ -f analysis/shadow_forward_validation/decision_disagreements.csv ]; then git add analysis/shadow_forward_validation/decision_disagreements.csv; fi
+        if [ -f analysis/shadow_forward_validation/decision_matrix.csv ]; then git add analysis/shadow_forward_validation/decision_matrix.csv; fi
+        if [ -f analysis/shadow_forward_validation/integrity_report.json ]; then git add analysis/shadow_forward_validation/integrity_report.json; fi
         if [ -f bvb_daily_cache.csv ]; then git add bvb_daily_cache.csv; fi
         git commit -m "Auto-update Dashboard [skip ci]" || echo "No changes to commit"
         git push origin HEAD:main || (git fetch origin main && git rebase -X theirs origin/main && git push origin HEAD:main)

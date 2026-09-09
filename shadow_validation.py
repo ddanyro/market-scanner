@@ -8,6 +8,7 @@ that a neutral formula fallback cannot be mistaken for observed IBKR data.
 from __future__ import annotations
 
 import datetime as dt
+import ast
 import fcntl
 import hashlib
 import json
@@ -20,7 +21,8 @@ from typing import Any
 LEDGER_PATH = Path("shadow_predictions.jsonl")
 POLICY_PATH = Path("shadow_validation_policy.json")
 REPORT_PATH = Path("analysis/shadow_forward_validation/readiness_report.md")
-SCHEMA = "market-scanner.shadow-prediction.v2"
+SCHEMA = "market-scanner.shadow-prediction.v3"
+HASHED_SCHEMAS = {"market-scanner.shadow-prediction.v2", SCHEMA}
 LEGACY_SCHEMAS = {"market-scanner.shadow-prediction.v1"}
 COMPONENTS = (
     "technical_score", "momentum_score", "research_score",
@@ -59,6 +61,55 @@ def load_policy(path=POLICY_PATH):
 def policy_hash(policy):
     canonical = json.dumps(policy, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _source_hash(path, function_name=None):
+    source = Path(path).read_text(encoding="utf-8")
+    segment = source
+    if function_name:
+        tree = ast.parse(source)
+        node = next(
+            item for item in tree.body
+            if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef))
+            and item.name == function_name
+        )
+        segment = "".join(
+            source.splitlines(keepends=True)[node.lineno - 1:node.end_lineno]
+        )
+    return hashlib.sha256(segment.encode("utf-8")).hexdigest()
+
+
+def validate_frozen_model(policy=None):
+    """Fail closed if the registered scoring implementation has drifted."""
+    policy = policy or load_policy()
+    freeze = policy.get("model_freeze") or {}
+    base = Path(__file__).resolve().parent
+    actual = {
+        "enhanced_scoring_source_sha256": _source_hash(base / "enhanced_scoring.py"),
+        "portfolio_fit_source_sha256": _source_hash(
+            base / "market_scanner_analysis.py", "_portfolio_fit_from_weights"
+        ),
+    }
+    import enhanced_scoring
+    actual.update({
+        "raw_score_weights": enhanced_scoring.RAW_SCORE_WEIGHTS,
+        "portfolio_raw_weight": enhanced_scoring.PORTFOLIO_RAW_WEIGHT,
+        "portfolio_fit_weight": enhanced_scoring.PORTFOLIO_FIT_WEIGHT,
+    })
+    errors = [
+        f"frozen model drift: {key} expected={freeze.get(key)} actual={value}"
+        for key, value in actual.items()
+        if freeze.get(key) != value
+    ]
+    if errors:
+        raise ValueError("; ".join(errors))
+    return policy_hash(freeze)
+
+
+def is_official_shadow(timestamp, policy=None):
+    policy = policy or load_policy()
+    start = _utc_timestamp(policy["official_shadow_start"])
+    return _utc_timestamp(timestamp) >= start
 
 
 def _content_hash(payload):
@@ -273,6 +324,45 @@ def _candidate_record(candidate, state, timestamp):
     options = _options_snapshot(candidate)
     portfolio = _portfolio_snapshot(candidate)
     components = {name: _number(candidate.get(name)) for name in COMPONENTS}
+    observed_components = dict(components)
+    if not options["data_available"]:
+        observed_components["options_score"] = None
+    component_provenance = {
+        "technical_score": {
+            "source": "baseline_four_rule_engine",
+            "raw_fields": ["checks_passed", "trend"],
+        },
+        "momentum_score": {
+            "source": candidate.get("market_data_source") or "scanner_price_history",
+            "raw_fields": ["rsi", "relative_strength"],
+        },
+        "research_score": {
+            "source": candidate.get("research_source") or "scanner_research_inputs",
+            "raw_fields": ["consensus", "analysts", "earnings_risk"],
+        },
+        "volatility_score": {
+            "source": candidate.get("market_data_source") or "scanner_price_history",
+            "raw_fields": ["atr_eur", "historical_vol", "implied_volatility", "iv_percentile"],
+        },
+        "liquidity_score": {
+            "source": candidate.get("market_data_source") or "scanner_market_data",
+            "raw_fields": ["avg_90d_usd_volume", "relative_volume_20d", "spread_pct"],
+        },
+        "options_score": {
+            "source": (context.get("source") if isinstance((context := candidate.get("options_context") or {}), dict) else None),
+            "status": options["cohort"],
+            "available": options["data_available"],
+            "raw_fields": ["average_spread_pct", "put_call_volume_ratio", "put_call_open_interest_ratio", "quoted_contract_ratio"],
+        },
+        "relative_opportunity_score": {
+            "source": "company_context",
+            "raw_fields": ["relative_performance_percentile"],
+        },
+        "risk_reward_score": {
+            "source": "scanner_technical_levels",
+            "raw_fields": ["rr_ratio"],
+        },
+    }
     return {
         "symbol": str(candidate.get("symbol") or "").upper(),
         "market": candidate.get("market"),
@@ -309,6 +399,8 @@ def _candidate_record(candidate, state, timestamp):
             candidate.get("portfolio_adjusted_availability_score")
         ),
         "components": components,
+        "observed_components": observed_components,
+        "component_provenance": component_provenance,
         "feature_availability": {
             "options": options["data_available"],
             "portfolio_fit": portfolio["available"],
@@ -339,6 +431,7 @@ def _candidate_record(candidate, state, timestamp):
 def build_snapshot(candidates, state, recorded_at=None, run_mode=None):
     timestamp = _utc_timestamp(recorded_at)
     policy = load_policy()
+    freeze_hash = validate_frozen_model(policy)
     records = [
         _candidate_record(item, state or {}, timestamp)
         for item in candidates or []
@@ -354,10 +447,22 @@ def build_snapshot(candidates, state, recorded_at=None, run_mode=None):
         "authoritative_decision": "baseline",
         "policy_id": policy["policy_id"],
         "policy_hash": policy_hash(policy),
+        "model_freeze_hash": freeze_hash,
+        "validation_phase": (
+            "official_shadow" if is_official_shadow(timestamp, policy)
+            else "pre_official"
+        ),
         "sample_partition": sample_partition(timestamp, policy),
         "market_regime": state.get("us_market_regime") or {},
         "candidate_count": len(records),
         "predictions": records,
+    }
+    snapshot["input_data_provenance"] = {
+        "captured_at": timestamp,
+        "immutable_append_only": True,
+        "market_regime_source": "dashboard_state.us_market_regime",
+        "candidate_sources_embedded_per_prediction": True,
+        "forward_outcomes_present": False,
     }
     snapshot["content_hash"] = _content_hash(snapshot)
     snapshot["snapshot_id"] = snapshot["content_hash"][:24]
@@ -402,9 +507,9 @@ def load_ledger(path=LEDGER_PATH):
             continue
         payload = json.loads(line)
         schema = payload.get("schema")
-        if schema not in LEGACY_SCHEMAS | {SCHEMA}:
+        if schema not in LEGACY_SCHEMAS | HASHED_SCHEMAS:
             raise ValueError(f"Unknown shadow schema at line {line_number}")
-        if schema == SCHEMA:
+        if schema in HASHED_SCHEMAS:
             if payload.get("content_hash") != _content_hash(payload):
                 raise ValueError(f"Invalid snapshot hash at line {line_number}")
             if payload.get("snapshot_id") != payload["content_hash"][:24]:
@@ -430,12 +535,25 @@ def validate_ledger(snapshots):
         "adjusted_score_observed_fit", "adjusted_score_posttrade_fit",
     )
     forbidden = ("forward", "outcome", "mae", "mfe", "future_return")
+    policy = load_policy()
+    frozen_hash = policy_hash(policy.get("model_freeze") or {})
     for snapshot in snapshots:
         snapshot_id = snapshot.get("snapshot_id")
         if snapshot_id in snapshot_ids:
             errors.append(f"duplicate snapshot_id: {snapshot_id}")
         snapshot_ids.add(snapshot_id)
         timestamp = snapshot.get("recorded_at")
+        official = is_official_shadow(timestamp, policy)
+        if official and snapshot.get("schema") != SCHEMA:
+            errors.append(f"unregistered schema after official activation: {snapshot_id}")
+        if official and snapshot.get("schema") == SCHEMA:
+            if snapshot.get("validation_phase") != "official_shadow":
+                errors.append(f"official snapshot has wrong phase: {snapshot_id}")
+            if snapshot.get("model_freeze_hash") != frozen_hash:
+                errors.append(f"official snapshot model freeze mismatch: {snapshot_id}")
+            provenance = snapshot.get("input_data_provenance") or {}
+            if provenance.get("forward_outcomes_present") is not False:
+                errors.append(f"official snapshot provenance invalid: {snapshot_id}")
         for prediction in snapshot.get("predictions", []):
             symbol = prediction.get("symbol")
             key = (timestamp, symbol)
@@ -454,20 +572,43 @@ def validate_ledger(snapshots):
             options = prediction.get("options") or {}
             if not options.get("data_available") and options.get("observed_score") is not None:
                 errors.append(f"unavailable options has observed score: {symbol}")
+            if official and snapshot.get("schema") == SCHEMA:
+                observed = prediction.get("observed_components") or {}
+                if not options.get("data_available") and observed.get("options_score") is not None:
+                    errors.append(f"missing options treated as observed component: {symbol}")
+                portfolio = prediction.get("portfolio") or {}
+                if not portfolio.get("available"):
+                    raw = _number(prediction.get("raw_score"))
+                    adjusted = _number(prediction.get("adjusted_score_formula"))
+                    if raw is not None and adjusted != raw:
+                        errors.append(f"missing fit changed adjusted score: {symbol}")
+                if set(prediction.get("component_provenance") or {}) != set(COMPONENTS):
+                    errors.append(f"incomplete component provenance: {symbol}")
     return errors
 
 
 def generate_readiness_report(path=REPORT_PATH, ledger_path=LEDGER_PATH):
     snapshots = load_ledger(ledger_path)
     integrity_errors = validate_ledger(snapshots)
-    predictions = [item for snap in snapshots for item in snap.get("predictions", [])]
+    policy = load_policy()
+    official_snapshots = [
+        snap for snap in snapshots
+        if is_official_shadow(snap.get("recorded_at"), policy)
+        and snap.get("validation_phase") == "official_shadow"
+    ]
+    predictions = [
+        item for snap in official_snapshots for item in snap.get("predictions", [])
+    ]
     options = sum(bool(item.get("options", {}).get("data_available")) for item in predictions)
     fit = sum(bool(item.get("portfolio", {}).get("available")) for item in predictions)
     executable = sum(
         item.get("entry", {}).get("fresh_for_execution") is True
         for item in predictions
     )
-    holdout = sum(snap.get("sample_partition") == "holdout_locked" for snap in snapshots)
+    holdout = sum(
+        snap.get("sample_partition") == "holdout_locked"
+        for snap in official_snapshots
+    )
     options_pct = options / len(predictions) * 100 if predictions else 0.0
     options_quality = {}
     for item in predictions:
@@ -479,9 +620,13 @@ def generate_readiness_report(path=REPORT_PATH, ledger_path=LEDGER_PATH):
 
 Generated: {_utc_timestamp()}
 
+- Official activation: **{policy['official_shadow_start']}**
+- Frozen model hash: **{policy_hash(policy.get('model_freeze') or {})}**
+
 ## Coverage
 
-- Snapshots: **{len(snapshots)}**
+- Official snapshots: **{len(official_snapshots)}**
+- Pre-official/legacy snapshots excluded: **{len(snapshots) - len(official_snapshots)}**
 - Predictions: **{len(predictions)}**
 - Execution-eligible predictions: **{executable}** ({executable_pct:.1f}%)
 - Options observed: **{options}** ({options_pct:.1f}%)
@@ -512,8 +657,11 @@ the locked holdout cannot be used for calibration, thresholds, or weights.
     coverage_path.write_text(json.dumps({
         "generated_at": _utc_timestamp(),
         "ledger_path": str(ledger_path),
-        "last_snapshot_id": snapshots[-1].get("snapshot_id") if snapshots else None,
-        "snapshots": len(snapshots),
+        "last_snapshot_id": (
+            official_snapshots[-1].get("snapshot_id") if official_snapshots else None
+        ),
+        "snapshots": len(official_snapshots),
+        "pre_official_snapshots_excluded": len(snapshots) - len(official_snapshots),
         "predictions": len(predictions),
         "execution_eligible": executable,
         "options_observed": options,

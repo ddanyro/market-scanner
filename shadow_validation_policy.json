@@ -1,8 +1,11 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "policy_id": "enhanced-v1-2026-09-preregistered",
   "created_at": "2026-09-08T00:00:00+03:00",
   "collection_start": "2026-09-08",
+  "official_shadow_start": "2026-09-09T10:45:48+00:00",
+  "official_shadow_status": "ACTIVE",
+  "exclude_pre_official_observations": true,
   "calibration_end": "2026-12-31",
   "holdout_start": "2027-01-01",
   "holdout_end": "2027-06-30",
@@ -11,6 +14,27 @@
   "authoritative_decision": "baseline",
   "thresholds_may_use_holdout": false,
   "weights_may_use_holdout": false,
+  "automatic_model_changes_allowed": false,
+  "model_freeze": {
+    "score_version": "ibkr-enhanced-v1-shadow",
+    "enhanced_scoring_source_sha256": "c0ac7458f5a2dec0e47681b797ae9b67848f3463eeafab5ce350382fb68631ac",
+    "portfolio_fit_source_sha256": "1a3c5a8f4e18009a4a8219a8b26f33bf5c5ffaf1d94762fb40fc68ff304285de",
+    "raw_score_weights": {
+      "technical_score": 0.25,
+      "momentum_score": 0.15,
+      "research_score": 0.10,
+      "volatility_score": 0.10,
+      "liquidity_score": 0.10,
+      "options_score": 0.10,
+      "relative_opportunity_score": 0.10,
+      "risk_reward_score": 0.10
+    },
+    "portfolio_raw_weight": 0.85,
+    "portfolio_fit_weight": 0.15,
+    "risk_score_formula": "0.40*volatility+0.30*liquidity+0.15*options+0.15*portfolio_fit",
+    "portfolio_fit_formula": "min(sector_fit_5_to_25,country_fit_40_to_75,region_fit_60_to_90)",
+    "authoritative_decision": "baseline"
+  },
   "primary_success_metric": "net_excess_return",
   "secondary_metrics": [
     "expectancy",
@@ -19,5 +43,14 @@
     "regime_consistency"
   ],
   "forward_horizons_sessions": [1, 5, 10, 20, 60],
-  "notes": "Dates are preregistered before forward outcomes. Holdout data must never be used for calibration, threshold selection, or weight changes."
+  "reporting": {
+    "frequency": "EVERY_RUN",
+    "minimum_matured_holdout_observations": 100,
+    "allowed_verdicts": [
+      "CONTINUE SHADOW",
+      "RECALIBRATION CANDIDATE",
+      "READY FOR OUT-OF-SAMPLE REVIEW"
+    ]
+  },
+  "notes": "Official shadow observations begin at official_shadow_start. Pre-official rows remain immutable but are excluded from official validation. No shadow observation may change weights, thresholds, baseline decisions, Risk Score or Portfolio Fit."
 }

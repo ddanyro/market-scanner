@@ -43,6 +43,8 @@ def flatten_ledger(snapshots):
                 "snapshot_id": snapshot.get("snapshot_id"),
                 "recorded_at": snapshot.get("recorded_at"),
                 "sample_partition": snapshot.get("sample_partition"),
+                "validation_phase": snapshot.get("validation_phase", "pre_official"),
+                "model_freeze_hash": snapshot.get("model_freeze_hash"),
                 "policy_hash": snapshot.get("policy_hash"),
                 "symbol": prediction.get("symbol"),
                 "market": prediction.get("market"),
@@ -53,7 +55,9 @@ def flatten_ledger(snapshots):
                     "raw_score_availability_adjusted"
                 ),
                 "portfolio_fit": prediction.get("portfolio_fit_observed"),
-                "adjusted_score": prediction.get("adjusted_score_observed_fit"),
+                # The registered formula specifies Adjusted=Raw when fit is
+                # missing. Availability remains a separate first-class field.
+                "adjusted_score": prediction.get("adjusted_score_formula"),
                 "adjusted_score_posttrade": prediction.get(
                     "adjusted_score_posttrade_fit"
                 ),
@@ -71,6 +75,7 @@ def flatten_ledger(snapshots):
                     "market_timezone", "UTC"
                 ),
                 "options_available": prediction.get("options", {}).get("data_available"),
+                "options_partial": prediction.get("options", {}).get("data_partial"),
                 "options_cohort": prediction.get("options", {}).get("cohort"),
                 "options_data_quality": prediction.get("options", {}).get(
                     "data_quality", "unavailable"
@@ -84,9 +89,17 @@ def flatten_ledger(snapshots):
                 "costs": prediction.get("costs") or {},
                 "benchmarks": prediction.get("benchmarks") or {},
             }
-            components = prediction.get("components") or {}
+            components = (
+                prediction.get("observed_components")
+                or prediction.get("components")
+                or {}
+            )
             for component in shadow_validation.COMPONENTS:
                 row[component] = components.get(component)
+            # v1/v2 snapshots predate observed_components. Do not let their
+            # neutral options fallback masquerade as observed information.
+            if not row["options_available"]:
+                row["options_score"] = None
             rows.append(row)
     frame = pd.DataFrame(rows)
     if not frame.empty:
@@ -107,6 +120,7 @@ def flatten_ledger(snapshots):
         # immutable observations, but cannot be treated as executable signals.
         frame["execution_eligible"] = frame["execution_eligible"].fillna(False).astype(bool)
         frame["options_available"] = frame["options_available"].fillna(False).astype(bool)
+        frame["options_partial"] = frame["options_partial"].fillna(False).astype(bool)
         frame["portfolio_fit_available"] = frame["portfolio_fit_available"].fillna(False).astype(bool)
     return frame
 
@@ -373,7 +387,9 @@ def performance_tables(labelled):
     rows = []
     buckets = []
     for partition in ("calibration", "holdout_locked"):
-        sample = labelled[labelled.sample_partition == partition]
+        sample = labelled[
+            (labelled.sample_partition == partition) & labelled.execution_eligible
+        ]
         for horizon in HORIZONS:
             for metric in (
                 "gross_return_pct", "net_return_pct", "spy_return_pct",
@@ -400,6 +416,7 @@ def model_performance_table(labelled):
     rows = []
     selectors = {
         "baseline_buy": lambda sample: sample.execution_eligible & (sample.baseline_decision == "BUY"),
+        "enhanced_shadow_buy": lambda sample: sample.execution_eligible & (sample.enhanced_decision == "BUY"),
         "enhanced_raw_75": lambda sample: sample.execution_eligible & (sample.raw_score >= 75),
         "enhanced_adjusted_75": lambda sample: sample.execution_eligible & (sample.adjusted_score >= 75),
     }
@@ -477,6 +494,7 @@ def risk_table(labelled):
         sample = labelled[labelled.sample_partition == partition]
         selectors = (
             ("baseline", sample.baseline_decision == "BUY"),
+            ("enhanced_shadow", sample.enhanced_decision == "BUY"),
             ("enhanced_raw", sample.raw_score >= 75),
             ("enhanced_adjusted", sample.adjusted_score >= 75),
         )
@@ -514,12 +532,12 @@ def validation_verdict(labelled, risk, minimum_holdout=100):
             f"locked holdout has {len(holdout)}/{minimum_holdout} matured observations"
         )
     baseline = holdout[holdout.baseline_decision == "BUY"]
-    enhanced = holdout[holdout.adjusted_score >= 75]
+    enhanced = holdout[holdout.enhanced_decision == "BUY"]
     baseline_alpha = baseline.net_alpha_spy_pct_20d.dropna()
     enhanced_alpha = enhanced.net_alpha_spy_pct_20d.dropna()
     enhanced_risk = risk[
         (risk.partition == "holdout_locked")
-        & (risk.model == "enhanced_adjusted")
+        & (risk.model == "enhanced_shadow")
     ]
     baseline_risk = risk[
         (risk.partition == "holdout_locked") & (risk.model == "baseline")
@@ -543,13 +561,32 @@ def validation_verdict(labelled, risk, minimum_holdout=100):
         "regime_consistency": regime_ok,
     }
     if all(gates.values()):
-        return "PROMOTE ENHANCED", json.dumps(gates, sort_keys=True)
-    return "RECALIBRATE ENHANCED", json.dumps(gates, sort_keys=True)
+        return "READY FOR OUT-OF-SAMPLE REVIEW", json.dumps(gates, sort_keys=True)
+    return "RECALIBRATION CANDIDATE", json.dumps(gates, sort_keys=True)
+
+
+def decision_matrix_table(labelled):
+    rows = []
+    for partition in ("calibration", "holdout_locked"):
+        sample = labelled[labelled.sample_partition == partition]
+        for baseline in ("BUY", "WAIT", "AVOID"):
+            for enhanced in ("BUY", "WAIT", "AVOID"):
+                rows.append({
+                    "partition": partition,
+                    "baseline_decision": baseline,
+                    "enhanced_decision": enhanced,
+                    "predictions": int((
+                        (sample.baseline_decision == baseline)
+                        & (sample.enhanced_decision == enhanced)
+                    ).sum()),
+                })
+    return pd.DataFrame(rows)
 
 
 def write_report(labelled, performance, model_performance, buckets, risk,
                  options_control, regimes, components, portfolio_fit,
-                 disagreements, output_dir=OUTPUT_DIR):
+                 disagreements, decision_matrix, integrity_errors,
+                 output_dir=OUTPUT_DIR):
     output_dir.mkdir(parents=True, exist_ok=True)
     coverage = []
     for partition in ("calibration", "holdout_locked"):
@@ -558,6 +595,7 @@ def write_report(labelled, performance, model_performance, buckets, risk,
             "partition": partition, "predictions": len(sample),
             "execution_eligible_pct": sample.execution_eligible.mean() * 100 if len(sample) else np.nan,
             "options_pct": sample.options_available.mean() * 100 if len(sample) else np.nan,
+            "options_partial_pct": sample.options_partial.mean() * 100 if len(sample) else np.nan,
             "portfolio_fit_pct": sample.portfolio_fit_available.mean() * 100 if len(sample) else np.nan,
             **{f"matured_{h}d": int((sample[f'outcome_status_{h}d'] == 'matured').sum()) for h in HORIZONS},
         })
@@ -614,6 +652,10 @@ observations are available; this avoids unstable attribution on tiny samples.
 
 {markdown(disagreements)}
 
+## BUY / WAIT / AVOID transition matrix
+
+{markdown(decision_matrix)}
+
 ## Market regimes
 
 {markdown(regimes)}
@@ -626,6 +668,12 @@ observations are available; this avoids unstable attribution on tiny samples.
 - Costs include estimated IBKR commission, captured spread, estimated slippage and FX.
 - Calibration and locked holdout are never pooled for threshold or weight selection.
 - This evaluator does not optimize weights and cannot change BUY/WAIT/AVOID.
+- Options N/A and Portfolio Fit N/A remain missing observations, never observed 50 scores.
+
+## Integrity
+
+- Errors: **{len(integrity_errors)}**
+- Details: `{json.dumps(integrity_errors, ensure_ascii=False)}`
 
 ## Preliminary verdict
 
@@ -650,12 +698,42 @@ def main():
     parser.add_argument("--output", default=str(OUTPUT_DIR))
     parser.add_argument("--offline", action="store_true", help="Generate pending coverage without downloading outcomes")
     args = parser.parse_args()
-    flat = flatten_ledger(shadow_validation.load_ledger(args.ledger))
+    snapshots = shadow_validation.load_ledger(args.ledger)
+    integrity_errors = shadow_validation.validate_ledger(snapshots)
+    official_snapshots = [
+        snapshot for snapshot in snapshots
+        if snapshot.get("validation_phase") == "official_shadow"
+    ]
+    flat = flatten_ledger(official_snapshots)
     labelled = flat if args.offline or flat.empty else label_matured_predictions(flat)
     if flat.empty:
+        output = Path(args.output)
+        output.mkdir(parents=True, exist_ok=True)
         shadow_validation.generate_readiness_report(
-            Path(args.output) / "forward_validation_report.md", args.ledger
+            output / "forward_validation_report.md", args.ledger
         )
+        empty_outputs = {
+            "labelled_predictions.csv": ["snapshot_id", "recorded_at", "symbol"],
+            "coverage.csv": ["partition", "predictions"],
+            "performance.csv": ["partition", "horizon", "metric", "n"],
+            "model_performance.csv": ["partition", "horizon", "model"],
+            "score_buckets_forward.csv": ["partition", "horizon", "score", "bucket", "n"],
+            "risk_metrics.csv": ["partition", "model", "days"],
+            "options_control.csv": ["partition", "options_cohort", "options_data_quality", "predictions"],
+            "market_regimes_forward.csv": ["partition", "market_regime", "model", "n"],
+            "component_analysis.csv": ["partition", "horizon", "component", "n"],
+            "portfolio_fit_analysis.csv": ["partition", "cohort", "predictions"],
+            "decision_disagreements.csv": ["snapshot_id", "recorded_at", "symbol"],
+            "decision_matrix.csv": ["partition", "baseline_decision", "enhanced_decision", "predictions"],
+        }
+        for filename, columns in empty_outputs.items():
+            pd.DataFrame(columns=columns).to_csv(output / filename, index=False)
+        (output / "integrity_report.json").write_text(json.dumps({
+            "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+            "official_snapshots": 0,
+            "errors": integrity_errors,
+            "status": "PASS" if not integrity_errors else "FAIL",
+        }, indent=2), encoding="utf-8")
         return
     if args.offline:
         pending_columns = {}
@@ -687,10 +765,11 @@ def main():
     components = component_analysis_table(labelled)
     portfolio_fit = portfolio_fit_table(labelled)
     disagreements = decision_disagreement_table(labelled)
+    decision_matrix = decision_matrix_table(labelled)
     write_report(
         labelled, performance, model_performance, buckets, risk,
         options_control, regimes, components, portfolio_fit, disagreements,
-        output,
+        decision_matrix, integrity_errors, output,
     )
     model_performance.to_csv(output / "model_performance.csv", index=False)
     options_control.to_csv(output / "options_control.csv", index=False)
@@ -698,6 +777,13 @@ def main():
     components.to_csv(output / "component_analysis.csv", index=False)
     portfolio_fit.to_csv(output / "portfolio_fit_analysis.csv", index=False)
     disagreements.to_csv(output / "decision_disagreements.csv", index=False)
+    decision_matrix.to_csv(output / "decision_matrix.csv", index=False)
+    (output / "integrity_report.json").write_text(json.dumps({
+        "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+        "official_snapshots": len(official_snapshots),
+        "errors": integrity_errors,
+        "status": "PASS" if not integrity_errors else "FAIL",
+    }, indent=2), encoding="utf-8")
 
 
 if __name__ == "__main__":

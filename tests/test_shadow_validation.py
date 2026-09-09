@@ -186,8 +186,59 @@ def test_hash_validation_accepts_concurrent_children_of_known_parent(tmp_path):
 
 def test_locked_holdout_partition_is_preregistered():
     policy = shadow_validation.load_policy()
+    assert policy["official_shadow_status"] == "ACTIVE"
+    assert policy["automatic_model_changes_allowed"] is False
     assert shadow_validation.sample_partition("2026-12-31T23:00:00Z", policy) == "calibration"
     assert shadow_validation.sample_partition("2027-01-01T00:00:00Z", policy) == "holdout_locked"
+
+
+def test_official_snapshot_is_bound_to_frozen_model_and_provenance():
+    snapshot = shadow_validation.build_snapshot(
+        [candidate()], {}, recorded_at="2026-09-09T10:46:00Z", run_mode="all"
+    )
+    assert snapshot["schema"] == "market-scanner.shadow-prediction.v3"
+    assert snapshot["validation_phase"] == "official_shadow"
+    assert snapshot["model_freeze_hash"] == shadow_validation.validate_frozen_model()
+    assert snapshot["input_data_provenance"]["forward_outcomes_present"] is False
+    row = snapshot["predictions"][0]
+    assert set(row["component_provenance"]) == set(shadow_validation.COMPONENTS)
+    assert row["observed_components"]["options_score"] is None
+    assert shadow_validation.validate_ledger([snapshot]) == []
+
+
+def test_missing_fit_uses_raw_adjusted_value_but_remains_missing_in_analysis():
+    snapshot = shadow_validation.build_snapshot(
+        [candidate(
+            portfolio_fit_available=False,
+            portfolio_fit_observed_score=None,
+            raw_stock_score=66,
+            portfolio_adjusted_score=66,
+        )], {}, recorded_at="2026-09-09T10:46:00Z",
+    )
+    row = snapshot["predictions"][0]
+    assert row["portfolio_fit_observed"] is None
+    assert row["adjusted_score_formula"] == row["raw_score"]
+    flat = evaluate_shadow_forward.flatten_ledger([snapshot])
+    assert pd.isna(flat.iloc[0]["portfolio_fit"])
+    assert flat.iloc[0]["adjusted_score"] == flat.iloc[0]["raw_score"]
+    assert pd.isna(flat.iloc[0]["options_score"])
+
+
+def test_official_report_excludes_pre_activation_observations(tmp_path):
+    ledger = tmp_path / "ledger.jsonl"
+    report_path = tmp_path / "readiness.md"
+    shadow_validation.append_snapshot(
+        [candidate(symbol="OLD")], {}, "2026-09-09T10:45:00Z", "all", ledger
+    )
+    shadow_validation.append_snapshot(
+        [candidate(symbol="NEW")], {}, "2026-09-09T10:46:00Z", "all", ledger
+    )
+    report = shadow_validation.generate_readiness_report(report_path, ledger)
+    coverage = json.loads((tmp_path / "collection_coverage.json").read_text())
+    assert "Official snapshots: **1**" in report
+    assert coverage["snapshots"] == 1
+    assert coverage["predictions"] == 1
+    assert coverage["pre_official_snapshots_excluded"] == 1
 
 
 def test_signal_day_uses_market_timezone():
