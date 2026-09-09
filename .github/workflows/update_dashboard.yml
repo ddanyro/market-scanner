@@ -122,6 +122,7 @@ jobs:
         git add -u
         git add index.html dashboard_state.json portfolio.csv portfolio.json watchlist.csv sp500_tickers.json tws_account.enc.json tws_account_risk.json push/firebase/firebase-messaging-sw.js
         if [ -f shadow_predictions.jsonl ]; then git add shadow_predictions.jsonl; fi
+        if [ -f technical_events_predictions.jsonl ]; then git add technical_events_predictions.jsonl; fi
         if [ -f analysis/shadow_forward_validation/readiness_report.md ]; then git add analysis/shadow_forward_validation/readiness_report.md; fi
         if [ -f analysis/shadow_forward_validation/forward_validation_report.md ]; then git add analysis/shadow_forward_validation/forward_validation_report.md; fi
         if [ -f analysis/shadow_forward_validation/labelled_predictions.csv ]; then git add analysis/shadow_forward_validation/labelled_predictions.csv; fi

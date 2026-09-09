@@ -193,8 +193,11 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('Options IBKR MCP', content)
         self.assertIn('Componentele scorului', content)
         self.assertIn('${renderEnhancedDetail(detail.enhanced)}', content)
-        self.assertIn("var rowTrend = data[18]", content)
-        self.assertIn("var rowStatus = data[23]", content)
+        self.assertIn('<th style="color:#0f766e;">Technical Events</th>', content)
+        self.assertIn('function renderTechnicalEvents(technical)', content)
+        self.assertIn('${renderTechnicalEvents(detail.technicalEvents)}', content)
+        self.assertIn("var rowTrend = data[19]", content)
+        self.assertIn("var rowStatus = data[24]", content)
 
     def test_portfolio_mini_chart_opens_encrypted_candlestick_details(self):
         """Doar mini-graficul portofoliului deschide istoricul mare, păstrat în payload-ul criptat."""

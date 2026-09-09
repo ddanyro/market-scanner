@@ -50,6 +50,8 @@ import buy_now_push
 import enhanced_scoring
 import instrument_metadata
 import shadow_validation
+import technical_events
+import technical_events_shadow
 
 BUY_RESEARCH_UNIVERSES = {
     'SUA': [
@@ -4189,6 +4191,19 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         enhanced_market_fields = _ibkr_enhanced_market_fields(
             selected_market_instrument
         )
+        technical_events_result = technical_events.analyze(
+            df,
+            None if is_bvb_position else spx_df,
+            source={
+                'provider': data_attribution.get('Market_Data_Source'),
+                'fetched_at': data_attribution.get('Market_Data_Fetched_At'),
+                'benchmark': None if is_bvb_position else 'SPX',
+                'ticker': ticker,
+            },
+            generated_at=datetime.datetime.now(
+                datetime.timezone.utc
+            ).isoformat(timespec='seconds'),
+        )
         result = {
             'Symbol': ticker,
             'Company_Name': company_name,
@@ -4230,6 +4245,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             'Chart_Dates': chart_dates,
             'Chart_OHLC': chart_ohlc,
             'Daily_Change': round(daily_change, 4),
+            'Technical_Events': technical_events_result,
             'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
             **data_attribution,
             **enhanced_market_fields,
@@ -4578,6 +4594,19 @@ def process_watchlist_ticker(ticker, vix_value, rates):
         enhanced_market_fields = _ibkr_enhanced_market_fields(
             selected_market_instrument
         )
+        technical_events_result = technical_events.analyze(
+            df,
+            spx_df,
+            source={
+                'provider': data_attribution.get('Market_Data_Source'),
+                'fetched_at': data_attribution.get('Market_Data_Fetched_At'),
+                'benchmark': rs_benchmark,
+                'ticker': ticker,
+            },
+            generated_at=datetime.datetime.now(
+                datetime.timezone.utc
+            ).isoformat(timespec='seconds'),
+        )
 
         result = {
             'Ticker': ticker,
@@ -4607,6 +4636,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'Chart_Dates': watch_chart_dates,
             'Chart_OHLC': watch_chart_ohlc,
             'Daily_Change': round(watch_daily_change, 4),
+            'Technical_Events': technical_events_result,
             'RS_vs_SPX': round(rs_vs_spx, 2) if rs_vs_spx is not None else None,
             'RS_Benchmark': rs_benchmark,
             'RS_Status': rs_status,
@@ -8789,6 +8819,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             'chart_ohlc_native': native_chart_detail['ohlc'],
             'chart_series_native': native_chart_detail['series'],
             'chart_series_dates': native_chart_detail['seriesDates'],
+            'technical_events': item.get('Technical_Events'),
             'atr_eur': item.get('ATR_14'),
             'volume': item.get('Volume'),
             'relative_volume_20d': item.get('Relative_Volume_20D'),
@@ -8948,6 +8979,34 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         for item in buy_candidate_payload
         if item.get('symbol')
     }
+    if (
+        run_mode in {'all', 'watchlist', 'portfolio', 'international', 'ro'}
+        and not os.environ.get('PYTEST_CURRENT_TEST')
+        and os.environ.get('TECHNICAL_EVENTS_SHADOW_ENABLED', '1').lower()
+        not in {'0', 'false', 'no', 'off'}
+    ):
+        try:
+            technical_rows = (
+                portfolio_df.to_dict('records')
+                + watchlist_df.to_dict('records')
+            )
+            technical_snapshot = technical_events_shadow.append_snapshot(
+                technical_rows,
+                enhanced_candidate_by_symbol,
+                run_mode=run_mode,
+            )
+            full_state['technical_events_shadow_latest'] = {
+                key: technical_snapshot.get(key) for key in (
+                    'snapshot_id', 'recorded_at', 'candidate_count',
+                )
+            }
+            market_utils.save_state(full_state)
+            print(
+                '  -> Technical Events shadow: '
+                f"{technical_snapshot['candidate_count']} observații salvate."
+            )
+        except Exception as exc:
+            print(f'  ⚠ Technical Events shadow indisponibil: {exc}')
     if (
         run_mode in {'all', 'watchlist', 'portfolio', 'international'}
         and not os.environ.get('PYTEST_CURRENT_TEST')
@@ -9258,7 +9317,11 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             "ohlc": native_detail['ohlc'],
             "series": native_detail['series'],
             "seriesDates": native_detail['seriesDates'],
-            "levels": chart_levels
+            "levels": chart_levels,
+            "technicalEvents": (
+                row.get('Technical_Events')
+                if isinstance(row.get('Technical_Events'), dict) else None
+            ),
         }
 
     portfolio_chat_context = analysis.build_portfolio_chat_context(
@@ -9856,6 +9919,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         <th>Options Score</th>
                         <th>Cohortă Options</th>
                         <th>Portfolio Fit</th>
+                        <th style="color:#0f766e;">Technical Events</th>
                         <th>Scor detaliat</th>
                         <th style="width: 90px; color: #E91E63;" onmousemove="showTooltip(event, '<strong>Smart Entry Price (Tactic)</strong><br><br>Sugestie de preț bazată pe analiză tehnică (Fibonacci, S/R, Patterns) pentru intrări optimizate.<br><br>⚡ <strong>STOP:</strong> Intrare pe momentum (Breakout/Engulfing).<br>📉 <strong>LIMIT:</strong> Intrare pe corecție (Fib/Support).')" onmouseout="hideTooltip()">Entry</th>
                         <th onmousemove="showTooltip(event, '<strong>RS vs SPX (Relative Strength vs S&P 500) pe 60 de zile.</strong><br><br>Reprezintă diferența dintre randamentul acțiunii și randamentul indexului S&P 500 în ultimele 60 de zile.<br><br><em>Exemplu:</em><br>Dacă acțiunea a crescut cu 20% și S&P 500 cu 5% => <strong>RS = +15%</strong>.<br>Dacă valoarea este pozitivă, acțiunea performează mai bine decât piața.')" onmouseout="hideTooltip()">RS vs SPX</th>
@@ -10007,6 +10071,25 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 f"{portfolio_fit:.1f}"
                 if portfolio_fit is not None else 'N/A'
             )
+            technical_detail = row.get('Technical_Events')
+            if not isinstance(technical_detail, dict):
+                technical_detail = {}
+            technical_direction = technical_detail.get(
+                'overall_direction', 'N/A'
+            )
+            technical_score = _safe_float_text(
+                technical_detail.get('overall_event_score')
+            )
+            technical_color = {
+                'BULLISH': '#16a34a',
+                'BEARISH': '#dc2626',
+                'NEUTRAL': '#64748b',
+            }.get(technical_direction, '#64748b')
+            technical_display = (
+                f'<span style="color:{technical_color};font-weight:800;white-space:nowrap;">'
+                f'{html.escape(technical_direction)} {technical_score:.1f}</span>'
+                if technical_score is not None else 'N/A'
+            )
             score_detail_button = (
                 f'<button type="button" class="detail-score-button" '
                 f'style="border:1px solid #7c3aed;background:#f5f3ff;color:#6d28d9;'
@@ -10071,6 +10154,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         <td style="font-variant-numeric:tabular-nums;" title="N/A = Options nu sunt disponibile ca observație completă">{options_score_display}</td>
                         <td style="font-size:.72rem;font-weight:700;white-space:nowrap;">{options_cohort_display}</td>
                         <td style="font-variant-numeric:tabular-nums;">{portfolio_fit_display}</td>
+                        <td>{technical_display}</td>
                         <td>{score_detail_button}</td>
                         <td style="text-align: center;">{smart_entry_html}</td>
                         <td style="color: {'#4caf50' if row.get('RS_vs_SPX', 0) and row.get('RS_vs_SPX', 0) > 0 else '#f44336'};">{row.get('RS_vs_SPX', '-') if row.get('RS_vs_SPX') is not None else '-'}%</td>
@@ -10524,15 +10608,15 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         var minRsSpx = parseFloat($('#filter-rs-spx').val());
                         var sector = $('#filter-sector').val() ? $('#filter-sector').val().toLowerCase().trim() : "";
 
-                        // Indici după coloanele Enhanced/Options/Portfolio Fit.
+                        // Indici după coloanele Enhanced/Options/Portfolio Fit/Technical Events.
                         var rowTargetPct = parseFloat(data[4].replace('%', '')) || -9999;
                         var rowConsensus = data[6] || "";
                         var rowAnalysts = parseFloat(data[7]) || 0;
                         var rowDecision = data[9] || "";
-                        var rowTrend = data[18] || "";
-                        var rowStatus = data[23] || "";
-                        var rowStrategy = data[19] || "";
-                        var rowRsSpx = parseFloat(data[17].replace('%', '').replace('+', ''));
+                        var rowTrend = data[19] || "";
+                        var rowStatus = data[24] || "";
+                        var rowStrategy = data[20] || "";
+                        var rowRsSpx = parseFloat(data[18].replace('%', '').replace('+', ''));
                         if (isNaN(rowRsSpx)) rowRsSpx = -9999;
                         var rowSector = data[8] ? data[8].toLowerCase().trim() : "";
 
@@ -10743,6 +10827,10 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     _enhanced_ui_detail(enhanced_candidate)
                     if enhanced_candidate else None
                 ),
+                'technicalEvents': (
+                    row.get('Technical_Events')
+                    if isinstance(row.get('Technical_Events'), dict) else None
+                ),
             }
     watchlist_detail_json = json.dumps(watchlist_detail_data, ensure_ascii=False).replace('</', '<\\/')
 
@@ -10874,6 +10962,50 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     + "Cohorta de control este afișată separat pentru a evita această confuzie.</p></section>";
             }
 
+            function renderTechnicalEvents(technical) {
+                if (!technical || !technical.available) return '';
+                const number = value => Number.isFinite(Number(value))
+                    ? Number(value).toLocaleString('ro-RO', {maximumFractionDigits: 2})
+                    : '—';
+                const timeframeLabels = {
+                    SHORT_TERM: 'Short term · 45 ședințe',
+                    INTERMEDIATE_TERM: 'Intermediate · 130 ședințe',
+                    LONG_TERM: 'Long term · 260 ședințe'
+                };
+                const cards = Object.entries(timeframeLabels).map(([key, label]) => {
+                    const item = (technical.timeframes || {})[key] || {};
+                    return "<div class='technical-card'><span>" + escapeIndicatorText(label)
+                        + "</span><b class='direction-" + escapeIndicatorText((item.direction || 'NEUTRAL').toLowerCase()) + "'>"
+                        + escapeIndicatorText(item.direction || 'NEUTRAL') + "</b>"
+                        + "<small>Score " + number(item.event_score) + " · Bull "
+                        + number(item.bullish_events) + " · Bear " + number(item.bearish_events)
+                        + "</small></div>";
+                }).join('');
+                const rows = (technical.events || []).slice(0, 15).map(event =>
+                    "<tr><td>" + escapeIndicatorText(event.timestamp || '—') + "</td><td>"
+                    + escapeIndicatorText(event.timeframe || '—') + "</td><td>"
+                    + escapeIndicatorText(event.name || event.type || '—') + "</td><td class='direction-"
+                    + escapeIndicatorText((event.direction || 'NEUTRAL').toLowerCase()) + "'>"
+                    + escapeIndicatorText(event.direction || '—') + "</td><td>"
+                    + number(event.effective_strength) + "</td></tr>"
+                ).join('');
+                const conflict = technical.conflict
+                    ? "<p class='technical-conflict'>" + escapeIndicatorText(technical.conflict) + "</p>" : '';
+                return "<section class='panel technical-panel'><div class='technical-title'><div><h2>Technical Events · shadow mode</h2>"
+                    + "<p>Motor determinist separat; nu influențează Baseline sau Enhanced.</p></div>"
+                    + "<span class='technical-badge direction-" + escapeIndicatorText((technical.overall_direction || 'NEUTRAL').toLowerCase()) + "'>"
+                    + escapeIndicatorText(technical.overall_direction || 'NEUTRAL') + " · " + number(technical.overall_event_score) + "</span></div>"
+                    + "<div class='technical-summary'>" + cards + "</div>" + conflict
+                    + "<div class='enhanced-grid'><div class='enhanced-metric'><span>Total events</span><b>" + number(technical.total_events) + "</b></div>"
+                    + "<div class='enhanced-metric'><span>Bullish / Bearish</span><b>" + number(technical.bullish_events) + " / " + number(technical.bearish_events) + "</b></div>"
+                    + "<div class='enhanced-metric'><span>Confidence</span><b>" + number(technical.confidence) + "</b></div>"
+                    + "<div class='enhanced-metric'><span>Support apropiat</span><b>" + number(technical.nearest_support) + "</b></div>"
+                    + "<div class='enhanced-metric'><span>Rezistență apropiată</span><b>" + number(technical.nearest_resistance) + "</b></div></div>"
+                    + "<div class='technical-table-wrap'><table class='technical-table'><thead><tr><th>Dată</th><th>Orizont</th><th>Eveniment</th><th>Direcție</th><th>Strength × recency</th></tr></thead><tbody>"
+                    + (rows || "<tr><td colspan='5'>Niciun eveniment recent confirmat.</td></tr>")
+                    + "</tbody></table></div></section>";
+            }
+
             function openMarketDetailWindow(detail, indicatorName) {
                 if (!detail) return;
                 const popup = window.open('', '_blank');
@@ -10902,6 +11034,7 @@ h1{margin:0 0 6px;font-size:clamp(28px,4vw,44px)}.ticker{color:#7760f9;font-weig
 .level-legend{display:none}.level-item{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:8px 10px;border:1px solid #e5e7eb;border-radius:9px;background:#f8fafc;font-size:12px;color:#374151}.level-name{display:flex;align-items:center;gap:7px;min-width:0;font-weight:700}.level-swatch{width:18px;height:3px;border-radius:999px;flex:0 0 auto}.level-value{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:750}
 .marker-legend{margin-top:14px;padding-top:13px;border-top:1px solid #e5e7eb}.marker-legend-title{font-size:13px;font-weight:750;margin-bottom:8px}.marker-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:7px}.marker-item{display:flex;align-items:center;gap:8px;font-size:12px;color:#4b5563;background:#f8fafc;border-radius:8px;padding:7px 9px}.marker-badge{display:inline-flex;align-items:center;justify-content:center;min-width:30px;padding:3px 6px;border-radius:6px;color:#fff;font-weight:800}
 .enhanced-title{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}.enhanced-title h2{margin:0 0 5px}.enhanced-title p,.enhanced-footnote{margin:0;color:#6b7280;font-size:12px}.cohort-badge{background:#ede9fe;color:#6d28d9;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:800}.enhanced-summary{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:10px;margin:16px 0}.enhanced-card,.enhanced-metric{border:1px solid #e5e7eb;background:#f8fafc;border-radius:11px;padding:11px}.enhanced-card span,.enhanced-metric span{display:block;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.04em}.enhanced-card b{display:block;margin-top:5px;font-size:22px}.enhanced-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin:9px 0 16px}.enhanced-metric{display:flex;align-items:center;justify-content:space-between;gap:10px}.enhanced-metric span{display:inline}.enhanced-metric b{font-variant-numeric:tabular-nums}.enhanced-panel h3{font-size:14px;margin:18px 0 4px}.fallback{display:block;color:#b45309;font-size:10px}
+.technical-title{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}.technical-title h2{margin:0 0 5px}.technical-title p{margin:0;color:#6b7280;font-size:12px}.technical-badge{border-radius:999px;padding:7px 11px;background:#ecfeff;font-size:12px;font-weight:850}.technical-summary{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:10px;margin:16px 0}.technical-card{border:1px solid #ccfbf1;border-radius:11px;background:#f0fdfa;padding:12px}.technical-card span,.technical-card small{display:block;color:#64748b}.technical-card b{display:block;margin:6px 0;font-size:18px}.direction-bullish{color:#16a34a!important}.direction-bearish{color:#dc2626!important}.direction-neutral{color:#64748b!important}.technical-conflict{border-left:4px solid #f59e0b;background:#fffbeb;padding:10px 12px;font-weight:750}.technical-table-wrap{overflow:auto}.technical-table{width:100%;border-collapse:collapse;font-size:12px}.technical-table th,.technical-table td{padding:8px;border-bottom:1px solid #e5e7eb;text-align:left;white-space:nowrap}
 @media(max-width:760px){.page{padding:14px}.stats,.details{grid-template-columns:1fr 1fr}.panel{padding:16px}.chart-wrap{min-height:360px;height:min(56vh,520px)}.level-legend{display:grid;grid-template-columns:1fr;gap:6px;margin-top:10px}.note{font-size:11px;line-height:1.45}}@media(max-width:560px){.toolbar{align-items:flex-start}.toolbar .buttons{width:100%}.toolbar .range{flex:1}.stats,.details{grid-template-columns:1fr}.panel{padding:14px}.chart-wrap{height:min(54vh,480px)}}
 </style>
 </head>
@@ -10914,6 +11047,7 @@ h1{margin:0 0 6px;font-size:clamp(28px,4vw,44px)}.ticker{color:#7760f9;font-weig
 <div class="stat"><div class="label">Interval</div><div class="num" style="font-size:18px">${escapeIndicatorText(detail.rangeDescription || '—')}</div></div>
 </section>
 ${renderEnhancedDetail(detail.enhanced)}
+${renderTechnicalEvents(detail.technicalEvents)}
 <section class="panel"><div class="toolbar"><strong id="chartTitle">Grafic zilnic${detail.currency?' · '+escapeIndicatorText(detail.currency):''}</strong><div class="buttons"><button class="range" data-count="22">1L</button><button class="range active" data-count="66">3L</button><button class="range" data-count="9999">Tot</button></div></div>
 <div class="chart-wrap"><canvas id="indicatorChart" aria-label="Grafic interactiv: ține cursorul deasupra pentru detalii"></canvas><div class="chart-tooltip" id="chartTooltip" role="status" aria-live="polite"></div></div>${renderHorizontalLevelLegend(detail.levels || [], detail.currency)}<div class="note" id="chartNote"></div>${renderRecommendationMarkerLegend(detail.markers || [], detail.currency)}</section>
 <section class="details"><div class="panel"><h2>Ce măsoară</h2><p>${escapeIndicatorText(detail.explanation || 'Detalii indisponibile.')}</p></div>

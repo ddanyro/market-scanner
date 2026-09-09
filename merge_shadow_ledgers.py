@@ -42,7 +42,7 @@ def merge_ledgers(paths):
     )
 
 
-def write_merged(output, snapshots):
+def write_merged(output, snapshots, validator=shadow_validation):
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary = tempfile.mkstemp(
@@ -56,8 +56,8 @@ def write_merged(output, snapshots):
                 ) + "\n")
             handle.flush()
             os.fsync(handle.fileno())
-        loaded = shadow_validation.load_ledger(temporary)
-        errors = shadow_validation.validate_ledger(loaded)
+        loaded = validator.load_ledger(temporary)
+        errors = validator.validate_ledger(loaded)
         if errors:
             raise ValueError("Merged ledger failed integrity: " + "; ".join(errors))
         Path(temporary).replace(output)
@@ -70,9 +70,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("inputs", nargs="+")
     parser.add_argument("--output", required=True)
+    parser.add_argument("--kind", choices=("enhanced", "technical"), default="enhanced")
     args = parser.parse_args()
     snapshots = merge_ledgers(args.inputs)
-    write_merged(args.output, snapshots)
+    validator = shadow_validation
+    if args.kind == "technical":
+        import technical_events_shadow
+        validator = technical_events_shadow
+    write_merged(args.output, snapshots, validator=validator)
     print(f"Merged shadow ledger: {len(snapshots)} snapshots")
 
 
