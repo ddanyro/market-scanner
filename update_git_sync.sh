@@ -49,6 +49,7 @@ SYNC_GENERATED_FILES=(
     "scan_results_enhanced.csv"
     "shadow_predictions.jsonl"
     "technical_events_predictions.jsonl"
+    "technical_events_state.json"
     "sp500_tickers.json"
     "tradeville_account.enc.json"
     "tradeville_orders.csv"

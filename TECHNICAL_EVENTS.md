@@ -64,6 +64,12 @@ source-data hash, Baseline/Enhanced comparison fields, entry price, and pending
 1D/5D/10D/20D/60D + MAE/MFE outcome slots. Outcomes are never populated at
 signal time.
 
+The latest full per-instrument Technical Events payload used by the dashboard
+cache is stored separately in `technical_events_state.json`. The main
+`dashboard_state.json` and segmented portfolio/watchlist exports retain only a
+lightweight reference. `market_utils.load_state()` hydrates the payload back
+into memory transparently, so scanner and UI behavior is unchanged.
+
 ## Forward validation
 
 `evaluate_technical_events_forward.py` reads the immutable ledger and writes a
