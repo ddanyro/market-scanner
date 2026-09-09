@@ -1,16 +1,17 @@
 {
-  "generated_at": "2026-09-09T14:19:18+00:00",
+  "generated_at": "2026-09-09T14:34:39+00:00",
   "ledger_path": "shadow_predictions.jsonl",
-  "last_snapshot_id": "7afc498c2f13bd275201144f",
-  "snapshots": 4,
+  "last_snapshot_id": "264649996ecca31ba93dbcc4",
+  "snapshots": 5,
   "pre_official_snapshots_excluded": 27,
-  "predictions": 18,
-  "execution_eligible": 15,
+  "predictions": 33,
+  "execution_eligible": 30,
   "options_observed": 0,
   "options_quality": {
-    "unavailable": 18
+    "unavailable": 30,
+    "partial": 3
   },
-  "portfolio_fit_observed": 12,
+  "portfolio_fit_observed": 21,
   "locked_holdout_snapshots": 0,
   "performance_outcomes_evaluated": false,
   "integrity_errors": []

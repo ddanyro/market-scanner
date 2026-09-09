@@ -1,12 +1,12 @@
 # TECHNICAL EVENTS VALIDATION REPORT
 
-Generated: 2026-09-09T13:03:57+00:00
+Generated: 2026-09-09T14:35:41+00:00
 
 ## Sample size and coverage
 
 ```csv
 snapshots,observations,tickers,matured_1d,matured_5d,matured_10d,matured_20d,matured_60d
-0,0,0,0,0,0,0,0
+2,198,110,1,0,0,0,0
 ```
 
 ## Score buckets
@@ -23,7 +23,7 @@ short_event_score,40-49,5,0,,,,,,,
 short_event_score,40-49,10,0,,,,,,,
 short_event_score,40-49,20,0,,,,,,,
 short_event_score,40-49,60,0,,,,,,,
-short_event_score,50-59,1,0,,,,,,,
+short_event_score,50-59,1,1,-0.5425712700081409,-0.5425712700081409,0.0,,-0.5425712700081409,-0.5425712700081409,2.559266384933534
 short_event_score,50-59,5,0,,,,,,,
 short_event_score,50-59,10,0,,,,,,,
 short_event_score,50-59,20,0,,,,,,,
@@ -48,7 +48,7 @@ intermediate_event_score,<40,5,0,,,,,,,
 intermediate_event_score,<40,10,0,,,,,,,
 intermediate_event_score,<40,20,0,,,,,,,
 intermediate_event_score,<40,60,0,,,,,,,
-intermediate_event_score,40-49,1,0,,,,,,,
+intermediate_event_score,40-49,1,1,-0.5425712700081409,-0.5425712700081409,0.0,,-0.5425712700081409,-0.5425712700081409,2.559266384933534
 intermediate_event_score,40-49,5,0,,,,,,,
 intermediate_event_score,40-49,10,0,,,,,,,
 intermediate_event_score,40-49,20,0,,,,,,,
@@ -79,7 +79,7 @@ intermediate_event_score,80+,60,0,,,,,,,
 
 ```csv
 timeframe,direction,horizon,n,average_return,median_return,win_rate,directional_hit_rate,expectancy,average_mae,average_mfe
-SHORT_TERM,BULLISH,1,0,,,,,,,
+SHORT_TERM,BULLISH,1,1,-0.5425712700081409,-0.5425712700081409,0.0,0.0,-0.5425712700081409,-0.5425712700081409,2.559266384933534
 SHORT_TERM,BULLISH,5,0,,,,,,,
 SHORT_TERM,BULLISH,10,0,,,,,,,
 SHORT_TERM,BULLISH,20,0,,,,,,,
@@ -99,7 +99,7 @@ INTERMEDIATE_TERM,BULLISH,5,0,,,,,,,
 INTERMEDIATE_TERM,BULLISH,10,0,,,,,,,
 INTERMEDIATE_TERM,BULLISH,20,0,,,,,,,
 INTERMEDIATE_TERM,BULLISH,60,0,,,,,,,
-INTERMEDIATE_TERM,NEUTRAL,1,0,,,,,,,
+INTERMEDIATE_TERM,NEUTRAL,1,1,-0.5425712700081409,-0.5425712700081409,0.0,,-0.5425712700081409,-0.5425712700081409,2.559266384933534
 INTERMEDIATE_TERM,NEUTRAL,5,0,,,,,,,
 INTERMEDIATE_TERM,NEUTRAL,10,0,,,,,,,
 INTERMEDIATE_TERM,NEUTRAL,20,0,,,,,,,
@@ -114,7 +114,7 @@ LONG_TERM,BULLISH,5,0,,,,,,,
 LONG_TERM,BULLISH,10,0,,,,,,,
 LONG_TERM,BULLISH,20,0,,,,,,,
 LONG_TERM,BULLISH,60,0,,,,,,,
-LONG_TERM,NEUTRAL,1,0,,,,,,,
+LONG_TERM,NEUTRAL,1,1,-0.5425712700081409,-0.5425712700081409,0.0,,-0.5425712700081409,-0.5425712700081409,2.559266384933534
 LONG_TERM,NEUTRAL,5,0,,,,,,,
 LONG_TERM,NEUTRAL,10,0,,,,,,,
 LONG_TERM,NEUTRAL,20,0,,,,,,,
@@ -129,7 +129,7 @@ OVERALL,BULLISH,5,0,,,,,,,
 OVERALL,BULLISH,10,0,,,,,,,
 OVERALL,BULLISH,20,0,,,,,,,
 OVERALL,BULLISH,60,0,,,,,,,
-OVERALL,NEUTRAL,1,0,,,,,,,
+OVERALL,NEUTRAL,1,1,-0.5425712700081409,-0.5425712700081409,0.0,,-0.5425712700081409,-0.5425712700081409,2.559266384933534
 OVERALL,NEUTRAL,5,0,,,,,,,
 OVERALL,NEUTRAL,10,0,,,,,,,
 OVERALL,NEUTRAL,20,0,,,,,,,
@@ -145,22 +145,22 @@ OVERALL,BEARISH,60,0,,,,,,,
 
 ```csv
 event_type,horizon,n,average_return,median_return,win_rate,directional_hit_rate,expectancy,average_mae,average_mfe
-BREAKOUT,1,0,,,,,,,
+BREAKOUT,1,1,-0.5425712700081409,-0.5425712700081409,0.0,0.0,-0.5425712700081409,-0.5425712700081409,2.559266384933534
 BREAKOUT,5,0,,,,,,,
 BREAKOUT,10,0,,,,,,,
 BREAKOUT,20,0,,,,,,,
 BREAKOUT,60,0,,,,,,,
-BREAKDOWN,1,0,,,,,,,
+BREAKDOWN,1,4,-0.5425712700081409,-0.5425712700081409,0.0,100.0,-0.5425712700081409,-0.5425712700081409,2.559266384933534
 BREAKDOWN,5,0,,,,,,,
 BREAKDOWN,10,0,,,,,,,
 BREAKDOWN,20,0,,,,,,,
 BREAKDOWN,60,0,,,,,,,
-CROSSOVER,1,0,,,,,,,
+CROSSOVER,1,6,-0.5425712700081409,-0.5425712700081409,0.0,0.0,-0.5425712700081409,-0.5425712700081409,2.5592663849335335
 CROSSOVER,5,0,,,,,,,
 CROSSOVER,10,0,,,,,,,
 CROSSOVER,20,0,,,,,,,
 CROSSOVER,60,0,,,,,,,
-CROSSUNDER,1,0,,,,,,,
+CROSSUNDER,1,3,-0.5425712700081409,-0.5425712700081409,0.0,100.0,-0.5425712700081409,-0.5425712700081409,2.559266384933534
 CROSSUNDER,5,0,,,,,,,
 CROSSUNDER,10,0,,,,,,,
 CROSSUNDER,20,0,,,,,,,
@@ -170,12 +170,12 @@ BOUNCE,5,0,,,,,,,
 BOUNCE,10,0,,,,,,,
 BOUNCE,20,0,,,,,,,
 BOUNCE,60,0,,,,,,,
-REVERSAL,1,0,,,,,,,
+REVERSAL,1,12,-0.5425712700081409,-0.5425712700081409,0.0,58.333333333333336,-0.5425712700081409,-0.5425712700081409,2.5592663849335335
 REVERSAL,5,0,,,,,,,
 REVERSAL,10,0,,,,,,,
 REVERSAL,20,0,,,,,,,
 REVERSAL,60,0,,,,,,,
-MOMENTUM,1,0,,,,,,,
+MOMENTUM,1,3,-0.5425712700081409,-0.5425712700081409,0.0,0.0,-0.5425712700081409,-0.5425712700081409,2.559266384933534
 MOMENTUM,5,0,,,,,,,
 MOMENTUM,10,0,,,,,,,
 MOMENTUM,20,0,,,,,,,
@@ -199,7 +199,29 @@ VOLATILITY,60,0,,,,,,,
 
 ## Recency decay
 
-_No observations._
+```csv
+recency_bucket,horizon,mean_recency_factor,n,average_return,median_return,win_rate,directional_hit_rate,expectancy,average_mae,average_mfe
+0-2 sessions,1,0.9564953582709892,3,-0.5425712700081409,-0.5425712700081409,0.0,100.0,-0.5425712700081409,-0.5425712700081409,2.559266384933534
+0-2 sessions,5,0.9564953582709892,0,,,,,,,
+0-2 sessions,10,0.9564953582709892,0,,,,,,,
+0-2 sessions,20,0.9564953582709892,0,,,,,,,
+0-2 sessions,60,0.9564953582709892,0,,,,,,,
+3-5 sessions,1,0.7693760439684331,10,-0.5425712700081409,-0.5425712700081409,0.0,20.0,-0.5425712700081409,-0.5425712700081409,2.559266384933534
+3-5 sessions,5,0.7693760439684331,0,,,,,,,
+3-5 sessions,10,0.7693760439684331,0,,,,,,,
+3-5 sessions,20,0.7693760439684331,0,,,,,,,
+3-5 sessions,60,0.7693760439684331,0,,,,,,,
+6-10 sessions,1,0.6473645434985967,2,-0.5425712700081409,-0.5425712700081409,0.0,50.0,-0.5425712700081409,-0.5425712700081409,2.559266384933534
+6-10 sessions,5,0.6473645434985967,0,,,,,,,
+6-10 sessions,10,0.6473645434985967,0,,,,,,,
+6-10 sessions,20,0.6473645434985967,0,,,,,,,
+6-10 sessions,60,0.6473645434985967,0,,,,,,,
+11+ sessions,1,0.6288479115822131,14,-0.5425712700081409,-0.5425712700081409,0.0,57.14285714285714,-0.5425712700081409,-0.5425712700081409,2.559266384933534
+11+ sessions,5,0.6288479115822131,0,,,,,,,
+11+ sessions,10,0.6288479115822131,0,,,,,,,
+11+ sessions,20,0.6288479115822131,0,,,,,,,
+11+ sessions,60,0.6288479115822131,0,,,,,,,
+```
 
 ## Timeframe agreement
 
@@ -225,7 +247,7 @@ short_bearish_long_bullish,5,0,,,,,,,
 short_bearish_long_bullish,10,0,,,,,,,
 short_bearish_long_bullish,20,0,,,,,,,
 short_bearish_long_bullish,60,0,,,,,,,
-other_combinations,1,0,,,,,,,
+other_combinations,1,1,-0.5425712700081409,-0.5425712700081409,0.0,,-0.5425712700081409,-0.5425712700081409,2.559266384933534
 other_combinations,5,0,,,,,,,
 other_combinations,10,0,,,,,,,
 other_combinations,20,0,,,,,,,
@@ -241,7 +263,7 @@ breakout_above_resistance,5,0,,,,,,,
 breakout_above_resistance,10,0,,,,,,,
 breakout_above_resistance,20,0,,,,,,,
 breakout_above_resistance,60,0,,,,,,,
-breakdown_below_support,1,0,,,,,,,
+breakdown_below_support,1,2,-0.5425712700081409,-0.5425712700081409,0.0,100.0,-0.5425712700081409,-0.5425712700081409,2.559266384933534
 breakdown_below_support,5,0,,,,,,,
 breakdown_below_support,10,0,,,,,,,
 breakdown_below_support,20,0,,,,,,,
@@ -262,37 +284,37 @@ rejection_from_resistance,60,0,,,,,,,
 
 ```csv
 feature,horizon,n,pearson,spearman
-short_event_score,1,0,,
+short_event_score,1,1,,
 short_event_score,5,0,,
 short_event_score,10,0,,
 short_event_score,20,0,,
 short_event_score,60,0,,
-intermediate_event_score,1,0,,
+intermediate_event_score,1,1,,
 intermediate_event_score,5,0,,
 intermediate_event_score,10,0,,
 intermediate_event_score,20,0,,
 intermediate_event_score,60,0,,
-long_event_score,1,0,,
+long_event_score,1,1,,
 long_event_score,5,0,,
 long_event_score,10,0,,
 long_event_score,20,0,,
 long_event_score,60,0,,
-overall_event_score,1,0,,
+overall_event_score,1,1,,
 overall_event_score,5,0,,
 overall_event_score,10,0,,
 overall_event_score,20,0,,
 overall_event_score,60,0,,
-confidence,1,0,,
+confidence,1,1,,
 confidence,5,0,,
 confidence,10,0,,
 confidence,20,0,,
 confidence,60,0,,
-bullish_event_count,1,0,,
+bullish_event_count,1,1,,
 bullish_event_count,5,0,,
 bullish_event_count,10,0,,
 bullish_event_count,20,0,,
 bullish_event_count,60,0,,
-bearish_event_count,1,0,,
+bearish_event_count,1,1,,
 bearish_event_count,5,0,,
 bearish_event_count,10,0,,
 bearish_event_count,20,0,,
@@ -303,9 +325,9 @@ bearish_event_count,60,0,,
 
 ```csv
 score,horizon,n,pearson,spearman,high_score_n,high_score_average_return,high_score_median_return,high_score_win_rate,high_score_directional_hit_rate,high_score_expectancy,high_score_average_mae,high_score_average_mfe,incremental_r2_of_events
-existing_technical_score,1,0,,,0,,,,,,,,
-overall_event_score,1,0,,,0,,,,,,,,
-simulated_equal_weight_score,1,0,,,0,,,,,,,,
+existing_technical_score,1,1,,,0,,,,,,,,
+overall_event_score,1,1,,,0,,,,,,,,
+simulated_equal_weight_score,1,1,,,0,,,,,,,,
 existing_technical_score,5,0,,,0,,,,,,,,
 overall_event_score,5,0,,,0,,,,,,,,
 simulated_equal_weight_score,5,0,,,0,,,,,,,,
@@ -327,7 +349,7 @@ not consumed by Baseline, Enhanced, Risk Score, or BUY/WAIT/AVOID.
 
 ```csv
 regime_dimension,regime,horizon,n,average_return,median_return,win_rate,directional_hit_rate,expectancy,average_mae,average_mfe
-trend_regime,bullish,1,0,,,,,,,
+trend_regime,bullish,1,1,-0.5425712700081409,-0.5425712700081409,0.0,,-0.5425712700081409,-0.5425712700081409,2.559266384933534
 trend_regime,bullish,5,0,,,,,,,
 trend_regime,bullish,10,0,,,,,,,
 trend_regime,bullish,20,0,,,,,,,
@@ -342,7 +364,7 @@ trend_regime,sideways,5,0,,,,,,,
 trend_regime,sideways,10,0,,,,,,,
 trend_regime,sideways,20,0,,,,,,,
 trend_regime,sideways,60,0,,,,,,,
-volatility_regime,low_volatility,1,0,,,,,,,
+volatility_regime,low_volatility,1,1,-0.5425712700081409,-0.5425712700081409,0.0,,-0.5425712700081409,-0.5425712700081409,2.559266384933534
 volatility_regime,low_volatility,5,0,,,,,,,
 volatility_regime,low_volatility,10,0,,,,,,,
 volatility_regime,low_volatility,20,0,,,,,,,
