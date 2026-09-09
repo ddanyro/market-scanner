@@ -1,1 +1,9 @@
-partition,model,days
+partition,model,days,max_drawdown_pct,annualized_volatility_pct,approx_sharpe,approx_sortino
+calibration,baseline,0,,,,
+calibration,enhanced_shadow,0,,,,
+calibration,enhanced_raw,0,,,,
+calibration,enhanced_adjusted,0,,,,
+holdout_locked,baseline,0,,,,
+holdout_locked,enhanced_shadow,0,,,,
+holdout_locked,enhanced_raw,0,,,,
+holdout_locked,enhanced_adjusted,0,,,,
