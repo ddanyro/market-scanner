@@ -40,9 +40,11 @@ def _timestamp(value=None):
     return value.astimezone(dt.timezone.utc).isoformat(timespec="seconds")
 
 
-def build_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None, recorded_at=None):
+def build_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None, recorded_at=None,
+                   state=None):
     timestamp = _timestamp(recorded_at)
     enhanced_by_symbol = enhanced_by_symbol or {}
+    state = state or {}
     predictions = []
     seen = set()
     for row in rows or []:
@@ -55,16 +57,27 @@ def build_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None, recorded_at=
         if not isinstance(events, dict):
             continue
         enhanced = enhanced_by_symbol.get(symbol, {})
-        baseline_score = getter("technical_score")
-        if baseline_score is None:
+        existing_technical_score = enhanced.get("technical_score")
+        if existing_technical_score is None:
+            existing_technical_score = getter("technical_score")
+        if existing_technical_score is None:
             checks = _number(getter("Checks_Passed"))
-            baseline_score = checks / 4 * 100 if checks is not None else None
+            existing_technical_score = checks / 4 * 100 if checks is not None else None
+        entry = enhanced.get("entry") if isinstance(enhanced.get("entry"), dict) else {}
         predictions.append({
             "ticker": symbol,
             "recorded_at": timestamp,
             "entry_price": _number(getter("Price_Native", getter("Current_Price", getter("Price")))),
-            "currency": getter("Currency"),
-            "baseline_score": _number(baseline_score),
+            "entry_source": entry.get("source") or events.get("input_provenance", {}).get("source"),
+            "data_as_of": events.get("data_as_of"),
+            "market_timezone": entry.get("market_timezone") or getter("Market_Timezone") or "UTC",
+            "market": enhanced.get("market") or getter("Market"),
+            "sector": enhanced.get("sector") or getter("Sector"),
+            "currency": entry.get("currency") or getter("Currency"),
+            "existing_technical_score": _number(existing_technical_score),
+            # Kept for compatibility with v1 consumers. This is the existing
+            # four-rule Technical Score, not the Technical Events score.
+            "baseline_score": _number(existing_technical_score),
             "baseline_decision": getter("Decision", getter("Sell_Decision")),
             "enhanced_raw_score": _number(enhanced.get("raw_stock_score")),
             "enhanced_adjusted_score": _number(enhanced.get("portfolio_adjusted_score")),
@@ -88,8 +101,15 @@ def build_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None, recorded_at=
         "run_mode": run_mode,
         "shadow_mode": True,
         "authoritative_decision_changed": False,
+        "market_regime": state.get("us_market_regime") or {},
         "candidate_count": len(predictions),
         "predictions": predictions,
+    }
+    snapshot["input_data_provenance"] = {
+        "captured_at": timestamp,
+        "immutable_append_only": True,
+        "market_regime_source": "dashboard_state.us_market_regime",
+        "forward_outcomes_present": False,
     }
     snapshot["content_hash"] = _hash(snapshot)
     snapshot["snapshot_id"] = snapshot["content_hash"][:24]
@@ -98,9 +118,10 @@ def build_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None, recorded_at=
 
 
 def append_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None,
-                    recorded_at=None, path=LEDGER_PATH):
+                    recorded_at=None, state=None, path=LEDGER_PATH):
     snapshot = build_snapshot(
-        rows, enhanced_by_symbol, run_mode=run_mode, recorded_at=recorded_at
+        rows, enhanced_by_symbol, run_mode=run_mode, recorded_at=recorded_at,
+        state=state,
     )
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)

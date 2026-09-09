@@ -72,6 +72,11 @@ if ! "$PYTHON_BIN" -u evaluate_shadow_forward.py; then
     echo "Avertisment: evaluarea outcome-urilor nu a reușit; predicțiile contemporane au fost păstrate." >&2
 fi
 
+log_step "Validare forward Technical Events"
+if ! "$PYTHON_BIN" -u evaluate_technical_events_forward.py; then
+    echo "Avertisment: validarea Technical Events nu a reușit; ledgerul immutable a fost păstrat." >&2
+fi
+
 git_sync_finish "Update portfolio snapshot"
 
 log_step "Pornire GitHub Actions"

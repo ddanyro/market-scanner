@@ -113,6 +113,7 @@ jobs:
         python update_sp500_json.py
         python market_scanner.py --mode $MODE
         python evaluate_shadow_forward.py || echo "Shadow outcome evaluation unavailable; collection remains valid."
+        python evaluate_technical_events_forward.py || echo "Technical Events outcome evaluation unavailable; immutable collection remains valid."
 
     - name: Commit and Push changes
       if: ${{ github.event_name != 'push' && (github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '') }}
@@ -138,6 +139,7 @@ jobs:
         if [ -f analysis/shadow_forward_validation/decision_disagreements.csv ]; then git add analysis/shadow_forward_validation/decision_disagreements.csv; fi
         if [ -f analysis/shadow_forward_validation/decision_matrix.csv ]; then git add analysis/shadow_forward_validation/decision_matrix.csv; fi
         if [ -f analysis/shadow_forward_validation/integrity_report.json ]; then git add analysis/shadow_forward_validation/integrity_report.json; fi
+        if [ -d analysis/technical_events_validation ]; then git add analysis/technical_events_validation; fi
         if [ -f bvb_daily_cache.csv ]; then git add bvb_daily_cache.csv; fi
         git commit -m "Auto-update Dashboard [skip ci]" || echo "No changes to commit"
         git push origin HEAD:main || (git fetch origin main && git rebase -X theirs origin/main && git push origin HEAD:main)

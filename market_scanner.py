@@ -8994,6 +8994,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 technical_rows,
                 enhanced_candidate_by_symbol,
                 run_mode=run_mode,
+                state=full_state,
             )
             full_state['technical_events_shadow_latest'] = {
                 key: technical_snapshot.get(key) for key in (

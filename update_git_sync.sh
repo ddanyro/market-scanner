@@ -5,6 +5,20 @@ SYNC_REMOTE_NAME="${SYNC_REMOTE_NAME:-origin}"
 SYNC_BRANCH_NAME="${SYNC_BRANCH_NAME:-main}"
 
 SYNC_GENERATED_FILES=(
+    "analysis/technical_events_validation/coverage.csv"
+    "analysis/technical_events_validation/direction_analysis.csv"
+    "analysis/technical_events_validation/event_observations.csv"
+    "analysis/technical_events_validation/event_types.csv"
+    "analysis/technical_events_validation/integrity_report.json"
+    "analysis/technical_events_validation/labelled_predictions.csv"
+    "analysis/technical_events_validation/market_regimes.csv"
+    "analysis/technical_events_validation/predictive_power.csv"
+    "analysis/technical_events_validation/recency_analysis.csv"
+    "analysis/technical_events_validation/score_buckets.csv"
+    "analysis/technical_events_validation/score_comparison.csv"
+    "analysis/technical_events_validation/support_resistance_events.csv"
+    "analysis/technical_events_validation/technical_events_validation_report.md"
+    "analysis/technical_events_validation/timeframe_agreement.csv"
     "analysis/shadow_forward_validation/collection_coverage.json"
     "analysis/shadow_forward_validation/component_analysis.csv"
     "analysis/shadow_forward_validation/coverage.csv"
@@ -137,6 +151,7 @@ git_sync_refresh_shadow_reports() {
     "$python_bin" -c \
         'import shadow_validation; shadow_validation.generate_readiness_report()'
     "$python_bin" evaluate_shadow_forward.py --offline
+    "$python_bin" evaluate_technical_events_forward.py --offline
 }
 
 git_sync_integrate_remote() {

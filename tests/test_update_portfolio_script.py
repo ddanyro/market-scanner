@@ -20,6 +20,7 @@ class TestUpdatePortfolioScript(unittest.TestCase):
         for generated in (
             'tradeville_account.enc.json', 'shadow_predictions.jsonl',
             'analysis/shadow_forward_validation/collection_coverage.json',
+            'analysis/technical_events_validation/technical_events_validation_report.md',
             'market_history.json', 'market_indicators.json',
             'watchlist_compact.json', 'portfolio.json', 'index.html',
         ):
@@ -32,6 +33,7 @@ class TestUpdatePortfolioScript(unittest.TestCase):
         for filename in ('update_international.sh', 'update_all.sh'):
             script = (self.root / filename).read_text(encoding='utf-8')
             self.assertIn('evaluate_shadow_forward.py', script)
+            self.assertIn('evaluate_technical_events_forward.py', script)
 
 
 if __name__ == '__main__':

@@ -63,3 +63,16 @@ ledger. Each observation freezes raw events, summaries, support/resistance,
 source-data hash, Baseline/Enhanced comparison fields, entry price, and pending
 1D/5D/10D/20D/60D + MAE/MFE outcome slots. Outcomes are never populated at
 signal time.
+
+## Forward validation
+
+`evaluate_technical_events_forward.py` reads the immutable ledger and writes a
+separate derived dataset under `analysis/technical_events_validation/`. It
+uses the captured entry price and only daily sessions strictly after the
+signal's `data_as_of` day. The original ledger is never rewritten.
+
+The report measures timeframe scores and directions, score/confidence buckets,
+event types, recency, timeframe agreement, support/resistance events, market
+regimes, and incremental predictive power versus the existing Technical Score.
+The reported 50/50 combination is simulation-only and is not connected to any
+production score or decision.

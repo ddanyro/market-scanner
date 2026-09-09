@@ -20,4 +20,9 @@ if ! "$PYTHON_BIN" -u evaluate_shadow_forward.py; then
     echo "Avertisment: evaluarea outcome-urilor nu a reușit; snapshotul rămâne valid." >&2
 fi
 
+sync_log_step "Validare forward Technical Events"
+if ! "$PYTHON_BIN" -u evaluate_technical_events_forward.py; then
+    echo "Avertisment: validarea Technical Events nu a reușit; ledgerul immutable rămâne valid." >&2
+fi
+
 git_sync_finish "Update international snapshot"
