@@ -22,6 +22,7 @@ class TestUpdatePortfolioScript(unittest.TestCase):
             'technical_events_predictions.jsonl.gz',
             'analysis/shadow_forward_validation/collection_coverage.json',
             'analysis/technical_events_validation/technical_events_validation_report.md',
+            'analysis/technical_events_validation/event_observations.csv.gz',
             'market_history.json', 'market_indicators.json',
             'watchlist_compact.json', 'portfolio.json', 'index.html',
         ):
@@ -29,6 +30,10 @@ class TestUpdatePortfolioScript(unittest.TestCase):
         self.assertIn('for attempt in 1 2 3', sync)
         self.assertIn('merge_shadow_ledgers.py', sync)
         self.assertIn('git rebase --autostash -X theirs', sync)
+        self.assertNotIn(
+            '"analysis/technical_events_validation/event_observations.csv"',
+            sync,
+        )
 
     def test_international_and_all_refresh_forward_reports_before_commit(self):
         for filename in ('update_international.sh', 'update_all.sh'):

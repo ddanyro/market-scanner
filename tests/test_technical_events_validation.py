@@ -190,6 +190,7 @@ def test_offline_empty_report_is_supported(tmp_path):
 
 def test_main_writes_labelled_dataset_as_gzip(monkeypatch, tmp_path):
     monkeypatch.setattr(validation.technical_events_shadow, "load_ledger", lambda _path: [])
+    (tmp_path / "event_observations.csv").write_text("legacy,large\n")
     monkeypatch.setattr(
         "sys.argv", ["evaluate_technical_events_forward.py", "--offline", "--output", str(tmp_path)]
     )
@@ -197,3 +198,7 @@ def test_main_writes_labelled_dataset_as_gzip(monkeypatch, tmp_path):
     output = tmp_path / "labelled_predictions.csv.gz"
     assert output.exists()
     assert output.read_bytes()[:2] == b"\x1f\x8b"
+    events_output = tmp_path / "event_observations.csv.gz"
+    assert events_output.exists()
+    assert events_output.read_bytes()[:2] == b"\x1f\x8b"
+    assert not (tmp_path / "event_observations.csv").exists()

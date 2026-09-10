@@ -7,7 +7,7 @@ SYNC_BRANCH_NAME="${SYNC_BRANCH_NAME:-main}"
 SYNC_GENERATED_FILES=(
     "analysis/technical_events_validation/coverage.csv"
     "analysis/technical_events_validation/direction_analysis.csv"
-    "analysis/technical_events_validation/event_observations.csv"
+    "analysis/technical_events_validation/event_observations.csv.gz"
     "analysis/technical_events_validation/event_types.csv"
     "analysis/technical_events_validation/integrity_report.json"
     "analysis/technical_events_validation/labelled_predictions.csv.gz"

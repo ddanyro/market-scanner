@@ -845,10 +845,17 @@ def main():
         "predictive_power": "predictive_power.csv",
         "score_comparison": "score_comparison.csv",
         "regimes": "market_regimes.csv",
-        "events": "event_observations.csv",
+        "events": "event_observations.csv.gz",
     }
     for key, filename in filenames.items():
-        tables[key].to_csv(output / filename, index=False)
+        tables[key].to_csv(
+            output / filename,
+            index=False,
+            compression="gzip" if filename.endswith(".gz") else None,
+        )
+    # One-time migration for worktrees that still contain the former large
+    # uncompressed artifact. Git sync stages its deletion via `git add -u`.
+    (output / "event_observations.csv").unlink(missing_ok=True)
     write_report(labelled, tables, errors, output)
     (output / "integrity_report.json").write_text(json.dumps({
         "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
