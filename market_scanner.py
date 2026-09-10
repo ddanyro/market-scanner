@@ -1699,6 +1699,7 @@ def _technical_events_ui_detail(value, max_events=15):
     summary_fields = (
         'available', 'data_as_of', 'overall_event_score',
         'overall_direction', 'confidence', 'conflict', 'total_events',
+        'scored_events', 'excluded_events',
         'bullish_events', 'bearish_events', 'net_events',
         'nearest_support', 'nearest_resistance',
     )
@@ -1709,7 +1710,9 @@ def _technical_events_ui_detail(value, max_events=15):
             key: detail.get(key)
             for key in (
                 'event_score', 'direction', 'bullish_events',
-                'bearish_events',
+                'bearish_events', 'recent_event_score', 'structural_score',
+                'structural_direction', 'structural_weight',
+                'scored_events', 'excluded_events', 'score_formula',
             )
             if key in detail
         }
@@ -1718,7 +1721,9 @@ def _technical_events_ui_detail(value, max_events=15):
     }
     event_fields = (
         'type', 'name', 'direction', 'timestamp', 'timeframe',
-        'effective_strength', 'confirmation_status',
+        'effective_strength', 'scoring_effective_strength',
+        'signal_family', 'correlation_discount', 'excluded_from_score',
+        'exclusion_reason', 'confirmation_status',
     )
     result['events'] = [
         {key: event.get(key) for key in event_fields if key in event}
@@ -11034,9 +11039,9 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     ? Number(value).toLocaleString('ro-RO', {maximumFractionDigits: 2})
                     : '—';
                 const timeframeLabels = {
-                    SHORT_TERM: 'Short term · 45 ședințe',
-                    INTERMEDIATE_TERM: 'Intermediate · 130 ședințe',
-                    LONG_TERM: 'Long term · 260 ședințe'
+                    SHORT_TERM: 'Short term · până la 3 luni',
+                    INTERMEDIATE_TERM: 'Intermediate · 3–9 luni',
+                    LONG_TERM: 'Long term · 9+ luni'
                 };
                 const cards = Object.entries(timeframeLabels).map(([key, label]) => {
                     const item = (technical.timeframes || {})[key] || {};
@@ -11045,7 +11050,9 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         + escapeIndicatorText(item.direction || 'NEUTRAL') + "</b>"
                         + "<small>Score " + number(item.event_score) + " · Bull "
                         + number(item.bullish_events) + " · Bear " + number(item.bearish_events)
-                        + "</small></div>";
+                        + "</small><small>Structural " + number(item.structural_score)
+                        + " · Recent events " + number(item.recent_event_score)
+                        + " · weight " + number(Number(item.structural_weight) * 100) + "%</small></div>";
                 }).join('');
                 const rows = (technical.events || []).slice(0, 15).map(event =>
                     "<tr><td>" + escapeIndicatorText(event.timestamp || '—') + "</td><td>"

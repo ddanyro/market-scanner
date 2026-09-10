@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 
-ENGINE_VERSION = "technical-events-v1-shadow"
+ENGINE_VERSION = "technical-events-v2-structural-shadow"
 
 
 @dataclass(frozen=True)
@@ -28,15 +28,15 @@ class TimeframeConfig:
     event_window: int
     recency_half_life: float
     roc_period: int
+    structural_weight: float | None = None
 
 
-# Daily-session horizons. Short captures roughly two months, intermediate six
-# months, and long approximately one trading year. They are configuration, not
-# copies of any proprietary provider's periods.
+# Trailing daily history plus weekly/monthly structural confirmation. These are
+# transparent scanner horizons, not copies of any proprietary provider's model.
 DEFAULT_TIMEFRAMES = {
-    "SHORT_TERM": TimeframeConfig(45, 5, 20, 2, 10, 6.0, 5),
-    "INTERMEDIATE_TERM": TimeframeConfig(130, 20, 50, 3, 20, 15.0, 10),
-    "LONG_TERM": TimeframeConfig(260, 50, 200, 5, 35, 40.0, 20),
+    "SHORT_TERM": TimeframeConfig(63, 5, 20, 2, 15, 7.0, 5, 0.25),
+    "INTERMEDIATE_TERM": TimeframeConfig(190, 20, 50, 3, 30, 20.0, 10, 0.65),
+    "LONG_TERM": TimeframeConfig(320, 50, 200, 5, 45, 60.0, 20, 0.80),
 }
 
 DIRECTION_THRESHOLD = 57.0
@@ -196,6 +196,161 @@ def _direction(score):
     return "NEUTRAL"
 
 
+def _bounded_signal(value, scale):
+    """Map a signed observation to [-1, 1] without a hard bucket."""
+    value = _number(value, 0.0)
+    return max(-1.0, min(1.0, value / max(float(scale), 1e-9)))
+
+
+def _last_return(close, periods):
+    if len(close) <= periods or not close.iloc[-periods - 1]:
+        return None
+    return float(close.iloc[-1] / close.iloc[-periods - 1] - 1)
+
+
+def _structural_trend(window, timeframe, config):
+    """Calculate trailing trend state independently from recent events."""
+    close = window.Close
+    weekly = window.resample("W-FRI").last().dropna(subset=["Close"])
+    monthly = window.resample("ME").last().dropna(subset=["Close"])
+    evidence = []
+
+    def add(name, signal, weight, raw):
+        evidence.append({
+            "name": name,
+            "signal": round(float(max(-1.0, min(1.0, signal))), 6),
+            "weight": float(weight),
+            "raw_value": None if raw is None else round(float(raw), 8),
+        })
+
+    if timeframe == "LONG_TERM":
+        sma50 = close.rolling(50).mean()
+        sma200 = close.rolling(200).mean()
+        if pd.notna(sma200.iloc[-1]):
+            raw = close.iloc[-1] / sma200.iloc[-1] - 1
+            add("price_vs_sma200", _bounded_signal(raw, 0.10), 0.25, raw)
+            slope = sma200.iloc[-1] / sma200.iloc[-41] - 1 if len(sma200.dropna()) > 40 else None
+            if slope is not None and pd.notna(slope):
+                add("sma200_40d_slope", _bounded_signal(slope, 0.04), 0.20, slope)
+        if pd.notna(sma50.iloc[-1]) and pd.notna(sma200.iloc[-1]):
+            raw = sma50.iloc[-1] / sma200.iloc[-1] - 1
+            add("sma50_vs_sma200", _bounded_signal(raw, 0.08), 0.20, raw)
+        raw = _last_return(close, min(252, len(close) - 1))
+        if raw is not None:
+            add("trailing_12m_return", _bounded_signal(raw, 0.25), 0.15, raw)
+        if len(close) >= 126:
+            rolling_low, rolling_high = close.tail(252).min(), close.tail(252).max()
+            location = (close.iloc[-1] - rolling_low) / max(rolling_high - rolling_low, 1e-9)
+            add("52w_range_location", (location - 0.5) * 2, 0.10, location)
+        if len(weekly) >= 40:
+            fast_w = weekly.Close.rolling(10).mean().iloc[-1]
+            slow_w = weekly.Close.rolling(40).mean().iloc[-1]
+            raw = fast_w / slow_w - 1
+            add("weekly_sma10_vs_sma40", _bounded_signal(raw, 0.08), 0.05, raw)
+        if len(monthly) >= 9:
+            fast_m = monthly.Close.rolling(3).mean().iloc[-1]
+            slow_m = monthly.Close.rolling(9).mean().iloc[-1]
+            raw = fast_m / slow_m - 1
+            add("monthly_sma3_vs_sma9", _bounded_signal(raw, 0.10), 0.05, raw)
+    elif timeframe == "INTERMEDIATE_TERM":
+        sma20 = close.rolling(20).mean()
+        sma50 = close.rolling(50).mean()
+        if pd.notna(sma50.iloc[-1]):
+            raw = close.iloc[-1] / sma50.iloc[-1] - 1
+            add("price_vs_sma50", _bounded_signal(raw, 0.08), 0.30, raw)
+            slope = sma50.iloc[-1] / sma50.iloc[-21] - 1 if len(sma50.dropna()) > 20 else None
+            if slope is not None and pd.notna(slope):
+                add("sma50_20d_slope", _bounded_signal(slope, 0.04), 0.25, slope)
+        if pd.notna(sma20.iloc[-1]) and pd.notna(sma50.iloc[-1]):
+            raw = sma20.iloc[-1] / sma50.iloc[-1] - 1
+            add("sma20_vs_sma50", _bounded_signal(raw, 0.06), 0.20, raw)
+        raw = _last_return(close, min(63, len(close) - 1))
+        if raw is not None:
+            add("trailing_3m_return", _bounded_signal(raw, 0.15), 0.15, raw)
+        if len(weekly) >= 13:
+            fast_w = weekly.Close.rolling(4).mean().iloc[-1]
+            slow_w = weekly.Close.rolling(13).mean().iloc[-1]
+            raw = fast_w / slow_w - 1
+            add("weekly_sma4_vs_sma13", _bounded_signal(raw, 0.06), 0.10, raw)
+    else:
+        sma5 = close.rolling(5).mean()
+        sma20 = close.rolling(20).mean()
+        if pd.notna(sma20.iloc[-1]):
+            raw = close.iloc[-1] / sma20.iloc[-1] - 1
+            add("price_vs_sma20", _bounded_signal(raw, 0.05), 0.40, raw)
+            slope = sma20.iloc[-1] / sma20.iloc[-11] - 1 if len(sma20.dropna()) > 10 else None
+            if slope is not None and pd.notna(slope):
+                add("sma20_10d_slope", _bounded_signal(slope, 0.03), 0.25, slope)
+        if pd.notna(sma5.iloc[-1]) and pd.notna(sma20.iloc[-1]):
+            raw = sma5.iloc[-1] / sma20.iloc[-1] - 1
+            add("sma5_vs_sma20", _bounded_signal(raw, 0.04), 0.20, raw)
+        raw = _last_return(close, min(20, len(close) - 1))
+        if raw is not None:
+            add("trailing_1m_return", _bounded_signal(raw, 0.10), 0.15, raw)
+
+    weight = sum(item["weight"] for item in evidence)
+    signed = sum(item["signal"] * item["weight"] for item in evidence) / weight if weight else 0.0
+    score = 50 + 50 * signed
+    return {
+        "available": bool(evidence),
+        "score": round(score, 2),
+        "direction": _direction(score),
+        "evidence": evidence,
+        "method": "trailing_multi_horizon_structural_trend_v1",
+    }
+
+
+def _event_is_eligible(event, timeframe):
+    """Keep fast oscillators out of structural horizons."""
+    name = event.get("name", "")
+    if timeframe == "LONG_TERM":
+        return (
+            "SMA crossover" in name
+            or event.get("type") in {
+                "BREAKOUT", "BREAKDOWN", "RELATIVE_STRENGTH",
+                "VOLUME_CONFIRMATION",
+            }
+        )
+    if timeframe == "INTERMEDIATE_TERM" and event.get("type") == "VOLATILITY":
+        return False
+    return True
+
+
+def _event_family(event):
+    name = event.get("name", "")
+    if "SMA crossover" in name:
+        return "TREND_CROSS"
+    if "RSI" in name or "MACD" in name or "momentum reversal" in name:
+        return "MOMENTUM"
+    if event.get("type") in {
+        "BREAKOUT", "BREAKDOWN", "BOUNCE", "REVERSAL",
+        "VOLUME_CONFIRMATION",
+    }:
+        return "PRICE_STRUCTURE"
+    return event.get("type", "OTHER")
+
+
+def _score_event_flow(events):
+    """Discount correlated observations while retaining them for audit/UI."""
+    grouped = {}
+    for event in events:
+        key = (_event_family(event), event["direction"])
+        grouped.setdefault(key, []).append(event)
+    totals = {"BULLISH": 0.0, "BEARISH": 0.0}
+    for (family, direction), members in grouped.items():
+        members.sort(key=lambda item: item["effective_strength"], reverse=True)
+        for index, event in enumerate(members):
+            multiplier = 1.0 if index == 0 else 0.35
+            contribution = event["effective_strength"] * multiplier
+            event["signal_family"] = family
+            event["correlation_discount"] = multiplier
+            event["scoring_effective_strength"] = round(contribution, 2)
+            totals[direction] += contribution
+    total = totals["BULLISH"] + totals["BEARISH"]
+    score = 50.0 if total == 0 else 50 + 50 * (totals["BULLISH"] - totals["BEARISH"]) / total
+    return score, totals
+
+
 def _timeframe_analysis(data, benchmark, name, config, source):
     window = data.tail(config.lookback).copy()
     minimum = max(config.slow_sma + 2, 30)
@@ -231,11 +386,17 @@ def _timeframe_analysis(data, benchmark, name, config, source):
         if pd.notna(slow.iloc[i - 1]) and fast.iloc[i - 1] >= slow.iloc[i - 1] and fast.iloc[i] < slow.iloc[i]:
             magnitude = abs(fast.iloc[i] / slow.iloc[i] - 1) * 100
             _event(events, event_type="CROSSUNDER", name="bearish SMA crossover", direction="BEARISH", raw_strength=60 + min(20, magnitude * 20), confirmed=True, source_data={"fast_sma": config.fast_sma, "slow_sma": config.slow_sma}, **common)
+        bearish_rsi_threshold = {
+            "SHORT_TERM": 60,
+            "INTERMEDIATE_TERM": 50,
+            "LONG_TERM": 45,
+        }.get(name, 55)
+        bullish_rsi_threshold = 100 - bearish_rsi_threshold
         for crossed, event_type, label, direction in (
             (roc.iloc[i - 1] <= 0 < roc.iloc[i], "REVERSAL", "bullish momentum reversal", "BULLISH"),
             (roc.iloc[i - 1] >= 0 > roc.iloc[i], "REVERSAL", "bearish momentum reversal", "BEARISH"),
-            (rsi.iloc[i - 1] <= 40 < rsi.iloc[i], "MOMENTUM", "RSI bullish recovery", "BULLISH"),
-            (rsi.iloc[i - 1] >= 60 > rsi.iloc[i], "MOMENTUM", "RSI deterioration", "BEARISH"),
+            (rsi.iloc[i - 1] <= bullish_rsi_threshold < rsi.iloc[i], "MOMENTUM", "RSI bullish recovery", "BULLISH"),
+            (rsi.iloc[i - 1] >= bearish_rsi_threshold > rsi.iloc[i], "MOMENTUM", "RSI deterioration", "BEARISH"),
             (macd.iloc[i - 1] <= signal.iloc[i - 1] and macd.iloc[i] > signal.iloc[i], "CROSSOVER", "MACD bullish crossover", "BULLISH"),
             (macd.iloc[i - 1] >= signal.iloc[i - 1] and macd.iloc[i] < signal.iloc[i], "CROSSUNDER", "MACD bearish crossover", "BEARISH"),
         ):
@@ -302,18 +463,46 @@ def _timeframe_analysis(data, benchmark, name, config, source):
             elif pd.notna(prior_low) and relative.iloc[-1] < prior_low:
                 _event(events, event_type="RELATIVE_STRENGTH", name="relative-strength breakdown", direction="BEARISH", raw_strength=70, confirmed=True, timestamp=aligned.index[-1], timeframe=name, age=0, half_life=config.recency_half_life, price=close.iloc[-1], source_data={"benchmark": source.get("benchmark")})
 
-    bullish = sum(item["effective_strength"] for item in events if item["direction"] == "BULLISH")
-    bearish = sum(item["effective_strength"] for item in events if item["direction"] == "BEARISH")
-    total = bullish + bearish
-    score = 50.0 if total == 0 else 50 + 50 * (bullish - bearish) / total
+    eligible_events = [item for item in events if _event_is_eligible(item, name)]
+    excluded_events = [item for item in events if item not in eligible_events]
+    for item in excluded_events:
+        item["excluded_from_score"] = True
+        item["exclusion_reason"] = f"not_eligible_for_{name.lower()}"
+        item["scoring_effective_strength"] = 0.0
+    event_flow_score, flow = _score_event_flow(eligible_events)
+    bullish = flow["BULLISH"]
+    bearish = flow["BEARISH"]
+    structural = _structural_trend(window, name, config)
+    default_structural_weights = {
+        "SHORT_TERM": 0.25,
+        "INTERMEDIATE_TERM": 0.65,
+        "LONG_TERM": 0.80,
+    }
+    structural_weight = config.structural_weight
+    if structural_weight is None:
+        structural_weight = default_structural_weights.get(name, 0.30)
+    if not structural["available"]:
+        structural_weight = 0.0
+    score = (
+        structural_weight * structural["score"]
+        + (1 - structural_weight) * event_flow_score
+    )
     return {
         "available": True,
         "direction": _direction(score),
         "bullish_events": sum(item["direction"] == "BULLISH" for item in events),
         "bearish_events": sum(item["direction"] == "BEARISH" for item in events),
         "event_score": round(score, 2),
+        "recent_event_score": round(event_flow_score, 2),
+        "structural_score": structural["score"],
+        "structural_direction": structural["direction"],
+        "structural_trend": structural,
+        "structural_weight": round(structural_weight, 4),
+        "score_formula": "structural_weight * structural_score + (1 - structural_weight) * recent_event_score",
         "effective_bullish_strength": round(bullish, 2),
         "effective_bearish_strength": round(bearish, 2),
+        "scored_events": len(eligible_events),
+        "excluded_events": len(excluded_events),
         "events": sorted(events, key=lambda item: (item["timestamp"], item["effective_strength"]), reverse=True),
         "support_resistance": levels,
         "configuration": asdict(config),
@@ -358,14 +547,15 @@ def analyze(frame, benchmark_frame=None, *, source=None, timeframe_config=None,
         if weight_total else 50.0
     )
     events = [event for summary in summaries.values() for event in summary["events"]]
+    scored_events = [event for event in events if not event.get("excluded_from_score")]
     directions = {name: value["direction"] for name, value in summaries.items()}
     directional = [value for value in directions.values() if value != "NEUTRAL"]
     agreement = max((directional.count(value) for value in set(directional)), default=0) / max(len(directional), 1)
-    confirmation = sum(item["confirmation_status"] == "CONFIRMED" for item in events) / max(len(events), 1)
-    mean_strength = np.mean([item["effective_strength"] for item in events]) if events else 0
-    confidence = min(100.0, min(len(events) / 8, 1) * 25 + mean_strength / 100 * 30 + agreement * 25 + confirmation * 20)
-    bullish_events = [item for item in events if item["direction"] == "BULLISH"]
-    bearish_events = [item for item in events if item["direction"] == "BEARISH"]
+    confirmation = sum(item["confirmation_status"] == "CONFIRMED" for item in scored_events) / max(len(scored_events), 1)
+    mean_strength = np.mean([item.get("scoring_effective_strength", 0) for item in scored_events]) if scored_events else 0
+    confidence = min(100.0, min(len(scored_events) / 8, 1) * 25 + mean_strength / 100 * 30 + agreement * 25 + confirmation * 20)
+    bullish_events = [item for item in scored_events if item["direction"] == "BULLISH"]
+    bearish_events = [item for item in scored_events if item["direction"] == "BEARISH"]
     latest_levels = next((summaries[name]["support_resistance"] for name in ("INTERMEDIATE_TERM", "SHORT_TERM", "LONG_TERM") if summaries.get(name, {}).get("support_resistance", {}).get("available")), {})
     input_rows = [
         [str(index), *[round(float(row[column]), 8) for column in ("Open", "High", "Low", "Close")]]
@@ -387,6 +577,8 @@ def analyze(frame, benchmark_frame=None, *, source=None, timeframe_config=None,
         "timeframes": summaries,
         "events": events,
         "total_events": len(events),
+        "scored_events": len(scored_events),
+        "excluded_events": len(events) - len(scored_events),
         "bullish_events": len(bullish_events),
         "bearish_events": len(bearish_events),
         "net_events": len(bullish_events) - len(bearish_events),

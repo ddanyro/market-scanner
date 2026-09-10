@@ -108,6 +108,54 @@ def test_benchmark_alignment_accepts_mixed_timezones():
     assert result["available"] is True
 
 
+def test_short_pullback_does_not_erase_long_structural_uptrend():
+    rising = np.linspace(75, 120, 300)
+    pullback = np.linspace(120, 112, 20)
+    result = technical_events.analyze(frame_from_close([*rising, *pullback]))
+
+    short = result["timeframes"]["SHORT_TERM"]
+    long = result["timeframes"]["LONG_TERM"]
+    assert short["direction"] == "BEARISH"
+    assert long["direction"] == "BULLISH"
+    assert long["structural_direction"] == "BULLISH"
+    assert result["conflict"] == "MIXED SIGNALS ACROSS TIMEFRAMES"
+
+
+def test_long_term_excludes_fast_daily_oscillators_from_score():
+    values = 100 + np.linspace(0, 20, 320) + np.sin(np.linspace(0, 30, 320)) * 3
+    result = technical_events.analyze(frame_from_close(values))
+    long = result["timeframes"]["LONG_TERM"]
+    fast = [
+        event for event in long["events"]
+        if "RSI" in event["name"] or "MACD" in event["name"]
+        or "momentum reversal" in event["name"]
+    ]
+    assert fast
+    assert all(event["excluded_from_score"] is True for event in fast)
+    assert all(event["scoring_effective_strength"] == 0 for event in fast)
+
+
+def test_correlated_event_family_is_discounted_not_hidden():
+    events = [
+        {"name": "RSI deterioration", "type": "MOMENTUM", "direction": "BEARISH", "effective_strength": 60},
+        {"name": "MACD bearish crossover", "type": "CROSSUNDER", "direction": "BEARISH", "effective_strength": 50},
+    ]
+    score, totals = technical_events._score_event_flow(events)
+    assert totals["BEARISH"] == 77.5
+    assert score == 0
+    assert events[0]["correlation_discount"] == 1
+    assert events[1]["correlation_discount"] == 0.35
+
+
+def test_timeframe_score_exposes_reproducible_structural_formula():
+    result = technical_events.analyze(frame_from_close(np.linspace(80, 120, 320)))
+    for detail in result["timeframes"].values():
+        weight = detail["structural_weight"]
+        expected = weight * detail["structural_score"] + (1 - weight) * detail["recent_event_score"]
+        assert detail["event_score"] == round(expected, 2)
+        assert detail["score_formula"]
+
+
 def test_technical_events_field_cannot_change_enhanced_score():
     item = {"Decision": "WAIT", "Checks_Passed": 3, "RSI": 55, "RS_vs_SPX": 5}
     before = enhanced_scoring.calculate_scores(item)
