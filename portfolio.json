@@ -2,12 +2,12 @@
   {
     "Symbol": "3USL",
     "History_Ticker": "3USL.MI",
-    "Company_Name": "WT S&P 500 3X DLY LEVERAGED",
+    "Company_Name": "WISDOMTREE SP500 3X DAILY",
     "Shares": 13,
     "Current_Price": 156.39,
     "Price_Native": 156.39,
     "Currency": "EUR",
-    "Contract_ID": 361181044,
+    "Contract_ID": null,
     "Asset_Class": null,
     "Market_Value_IBKR": null,
     "Daily_PnL_IBKR": null,
@@ -15,7 +15,7 @@
     "Buy_Price": 165.35,
     "Target": 172.23,
     "Trail_Stop": 150.65,
-    "Suggested_Stop": 149.5,
+    "Suggested_Stop": 149.76,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
@@ -29,13 +29,13 @@
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 41.6,
+    "RSI": 41.72,
     "RSI_Status": "Neutral",
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
     "Sell_Decision": "EXIT",
-    "Sell_Reason": "Breadth<45% Fail: Sub SMA50 (156.39<159.69) / RSI 42 < 45",
-    "RS_vs_SPX": -0.75,
+    "Sell_Reason": "Breadth<45% Fail: Sub SMA50 (156.39<159.64) / RSI 42 < 45",
+    "RS_vs_SPX": -0.11,
     "Chart_History": [
       134.72,
       134.96,
@@ -107,11 +107,11 @@
       147.49,
       146.44,
       148.86,
-      157.88,
-      165.14,
-      167.61,
-      165.88,
-      168.21,
+      157.8,
+      165.02,
+      167.81,
+      166.18,
+      168.01,
       168.16,
       167.59,
       167.56,
@@ -306,7 +306,7 @@
         "date": "2026-05-08",
         "open": 146.32,
         "high": 148.3,
-        "low": 146.17,
+        "low": 146.25,
         "close": 147.79
       },
       {
@@ -318,8 +318,8 @@
       },
       {
         "date": "2026-05-12",
-        "open": 146.91,
-        "high": 148.43,
+        "open": 147.59,
+        "high": 148.32,
         "low": 145.16,
         "close": 145.5
       },
@@ -333,8 +333,8 @@
       {
         "date": "2026-05-14",
         "open": 152.63,
-        "high": 156.87,
-        "low": 152.15,
+        "high": 156.24,
+        "low": 152.31,
         "close": 155.87
       },
       {
@@ -353,7 +353,7 @@
       },
       {
         "date": "2026-05-19",
-        "open": 149.39,
+        "open": 149.5,
         "high": 150.45,
         "low": 146.2,
         "close": 146.92
@@ -361,7 +361,7 @@
       {
         "date": "2026-05-20",
         "open": 148.32,
-        "high": 151.62,
+        "high": 151.01,
         "low": 148.0,
         "close": 150.47
       },
@@ -369,7 +369,7 @@
         "date": "2026-05-21",
         "open": 150.99,
         "high": 152.7,
-        "low": 149.24,
+        "low": 150.0,
         "close": 150.24
       },
       {
@@ -381,8 +381,8 @@
       },
       {
         "date": "2026-05-25",
-        "open": 158.99,
-        "high": 158.99,
+        "open": 158.34,
+        "high": 158.62,
         "low": 157.62,
         "close": 158.17
       },
@@ -390,49 +390,49 @@
         "date": "2026-05-26",
         "open": 157.17,
         "high": 157.95,
-        "low": 156.05,
+        "low": 156.37,
         "close": 156.74
       },
       {
         "date": "2026-05-27",
-        "open": 157.04,
-        "high": 158.58,
-        "low": 155.98,
+        "open": 157.01,
+        "high": 158.5,
+        "low": 155.97,
         "close": 156.27
       },
       {
         "date": "2026-05-28",
         "open": 156.84,
         "high": 158.8,
-        "low": 156.08,
+        "low": 156.33,
         "close": 158.72
       },
       {
         "date": "2026-05-29",
         "open": 159.84,
         "high": 161.2,
-        "low": 158.98,
+        "low": 159.4,
         "close": 160.35
       },
       {
         "date": "2026-06-01",
         "open": 161.73,
         "high": 162.16,
-        "low": 159.34,
+        "low": 159.79,
         "close": 160.78
       },
       {
         "date": "2026-06-02",
-        "open": 160.785,
-        "high": 162.85,
+        "open": 161.04,
+        "high": 162.66,
         "low": 160.0,
         "close": 162.55
       },
       {
         "date": "2026-06-03",
-        "open": 162.5,
+        "open": 162.17,
         "high": 162.6,
-        "low": 159.87,
+        "low": 160.0,
         "close": 160.45
       },
       {
@@ -459,7 +459,7 @@
       {
         "date": "2026-06-09",
         "open": 151.97,
-        "high": 154.27,
+        "high": 154.18,
         "low": 144.29,
         "close": 145.15
       },
@@ -479,8 +479,8 @@
       },
       {
         "date": "2026-06-12",
-        "open": 147.17,
-        "high": 152.42,
+        "open": 147.48,
+        "high": 152.1,
         "low": 147.0,
         "close": 152.16
       },
@@ -502,7 +502,7 @@
         "date": "2026-06-17",
         "open": 157.04,
         "high": 157.04,
-        "low": 154.5,
+        "low": 154.62,
         "close": 155.37
       },
       {
@@ -522,21 +522,21 @@
       {
         "date": "2026-06-22",
         "open": 155.89,
-        "high": 158.21,
+        "high": 158.07,
         "low": 154.0,
         "close": 154.96
       },
       {
         "date": "2026-06-23",
-        "open": 148.33,
-        "high": 152.22,
+        "open": 149.21,
+        "high": 152.2,
         "low": 148.0,
         "close": 149.83
       },
       {
         "date": "2026-06-24",
         "open": 149.64,
-        "high": 152.83,
+        "high": 152.8,
         "low": 149.64,
         "close": 152.68
       },
@@ -549,23 +549,23 @@
       },
       {
         "date": "2026-06-26",
-        "open": 148.15,
-        "high": 149.18,
-        "low": 144.35,
+        "open": 146.98,
+        "high": 148.9,
+        "low": 144.5,
         "close": 148.9
       },
       {
         "date": "2026-06-29",
         "open": 148.9,
-        "high": 151.9,
+        "high": 151.8,
         "low": 147.57,
         "close": 150.49
       },
       {
         "date": "2026-06-30",
         "open": 153.3,
-        "high": 155.16,
-        "low": 152.48,
+        "high": 155.0,
+        "low": 152.7,
         "close": 155.01
       },
       {
@@ -578,14 +578,14 @@
       {
         "date": "2026-07-02",
         "open": 154.93,
-        "high": 158.05,
+        "high": 158.0,
         "low": 154.0,
         "close": 155.03
       },
       {
         "date": "2026-07-03",
         "open": 156.07,
-        "high": 156.54,
+        "high": 156.32,
         "low": 155.24,
         "close": 156.01
       },
@@ -599,27 +599,27 @@
       {
         "date": "2026-07-07",
         "open": 157.25,
-        "high": 157.85,
+        "high": 157.72,
         "low": 154.81,
         "close": 155.16
       },
       {
         "date": "2026-07-08",
-        "open": 155.055,
+        "open": 155.04,
         "high": 155.66,
-        "low": 151.03,
+        "low": 151.1,
         "close": 151.81
       },
       {
         "date": "2026-07-09",
         "open": 155.88,
         "high": 157.33,
-        "low": 154.64,
+        "low": 154.96,
         "close": 157.18
       },
       {
         "date": "2026-07-10",
-        "open": 157.32,
+        "open": 157.22,
         "high": 159.25,
         "low": 157.08,
         "close": 159.15
@@ -635,20 +635,20 @@
         "date": "2026-07-14",
         "open": 156.96,
         "high": 159.0,
-        "low": 155.99,
+        "low": 156.0,
         "close": 158.49
       },
       {
         "date": "2026-07-15",
         "open": 159.18,
-        "high": 160.25,
+        "high": 160.1,
         "low": 158.58,
         "close": 159.02
       },
       {
         "date": "2026-07-16",
         "open": 159.25,
-        "high": 159.49,
+        "high": 159.31,
         "low": 157.33,
         "close": 159.15
       },
@@ -669,7 +669,7 @@
       {
         "date": "2026-07-21",
         "open": 154.53,
-        "high": 155.6,
+        "high": 155.44,
         "low": 153.39,
         "close": 155.56
       },
@@ -683,7 +683,7 @@
       {
         "date": "2026-07-23",
         "open": 153.81,
-        "high": 154.0,
+        "high": 154.1,
         "low": 148.2,
         "close": 148.91
       },
@@ -691,12 +691,12 @@
         "date": "2026-07-24",
         "open": 149.96,
         "high": 152.1,
-        "low": 149.34,
+        "low": 149.74,
         "close": 152.1
       },
       {
         "date": "2026-07-27",
-        "open": 154.27,
+        "open": 153.92,
         "high": 154.46,
         "low": 149.0,
         "close": 149.72
@@ -711,7 +711,7 @@
       {
         "date": "2026-07-29",
         "open": 151.53,
-        "high": 152.36,
+        "high": 152.28,
         "low": 146.67,
         "close": 147.49
       },
@@ -719,7 +719,7 @@
         "date": "2026-07-30",
         "open": 145.07,
         "high": 148.0,
-        "low": 143.98,
+        "low": 144.0,
         "close": 146.44
       },
       {
@@ -733,42 +733,42 @@
         "date": "2026-08-03",
         "open": 154.55,
         "high": 158.1,
-        "low": 154.17,
-        "close": 157.88
+        "low": 154.25,
+        "close": 157.8
       },
       {
         "date": "2026-08-04",
         "open": 160.33,
-        "high": 165.26,
-        "low": 159.42,
-        "close": 165.14
+        "high": 165.29,
+        "low": 159.76,
+        "close": 165.02
       },
       {
         "date": "2026-08-05",
         "open": 169.54,
         "high": 170.53,
         "low": 165.54,
-        "close": 167.61
+        "close": 167.81
       },
       {
         "date": "2026-08-06",
         "open": 166.8,
         "high": 167.5,
-        "low": 165.99,
-        "close": 165.88
+        "low": 166.0,
+        "close": 166.18
       },
       {
         "date": "2026-08-07",
         "open": 166.1,
-        "high": 168.28,
+        "high": 168.27,
         "low": 165.76,
-        "close": 168.21
+        "close": 168.01
       },
       {
         "date": "2026-08-10",
         "open": 168.76,
         "high": 169.08,
-        "low": 167.35,
+        "low": 167.39,
         "close": 168.16
       },
       {
@@ -782,12 +782,12 @@
         "date": "2026-08-12",
         "open": 167.01,
         "high": 169.07,
-        "low": 166.96,
+        "low": 167.0,
         "close": 167.56
       },
       {
         "date": "2026-08-13",
-        "open": 168.5,
+        "open": 168.38,
         "high": 172.23,
         "low": 168.38,
         "close": 170.16
@@ -795,8 +795,8 @@
       {
         "date": "2026-08-14",
         "open": 171.18,
-        "high": 171.32,
-        "low": 169.08,
+        "high": 171.24,
+        "low": 169.12,
         "close": 169.26
       },
       {
@@ -808,8 +808,8 @@
       },
       {
         "date": "2026-08-18",
-        "open": 166.27,
-        "high": 166.27,
+        "open": 165.12,
+        "high": 165.18,
         "low": 163.19,
         "close": 163.42
       },
@@ -817,28 +817,28 @@
         "date": "2026-08-19",
         "open": 163.07,
         "high": 165.35,
-        "low": 162.72,
+        "low": 162.94,
         "close": 164.45
       },
       {
         "date": "2026-08-20",
         "open": 163.53,
         "high": 163.76,
-        "low": 159.92,
+        "low": 160.0,
         "close": 161.33
       },
       {
         "date": "2026-08-21",
         "open": 159.35,
         "high": 161.1,
-        "low": 159.22,
+        "low": 159.35,
         "close": 160.79
       },
       {
         "date": "2026-08-24",
         "open": 159.51,
-        "high": 160.3,
-        "low": 158.66,
+        "high": 160.29,
+        "low": 158.92,
         "close": 159.43
       },
       {
@@ -851,7 +851,7 @@
       {
         "date": "2026-08-26",
         "open": 160.57,
-        "high": 161.53,
+        "high": 161.23,
         "low": 160.06,
         "close": 160.71
       },
@@ -864,9 +864,9 @@
       },
       {
         "date": "2026-08-31",
-        "open": 163.055,
+        "open": 163.05,
         "high": 163.3,
-        "low": 160.8,
+        "low": 160.92,
         "close": 161.23
       },
       {
@@ -879,21 +879,21 @@
       {
         "date": "2026-09-01",
         "open": 162.19,
-        "high": 162.5,
+        "high": 162.49,
         "low": 158.6,
         "close": 159.92
       },
       {
         "date": "2026-09-02",
         "open": 158.99,
-        "high": 161.64,
+        "high": 161.58,
         "low": 157.75,
         "close": 161.59
       },
       {
         "date": "2026-09-03",
         "open": 160.89,
-        "high": 165.46,
+        "high": 164.8,
         "low": 160.43,
         "close": 165.37
       },
@@ -914,7 +914,7 @@
       {
         "date": "2026-09-08",
         "open": 162.34,
-        "high": 162.79,
+        "high": 162.59,
         "low": 160.83,
         "close": 161.76
       },
@@ -927,104 +927,54 @@
       },
       {
         "date": "2026-09-10",
-        "open": 159.4,
+        "open": 159.2,
         "high": 159.6,
-        "low": 154.99,
+        "low": 155.0,
         "close": 156.39
       }
     ],
-    "Daily_Change": -1.37,
-    "Date": "2026-09-10 18:13",
-    "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-10T15:13:41.792554+00:00",
-    "Data_Broker": "IBKR",
+    "Daily_Change": -5.37,
+    "Date": "2026-09-10 18:22",
+    "Market_Data_Source": "Yahoo Finance",
+    "Market_Data_Fetched_At": null,
+    "Data_Broker": null,
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "Bid": 156.26,
-    "Ask": 156.48,
-    "Spread_Pct": 0.14069194858348713,
-    "Quote_Status": "DELAYED",
-    "Avg_90D_USD_Volume": 1839058.0,
-    "Historical_Vol": 0.2744384919941079,
-    "YTD_Change_IBKR": 30.04200042724611,
-    "Perf_1W_IBKR": 1.21,
-    "Perf_1M_IBKR": 7.0,
-    "Perf_YTD_IBKR": 29.12,
-    "Perf_1Y_IBKR": 47.02,
-    "Dividend_Yield_IBKR": 0.0,
-    "IBKR_Misc_Statistics": {
-      "high_13w": 172.22999572753906,
-      "high_26w": 172.22999572753906,
-      "high_52w": 172.22999572753906,
-      "low_13w": 141.88999938964844,
-      "low_26w": 99.0999984741211,
-      "low_52w": 99.0999984741211,
-      "open_52w": 112.6500015258789
-    },
-    "IBKR_Snapshot_Groups": {
-      "quote": [
-        "last",
-        "bid_ask",
-        "top_status",
-        "prior_close",
-        "volume",
-        "open",
-        "low",
-        "high"
-      ],
-      "ranking": [
-        "avg_90d_usd_volume",
-        "year_to_date_change",
-        "cumulative_perf_1d",
-        "cumulative_perf_1w",
-        "cumulative_perf_1m",
-        "cumulative_perf_ytd",
-        "cumulative_perf_1y"
-      ],
-      "risk": [
-        "historical_vol",
-        "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
-      ]
-    },
-    "Market": "Europa / Nasdaq-100",
-    "Country": "IT",
-    "Exchange": "BVME.ETF",
+    "IBKR_Snapshot_Groups": {},
+    "Market": "SUA",
+    "Country": "US",
+    "Exchange": null,
     "Security_Type": "STK",
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Options_Supported": false,
+    "Market_Metadata_Source": "LOCAL_CANONICAL_SYMBOL",
+    "Options_Supported": null,
     "Instrument_Metadata": {
-      "market": "Europa / Nasdaq-100",
-      "country": "IT",
-      "exchange": "BVME.ETF",
+      "market": "SUA",
+      "country": "US",
+      "exchange": null,
       "security_type": "STK",
       "currency": "EUR",
-      "contract_id": 361181044,
-      "sections": [
-        "STK"
-      ],
-      "options_supported": false,
-      "source": "IBKR_MCP_SEARCH_CONTRACTS"
+      "contract_id": null,
+      "sections": [],
+      "options_supported": null,
+      "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "volatility_score": 75.0,
-    "liquidity_score": 53.97,
-    "risk_score": 61.19,
+    "liquidity_score": 50,
+    "risk_score": 60.0,
     "volatility_regime": "calm",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
   {
     "Symbol": "CLS",
     "History_Ticker": "CLS",
-    "Company_Name": "CELESTICA INC",
+    "Company_Name": "Celestica Inc.",
     "Shares": 1,
-    "Current_Price": 286.67,
-    "Price_Native": 333.18,
+    "Current_Price": 285.45,
+    "Price_Native": 331.77,
     "Currency": "USD",
-    "Contract_ID": 695996615,
+    "Contract_ID": null,
     "Asset_Class": null,
     "Market_Value_IBKR": null,
     "Daily_PnL_IBKR": null,
@@ -1032,27 +982,27 @@
     "Buy_Price": 243.49,
     "Target": 402.19,
     "Trail_Stop": 266.99,
-    "Suggested_Stop": 259.02,
+    "Suggested_Stop": 257.75,
     "Finviz_ATR": 19.14,
     "Vol_W": 6.47,
     "Vol_M": 5.2,
     "Trail_Pct": 10.5,
     "Investment": 243.49,
     "Entry_Date": "-",
-    "Current_Value": 286.67,
-    "Profit": 43.17,
-    "Profit_Pct": 17.73,
+    "Current_Value": 285.45,
+    "Profit": 41.96,
+    "Profit_Pct": 17.23,
     "Max_Profit": 158.7,
     "Consensus": "Strong Buy",
     "Analysts": 16,
     "Status": "Neutral",
-    "RSI": 55.23,
+    "RSI": 54.73,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "TRAIL STRANS",
-    "Sell_Reason": "Breadth<45%: Strong Stock (Hold)",
-    "RS_vs_SPX": -13.8,
+    "Sell_Decision": "REDUCE 50%",
+    "Sell_Reason": "Breadth<45% Warn: RSI 55 Weak (45-55), Testing SMA50 (331.77 vs 326.41)",
+    "RS_vs_SPX": -14.17,
     "Chart_History": [
       363.0161,
       310.9605,
@@ -1065,7 +1015,7 @@
       331.4347,
       323.1232,
       327.8038,
-      321.8498,
+      321.8499,
       320.542,
       328.3201,
       308.4964,
@@ -1109,9 +1059,9 @@
       296.9929,
       296.8638,
       288.0361,
-      261.4412,
-      259.273,
-      264.4354,
+      261.4411,
+      259.2729,
+      264.4353,
       292.1833,
       288.6642,
       288.0189,
@@ -1132,24 +1082,24 @@
       299.1009,
       288.277,
       292.8802,
-      267.2317,
-      259.2902,
+      267.2316,
+      259.2901,
       259.8408,
       255.1516,
-      253.448,
-      264.0224,
-      264.4181,
+      253.4481,
+      264.0223,
+      264.4182,
       273.0738,
       257.0015,
       257.6038,
-      251.7445,
+      251.7444,
       238.9933,
       353.4369,
-      266.5864,
+      266.5863,
       268.746,
       283.9062,
       287.0295,
-      286.6681
+      285.4549
     ],
     "Chart_Dates": [
       "2026-04-27",
@@ -1332,7 +1282,7 @@
         "open": 322.4779,
         "high": 324.5687,
         "low": 308.462,
-        "close": 321.8498
+        "close": 321.8499
       },
       {
         "date": "2026-05-13",
@@ -1359,13 +1309,13 @@
         "date": "2026-05-18",
         "open": 307.1628,
         "high": 310.9056,
-        "low": 286.6079,
+        "low": 286.6078,
         "close": 294.8333
       },
       {
         "date": "2026-05-19",
         "open": 287.1499,
-        "high": 299.3504,
+        "high": 299.3418,
         "low": 279.1998,
         "close": 291.7875
       },
@@ -1386,7 +1336,7 @@
       {
         "date": "2026-05-22",
         "open": 310.2603,
-        "high": 317.3414,
+        "high": 317.3413,
         "low": 297.6984,
         "close": 316.0852
       },
@@ -1399,8 +1349,8 @@
       },
       {
         "date": "2026-05-27",
-        "open": 319.1568,
-        "high": 319.2773,
+        "open": 318.7868,
+        "high": 319.2772,
         "low": 304.6332,
         "close": 307.7651
       },
@@ -1434,7 +1384,7 @@
       },
       {
         "date": "2026-06-03",
-        "open": 401.7982,
+        "open": 400.6453,
         "high": 403.9234,
         "low": 379.858,
         "close": 394.1837
@@ -1443,7 +1393,7 @@
         "date": "2026-06-04",
         "open": 361.1099,
         "high": 367.5199,
-        "low": 345.0893,
+        "low": 345.0892,
         "close": 365.9798
       },
       {
@@ -1471,7 +1421,7 @@
         "date": "2026-06-10",
         "open": 312.1962,
         "high": 327.8124,
-        "low": 308.4534,
+        "low": 308.462,
         "close": 312.2564
       },
       {
@@ -1498,7 +1448,7 @@
       {
         "date": "2026-06-16",
         "open": 346.7412,
-        "high": 349.0041,
+        "high": 348.9955,
         "low": 328.1222,
         "close": 328.6814
       },
@@ -1511,7 +1461,7 @@
       },
       {
         "date": "2026-06-18",
-        "open": 336.6917,
+        "open": 336.6918,
         "high": 338.619,
         "low": 320.1204,
         "close": 320.542
@@ -1534,7 +1484,7 @@
         "date": "2026-06-24",
         "open": 302.0004,
         "high": 323.975,
-        "low": 299.0492,
+        "low": 299.0493,
         "close": 311.6713
       },
       {
@@ -1547,7 +1497,7 @@
       {
         "date": "2026-06-26",
         "open": 302.336,
-        "high": 303.7901,
+        "high": 303.79,
         "low": 289.559,
         "close": 290.4108
       },
@@ -1590,7 +1540,7 @@
         "date": "2026-07-07",
         "open": 292.45,
         "high": 300.8131,
-        "low": 284.0783,
+        "low": 284.0869,
         "close": 296.8896
       },
       {
@@ -1604,7 +1554,7 @@
         "date": "2026-07-09",
         "open": 321.5573,
         "high": 325.2312,
-        "low": 304.4181,
+        "low": 304.4268,
         "close": 305.2527
       },
       {
@@ -1624,7 +1574,7 @@
       {
         "date": "2026-07-14",
         "open": 304.3579,
-        "high": 304.4267,
+        "high": 304.4268,
         "low": 294.2568,
         "close": 296.8638
       },
@@ -1638,23 +1588,23 @@
       {
         "date": "2026-07-16",
         "open": 282.607,
-        "high": 283.3814,
+        "high": 283.3813,
         "low": 258.8083,
-        "close": 261.4412
+        "close": 261.4411
       },
       {
         "date": "2026-07-17",
         "open": 252.0972,
         "high": 265.7173,
         "low": 242.8135,
-        "close": 259.273
+        "close": 259.2729
       },
       {
         "date": "2026-07-20",
         "open": 263.3168,
         "high": 272.6608,
         "low": 261.9918,
-        "close": 264.4354
+        "close": 264.4353
       },
       {
         "date": "2026-07-21",
@@ -1672,7 +1622,7 @@
       },
       {
         "date": "2026-07-23",
-        "open": 289.9118,
+        "open": 287.6059,
         "high": 300.5463,
         "low": 285.3431,
         "close": 288.0189
@@ -1681,12 +1631,12 @@
         "date": "2026-07-24",
         "open": 285.8249,
         "high": 285.8249,
-        "low": 261.3121,
+        "low": 261.3207,
         "close": 262.6629
       },
       {
         "date": "2026-07-27",
-        "open": 263.9879,
+        "open": 263.988,
         "high": 278.3824,
         "low": 248.8793,
         "close": 273.8137
@@ -1700,9 +1650,9 @@
       },
       {
         "date": "2026-07-29",
-        "open": 302.0004,
+        "open": 301.9918,
         "high": 302.4306,
-        "low": 273.2717,
+        "low": 273.2716,
         "close": 282.5812
       },
       {
@@ -1735,7 +1685,7 @@
       },
       {
         "date": "2026-08-05",
-        "open": 318.348,
+        "open": 318.3222,
         "high": 326.083,
         "low": 311.1379,
         "close": 312.1187
@@ -1770,8 +1720,8 @@
       },
       {
         "date": "2026-08-12",
-        "open": 275.5431,
-        "high": 292.3209,
+        "open": 275.3968,
+        "high": 292.3123,
         "low": 274.1493,
         "close": 292.0714
       },
@@ -1791,7 +1741,7 @@
       },
       {
         "date": "2026-08-17",
-        "open": 291.4175,
+        "open": 290.4538,
         "high": 297.9049,
         "low": 288.7761,
         "close": 292.8802
@@ -1801,14 +1751,14 @@
         "open": 284.2504,
         "high": 284.9043,
         "low": 265.4506,
-        "close": 267.2317
+        "close": 267.2316
       },
       {
         "date": "2026-08-19",
         "open": 268.4362,
         "high": 270.3893,
         "low": 251.667,
-        "close": 259.2902
+        "close": 259.2901
       },
       {
         "date": "2026-08-20",
@@ -1829,26 +1779,26 @@
         "open": 256.9413,
         "high": 257.2596,
         "low": 244.8268,
-        "close": 253.448
+        "close": 253.4481
       },
       {
         "date": "2026-08-25",
         "open": 261.4153,
-        "high": 264.4354,
-        "low": 256.7864,
-        "close": 264.0224
+        "high": 264.4353,
+        "low": 256.795,
+        "close": 264.0223
       },
       {
         "date": "2026-08-26",
-        "open": 262.5941,
-        "high": 269.3999,
+        "open": 262.6027,
+        "high": 269.3998,
         "low": 260.8647,
-        "close": 264.4181
+        "close": 264.4182
       },
       {
         "date": "2026-08-27",
         "open": 272.3682,
-        "high": 280.3355,
+        "high": 280.3356,
         "low": 269.8215,
         "close": 273.0738
       },
@@ -1868,10 +1818,10 @@
       },
       {
         "date": "2026-09-01",
-        "open": 252.8286,
+        "open": 252.8544,
         "high": 255.5216,
         "low": 247.365,
-        "close": 251.7445
+        "close": 251.7444
       },
       {
         "date": "2026-09-02",
@@ -1892,7 +1842,7 @@
         "open": 243.1835,
         "high": 270.2431,
         "low": 241.5143,
-        "close": 266.5864
+        "close": 266.5863
       },
       {
         "date": "2026-09-04",
@@ -1904,7 +1854,7 @@
       {
         "date": "2026-09-08",
         "open": 273.9256,
-        "high": 289.5935,
+        "high": 289.5934,
         "low": 273.0135,
         "close": 283.9062
       },
@@ -1917,109 +1867,54 @@
       },
       {
         "date": "2026-09-10",
-        "open": 277.2381,
-        "high": 288.7244,
-        "low": 277.2381,
-        "close": 286.6681
+        "open": 279.5612,
+        "high": 289.0084,
+        "low": 277.1091,
+        "close": 285.4549
       }
     ],
-    "Daily_Change": -0.3614,
-    "Date": "2026-09-10 18:13",
-    "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-10T15:13:38.464580+00:00",
-    "Data_Broker": "IBKR",
+    "Daily_Change": -1.5746,
+    "Date": "2026-09-10 18:22",
+    "Market_Data_Source": "Yahoo Finance",
+    "Market_Data_Fetched_At": null,
+    "Data_Broker": null,
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "Bid": 332.37,
-    "Ask": 333.33,
-    "Spread_Pct": 0.2884182063992728,
-    "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 806320036.0,
-    "Historical_Vol": 0.7899186863330174,
-    "Implied_Volatility": 0.6239947189201542,
-    "IV_Percentile": 0.087649405002594,
-    "YTD_Change_IBKR": 37.57001464843751,
-    "Dividend_Yield_IBKR": 0.0,
-    "IBKR_Misc_Statistics": {
-      "high_13w": 414.1099853515625,
-      "high_26w": 474.0,
-      "high_52w": 474.0,
-      "low_13w": 273.8599853515625,
-      "low_26w": 253.72000122070312,
-      "low_52w": 227.44000244140625,
-      "open_52w": 252.42999267578125
-    },
-    "IBKR_Snapshot_Groups": {
-      "quote": [
-        "last",
-        "bid_ask",
-        "top_status",
-        "prior_close",
-        "volume",
-        "open",
-        "low",
-        "high"
-      ],
-      "ranking": [
-        "avg_90d_usd_volume",
-        "year_to_date_change",
-        "cumulative_perf_1d",
-        "cumulative_perf_1w",
-        "cumulative_perf_1m",
-        "cumulative_perf_ytd",
-        "cumulative_perf_1y"
-      ],
-      "risk": [
-        "implied_volatility_percentile",
-        "implied_vol_underlying",
-        "historical_vol",
-        "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
-      ]
-    },
+    "IBKR_Snapshot_Groups": {},
     "Market": "SUA",
     "Country": "US",
-    "Exchange": "NYSE",
+    "Exchange": null,
     "Security_Type": "STK",
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Options_Supported": true,
+    "Market_Metadata_Source": "LOCAL_CANONICAL_SYMBOL",
+    "Options_Supported": null,
     "Instrument_Metadata": {
       "market": "SUA",
       "country": "US",
-      "exchange": "NYSE",
+      "exchange": null,
       "security_type": "STK",
       "currency": "USD",
-      "contract_id": 695996615,
-      "sections": [
-        "BAG",
-        "CFD",
-        "IOPT",
-        "OPT",
-        "STK",
-        "WAR"
-      ],
-      "options_supported": true,
-      "source": "IBKR_MCP_SEARCH_CONTRACTS"
+      "contract_id": null,
+      "sections": [],
+      "options_supported": null,
+      "source": "LOCAL_CANONICAL_SYMBOL"
     },
-    "volatility_score": 34.06,
-    "liquidity_score": 92.64,
-    "risk_score": 56.42,
-    "volatility_regime": "extreme",
+    "volatility_score": 69.12,
+    "liquidity_score": 50,
+    "risk_score": 57.65,
+    "volatility_regime": "elevated",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
   {
     "Symbol": "CRWD",
     "History_Ticker": "CRWD",
-    "Company_Name": "CROWDSTRIKE HOLDINGS INC - A",
+    "Company_Name": "CrowdStrike Holdings, Inc.",
     "Shares": 4,
-    "Current_Price": 182.42,
-    "Price_Native": 212.02,
+    "Current_Price": 182.61,
+    "Price_Native": 212.24,
     "Currency": "USD",
-    "Contract_ID": 370757467,
+    "Contract_ID": null,
     "Asset_Class": null,
     "Market_Value_IBKR": null,
     "Daily_PnL_IBKR": null,
@@ -2027,27 +1922,27 @@
     "Buy_Price": 180.9,
     "Target": 203.11,
     "Trail_Stop": 163.76,
-    "Suggested_Stop": 160.0,
+    "Suggested_Stop": 160.18,
     "Finviz_ATR": 11.4,
     "Vol_W": 4.36,
     "Vol_M": 5.23,
     "Trail_Pct": 12.81,
     "Investment": 723.6,
     "Entry_Date": "-",
-    "Current_Value": 729.69,
-    "Profit": 6.09,
-    "Profit_Pct": 0.84,
+    "Current_Value": 730.45,
+    "Profit": 6.85,
+    "Profit_Pct": 0.95,
     "Max_Profit": 88.86,
     "Consensus": "Buy",
     "Analysts": 50,
     "Status": "Neutral",
-    "RSI": 52.61,
+    "RSI": 52.71,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "REDUCE 50%",
     "Sell_Reason": "Breadth<45% Warn: RSI 53 Weak (45-55)",
-    "RS_vs_SPX": 23.79,
+    "RS_vs_SPX": 23.92,
     "Chart_History": [
       97.7184,
       97.8342,
@@ -2083,7 +1978,7 @@
       139.3289,
       148.7481,
       146.8703,
-      149.045,
+      149.0449,
       146.1583,
       146.9047,
       147.3134,
@@ -2092,7 +1987,7 @@
       144.7666,
       145.9776,
       150.8045,
-      159.8,
+      159.7999,
       164.1514,
       166.2164,
       166.9004,
@@ -2143,7 +2038,7 @@
       183.3513,
       180.7012,
       178.7911,
-      182.422
+      182.6113
     ],
     "Chart_Dates": [
       "2026-04-27",
@@ -2295,7 +2190,7 @@
       {
         "date": "2026-05-06",
         "open": 100.7528,
-        "high": 102.237,
+        "high": 102.2362,
         "low": 98.3997,
         "close": 100.6819
       },
@@ -2308,8 +2203,8 @@
       },
       {
         "date": "2026-05-08",
-        "open": 107.3005,
-        "high": 113.7707,
+        "open": 107.3725,
+        "high": 113.7696,
         "low": 105.9002,
         "close": 113.5233
       },
@@ -2322,51 +2217,51 @@
       },
       {
         "date": "2026-05-12",
-        "open": 116.0723,
+        "open": 116.5842,
         "high": 118.8277,
         "low": 114.6483,
         "close": 117.4833
       },
       {
         "date": "2026-05-13",
-        "open": 116.1346,
+        "open": 116.3347,
         "high": 122.2564,
-        "low": 115.8012,
+        "low": 115.803,
         "close": 121.0088
       },
       {
         "date": "2026-05-14",
-        "open": 120.4022,
+        "open": 120.3926,
         "high": 125.5711,
         "low": 119.3805,
         "close": 124.7473
       },
       {
         "date": "2026-05-15",
-        "open": 123.0071,
+        "open": 123.2889,
         "high": 128.6836,
         "low": 120.6044,
         "close": 127.7866
       },
       {
         "date": "2026-05-18",
-        "open": 126.8015,
+        "open": 126.8004,
         "high": 133.5879,
         "low": 126.3433,
         "close": 133.1103
       },
       {
         "date": "2026-05-19",
-        "open": 133.0329,
+        "open": 133.3577,
         "high": 136.425,
         "low": 131.9187,
         "close": 132.6909
       },
       {
         "date": "2026-05-20",
-        "open": 132.0133,
+        "open": 132.1359,
         "high": 140.0301,
-        "low": 132.0133,
+        "low": 132.0852,
         "close": 139.8387
       },
       {
@@ -2385,7 +2280,7 @@
       },
       {
         "date": "2026-05-26",
-        "open": 142.8522,
+        "open": 143.0415,
         "high": 145.7303,
         "low": 139.3848,
         "close": 144.4504
@@ -2406,7 +2301,7 @@
       },
       {
         "date": "2026-05-29",
-        "open": 145.3624,
+        "open": 145.7163,
         "high": 157.3435,
         "low": 145.1796,
         "close": 157.2381
@@ -2420,21 +2315,21 @@
       },
       {
         "date": "2026-06-02",
-        "open": 162.9017,
+        "open": 164.5192,
         "high": 167.5242,
         "low": 160.3312,
         "close": 165.4012
       },
       {
         "date": "2026-06-03",
-        "open": 164.6978,
+        "open": 164.6967,
         "high": 164.9817,
         "low": 159.63,
         "close": 160.8109
       },
       {
         "date": "2026-06-04",
-        "open": 145.4377,
+        "open": 144.9925,
         "high": 155.0785,
         "low": 144.3558,
         "close": 154.6763
@@ -2448,7 +2343,7 @@
       },
       {
         "date": "2026-06-08",
-        "open": 144.8699,
+        "open": 144.8709,
         "high": 147.1284,
         "low": 140.2474,
         "close": 141.7057
@@ -2462,21 +2357,21 @@
       },
       {
         "date": "2026-06-10",
-        "open": 137.5565,
+        "open": 137.4554,
         "high": 142.4242,
         "low": 136.7929,
         "close": 139.3289
       },
       {
         "date": "2026-06-11",
-        "open": 139.1052,
+        "open": 138.7997,
         "high": 149.8021,
         "low": 137.8791,
         "close": 148.7481
       },
       {
         "date": "2026-06-12",
-        "open": 148.3588,
+        "open": 148.561,
         "high": 151.0368,
         "low": 145.8378,
         "close": 146.8703
@@ -2484,36 +2379,36 @@
       {
         "date": "2026-06-15",
         "open": 148.9933,
-        "high": 150.0323,
+        "high": 150.0312,
         "low": 143.8718,
-        "close": 149.045
+        "close": 149.0449
       },
       {
         "date": "2026-06-16",
-        "open": 149.1396,
+        "open": 149.0854,
         "high": 150.7571,
         "low": 143.248,
         "close": 146.1583
       },
       {
         "date": "2026-06-17",
-        "open": 146.3713,
+        "open": 146.268,
         "high": 148.6191,
         "low": 144.3106,
         "close": 146.9047
       },
       {
         "date": "2026-06-18",
-        "open": 147.1134,
-        "high": 149.6903,
+        "open": 147.7199,
+        "high": 149.6902,
         "low": 142.1639,
         "close": 147.3134
       },
       {
         "date": "2026-06-22",
-        "open": 147.4166,
+        "open": 147.3586,
         "high": 153.1899,
-        "low": 144.8032,
+        "low": 144.8043,
         "close": 145.2872
       },
       {
@@ -2526,20 +2421,20 @@
       {
         "date": "2026-06-24",
         "open": 146.3734,
-        "high": 147.806,
+        "high": 147.8051,
         "low": 143.9019,
         "close": 144.7666
       },
       {
         "date": "2026-06-25",
-        "open": 146.653,
+        "open": 146.3497,
         "high": 149.0084,
-        "low": 144.117,
+        "low": 144.1172,
         "close": 145.9776
       },
       {
         "date": "2026-06-26",
-        "open": 148.077,
+        "open": 147.6016,
         "high": 151.6111,
         "low": 144.8935,
         "close": 150.8045
@@ -2549,7 +2444,7 @@
         "open": 152.6135,
         "high": 162.6113,
         "low": 151.4562,
-        "close": 159.8
+        "close": 159.7999
       },
       {
         "date": "2026-06-30",
@@ -2567,7 +2462,7 @@
       },
       {
         "date": "2026-07-02",
-        "open": 164.715,
+        "open": 164.5558,
         "high": 171.6756,
         "low": 164.0009,
         "close": 166.9004
@@ -2595,7 +2490,7 @@
       },
       {
         "date": "2026-07-09",
-        "open": 161.5229,
+        "open": 162.0176,
         "high": 171.0045,
         "low": 160.8948,
         "close": 170.7034
@@ -2609,14 +2504,14 @@
       },
       {
         "date": "2026-07-13",
-        "open": 160.8862,
+        "open": 160.7744,
         "high": 162.8307,
         "low": 155.7324,
         "close": 161.6778
       },
       {
         "date": "2026-07-14",
-        "open": 164.6203,
+        "open": 164.3321,
         "high": 181.5444,
         "low": 163.0114,
         "close": 181.3121
@@ -2637,7 +2532,7 @@
       },
       {
         "date": "2026-07-17",
-        "open": 172.5102,
+        "open": 172.4242,
         "high": 180.2538,
         "low": 171.667,
         "close": 174.73
@@ -2653,33 +2548,33 @@
         "date": "2026-07-21",
         "open": 171.9165,
         "high": 172.08,
-        "low": 163.2093,
+        "low": 163.2007,
         "close": 164.4655
       },
       {
         "date": "2026-07-22",
-        "open": 165.7389,
+        "open": 165.6786,
         "high": 166.4788,
         "low": 159.217,
         "close": 162.1166
       },
       {
         "date": "2026-07-23",
-        "open": 163.2695,
-        "high": 163.6567,
-        "low": 156.3949,
+        "open": 163.0544,
+        "high": 163.655,
+        "low": 156.4009,
         "close": 157.8146
       },
       {
         "date": "2026-07-24",
         "open": 159.174,
-        "high": 159.8967,
+        "high": 159.8924,
         "low": 156.4465,
         "close": 157.6941
       },
       {
         "date": "2026-07-27",
-        "open": 161.6778,
+        "open": 161.6735,
         "high": 162.1854,
         "low": 154.4418,
         "close": 154.9667
@@ -2687,13 +2582,13 @@
       {
         "date": "2026-07-28",
         "open": 156.0163,
-        "high": 158.8901,
+        "high": 158.8858,
         "low": 149.8301,
         "close": 156.4207
       },
       {
         "date": "2026-07-29",
-        "open": 156.98,
+        "open": 157.1306,
         "high": 160.37,
         "low": 151.8262,
         "close": 154.3386
@@ -2702,19 +2597,19 @@
         "date": "2026-07-30",
         "open": 155.371,
         "high": 159.5698,
-        "low": 152.9275,
+        "low": 152.9335,
         "close": 159.3633
       },
       {
         "date": "2026-07-31",
-        "open": 160.8948,
-        "high": 164.8957,
+        "open": 161.0841,
+        "high": 164.8914,
         "low": 158.4513,
         "close": 164.216
       },
       {
         "date": "2026-08-03",
-        "open": 167.2876,
+        "open": 166.952,
         "high": 174.8075,
         "low": 165.7131,
         "close": 174.2654
@@ -2742,14 +2637,14 @@
       },
       {
         "date": "2026-08-07",
-        "open": 184.3321,
-        "high": 186.3454,
+        "open": 183.975,
+        "high": 186.3411,
         "low": 179.1353,
         "close": 184.487
       },
       {
         "date": "2026-08-10",
-        "open": 185.0118,
+        "open": 185.251,
         "high": 195.2248,
         "low": 184.5988,
         "close": 193.7277
@@ -2771,20 +2666,20 @@
       {
         "date": "2026-08-13",
         "open": 193.5728,
-        "high": 195.0441,
+        "high": 195.0398,
         "low": 189.4859,
         "close": 194.046
       },
       {
         "date": "2026-08-14",
-        "open": 195.0355,
+        "open": 195.0011,
         "high": 195.741,
-        "low": 186.2422,
+        "low": 186.2465,
         "close": 186.6638
       },
       {
         "date": "2026-08-17",
-        "open": 186.1906,
+        "open": 186.3024,
         "high": 188.5825,
         "low": 183.2738,
         "close": 184.0396
@@ -2792,7 +2687,7 @@
       {
         "date": "2026-08-18",
         "open": 183.2652,
-        "high": 185.898,
+        "high": 185.8937,
         "low": 179.8838,
         "close": 183.1964
       },
@@ -2805,21 +2700,21 @@
       },
       {
         "date": "2026-08-20",
-        "open": 169.7483,
-        "high": 172.7253,
-        "low": 163.4674,
+        "open": 169.744,
+        "high": 172.7176,
+        "low": 163.4158,
         "close": 163.7685
       },
       {
         "date": "2026-08-21",
-        "open": 164.1299,
+        "open": 164.2848,
         "high": 165.9282,
         "low": 160.9034,
         "close": 165.1538
       },
       {
         "date": "2026-08-24",
-        "open": 163.7255,
+        "open": 163.063,
         "high": 168.1222,
         "low": 162.1252,
         "close": 164.0611
@@ -2833,7 +2728,7 @@
       },
       {
         "date": "2026-08-26",
-        "open": 156.61,
+        "open": 157.2381,
         "high": 164.6117,
         "low": 155.9389,
         "close": 162.7705
@@ -2847,14 +2742,14 @@
       },
       {
         "date": "2026-08-28",
-        "open": 196.3777,
+        "open": 196.3691,
         "high": 196.7649,
         "low": 181.14,
         "close": 187.9114
       },
       {
         "date": "2026-08-31",
-        "open": 190.8711,
+        "open": 190.8669,
         "high": 201.2304,
         "low": 190.1484,
         "close": 198.7524
@@ -2862,150 +2757,95 @@
       {
         "date": "2026-09-01",
         "open": 196.1712,
-        "high": 199.0105,
+        "high": 199.0097,
         "low": 182.9641,
         "close": 185.0462
       },
       {
         "date": "2026-09-02",
         "open": 184.3149,
-        "high": 184.8656,
+        "high": 184.857,
         "low": 172.5963,
         "close": 175.0226
       },
       {
         "date": "2026-09-03",
-        "open": 179.273,
+        "open": 179.2686,
         "high": 185.0721,
         "low": 175.3151,
         "close": 184.9602
       },
       {
         "date": "2026-09-04",
-        "open": 182.9211,
+        "open": 182.835,
         "high": 187.8339,
         "low": 181.8197,
         "close": 183.3513
       },
       {
         "date": "2026-09-08",
-        "open": 180.7614,
+        "open": 180.555,
         "high": 182.1295,
         "low": 176.7262,
         "close": 180.7012
       },
       {
         "date": "2026-09-09",
-        "open": 180.9507,
+        "open": 181.097,
         "high": 183.0673,
         "low": 178.1028,
         "close": 178.7911
       },
       {
         "date": "2026-09-10",
-        "open": 177.0187,
-        "high": 183.1878,
-        "low": 175.8314,
-        "close": 182.422
+        "open": 177.0144,
+        "high": 183.2308,
+        "low": 175.7539,
+        "close": 182.6113
       }
     ],
-    "Daily_Change": 3.6309,
-    "Date": "2026-09-10 18:13",
-    "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-10T15:13:38.561028+00:00",
-    "Data_Broker": "IBKR",
+    "Daily_Change": 3.8202,
+    "Date": "2026-09-10 18:22",
+    "Market_Data_Source": "Yahoo Finance",
+    "Market_Data_Fetched_At": null,
+    "Data_Broker": null,
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "Bid": 211.93,
-    "Ask": 212.12,
-    "Spread_Pct": 0.08961207404787064,
-    "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 1663494066.0,
-    "Historical_Vol": 0.6015247893270901,
-    "Implied_Volatility": 0.515216576159245,
-    "IV_Percentile": 0.6175298690795898,
-    "YTD_Change_IBKR": 94.82999755859376,
-    "Dividend_Yield_IBKR": 0.0,
-    "IBKR_Misc_Statistics": {
-      "high_13w": 233.8800048828125,
-      "high_26w": 233.8800048828125,
-      "high_52w": 233.8800048828125,
-      "low_13w": 160.25,
-      "low_26w": 90.45169830322266,
-      "low_52w": 85.68000030517578,
-      "open_52w": 106.89099884033203
-    },
-    "IBKR_Snapshot_Groups": {
-      "quote": [
-        "last",
-        "bid_ask",
-        "top_status",
-        "prior_close",
-        "volume",
-        "open",
-        "low",
-        "high"
-      ],
-      "ranking": [
-        "avg_90d_usd_volume",
-        "year_to_date_change",
-        "cumulative_perf_1d",
-        "cumulative_perf_1w",
-        "cumulative_perf_1m",
-        "cumulative_perf_ytd",
-        "cumulative_perf_1y"
-      ],
-      "risk": [
-        "implied_volatility_percentile",
-        "implied_vol_underlying",
-        "historical_vol",
-        "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
-      ]
-    },
+    "IBKR_Snapshot_Groups": {},
     "Market": "SUA",
     "Country": "US",
-    "Exchange": "NASDAQ",
+    "Exchange": null,
     "Security_Type": "STK",
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Options_Supported": true,
+    "Market_Metadata_Source": "LOCAL_CANONICAL_SYMBOL",
+    "Options_Supported": null,
     "Instrument_Metadata": {
       "market": "SUA",
       "country": "US",
-      "exchange": "NASDAQ",
+      "exchange": null,
       "security_type": "STK",
       "currency": "USD",
-      "contract_id": 370757467,
-      "sections": [
-        "BAG",
-        "CFD",
-        "IOPT",
-        "OPT",
-        "STK",
-        "WAR"
-      ],
-      "options_supported": true,
-      "source": "IBKR_MCP_SEARCH_CONTRACTS"
+      "contract_id": null,
+      "sections": [],
+      "options_supported": null,
+      "source": "LOCAL_CANONICAL_SYMBOL"
     },
-    "volatility_score": 43.44,
-    "liquidity_score": 98.32,
-    "risk_score": 61.87,
-    "volatility_regime": "extreme",
+    "volatility_score": 63.57,
+    "liquidity_score": 50,
+    "risk_score": 55.43,
+    "volatility_regime": "elevated",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
   {
     "Symbol": "MU",
     "History_Ticker": "MU",
-    "Company_Name": "MICRON TECHNOLOGY INC",
+    "Company_Name": "Micron Technology, Inc.",
     "Shares": 2,
-    "Current_Price": 848.75,
-    "Price_Native": 986.46,
+    "Current_Price": 844.91,
+    "Price_Native": 982.0,
     "Currency": "USD",
-    "Contract_ID": 9939,
+    "Contract_ID": null,
     "Asset_Class": null,
     "Market_Value_IBKR": null,
     "Daily_PnL_IBKR": null,
@@ -3013,27 +2853,27 @@
     "Buy_Price": 822.11,
     "Target": 1355.43,
     "Trail_Stop": 842.69,
-    "Suggested_Stop": 773.21,
-    "Finviz_ATR": 53.17,
+    "Suggested_Stop": 769.14,
+    "Finviz_ATR": 53.3,
     "Vol_W": 4.44,
     "Vol_M": 4.5,
     "Trail_Pct": 6.04,
     "Investment": 1644.22,
     "Entry_Date": "-",
-    "Current_Value": 1697.5,
-    "Profit": 53.28,
-    "Profit_Pct": 3.24,
+    "Current_Value": 1689.83,
+    "Profit": 45.6,
+    "Profit_Pct": 2.77,
     "Max_Profit": 1066.64,
     "Consensus": "Strong Buy",
     "Analysts": 45,
     "Status": "Neutral",
-    "RSI": 54.47,
+    "RSI": 53.88,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "REDUCE 50%",
     "Sell_Reason": "Breadth<45% Warn: RSI 54 Weak (45-55)",
-    "RS_vs_SPX": -4.38,
+    "RS_vs_SPX": -4.8,
     "Chart_History": [
       419.5095,
       415.1306,
@@ -3043,48 +2883,48 @@
       445.7034,
       444.3272,
       465.741,
-      495.9776,
-      550.8281,
-      573.5341,
-      556.3605,
-      642.5554,
-      684.302,
-      659.5655,
-      691.4433,
-      667.679,
-      623.4975,
-      586.3971,
-      601.1959,
-      629.8042,
-      655.7109,
-      646.1604,
-      770.8152,
-      798.804,
-      794.5967,
-      835.4485,
-      890.9443,
-      915.5517,
-      928.8621,
-      856.9585,
-      743.3943,
-      816.7606,
-      805.2398,
-      767.3736,
-      856.8466,
-      844.5773,
-      936.1067,
-      878.262,
-      897.5607,
-      975.6851,
-      1042.2714,
-      904.943,
-      902.1381,
-      1044.1471,
-      974.2568,
-      985.399,
-      993.1512,
-      888.1738,
-      839.3719,
+      495.9014,
+      550.7434,
+      573.4459,
+      556.2749,
+      642.4565,
+      684.1968,
+      659.4641,
+      691.337,
+      667.5764,
+      623.4016,
+      586.3069,
+      601.1035,
+      629.7074,
+      655.61,
+      646.0611,
+      770.6967,
+      798.6812,
+      794.4745,
+      835.32,
+      890.8073,
+      915.4108,
+      928.7192,
+      856.8267,
+      743.2799,
+      816.635,
+      805.116,
+      767.2556,
+      856.7148,
+      844.4474,
+      935.9627,
+      878.1269,
+      897.4227,
+      975.535,
+      1042.1111,
+      904.8038,
+      901.9993,
+      1043.9866,
+      974.107,
+      985.2474,
+      992.9985,
+      888.0373,
+      839.2428,
       847.279,
       807.3822,
       816.3476,
@@ -3095,10 +2935,10 @@
       778.0426,
       734.0933,
       730.4366,
-      744.6418,
+      744.6419,
       835.2936,
       825.5366,
-      851.9767,
+      851.9768,
       792.3854,
       774.5321,
       705.9841,
@@ -3112,7 +2952,7 @@
       755.0613,
       740.8044,
       747.2747,
-      784.074,
+      784.0739,
       817.2338,
       836.0163,
       870.5098,
@@ -3132,7 +2972,7 @@
       874.6741,
       860.6238,
       884.2934,
-      848.7502
+      844.9127
     ],
     "Chart_Dates": [
       "2026-04-22",
@@ -3293,297 +3133,297 @@
       },
       {
         "date": "2026-05-04",
-        "open": 482.3575,
-        "high": 510.0452,
-        "low": 479.8279,
-        "close": 495.9776
+        "open": 482.2661,
+        "high": 509.9667,
+        "low": 479.823,
+        "close": 495.9014
       },
       {
         "date": "2026-05-05",
-        "open": 524.5429,
-        "high": 560.7571,
-        "low": 520.9464,
-        "close": 550.8281
+        "open": 524.5741,
+        "high": 560.6709,
+        "low": 520.8663,
+        "close": 550.7434
       },
       {
         "date": "2026-05-06",
-        "open": 568.1824,
-        "high": 574.4633,
-        "low": 539.9699,
-        "close": 573.5341
+        "open": 568.095,
+        "high": 574.375,
+        "low": 539.8869,
+        "close": 573.4459
       },
       {
         "date": "2026-05-07",
-        "open": 559.1138,
-        "high": 587.7307,
-        "low": 546.7154,
-        "close": 556.3605
+        "open": 559.0278,
+        "high": 587.6403,
+        "low": 546.6313,
+        "close": 556.2749
       },
       {
         "date": "2026-05-08",
-        "open": 582.0262,
-        "high": 642.8995,
-        "low": 581.7939,
-        "close": 642.5554
+        "open": 581.9281,
+        "high": 642.8007,
+        "low": 581.7217,
+        "close": 642.4565
       },
       {
         "date": "2026-05-11",
-        "open": 682.28,
-        "high": 704.3837,
-        "low": 660.7872,
-        "close": 684.302
+        "open": 682.1751,
+        "high": 704.2754,
+        "low": 660.6856,
+        "close": 684.1968
       },
       {
         "date": "2026-05-12",
-        "open": 666.5519,
-        "high": 673.4867,
-        "low": 607.9587,
-        "close": 659.5655
+        "open": 666.4495,
+        "high": 673.3832,
+        "low": 607.8652,
+        "close": 659.4641
       },
       {
         "date": "2026-05-13",
-        "open": 699.2987,
-        "high": 701.183,
-        "low": 670.656,
-        "close": 691.4433
+        "open": 699.5353,
+        "high": 701.0752,
+        "low": 670.5529,
+        "close": 691.337
       },
       {
         "date": "2026-05-14",
-        "open": 677.5909,
-        "high": 698.6448,
-        "low": 667.3521,
-        "close": 667.679
+        "open": 677.5641,
+        "high": 698.5374,
+        "low": 667.2495,
+        "close": 667.5764
       },
       {
         "date": "2026-05-15",
-        "open": 630.3807,
-        "high": 644.9473,
-        "low": 618.6276,
-        "close": 623.4975
+        "open": 630.2063,
+        "high": 644.8481,
+        "low": 618.5325,
+        "close": 623.4016
       },
       {
         "date": "2026-05-18",
-        "open": 645.9625,
-        "high": 651.0131,
-        "low": 570.6603,
-        "close": 586.3971
+        "open": 645.5966,
+        "high": 651.2227,
+        "low": 570.5726,
+        "close": 586.3069
       },
       {
         "date": "2026-05-19",
-        "open": 572.2177,
-        "high": 624.6074,
-        "low": 561.1615,
-        "close": 601.1959
+        "open": 572.577,
+        "high": 624.5114,
+        "low": 561.0753,
+        "close": 601.1035
       },
       {
         "date": "2026-05-20",
-        "open": 632.5833,
-        "high": 632.9791,
-        "low": 602.8479,
-        "close": 629.8042
+        "open": 632.2624,
+        "high": 632.8818,
+        "low": 602.7552,
+        "close": 629.7074
       },
       {
         "date": "2026-05-21",
-        "open": 633.504,
-        "high": 658.12,
-        "low": 629.9849,
-        "close": 655.7109
+        "open": 633.4667,
+        "high": 658.0188,
+        "low": 629.8881,
+        "close": 655.61
       },
       {
         "date": "2026-05-22",
-        "open": 651.168,
-        "high": 671.2841,
-        "low": 642.8909,
-        "close": 646.1604
+        "open": 651.0678,
+        "high": 671.1809,
+        "low": 642.7921,
+        "close": 646.0611
       },
       {
         "date": "2026-05-26",
-        "open": 706.0873,
-        "high": 788.8148,
-        "low": 705.7776,
-        "close": 770.8152
+        "open": 705.8497,
+        "high": 788.6935,
+        "low": 705.6776,
+        "close": 770.6967
       },
       {
         "date": "2026-05-27",
-        "open": 822.0864,
-        "high": 822.6801,
-        "low": 764.1643,
-        "close": 798.804
+        "open": 822.1235,
+        "high": 822.5536,
+        "low": 764.0468,
+        "close": 798.6812
       },
       {
         "date": "2026-05-28",
-        "open": 800.413,
-        "high": 816.9412,
-        "low": 778.4728,
-        "close": 794.5967
+        "open": 799.9028,
+        "high": 816.8156,
+        "low": 778.3531,
+        "close": 794.4745
       },
       {
         "date": "2026-05-29",
-        "open": 823.4115,
-        "high": 844.0525,
-        "low": 809.2149,
-        "close": 835.4485
+        "open": 823.2763,
+        "high": 843.9227,
+        "low": 809.0904,
+        "close": 835.32
       },
       {
         "date": "2026-06-01",
-        "open": 868.8406,
-        "high": 900.813,
-        "low": 868.5739,
-        "close": 890.9443
+        "open": 868.6296,
+        "high": 900.6745,
+        "low": 868.4403,
+        "close": 890.8073
       },
       {
         "date": "2026-06-02",
-        "open": 903.4201,
-        "high": 926.2723,
-        "low": 875.1989,
-        "close": 915.5517
+        "open": 903.2811,
+        "high": 926.1298,
+        "low": 875.0643,
+        "close": 915.4108
       },
       {
         "date": "2026-06-03",
-        "open": 928.1394,
-        "high": 937.2252,
-        "low": 893.5255,
-        "close": 928.8621
+        "open": 928.2375,
+        "high": 937.0811,
+        "low": 893.3881,
+        "close": 928.7192
       },
       {
         "date": "2026-06-04",
-        "open": 866.5089,
-        "high": 891.6928,
-        "low": 836.0335,
-        "close": 856.9585
+        "open": 866.3756,
+        "high": 891.5557,
+        "low": 835.905,
+        "close": 856.8267
       },
       {
         "date": "2026-06-05",
-        "open": 812.5618,
-        "high": 827.6102,
-        "low": 743.3943,
-        "close": 743.3943
+        "open": 812.4369,
+        "high": 827.4829,
+        "low": 743.2799,
+        "close": 743.2799
       },
       {
         "date": "2026-06-08",
-        "open": 807.5371,
-        "high": 828.5222,
-        "low": 788.5567,
-        "close": 816.7606
+        "open": 807.1634,
+        "high": 828.3948,
+        "low": 788.4354,
+        "close": 816.635
       },
       {
         "date": "2026-06-09",
-        "open": 850.3764,
-        "high": 851.0647,
-        "low": 735.0828,
-        "close": 805.2398
+        "open": 850.0994,
+        "high": 850.9339,
+        "low": 734.9697,
+        "close": 805.116
       },
       {
         "date": "2026-06-10",
-        "open": 778.7739,
-        "high": 823.8158,
-        "low": 759.9483,
-        "close": 767.3736
+        "open": 778.6542,
+        "high": 823.6891,
+        "low": 759.8315,
+        "close": 767.2556
       },
       {
         "date": "2026-06-11",
-        "open": 778.12,
-        "high": 857.621,
-        "low": 770.4882,
-        "close": 856.8466
+        "open": 778.0003,
+        "high": 857.4891,
+        "low": 770.3698,
+        "close": 856.7148
       },
       {
         "date": "2026-06-12",
-        "open": 836.0765,
-        "high": 871.2583,
-        "low": 826.1475,
-        "close": 844.5773
+        "open": 836.0168,
+        "high": 871.1243,
+        "low": 826.0205,
+        "close": 844.4474
       },
       {
         "date": "2026-06-15",
-        "open": 908.5739,
-        "high": 944.2632,
-        "low": 904.7107,
-        "close": 936.1067
+        "open": 908.3481,
+        "high": 944.118,
+        "low": 904.5715,
+        "close": 935.9627
       },
       {
         "date": "2026-06-16",
-        "open": 946.1991,
-        "high": 955.3882,
-        "low": 877.6081,
-        "close": 878.262
+        "open": 946.0364,
+        "high": 955.2413,
+        "low": 877.4731,
+        "close": 878.1269
       },
       {
         "date": "2026-06-17",
-        "open": 913.5039,
-        "high": 940.9937,
-        "low": 872.5661,
-        "close": 897.5607
+        "open": 913.0022,
+        "high": 940.8491,
+        "low": 872.432,
+        "close": 897.4227
       },
       {
         "date": "2026-06-18",
-        "open": 953.3835,
-        "high": 988.9696,
-        "low": 940.2366,
-        "close": 975.6851
+        "open": 953.2368,
+        "high": 988.8176,
+        "low": 940.092,
+        "close": 975.535
       },
       {
         "date": "2026-06-22",
-        "open": 1029.5719,
-        "high": 1044.1471,
-        "low": 1005.4377,
-        "close": 1042.2714
+        "open": 1029.0695,
+        "high": 1043.9866,
+        "low": 1005.283,
+        "close": 1042.1111
       },
       {
         "date": "2026-06-23",
-        "open": 929.1976,
-        "high": 967.9501,
-        "low": 893.5255,
-        "close": 904.943
+        "open": 929.0892,
+        "high": 967.8012,
+        "low": 893.388,
+        "close": 904.8038
       },
       {
         "date": "2026-06-24",
-        "open": 931.753,
-        "high": 932.1746,
-        "low": 852.7425,
-        "close": 902.1381
+        "open": 930.9989,
+        "high": 931.9452,
+        "low": 852.6113,
+        "close": 901.9993
       },
       {
         "date": "2026-06-25",
-        "open": 1062.1553,
-        "high": 1079.8021,
-        "low": 977.6812,
-        "close": 1044.1471
+        "open": 1060.7101,
+        "high": 1079.636,
+        "low": 977.5309,
+        "close": 1043.9866
       },
       {
         "date": "2026-06-26",
-        "open": 980.4259,
-        "high": 1031.3788,
-        "low": 964.8182,
-        "close": 974.2568
+        "open": 979.9138,
+        "high": 1031.2116,
+        "low": 964.6699,
+        "close": 974.107
       },
       {
         "date": "2026-06-29",
-        "open": 971.1335,
-        "high": 988.419,
-        "low": 880.7485,
-        "close": 985.399
+        "open": 970.9841,
+        "high": 988.267,
+        "low": 880.6131,
+        "close": 985.2474
       },
       {
         "date": "2026-06-30",
-        "open": 984.9258,
-        "high": 1005.5323,
-        "low": 967.6575,
-        "close": 993.1512
+        "open": 984.7743,
+        "high": 1005.3778,
+        "low": 967.5088,
+        "close": 992.9985
       },
       {
         "date": "2026-07-01",
-        "open": 930.9615,
-        "high": 943.8589,
-        "low": 888.1049,
-        "close": 888.1738
+        "open": 930.8184,
+        "high": 943.7138,
+        "low": 887.9684,
+        "close": 888.0373
       },
       {
         "date": "2026-07-02",
-        "open": 895.9174,
-        "high": 916.0163,
-        "low": 817.621,
-        "close": 839.3719
+        "open": 895.9689,
+        "high": 915.8755,
+        "low": 817.4953,
+        "close": 839.2428
       },
       {
         "date": "2026-07-06",
@@ -3594,28 +3434,28 @@
       },
       {
         "date": "2026-07-07",
-        "open": 793.8739,
-        "high": 809.9376,
+        "open": 794.1579,
+        "high": 810.5141,
         "low": 767.1843,
         "close": 807.3822
       },
       {
         "date": "2026-07-08",
-        "open": 776.425,
+        "open": 776.6315,
         "high": 825.1237,
         "low": 774.7128,
         "close": 816.3476
       },
       {
         "date": "2026-07-09",
-        "open": 874.2611,
+        "open": 874.6053,
         "high": 890.9443,
         "low": 849.3267,
         "close": 853.2071
       },
       {
         "date": "2026-07-10",
-        "open": 830.3549,
+        "open": 830.2688,
         "high": 858.6793,
         "low": 820.9335,
         "close": 842.5898
@@ -3629,42 +3469,42 @@
       },
       {
         "date": "2026-07-14",
-        "open": 850.6345,
+        "open": 850.4022,
         "high": 855.926,
         "low": 817.4403,
         "close": 845.8765
       },
       {
         "date": "2026-07-15",
-        "open": 839.2084,
+        "open": 839.587,
         "high": 841.8154,
         "low": 751.6713,
         "close": 778.0426
       },
       {
         "date": "2026-07-16",
-        "open": 745.7001,
-        "high": 763.7857,
+        "open": 745.769,
+        "high": 763.7858,
         "low": 723.1749,
         "close": 734.0933
       },
       {
         "date": "2026-07-17",
         "open": 707.7049,
-        "high": 777.7672,
+        "high": 777.7673,
         "low": 691.7616,
         "close": 730.4366
       },
       {
         "date": "2026-07-20",
-        "open": 762.0047,
-        "high": 775.2118,
+        "open": 761.9445,
+        "high": 775.2204,
         "low": 738.9976,
-        "close": 744.6418
+        "close": 744.6419
       },
       {
         "date": "2026-07-21",
-        "open": 796.3261,
+        "open": 796.1712,
         "high": 845.67,
         "low": 788.6169,
         "close": 835.2936
@@ -3678,49 +3518,49 @@
       },
       {
         "date": "2026-07-23",
-        "open": 839.1396,
+        "open": 839.0019,
         "high": 870.527,
         "low": 829.7698,
-        "close": 851.9767
+        "close": 851.9768
       },
       {
         "date": "2026-07-24",
-        "open": 825.5022,
+        "open": 825.1495,
         "high": 832.1273,
         "low": 777.8016,
         "close": 792.3854
       },
       {
         "date": "2026-07-27",
-        "open": 802.4607,
+        "open": 802.28,
         "high": 804.4741,
-        "low": 735.4614,
+        "low": 735.4613,
         "close": 774.5321
       },
       {
         "date": "2026-07-28",
-        "open": 724.0869,
-        "high": 730.1183,
+        "open": 722.4005,
+        "high": 729.929,
         "low": 678.9331,
         "close": 705.9841
       },
       {
         "date": "2026-07-29",
-        "open": 716.5756,
+        "open": 716.7132,
         "high": 724.2848,
         "low": 634.872,
         "close": 635.8356
       },
       {
         "date": "2026-07-30",
-        "open": 682.0735,
+        "open": 682.4177,
         "high": 759.303,
         "low": 678.8556,
         "close": 752.5575
       },
       {
         "date": "2026-07-31",
-        "open": 791.2067,
+        "open": 791.2669,
         "high": 800.9292,
         "low": 703.8072,
         "close": 708.1351
@@ -3734,8 +3574,8 @@
       },
       {
         "date": "2026-08-04",
-        "open": 745.3215,
-        "high": 775.7023,
+        "open": 745.812,
+        "high": 776.4508,
         "low": 738.6534,
         "close": 768.0533
       },
@@ -3769,21 +3609,21 @@
       },
       {
         "date": "2026-08-11",
-        "open": 750.3033,
+        "open": 750.0968,
         "high": 756.2916,
         "low": 726.7111,
         "close": 747.2747
       },
       {
         "date": "2026-08-12",
-        "open": 785.5453,
+        "open": 785.4936,
         "high": 805.1624,
-        "low": 773.9643,
-        "close": 784.074
+        "low": 773.9642,
+        "close": 784.0739
       },
       {
         "date": "2026-08-13",
-        "open": 785.0634,
+        "open": 785.4506,
         "high": 841.4713,
         "low": 779.9526,
         "close": 817.2338
@@ -3797,9 +3637,9 @@
       },
       {
         "date": "2026-08-17",
-        "open": 860.7442,
+        "open": 860.0129,
         "high": 891.4863,
-        "low": 856.1583,
+        "low": 856.3218,
         "close": 870.5098
       },
       {
@@ -3811,35 +3651,35 @@
       },
       {
         "date": "2026-08-19",
-        "open": 825.528,
+        "open": 825.4334,
         "high": 825.9841,
         "low": 787.4209,
         "close": 806.2895
       },
       {
         "date": "2026-08-20",
-        "open": 804.4913,
+        "open": 804.4827,
         "high": 840.8518,
         "low": 799.3719,
         "close": 838.3136
       },
       {
         "date": "2026-08-21",
-        "open": 851.4089,
-        "high": 851.7616,
+        "open": 851.5207,
+        "high": 851.7617,
         "low": 824.487,
         "close": 831.8176
       },
       {
         "date": "2026-08-24",
-        "open": 804.4654,
+        "open": 804.2848,
         "high": 805.7216,
-        "low": 763.6911,
+        "low": 763.6997,
         "close": 783.334
       },
       {
         "date": "2026-08-25",
-        "open": 799.26,
+        "open": 799.2944,
         "high": 814.5149,
         "low": 788.3846,
         "close": 802.7274
@@ -3854,22 +3694,22 @@
       {
         "date": "2026-08-27",
         "open": 832.0155,
-        "high": 833.4867,
+        "high": 833.4782,
         "low": 780.2882,
         "close": 804.8096
       },
       {
         "date": "2026-08-28",
-        "open": 790.7077,
+        "open": 790.9571,
         "high": 814.6268,
         "low": 782.1811,
         "close": 802.6328
       },
       {
         "date": "2026-08-31",
-        "open": 801.0325,
+        "open": 801.368,
         "high": 825.9582,
-        "low": 800.8518,
+        "low": 800.8517,
         "close": 824.8913
       },
       {
@@ -3881,9 +3721,9 @@
       },
       {
         "date": "2026-09-02",
-        "open": 800.3958,
+        "open": 800.8862,
         "high": 824.2633,
-        "low": 797.7199,
+        "low": 797.7285,
         "close": 822.6113
       },
       {
@@ -3895,15 +3735,15 @@
       },
       {
         "date": "2026-09-04",
-        "open": 836.2056,
+        "open": 835.741,
         "high": 875.6894,
         "low": 833.7277,
         "close": 874.6741
       },
       {
         "date": "2026-09-08",
-        "open": 891.9767,
-        "high": 895.7367,
+        "open": 891.7186,
+        "high": 895.7366,
         "low": 858.3523,
         "close": 860.6238
       },
@@ -3916,109 +3756,54 @@
       },
       {
         "date": "2026-09-10",
-        "open": 857.8189,
+        "open": 857.6296,
         "high": 859.5397,
-        "low": 845.0161,
-        "close": 848.7502
+        "low": 843.4072,
+        "close": 844.9127
       }
     ],
-    "Daily_Change": -35.5432,
-    "Date": "2026-09-10 18:13",
-    "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-10T15:13:38.543830+00:00",
-    "Data_Broker": "IBKR",
+    "Daily_Change": -39.3807,
+    "Date": "2026-09-10 18:22",
+    "Market_Data_Source": "Yahoo Finance",
+    "Market_Data_Fetched_At": null,
+    "Data_Broker": null,
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "Bid": 986.28,
-    "Ask": 986.78,
-    "Spread_Pct": 0.05068269591396105,
-    "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 40953336236.0,
-    "Historical_Vol": 0.7430952379303208,
-    "Implied_Volatility": 0.6205450554334349,
-    "IV_Percentile": 0.2310757040977478,
-    "YTD_Change_IBKR": 701.1829919433594,
-    "Dividend_Yield_IBKR": 0.05,
-    "IBKR_Misc_Statistics": {
-      "high_13w": 1255.0,
-      "high_26w": 1255.0,
-      "high_52w": 1255.0,
-      "low_13w": 737.8800048828125,
-      "low_26w": 311.489990234375,
-      "low_52w": 147.38800048828125,
-      "open_52w": 139.8179931640625
-    },
-    "IBKR_Snapshot_Groups": {
-      "quote": [
-        "last",
-        "bid_ask",
-        "top_status",
-        "prior_close",
-        "volume",
-        "open",
-        "low",
-        "high"
-      ],
-      "ranking": [
-        "avg_90d_usd_volume",
-        "year_to_date_change",
-        "cumulative_perf_1d",
-        "cumulative_perf_1w",
-        "cumulative_perf_1m",
-        "cumulative_perf_ytd",
-        "cumulative_perf_1y"
-      ],
-      "risk": [
-        "implied_volatility_percentile",
-        "implied_vol_underlying",
-        "historical_vol",
-        "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
-      ]
-    },
+    "IBKR_Snapshot_Groups": {},
     "Market": "SUA",
     "Country": "US",
-    "Exchange": "NASDAQ",
+    "Exchange": null,
     "Security_Type": "STK",
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Options_Supported": true,
+    "Market_Metadata_Source": "LOCAL_CANONICAL_SYMBOL",
+    "Options_Supported": null,
     "Instrument_Metadata": {
       "market": "SUA",
       "country": "US",
-      "exchange": "NASDAQ",
+      "exchange": null,
       "security_type": "STK",
       "currency": "USD",
-      "contract_id": 9939,
-      "sections": [
-        "BAG",
-        "CFD",
-        "IOPT",
-        "OPT",
-        "STK",
-        "WAR"
-      ],
-      "options_supported": true,
-      "source": "IBKR_MCP_SEARCH_CONTRACTS"
+      "contract_id": null,
+      "sections": [],
+      "options_supported": null,
+      "source": "LOCAL_CANONICAL_SYMBOL"
     },
-    "volatility_score": 39.41,
-    "liquidity_score": 100.0,
-    "risk_score": 60.76,
-    "volatility_regime": "extreme",
+    "volatility_score": 70.71,
+    "liquidity_score": 50,
+    "risk_score": 58.28,
+    "volatility_regime": "calm",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
   {
     "Symbol": "ORCL",
     "History_Ticker": "ORCL",
-    "Company_Name": "ORACLE CORP",
+    "Company_Name": "Oracle Corporation",
     "Shares": 8,
-    "Current_Price": 136.49,
-    "Price_Native": 158.63,
+    "Current_Price": 136.32,
+    "Price_Native": 158.44,
     "Currency": "USD",
-    "Contract_ID": 272800,
+    "Contract_ID": null,
     "Asset_Class": null,
     "Market_Value_IBKR": null,
     "Daily_PnL_IBKR": null,
@@ -4026,27 +3811,27 @@
     "Buy_Price": 126.59,
     "Target": 212.06,
     "Trail_Stop": 126.46,
-    "Suggested_Stop": 125.2,
+    "Suggested_Stop": 125.03,
     "Finviz_ATR": 6.9,
     "Vol_W": 4.5,
     "Vol_M": 4.07,
     "Trail_Pct": 11.0,
     "Investment": 1012.69,
     "Entry_Date": "-",
-    "Current_Value": 1091.88,
-    "Profit": 79.19,
-    "Profit_Pct": 7.82,
+    "Current_Value": 1090.57,
+    "Profit": 77.88,
+    "Profit_Pct": 7.69,
     "Max_Profit": 683.81,
     "Consensus": "Buy",
     "Analysts": 42,
     "Status": "Neutral",
-    "RSI": 58.99,
+    "RSI": 58.81,
     "RSI_Status": "Neutral",
     "Trend": "Bearish Rally",
     "VIX_Tag": "Normal",
     "Sell_Decision": "TRAIL STRANS",
     "Sell_Reason": "Breadth<45%: Strong Stock (Hold)",
-    "RS_vs_SPX": -16.79,
+    "RS_vs_SPX": -16.6,
     "Chart_History": [
       160.8218,
       151.409,
@@ -4056,52 +3841,52 @@
       140.3727,
       138.2016,
       147.1074,
-      155.1215,
-      159.4752,
-      166.9434,
-      167.4252,
-      168.5954,
-      166.7799,
-      160.7485,
-      163.2695,
-      168.3029,
-      166.0142,
-      160.5593,
-      156.1282,
-      161.8929,
-      163.2781,
-      165.2656,
-      166.1088,
-      164.302,
-      175.2635,
-      194.2611,
-      213.5083,
-      210.4366,
-      198.1759,
-      203.3469,
-      183.8503,
-      182.2499,
-      177.0789,
-      173.1641,
-      158.3997,
-      158.4255,
-      165.7475,
-      162.0391,
-      157.9092,
-      158.5631,
-      150.6302,
-      142.1037,
-      135.5388,
-      131.1766,
-      127.7952,
-      127.1327,
-      126.0916,
-      122.607,
-      120.6883,
-      123.6911,
-      121.8326,
-      120.8776,
-      124.0869,
+      154.5837,
+      158.9223,
+      166.3646,
+      166.8448,
+      168.0109,
+      166.2017,
+      160.1912,
+      162.7035,
+      167.7194,
+      165.4386,
+      160.0026,
+      155.5869,
+      161.3316,
+      162.7121,
+      164.6927,
+      165.5329,
+      163.7324,
+      174.6559,
+      193.5876,
+      212.7681,
+      209.7071,
+      197.4889,
+      202.642,
+      183.2129,
+      181.6181,
+      176.465,
+      172.5638,
+      157.8505,
+      157.8762,
+      165.1728,
+      161.4774,
+      157.3618,
+      158.0134,
+      150.108,
+      141.611,
+      135.0689,
+      130.7218,
+      127.3522,
+      126.692,
+      125.6545,
+      122.1819,
+      120.2699,
+      123.2623,
+      121.4103,
+      120.4585,
+      123.6567,
       121.0067,
       113.177,
       110.0796,
@@ -4118,7 +3903,7 @@
       101.3035,
       109.7526,
       111.7402,
-      122.0477,
+      122.0478,
       125.3947,
       124.2332,
       123.4416,
@@ -4137,7 +3922,7 @@
       124.5515,
       128.0878,
       130.7292,
-      129.7913,
+      129.7914,
       128.3029,
       121.5917,
       125.4033,
@@ -4145,7 +3930,7 @@
       136.6143,
       139.8322,
       139.0665,
-      136.4853
+      136.3218
     ],
     "Chart_Dates": [
       "2026-04-22",
@@ -4306,338 +4091,338 @@
       },
       {
         "date": "2026-05-04",
-        "open": 151.4562,
-        "high": 157.8834,
-        "low": 149.9333,
-        "close": 155.1215
+        "open": 150.9226,
+        "high": 157.336,
+        "low": 149.4135,
+        "close": 154.5837
       },
       {
         "date": "2026-05-05",
-        "open": 156.7047,
-        "high": 160.4818,
-        "low": 154.0116,
-        "close": 159.4752
+        "open": 156.1614,
+        "high": 159.9254,
+        "low": 153.4777,
+        "close": 158.9223
       },
       {
         "date": "2026-05-06",
-        "open": 160.2065,
-        "high": 167.1671,
-        "low": 157.1693,
-        "close": 166.9434
+        "open": 159.6511,
+        "high": 166.5876,
+        "low": 156.6244,
+        "close": 166.3646
       },
       {
         "date": "2026-05-07",
-        "open": 170.8841,
-        "high": 172.2091,
-        "low": 164.1643,
-        "close": 167.4252
+        "open": 170.2916,
+        "high": 171.612,
+        "low": 163.5952,
+        "close": 166.8448
       },
       {
         "date": "2026-05-08",
-        "open": 165.6958,
-        "high": 170.3592,
-        "low": 163.6567,
-        "close": 168.5954
+        "open": 165.1214,
+        "high": 169.7686,
+        "low": 163.0893,
+        "close": 168.0109
       },
       {
         "date": "2026-05-11",
-        "open": 165.3259,
-        "high": 168.3717,
-        "low": 163.9923,
-        "close": 166.7799
+        "open": 164.7527,
+        "high": 167.7794,
+        "low": 163.4237,
+        "close": 166.2017
       },
       {
         "date": "2026-05-12",
-        "open": 165.9884,
-        "high": 165.9884,
-        "low": 155.6206,
-        "close": 160.7485
+        "open": 165.4129,
+        "high": 165.4129,
+        "low": 155.081,
+        "close": 160.1912
       },
       {
         "date": "2026-05-13",
-        "open": 162.6414,
-        "high": 164.8268,
-        "low": 159.2256,
-        "close": 163.2695
+        "open": 162.0776,
+        "high": 164.2554,
+        "low": 158.6736,
+        "close": 162.7035
       },
       {
         "date": "2026-05-14",
-        "open": 161.9101,
-        "high": 172.6909,
-        "low": 159.5612,
-        "close": 168.3029
+        "open": 161.3487,
+        "high": 172.0922,
+        "low": 159.008,
+        "close": 167.7194
       },
       {
         "date": "2026-05-15",
-        "open": 163.8976,
-        "high": 169.0084,
-        "low": 162.5296,
-        "close": 166.0142
+        "open": 163.3294,
+        "high": 168.4224,
+        "low": 161.9661,
+        "close": 165.4386
       },
       {
         "date": "2026-05-18",
-        "open": 163.476,
-        "high": 164.1299,
-        "low": 157.6855,
-        "close": 160.5593
+        "open": 162.9093,
+        "high": 163.5609,
+        "low": 157.1388,
+        "close": 160.0026
       },
       {
         "date": "2026-05-19",
-        "open": 160.0344,
-        "high": 162.3833,
-        "low": 155.6722,
-        "close": 156.1282
+        "open": 159.4796,
+        "high": 161.8118,
+        "low": 155.1325,
+        "close": 155.5869
       },
       {
         "date": "2026-05-20",
-        "open": 154.8204,
-        "high": 161.9445,
-        "low": 153.8395,
-        "close": 161.8929
+        "open": 154.2836,
+        "high": 161.3831,
+        "low": 153.3062,
+        "close": 161.3316
       },
       {
         "date": "2026-05-21",
-        "open": 162.6242,
-        "high": 165.9023,
-        "low": 161.0669,
-        "close": 163.2781
+        "open": 162.0604,
+        "high": 165.3272,
+        "low": 160.5085,
+        "close": 162.7121
       },
       {
         "date": "2026-05-22",
-        "open": 164.9129,
-        "high": 169.4988,
-        "low": 164.4225,
-        "close": 165.2656
+        "open": 164.3411,
+        "high": 168.9112,
+        "low": 163.8524,
+        "close": 164.6927
       },
       {
         "date": "2026-05-26",
-        "open": 166.3153,
-        "high": 167.9501,
-        "low": 163.9578,
-        "close": 166.1088
+        "open": 165.7387,
+        "high": 167.3678,
+        "low": 163.3894,
+        "close": 165.5329
       },
       {
         "date": "2026-05-27",
-        "open": 164.7494,
-        "high": 165.3173,
-        "low": 161.6778,
-        "close": 164.302
+        "open": 164.1782,
+        "high": 164.7441,
+        "low": 161.1258,
+        "close": 163.7324
       },
       {
         "date": "2026-05-28",
-        "open": 166.952,
-        "high": 176.382,
-        "low": 166.3756,
-        "close": 175.2635
+        "open": 166.3732,
+        "high": 175.7705,
+        "low": 165.8073,
+        "close": 174.6559
       },
       {
         "date": "2026-05-29",
-        "open": 179.8236,
-        "high": 194.6999,
-        "low": 178.9718,
-        "close": 194.2611
+        "open": 179.2002,
+        "high": 194.0249,
+        "low": 178.3513,
+        "close": 193.5876
       },
       {
         "date": "2026-06-01",
-        "open": 198.3222,
-        "high": 215.3151,
-        "low": 193.2459,
-        "close": 213.5083
+        "open": 197.6347,
+        "high": 214.5686,
+        "low": 192.5759,
+        "close": 212.7681
       },
       {
         "date": "2026-06-02",
-        "open": 208.9051,
-        "high": 214.2396,
-        "low": 205.4979,
-        "close": 210.4366
+        "open": 208.1809,
+        "high": 213.4969,
+        "low": 204.7855,
+        "close": 209.7071
       },
       {
         "date": "2026-06-03",
-        "open": 206.909,
-        "high": 206.9348,
-        "low": 195.8271,
-        "close": 198.1759
+        "open": 206.1917,
+        "high": 206.2174,
+        "low": 195.1567,
+        "close": 197.4889
       },
       {
         "date": "2026-06-04",
-        "open": 195.3108,
-        "high": 205.5926,
-        "low": 192.7296,
-        "close": 203.3469
+        "open": 194.6337,
+        "high": 204.8798,
+        "low": 192.0614,
+        "close": 202.642
       },
       {
         "date": "2026-06-05",
-        "open": 197.4532,
-        "high": 198.8385,
-        "low": 180.2108,
-        "close": 183.8503
+        "open": 196.7687,
+        "high": 198.4406,
+        "low": 179.586,
+        "close": 183.2129
       },
       {
         "date": "2026-06-08",
-        "open": 187.3521,
-        "high": 188.4276,
-        "low": 180.1075,
-        "close": 182.2499
+        "open": 186.7026,
+        "high": 187.8258,
+        "low": 179.4831,
+        "close": 181.6181
       },
       {
         "date": "2026-06-09",
-        "open": 184.0482,
-        "high": 189.7182,
-        "low": 170.1785,
-        "close": 177.0789
+        "open": 183.4101,
+        "high": 189.0605,
+        "low": 169.5885,
+        "close": 176.465
       },
       {
         "date": "2026-06-10",
-        "open": 170.7894,
-        "high": 182.8178,
-        "low": 170.5141,
-        "close": 173.1641
+        "open": 170.1973,
+        "high": 182.184,
+        "low": 169.9229,
+        "close": 172.5638
       },
       {
         "date": "2026-06-11",
-        "open": 154.5881,
-        "high": 158.9761,
-        "low": 150.8109,
-        "close": 158.3997
+        "open": 154.0521,
+        "high": 158.425,
+        "low": 150.2881,
+        "close": 157.8505
       },
       {
         "date": "2026-06-12",
-        "open": 159.1826,
-        "high": 159.673,
-        "low": 154.0116,
-        "close": 158.4255
+        "open": 158.6307,
+        "high": 159.1195,
+        "low": 153.4777,
+        "close": 157.8762
       },
       {
         "date": "2026-06-15",
-        "open": 161.2304,
-        "high": 168.0533,
-        "low": 160.2151,
-        "close": 165.7475
+        "open": 160.6714,
+        "high": 167.4707,
+        "low": 159.6597,
+        "close": 165.1728
       },
       {
         "date": "2026-06-16",
-        "open": 163.4846,
-        "high": 168.0533,
-        "low": 161.4627,
-        "close": 162.0391
+        "open": 162.9178,
+        "high": 167.4707,
+        "low": 160.9029,
+        "close": 161.4774
       },
       {
         "date": "2026-06-17",
-        "open": 160.1721,
-        "high": 163.6395,
-        "low": 157.0918,
-        "close": 157.9092
+        "open": 159.6168,
+        "high": 163.0722,
+        "low": 156.5472,
+        "close": 157.3618
       },
       {
         "date": "2026-06-18",
-        "open": 157.4618,
-        "high": 161.7466,
-        "low": 152.8931,
-        "close": 158.5631
+        "open": 156.9159,
+        "high": 161.1859,
+        "low": 152.363,
+        "close": 158.0134
       },
       {
         "date": "2026-06-22",
-        "open": 156.8595,
-        "high": 158.8126,
-        "low": 150.0538,
-        "close": 150.6302
+        "open": 156.3157,
+        "high": 158.2621,
+        "low": 149.5335,
+        "close": 150.108
       },
       {
         "date": "2026-06-23",
-        "open": 146.4659,
-        "high": 149.9935,
-        "low": 141.6305,
-        "close": 142.1037
+        "open": 145.9581,
+        "high": 149.4735,
+        "low": 141.1394,
+        "close": 141.611
       },
       {
         "date": "2026-06-24",
-        "open": 139.9527,
-        "high": 142.6113,
-        "low": 133.6631,
-        "close": 135.5388
+        "open": 139.3131,
+        "high": 142.1169,
+        "low": 133.1998,
+        "close": 135.0689
       },
       {
         "date": "2026-06-25",
-        "open": 135.3839,
-        "high": 135.6163,
-        "low": 129.3698,
-        "close": 131.1766
+        "open": 134.9146,
+        "high": 135.1461,
+        "low": 128.9212,
+        "close": 130.7218
       },
       {
         "date": "2026-06-26",
-        "open": 129.2837,
-        "high": 132.1058,
-        "low": 127.3392,
-        "close": 127.7952
+        "open": 128.8355,
+        "high": 131.6478,
+        "low": 126.8977,
+        "close": 127.3522
       },
       {
         "date": "2026-06-29",
-        "open": 132.45,
-        "high": 132.9318,
-        "low": 124.9301,
-        "close": 127.1327
+        "open": 131.9908,
+        "high": 132.4709,
+        "low": 124.497,
+        "close": 126.692
       },
       {
         "date": "2026-06-30",
-        "open": 126.6939,
-        "high": 128.9998,
-        "low": 124.3106,
-        "close": 126.0916
+        "open": 126.2547,
+        "high": 128.5525,
+        "low": 123.8796,
+        "close": 125.6545
       },
       {
         "date": "2026-07-01",
-        "open": 124.3192,
-        "high": 126.952,
-        "low": 122.65,
-        "close": 122.607
+        "open": 123.8882,
+        "high": 126.5119,
+        "low": 122.1819,
+        "close": 122.1819
       },
       {
         "date": "2026-07-02",
-        "open": 123.2953,
-        "high": 126.5304,
-        "low": 119.4407,
-        "close": 120.6883
+        "open": 122.8679,
+        "high": 126.0918,
+        "low": 119.0352,
+        "close": 120.2699
       },
       {
         "date": "2026-07-06",
-        "open": 124.1557,
-        "high": 125.2742,
-        "low": 121.4541,
-        "close": 123.6911
+        "open": 123.7253,
+        "high": 124.8571,
+        "low": 121.033,
+        "close": 123.2623
       },
       {
         "date": "2026-07-07",
-        "open": 123.6567,
-        "high": 125.2398,
-        "low": 118.348,
-        "close": 121.8326
+        "open": 123.228,
+        "high": 124.8056,
+        "low": 117.9377,
+        "close": 121.4103
       },
       {
         "date": "2026-07-08",
-        "open": 119.6472,
-        "high": 122.0391,
-        "low": 118.3394,
-        "close": 120.8776
+        "open": 119.2324,
+        "high": 121.616,
+        "low": 117.9377,
+        "close": 120.4585
       },
       {
         "date": "2026-07-09",
-        "open": 121.6778,
-        "high": 128.2598,
-        "low": 121.2648,
-        "close": 124.0869
+        "open": 121.2559,
+        "high": 127.8152,
+        "low": 120.8444,
+        "close": 123.6567
       },
       {
         "date": "2026-07-10",
         "open": 125.3173,
         "high": 125.3431,
-        "low": 119.8365,
+        "low": 119.8193,
         "close": 121.0067
       },
       {
         "date": "2026-07-13",
         "open": 119.6214,
-        "high": 120.086,
-        "low": 113.0135,
+        "high": 120.1549,
+        "low": 113.0136,
         "close": 113.177
       },
       {
@@ -4656,16 +4441,16 @@
       },
       {
         "date": "2026-07-16",
-        "open": 113.1168,
+        "open": 113.1254,
         "high": 113.3835,
         "low": 106.3971,
         "close": 106.8703
       },
       {
         "date": "2026-07-17",
-        "open": 104.6505,
+        "open": 104.7107,
         "high": 110.5098,
-        "low": 104.5988,
+        "low": 104.5386,
         "close": 108.7632
       },
       {
@@ -4691,7 +4476,7 @@
       },
       {
         "date": "2026-07-23",
-        "open": 107.2145,
+        "open": 106.6552,
         "high": 107.2919,
         "low": 102.7662,
         "close": 103.2824
@@ -4743,7 +4528,7 @@
         "open": 113.504,
         "high": 123.0974,
         "low": 112.0327,
-        "close": 122.0477
+        "close": 122.0478
       },
       {
         "date": "2026-08-04",
@@ -4819,12 +4604,12 @@
         "date": "2026-08-18",
         "open": 123.2523,
         "high": 125.6184,
-        "low": 122.4779,
+        "low": 122.478,
         "close": 122.8565
       },
       {
         "date": "2026-08-19",
-        "open": 122.7705,
+        "open": 122.7791,
         "high": 125.6872,
         "low": 118.2448,
         "close": 123.7341
@@ -4839,8 +4624,8 @@
       {
         "date": "2026-08-21",
         "open": 123.6567,
-        "high": 127.6403,
-        "low": 122.693,
+        "high": 127.6404,
+        "low": 122.6931,
         "close": 126.0228
       },
       {
@@ -4861,22 +4646,22 @@
         "date": "2026-08-26",
         "open": 126.4788,
         "high": 130.4625,
-        "low": 126.3239,
+        "low": 126.3325,
         "close": 128.0878
       },
       {
         "date": "2026-08-27",
-        "open": 130.9271,
+        "open": 130.8755,
         "high": 132.3553,
         "low": 126.9262,
         "close": 130.7292
       },
       {
         "date": "2026-08-28",
-        "open": 132.1574,
+        "open": 132.1575,
         "high": 132.493,
         "low": 128.8105,
-        "close": 129.7913
+        "close": 129.7914
       },
       {
         "date": "2026-08-31",
@@ -4915,7 +4700,7 @@
       },
       {
         "date": "2026-09-08",
-        "open": 144.203,
+        "open": 144.2031,
         "high": 146.8703,
         "low": 138.6621,
         "close": 139.8322
@@ -4929,109 +4714,54 @@
       },
       {
         "date": "2026-09-10",
-        "open": 135.9518,
+        "open": 136.2659,
         "high": 136.9929,
-        "low": 133.9643,
-        "close": 136.4853
+        "low": 133.9299,
+        "close": 136.3218
       }
     ],
-    "Daily_Change": -2.5812,
-    "Date": "2026-09-10 18:13",
-    "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-10T15:13:38.293841+00:00",
-    "Data_Broker": "IBKR",
+    "Daily_Change": -2.7447,
+    "Date": "2026-09-10 18:23",
+    "Market_Data_Source": "Yahoo Finance",
+    "Market_Data_Fetched_At": null,
+    "Data_Broker": null,
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "Bid": 158.6,
-    "Ask": 158.64000000000001,
-    "Spread_Pct": 0.02521750094566919,
-    "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 4936188458.0,
-    "Historical_Vol": 0.5557427086404283,
-    "Implied_Volatility": 0.7055281935788196,
-    "IV_Percentile": 0.8844621777534485,
-    "YTD_Change_IBKR": -35.08800231933594,
-    "Dividend_Yield_IBKR": 1.24,
-    "IBKR_Misc_Statistics": {
-      "high_13w": 195.27999877929688,
-      "high_26w": 250.24000549316406,
-      "high_52w": 328.35699462890625,
-      "low_13w": 114.51000213623047,
-      "low_26w": 114.51000213623047,
-      "low_52w": 114.51000213623047,
-      "open_52w": 315.17401123046875
-    },
-    "IBKR_Snapshot_Groups": {
-      "quote": [
-        "last",
-        "bid_ask",
-        "top_status",
-        "prior_close",
-        "volume",
-        "open",
-        "low",
-        "high"
-      ],
-      "ranking": [
-        "avg_90d_usd_volume",
-        "year_to_date_change",
-        "cumulative_perf_1d",
-        "cumulative_perf_1w",
-        "cumulative_perf_1m",
-        "cumulative_perf_ytd",
-        "cumulative_perf_1y"
-      ],
-      "risk": [
-        "implied_volatility_percentile",
-        "implied_vol_underlying",
-        "historical_vol",
-        "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
-      ]
-    },
+    "IBKR_Snapshot_Groups": {},
     "Market": "SUA",
     "Country": "US",
-    "Exchange": "NYSE",
+    "Exchange": null,
     "Security_Type": "STK",
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Options_Supported": true,
+    "Market_Metadata_Source": "LOCAL_CANONICAL_SYMBOL",
+    "Options_Supported": null,
     "Instrument_Metadata": {
       "market": "SUA",
       "country": "US",
-      "exchange": "NYSE",
+      "exchange": null,
       "security_type": "STK",
       "currency": "USD",
-      "contract_id": 272800,
-      "sections": [
-        "BAG",
-        "CFD",
-        "IOPT",
-        "OPT",
-        "STK",
-        "WAR"
-      ],
-      "options_supported": true,
-      "source": "IBKR_MCP_SEARCH_CONTRACTS"
+      "contract_id": null,
+      "sections": [],
+      "options_supported": null,
+      "source": "LOCAL_CANONICAL_SYMBOL"
     },
-    "volatility_score": 23.48,
-    "liquidity_score": 100.0,
-    "risk_score": 54.39,
-    "volatility_regime": "extreme",
+    "volatility_score": 72.18,
+    "liquidity_score": 50,
+    "risk_score": 58.87,
+    "volatility_regime": "calm",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
   {
     "Symbol": "PANW",
     "History_Ticker": "PANW",
-    "Company_Name": "PALO ALTO NETWORKS INC",
+    "Company_Name": "Palo Alto Networks, Inc.",
     "Shares": 6,
-    "Current_Price": 2.93,
-    "Price_Native": 3.41,
+    "Current_Price": 292.58,
+    "Price_Native": 340.05,
     "Currency": "USD",
-    "Contract_ID": 110619459,
+    "Contract_ID": null,
     "Asset_Class": null,
     "Market_Value_IBKR": null,
     "Daily_PnL_IBKR": null,
@@ -5039,27 +4769,27 @@
     "Buy_Price": 292.82,
     "Target": 342.26,
     "Trail_Stop": 275.1,
-    "Suggested_Stop": -30.67,
+    "Suggested_Stop": 258.94,
     "Finviz_ATR": 17.42,
     "Vol_W": 4.54,
     "Vol_M": 4.56,
     "Trail_Pct": 7.05,
     "Investment": 1756.94,
     "Entry_Date": "-",
-    "Current_Value": 17.59,
-    "Profit": -1739.35,
-    "Profit_Pct": -99.0,
+    "Current_Value": 1755.48,
+    "Profit": -1.46,
+    "Profit_Pct": -0.08,
     "Max_Profit": 296.61,
     "Consensus": "Buy",
     "Analysts": 50,
     "Status": "Neutral",
-    "RSI": 46.55,
+    "RSI": 46.29,
     "RSI_Status": "Neutral",
-    "Trend": "Strong Bearish",
+    "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
     "Sell_Decision": "REDUCE 50%",
-    "Sell_Reason": "Breadth<45% Warn: RSI 47 Weak (45-55)",
-    "RS_vs_SPX": 20.71,
+    "Sell_Reason": "Breadth<45% Warn: RSI 46 Weak (45-55)",
+    "RS_vs_SPX": 20.47,
     "Chart_History": [
       156.1763,
       149.6015,
@@ -5105,7 +4835,7 @@
       246.4186,
       250.3076,
       245.4377,
-      252.1747,
+      252.1746,
       261.7337,
       285.6528,
       293.4136,
@@ -5126,11 +4856,11 @@
       288.4749,
       280.1721,
       278.5889,
-      273.0221,
+      273.0222,
       274.4676,
       270.2947,
       280.2151,
-      285.5066,
+      285.5065,
       298.6707,
       315.199,
       312.0327,
@@ -5158,7 +4888,7 @@
       286.7369,
       289.9376,
       288.3201,
-      293.1555
+      292.5793
     ],
     "Chart_Dates": [
       "2026-04-22",
@@ -5321,7 +5051,7 @@
         "date": "2026-05-04",
         "open": 156.2831,
         "high": 161.1271,
-        "low": 155.6808,
+        "low": 155.6894,
         "close": 158.7954
       },
       {
@@ -5349,7 +5079,7 @@
         "date": "2026-05-08",
         "open": 167.649,
         "high": 179.0406,
-        "low": 166.4186,
+        "low": 166.4272,
         "close": 178.86
       },
       {
@@ -5377,12 +5107,12 @@
         "date": "2026-05-14",
         "open": 195.784,
         "high": 205.7647,
-        "low": 193.9084,
+        "low": 193.917,
         "close": 204.9559
       },
       {
         "date": "2026-05-15",
-        "open": 204.1471,
+        "open": 204.6289,
         "high": 211.4863,
         "low": 198.1157,
         "close": 208.9309
@@ -5418,20 +5148,20 @@
       {
         "date": "2026-05-22",
         "open": 216.0637,
-        "high": 224.9258,
+        "high": 224.9172,
         "low": 214.6698,
         "close": 224.203
       },
       {
         "date": "2026-05-26",
         "open": 222.1295,
-        "high": 223.5664,
+        "high": 223.5663,
         "low": 215.7625,
         "close": 220.9077
       },
       {
         "date": "2026-05-27",
-        "open": 210.9185,
+        "open": 211.3315,
         "high": 216.5111,
         "low": 209.1116,
         "close": 213.7836
@@ -5445,7 +5175,7 @@
       },
       {
         "date": "2026-05-29",
-        "open": 220.5291,
+        "open": 220.5377,
         "high": 244.1041,
         "low": 220.271,
         "close": 242.3661
@@ -5473,7 +5203,7 @@
       },
       {
         "date": "2026-06-04",
-        "open": 232.6608,
+        "open": 232.1875,
         "high": 241.5315,
         "low": 231.4476,
         "close": 240.2667
@@ -5508,21 +5238,21 @@
       },
       {
         "date": "2026-06-11",
-        "open": 224.986,
+        "open": 224.5644,
         "high": 240.869,
         "low": 222.0693,
         "close": 240.5076
       },
       {
         "date": "2026-06-12",
-        "open": 237.9522,
+        "open": 238.2792,
         "high": 242.6156,
         "low": 233.59,
         "close": 240.5851
       },
       {
         "date": "2026-06-15",
-        "open": 242.2801,
+        "open": 241.3852,
         "high": 245.3173,
         "low": 236.0335,
         "close": 244.8182
@@ -5536,21 +5266,21 @@
       },
       {
         "date": "2026-06-17",
-        "open": 240.9808,
+        "open": 240.4474,
         "high": 244.6289,
-        "low": 238.0727,
+        "low": 238.0813,
         "close": 242.7447
       },
       {
         "date": "2026-06-18",
-        "open": 245.4635,
+        "open": 245.7303,
         "high": 248.5524,
         "low": 237.8662,
         "close": 247.6059
       },
       {
         "date": "2026-06-22",
-        "open": 247.7436,
+        "open": 247.7866,
         "high": 254.4633,
         "low": 244.5773,
         "close": 246.4186
@@ -5558,7 +5288,7 @@
       {
         "date": "2026-06-23",
         "open": 245.8335,
-        "high": 251.3659,
+        "high": 251.3573,
         "low": 243.0802,
         "close": 250.3076
       },
@@ -5571,10 +5301,10 @@
       },
       {
         "date": "2026-06-25",
-        "open": 249.4214,
+        "open": 248.6642,
         "high": 254.2826,
         "low": 245.4463,
-        "close": 252.1747
+        "close": 252.1746
       },
       {
         "date": "2026-06-26",
@@ -5585,7 +5315,7 @@
       },
       {
         "date": "2026-06-29",
-        "open": 266.7154,
+        "open": 266.5777,
         "high": 286.41,
         "low": 262.7059,
         "close": 285.6528
@@ -5621,7 +5351,7 @@
       {
         "date": "2026-07-07",
         "open": 309.6322,
-        "high": 312.2306,
+        "high": 312.3338,
         "low": 289.0944,
         "close": 289.9892
       },
@@ -5648,14 +5378,14 @@
       },
       {
         "date": "2026-07-13",
-        "open": 279.7247,
-        "high": 284.8613,
+        "open": 279.7246,
+        "high": 284.8612,
         "low": 272.1015,
         "close": 284.1901
       },
       {
         "date": "2026-07-14",
-        "open": 284.5515,
+        "open": 284.6203,
         "high": 304.3063,
         "low": 284.1815,
         "close": 303.6266
@@ -5676,21 +5406,21 @@
       },
       {
         "date": "2026-07-17",
-        "open": 297.578,
+        "open": 298.5588,
         "high": 317.3155,
         "low": 296.8724,
         "close": 308.6083
       },
       {
         "date": "2026-07-20",
-        "open": 305.2183,
+        "open": 305.2011,
         "high": 315.1731,
         "low": 299.729,
         "close": 299.9871
       },
       {
         "date": "2026-07-21",
-        "open": 300.3829,
+        "open": 300.6582,
         "high": 302.8608,
         "low": 287.3994,
         "close": 294.3859
@@ -5704,8 +5434,8 @@
       },
       {
         "date": "2026-07-23",
-        "open": 288.7331,
-        "high": 289.5848,
+        "open": 288.733,
+        "high": 289.5849,
         "low": 276.937,
         "close": 280.1721
       },
@@ -5721,27 +5451,27 @@
         "open": 285.2312,
         "high": 285.4893,
         "low": 272.4887,
-        "close": 273.0221
+        "close": 273.0222
       },
       {
         "date": "2026-07-28",
-        "open": 273.4954,
+        "open": 273.1856,
         "high": 278.2534,
         "low": 265.4678,
         "close": 274.4676
       },
       {
         "date": "2026-07-29",
-        "open": 274.9839,
-        "high": 277.1435,
+        "open": 274.7946,
+        "high": 277.1434,
         "low": 267.1198,
         "close": 270.2947
       },
       {
         "date": "2026-07-30",
-        "open": 271.3099,
+        "open": 271.9122,
         "high": 280.7485,
-        "low": 269.3396,
+        "low": 269.3482,
         "close": 280.2151
       },
       {
@@ -5749,7 +5479,7 @@
         "open": 285.9454,
         "high": 287.3564,
         "low": 274.8806,
-        "close": 285.5066
+        "close": 285.5065
       },
       {
         "date": "2026-08-03",
@@ -5762,19 +5492,19 @@
         "date": "2026-08-04",
         "open": 302.5167,
         "high": 316.197,
-        "low": 300.3398,
+        "low": 300.3399,
         "close": 315.199
       },
       {
         "date": "2026-08-05",
-        "open": 321.1357,
+        "open": 321.6778,
         "high": 324.3536,
         "low": 311.6541,
         "close": 312.0327
       },
       {
         "date": "2026-08-06",
-        "open": 301.1572,
+        "open": 301.2519,
         "high": 311.0088,
         "low": 300.2796,
         "close": 309.3052
@@ -5788,14 +5518,14 @@
       },
       {
         "date": "2026-08-10",
-        "open": 313.3749,
+        "open": 314.373,
         "high": 331.4003,
         "low": 312.2822,
         "close": 331.2884
       },
       {
         "date": "2026-08-11",
-        "open": 330.9615,
+        "open": 330.5657,
         "high": 333.1469,
         "low": 323.4502,
         "close": 330.2215
@@ -5809,7 +5539,7 @@
       },
       {
         "date": "2026-08-13",
-        "open": 338.619,
+        "open": 339.1009,
         "high": 343.1964,
         "low": 333.276,
         "close": 340.7184
@@ -5818,7 +5548,7 @@
         "date": "2026-08-14",
         "open": 341.3723,
         "high": 341.8455,
-        "low": 327.6748,
+        "low": 327.6834,
         "close": 330.6259
       },
       {
@@ -5837,7 +5567,7 @@
       },
       {
         "date": "2026-08-19",
-        "open": 322.3661,
+        "open": 322.8737,
         "high": 323.8804,
         "low": 302.3962,
         "close": 309.5375
@@ -5851,7 +5581,7 @@
       },
       {
         "date": "2026-08-21",
-        "open": 302.8866,
+        "open": 303.205,
         "high": 310.1656,
         "low": 295.1258,
         "close": 307.9114
@@ -5860,7 +5590,7 @@
         "date": "2026-08-24",
         "open": 306.354,
         "high": 307.9114,
-        "low": 298.5932,
+        "low": 298.6018,
         "close": 301.9144
       },
       {
@@ -5872,7 +5602,7 @@
       },
       {
         "date": "2026-08-26",
-        "open": 284.5773,
+        "open": 284.3278,
         "high": 294.4719,
         "low": 282.2112,
         "close": 291.9423
@@ -5880,7 +5610,7 @@
       {
         "date": "2026-08-27",
         "open": 308.505,
-        "high": 333.2674,
+        "high": 333.2587,
         "low": 306.8703,
         "close": 329.4042
       },
@@ -5900,14 +5630,14 @@
       },
       {
         "date": "2026-09-01",
-        "open": 321.5315,
+        "open": 322.3231,
         "high": 323.4416,
         "low": 307.3865,
         "close": 311.5423
       },
       {
         "date": "2026-09-02",
-        "open": 297.294,
+        "open": 297.6984,
         "high": 301.7165,
         "low": 276.524,
         "close": 282.6242
@@ -5921,130 +5651,75 @@
       },
       {
         "date": "2026-09-04",
-        "open": 283.932,
+        "open": 283.6395,
         "high": 291.7617,
         "low": 282.2112,
         "close": 286.7369
       },
       {
         "date": "2026-09-08",
-        "open": 282.1682,
+        "open": 281.8413,
         "high": 292.0198,
-        "low": 279.9053,
+        "low": 279.9054,
         "close": 289.9376
       },
       {
         "date": "2026-09-09",
-        "open": 291.5121,
-        "high": 292.3898,
+        "open": 290.7378,
+        "high": 292.3897,
         "low": 286.1088,
         "close": 288.3201
       },
       {
         "date": "2026-09-10",
-        "open": 284.6203,
-        "high": 295.9776,
-        "low": 284.388,
-        "close": 293.1555
+        "open": 284.6978,
+        "high": 296.1019,
+        "low": 284.1901,
+        "close": 292.5793
       }
     ],
-    "Daily_Change": 4.8354,
-    "Date": "2026-09-10 18:13",
-    "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-10T15:13:38.930308+00:00",
-    "Data_Broker": "IBKR",
+    "Daily_Change": 4.2592,
+    "Date": "2026-09-10 18:23",
+    "Market_Data_Source": "Yahoo Finance",
+    "Market_Data_Fetched_At": null,
+    "Data_Broker": null,
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "Bid": 340.02,
-    "Ask": 340.40000000000003,
-    "Spread_Pct": 0.11169571735106323,
-    "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 2244251240.0,
-    "Historical_Vol": 0.5337866768104277,
-    "Implied_Volatility": 0.4541069665060222,
-    "IV_Percentile": 0.5776892304420471,
-    "YTD_Change_IBKR": -180.7927969482422,
-    "Dividend_Yield_IBKR": 0.0,
-    "IBKR_Misc_Statistics": {
-      "high_13w": 398.8800048828125,
-      "high_26w": 398.8800048828125,
-      "high_52w": 398.8800048828125,
-      "low_13w": 258.1000061035156,
-      "low_26w": 143.5,
-      "low_52w": 139.5709991455078,
-      "open_52w": 197.83999633789062
-    },
-    "IBKR_Snapshot_Groups": {
-      "quote": [
-        "last",
-        "bid_ask",
-        "top_status",
-        "prior_close",
-        "volume",
-        "open",
-        "low",
-        "high"
-      ],
-      "ranking": [
-        "avg_90d_usd_volume",
-        "year_to_date_change",
-        "cumulative_perf_1d",
-        "cumulative_perf_1w",
-        "cumulative_perf_1m",
-        "cumulative_perf_ytd",
-        "cumulative_perf_1y"
-      ],
-      "risk": [
-        "implied_volatility_percentile",
-        "implied_vol_underlying",
-        "historical_vol",
-        "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
-      ]
-    },
+    "IBKR_Snapshot_Groups": {},
     "Market": "SUA",
     "Country": "US",
-    "Exchange": "NASDAQ",
+    "Exchange": null,
     "Security_Type": "STK",
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Options_Supported": true,
+    "Market_Metadata_Source": "LOCAL_CANONICAL_SYMBOL",
+    "Options_Supported": null,
     "Instrument_Metadata": {
       "market": "SUA",
       "country": "US",
-      "exchange": "NASDAQ",
+      "exchange": null,
       "security_type": "STK",
       "currency": "USD",
-      "contract_id": 110619459,
-      "sections": [
-        "BAG",
-        "CFD",
-        "IOPT",
-        "OPT",
-        "STK",
-        "WAR"
-      ],
-      "options_supported": true,
-      "source": "IBKR_MCP_SEARCH_CONTRACTS"
+      "contract_id": null,
+      "sections": [],
+      "options_supported": null,
+      "source": "LOCAL_CANONICAL_SYMBOL"
     },
-    "volatility_score": 0.0,
-    "liquidity_score": 100.0,
-    "risk_score": 45.0,
-    "volatility_regime": "extreme",
+    "volatility_score": 65.27,
+    "liquidity_score": 50,
+    "risk_score": 56.11,
+    "volatility_regime": "elevated",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
   {
     "Symbol": "PBR",
     "History_Ticker": "PBR",
-    "Company_Name": "PETROLEO BRASILEIRO-SPON ADR",
+    "Company_Name": "Petr\u00f3leo Brasileiro S.A. - Petrobras",
     "Shares": 120,
-    "Current_Price": 18.52,
-    "Price_Native": 21.52,
+    "Current_Price": 18.54,
+    "Price_Native": 21.55,
     "Currency": "USD",
-    "Contract_ID": 10828168,
+    "Contract_ID": null,
     "Asset_Class": null,
     "Market_Value_IBKR": null,
     "Daily_PnL_IBKR": null,
@@ -6052,27 +5727,27 @@
     "Buy_Price": 15.41,
     "Target": 18.62,
     "Trail_Stop": 17.36,
-    "Suggested_Stop": 17.31,
+    "Suggested_Stop": 17.4,
     "Finviz_ATR": 0.64,
     "Vol_W": 2.9,
     "Vol_M": 2.6,
     "Trail_Pct": 6.5,
     "Investment": 1849.0,
     "Entry_Date": "-",
-    "Current_Value": 2221.9,
-    "Profit": 372.9,
-    "Profit_Pct": 20.17,
+    "Current_Value": 2224.99,
+    "Profit": 375.99,
+    "Profit_Pct": 20.34,
     "Max_Profit": 385.29,
     "Consensus": "Buy",
     "Analysts": 13,
     "Status": "Overbought",
-    "RSI": 70.02,
+    "RSI": 73.26,
     "RSI_Status": "Overbought",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "TRAIL STRANS",
     "Sell_Reason": "Breadth<45%: Strong Stock (Hold)",
-    "RS_vs_SPX": 25.2,
+    "RS_vs_SPX": 29.08,
     "Chart_History": [
       17.4968,
       17.6078,
@@ -6082,84 +5757,84 @@
       18.1119,
       18.2505,
       18.1386,
-      18.9374,
-      18.7309,
-      17.991,
-      17.5263,
-      17.4919,
-      17.8533,
-      17.6382,
-      16.8552,
-      17.0187,
-      17.1478,
-      17.8103,
-      17.5608,
-      17.0617,
-      17.2338,
-      17.122,
-      16.6918,
-      16.3132,
-      16.2013,
-      16.1497,
-      16.2271,
-      16.1067,
-      15.6507,
-      15.5388,
-      15.2721,
-      15.2721,
-      15.3323,
-      15.5818,
-      15.6937,
-      15.8142,
-      14.9193,
-      14.6698,
-      14.4461,
-      14.4117,
-      14.6354,
-      14.6526,
-      14.1536,
-      14.2138,
-      14.0159,
-      14.0073,
-      13.9041,
-      13.7578,
-      13.861,
-      13.9901,
-      14.3343,
-      14.8333,
-      14.6526,
-      14.9021,
-      15.384,
-      15.4184,
-      15.3667,
-      15.0312,
-      15.4614,
-      15.6507,
-      15.9518,
-      16.253,
-      16.3476,
-      16.1497,
-      15.4872,
+      18.2573,
+      18.0582,
+      17.3448,
+      16.8969,
+      16.8637,
+      17.2121,
+      17.0047,
+      16.2499,
+      16.4075,
+      16.5319,
+      17.1706,
+      16.9301,
+      16.4489,
+      16.6148,
+      16.507,
+      16.0923,
+      15.7273,
+      15.6194,
+      15.5697,
+      15.6443,
+      15.5282,
+      15.2047,
+      15.0961,
+      14.8369,
+      14.8369,
+      14.8954,
+      15.1378,
+      15.2465,
+      15.3635,
+      14.4942,
+      14.2518,
+      14.0345,
+      14.001,
+      14.2184,
+      14.2351,
+      13.7503,
+      13.8088,
+      13.6165,
+      13.6082,
+      13.5079,
+      13.3658,
+      13.4661,
+      13.5915,
+      13.9258,
+      14.4106,
+      14.2351,
+      14.4775,
+      14.9456,
+      14.979,
+      14.9289,
+      14.6029,
+      15.0208,
+      15.2047,
+      15.4973,
+      15.7898,
+      15.8818,
+      15.6895,
+      15.0459,
+      15.1044,
+      15.5391,
+      15.9821,
+      16.2161,
+      15.9319,
+      15.6477,
+      15.3468,
+      15.4806,
+      15.0125,
+      15.3217,
+      14.9874,
+      14.8453,
+      14.954,
+      14.9456,
+      15.2549,
+      15.1964,
+      15.4973,
+      15.8901,
+      16.0072,
       15.5474,
-      15.9948,
-      16.4508,
-      16.6918,
-      16.3992,
-      16.1067,
-      15.7969,
-      15.9346,
-      15.4528,
-      15.7711,
-      15.427,
-      15.2807,
-      15.3926,
-      15.384,
-      15.7023,
-      15.6421,
-      15.9518,
-      16.3562,
-      16.4767,
-      16.0034,
       15.3581,
       15.2807,
       15.7023,
@@ -6171,7 +5846,7 @@
       17.3112,
       17.9221,
       18.0082,
-      18.5158
+      18.5416
     ],
     "Chart_Dates": [
       "2026-04-22",
@@ -6332,560 +6007,560 @@
       },
       {
         "date": "2026-05-04",
-        "open": 19.0493,
-        "high": 19.1353,
-        "low": 18.7997,
-        "close": 18.9374
+        "open": 18.3651,
+        "high": 18.448,
+        "low": 18.1245,
+        "close": 18.2573
       },
       {
         "date": "2026-05-05",
-        "open": 18.7309,
-        "high": 18.9718,
-        "low": 18.6105,
-        "close": 18.7309
+        "open": 18.0582,
+        "high": 18.2904,
+        "low": 17.942,
+        "close": 18.0582
       },
       {
         "date": "2026-05-06",
-        "open": 18.0942,
-        "high": 18.2061,
-        "low": 17.8791,
-        "close": 17.991
+        "open": 17.4443,
+        "high": 17.5522,
+        "low": 17.237,
+        "close": 17.3448
       },
       {
         "date": "2026-05-07",
-        "open": 17.6554,
-        "high": 17.664,
-        "low": 17.1306,
-        "close": 17.5263
+        "open": 17.0213,
+        "high": 17.0296,
+        "low": 16.5236,
+        "close": 16.8969
       },
       {
         "date": "2026-05-08",
-        "open": 17.7242,
-        "high": 17.7587,
-        "low": 17.4747,
-        "close": 17.4919
+        "open": 17.0877,
+        "high": 17.1208,
+        "low": 16.8471,
+        "close": 16.8637
       },
       {
         "date": "2026-05-11",
-        "open": 17.6898,
-        "high": 17.9738,
-        "low": 17.4747,
-        "close": 17.8533
+        "open": 17.0545,
+        "high": 17.3282,
+        "low": 16.8554,
+        "close": 17.2121
       },
       {
         "date": "2026-05-12",
-        "open": 17.4489,
-        "high": 17.8103,
-        "low": 17.3457,
-        "close": 17.6382
+        "open": 16.8222,
+        "high": 17.1706,
+        "low": 16.7227,
+        "close": 17.0047
       },
       {
         "date": "2026-05-13",
-        "open": 17.4833,
-        "high": 17.535,
-        "low": 16.7778,
-        "close": 16.8552
+        "open": 16.8554,
+        "high": 16.9052,
+        "low": 16.1752,
+        "close": 16.2499
       },
       {
         "date": "2026-05-14",
-        "open": 16.8638,
-        "high": 17.208,
-        "low": 16.8552,
-        "close": 17.0187
+        "open": 16.2582,
+        "high": 16.59,
+        "low": 16.2499,
+        "close": 16.4075
       },
       {
         "date": "2026-05-15",
-        "open": 16.9241,
-        "high": 17.1736,
-        "low": 16.838,
-        "close": 17.1478
+        "open": 16.3162,
+        "high": 16.5568,
+        "low": 16.2333,
+        "close": 16.5319
       },
       {
         "date": "2026-05-18",
-        "open": 16.9499,
-        "high": 17.8189,
-        "low": 16.8294,
-        "close": 17.8103
+        "open": 16.3494,
+        "high": 17.1789,
+        "low": 16.225,
+        "close": 17.1706
       },
       {
         "date": "2026-05-19",
-        "open": 17.4919,
-        "high": 17.6898,
-        "low": 17.3112,
-        "close": 17.5608
+        "open": 16.8637,
+        "high": 17.0545,
+        "low": 16.6895,
+        "close": 16.9301
       },
       {
         "date": "2026-05-20",
-        "open": 17.5005,
-        "high": 17.7759,
-        "low": 17.0617,
-        "close": 17.0617
+        "open": 16.872,
+        "high": 17.1374,
+        "low": 16.4489,
+        "close": 16.4489
       },
       {
         "date": "2026-05-21",
-        "open": 17.3887,
-        "high": 17.621,
-        "low": 17.1822,
-        "close": 17.2338
+        "open": 16.7642,
+        "high": 16.9881,
+        "low": 16.5651,
+        "close": 16.6148
       },
       {
         "date": "2026-05-22",
-        "open": 16.9757,
-        "high": 17.1908,
-        "low": 16.881,
-        "close": 17.122
+        "open": 16.366,
+        "high": 16.5734,
+        "low": 16.2748,
+        "close": 16.507
       },
       {
         "date": "2026-05-26",
-        "open": 16.8036,
-        "high": 16.9155,
-        "low": 16.6487,
-        "close": 16.6918
+        "open": 16.2001,
+        "high": 16.3079,
+        "low": 16.0508,
+        "close": 16.0923
       },
       {
         "date": "2026-05-27",
-        "open": 16.2616,
-        "high": 16.4853,
-        "low": 16.1669,
-        "close": 16.3132
+        "open": 15.6775,
+        "high": 15.8932,
+        "low": 15.5863,
+        "close": 15.7273
       },
       {
         "date": "2026-05-28",
-        "open": 16.4767,
-        "high": 16.5111,
-        "low": 16.1841,
-        "close": 16.2013
+        "open": 15.8849,
+        "high": 15.9098,
+        "low": 15.6029,
+        "close": 15.6194
       },
       {
         "date": "2026-05-29",
-        "open": 16.0637,
-        "high": 16.1755,
-        "low": 15.926,
-        "close": 16.1497
+        "open": 15.4867,
+        "high": 15.5946,
+        "low": 15.354,
+        "close": 15.5697
       },
       {
         "date": "2026-06-01",
-        "open": 16.339,
-        "high": 16.5197,
-        "low": 16.1325,
-        "close": 16.2271
+        "open": 15.7522,
+        "high": 15.9264,
+        "low": 15.5531,
+        "close": 15.6443
       },
       {
         "date": "2026-06-02",
-        "open": 16.1497,
-        "high": 16.2616,
-        "low": 16.0809,
-        "close": 16.1067
+        "open": 15.5697,
+        "high": 15.6775,
+        "low": 15.5033,
+        "close": 15.5282
       },
       {
         "date": "2026-06-03",
-        "open": 15.926,
-        "high": 15.9776,
-        "low": 15.6421,
-        "close": 15.6507
+        "open": 15.4722,
+        "high": 15.5224,
+        "low": 15.2047,
+        "close": 15.2047
       },
       {
         "date": "2026-06-04",
-        "open": 15.47,
-        "high": 15.6077,
-        "low": 15.3667,
-        "close": 15.5388
+        "open": 15.0292,
+        "high": 15.1629,
+        "low": 14.9289,
+        "close": 15.0961
       },
       {
         "date": "2026-06-05",
-        "open": 15.427,
-        "high": 15.5388,
-        "low": 15.2205,
-        "close": 15.2721
+        "open": 14.9874,
+        "high": 15.0961,
+        "low": 14.7868,
+        "close": 14.8369
       },
       {
         "date": "2026-06-08",
-        "open": 15.3151,
-        "high": 15.4614,
-        "low": 15.1689,
-        "close": 15.2721
+        "open": 14.8787,
+        "high": 15.0208,
+        "low": 14.7366,
+        "close": 14.8369
       },
       {
         "date": "2026-06-09",
-        "open": 15.3495,
-        "high": 15.4356,
-        "low": 15.2033,
-        "close": 15.3323
+        "open": 14.9122,
+        "high": 14.9957,
+        "low": 14.7701,
+        "close": 14.8954
       },
       {
         "date": "2026-06-10",
-        "open": 15.3409,
-        "high": 15.7883,
-        "low": 15.3409,
-        "close": 15.5818
+        "open": 14.9038,
+        "high": 15.3385,
+        "low": 14.9038,
+        "close": 15.1378
       },
       {
         "date": "2026-06-11",
-        "open": 15.7195,
-        "high": 15.926,
-        "low": 15.5732,
-        "close": 15.6937
+        "open": 15.2716,
+        "high": 15.4722,
+        "low": 15.1295,
+        "close": 15.2465
       },
       {
         "date": "2026-06-12",
-        "open": 15.4872,
-        "high": 15.8314,
-        "low": 15.427,
-        "close": 15.8142
+        "open": 15.0459,
+        "high": 15.3803,
+        "low": 14.9874,
+        "close": 15.3635
       },
       {
         "date": "2026-06-15",
-        "open": 15.2119,
-        "high": 15.2979,
-        "low": 14.8677,
-        "close": 14.9193
+        "open": 14.7868,
+        "high": 14.862,
+        "low": 14.4524,
+        "close": 14.4942
       },
       {
         "date": "2026-06-16",
-        "open": 14.5924,
-        "high": 14.7817,
-        "low": 14.5666,
-        "close": 14.6698
+        "open": 14.1766,
+        "high": 14.3605,
+        "low": 14.1515,
+        "close": 14.2518
       },
       {
         "date": "2026-06-17",
-        "open": 14.7387,
-        "high": 14.8677,
-        "low": 14.4289,
-        "close": 14.4461
+        "open": 14.302,
+        "high": 14.4441,
+        "low": 14.0178,
+        "close": 14.0345
       },
       {
         "date": "2026-06-18",
-        "open": 14.2224,
-        "high": 14.4289,
-        "low": 13.9557,
-        "close": 14.4117
+        "open": 13.8172,
+        "high": 14.0178,
+        "low": 13.558,
+        "close": 14.001
       },
       {
         "date": "2026-06-22",
-        "open": 14.4891,
-        "high": 14.6354,
-        "low": 14.2998,
-        "close": 14.6354
+        "open": 14.0763,
+        "high": 14.2184,
+        "low": 13.9007,
+        "close": 14.2184
       },
       {
         "date": "2026-06-23",
-        "open": 14.4461,
-        "high": 14.7128,
-        "low": 14.4117,
-        "close": 14.6526
+        "open": 14.0345,
+        "high": 14.2936,
+        "low": 14.001,
+        "close": 14.2351
       },
       {
         "date": "2026-06-24",
-        "open": 14.2138,
-        "high": 14.231,
-        "low": 14.0073,
-        "close": 14.1536
+        "open": 13.8004,
+        "high": 13.8255,
+        "low": 13.6082,
+        "close": 13.7503
       },
       {
         "date": "2026-06-25",
-        "open": 14.0934,
-        "high": 14.274,
-        "low": 13.9299,
-        "close": 14.2138
+        "open": 13.6918,
+        "high": 13.8673,
+        "low": 13.533,
+        "close": 13.8088
       },
       {
         "date": "2026-06-26",
-        "open": 14.1106,
-        "high": 14.1278,
-        "low": 13.9815,
-        "close": 14.0159
+        "open": 13.7085,
+        "high": 13.7252,
+        "low": 13.5831,
+        "close": 13.6165
       },
       {
         "date": "2026-06-29",
-        "open": 14.0934,
-        "high": 14.1364,
-        "low": 13.9471,
-        "close": 14.0073
+        "open": 13.6918,
+        "high": 13.7336,
+        "low": 13.558,
+        "close": 13.6082
       },
       {
         "date": "2026-06-30",
-        "open": 14.0073,
-        "high": 14.0589,
-        "low": 13.861,
-        "close": 13.9041
+        "open": 13.6082,
+        "high": 13.6583,
+        "low": 13.4744,
+        "close": 13.5079
       },
       {
         "date": "2026-07-01",
-        "open": 13.7062,
-        "high": 13.9041,
-        "low": 13.6459,
-        "close": 13.7578
+        "open": 13.3156,
+        "high": 13.5079,
+        "low": 13.2571,
+        "close": 13.3658
       },
       {
         "date": "2026-07-02",
-        "open": 13.9127,
-        "high": 14.1536,
-        "low": 13.7664,
-        "close": 13.861
+        "open": 13.5162,
+        "high": 13.7503,
+        "low": 13.3741,
+        "close": 13.4661
       },
       {
         "date": "2026-07-06",
-        "open": 13.9127,
-        "high": 14.0073,
-        "low": 13.8696,
-        "close": 13.9901
+        "open": 13.5162,
+        "high": 13.6082,
+        "low": 13.4828,
+        "close": 13.5915
       },
       {
         "date": "2026-07-07",
-        "open": 14.1106,
-        "high": 14.4547,
-        "low": 14.0589,
-        "close": 14.3343
+        "open": 13.7085,
+        "high": 14.0428,
+        "low": 13.6583,
+        "close": 13.9258
       },
       {
         "date": "2026-07-08",
-        "open": 14.7559,
-        "high": 14.8763,
-        "low": 14.4547,
-        "close": 14.8333
+        "open": 14.3354,
+        "high": 14.4524,
+        "low": 14.0512,
+        "close": 14.4106
       },
       {
         "date": "2026-07-09",
-        "open": 14.8419,
-        "high": 14.8677,
-        "low": 14.5236,
-        "close": 14.6526
+        "open": 14.4273,
+        "high": 14.4441,
+        "low": 14.1097,
+        "close": 14.2351
       },
       {
         "date": "2026-07-10",
-        "open": 14.7473,
-        "high": 14.9279,
-        "low": 14.7128,
-        "close": 14.9021
+        "open": 14.327,
+        "high": 14.5026,
+        "low": 14.2936,
+        "close": 14.4775
       },
       {
         "date": "2026-07-13",
-        "open": 15.1602,
-        "high": 15.4184,
-        "low": 15.1172,
-        "close": 15.384
+        "open": 14.7283,
+        "high": 14.979,
+        "low": 14.6865,
+        "close": 14.9456
       },
       {
         "date": "2026-07-14",
-        "open": 15.5474,
-        "high": 15.6249,
-        "low": 15.2979,
-        "close": 15.4184
+        "open": 15.1044,
+        "high": 15.1796,
+        "low": 14.8704,
+        "close": 14.979
       },
       {
         "date": "2026-07-15",
-        "open": 15.4614,
-        "high": 15.4958,
-        "low": 15.2119,
-        "close": 15.3667
+        "open": 15.0208,
+        "high": 15.0543,
+        "low": 14.7784,
+        "close": 14.9289
       },
       {
         "date": "2026-07-16",
-        "open": 15.3753,
-        "high": 15.4012,
-        "low": 14.9968,
-        "close": 15.0312
+        "open": 14.9372,
+        "high": 14.9623,
+        "low": 14.5778,
+        "close": 14.6029
       },
       {
         "date": "2026-07-17",
-        "open": 15.2721,
-        "high": 15.4872,
-        "low": 15.2205,
-        "close": 15.4614
+        "open": 14.8369,
+        "high": 15.0459,
+        "low": 14.7951,
+        "close": 15.0208
       },
       {
         "date": "2026-07-20",
-        "open": 15.3753,
-        "high": 15.7539,
-        "low": 15.2893,
-        "close": 15.6507
+        "open": 14.9372,
+        "high": 15.305,
+        "low": 14.862,
+        "close": 15.2047
       },
       {
         "date": "2026-07-21",
-        "open": 15.7625,
-        "high": 15.9604,
-        "low": 15.6421,
-        "close": 15.9518
+        "open": 15.3134,
+        "high": 15.5056,
+        "low": 15.2047,
+        "close": 15.4973
       },
       {
         "date": "2026-07-22",
-        "open": 16.1497,
-        "high": 16.4508,
-        "low": 16.1325,
-        "close": 16.253
+        "open": 15.6895,
+        "high": 15.9821,
+        "low": 15.6812,
+        "close": 15.7898
       },
       {
         "date": "2026-07-23",
-        "open": 16.5455,
-        "high": 16.6143,
-        "low": 16.3132,
-        "close": 16.3476
+        "open": 16.074,
+        "high": 16.1409,
+        "low": 15.8483,
+        "close": 15.8818
       },
       {
         "date": "2026-07-24",
-        "open": 16.253,
-        "high": 16.4681,
-        "low": 16.0895,
-        "close": 16.1497
+        "open": 15.7898,
+        "high": 15.9988,
+        "low": 15.6394,
+        "close": 15.6895
       },
       {
         "date": "2026-07-27",
-        "open": 15.6335,
-        "high": 15.7453,
-        "low": 15.4528,
-        "close": 15.4872
+        "open": 15.188,
+        "high": 15.2967,
+        "low": 15.0125,
+        "close": 15.0459
       },
       {
         "date": "2026-07-28",
-        "open": 15.5302,
-        "high": 15.8744,
-        "low": 15.4872,
-        "close": 15.5474
+        "open": 15.0877,
+        "high": 15.422,
+        "low": 15.0459,
+        "close": 15.1044
       },
       {
         "date": "2026-07-29",
-        "open": 16.0809,
-        "high": 16.0895,
-        "low": 15.8572,
-        "close": 15.9948
+        "open": 15.6227,
+        "high": 15.631,
+        "low": 15.4053,
+        "close": 15.5391
       },
       {
         "date": "2026-07-30",
-        "open": 15.9604,
-        "high": 16.4767,
-        "low": 15.9518,
-        "close": 16.4508
+        "open": 15.4973,
+        "high": 16.0072,
+        "low": 15.4973,
+        "close": 15.9821
       },
       {
         "date": "2026-07-31",
-        "open": 16.5197,
-        "high": 16.7434,
-        "low": 16.2702,
-        "close": 16.6918
+        "open": 16.049,
+        "high": 16.2663,
+        "low": 15.8066,
+        "close": 16.2161
       },
       {
         "date": "2026-08-03",
-        "open": 16.3476,
-        "high": 16.5369,
-        "low": 16.2788,
-        "close": 16.3992
+        "open": 15.8818,
+        "high": 16.0657,
+        "low": 15.8149,
+        "close": 15.9319
       },
       {
         "date": "2026-08-04",
-        "open": 16.1669,
-        "high": 16.2616,
-        "low": 15.926,
-        "close": 16.1067
+        "open": 15.7146,
+        "high": 15.7982,
+        "low": 15.4722,
+        "close": 15.6477
       },
       {
         "date": "2026-08-05",
-        "open": 16.3218,
-        "high": 16.3304,
-        "low": 15.7453,
-        "close": 15.7969
+        "open": 15.8567,
+        "high": 15.8651,
+        "low": 15.2967,
+        "close": 15.3468
       },
       {
         "date": "2026-08-06",
-        "open": 16.0551,
-        "high": 16.0637,
-        "low": 15.883,
-        "close": 15.9346
+        "open": 15.5976,
+        "high": 15.6059,
+        "low": 15.4304,
+        "close": 15.4806
       },
       {
         "date": "2026-08-07",
-        "open": 16.1497,
-        "high": 16.1497,
-        "low": 15.427,
-        "close": 15.4528
+        "open": 15.6645,
+        "high": 15.6812,
+        "low": 14.9874,
+        "close": 15.0125
       },
       {
         "date": "2026-08-10",
-        "open": 15.6077,
-        "high": 15.9518,
-        "low": 15.4872,
-        "close": 15.7711
+        "open": 15.1629,
+        "high": 15.4973,
+        "low": 15.0459,
+        "close": 15.3217
       },
       {
         "date": "2026-08-11",
-        "open": 15.7969,
-        "high": 15.8142,
-        "low": 15.3065,
-        "close": 15.427
+        "open": 15.3635,
+        "high": 15.3635,
+        "low": 14.8787,
+        "close": 14.9874
       },
       {
         "date": "2026-08-12",
-        "open": 15.2979,
-        "high": 15.5388,
-        "low": 15.2635,
-        "close": 15.2807
+        "open": 14.862,
+        "high": 15.0961,
+        "low": 14.8286,
+        "close": 14.8453
       },
       {
         "date": "2026-08-13",
-        "open": 15.1861,
-        "high": 15.47,
-        "low": 15.143,
-        "close": 15.3926
+        "open": 14.7533,
+        "high": 15.0292,
+        "low": 14.7115,
+        "close": 14.954
       },
       {
         "date": "2026-08-14",
-        "open": 15.4872,
-        "high": 15.5732,
-        "low": 15.3323,
-        "close": 15.384
+        "open": 15.0459,
+        "high": 15.1295,
+        "low": 14.8954,
+        "close": 14.9456
       },
       {
         "date": "2026-08-17",
-        "open": 15.6421,
-        "high": 15.7281,
-        "low": 15.4184,
-        "close": 15.7023
+        "open": 15.2047,
+        "high": 15.2799,
+        "low": 14.9874,
+        "close": 15.2549
       },
       {
         "date": "2026-08-18",
-        "open": 15.9088,
-        "high": 15.9518,
-        "low": 15.5818,
-        "close": 15.6421
+        "open": 15.4555,
+        "high": 15.4973,
+        "low": 15.1378,
+        "close": 15.1964
       },
       {
         "date": "2026-08-19",
-        "open": 16.0809,
-        "high": 16.3046,
-        "low": 15.9174,
-        "close": 15.9518
+        "open": 15.6227,
+        "high": 15.84,
+        "low": 15.4638,
+        "close": 15.4973
       },
       {
         "date": "2026-08-20",
-        "open": 16.1669,
-        "high": 16.5713,
-        "low": 16.1411,
-        "close": 16.3562
+        "open": 15.7062,
+        "high": 16.0991,
+        "low": 15.6812,
+        "close": 15.8901
       },
       {
         "date": "2026-08-21",
-        "open": 16.4681,
-        "high": 16.5885,
-        "low": 16.3734,
-        "close": 16.4767
+        "open": 15.9988,
+        "high": 16.1158,
+        "low": 15.9069,
+        "close": 16.0072
       },
       {
         "date": "2026-08-24",
-        "open": 16.0895,
-        "high": 16.1153,
-        "low": 15.8314,
-        "close": 16.0034
+        "open": 15.631,
+        "high": 15.6561,
+        "low": 15.3886,
+        "close": 15.5474
       },
       {
         "date": "2026-08-25",
         "open": 15.556,
         "high": 15.5991,
-        "low": 15.2205,
+        "low": 15.2291,
         "close": 15.3581
       },
       {
         "date": "2026-08-26",
-        "open": 15.2463,
+        "open": 15.2549,
         "high": 15.5818,
         "low": 15.1086,
         "close": 15.2807
@@ -6908,7 +6583,7 @@
         "date": "2026-08-31",
         "open": 16.5025,
         "high": 16.7692,
-        "low": 16.296,
+        "low": 16.3046,
         "close": 16.6487
       },
       {
@@ -6929,7 +6604,7 @@
         "date": "2026-09-03",
         "open": 18.2233,
         "high": 18.2921,
-        "low": 17.6038,
+        "low": 17.6124,
         "close": 17.6468
       },
       {
@@ -6943,7 +6618,7 @@
         "date": "2026-09-08",
         "open": 17.7759,
         "high": 18.0942,
-        "low": 17.6726,
+        "low": 17.6812,
         "close": 17.9221
       },
       {
@@ -6955,109 +6630,54 @@
       },
       {
         "date": "2026-09-10",
-        "open": 18.1803,
-        "high": 18.576,
+        "open": 18.1889,
+        "high": 18.5717,
         "low": 17.9221,
-        "close": 18.5158
+        "close": 18.5416
       }
     ],
-    "Daily_Change": 0.5076,
-    "Date": "2026-09-10 18:13",
-    "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-10T15:13:39.123274+00:00",
-    "Data_Broker": "IBKR",
+    "Daily_Change": 0.5334,
+    "Date": "2026-09-10 18:23",
+    "Market_Data_Source": "Yahoo Finance",
+    "Market_Data_Fetched_At": null,
+    "Data_Broker": null,
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "Bid": 21.51,
-    "Ask": 21.52,
-    "Spread_Pct": 0.04647920055774116,
-    "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 372619285.0,
-    "Historical_Vol": 0.3629150615874188,
-    "Implied_Volatility": 0.4756232445341106,
-    "IV_Percentile": 1.0,
-    "YTD_Change_IBKR": 9.90230037689209,
-    "Dividend_Yield_IBKR": 6.18,
-    "IBKR_Misc_Statistics": {
-      "high_13w": 21.25,
-      "high_26w": 22.059799194335938,
-      "high_52w": 22.059799194335938,
-      "low_13w": 15.869999885559082,
-      "low_26w": 15.869999885559082,
-      "low_52w": 10.88539981842041,
-      "open_52w": 11.764300346374512
-    },
-    "IBKR_Snapshot_Groups": {
-      "quote": [
-        "last",
-        "bid_ask",
-        "top_status",
-        "prior_close",
-        "volume",
-        "open",
-        "low",
-        "high"
-      ],
-      "ranking": [
-        "avg_90d_usd_volume",
-        "year_to_date_change",
-        "cumulative_perf_1d",
-        "cumulative_perf_1w",
-        "cumulative_perf_1m",
-        "cumulative_perf_ytd",
-        "cumulative_perf_1y"
-      ],
-      "risk": [
-        "implied_volatility_percentile",
-        "implied_vol_underlying",
-        "historical_vol",
-        "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
-      ]
-    },
+    "IBKR_Snapshot_Groups": {},
     "Market": "SUA",
     "Country": "US",
-    "Exchange": "NYSE",
+    "Exchange": null,
     "Security_Type": "STK",
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Options_Supported": true,
+    "Market_Metadata_Source": "LOCAL_CANONICAL_SYMBOL",
+    "Options_Supported": null,
     "Instrument_Metadata": {
       "market": "SUA",
       "country": "US",
-      "exchange": "NYSE",
+      "exchange": null,
       "security_type": "STK",
       "currency": "USD",
-      "contract_id": 10828168,
-      "sections": [
-        "BAG",
-        "CFD",
-        "IOPT",
-        "OPT",
-        "STK",
-        "WAR"
-      ],
-      "options_supported": true,
-      "source": "IBKR_MCP_SEARCH_CONTRACTS"
+      "contract_id": null,
+      "sections": [],
+      "options_supported": null,
+      "source": "LOCAL_CANONICAL_SYMBOL"
     },
-    "volatility_score": 31.95,
-    "liquidity_score": 88.57,
-    "risk_score": 54.35,
-    "volatility_regime": "extreme",
+    "volatility_score": 75.0,
+    "liquidity_score": 50,
+    "risk_score": 60.0,
+    "volatility_regime": "calm",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
   {
     "Symbol": "RTX",
     "History_Ticker": "RTX",
-    "Company_Name": "RTX CORP",
+    "Company_Name": "RTX Corporation",
     "Shares": 0,
-    "Current_Price": 169.96,
-    "Price_Native": 197.54,
+    "Current_Price": 169.78,
+    "Price_Native": 197.32,
     "Currency": "USD",
-    "Contract_ID": 415342104,
+    "Contract_ID": null,
     "Asset_Class": null,
     "Market_Value_IBKR": null,
     "Daily_PnL_IBKR": null,
@@ -7065,102 +6685,102 @@
     "Buy_Price": 171.75,
     "Target": 203.79,
     "Trail_Stop": 161.34,
-    "Suggested_Stop": 163.68,
+    "Suggested_Stop": 163.51,
     "Finviz_ATR": 4.09,
     "Vol_W": 1.82,
     "Vol_M": 1.92,
     "Trail_Pct": 6.66,
     "Investment": 2.82,
     "Entry_Date": "-",
-    "Current_Value": 2.79,
+    "Current_Value": 2.78,
     "Profit": -0.03,
-    "Profit_Pct": -1.04,
+    "Profit_Pct": -1.15,
     "Max_Profit": 0.53,
     "Consensus": "Buy",
     "Analysts": 22,
     "Status": "Neutral",
-    "RSI": 31.28,
+    "RSI": 31.48,
     "RSI_Status": "Neutral",
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
     "Sell_Decision": "EXIT",
-    "Sell_Reason": "Breadth<45% Fail: Sub SMA50 (197.54<208.25) / RSI 31 < 45",
-    "RS_vs_SPX": 4.75,
+    "Sell_Reason": "Breadth<45% Fail: Sub SMA50 (197.32<207.82) / RSI 31 < 45",
+    "RS_vs_SPX": 4.99,
     "Chart_History": [
       147.4587,
       150.1705,
       148.3619,
-      148.7632,
-      148.7374,
-      152.0671,
-      152.1015,
-      151.5078,
-      153.6761,
-      153.917,
-      153.2459,
-      151.1551,
-      147.2833,
-      151.3874,
-      150.1312,
-      150.4409,
-      151.4132,
-      152.2994,
-      153.9858,
-      151.938,
-      153.9772,
-      154.5795,
-      150.0624,
-      149.9333,
-      148.462,
-      154.3644,
-      155.7238,
-      153.7191,
-      156.2142,
-      152.6436,
-      158.4943,
-      157.9092,
-      158.0039,
-      160.6969,
-      165.6958,
-      159.6903,
-      156.4465,
-      160.37,
-      159.2256,
-      160.542,
-      161.7466,
-      161.1787,
-      163.2437,
-      165.0075,
-      171.4347,
-      173.2588,
-      172.8114,
-      167.7006,
-      167.9501,
-      168.5782,
-      168.974,
-      166.3928,
-      168.5438,
-      167.2274,
-      166.496,
-      167.2962,
-      166.6337,
-      167.6748,
-      179.9613,
-      183.0845,
-      187.9286,
-      188.0662,
-      185.2011,
-      184.4526,
-      185.1753,
-      186.4057,
-      187.507,
-      191.2755,
-      192.0843,
-      191.895,
-      192.8329,
-      192.6092,
-      191.6627,
-      189.701,
+      147.6556,
+      147.6299,
+      150.9349,
+      150.9691,
+      150.3798,
+      152.5319,
+      152.771,
+      152.1049,
+      150.0297,
+      146.1867,
+      150.2602,
+      149.0134,
+      149.3209,
+      150.2859,
+      151.7952,
+      153.476,
+      151.435,
+      153.4674,
+      154.0677,
+      149.5655,
+      149.4369,
+      147.9705,
+      153.8533,
+      155.2082,
+      153.2101,
+      155.697,
+      152.1382,
+      157.9695,
+      157.3864,
+      157.4807,
+      160.1649,
+      165.1472,
+      159.1615,
+      155.9286,
+      159.839,
+      158.6984,
+      160.0105,
+      161.2111,
+      160.6451,
+      162.7032,
+      164.4612,
+      170.8671,
+      172.6851,
+      172.2392,
+      167.1453,
+      167.394,
+      168.02,
+      168.4145,
+      165.8418,
+      167.9857,
+      166.6737,
+      165.9448,
+      166.7423,
+      166.082,
+      167.1196,
+      179.3654,
+      182.4783,
+      187.3063,
+      187.4436,
+      184.5879,
+      183.8418,
+      184.5622,
+      185.7885,
+      186.8861,
+      190.6422,
+      191.4483,
+      191.2597,
+      192.1944,
+      191.9714,
+      191.0281,
+      189.0729,
       191.8434,
       190.6991,
       194.0116,
@@ -7179,7 +6799,7 @@
       172.7597,
       171.0561,
       169.972,
-      169.9634
+      169.7784
     ],
     "Chart_Dates": [
       "2026-04-29",
@@ -7300,506 +6920,506 @@
       },
       {
         "date": "2026-05-04",
-        "open": 149.7096,
-        "high": 151.3186,
-        "low": 148.7546,
-        "close": 148.7632
+        "open": 148.595,
+        "high": 150.1919,
+        "low": 147.647,
+        "close": 147.6556
       },
       {
         "date": "2026-05-05",
-        "open": 149.6408,
-        "high": 149.8387,
-        "low": 147.2919,
-        "close": 148.7374
+        "open": 148.5266,
+        "high": 148.723,
+        "low": 146.2038,
+        "close": 147.6299
       },
       {
         "date": "2026-05-06",
-        "open": 150.3893,
-        "high": 153.2286,
-        "low": 149.3396,
-        "close": 152.0671
+        "open": 149.2696,
+        "high": 152.0878,
+        "low": 148.2277,
+        "close": 150.9349
       },
       {
         "date": "2026-05-07",
-        "open": 151.895,
-        "high": 152.6264,
-        "low": 149.4343,
-        "close": 152.1015
+        "open": 150.7641,
+        "high": 151.49,
+        "low": 148.3217,
+        "close": 150.9691
       },
       {
         "date": "2026-05-08",
-        "open": 151.6197,
-        "high": 152.3682,
-        "low": 150.2258,
-        "close": 151.5078
+        "open": 150.4908,
+        "high": 151.2338,
+        "low": 149.1074,
+        "close": 150.3798
       },
       {
         "date": "2026-05-11",
-        "open": 150.7077,
-        "high": 154.8118,
-        "low": 150.2258,
-        "close": 153.6761
+        "open": 149.5856,
+        "high": 153.6591,
+        "low": 149.1074,
+        "close": 152.5319
       },
       {
         "date": "2026-05-12",
-        "open": 153.6674,
-        "high": 154.8118,
-        "low": 151.9639,
-        "close": 153.917
+        "open": 152.5233,
+        "high": 153.6506,
+        "low": 150.8324,
+        "close": 152.771
       },
       {
         "date": "2026-05-13",
-        "open": 152.9533,
-        "high": 154.3902,
-        "low": 150.8195,
-        "close": 153.2459
+        "open": 151.8145,
+        "high": 153.2407,
+        "low": 149.7052,
+        "close": 152.1049
       },
       {
         "date": "2026-05-14",
-        "open": 153.2459,
-        "high": 153.9256,
-        "low": 150.8281,
-        "close": 151.1551
+        "open": 152.1049,
+        "high": 152.7795,
+        "low": 149.7052,
+        "close": 150.0297
       },
       {
         "date": "2026-05-15",
-        "open": 151.0174,
-        "high": 151.4132,
-        "low": 146.9391,
-        "close": 147.2833
+        "open": 149.893,
+        "high": 150.2859,
+        "low": 145.8451,
+        "close": 146.1867
       },
       {
         "date": "2026-05-18",
-        "open": 147.7135,
-        "high": 151.5078,
-        "low": 147.1284,
-        "close": 151.3874
+        "open": 146.6137,
+        "high": 150.3798,
+        "low": 146.033,
+        "close": 150.2602
       },
       {
         "date": "2026-05-19",
-        "open": 151.6799,
-        "high": 152.2908,
-        "low": 150.028,
-        "close": 150.1312
+        "open": 150.5506,
+        "high": 151.1569,
+        "low": 148.9195,
+        "close": 149.0134
       },
       {
         "date": "2026-05-20",
-        "open": 150.9744,
-        "high": 151.5681,
-        "low": 148.8492,
-        "close": 150.4409
+        "open": 149.8503,
+        "high": 150.4396,
+        "low": 147.741,
+        "close": 149.3209
       },
       {
         "date": "2026-05-21",
-        "open": 150.2172,
-        "high": 152.4457,
-        "low": 149.0987,
-        "close": 151.4132
+        "open": 149.0988,
+        "high": 151.3107,
+        "low": 147.9886,
+        "close": 150.2859
       },
       {
         "date": "2026-05-22",
-        "open": 152.0671,
-        "high": 152.807,
-        "low": 150.7937,
-        "close": 152.2994
+        "open": 151.5636,
+        "high": 152.3011,
+        "low": 150.2944,
+        "close": 151.7952
       },
       {
         "date": "2026-05-26",
-        "open": 153.1512,
-        "high": 154.1923,
-        "low": 151.4906,
-        "close": 153.9858
+        "open": 152.6441,
+        "high": 153.6818,
+        "low": 150.9891,
+        "close": 153.476
       },
       {
         "date": "2026-05-27",
-        "open": 153.5728,
-        "high": 153.8395,
-        "low": 151.1723,
-        "close": 151.938
+        "open": 153.0643,
+        "high": 153.3302,
+        "low": 150.6803,
+        "close": 151.435
       },
       {
         "date": "2026-05-28",
-        "open": 152.1187,
-        "high": 156.2056,
-        "low": 152.0671,
-        "close": 153.9772
+        "open": 151.6151,
+        "high": 155.6884,
+        "low": 151.5636,
+        "close": 153.4674
       },
       {
         "date": "2026-05-29",
-        "open": 153.9342,
-        "high": 154.958,
-        "low": 151.4648,
-        "close": 154.5795
+        "open": 153.4245,
+        "high": 154.445,
+        "low": 150.9633,
+        "close": 154.0677
       },
       {
         "date": "2026-06-01",
-        "open": 152.6694,
-        "high": 153.7449,
-        "low": 149.8215,
-        "close": 150.0624
+        "open": 152.1639,
+        "high": 153.2358,
+        "low": 149.3254,
+        "close": 149.5655
       },
       {
         "date": "2026-06-02",
-        "open": 149.615,
-        "high": 151.2153,
-        "low": 148.8406,
-        "close": 149.9333
+        "open": 149.1196,
+        "high": 150.7146,
+        "low": 148.3478,
+        "close": 149.4369
       },
       {
         "date": "2026-06-03",
-        "open": 148.8578,
-        "high": 151.7918,
-        "low": 148.4706,
-        "close": 148.462
+        "open": 148.3649,
+        "high": 151.2892,
+        "low": 147.9705,
+        "close": 147.9705
       },
       {
         "date": "2026-06-04",
-        "open": 151.895,
-        "high": 155.2334,
-        "low": 151.5939,
-        "close": 154.3644
+        "open": 151.3921,
+        "high": 154.7194,
+        "low": 151.092,
+        "close": 153.8533
       },
       {
         "date": "2026-06-05",
-        "open": 154.1579,
-        "high": 157.0488,
-        "low": 153.1598,
-        "close": 155.7238
+        "open": 153.6475,
+        "high": 156.5288,
+        "low": 152.6527,
+        "close": 155.2082
       },
       {
         "date": "2026-06-08",
-        "open": 155.2936,
-        "high": 156.8509,
-        "low": 153.0652,
-        "close": 153.7191
+        "open": 154.7794,
+        "high": 156.3316,
+        "low": 152.5584,
+        "close": 153.2101
       },
       {
         "date": "2026-06-09",
-        "open": 153.9772,
-        "high": 157.2639,
-        "low": 153.6158,
-        "close": 156.2142
+        "open": 153.4674,
+        "high": 156.7432,
+        "low": 153.1072,
+        "close": 155.697
       },
       {
         "date": "2026-06-10",
-        "open": 157.4532,
-        "high": 157.4532,
-        "low": 152.2306,
-        "close": 152.6436
+        "open": 156.9319,
+        "high": 156.9319,
+        "low": 151.7265,
+        "close": 152.1382
       },
       {
         "date": "2026-06-11",
-        "open": 153.1684,
-        "high": 158.6578,
-        "low": 153.1684,
-        "close": 158.4943
+        "open": 152.6613,
+        "high": 158.1325,
+        "low": 152.6613,
+        "close": 157.9695
       },
       {
         "date": "2026-06-12",
-        "open": 158.9073,
-        "high": 159.0622,
-        "low": 156.481,
-        "close": 157.9092
+        "open": 158.3811,
+        "high": 158.5355,
+        "low": 155.9628,
+        "close": 157.3864
       },
       {
         "date": "2026-06-15",
-        "open": 158.1932,
-        "high": 160.4302,
-        "low": 157.35,
-        "close": 158.0039
+        "open": 157.6694,
+        "high": 159.899,
+        "low": 156.829,
+        "close": 157.4807
       },
       {
         "date": "2026-06-16",
-        "open": 158.5287,
-        "high": 160.7658,
-        "low": 156.8079,
-        "close": 160.6969
+        "open": 158.0038,
+        "high": 160.2335,
+        "low": 156.2887,
+        "close": 160.1649
       },
       {
         "date": "2026-06-17",
-        "open": 162.4005,
-        "high": 166.453,
-        "low": 160.3614,
-        "close": 165.6958
+        "open": 161.8628,
+        "high": 165.9019,
+        "low": 159.8304,
+        "close": 165.1472
       },
       {
         "date": "2026-06-18",
-        "open": 166.9176,
-        "high": 167.0639,
-        "low": 158.675,
-        "close": 159.6903
+        "open": 166.365,
+        "high": 166.5107,
+        "low": 158.1496,
+        "close": 159.1615
       },
       {
         "date": "2026-06-22",
-        "open": 158.8212,
-        "high": 159.7849,
-        "low": 155.7066,
-        "close": 156.4465
+        "open": 158.2954,
+        "high": 159.2559,
+        "low": 155.1911,
+        "close": 155.9286
       },
       {
         "date": "2026-06-23",
-        "open": 157.4532,
-        "high": 160.6539,
-        "low": 156.4465,
-        "close": 160.37
+        "open": 156.9319,
+        "high": 160.122,
+        "low": 155.9286,
+        "close": 159.839
       },
       {
         "date": "2026-06-24",
-        "open": 161.2648,
-        "high": 161.2734,
-        "low": 158.8729,
-        "close": 159.2256
+        "open": 160.7308,
+        "high": 160.7394,
+        "low": 158.3468,
+        "close": 158.6984
       },
       {
         "date": "2026-06-25",
-        "open": 159.174,
-        "high": 163.1835,
-        "low": 158.6148,
-        "close": 160.542
+        "open": 158.647,
+        "high": 162.6432,
+        "low": 158.0896,
+        "close": 160.0105
       },
       {
         "date": "2026-06-26",
-        "open": 161.1357,
-        "high": 163.8976,
-        "low": 160.7916,
-        "close": 161.7466
+        "open": 160.6022,
+        "high": 163.3549,
+        "low": 160.2592,
+        "close": 161.2111
       },
       {
         "date": "2026-06-29",
-        "open": 161.4197,
-        "high": 163.3728,
-        "low": 161.0325,
-        "close": 161.1787
+        "open": 160.8852,
+        "high": 162.8318,
+        "low": 160.4993,
+        "close": 160.6451
       },
       {
         "date": "2026-06-30",
-        "open": 162.6156,
-        "high": 163.5621,
-        "low": 160.7485,
-        "close": 163.2437
+        "open": 162.0772,
+        "high": 163.0205,
+        "low": 160.2163,
+        "close": 162.7032
       },
       {
         "date": "2026-07-01",
-        "open": 163.889,
-        "high": 165.0419,
-        "low": 162.5898,
-        "close": 165.0075
+        "open": 163.3464,
+        "high": 164.4955,
+        "low": 162.0515,
+        "close": 164.4612
       },
       {
         "date": "2026-07-02",
-        "open": 167.5801,
-        "high": 171.8219,
-        "low": 166.952,
-        "close": 171.4347
+        "open": 167.0253,
+        "high": 171.253,
+        "low": 166.4078,
+        "close": 170.8671
       },
       {
         "date": "2026-07-06",
-        "open": 172.08,
-        "high": 174.274,
-        "low": 170.3162,
-        "close": 173.2588
+        "open": 171.5103,
+        "high": 173.697,
+        "low": 169.7609,
+        "close": 172.6851
       },
       {
         "date": "2026-07-07",
-        "open": 175.1258,
-        "high": 175.47,
-        "low": 171.7703,
-        "close": 172.8114
+        "open": 174.546,
+        "high": 174.889,
+        "low": 171.2015,
+        "close": 172.2392
       },
       {
         "date": "2026-07-08",
-        "open": 171.2196,
-        "high": 172.4328,
-        "low": 167.5113,
-        "close": 167.7006
+        "open": 170.6527,
+        "high": 171.8619,
+        "low": 166.9567,
+        "close": 167.1453
       },
       {
         "date": "2026-07-09",
-        "open": 166.909,
-        "high": 168.4921,
-        "low": 166.0572,
-        "close": 167.9501
+        "open": 166.3564,
+        "high": 167.9343,
+        "low": 165.5074,
+        "close": 167.394
       },
       {
         "date": "2026-07-10",
-        "open": 167.7866,
-        "high": 169.2321,
-        "low": 165.7044,
-        "close": 168.5782
+        "open": 167.2311,
+        "high": 168.6718,
+        "low": 165.1558,
+        "close": 168.02
       },
       {
         "date": "2026-07-13",
-        "open": 169.017,
-        "high": 170.0925,
-        "low": 167.9673,
-        "close": 168.974
+        "open": 168.4574,
+        "high": 169.5293,
+        "low": 167.4197,
+        "close": 168.4145
       },
       {
         "date": "2026-07-14",
-        "open": 168.9654,
-        "high": 170.7894,
-        "low": 166.5046,
-        "close": 166.3928
+        "open": 168.4059,
+        "high": 170.2239,
+        "low": 165.8418,
+        "close": 165.8418
       },
       {
         "date": "2026-07-15",
-        "open": 167.7866,
-        "high": 168.8793,
-        "low": 166.1777,
-        "close": 168.5438
+        "open": 167.2397,
+        "high": 168.3202,
+        "low": 165.6275,
+        "close": 167.9857
       },
       {
         "date": "2026-07-16",
-        "open": 168.3459,
-        "high": 169.2579,
-        "low": 165.9282,
-        "close": 167.2274
+        "open": 167.7885,
+        "high": 168.6975,
+        "low": 165.3788,
+        "close": 166.6737
       },
       {
         "date": "2026-07-17",
-        "open": 168.105,
-        "high": 170.7378,
-        "low": 166.0314,
-        "close": 166.496
+        "open": 167.5484,
+        "high": 170.1725,
+        "low": 165.4817,
+        "close": 165.9448
       },
       {
         "date": "2026-07-20",
-        "open": 167.4597,
-        "high": 169.9634,
-        "low": 167.0037,
-        "close": 167.2962
+        "open": 166.9052,
+        "high": 169.4007,
+        "low": 166.4507,
+        "close": 166.7423
       },
       {
         "date": "2026-07-21",
-        "open": 166.9176,
-        "high": 169.6279,
-        "low": 163.4932,
-        "close": 166.6337
+        "open": 166.365,
+        "high": 169.0577,
+        "low": 162.9519,
+        "close": 166.082
       },
       {
         "date": "2026-07-22",
-        "open": 168.5524,
-        "high": 169.8,
-        "low": 166.7197,
-        "close": 167.6748
+        "open": 167.9943,
+        "high": 169.2377,
+        "low": 166.1763,
+        "close": 167.1196
       },
       {
         "date": "2026-07-23",
-        "open": 176.382,
-        "high": 183.6868,
-        "low": 174.2396,
-        "close": 179.9613
+        "open": 175.798,
+        "high": 183.0786,
+        "low": 173.6627,
+        "close": 179.3654
       },
       {
         "date": "2026-07-24",
-        "open": 181.3981,
-        "high": 184.8914,
-        "low": 180.0473,
-        "close": 183.0845
+        "open": 180.7975,
+        "high": 184.2792,
+        "low": 179.4512,
+        "close": 182.4783
       },
       {
         "date": "2026-07-27",
-        "open": 184.487,
-        "high": 189.6236,
-        "low": 183.9449,
-        "close": 187.9286
+        "open": 183.8761,
+        "high": 188.9957,
+        "low": 183.3445,
+        "close": 187.3063
       },
       {
         "date": "2026-07-28",
-        "open": 190.1398,
-        "high": 190.4409,
-        "low": 185.7604,
-        "close": 188.0662
+        "open": 189.5103,
+        "high": 189.8104,
+        "low": 185.1453,
+        "close": 187.4436
       },
       {
         "date": "2026-07-29",
-        "open": 189.288,
-        "high": 189.7784,
-        "low": 184.9946,
-        "close": 185.2011
+        "open": 188.6613,
+        "high": 189.1501,
+        "low": 184.3821,
+        "close": 184.5879
       },
       {
         "date": "2026-07-30",
-        "open": 184.5558,
-        "high": 184.6763,
-        "low": 180.1592,
-        "close": 184.4526
+        "open": 183.9448,
+        "high": 184.0648,
+        "low": 179.5627,
+        "close": 183.8418
       },
       {
         "date": "2026-07-31",
-        "open": 183.5664,
-        "high": 185.6915,
-        "low": 182.4306,
-        "close": 185.1753
+        "open": 182.9586,
+        "high": 185.0767,
+        "low": 181.8352,
+        "close": 184.5622
       },
       {
         "date": "2026-08-03",
-        "open": 186.3368,
-        "high": 187.6791,
-        "low": 184.487,
-        "close": 186.4057
+        "open": 185.7199,
+        "high": 187.0577,
+        "low": 183.8761,
+        "close": 185.7885
       },
       {
         "date": "2026-08-04",
-        "open": 187.0338,
-        "high": 188.0835,
-        "low": 184.573,
-        "close": 187.507
+        "open": 186.4145,
+        "high": 187.4607,
+        "low": 183.9705,
+        "close": 186.8861
       },
       {
         "date": "2026-08-05",
-        "open": 189.288,
-        "high": 191.7143,
-        "low": 188.333,
-        "close": 191.2755
+        "open": 188.6613,
+        "high": 191.0796,
+        "low": 187.718,
+        "close": 190.6422
       },
       {
         "date": "2026-08-06",
-        "open": 192.9103,
-        "high": 194.1493,
-        "low": 189.701,
-        "close": 192.0843
+        "open": 192.2716,
+        "high": 193.5064,
+        "low": 189.0729,
+        "close": 191.4483
       },
       {
         "date": "2026-08-07",
-        "open": 191.4648,
-        "high": 192.9963,
-        "low": 189.7182,
-        "close": 191.895
+        "open": 190.8309,
+        "high": 192.3573,
+        "low": 189.0901,
+        "close": 191.2597
       },
       {
         "date": "2026-08-10",
-        "open": 193.0566,
-        "high": 195.2162,
-        "low": 192.1273,
-        "close": 192.8329
+        "open": 192.4174,
+        "high": 194.5612,
+        "low": 191.4912,
+        "close": 192.1944
       },
       {
         "date": "2026-08-11",
-        "open": 192.7296,
-        "high": 193.8825,
-        "low": 191.3013,
-        "close": 192.6092
+        "open": 192.0915,
+        "high": 193.2406,
+        "low": 190.668,
+        "close": 191.9714
       },
       {
         "date": "2026-08-12",
-        "open": 191.5423,
-        "high": 192.3424,
-        "low": 188.832,
-        "close": 191.6627
+        "open": 190.9081,
+        "high": 191.7056,
+        "low": 188.2068,
+        "close": 191.0281
       },
       {
         "date": "2026-08-13",
-        "open": 192.2736,
-        "high": 192.7296,
-        "low": 188.3158,
-        "close": 189.701
+        "open": 191.637,
+        "high": 192.0915,
+        "low": 187.6922,
+        "close": 189.0729
       },
       {
         "date": "2026-08-14",
         "open": 191.0088,
         "high": 191.9294,
-        "low": 189.2622,
+        "low": 189.2708,
         "close": 191.8434
       },
       {
@@ -7841,7 +7461,7 @@
         "date": "2026-08-24",
         "open": 180.684,
         "high": 181.4498,
-        "low": 178.7395,
+        "low": 178.7481,
         "close": 180.0129
       },
       {
@@ -7855,14 +7475,14 @@
         "date": "2026-08-26",
         "open": 181.0282,
         "high": 183.3513,
-        "low": 180.0645,
+        "low": 180.0731,
         "close": 182.3962
       },
       {
         "date": "2026-08-27",
         "open": 181.8369,
         "high": 182.8522,
-        "low": 180.5291,
+        "low": 180.5377,
         "close": 182.4736
       },
       {
@@ -7881,7 +7501,7 @@
       },
       {
         "date": "2026-09-01",
-        "open": 179.1611,
+        "open": 179.402,
         "high": 181.8111,
         "low": 175.6679,
         "close": 176.5197
@@ -7923,97 +7543,42 @@
       },
       {
         "date": "2026-09-10",
-        "open": 170.3764,
-        "high": 170.9615,
-        "low": 169.2751,
-        "close": 169.9634
+        "open": 170.385,
+        "high": 170.897,
+        "low": 169.2236,
+        "close": 169.7784
       }
     ],
-    "Daily_Change": -0.0086,
-    "Date": "2026-09-10 18:13",
-    "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-10T15:13:39.264759+00:00",
-    "Data_Broker": "IBKR",
+    "Daily_Change": -0.1936,
+    "Date": "2026-09-10 18:23",
+    "Market_Data_Source": "Yahoo Finance",
+    "Market_Data_Fetched_At": null,
+    "Data_Broker": null,
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "Bid": 197.56,
-    "Ask": 197.61,
-    "Spread_Pct": 0.025305564693681892,
-    "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 938780110.0,
-    "Historical_Vol": 0.19720901122413245,
-    "Implied_Volatility": 0.24124363762898637,
-    "IV_Percentile": 0.306772917509079,
-    "YTD_Change_IBKR": 15.497000732421867,
-    "Dividend_Yield_IBKR": 1.43,
-    "IBKR_Misc_Statistics": {
-      "high_13w": 226.83999633789062,
-      "high_26w": 226.83999633789062,
-      "high_52w": 226.83999633789062,
-      "low_13w": 178.17999267578125,
-      "low_26w": 170.07699584960938,
-      "low_52w": 152.6510009765625,
-      "open_52w": 150.28199768066406
-    },
-    "IBKR_Snapshot_Groups": {
-      "quote": [
-        "last",
-        "bid_ask",
-        "top_status",
-        "prior_close",
-        "volume",
-        "open",
-        "low",
-        "high"
-      ],
-      "ranking": [
-        "avg_90d_usd_volume",
-        "year_to_date_change",
-        "cumulative_perf_1d",
-        "cumulative_perf_1w",
-        "cumulative_perf_1m",
-        "cumulative_perf_ytd",
-        "cumulative_perf_1y"
-      ],
-      "risk": [
-        "implied_volatility_percentile",
-        "implied_vol_underlying",
-        "historical_vol",
-        "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
-      ]
-    },
+    "IBKR_Snapshot_Groups": {},
     "Market": "SUA",
     "Country": "US",
-    "Exchange": "NYSE",
+    "Exchange": null,
     "Security_Type": "STK",
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Options_Supported": true,
+    "Market_Metadata_Source": "LOCAL_CANONICAL_SYMBOL",
+    "Options_Supported": null,
     "Instrument_Metadata": {
       "market": "SUA",
       "country": "US",
-      "exchange": "NYSE",
+      "exchange": null,
       "security_type": "STK",
       "currency": "USD",
-      "contract_id": 415342104,
-      "sections": [
-        "BAG",
-        "CFD",
-        "IOPT",
-        "OPT",
-        "STK",
-        "WAR"
-      ],
-      "options_supported": true,
-      "source": "IBKR_MCP_SEARCH_CONTRACTS"
+      "contract_id": null,
+      "sections": [],
+      "options_supported": null,
+      "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "volatility_score": 75.0,
-    "liquidity_score": 94.59,
-    "risk_score": 73.38,
+    "liquidity_score": 50,
+    "risk_score": 60.0,
     "volatility_regime": "calm",
     "score_version": "ibkr-enhanced-v1-shadow"
   }
