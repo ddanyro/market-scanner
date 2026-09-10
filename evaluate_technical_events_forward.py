@@ -827,7 +827,14 @@ def main():
         serializable["source_provenance"] = serializable.source_provenance.map(
             lambda value: json.dumps(value, ensure_ascii=False, separators=(",", ":"))
         )
-    serializable.to_csv(output / "labelled_predictions.csv", index=False)
+    # The point-in-time event payload is intentionally rich and grows with
+    # every shadow run. Keep the complete dataset, but store it as gzip so it
+    # remains practical to persist in Git without Git LFS.
+    serializable.to_csv(
+        output / "labelled_predictions.csv.gz",
+        index=False,
+        compression="gzip",
+    )
     filenames = {
         "score_buckets": "score_buckets.csv",
         "directions": "direction_analysis.csv",

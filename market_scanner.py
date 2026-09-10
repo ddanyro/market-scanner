@@ -409,6 +409,21 @@ def _get_yahoo_info(symbol, tws_instrument=None):
         'industry': contract.get('industry'),
         'sector': contract.get('category'),
     }
+    instrument_type = str(
+        (tws_instrument or {}).get('instrument_type')
+        or contract.get('stock_type')
+        or ''
+    ).strip().upper()
+    # ETF-urile nu au fundamentale/consens de companie. Contract metadata
+    # este autoritatea potrivită și evită quoteSummary 404 pentru simboluri
+    # IBKR locale precum 3USL (listarea Yahoo este 3USL.MI).
+    if instrument_type in {'ETF', 'ETN', 'FUND'}:
+        return {
+            'longName': tws_profile.get('longName') or str(symbol or ''),
+            'shortName': tws_profile.get('shortName') or str(symbol or ''),
+            'industry': tws_profile.get('industry') or instrument_type,
+            'sector': tws_profile.get('sector') or '',
+        }
     if fund_profile:
         info = dict(fund_profile)
         info.update({
@@ -1670,6 +1685,47 @@ def _enhanced_ui_detail(candidate):
             'fetched_at': options_context.get('fetched_at'),
         },
     }
+
+
+def _technical_events_ui_detail(value, max_events=15):
+    """Compact Technical Events for the browser without changing the ledger.
+
+    The detail popup renders only summary fields and the first 15 events. Raw
+    source metrics for every historical event remain in the immutable gzip
+    ledger and must not be duplicated into the generated HTML.
+    """
+    if not isinstance(value, dict):
+        return None
+    summary_fields = (
+        'available', 'data_as_of', 'overall_event_score',
+        'overall_direction', 'confidence', 'conflict', 'total_events',
+        'bullish_events', 'bearish_events', 'net_events',
+        'nearest_support', 'nearest_resistance',
+    )
+    result = {key: value.get(key) for key in summary_fields if key in value}
+    timeframes = value.get('timeframes') or {}
+    result['timeframes'] = {
+        name: {
+            key: detail.get(key)
+            for key in (
+                'event_score', 'direction', 'bullish_events',
+                'bearish_events',
+            )
+            if key in detail
+        }
+        for name, detail in timeframes.items()
+        if isinstance(detail, dict)
+    }
+    event_fields = (
+        'type', 'name', 'direction', 'timestamp', 'timeframe',
+        'effective_strength', 'confirmation_status',
+    )
+    result['events'] = [
+        {key: event.get(key) for key in event_fields if key in event}
+        for event in (value.get('events') or [])[:max_events]
+        if isinstance(event, dict)
+    ]
+    return result
 
 
 def _build_buy_recommendation_detail_data(
@@ -3512,6 +3568,12 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         ) = _load_analysis_history(
             ticker, download_ticker, period='1y'
         )
+        # Chiar când OHLCV vine direct din MCP/TWS, cererile auxiliare și
+        # proveniența trebuie să folosească listarea Yahoo calificată exact.
+        # Pentru 3USL, metadata contractului rezolvă generic 3USL.MI.
+        actual_download_ticker = _preferred_yahoo_history_symbols(
+            ticker, actual_download_ticker
+        )[0]
         
         # --- CACHED DOWNLOAD ---
         if not df.empty:
@@ -9324,9 +9386,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             "series": native_detail['series'],
             "seriesDates": native_detail['seriesDates'],
             "levels": chart_levels,
-            "technicalEvents": (
+            "technicalEvents": _technical_events_ui_detail(
                 row.get('Technical_Events')
-                if isinstance(row.get('Technical_Events'), dict) else None
             ),
         }
 
@@ -10833,9 +10894,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     _enhanced_ui_detail(enhanced_candidate)
                     if enhanced_candidate else None
                 ),
-                'technicalEvents': (
+                'technicalEvents': _technical_events_ui_detail(
                     row.get('Technical_Events')
-                    if isinstance(row.get('Technical_Events'), dict) else None
                 ),
             }
     watchlist_detail_json = json.dumps(watchlist_detail_data, ensure_ascii=False).replace('</', '<\\/')

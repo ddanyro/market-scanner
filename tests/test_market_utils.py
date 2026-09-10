@@ -1,4 +1,5 @@
 import copy
+import gzip
 import json
 
 import market_utils
@@ -8,7 +9,10 @@ def configure_files(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(market_utils, "STATE_FILE", "dashboard_state.json")
     monkeypatch.setattr(
-        market_utils, "TECHNICAL_EVENTS_STATE_FILE", "technical_events_state.json"
+        market_utils, "TECHNICAL_EVENTS_STATE_FILE", "technical_events_state.json.gz"
+    )
+    monkeypatch.setattr(
+        market_utils, "LEGACY_TECHNICAL_EVENTS_STATE_FILE", "technical_events_state.json"
     )
 
 
@@ -36,7 +40,8 @@ def test_technical_events_are_externalized_and_hydrated(monkeypatch, tmp_path):
     stored = json.loads((tmp_path / "dashboard_state.json").read_text())
     assert "Technical_Events" not in stored["watchlist"][0]
     assert stored["watchlist"][0]["Technical_Events_Ref"] == "watchlist:NVDA"
-    dedicated = json.loads((tmp_path / "technical_events_state.json").read_text())
+    with gzip.open(tmp_path / "technical_events_state.json.gz", "rt", encoding="utf-8") as handle:
+        dedicated = json.load(handle)
     assert dedicated["sections"]["watchlist"]["NVDA"]["overall_event_score"] == 72
     assert dedicated["sections"]["external_buy_research"]["NVDA"]["overall_event_score"] == 75
 

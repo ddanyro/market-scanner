@@ -2604,6 +2604,53 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(info['industry'], 'ETF')
         self.assertIsNone(earnings_date)
 
+    @patch('market_scanner.yf.Ticker')
+    def test_metadata_etf_skips_yahoo_fundamentals_for_local_symbol(
+        self, ticker_factory,
+    ):
+        info = market_scanner._get_yahoo_info('3USL.MI', {
+            'instrument_type': 'ETF',
+            'contract': {
+                'long_name': 'WISDOMTREE SP500 3X DAILY',
+                'local_symbol': '3USL',
+                'stock_type': 'ETF',
+            },
+        })
+
+        ticker_factory.assert_not_called()
+        self.assertEqual(info['shortName'], '3USL')
+        self.assertEqual(info['industry'], 'ETF')
+
+    def test_technical_events_ui_payload_keeps_summary_not_raw_history(self):
+        events = [{
+            'type': 'MOMENTUM',
+            'name': f'event {index}',
+            'direction': 'BULLISH',
+            'timestamp': f'2026-09-{index + 1:02d}',
+            'timeframe': 'SHORT_TERM',
+            'effective_strength': 70,
+            'source_data': {'large_raw_series': list(range(100))},
+        } for index in range(20)]
+        compact = market_scanner._technical_events_ui_detail({
+            'available': True,
+            'overall_event_score': 72,
+            'overall_direction': 'BULLISH',
+            'confidence': 80,
+            'events': events,
+            'timeframes': {
+                'SHORT_TERM': {
+                    'event_score': 75,
+                    'direction': 'BULLISH',
+                    'raw_events': events,
+                },
+            },
+        })
+
+        self.assertEqual(compact['overall_event_score'], 72)
+        self.assertEqual(len(compact['events']), 15)
+        self.assertNotIn('source_data', compact['events'][0])
+        self.assertNotIn('raw_events', compact['timeframes']['SHORT_TERM'])
+
     def test_tvbetetf_tws_data_never_enables_ibkr_execution(self):
         attribution = market_scanner._instrument_data_attribution(
             'TVBETETF.RO',

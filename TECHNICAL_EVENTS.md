@@ -65,7 +65,7 @@ source-data hash, Baseline/Enhanced comparison fields, entry price, and pending
 signal time.
 
 The latest full per-instrument Technical Events payload used by the dashboard
-cache is stored separately in `technical_events_state.json`. The main
+cache is stored separately in `technical_events_state.json.gz`. The main
 `dashboard_state.json` and segmented portfolio/watchlist exports retain only a
 lightweight reference. `market_utils.load_state()` hydrates the payload back
 into memory transparently, so scanner and UI behavior is unchanged.

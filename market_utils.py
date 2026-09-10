@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import os
 import json
+import gzip
 
 STATE_FILE = "dashboard_state.json"
 MARKET_HISTORY_FILE = "market_history.json"
-TECHNICAL_EVENTS_STATE_FILE = "technical_events_state.json"
+TECHNICAL_EVENTS_STATE_FILE = "technical_events_state.json.gz"
+LEGACY_TECHNICAL_EVENTS_STATE_FILE = "technical_events_state.json"
 TECHNICAL_EVENTS_SECTIONS = ("portfolio", "watchlist", "external_buy_research")
 
 
@@ -41,10 +43,14 @@ def _split_technical_events(state):
 
 
 def _hydrate_technical_events(state):
-    if not os.path.exists(TECHNICAL_EVENTS_STATE_FILE):
+    source = TECHNICAL_EVENTS_STATE_FILE
+    if not os.path.exists(source) and os.path.exists(LEGACY_TECHNICAL_EVENTS_STATE_FILE):
+        source = LEGACY_TECHNICAL_EVENTS_STATE_FILE
+    if not os.path.exists(source):
         return state
     try:
-        with open(TECHNICAL_EVENTS_STATE_FILE, "r") as handle:
+        opener = gzip.open if str(source).endswith(".gz") else open
+        with opener(source, "rt", encoding="utf-8") as handle:
             payload = json.load(handle)
     except (OSError, ValueError, TypeError):
         return state
@@ -85,7 +91,8 @@ def save_state(state):
     lightweight_state, technical_events_state = _split_technical_events(state)
     with open(STATE_FILE, 'w') as f:
         json.dump(lightweight_state, f, indent=2)
-    with open(TECHNICAL_EVENTS_STATE_FILE, 'w') as f:
+    opener = gzip.open if str(TECHNICAL_EVENTS_STATE_FILE).endswith('.gz') else open
+    with opener(TECHNICAL_EVENTS_STATE_FILE, 'wt', encoding='utf-8') as f:
         json.dump(technical_events_state, f, separators=(',', ':'), ensure_ascii=False)
         
     # Salvare fișiere secționate mai mici pentru ChatGPT / Custom GPTs

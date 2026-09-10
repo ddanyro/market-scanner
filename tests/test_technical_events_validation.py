@@ -186,3 +186,14 @@ def test_offline_empty_report_is_supported(tmp_path):
     assert result == "INSUFFICIENT DATA"
     assert "TECHNICAL EVENTS VALIDATION REPORT" in report
     assert (tmp_path / "technical_events_validation_report.md").exists()
+
+
+def test_main_writes_labelled_dataset_as_gzip(monkeypatch, tmp_path):
+    monkeypatch.setattr(validation.technical_events_shadow, "load_ledger", lambda _path: [])
+    monkeypatch.setattr(
+        "sys.argv", ["evaluate_technical_events_forward.py", "--offline", "--output", str(tmp_path)]
+    )
+    validation.main()
+    output = tmp_path / "labelled_predictions.csv.gz"
+    assert output.exists()
+    assert output.read_bytes()[:2] == b"\x1f\x8b"
