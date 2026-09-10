@@ -3645,6 +3645,45 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(len(merged), 65)
         self.assertEqual(float(merged.loc[dates[-1], 'Close']), 101.0)
 
+    def test_relative_strength_aligns_tz_aware_and_naive_sessions(self):
+        naive_dates = pd.bdate_range('2026-08-03', periods=16)
+        aware_dates = naive_dates.tz_localize('America/New_York')
+        stock = pd.DataFrame(
+            {'Close': np.linspace(100.0, 115.0, 16)},
+            index=aware_dates,
+        )
+        benchmark = pd.DataFrame(
+            {'Close': np.linspace(5000.0, 5150.0, 16)},
+            index=naive_dates,
+        )
+
+        aligned = market_scanner._align_close_series_by_session(
+            stock, benchmark, tail=15,
+        )
+
+        self.assertEqual(len(aligned), 15)
+        self.assertIsNone(aligned.index.tz)
+        self.assertFalse(aligned.isna().any().any())
+
+    def test_relative_strength_uses_only_common_sessions(self):
+        stock_dates = pd.bdate_range('2026-08-03', periods=12).tz_localize(
+            'America/New_York'
+        )
+        benchmark_dates = pd.bdate_range('2026-08-04', periods=12)
+        stock = pd.DataFrame({'Close': np.arange(12) + 100}, index=stock_dates)
+        benchmark = pd.DataFrame(
+            {'Close': np.arange(12) + 5000}, index=benchmark_dates,
+        )
+
+        aligned = market_scanner._align_close_series_by_session(
+            stock, benchmark,
+        )
+
+        expected_dates = pd.DatetimeIndex(stock_dates.tz_localize(None)).intersection(
+            benchmark_dates
+        )
+        self.assertEqual(list(aligned.index), list(expected_dates))
+
     def test_broad_bvb_universe_is_never_sent_to_tws(self):
         state = {
             'bvb_equity_universe': [

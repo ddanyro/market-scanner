@@ -641,6 +641,30 @@ def _merge_ohlcv_histories(*frames):
     return combined.sort_index().dropna(subset=['Close'])
 
 
+def _align_close_series_by_session(stock_frame, benchmark_frame, tail=None):
+    """Aliniază close-urile pe data ședinței, indiferent de timezone."""
+    series = []
+    for frame, name in (
+        (stock_frame, 'stock_close'),
+        (benchmark_frame, 'benchmark_close'),
+    ):
+        if frame is None or frame.empty or 'Close' not in frame.columns:
+            return pd.DataFrame(columns=['stock_close', 'benchmark_close'])
+        current = pd.to_numeric(frame['Close'], errors='coerce').copy()
+        normalized_index = pd.to_datetime(current.index, errors='coerce')
+        if getattr(normalized_index, 'tz', None) is not None:
+            normalized_index = normalized_index.tz_localize(None)
+        current.index = normalized_index.normalize()
+        current = current[~current.index.isna()].dropna()
+        current = current[~current.index.duplicated(keep='last')]
+        series.append(current.rename(name))
+
+    aligned = pd.concat(series, axis=1, join='inner').dropna().sort_index()
+    if tail is not None:
+        aligned = aligned.tail(int(tail))
+    return aligned
+
+
 def _tws_instrument_market_price(instrument):
     market_data_snapshot = (instrument or {}).get('market_data', {})
     for field in ('market_price', 'last', 'close'):
@@ -3852,11 +3876,15 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         if spx_df is not None and len(df) >= 10 and not spx_df.empty:
             try:
                 # Calculate RS trend over last 10 days (same as Rule D but with different threshold)
-                stock_acc = df['Close'].tail(15)
-                spx_acc = spx_df['Close'].tail(len(stock_acc))
-                
-                if len(stock_acc) == len(spx_acc):
-                    rs_series = stock_acc / spx_acc
+                aligned_closes = _align_close_series_by_session(
+                    df, spx_df, tail=15,
+                )
+
+                if len(aligned_closes) >= 10:
+                    rs_series = (
+                        aligned_closes['stock_close']
+                        / aligned_closes['benchmark_close']
+                    )
                     rs_now = rs_series.iloc[-1]
                     rs_10 = rs_series.iloc[-10] if len(rs_series) >= 10 else rs_series.iloc[0]
                     
@@ -3912,14 +3940,15 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             # Rule D: Relative Strength Failure (RS Falling 10 sessions)
             rule_d = False
             if not is_bvb_position and spx_df is not None and len(df) >= 10 and not spx_df.empty:
-                # Align dates? Simplified: Just take last 10 rows comparison
-                # Calculate RS = Stock / SPX
-                # We need matched closes. Using simple tail alignment
-                stock_acc = df['Close'].tail(15)
-                spx_acc = spx_df['Close'].tail(len(stock_acc))  # Assumes same calendar approx
-                
-                if len(stock_acc) == len(spx_acc):
-                    rs_series = stock_acc / spx_acc
+                aligned_closes = _align_close_series_by_session(
+                    df, spx_df, tail=15,
+                )
+
+                if len(aligned_closes) >= 10:
+                    rs_series = (
+                        aligned_closes['stock_close']
+                        / aligned_closes['benchmark_close']
+                    )
                     # Check if 'falling' for 10 sessions. 
                     # Strict: Every day lower? Too strict.
                     # Proxy: Current RS < RS_10_days_ago AND Trending Down (SMA3 < SMA10)
