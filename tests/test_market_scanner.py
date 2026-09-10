@@ -2398,6 +2398,15 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
                 'target_native': 14,
                 'decision': 'BUY',
                 'trend': 'Bullish',
+                'technical_events': {
+                    'available': True,
+                    'overall_event_score': 72,
+                    'timeframes': {
+                        'SHORT_TERM': {'event_score': 60},
+                        'INTERMEDIATE_TERM': {'event_score': 70},
+                        'LONG_TERM': {'event_score': 80},
+                    },
+                },
             }],
             {'buy_recommendations': [{
                 'symbol': 'CC.RO',
@@ -2417,6 +2426,41 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(detail['markers'][0]['label'], 'C1')
         self.assertEqual(detail['markers'][0]['date'], '2026-07-27')
         self.assertEqual(detail['markers'][0]['value'], 10.5)
+        self.assertEqual(
+            set(detail['technicalEvents']['timeframes']),
+            {'SHORT_TERM', 'INTERMEDIATE_TERM', 'LONG_TERM'},
+        )
+
+    def test_historical_buy_detail_inherits_technical_events_from_watchlist(self):
+        technical = {
+            'available': True,
+            'overall_event_score': 58,
+            'timeframes': {
+                name: {'event_score': score}
+                for name, score in (
+                    ('SHORT_TERM', 40),
+                    ('INTERMEDIATE_TERM', 60),
+                    ('LONG_TERM', 75),
+                )
+            },
+        }
+        candidates = market_scanner._build_history_chart_candidates(
+            [],
+            [{'symbol': 'LQQ.PA', 'last_seen_at': '2026-09-10T20:00:00'}],
+            [{
+                'Ticker': 'LQQ.PA', 'Currency': 'EUR', 'Price': 9.24,
+                'Chart_History': [9.1, 9.24],
+                'Technical_Events': technical,
+            }],
+        )
+        details = market_scanner._build_buy_recommendation_detail_data(
+            candidates
+        )
+
+        self.assertEqual(
+            set(details['LQQ.PA']['technicalEvents']['timeframes']),
+            {'SHORT_TERM', 'INTERMEDIATE_TERM', 'LONG_TERM'},
+        )
 
     def test_enhanced_detail_exposes_options_fit_and_components(self):
         candidate = {

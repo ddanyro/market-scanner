@@ -190,6 +190,50 @@ def test_shadow_ledger_is_hash_chained_and_has_no_future_outcomes(tmp_path):
     assert all(value is None for value in prediction["outcomes"]["forward_returns"].values())
 
 
+def test_large_technical_ledger_rotates_without_losing_snapshots(tmp_path):
+    path = tmp_path / "technical.jsonl.gz"
+    analysis = technical_events.analyze(
+        frame_from_close(np.linspace(90, 110, 60)), timeframe_config=TEST_CONFIG
+    )
+    row = {"Ticker": "AAA", "Technical_Events": analysis}
+    technical_events_shadow.append_snapshot(
+        [row], {}, recorded_at="2026-09-09T12:00:00Z", path=path
+    )
+    technical_events_shadow.append_snapshot(
+        [{**row, "Ticker": "BBB"}], {},
+        recorded_at="2026-09-09T12:01:00Z", path=path,
+    )
+
+    archives = technical_events_shadow.rotate_ledger(
+        path, max_bytes=0, target_bytes=1
+    )
+
+    assert len(archives) == 2
+    assert path.stat().st_size == 0
+    assert len(technical_events_shadow.load_ledger(path)) == 2
+    assert technical_events_shadow.validate_ledger(
+        technical_events_shadow.load_ledger(path)
+    ) == []
+    technical_events_shadow.append_snapshot(
+        [{**row, "Ticker": "CCC"}], {},
+        recorded_at="2026-09-09T12:02:00Z", path=path,
+    )
+    combined = technical_events_shadow.load_ledger(path)
+    assert len(combined) == 3
+    assert combined[-1]["previous_snapshot_hash"] == combined[-2]["content_hash"]
+
+    remote = tmp_path / "remote.jsonl.gz"
+    technical_events_shadow.append_snapshot(
+        [{**row, "Ticker": "DDD"}], {},
+        recorded_at="2026-09-09T12:03:00Z", path=remote,
+    )
+    active_rows = merge_shadow_ledgers.merge_ledgers([path, remote])
+    merge_shadow_ledgers.write_merged(
+        path, active_rows, validator=technical_events_shadow
+    )
+    assert len(technical_events_shadow.load_ledger(path)) == 4
+
+
 def test_tampered_shadow_snapshot_is_rejected(tmp_path):
     path = tmp_path / "technical.jsonl"
     result = technical_events.analyze(

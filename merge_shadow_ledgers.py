@@ -71,7 +71,14 @@ def write_merged(output, snapshots, validator=shadow_validation):
             handle.flush()
             if output.suffix != ".gz":
                 os.fsync(raw_handle.fileno())
-        loaded = validator.load_ledger(temporary)
+        if hasattr(validator, "archive_paths"):
+            # Technical Events may have immutable archive shards whose last
+            # hash is the parent of the first row in the active ledger.
+            loaded = validator.load_ledger(
+                temporary, archive_base=output
+            )
+        else:
+            loaded = validator.load_ledger(temporary)
         errors = validator.validate_ledger(loaded)
         if errors:
             raise ValueError("Merged ledger failed integrity: " + "; ".join(errors))

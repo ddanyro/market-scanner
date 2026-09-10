@@ -29,6 +29,10 @@ class TestUpdatePortfolioScript(unittest.TestCase):
             self.assertIn(f'"{generated}"', sync)
         self.assertIn('for attempt in 1 2 3', sync)
         self.assertIn('merge_shadow_ledgers.py', sync)
+        self.assertIn('technical_events_shadow.rotate_ledger()', sync)
+        self.assertIn(
+            'technical_events_predictions.archive-*.jsonl.gz', sync
+        )
         self.assertIn('git rebase --autostash -X theirs', sync)
         self.assertNotIn(
             '"analysis/technical_events_validation/event_observations.csv"',

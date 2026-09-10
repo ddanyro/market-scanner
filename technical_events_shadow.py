@@ -9,11 +9,14 @@ import hashlib
 import json
 import math
 import os
+import tempfile
 from pathlib import Path
 
 
 LEDGER_PATH = Path("technical_events_predictions.jsonl.gz")
 SCHEMA = "market-scanner.technical-events.v1"
+MAX_ACTIVE_LEDGER_BYTES = 40 * 1024 * 1024
+TARGET_ARCHIVE_BYTES = 28 * 1024 * 1024
 
 
 def _number(value):
@@ -39,6 +42,111 @@ def _timestamp(value=None):
     if value.tzinfo is None:
         value = value.replace(tzinfo=dt.timezone.utc)
     return value.astimezone(dt.timezone.utc).isoformat(timespec="seconds")
+
+
+def _archive_prefix(target):
+    name = target.name
+    if name.endswith(".jsonl.gz"):
+        name = name[:-len(".jsonl.gz")]
+    else:
+        name = target.stem
+    return f"{name}.archive-"
+
+
+def archive_paths(path=LEDGER_PATH):
+    target = Path(path)
+    return sorted(target.parent.glob(f"{_archive_prefix(target)}*.jsonl.gz"))
+
+
+def _read_payloads(target):
+    if not target.exists() or target.stat().st_size == 0:
+        return []
+    if target.suffix == ".gz":
+        with gzip.open(target, "rt", encoding="utf-8") as handle:
+            lines = handle.read().splitlines()
+    else:
+        lines = target.read_text(encoding="utf-8").splitlines()
+    rows = []
+    for line_number, line in enumerate(lines, 1):
+        if not line.strip():
+            continue
+        payload = json.loads(line)
+        if payload.get("schema") != SCHEMA:
+            raise ValueError(
+                f"unknown Technical Events schema in {target}:{line_number}"
+            )
+        if payload.get("content_hash") != _hash(payload):
+            raise ValueError(
+                f"invalid Technical Events hash in {target}:{line_number}"
+            )
+        rows.append(payload)
+    return rows
+
+
+def rotate_ledger(path=LEDGER_PATH, *, max_bytes=MAX_ACTIVE_LEDGER_BYTES,
+                  target_bytes=TARGET_ARCHIVE_BYTES):
+    """Move a large active ledger into immutable gzip shards below Git limits."""
+    target = Path(path)
+    if not target.exists() or target.stat().st_size <= max_bytes:
+        return []
+    snapshots = _read_payloads(target)
+    if not snapshots:
+        return []
+    chunks = []
+    current = []
+    current_size = 0
+    for snapshot in snapshots:
+        encoded = (
+            json.dumps(snapshot, separators=(",", ":"), ensure_ascii=False)
+            + "\n"
+        ).encode("utf-8")
+        member = gzip.compress(encoded)
+        if current and current_size + len(member) > target_bytes:
+            chunks.append(current)
+            current = []
+            current_size = 0
+        current.append(member)
+        current_size += len(member)
+    if current:
+        chunks.append(current)
+
+    created = []
+    stamp = str(snapshots[0].get("recorded_at") or "unknown")
+    stamp = "".join(character for character in stamp if character.isalnum())[:14]
+    for index, members in enumerate(chunks):
+        first_id = str(snapshots[0].get("snapshot_id") or "unknown")[:12]
+        if index:
+            prior_count = sum(len(chunk) for chunk in chunks[:index])
+            first_id = str(
+                snapshots[prior_count].get("snapshot_id") or "unknown"
+            )[:12]
+        archive = target.parent / (
+            f"{_archive_prefix(target)}{stamp}-p{index:03d}-{first_id}.jsonl.gz"
+        )
+        content = b"".join(members)
+        if archive.exists() and archive.read_bytes() != content:
+            raise ValueError(f"Technical Events archive collision: {archive}")
+        if not archive.exists():
+            descriptor, temporary = tempfile.mkstemp(
+                prefix=f".{archive.name}.", suffix=".tmp", dir=archive.parent
+            )
+            try:
+                with os.fdopen(descriptor, "wb") as handle:
+                    handle.write(content)
+                    handle.flush()
+                    os.fsync(handle.fileno())
+                Path(temporary).replace(archive)
+            except Exception:
+                Path(temporary).unlink(missing_ok=True)
+                raise
+        created.append(archive)
+
+    descriptor, temporary = tempfile.mkstemp(
+        prefix=f".{target.name}.", suffix=".tmp", dir=target.parent
+    )
+    os.close(descriptor)
+    Path(temporary).replace(target)
+    return created
 
 
 def build_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None, recorded_at=None,
@@ -151,36 +259,29 @@ def append_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None,
         handle.flush()
         os.fsync(handle.fileno())
         fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    rotate_ledger(target)
     return snapshot
 
 
-def load_ledger(path=LEDGER_PATH):
+def load_ledger(path=LEDGER_PATH, *, archive_base=None):
     target = Path(path)
-    if not target.exists():
+    parts = [*archive_paths(archive_base or target), target]
+    if not any(part.exists() for part in parts):
         return []
     rows = []
     known = set()
-    if target.suffix == ".gz":
-        with gzip.open(target, "rt", encoding="utf-8") as handle:
-            lines = handle.read().splitlines()
-    else:
-        lines = target.read_text(encoding="utf-8").splitlines()
-    for line_number, line in enumerate(lines, 1):
-        if not line.strip():
-            continue
-        payload = json.loads(line)
-        if payload.get("schema") != SCHEMA:
-            raise ValueError(f"unknown Technical Events schema at line {line_number}")
-        if payload.get("content_hash") != _hash(payload):
-            raise ValueError(f"invalid Technical Events hash at line {line_number}")
-        parent = payload.get("previous_snapshot_hash")
-        # Concurrent first writers may legitimately create more than one
-        # immutable root before Git reconciliation. Keep the ledger a forest;
-        # every non-root parent must still be known and hash-valid.
-        if parent is not None and parent not in known:
-            raise ValueError(f"unknown Technical Events parent at line {line_number}")
-        known.add(payload["content_hash"])
-        rows.append(payload)
+    for part in parts:
+        for payload in _read_payloads(part):
+            parent = payload.get("previous_snapshot_hash")
+            # Concurrent first writers may legitimately create more than one
+            # immutable root before Git reconciliation. Every non-root parent
+            # must still exist in an earlier archive or active-ledger row.
+            if parent is not None and parent not in known:
+                raise ValueError(
+                    f"unknown Technical Events parent while loading {part}"
+                )
+            known.add(payload["content_hash"])
+            rows.append(payload)
     return rows
 
 

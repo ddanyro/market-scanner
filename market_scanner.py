@@ -1543,6 +1543,11 @@ def _build_history_chart_candidates(
                 'chart_series_native': native_detail['series'],
                 'chart_series_dates': native_detail['seriesDates'],
                 'trend': candidate.get('trend') or source.get('Trend'),
+                'technical_events': (
+                    candidate.get('technical_events')
+                    or source.get('Technical_Events')
+                    or source.get('technical_events')
+                ),
             })
         else:
             candidate.setdefault(
@@ -1849,6 +1854,10 @@ def _build_buy_recommendation_detail_data(
             'levels': levels,
             'markers': markers,
             'enhanced': _enhanced_ui_detail(candidate),
+            'technicalEvents': _technical_events_ui_detail(
+                candidate.get('technical_events')
+                or candidate.get('Technical_Events')
+            ),
         }
     return details
 

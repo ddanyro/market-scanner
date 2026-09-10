@@ -110,9 +110,18 @@ git_sync_start() {
 }
 
 git_sync_stage_generated() {
+    # Keep the append-only Technical Events history, but rotate it into
+    # immutable shards before Git sees a blob near GitHub's 50 MB warning.
+    "$(sync_python_bin)" -c \
+        'import technical_events_shadow; technical_events_shadow.rotate_ledger()'
     local files_to_add=()
     local generated_file
     for generated_file in "${SYNC_GENERATED_FILES[@]}"; do
+        if [ -e "$generated_file" ]; then
+            files_to_add+=("$generated_file")
+        fi
+    done
+    for generated_file in technical_events_predictions.archive-*.jsonl.gz; do
         if [ -e "$generated_file" ]; then
             files_to_add+=("$generated_file")
         fi
