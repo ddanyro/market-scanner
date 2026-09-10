@@ -118,7 +118,7 @@ def test_technical_events_field_cannot_change_enhanced_score():
 
 
 def test_shadow_ledger_is_hash_chained_and_has_no_future_outcomes(tmp_path):
-    path = tmp_path / "technical.jsonl"
+    path = tmp_path / "technical.jsonl.gz"
     analysis = technical_events.analyze(
         frame_from_close(np.linspace(90, 110, 60)), timeframe_config=TEST_CONFIG
     )
@@ -162,9 +162,9 @@ def test_tampered_shadow_snapshot_is_rejected(tmp_path):
 
 
 def test_technical_ledgers_merge_without_losing_observations(tmp_path):
-    left = tmp_path / "left.jsonl"
-    right = tmp_path / "right.jsonl"
-    output = tmp_path / "merged.jsonl"
+    left = tmp_path / "left.jsonl.gz"
+    right = tmp_path / "right.jsonl.gz"
+    output = tmp_path / "merged.jsonl.gz"
     result = technical_events.analyze(
         frame_from_close(np.linspace(90, 110, 60)), timeframe_config=TEST_CONFIG
     )

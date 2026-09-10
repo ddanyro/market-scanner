@@ -19,6 +19,7 @@ class TestUpdatePortfolioScript(unittest.TestCase):
         sync = (self.root / 'update_git_sync.sh').read_text(encoding='utf-8')
         for generated in (
             'tradeville_account.enc.json', 'shadow_predictions.jsonl',
+            'technical_events_predictions.jsonl.gz',
             'analysis/shadow_forward_validation/collection_coverage.json',
             'analysis/technical_events_validation/technical_events_validation_report.md',
             'market_history.json', 'market_indicators.json',

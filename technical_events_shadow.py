@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 import fcntl
+import gzip
 import hashlib
 import json
 import math
@@ -11,7 +12,7 @@ import os
 from pathlib import Path
 
 
-LEDGER_PATH = Path("technical_events_predictions.jsonl")
+LEDGER_PATH = Path("technical_events_predictions.jsonl.gz")
 SCHEMA = "market-scanner.technical-events.v1"
 
 
@@ -125,18 +126,25 @@ def append_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None,
     )
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    with target.open("a+", encoding="utf-8") as handle:
+    with target.open("a+b") as handle:
         fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-        handle.seek(0)
-        lines = [line for line in handle.read().splitlines() if line.strip()]
-        if lines:
-            previous = json.loads(lines[-1])
+        existing = load_ledger(target)
+        if existing:
+            previous = existing[-1]
             snapshot["previous_snapshot_hash"] = previous.get("content_hash")
         snapshot["content_hash"] = _hash(snapshot)
         snapshot["snapshot_id"] = snapshot["content_hash"][:24]
         snapshot["content_hash"] = _hash(snapshot)
         handle.seek(0, os.SEEK_END)
-        handle.write(json.dumps(snapshot, separators=(",", ":"), ensure_ascii=False) + "\n")
+        encoded = (
+            json.dumps(snapshot, separators=(",", ":"), ensure_ascii=False) + "\n"
+        ).encode("utf-8")
+        if target.suffix == ".gz":
+            # Concatenated gzip members remain a valid stream and let each
+            # immutable snapshot be appended without rewriting older bytes.
+            handle.write(gzip.compress(encoded))
+        else:
+            handle.write(encoded)
         handle.flush()
         os.fsync(handle.fileno())
         fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
@@ -149,7 +157,12 @@ def load_ledger(path=LEDGER_PATH):
         return []
     rows = []
     known = set()
-    for line_number, line in enumerate(target.read_text(encoding="utf-8").splitlines(), 1):
+    if target.suffix == ".gz":
+        with gzip.open(target, "rt", encoding="utf-8") as handle:
+            lines = handle.read().splitlines()
+    else:
+        lines = target.read_text(encoding="utf-8").splitlines()
+    for line_number, line in enumerate(lines, 1):
         if not line.strip():
             continue
         payload = json.loads(line)

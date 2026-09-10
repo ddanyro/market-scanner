@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import os
 import tempfile
@@ -15,7 +16,12 @@ def _read(path: Path):
     if not path.exists():
         return []
     rows = []
-    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+    if path.suffix == ".gz":
+        with gzip.open(path, "rt", encoding="utf-8") as handle:
+            lines = handle.read().splitlines()
+    else:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    for line_number, line in enumerate(lines, 1):
         if not line.strip():
             continue
         try:
@@ -46,16 +52,25 @@ def write_merged(output, snapshots, validator=shadow_validation):
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary = tempfile.mkstemp(
-        prefix=f".{output.name}.", suffix=".tmp", dir=output.parent
+        prefix=f".{output.name}.",
+        suffix=".tmp.gz" if output.suffix == ".gz" else ".tmp",
+        dir=output.parent,
     )
     try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+        raw_handle = os.fdopen(descriptor, "wb")
+        handle = (
+            gzip.open(raw_handle, "wt", encoding="utf-8")
+            if output.suffix == ".gz"
+            else open(raw_handle.fileno(), "w", encoding="utf-8", closefd=False)
+        )
+        with raw_handle, handle:
             for snapshot in snapshots:
                 handle.write(json.dumps(
                     snapshot, ensure_ascii=False, separators=(",", ":")
                 ) + "\n")
             handle.flush()
-            os.fsync(handle.fileno())
+            if output.suffix != ".gz":
+                os.fsync(raw_handle.fileno())
         loaded = validator.load_ledger(temporary)
         errors = validator.validate_ledger(loaded)
         if errors:

@@ -58,8 +58,8 @@ calibrated against returns.
 
 ## Storage and validation
 
-`technical_events_predictions.jsonl` is a separate append-only, hash-chained
-ledger. Each observation freezes raw events, summaries, support/resistance,
+`technical_events_predictions.jsonl.gz` is a separate compressed append-only,
+hash-chained ledger. Each observation freezes raw events, summaries, support/resistance,
 source-data hash, Baseline/Enhanced comparison fields, entry price, and pending
 1D/5D/10D/20D/60D + MAE/MFE outcome slots. Outcomes are never populated at
 signal time.

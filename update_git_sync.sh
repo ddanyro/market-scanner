@@ -48,7 +48,7 @@ SYNC_GENERATED_FILES=(
     "scan_results.csv"
     "scan_results_enhanced.csv"
     "shadow_predictions.jsonl"
-    "technical_events_predictions.jsonl"
+    "technical_events_predictions.jsonl.gz"
     "technical_events_state.json"
     "sp500_tickers.json"
     "tradeville_account.enc.json"
@@ -136,12 +136,21 @@ git_sync_merge_remote_ledger() {
 
 git_sync_merge_remote_technical_ledger() {
     local remote_ledger
-    remote_ledger="$(mktemp "${TMPDIR:-/tmp}/market-scanner-technical-ledger.XXXXXX")"
-    if git show "$SYNC_REMOTE_NAME/$SYNC_BRANCH_NAME:technical_events_predictions.jsonl" \
+    remote_ledger="$(mktemp "${TMPDIR:-/tmp}/market-scanner-technical-ledger.XXXXXX.gz")"
+    if git show "$SYNC_REMOTE_NAME/$SYNC_BRANCH_NAME:technical_events_predictions.jsonl.gz" \
         > "$remote_ledger" 2>/dev/null; then
         "$(sync_python_bin)" merge_shadow_ledgers.py \
-            technical_events_predictions.jsonl "$remote_ledger" \
-            --kind technical --output technical_events_predictions.jsonl
+            technical_events_predictions.jsonl.gz "$remote_ledger" \
+            --kind technical --output technical_events_predictions.jsonl.gz
+    else
+        rm -f -- "$remote_ledger"
+        remote_ledger="$(mktemp "${TMPDIR:-/tmp}/market-scanner-technical-ledger.XXXXXX")"
+        if git show "$SYNC_REMOTE_NAME/$SYNC_BRANCH_NAME:technical_events_predictions.jsonl" \
+            > "$remote_ledger" 2>/dev/null; then
+            "$(sync_python_bin)" merge_shadow_ledgers.py \
+                technical_events_predictions.jsonl.gz "$remote_ledger" \
+                --kind technical --output technical_events_predictions.jsonl.gz
+        fi
     fi
     rm -f -- "$remote_ledger"
 }
@@ -165,13 +174,13 @@ git_sync_integrate_remote() {
     local ledger_before
     ledger_before="$(git hash-object shadow_predictions.jsonl 2>/dev/null || true)"
     local technical_ledger_before
-    technical_ledger_before="$(git hash-object technical_events_predictions.jsonl 2>/dev/null || true)"
+    technical_ledger_before="$(git hash-object technical_events_predictions.jsonl.gz 2>/dev/null || true)"
     git_sync_merge_remote_ledger
     git_sync_merge_remote_technical_ledger
     local ledger_after
     ledger_after="$(git hash-object shadow_predictions.jsonl 2>/dev/null || true)"
     local technical_ledger_after
-    technical_ledger_after="$(git hash-object technical_events_predictions.jsonl 2>/dev/null || true)"
+    technical_ledger_after="$(git hash-object technical_events_predictions.jsonl.gz 2>/dev/null || true)"
     if [ "$ledger_before" != "$ledger_after" ] || \
        [ "$technical_ledger_before" != "$technical_ledger_after" ]; then
         git_sync_refresh_shadow_reports
