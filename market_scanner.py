@@ -4191,6 +4191,9 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         enhanced_market_fields = _ibkr_enhanced_market_fields(
             selected_market_instrument
         )
+        history_ticker = _preferred_yahoo_history_symbols(
+            ticker, actual_download_ticker
+        )[0]
         technical_events_result = technical_events.analyze(
             df,
             None if is_bvb_position else spx_df,
@@ -4198,7 +4201,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 'provider': data_attribution.get('Market_Data_Source'),
                 'fetched_at': data_attribution.get('Market_Data_Fetched_At'),
                 'benchmark': None if is_bvb_position else 'SPX',
-                'ticker': ticker,
+                'ticker': history_ticker,
             },
             generated_at=datetime.datetime.now(
                 datetime.timezone.utc
@@ -4206,6 +4209,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         )
         result = {
             'Symbol': ticker,
+            'History_Ticker': history_ticker,
             'Company_Name': company_name,
             'Shares': int(shares),
             'Current_Price': round(current_price, 2),
@@ -4610,6 +4614,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
 
         result = {
             'Ticker': ticker,
+            'History_Ticker': ticker,
             'Currency': currency,
             'Price': round(last_close, 2),
             'Price_Native': round(last_close_native, 2),

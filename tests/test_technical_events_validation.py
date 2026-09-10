@@ -77,6 +77,7 @@ def test_snapshot_captures_regime_and_existing_technical_score():
     assert value["input_data_provenance"]["forward_outcomes_present"] is False
     assert row["existing_technical_score"] == 60
     assert row["data_as_of"] == "2026-09-08T00:00:00"
+    assert row["history_ticker"] == "AAA"
 
 
 def test_flatten_extracts_all_timeframes_and_simulated_score():
@@ -89,6 +90,24 @@ def test_flatten_extracts_all_timeframes_and_simulated_score():
     assert row.simulated_equal_weight_score == 67.5
     assert row.trend_regime == "bullish"
     assert row.volatility_regime == "low_volatility"
+
+
+def test_history_symbol_uses_exchange_qualified_contract_alias():
+    value = snapshot()
+    value["predictions"][0]["ticker"] = "3USL"
+    value["predictions"][0].pop("history_ticker", None)
+    flat = validation.flatten_ledger(
+        [value], history_symbol_aliases={"3USL": "3USL.MI"}
+    )
+    assert flat.iloc[0].ticker == "3USL"
+    assert flat.iloc[0].history_ticker == "3USL.MI"
+    assert flat.iloc[0].history_ticker_source == "instrument_metadata"
+
+
+def test_spearman_correlation_does_not_require_scipy():
+    left = pd.Series([10, 20, 20, 40, 50], dtype=float)
+    right = pd.Series([1, 2, 2, 4, 5], dtype=float)
+    assert validation._correlation(left, right, method="spearman") == 1.0
 
 
 def test_forward_outcomes_use_only_sessions_strictly_after_signal():

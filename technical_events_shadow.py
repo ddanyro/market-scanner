@@ -67,6 +67,9 @@ def build_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None, recorded_at=
         entry = enhanced.get("entry") if isinstance(enhanced.get("entry"), dict) else {}
         predictions.append({
             "ticker": symbol,
+            "history_ticker": str(
+                getter("History_Ticker", symbol) or symbol
+            ).upper(),
             "recorded_at": timestamp,
             "entry_price": _number(getter("Price_Native", getter("Current_Price", getter("Price")))),
             "entry_source": entry.get("source") or events.get("input_provenance", {}).get("source"),

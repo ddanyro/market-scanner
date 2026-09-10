@@ -37,6 +37,7 @@ EVENT_TYPES = (
     "VOLATILITY",
 )
 OUTPUT_DIR = Path("analysis/technical_events_validation")
+TWS_INSTRUMENTS_FILE = Path("tws_instruments.json")
 
 
 def _number(value, default=None):
@@ -90,8 +91,56 @@ def _trend_regime(stage):
     return "sideways"
 
 
-def flatten_ledger(snapshots):
+def _load_history_symbol_aliases(path=TWS_INSTRUMENTS_FILE):
+    """Map broker/local symbols to the exact Yahoo exchange listing.
+
+    Contract metadata is non-predictive identity data, so resolving a legacy
+    ledger symbol here cannot introduce price look-ahead.  New observations
+    also retain the resolved symbol in the derived validation dataset.
+    """
+    try:
+        payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, TypeError, ValueError):
+        return {}
+    instruments = payload.get("instruments", {})
+    if not isinstance(instruments, dict):
+        return {}
+    result = {}
+    for key, instrument in instruments.items():
+        if not isinstance(instrument, dict):
+            continue
+        aliases = [
+            str(value).strip().upper()
+            for value in instrument.get("aliases", [])
+            if str(value).strip()
+        ]
+        canonical = str(instrument.get("symbol") or key or "").strip().upper()
+        candidates = aliases + [canonical]
+        # The metadata generator orders the preferred exchange-qualified
+        # Yahoo symbol first (for example 3USL.MI before 3USL.BVME/3USL).
+        preferred = next(
+            (value for value in candidates if "." in value), canonical
+        )
+        if not preferred:
+            continue
+        contract = instrument.get("contract") or {}
+        lookup_values = candidates + [
+            str(key).strip().upper(),
+            str(contract.get("symbol") or "").strip().upper(),
+            str(contract.get("local_symbol") or "").strip().upper(),
+        ]
+        for value in lookup_values:
+            if value:
+                result.setdefault(value, preferred)
+    return result
+
+
+def flatten_ledger(snapshots, history_symbol_aliases=None):
     """Freeze ledger observations into a tabular event-study dataset."""
+    history_symbol_aliases = (
+        _load_history_symbol_aliases()
+        if history_symbol_aliases is None else history_symbol_aliases
+    )
     rows = []
     for snapshot in snapshots:
         regime = snapshot.get("market_regime") or {}
@@ -103,6 +152,15 @@ def flatten_ledger(snapshots):
                 for name in TIMEFRAMES
             }
             vix = _number(regime.get("vix"))
+            ticker = str(prediction.get("ticker") or "").upper()
+            stored_history_ticker = str(
+                prediction.get("history_ticker") or ""
+            ).strip().upper()
+            history_ticker = (
+                stored_history_ticker
+                or history_symbol_aliases.get(ticker)
+                or ticker
+            )
             rows.append({
                 "observation_id": (
                     f"{snapshot.get('snapshot_id')}:{prediction.get('ticker')}"
@@ -110,6 +168,14 @@ def flatten_ledger(snapshots):
                 "snapshot_id": snapshot.get("snapshot_id"),
                 "recorded_at": snapshot.get("recorded_at"),
                 "ticker": prediction.get("ticker"),
+                "history_ticker": history_ticker,
+                "history_ticker_source": (
+                    "snapshot"
+                    if stored_history_ticker
+                    else "instrument_metadata"
+                    if history_ticker != ticker
+                    else "ticker"
+                ),
                 "market": prediction.get("market"),
                 "sector": prediction.get("sector"),
                 "currency": prediction.get("currency"),
@@ -162,6 +228,7 @@ def flatten_ledger(snapshots):
     if frame.empty:
         return pd.DataFrame(columns=[
             "observation_id", "snapshot_id", "recorded_at", "ticker",
+            "history_ticker", "history_ticker_source",
             "market", "sector", "currency", "entry_price", "entry_source",
             "data_as_of", "market_timezone", "signal_day",
             "existing_technical_score", "overall_event_score", "confidence",
@@ -221,7 +288,11 @@ def label_forward_outcomes(frame, now=None, ticker_factory=yf.Ticker):
     start = (result.signal_day.min() - pd.Timedelta(days=10)).date().isoformat()
     end = (now + pd.Timedelta(days=2)).date().isoformat()
     histories = {}
-    for ticker in sorted(result.ticker.dropna().astype(str).unique()):
+    history_column = (
+        result.history_ticker
+        if "history_ticker" in result else result.ticker
+    )
+    for ticker in sorted(history_column.dropna().astype(str).unique()):
         try:
             histories[ticker] = _download_history(ticker, start, end, ticker_factory)
         except Exception:
@@ -231,7 +302,11 @@ def label_forward_outcomes(frame, now=None, ticker_factory=yf.Ticker):
             result[f"{column}_{horizon}d"] = np.nan
         result[f"outcome_status_{horizon}d"] = "pending"
     for index, row in result.iterrows():
-        history = histories.get(str(row.ticker), pd.DataFrame())
+        history_ticker = str(
+            row.history_ticker
+            if "history_ticker" in result else row.ticker
+        )
+        history = histories.get(history_ticker, pd.DataFrame())
         if not history.empty:
             # Defensive clipping: never trust a provider/test double to honor
             # the requested end date.
@@ -438,6 +513,33 @@ def support_resistance_table(events):
     return pd.DataFrame(rows)
 
 
+def _correlation(left, right, method="pearson"):
+    """Correlation with an in-process Spearman implementation.
+
+    Pandas delegates ``method='spearman'`` to optional SciPy.  Ranking first
+    and applying Pearson is mathematically equivalent (including average
+    ranks for ties) and keeps the validator runnable in the project venv.
+    """
+    pair = pd.DataFrame({"left": left, "right": right}).apply(
+        pd.to_numeric, errors="coerce"
+    ).dropna()
+    if (
+        len(pair) < 3
+        or pair.left.nunique(dropna=True) < 2
+        or pair.right.nunique(dropna=True) < 2
+    ):
+        return np.nan
+    if method == "spearman":
+        left_values = pair.left.rank(method="average")
+        right_values = pair.right.rank(method="average")
+    elif method == "pearson":
+        left_values = pair.left
+        right_values = pair.right
+    else:
+        raise ValueError(f"unsupported correlation method: {method}")
+    return left_values.corr(right_values)
+
+
 def predictive_power_table(labelled):
     rows = []
     for feature in SCORE_FEATURES:
@@ -448,9 +550,10 @@ def predictive_power_table(labelled):
             ).dropna()
             rows.append({
                 "feature": feature, "horizon": horizon, "n": len(pair),
-                "pearson": pair[feature].corr(pair[target]) if len(pair) >= 3 else np.nan,
-                "spearman": pair[feature].corr(pair[target], method="spearman")
-                if len(pair) >= 3 else np.nan,
+                "pearson": _correlation(pair[feature], pair[target]),
+                "spearman": _correlation(
+                    pair[feature], pair[target], method="spearman"
+                ),
             })
     return pd.DataFrame(rows)
 
@@ -470,9 +573,10 @@ def score_comparison_table(labelled):
             high = labelled[pd.to_numeric(labelled[score], errors="coerce") >= 70]
             rows.append({
                 "score": score, "horizon": horizon, "n": len(pair),
-                "pearson": pair[score].corr(pair[target]) if len(pair) >= 3 else np.nan,
-                "spearman": pair[score].corr(pair[target], method="spearman")
-                if len(pair) >= 3 else np.nan,
+                "pearson": _correlation(pair[score], pair[target]),
+                "spearman": _correlation(
+                    pair[score], pair[target], method="spearman"
+                ),
                 **{f"high_score_{key}": value for key, value in _summary(high, horizon).items()},
                 "incremental_r2_of_events": np.nan,
             })
