@@ -3171,7 +3171,9 @@ def calculate_historical_monthly_returns(cache_file=HISTORICAL_RETURNS_FILE, ttl
                 continue
             
             # Resample to monthly and calculate returns
-            monthly = hist['Close'].resample('M').last()
+            # pandas 3 removed the legacy ``M`` alias; ``ME`` is the explicit
+            # calendar month-end offset and preserves the intended grouping.
+            monthly = hist['Close'].resample('ME').last()
             monthly_returns = monthly.pct_change().dropna() * 100  # Convert to percentage
             
             # Calculate average monthly return

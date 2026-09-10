@@ -24,6 +24,24 @@ import market_scanner
 import market_security
 
 
+class TestHistoricalMonthlyReturns(unittest.TestCase):
+    @patch('market_scanner.yf.Ticker')
+    def test_uses_supported_calendar_month_end_frequency(self, ticker):
+        history = pd.DataFrame(
+            {'Close': np.linspace(100, 130, 120)},
+            index=pd.date_range('2024-01-01', periods=120, freq='D'),
+        )
+        ticker.return_value.history.return_value = history
+        with tempfile.TemporaryDirectory() as directory:
+            result = market_scanner.calculate_historical_monthly_returns(
+                cache_file=os.path.join(directory, 'returns.json')
+            )
+
+        self.assertEqual(set(result), {'SP500', 'NASDAQ'})
+        self.assertGreater(result['SP500']['data_points'], 0)
+        self.assertGreater(result['NASDAQ']['data_points'], 0)
+
+
 class TestPortfolioOptionsContext(unittest.TestCase):
     @patch.dict(os.environ, {
         'IBKR_MCP_RESEARCH_ENABLED': '1', 'GITHUB_ACTIONS': 'false',
