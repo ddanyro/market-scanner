@@ -317,3 +317,13 @@ def test_component_and_portfolio_diagnostics_do_not_invent_small_sample_signal()
     assert components.incremental_r2.isna().all()
     fit = evaluate_shadow_forward.portfolio_fit_table(labelled)
     assert fit.iloc[0]["cohort"] == "raw_high_fit_weak"
+
+
+def test_correlations_do_not_require_scipy_or_warn_for_constant_data():
+    increasing = pd.Series([1.0, 2.0, 3.0, 4.0])
+    constant = pd.Series([5.0, 5.0, 5.0, 5.0])
+
+    assert evaluate_shadow_forward._correlation(
+        increasing, increasing, method="spearman"
+    ) == 1.0
+    assert pd.isna(evaluate_shadow_forward._correlation(constant, increasing))

@@ -35,6 +35,28 @@ def _number(value, default=None):
     return result if math.isfinite(result) else default
 
 
+def _correlation(left, right, method="pearson"):
+    """Compute Pearson/Spearman without optional SciPy or constant warnings."""
+    pair = pd.DataFrame({"left": left, "right": right}).apply(
+        pd.to_numeric, errors="coerce"
+    ).dropna()
+    if (
+        len(pair) < 3
+        or pair.left.nunique(dropna=True) < 2
+        or pair.right.nunique(dropna=True) < 2
+    ):
+        return np.nan
+    if method == "spearman":
+        left_values = pair.left.rank(method="average")
+        right_values = pair.right.rank(method="average")
+    elif method == "pearson":
+        left_values = pair.left
+        right_values = pair.right
+    else:
+        raise ValueError(f"unsupported correlation method: {method}")
+    return left_values.corr(right_values)
+
+
 def flatten_ledger(snapshots):
     rows = []
     for snapshot in snapshots:
@@ -311,10 +333,15 @@ def component_analysis_table(labelled):
         for horizon in HORIZONS:
             target = f"net_alpha_spy_pct_{horizon}d"
             numeric = sample[components + [target]].apply(pd.to_numeric, errors="coerce")
-            correlations = numeric[components].corr().abs()
             for component in components:
                 pair = numeric[[component, target]].dropna()
-                peers = correlations.loc[component].drop(component, errors="ignore").dropna()
+                peer_correlations = [
+                    abs(value)
+                    for peer in components
+                    if peer != component
+                    for value in [_correlation(numeric[component], numeric[peer])]
+                    if pd.notna(value)
+                ]
                 incremental_r2 = np.nan
                 complete = numeric.dropna()
                 # Avoid reporting unstable multivariate attribution on tiny samples.
@@ -339,9 +366,15 @@ def component_analysis_table(labelled):
                     "horizon": horizon,
                     "component": component,
                     "n": len(pair),
-                    "pearson_forward_alpha": pair[component].corr(pair[target]) if len(pair) >= 3 else np.nan,
-                    "spearman_forward_alpha": pair[component].corr(pair[target], method="spearman") if len(pair) >= 3 else np.nan,
-                    "max_abs_component_correlation": peers.max() if len(peers) else np.nan,
+                    "pearson_forward_alpha": _correlation(
+                        pair[component], pair[target]
+                    ),
+                    "spearman_forward_alpha": _correlation(
+                        pair[component], pair[target], method="spearman"
+                    ),
+                    "max_abs_component_correlation": (
+                        max(peer_correlations) if peer_correlations else np.nan
+                    ),
                     "incremental_r2": incremental_r2,
                 })
     return pd.DataFrame(rows)
