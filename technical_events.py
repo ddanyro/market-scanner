@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 
-ENGINE_VERSION = "technical-events-v2-structural-shadow"
+ENGINE_VERSION = "technical-events-v3-events-with-structural-context-shadow"
 
 
 @dataclass(frozen=True)
@@ -483,22 +483,27 @@ def _timeframe_analysis(data, benchmark, name, config, source):
         structural_weight = default_structural_weights.get(name, 0.30)
     if not structural["available"]:
         structural_weight = 0.0
-    score = (
+    context_score = (
         structural_weight * structural["score"]
         + (1 - structural_weight) * event_flow_score
     )
     return {
         "available": True,
-        "direction": _direction(score),
+        # Technical Events describes confirmed events.  The persistent trend is
+        # useful context, but must not manufacture an event direction when the
+        # actual event flow is neutral (for example a bullish long-term trend
+        # with no recent long-term event).
+        "direction": _direction(event_flow_score),
         "bullish_events": sum(item["direction"] == "BULLISH" for item in events),
         "bearish_events": sum(item["direction"] == "BEARISH" for item in events),
-        "event_score": round(score, 2),
+        "event_score": round(event_flow_score, 2),
         "recent_event_score": round(event_flow_score, 2),
+        "context_score": round(context_score, 2),
         "structural_score": structural["score"],
         "structural_direction": structural["direction"],
         "structural_trend": structural,
         "structural_weight": round(structural_weight, 4),
-        "score_formula": "structural_weight * structural_score + (1 - structural_weight) * recent_event_score",
+        "score_formula": "event_score = recent_event_score; context_score = structural_weight * structural_score + (1 - structural_weight) * recent_event_score",
         "effective_bullish_strength": round(bullish, 2),
         "effective_bearish_strength": round(bearish, 2),
         "scored_events": len(eligible_events),

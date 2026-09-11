@@ -108,7 +108,7 @@ def test_benchmark_alignment_accepts_mixed_timezones():
     assert result["available"] is True
 
 
-def test_short_pullback_does_not_erase_long_structural_uptrend():
+def test_short_pullback_keeps_long_structural_context_without_inventing_event():
     rising = np.linspace(75, 120, 300)
     pullback = np.linspace(120, 112, 20)
     result = technical_events.analyze(frame_from_close([*rising, *pullback]))
@@ -116,9 +116,9 @@ def test_short_pullback_does_not_erase_long_structural_uptrend():
     short = result["timeframes"]["SHORT_TERM"]
     long = result["timeframes"]["LONG_TERM"]
     assert short["direction"] == "BEARISH"
-    assert long["direction"] == "BULLISH"
+    assert long["direction"] == "NEUTRAL"
     assert long["structural_direction"] == "BULLISH"
-    assert result["conflict"] == "MIXED SIGNALS ACROSS TIMEFRAMES"
+    assert long["context_score"] > long["event_score"]
 
 
 def test_long_term_excludes_fast_daily_oscillators_from_score():
@@ -147,13 +147,28 @@ def test_correlated_event_family_is_discounted_not_hidden():
     assert events[1]["correlation_discount"] == 0.35
 
 
-def test_timeframe_score_exposes_reproducible_structural_formula():
+def test_timeframe_event_score_is_not_manufactured_by_structural_context():
     result = technical_events.analyze(frame_from_close(np.linspace(80, 120, 320)))
     for detail in result["timeframes"].values():
         weight = detail["structural_weight"]
         expected = weight * detail["structural_score"] + (1 - weight) * detail["recent_event_score"]
-        assert detail["event_score"] == round(expected, 2)
+        assert detail["event_score"] == detail["recent_event_score"]
+        assert detail["context_score"] == round(expected, 2)
+        assert detail["direction"] == technical_events._direction(detail["event_score"])
         assert detail["score_formula"]
+
+
+def test_neutral_event_flow_stays_neutral_despite_bullish_structural_context():
+    detail = technical_events._timeframe_analysis(
+        technical_events._normalize(frame_from_close(np.linspace(80, 120, 320))),
+        pd.DataFrame(),
+        "LONG_TERM",
+        technical_events.DEFAULT_TIMEFRAMES["LONG_TERM"],
+        {},
+    )
+    assert detail["recent_event_score"] == 50
+    assert detail["structural_direction"] == "BULLISH"
+    assert detail["direction"] == "NEUTRAL"
 
 
 def test_technical_events_field_cannot_change_enhanced_score():

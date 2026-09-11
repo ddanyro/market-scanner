@@ -1740,7 +1740,7 @@ def _technical_events_ui_detail(value, max_events=15):
             for key in (
                 'event_score', 'direction', 'bullish_events',
                 'bearish_events', 'recent_event_score', 'structural_score',
-                'structural_direction', 'structural_weight',
+                'structural_direction', 'structural_weight', 'context_score',
                 'scored_events', 'excluded_events', 'score_formula',
             )
             if key in detail
@@ -11094,7 +11094,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         + escapeIndicatorText(number(item.bullish_events)) + " · Bear "
                         + escapeIndicatorText(number(item.bearish_events)) + " · Structural "
                         + escapeIndicatorText(number(item.structural_score)) + " · Recent events "
-                        + escapeIndicatorText(number(item.recent_event_score)) + "'><span>"
+                        + escapeIndicatorText(number(item.recent_event_score)) + " · Context score "
+                        + escapeIndicatorText(number(item.context_score)) + "'><span>"
                         + escapeIndicatorText(label) + "</span><b class='direction-"
                         + escapeIndicatorText((item.direction || 'NEUTRAL').toLowerCase()) + "'>"
                         + escapeIndicatorText(item.direction || 'NEUTRAL') + "</b>"
