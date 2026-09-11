@@ -9971,6 +9971,24 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         <option value="AVOID">AVOID</option>
                     </select>
                 </div>
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Technical Events</label>
+                    <select id="filter-technical-events" style="padding: 10px 14px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); width: 160px; font-size: 14px; cursor: pointer;">
+                        <option value="">All</option>
+                        <option value="BULLISH">Bullish</option>
+                        <option value="NEUTRAL">Neutral</option>
+                        <option value="BEARISH">Bearish</option>
+                    </select>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Technical Events — Short</label>
+                    <select id="filter-technical-events-short" style="padding: 10px 14px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); width: 190px; font-size: 14px; cursor: pointer;">
+                        <option value="">All</option>
+                        <option value="BULLISH">Bullish</option>
+                        <option value="NEUTRAL">Neutral</option>
+                        <option value="BEARISH">Bearish</option>
+                    </select>
+                </div>
                 <!-- NEW FILTERS (Feedback 2.0) -->
                 <div style="display: flex; flex-direction: column;">
                     <label style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Min Volume (M)</label>
@@ -10189,6 +10207,11 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             technical_direction = technical_detail.get(
                 'overall_direction', 'N/A'
             )
+            technical_short_direction = (
+                (technical_detail.get('timeframes') or {})
+                .get('SHORT_TERM', {})
+                .get('direction', 'N/A')
+            )
             technical_score = _safe_float_text(
                 technical_detail.get('overall_event_score')
             )
@@ -10250,7 +10273,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                  bomb_html = f' <span style="cursor:help; font-size:1.2em;" onmousemove="showTooltip(event, \'<strong>💣 Earnings Danger Zone</strong><br>{msg}<br>⚠️ Volatilitate extremă posibilă.\')" onmouseout="hideTooltip()">💣</span>'
 
             html_head += f"""
-                    <tr data-volume="{row.get('Volume', 0)}" data-avgvol="{row.get('Avg_Volume', 0)}" data-rsi="{row['RSI']}" data-rr="{rr_val}">
+                    <tr data-volume="{row.get('Volume', 0)}" data-avgvol="{row.get('Avg_Volume', 0)}" data-rsi="{row['RSI']}" data-rr="{rr_val}" data-technical-short="{html.escape(str(technical_short_direction))}">
                         <td><strong style="cursor: help; color: #4dabf7; text-decoration: underline;" onmousemove="showTooltip(event, '{row.get('Company_Name', '')}')" onmouseout="hideTooltip()" onclick="goToVolatility('{row['Ticker']}')">{row['Ticker']}</strong>{bomb_html}</td>
                         <td>€{row['Price']:.2f}</td>
                         <td><canvas id="{spark_wl_id}" class="sparkline-container" role="button" tabindex="0" title="Deschide graficul și detaliile pentru {row['Ticker']}" style="cursor:pointer;" onclick="openWatchlistDetail('{row['Ticker']}')" onkeydown="if(event.key==='Enter'||event.key===' '){{event.preventDefault();openWatchlistDetail('{row['Ticker']}');}}"></canvas></td>
@@ -10716,6 +10739,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         var trend = $('#filter-trend').val();
                         var status = $('#filter-status').val();
                         var decision = $('#filter-decision').val();
+                        var technicalEvents = $('#filter-technical-events').val();
+                        var technicalEventsShort = $('#filter-technical-events-short').val();
                         var strategy = $('#filter-strategy').val();
                         var minRsSpx = parseFloat($('#filter-rs-spx').val());
                         var sector = $('#filter-sector').val() ? $('#filter-sector').val().toLowerCase().trim() : "";
@@ -10725,6 +10750,11 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         var rowConsensus = data[6] || "";
                         var rowAnalysts = parseFloat(data[7]) || 0;
                         var rowDecision = data[9] || "";
+                        var rowTechnicalEvents = (data[15] || "").toUpperCase();
+                        var rowNode = settings.aoData[dataIndex].nTr;
+                        var rowTechnicalEventsShort = (
+                            rowNode.getAttribute('data-technical-short') || ""
+                        ).toUpperCase();
                         var rowTrend = data[19] || "";
                         var rowStatus = data[24] || "";
                         var rowStrategy = data[20] || "";
@@ -10738,6 +10768,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         if (trend && !rowTrend.includes(trend)) return false;
                         if (status && !rowStatus.includes(status)) return false;
                         if (decision && !rowDecision.includes(decision)) return false;
+                        if (technicalEvents && !rowTechnicalEvents.includes(technicalEvents)) return false;
+                        if (technicalEventsShort && rowTechnicalEventsShort !== technicalEventsShort) return false;
                         if (strategy && !rowStrategy.includes(strategy)) return false;
                         if (!isNaN(minRsSpx) && rowRsSpx < minRsSpx) return false;
                         if (sector && !rowSector.includes(sector)) return false;
@@ -10748,7 +10780,6 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         var minRR = parseFloat($('#filter-rr').val());
 
                         // Get Data Attributes from TR
-                        var rowNode = settings.aoData[dataIndex].nTr;
                         var rowVol = parseFloat(rowNode.getAttribute('data-avgvol')) || 0; // Use Avg Vol for filtering
                         var rowRsi = parseFloat(rowNode.getAttribute('data-rsi')) || 50;
                         var rowRR = parseFloat(rowNode.getAttribute('data-rr')) || 0;
@@ -10766,7 +10797,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 );
 
                 // Event listener to redraw on input change
-                $('#filter-consensus, #filter-analysts, #filter-target-pct, #filter-trend, #filter-status, #filter-decision, #filter-volume, #filter-rsi-min, #filter-rsi-max, #filter-rr, #filter-strategy, #filter-rs-spx, #filter-sector').change(function() {
+                $('#filter-consensus, #filter-analysts, #filter-target-pct, #filter-trend, #filter-status, #filter-decision, #filter-technical-events, #filter-technical-events-short, #filter-volume, #filter-rsi-min, #filter-rsi-max, #filter-rr, #filter-strategy, #filter-rs-spx, #filter-sector').change(function() {
                     table.draw();
                 });
                 $('#filter-analysts, #filter-target-pct, #filter-volume, #filter-rsi-min, #filter-rsi-max, #filter-rr, #filter-rs-spx, #filter-sector').keyup(function() {

@@ -197,6 +197,17 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('Componentele scorului', content)
         self.assertIn('${renderEnhancedDetail(detail.enhanced)}', content)
         self.assertIn('<th style="color:#0f766e;">Technical Events</th>', content)
+        self.assertIn('id="filter-technical-events"', content)
+        self.assertIn('id="filter-technical-events-short"', content)
+        self.assertIn('var rowTechnicalEvents = (data[15] || "").toUpperCase();', content)
+        self.assertIn(
+            'if (technicalEvents && !rowTechnicalEvents.includes(technicalEvents)) return false;',
+            content,
+        )
+        self.assertIn(
+            'if (technicalEventsShort && rowTechnicalEventsShort !== technicalEventsShort) return false;',
+            content,
+        )
         self.assertIn('function renderTechnicalEvents(technical)', content)
         self.assertIn('${renderTechnicalEvents(detail.technicalEvents)}', content)
         self.assertIn("<details class='technical-details'>", content)
