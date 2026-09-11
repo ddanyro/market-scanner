@@ -5,45 +5,9 @@ cd "$(dirname "$0")"
 source "./update_git_sync.sh"
 
 WORKFLOW_FILE="update_dashboard.yml"
-ORDER_CACHE_PASSWORD_FILE="${PORTFOLIO_ORDER_CACHE_PASSWORD_FILE:-.portfolio_order_cache_password}"
 
 log_step() {
     printf '\n=== %s ===\n' "$1"
-}
-
-load_order_cache_password() {
-    if [ -n "${PORTFOLIO_ORDER_CACHE_PASSWORD:-}" ]; then
-        export PORTFOLIO_ORDER_CACHE_PASSWORD
-        return
-    fi
-
-    if [ -f "$ORDER_CACHE_PASSWORD_FILE" ]; then
-        IFS= read -r PORTFOLIO_ORDER_CACHE_PASSWORD < "$ORDER_CACHE_PASSWORD_FILE"
-        if [ -n "$PORTFOLIO_ORDER_CACHE_PASSWORD" ]; then
-            export PORTFOLIO_ORDER_CACHE_PASSWORD
-            return
-        fi
-    fi
-
-    if [ ! -t 0 ]; then
-        echo "Eroare: lipsește cheia comună pentru snapshotul ordinelor IBKR." >&2
-        echo "Rulează scriptul o dată într-un terminal interactiv pentru configurare." >&2
-        exit 1
-    fi
-
-    printf 'PIN-ul portofoliului remote (va fi salvat local, în afara Git): ' >&2
-    IFS= read -r -s PORTFOLIO_ORDER_CACHE_PASSWORD
-    printf '\n' >&2
-    if [ -z "$PORTFOLIO_ORDER_CACHE_PASSWORD" ]; then
-        echo "Eroare: PIN-ul remote nu poate fi gol." >&2
-        exit 1
-    fi
-
-    umask 077
-    printf '%s\n' "$PORTFOLIO_ORDER_CACHE_PASSWORD" > "$ORDER_CACHE_PASSWORD_FILE"
-    chmod 600 "$ORDER_CACHE_PASSWORD_FILE"
-    export PORTFOLIO_ORDER_CACHE_PASSWORD
-    echo "Cheia snapshotului a fost salvată local în $ORDER_CACHE_PASSWORD_FILE (ignorat de Git)."
 }
 
 if ! command -v gh >/dev/null 2>&1; then

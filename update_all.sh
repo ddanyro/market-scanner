@@ -11,6 +11,7 @@ else
 fi
 
 git_sync_start "update_all.sh"
+load_order_cache_password
 
 sync_log_step "Actualizare completă"
 "$PYTHON_BIN" -u market_scanner.py --mode all --tws

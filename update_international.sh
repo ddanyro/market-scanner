@@ -11,6 +11,7 @@ else
 fi
 
 git_sync_start "update_international.sh"
+load_order_cache_password
 
 sync_log_step "Actualizare internațională"
 "$PYTHON_BIN" -u market_scanner.py --mode international

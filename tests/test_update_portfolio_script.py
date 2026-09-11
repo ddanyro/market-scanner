@@ -13,6 +13,7 @@ class TestUpdatePortfolioScript(unittest.TestCase):
             script = (self.root / filename).read_text(encoding='utf-8')
             self.assertIn('source "./update_git_sync.sh"', script, filename)
             self.assertIn('git_sync_start', script, filename)
+            self.assertIn('load_order_cache_password', script, filename)
             self.assertIn('git_sync_finish', script, filename)
 
     def test_shared_sync_stages_every_scanner_output_and_retries_push(self):
@@ -34,6 +35,8 @@ class TestUpdatePortfolioScript(unittest.TestCase):
             'technical_events_predictions.archive-*.jsonl.gz', sync
         )
         self.assertIn('git rebase --autostash -X theirs', sync)
+        self.assertIn('load_order_cache_password()', sync)
+        self.assertIn('.portfolio_order_cache_password', sync)
         self.assertNotIn(
             '"analysis/technical_events_validation/event_observations.csv"',
             sync,
