@@ -1,8 +1,8 @@
 partition,horizon,model,gross_return_pct_n,gross_return_pct_mean,gross_return_pct_win_rate,net_return_pct_n,net_return_pct_mean,net_return_pct_win_rate,net_alpha_spy_pct_n,net_alpha_spy_pct_mean,net_alpha_spy_pct_win_rate,net_alpha_qqq_pct_n,net_alpha_qqq_pct_mean,net_alpha_qqq_pct_win_rate,net_alpha_sector_pct_n,net_alpha_sector_pct_mean,net_alpha_sector_pct_win_rate,net_alpha_cash_pct_n,net_alpha_cash_pct_mean,net_alpha_cash_pct_win_rate,mae_pct_n,mae_pct_mean,mae_pct_win_rate,mfe_pct_n,mfe_pct_mean,mfe_pct_win_rate,path_max_drawdown_pct_n,path_max_drawdown_pct_mean,path_max_drawdown_pct_win_rate
-calibration,1,baseline_buy,0,,,0,,,0,,,0,,,0,,,0,,,0,,,0,,,0,,
-calibration,1,enhanced_shadow_buy,0,,,0,,,0,,,0,,,0,,,0,,,0,,,0,,,0,,
+calibration,1,baseline_buy,18,-2.756265096705971,5.555555555555555,0,,,0,,,0,,,0,,,0,,,18,-4.476797485632109,0.0,18,-1.7496424267768058,27.77777777777778,18,0.0,0.0
+calibration,1,enhanced_shadow_buy,18,-2.756265096705971,5.555555555555555,0,,,0,,,0,,,0,,,0,,,18,-4.476797485632109,0.0,18,-1.7496424267768058,27.77777777777778,18,0.0,0.0
 calibration,1,enhanced_raw_75,0,,,0,,,0,,,0,,,0,,,0,,,0,,,0,,,0,,
-calibration,1,enhanced_adjusted_75,0,,,0,,,0,,,0,,,0,,,0,,,0,,,0,,,0,,
+calibration,1,enhanced_adjusted_75,22,0.2495146829982722,54.54545454545454,0,,,0,,,0,,,0,,,0,,,22,-1.942414835760578,0.0,22,1.1584704298064714,81.81818181818183,22,0.0,0.0
 calibration,5,baseline_buy,0,,,0,,,0,,,0,,,0,,,0,,,0,,,0,,,0,,
 calibration,5,enhanced_shadow_buy,0,,,0,,,0,,,0,,,0,,,0,,,0,,,0,,,0,,
 calibration,5,enhanced_raw_75,0,,,0,,,0,,,0,,,0,,,0,,,0,,,0,,,0,,
