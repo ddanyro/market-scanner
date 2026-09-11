@@ -1,5 +1,5 @@
 partition,options_cohort,options_data_quality,predictions,baseline_score_mean,raw_score_mean,availability_adjusted_raw_mean,portfolio_fit_coverage_pct,net_alpha_spy_1d_n,net_alpha_spy_1d_mean,net_alpha_spy_5d_n,net_alpha_spy_5d_mean,net_alpha_spy_10d_n,net_alpha_spy_10d_mean,net_alpha_spy_20d_n,net_alpha_spy_20d_mean,net_alpha_spy_60d_n,net_alpha_spy_60d_mean
-calibration,OPTIONS_DATA_PARTIAL,partial,27,82.4074074074074,73.46666666666665,76.07592592592592,100.0,0,,0,,0,,0,,0,
+calibration,OPTIONS_DATA_PARTIAL,partial,27,82.4074074074074,73.46666666666665,76.07592592592592,100.0,9,-0.3622186969656908,0,,0,,0,,0,
 calibration,OPTIONS_DATA_PARTIAL,quote_only,13,86.53846153846153,71.93615384615383,74.37538461538462,100.0,0,,0,,0,,0,,0,
-calibration,OPTIONS_NOT_ELIGIBLE,unavailable,225,79.66666666666667,64.24137777777777,65.82391111111112,41.333333333333336,0,,0,,0,,0,,0,
-calibration,OPTIONS_UNAVAILABLE,unavailable,69,78.26086956521739,69.87014492753623,72.07724637681159,100.0,0,,0,,0,,0,,0,
+calibration,OPTIONS_NOT_ELIGIBLE,unavailable,238,80.04201680672269,64.62264705882353,66.24743697478992,42.016806722689076,0,,0,,0,,0,,0,
+calibration,OPTIONS_UNAVAILABLE,unavailable,69,78.26086956521739,69.87014492753623,72.07724637681159,100.0,18,-3.082723188927297,0,,0,,0,,0,
