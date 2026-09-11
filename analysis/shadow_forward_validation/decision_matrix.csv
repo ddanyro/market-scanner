@@ -1,13 +1,13 @@
 partition,baseline_decision,enhanced_decision,predictions
-calibration,BUY,BUY,65
-calibration,BUY,WAIT,1
+calibration,BUY,BUY,74
+calibration,BUY,WAIT,3
 calibration,BUY,AVOID,0
 calibration,WAIT,BUY,0
-calibration,WAIT,WAIT,150
+calibration,WAIT,WAIT,167
 calibration,WAIT,AVOID,0
 calibration,AVOID,BUY,0
 calibration,AVOID,WAIT,0
-calibration,AVOID,AVOID,26
+calibration,AVOID,AVOID,28
 holdout_locked,BUY,BUY,0
 holdout_locked,BUY,WAIT,0
 holdout_locked,BUY,AVOID,0
