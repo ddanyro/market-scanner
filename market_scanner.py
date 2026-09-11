@@ -11085,14 +11085,15 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 };
                 const cards = Object.entries(timeframeLabels).map(([key, label]) => {
                     const item = (technical.timeframes || {})[key] || {};
-                    return "<div class='technical-card'><span>" + escapeIndicatorText(label)
-                        + "</span><b class='direction-" + escapeIndicatorText((item.direction || 'NEUTRAL').toLowerCase()) + "'>"
+                    return "<div class='technical-card' title='Bull "
+                        + escapeIndicatorText(number(item.bullish_events)) + " · Bear "
+                        + escapeIndicatorText(number(item.bearish_events)) + " · Structural "
+                        + escapeIndicatorText(number(item.structural_score)) + " · Recent events "
+                        + escapeIndicatorText(number(item.recent_event_score)) + "'><span>"
+                        + escapeIndicatorText(label) + "</span><b class='direction-"
+                        + escapeIndicatorText((item.direction || 'NEUTRAL').toLowerCase()) + "'>"
                         + escapeIndicatorText(item.direction || 'NEUTRAL') + "</b>"
-                        + "<small>Score " + number(item.event_score) + " · Bull "
-                        + number(item.bullish_events) + " · Bear " + number(item.bearish_events)
-                        + "</small><small>Structural " + number(item.structural_score)
-                        + " · Recent events " + number(item.recent_event_score)
-                        + " · weight " + number(Number(item.structural_weight) * 100) + "%</small></div>";
+                        + "<small>Score " + number(item.event_score) + "</small></div>";
                 }).join('');
                 const rows = (technical.events || []).slice(0, 15).map(event =>
                     "<tr><td>" + escapeIndicatorText(event.timestamp || '—') + "</td><td>"
@@ -11104,11 +11105,16 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 ).join('');
                 const conflict = technical.conflict
                     ? "<p class='technical-conflict'>" + escapeIndicatorText(technical.conflict) + "</p>" : '';
+                const detailsLabel = technical.conflict
+                    ? escapeIndicatorText(technical.conflict)
+                    : 'Detalii Technical Events';
                 return "<section class='panel technical-panel'><div class='technical-title'><div><h2>Technical Events · shadow mode</h2>"
                     + "<p>Motor determinist separat; nu influențează Baseline sau Enhanced.</p></div>"
                     + "<span class='technical-badge direction-" + escapeIndicatorText((technical.overall_direction || 'NEUTRAL').toLowerCase()) + "'>"
                     + escapeIndicatorText(technical.overall_direction || 'NEUTRAL') + " · " + number(technical.overall_event_score) + "</span></div>"
-                    + "<div class='technical-summary'>" + cards + "</div>" + conflict
+                    + "<div class='technical-summary'>" + cards + "</div>"
+                    + "<details class='technical-details'><summary><span>" + detailsLabel + "</span><small>apasă pentru afișare</small></summary>"
+                    + "<div class='technical-details-content'>" + conflict
                     + "<div class='enhanced-grid'><div class='enhanced-metric'><span>Total events</span><b>" + number(technical.total_events) + "</b></div>"
                     + "<div class='enhanced-metric'><span>Bullish / Bearish</span><b>" + number(technical.bullish_events) + " / " + number(technical.bearish_events) + "</b></div>"
                     + "<div class='enhanced-metric'><span>Confidence</span><b>" + number(technical.confidence) + "</b></div>"
@@ -11116,7 +11122,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     + "<div class='enhanced-metric'><span>Rezistență apropiată</span><b>" + number(technical.nearest_resistance) + "</b></div></div>"
                     + "<div class='technical-table-wrap'><table class='technical-table'><thead><tr><th>Dată</th><th>Orizont</th><th>Eveniment</th><th>Direcție</th><th>Strength × recency</th></tr></thead><tbody>"
                     + (rows || "<tr><td colspan='5'>Niciun eveniment recent confirmat.</td></tr>")
-                    + "</tbody></table></div></section>";
+                    + "</tbody></table></div></div></details></section>";
             }
 
             function openMarketDetailWindow(detail, indicatorName) {
@@ -11147,7 +11153,7 @@ h1{margin:0 0 6px;font-size:clamp(28px,4vw,44px)}.ticker{color:#7760f9;font-weig
 .level-legend{display:none}.level-item{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:8px 10px;border:1px solid #e5e7eb;border-radius:9px;background:#f8fafc;font-size:12px;color:#374151}.level-name{display:flex;align-items:center;gap:7px;min-width:0;font-weight:700}.level-swatch{width:18px;height:3px;border-radius:999px;flex:0 0 auto}.level-value{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:750}
 .marker-legend{margin-top:14px;padding-top:13px;border-top:1px solid #e5e7eb}.marker-legend-title{font-size:13px;font-weight:750;margin-bottom:8px}.marker-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:7px}.marker-item{display:flex;align-items:center;gap:8px;font-size:12px;color:#4b5563;background:#f8fafc;border-radius:8px;padding:7px 9px}.marker-badge{display:inline-flex;align-items:center;justify-content:center;min-width:30px;padding:3px 6px;border-radius:6px;color:#fff;font-weight:800}
 .enhanced-title{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}.enhanced-title h2{margin:0 0 5px}.enhanced-title p,.enhanced-footnote{margin:0;color:#6b7280;font-size:12px}.cohort-badge{background:#ede9fe;color:#6d28d9;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:800}.enhanced-summary{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:10px;margin:16px 0}.enhanced-card,.enhanced-metric{border:1px solid #e5e7eb;background:#f8fafc;border-radius:11px;padding:11px}.enhanced-card span,.enhanced-metric span{display:block;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.04em}.enhanced-card b{display:block;margin-top:5px;font-size:22px}.enhanced-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin:9px 0 16px}.enhanced-metric{display:flex;align-items:center;justify-content:space-between;gap:10px}.enhanced-metric span{display:inline}.enhanced-metric b{font-variant-numeric:tabular-nums}.enhanced-panel h3{font-size:14px;margin:18px 0 4px}.fallback{display:block;color:#b45309;font-size:10px}
-.technical-title{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}.technical-title h2{margin:0 0 5px}.technical-title p{margin:0;color:#6b7280;font-size:12px}.technical-badge{border-radius:999px;padding:7px 11px;background:#ecfeff;font-size:12px;font-weight:850}.technical-summary{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:10px;margin:16px 0}.technical-card{border:1px solid #ccfbf1;border-radius:11px;background:#f0fdfa;padding:12px}.technical-card span,.technical-card small{display:block;color:#64748b}.technical-card b{display:block;margin:6px 0;font-size:18px}.direction-bullish{color:#16a34a!important}.direction-bearish{color:#dc2626!important}.direction-neutral{color:#64748b!important}.technical-conflict{border-left:4px solid #f59e0b;background:#fffbeb;padding:10px 12px;font-weight:750}.technical-table-wrap{overflow:auto}.technical-table{width:100%;border-collapse:collapse;font-size:12px}.technical-table th,.technical-table td{padding:8px;border-bottom:1px solid #e5e7eb;text-align:left;white-space:nowrap}
+.technical-title{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}.technical-title h2{margin:0 0 5px}.technical-title p{margin:0;color:#6b7280;font-size:12px}.technical-badge{border-radius:999px;padding:7px 11px;background:#ecfeff;font-size:12px;font-weight:850}.technical-summary{display:grid;grid-template-columns:repeat(3,minmax(190px,1fr));gap:8px;margin:10px 0}.technical-card{display:flex;align-items:center;gap:9px;min-width:0;border:1px solid #ccfbf1;border-radius:10px;background:#f0fdfa;padding:8px 10px}.technical-card span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#64748b;font-size:12px;flex:1}.technical-card b{white-space:nowrap;font-size:13px}.technical-card small{white-space:nowrap;color:#64748b;font-size:11px}.technical-details{border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc}.technical-details summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 11px;cursor:pointer;font-size:12px;font-weight:800;color:#475569;list-style:none}.technical-details summary::-webkit-details-marker{display:none}.technical-details summary:after{content:'▾';font-size:14px;transition:transform .18s ease}.technical-details[open] summary:after{transform:rotate(180deg)}.technical-details summary small{margin-left:auto;color:#94a3b8;font-weight:500}.technical-details-content{padding:0 11px 10px}.direction-bullish{color:#16a34a!important}.direction-bearish{color:#dc2626!important}.direction-neutral{color:#64748b!important}.technical-conflict{border-left:4px solid #f59e0b;background:#fffbeb;padding:10px 12px;font-weight:750}.technical-table-wrap{overflow:auto}.technical-table{width:100%;border-collapse:collapse;font-size:12px}.technical-table th,.technical-table td{padding:8px;border-bottom:1px solid #e5e7eb;text-align:left;white-space:nowrap}
 @media(max-width:760px){.page{padding:14px}.stats,.details{grid-template-columns:1fr 1fr}.panel{padding:16px}.chart-wrap{min-height:360px;height:min(56vh,520px)}.level-legend{display:grid;grid-template-columns:1fr;gap:6px;margin-top:10px}.note{font-size:11px;line-height:1.45}}@media(max-width:560px){.toolbar{align-items:flex-start}.toolbar .buttons{width:100%}.toolbar .range{flex:1}.stats,.details{grid-template-columns:1fr}.panel{padding:14px}.chart-wrap{height:min(54vh,480px)}}
 </style>
 </head>

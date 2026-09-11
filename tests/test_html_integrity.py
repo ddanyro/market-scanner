@@ -196,6 +196,10 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('<th style="color:#0f766e;">Technical Events</th>', content)
         self.assertIn('function renderTechnicalEvents(technical)', content)
         self.assertIn('${renderTechnicalEvents(detail.technicalEvents)}', content)
+        self.assertIn("<details class='technical-details'>", content)
+        self.assertIn("<div class='technical-summary'>", content)
+        self.assertIn("apasă pentru afișare", content)
+        self.assertNotIn("<details open class='technical-details'>", content)
         self.assertIn("var rowTrend = data[19]", content)
         self.assertIn("var rowStatus = data[24]", content)
 
