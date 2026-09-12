@@ -36,6 +36,15 @@ ARTIFACTS = {
         "pull": True,
         "optional": True,
     },
+    "enhanced-validation-dataset": {
+        "path": Path(
+            "analysis/enhanced_scoring_validation/recommendations_with_outcomes.csv"
+        ),
+        "content_type": "text/csv; charset=utf-8",
+        "private": True,
+        "pull": False,
+        "optional": True,
+    },
     "watchlist-compact": {
         "path": Path("watchlist_compact.json"),
         "content_type": "application/json; charset=utf-8",

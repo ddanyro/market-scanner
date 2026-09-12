@@ -67,6 +67,7 @@ then atomically replaces the manifest that points to the current set:
 
 - `dashboard-state` — private scanner state, restored before a run;
 - `ibkr-market-cache` — private reusable IBKR cache, restored before a run;
+- `enhanced-validation-dataset` — private, derived row-level validation export;
 - `watchlist-compact` — public dashboard payload served through the Worker;
 - `dashboard-html` — public generated dashboard served through the Worker.
 

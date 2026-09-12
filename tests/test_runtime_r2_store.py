@@ -39,11 +39,16 @@ def write_runtime_files(root):
     payloads = {
         "dashboard_state.json": b'{"state":"current"}',
         ".ibkr_mcp_market_cache.json": b'{"NVDA":{"price":123}}',
+        "analysis/enhanced_scoring_validation/recommendations_with_outcomes.csv": (
+            b"ticker,return_1d\nNVDA,0.01\n"
+        ),
         "watchlist_compact.json": b'[{"Ticker":"NVDA"}]',
         "index.html": b"<!doctype html><title>Market Scanner</title><p>full dashboard</p>",
     }
     for name, content in payloads.items():
-        (root / name).write_bytes(content)
+        path = root / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
     return payloads
 
 
