@@ -186,6 +186,16 @@ jobs:
         source: ./
         destination: ./_site
 
+    - name: Exclude private shadow data from Pages artifact
+      if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
+      run: |
+        find ./_site -type f \( \
+          -name 'shadow_predictions.jsonl' -o \
+          -name 'technical_events_predictions*.jsonl.gz' -o \
+          -name 'labelled_predictions.csv.gz' -o \
+          -name 'event_observations.csv.gz' \
+        \) -delete
+
     - name: Upload GitHub Pages artifact
       if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
       uses: actions/upload-pages-artifact@v5
