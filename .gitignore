@@ -30,6 +30,13 @@ firebase-debug.*.log
 .ibkr_mcp_credentials.json
 .ibkr_mcp_market_cache.json
 
+# Immutable shadow history is authoritative in Cloudflare R2.
+shadow_predictions.jsonl
+technical_events_predictions*.jsonl.gz
+analysis/shadow_forward_validation/labelled_predictions.csv
+analysis/technical_events_validation/labelled_predictions.csv.gz
+analysis/technical_events_validation/event_observations.csv.gz
+
 # Large local validation dataset; aggregated reports remain versioned.
 analysis/enhanced_scoring_validation/recommendations_with_outcomes.csv
 

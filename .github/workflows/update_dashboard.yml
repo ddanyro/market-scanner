@@ -165,6 +165,7 @@ jobs:
           for shadow_file in \
             shadow_predictions.jsonl technical_events_predictions.jsonl.gz \
             technical_events_predictions.archive-*.jsonl.gz \
+            analysis/shadow_forward_validation/labelled_predictions.csv \
             analysis/technical_events_validation/labelled_predictions.csv.gz \
             analysis/technical_events_validation/event_observations.csv.gz; do
             if git ls-files --error-unmatch "$shadow_file" >/dev/null 2>&1; then
