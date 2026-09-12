@@ -4,8 +4,8 @@
     "History_Ticker": "3USL.MI",
     "Company_Name": "WISDOMTREE SP500 3X DAILY",
     "Shares": 13,
-    "Current_Price": 156.36,
-    "Price_Native": 156.36,
+    "Current_Price": 160.61,
+    "Price_Native": 160.61,
     "Currency": "EUR",
     "Contract_ID": 361181044,
     "Asset_Class": null,
@@ -15,27 +15,27 @@
     "Buy_Price": 165.35,
     "Target": 172.23,
     "Trail_Stop": 150.65,
-    "Suggested_Stop": 149.7,
+    "Suggested_Stop": 153.58,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
     "Trail_Pct": 10.0,
     "Investment": 2149.56,
     "Entry_Date": "2026-09-11",
-    "Current_Value": 2032.68,
-    "Profit": -116.88,
-    "Profit_Pct": -5.44,
+    "Current_Value": 2087.93,
+    "Profit": -61.63,
+    "Profit_Pct": -2.87,
     "Max_Profit": 89.43,
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 41.55,
+    "RSI": 49.07,
     "RSI_Status": "Neutral",
-    "Trend": "Bullish Pullback",
+    "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "EXIT",
-    "Sell_Reason": "Breadth<45% Fail: Sub SMA50 (156.36<159.69) / RSI 42 < 45",
-    "RS_vs_SPX": -2.95,
+    "Sell_Decision": "REDUCE 50%",
+    "Sell_Reason": "Breadth<45% Warn: RSI 49 Weak (45-55), Testing SMA50 (160.61 vs 159.79)",
+    "RS_vs_SPX": 0.45,
     "Chart_History": [
       134.72,
       134.96,
@@ -305,11 +305,11 @@
         "open": 146.8
       },
       {
+        "close": 147.79,
         "date": "2026-05-08",
-        "open": 146.32,
         "high": 148.3,
         "low": 146.25,
-        "close": 147.79
+        "open": 146.32
       },
       {
         "date": "2026-05-11",
@@ -935,15 +935,15 @@
         "close": 156.36
       },
       {
-        "close": 160.61,
         "date": "2026-09-11",
-        "high": 160.92,
-        "low": 157.46,
-        "open": 157.69
+        "open": 157.69,
+        "high": 160.87,
+        "low": 157.51,
+        "close": 160.61
       }
     ],
-    "Daily_Change": -1.4,
-    "Date": "2026-09-13 01:01",
+    "Daily_Change": 4.25,
+    "Date": "2026-09-13 02:35",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -1894,7 +1894,7 @@
       }
     ],
     "Daily_Change": 20.2635,
-    "Date": "2026-09-13 01:01",
+    "Date": "2026-09-13 02:35",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -2841,7 +2841,7 @@
       }
     ],
     "Daily_Change": -2.014,
-    "Date": "2026-09-13 01:01",
+    "Date": "2026-09-13 02:35",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -3815,7 +3815,7 @@
       }
     ],
     "Daily_Change": -2.527,
-    "Date": "2026-09-13 01:01",
+    "Date": "2026-09-13 02:35",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -4789,7 +4789,7 @@
       }
     ],
     "Daily_Change": -7.448,
-    "Date": "2026-09-13 01:01",
+    "Date": "2026-09-13 02:35",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -5763,7 +5763,7 @@
       }
     ],
     "Daily_Change": -0.171,
-    "Date": "2026-09-13 01:01",
+    "Date": "2026-09-13 02:35",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
@@ -6692,7 +6692,7 @@
       }
     ],
     "Daily_Change": -0.418,
-    "Date": "2026-09-13 01:01",
+    "Date": "2026-09-13 02:35",
     "Market_Data_Source": "Yahoo Finance",
     "Market_Data_Fetched_At": null,
     "Data_Broker": null,
