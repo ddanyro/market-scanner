@@ -320,7 +320,13 @@ async function runtimeResponse(request, env, origin, artifactName) {
   if (descriptor.content_encoding === "gzip") {
     headers.set("Content-Encoding", "gzip");
   }
-  return new Response(artifactBody, {status: 200, headers});
+  const responseInit = {status: 200, headers};
+  if (descriptor.content_encoding === "gzip") {
+    // R2 already stores the exact gzip bytes. Without manual encoding mode,
+    // Cloudflare may apply gzip again and browsers receive a double-gzip body.
+    responseInit.encodeBody = "manual";
+  }
+  return new Response(artifactBody, responseInit);
 }
 
 function jsonResponse(payload, status, origin) {
