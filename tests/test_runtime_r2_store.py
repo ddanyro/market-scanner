@@ -132,6 +132,12 @@ def test_loader_does_not_replace_full_dashboard_in_r2(
     )
     assert store.LOADER_MARKER in Path("index.html").read_text(encoding="utf-8")
     assert "cache: 'no-store'" in Path("index.html").read_text(encoding="utf-8")
+    assert "window.location.protocol === 'file:'" in Path("index.html").read_text(
+        encoding="utf-8"
+    )
+    assert "window.location.replace(endpoint)" in Path("index.html").read_text(
+        encoding="utf-8"
+    )
 
     second = store.push_runtime(config=r2_config, client=client)
     assert second["artifacts"]["dashboard-html"] == first["artifacts"]["dashboard-html"]

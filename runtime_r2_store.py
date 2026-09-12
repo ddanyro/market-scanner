@@ -291,10 +291,15 @@ def loader_html():
 <!-- {LOADER_MARKER} -->
 <p id=\"loading\" style=\"font:16px system-ui;padding:24px\">Se încarcă Market Scanner…</p>
 <script>
-fetch({json.dumps(endpoint)}, {{cache: 'no-store'}})
-  .then(function(response) {{ if (!response.ok) throw new Error('HTTP ' + response.status); return response.text(); }})
-  .then(function(html) {{ document.open(); document.write(html); document.close(); }})
-  .catch(function(error) {{ document.getElementById('loading').textContent = 'Dashboardul nu poate fi încărcat. Reîncarcă pagina. ' + error; }});
+var endpoint = {json.dumps(endpoint)};
+if (window.location.protocol === 'file:') {{
+  window.location.replace(endpoint);
+}} else {{
+  fetch(endpoint, {{cache: 'no-store'}})
+    .then(function(response) {{ if (!response.ok) throw new Error('HTTP ' + response.status); return response.text(); }})
+    .then(function(html) {{ document.open(); document.write(html); document.close(); }})
+    .catch(function(error) {{ document.getElementById('loading').textContent = 'Dashboardul nu poate fi încărcat. Reîncarcă pagina. ' + error; }});
+}}
 </script></body></html>"""
 
 

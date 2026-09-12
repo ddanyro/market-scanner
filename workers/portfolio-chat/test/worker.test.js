@@ -8,6 +8,7 @@ import {
 } from "../src/chat_core.js";
 
 const SITE_ORIGIN = "https://ddanyro.github.io";
+const WORKER_ORIGIN = "https://market-scanner-portfolio-chat.daniel-dragomir.workers.dev";
 
 function workerEnv(overrides = {}) {
   return {
@@ -177,6 +178,15 @@ test("answers the public site's CORS preflight", async () => {
   }), workerEnv());
   assert.equal(response.status, 204);
   assert.equal(response.headers.get("Access-Control-Allow-Origin"), SITE_ORIGIN);
+});
+
+test("allows authenticated chat requests from this Worker's dashboard", async () => {
+  const response = await worker.fetch(new Request("https://worker.example", {
+    method: "OPTIONS",
+    headers: {Origin: WORKER_ORIGIN},
+  }), workerEnv());
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), WORKER_ORIGIN);
 });
 
 test("forwards an authenticated request to OpenAI", async (context) => {

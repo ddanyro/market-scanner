@@ -8,6 +8,7 @@ import {
 } from "./chat_core.js";
 
 const ALLOWED_ORIGIN = "https://ddanyro.github.io";
+const WORKER_ORIGIN = "https://market-scanner-portfolio-chat.daniel-dragomir.workers.dev";
 const RUNTIME_MANIFEST_KEY = "market-scanner-runtime/v1/manifest.json";
 const PUBLIC_RUNTIME_ARTIFACTS = new Map([
   ["/runtime/index.html", "dashboard-html"],
@@ -268,8 +269,8 @@ async function cloudflareFallbackResponse(env, validated, reason, origin) {
 }
 
 function corsHeaders(origin) {
-  return origin === ALLOWED_ORIGIN ? {
-    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+  return [ALLOWED_ORIGIN, WORKER_ORIGIN].includes(origin) ? {
+    "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Vary": "Origin",
@@ -277,7 +278,7 @@ function corsHeaders(origin) {
 }
 
 function isPublicRuntimeOrigin(origin) {
-  if (!origin || origin === ALLOWED_ORIGIN) return true;
+  if (!origin || [ALLOWED_ORIGIN, WORKER_ORIGIN].includes(origin)) return true;
   try {
     const parsed = new URL(origin);
     return parsed.protocol === "http:"
@@ -377,7 +378,7 @@ export default {
     if (artifactName) {
       return runtimeResponse(request, env, origin, artifactName);
     }
-    if (origin !== ALLOWED_ORIGIN) {
+    if (![ALLOWED_ORIGIN, WORKER_ORIGIN].includes(origin)) {
       return jsonResponse({error: "Origine neautorizată."}, 403, origin);
     }
     if (request.method === "OPTIONS") {
