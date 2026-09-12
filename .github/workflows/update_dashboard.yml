@@ -194,12 +194,21 @@ jobs:
     - name: Exclude private shadow data from Pages source
       if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
       run: |
+        # dashboard_state is private runtime state served through the
+        # authenticated R2/Worker path; it must not enter the Pages artifact.
+        rm -f dashboard_state.json
         find . -type f \( \
           -name 'shadow_predictions.jsonl' -o \
           -name 'technical_events_predictions*.jsonl.gz' -o \
           -name 'labelled_predictions.csv.gz' -o \
           -name 'event_observations.csv.gz' \
         \) -delete
+        # Public files written atomically must be readable by the Pages upload
+        # action, which runs outside the scanner process/container.
+        chmod 0644 index.html
+        for public_file in watchlist_compact.json watchlist_details.json; do
+          if [ -f "$public_file" ]; then chmod 0644 "$public_file"; fi
+        done
 
     - name: Build GitHub Pages artifact
       if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}

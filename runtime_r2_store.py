@@ -104,10 +104,11 @@ def _read_manifest(client):
     return payload
 
 
-def _atomic_write(path, content):
+def _atomic_write(path, content, *, mode=0o600):
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     try:
+        os.fchmod(descriptor, mode)
         with os.fdopen(descriptor, "wb") as handle:
             handle.write(content)
             handle.flush()
@@ -119,13 +120,17 @@ def _atomic_write(path, content):
 
 
 def _artifact_bytes(path, spec):
+    mode = 0o600 if spec.get("private") else 0o644
+    # mkstemp intentionally defaults to 0600. Public runtime artifacts must
+    # remain readable by the separate GitHub Pages artifact uploader.
+    path.chmod(mode)
     raw = path.read_bytes()
     if str(spec.get("content_type", "")).startswith("application/json"):
         canonical = json.dumps(
             json.loads(raw), ensure_ascii=False, separators=(",", ":"), sort_keys=True
         ).encode("utf-8")
         if canonical != raw:
-            _atomic_write(path, canonical)
+            _atomic_write(path, canonical, mode=mode)
         return canonical
     return raw
 
@@ -221,7 +226,9 @@ def push_runtime(*, publish_loader=False, config=None, client=None):
         pruned = []
         retention_warning = str(exc)
     if publish_loader:
-        _atomic_write(Path("index.html"), loader_html().encode("utf-8"))
+        _atomic_write(
+            Path("index.html"), loader_html().encode("utf-8"), mode=0o644
+        )
     print(json.dumps({
         "pushed": sorted(uploaded),
         "unchanged": sorted(unchanged),
@@ -266,7 +273,9 @@ def pull_runtime(*, config=None, client=None):
         raw = gzip.decompress(compressed)
         if _sha256(raw) != descriptor.get("sha256"):
             raise RuntimeError(f"Checksum R2 invalid pentru {name}")
-        _atomic_write(path, raw)
+        _atomic_write(
+            path, raw, mode=0o600 if spec.get("private") else 0o644
+        )
         restored.append(name)
     print(json.dumps({
         "pulled": restored,

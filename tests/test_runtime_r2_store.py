@@ -1,5 +1,6 @@
 import gzip
 import json
+import stat
 from pathlib import Path
 
 import pytest
@@ -116,6 +117,7 @@ def test_pull_restores_only_private_runtime_state_and_checks_integrity(
     assert Path(".shadow_maintenance_state.json").read_bytes() == payloads[
         ".shadow_maintenance_state.json"
     ]
+    assert stat.S_IMODE(Path("dashboard_state.json").stat().st_mode) == 0o600
     assert Path("watchlist_compact.json").read_text() == "local-public-copy"
 
     dashboard = manifest["artifacts"]["dashboard-state"]
@@ -136,6 +138,7 @@ def test_loader_does_not_replace_full_dashboard_in_r2(
         publish_loader=True, config=r2_config, client=client
     )
     assert store.LOADER_MARKER in Path("index.html").read_text(encoding="utf-8")
+    assert stat.S_IMODE(Path("index.html").stat().st_mode) == 0o644
     assert "cache: 'no-store'" in Path("index.html").read_text(encoding="utf-8")
     assert "window.location.protocol === 'file:'" in Path("index.html").read_text(
         encoding="utf-8"
