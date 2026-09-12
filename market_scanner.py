@@ -108,6 +108,7 @@ TWS_ACTIVE_ORDER_COLUMNS = [
     'Currency',
 ]
 _YAHOO_HISTORY_MEMORY_CACHE = {}
+_INSTRUMENT_PAYLOAD_MEMORY_CACHE = {}
 BVB_YAHOO_HISTORY_CACHE_FILE = os.environ.get(
     'BVB_YAHOO_HISTORY_CACHE_FILE', '.bvb_yahoo_history_cache.json.gz'
 )
@@ -473,16 +474,45 @@ def _parse_snapshot_timestamp(value):
     return parsed.astimezone(datetime.timezone.utc)
 
 
+def _load_instrument_payload(path):
+    """Parse an instrument JSON once per on-disk version.
+
+    The IBKR market cache is tens of MB. Re-reading it for every ticker made
+    cached scans spend most of their time repeatedly decoding identical JSON.
+    The file fingerprint invalidates this process-local cache immediately
+    after an atomic prefetch rewrite.
+    """
+    path_text = os.path.abspath(os.fspath(path))
+    try:
+        stat_result = os.stat(path_text)
+    except OSError:
+        _INSTRUMENT_PAYLOAD_MEMORY_CACHE.pop(path_text, None)
+        return {}
+    fingerprint = (
+        stat_result.st_ino,
+        stat_result.st_size,
+        stat_result.st_mtime_ns,
+    )
+    cached = _INSTRUMENT_PAYLOAD_MEMORY_CACHE.get(path_text)
+    if cached and cached[0] == fingerprint:
+        return cached[1]
+    try:
+        with open(path_text, 'r', encoding='utf-8') as handle:
+            payload = json.load(handle)
+    except (OSError, ValueError, TypeError):
+        payload = {}
+    if not isinstance(payload, dict):
+        payload = {}
+    _INSTRUMENT_PAYLOAD_MEMORY_CACHE[path_text] = (fingerprint, payload)
+    return payload
+
+
 def _load_tws_instrument(
     symbol, path=TWS_INSTRUMENTS_FILE, now=None,
     max_age_hours=TWS_INSTRUMENT_TTL_HOURS,
 ):
     """Încarcă un snapshot TWS proaspăt, inclusiv prin aliasurile dashboardului."""
-    try:
-        with open(path, 'r', encoding='utf-8') as handle:
-            payload = json.load(handle)
-    except (OSError, ValueError, TypeError):
-        return None
+    payload = _load_instrument_payload(path)
     instruments = payload.get('instruments', {})
     normalized = str(symbol or '').strip().upper()
     entry = instruments.get(normalized)
@@ -522,11 +552,7 @@ def _load_tws_instrument_metadata(
     Metadatele contractului rămân utile pentru fallback: de exemplu 3USL este
     listat la Milano (3USL.MI), nu la Paris (3USL.PA).
     """
-    try:
-        with open(path, 'r', encoding='utf-8') as handle:
-            payload = json.load(handle)
-    except (OSError, ValueError, TypeError):
-        return None
+    payload = _load_instrument_payload(path)
     instruments = payload.get('instruments', {})
     normalized = str(symbol or '').strip().upper()
     entry = instruments.get(normalized)

@@ -2852,6 +2852,36 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
 
         self.assertEqual(metadata['aliases'][0], '3USL.MI')
 
+    def test_instrument_payload_is_parsed_once_and_invalidated_after_rewrite(self):
+        first_payload = {
+            'instruments': {'AAPL': {'aliases': ['AAPL'], 'bars': []}},
+        }
+        second_payload = {
+            'instruments': {
+                'AAPL': {'aliases': ['AAPL'], 'bars': []},
+                'MSFT': {'aliases': ['MSFT'], 'bars': []},
+            },
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'instrument_cache.json')
+            with open(path, 'w', encoding='utf-8') as handle:
+                json.dump(first_payload, handle)
+            original_json_load = json.load
+            with patch(
+                'market_scanner.json.load', wraps=original_json_load
+            ) as load:
+                first = market_scanner._load_instrument_payload(path)
+                repeated = market_scanner._load_instrument_payload(path)
+                self.assertIs(first, repeated)
+                self.assertEqual(load.call_count, 1)
+
+                with open(path, 'w', encoding='utf-8') as handle:
+                    json.dump(second_payload, handle)
+                refreshed = market_scanner._load_instrument_payload(path)
+
+            self.assertEqual(load.call_count, 2)
+            self.assertIn('MSFT', refreshed['instruments'])
+
     @patch('market_scanner._load_tws_instrument_metadata')
     @patch('market_scanner._download_yahoo_history')
     @patch('market_scanner._load_tws_instrument', return_value=None)
