@@ -79,6 +79,28 @@ test("serves progressive watchlist details as gzip", async () => {
   assert.equal(response.headers.get("ETag"), '"details123"');
 });
 
+test("serves public runtime artifacts to loopback development origins", async () => {
+  for (const origin of ["http://localhost:8000", "http://127.0.0.1:8000", "http://[::1]:8000"]) {
+    const response = await worker.fetch(new Request(
+      "https://worker.example/runtime/index.html",
+      {headers: {Origin: origin}},
+    ), workerEnv({MARKET_SCANNER_DATA: runtimeR2()}));
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("Access-Control-Allow-Origin"), origin);
+  }
+});
+
+test("rejects non-loopback and file origins for runtime artifacts", async () => {
+  for (const origin of ["https://attacker.example", "null"]) {
+    const response = await worker.fetch(new Request(
+      "https://worker.example/runtime/index.html",
+      {headers: {Origin: origin}},
+    ), workerEnv({MARKET_SCANNER_DATA: runtimeR2()}));
+    assert.equal(response.status, 403);
+    assert.equal(response.headers.get("Access-Control-Allow-Origin"), null);
+  }
+});
+
 test("reads runtime artifacts through signed R2 S3 requests without a native binding", async () => {
   const originalFetch = globalThis.fetch;
   const requests = [];
@@ -138,7 +160,7 @@ test("enables web search only for questions that need fresh external data", () =
   );
 });
 
-test("rejects localhost and unknown origins", async () => {
+test("keeps the authenticated chat closed to localhost and unknown origins", async () => {
   const response = await worker.fetch(new Request("https://worker.example", {
     method: "POST",
     headers: {Origin: "http://localhost:8000", "Content-Type": "application/json"},

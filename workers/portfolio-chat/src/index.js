@@ -276,33 +276,64 @@ function corsHeaders(origin) {
   } : {};
 }
 
+function isPublicRuntimeOrigin(origin) {
+  if (!origin || origin === ALLOWED_ORIGIN) return true;
+  try {
+    const parsed = new URL(origin);
+    return parsed.protocol === "http:"
+      && ["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function publicRuntimeCorsHeaders(origin) {
+  return origin && isPublicRuntimeOrigin(origin) ? {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Vary": "Origin",
+  } : {};
+}
+
+function runtimeJsonResponse(payload, status, origin) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+      ...publicRuntimeCorsHeaders(origin),
+    },
+  });
+}
+
 async function runtimeResponse(request, env, origin, artifactName) {
-  if (origin && origin !== ALLOWED_ORIGIN) {
-    return jsonResponse({error: "Origine neautorizată."}, 403, origin);
+  if (!isPublicRuntimeOrigin(origin)) {
+    return runtimeJsonResponse({error: "Origine neautorizată."}, 403, origin);
   }
   if (request.method === "OPTIONS") {
-    return new Response(null, {status: 204, headers: corsHeaders(origin)});
+    return new Response(null, {status: 204, headers: publicRuntimeCorsHeaders(origin)});
   }
   if (request.method !== "GET") {
-    return jsonResponse({error: "Metodă neacceptată."}, 405, origin);
+    return runtimeJsonResponse({error: "Metodă neacceptată."}, 405, origin);
   }
   if ((!env.MARKET_SCANNER_DATA || typeof env.MARKET_SCANNER_DATA.get !== "function")
       && (!env.SHADOW_R2_ACCOUNT_ID || !env.SHADOW_R2_ACCESS_KEY_ID
           || !env.SHADOW_R2_SECRET_ACCESS_KEY)) {
-    return jsonResponse({error: "Stocarea dashboardului nu este configurată."}, 503, origin);
+    return runtimeJsonResponse({error: "Stocarea dashboardului nu este configurată."}, 503, origin);
   }
   const manifestObject = await runtimeObject(env, RUNTIME_MANIFEST_KEY);
   if (!manifestObject) {
-    return jsonResponse({error: "Manifestul dashboardului lipsește."}, 503, origin);
+    return runtimeJsonResponse({error: "Manifestul dashboardului lipsește."}, 503, origin);
   }
   const manifest = await manifestObject.json();
   const descriptor = manifest?.artifacts?.[artifactName];
   if (!descriptor || descriptor.private) {
-    return jsonResponse({error: "Artefact indisponibil."}, 404, origin);
+    return runtimeJsonResponse({error: "Artefact indisponibil."}, 404, origin);
   }
   const artifact = await runtimeObject(env, descriptor.key);
   if (!artifact) {
-    return jsonResponse({error: "Versiunea dashboardului lipsește."}, 503, origin);
+    return runtimeJsonResponse({error: "Versiunea dashboardului lipsește."}, 503, origin);
   }
   const headers = new Headers({
     "Content-Type": descriptor.content_type || "application/octet-stream",
@@ -310,9 +341,8 @@ async function runtimeResponse(request, env, origin, artifactName) {
     "ETag": `\"${descriptor.sha256}\"`,
     "X-Content-Type-Options": "nosniff",
   });
-  if (origin === ALLOWED_ORIGIN) {
-    headers.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
-    headers.set("Vary", "Origin");
+  for (const [name, value] of Object.entries(publicRuntimeCorsHeaders(origin))) {
+    headers.set(name, value);
   }
   const artifactBody = artifact.body instanceof ReadableStream
     ? artifact.body
