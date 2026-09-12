@@ -29,6 +29,8 @@ firebase-debug.*.log
 .shadow_parquet_spool/
 .ibkr_mcp_credentials.json
 .ibkr_mcp_market_cache.json
+dashboard_state.json
+watchlist_compact.json
 
 # Immutable shadow history is authoritative in Cloudflare R2.
 shadow_predictions.jsonl

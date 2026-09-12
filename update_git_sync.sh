@@ -171,7 +171,7 @@ runtime_r2_pull() {
 
 runtime_r2_push() {
     if shadow_r2_is_configured; then
-        "$(sync_python_bin)" runtime_r2_store.py push
+        "$(sync_python_bin)" runtime_r2_store.py push --publish-loader
     else
         echo "Avertisment: R2 runtime nu este configurat; păstrez fișierele locale." >&2
     fi

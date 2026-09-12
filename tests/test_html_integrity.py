@@ -4,6 +4,16 @@ import os
 
 class TestHtmlIntegrity(unittest.TestCase):
 
+    def assert_generated_contains(self, generated_content, expected):
+        if 'market-scanner-r2-loader-v1' in generated_content:
+            self.assertIn(
+                'market-scanner-portfolio-chat.daniel-dragomir.workers.dev/runtime/index.html',
+                generated_content,
+            )
+            self.assertIn('document.write(html)', generated_content)
+        else:
+            self.assertIn(expected, generated_content)
+
     def test_portfolio_summary_values_fit_responsive_cards(self):
         root = os.path.join(os.path.dirname(__file__), '..')
         with open(
@@ -300,6 +310,10 @@ class TestHtmlIntegrity(unittest.TestCase):
                 with open(os.path.join(root, filename), 'r', encoding='utf-8') as f:
                     content = f.read()
 
+                if filename == 'index.html' and 'market-scanner-r2-loader-v1' in content:
+                    self.assert_generated_contains(content, 'const compact = width <= 640')
+                    continue
+
                 self.assertIn("const compact = width <= 640", content)
                 self.assertIn("left: currency ? 62 : 48", content)
                 self.assertIn("right: 10", content)
@@ -476,9 +490,9 @@ class TestHtmlIntegrity(unittest.TestCase):
             content,
         )
         self.assertIn('spanGaps:true', content)
-        self.assertIn(
-            'history.map(item=>timestampKey(item.timestamp))',
+        self.assert_generated_contains(
             generated_content,
+            'history.map(item=>timestampKey(item.timestamp))',
         )
         self.assertIn('window.close();', content)
 
@@ -505,15 +519,18 @@ class TestHtmlIntegrity(unittest.TestCase):
             generated_content = handle.read()
 
         self.assertIn('<script src="portfolio_auth.js"></script>', content)
-        self.assertIn(
-            '<script src="portfolio_auth.js"></script>',
-            generated_content,
+        self.assert_generated_contains(
+            generated_content, '<script src="portfolio_auth.js"></script>'
         )
         self.assertIn('void restorePortfolioAccess()', content)
-        self.assertIn('void restorePortfolioAccess()', generated_content)
+        self.assert_generated_contains(
+            generated_content, 'void restorePortfolioAccess()'
+        )
         self.assertIn('remember: true', content)
         self.assertIn('remember: true, silent: true', content)
-        self.assertIn('remember: true, silent: true', generated_content)
+        self.assert_generated_contains(
+            generated_content, 'remember: true, silent: true'
+        )
         self.assertNotIn('remember: false, silent: true', content)
         self.assertNotIn(
             'remember: false, silent: true',
@@ -525,19 +542,18 @@ class TestHtmlIntegrity(unittest.TestCase):
             content,
         )
         self.assertIn('Deconectare de pe acest dispozitiv', content)
-        self.assertIn(
-            'Deconectare de pe acest dispozitiv',
-            generated_content,
+        self.assert_generated_contains(
+            generated_content, 'Deconectare de pe acest dispozitiv'
         )
         self.assertIn(
             'Accesul rămâne activ 30 de zile de la ultima autentificare '
             'manuală sau automată în acest browser.',
             content,
         )
-        self.assertIn(
+        self.assert_generated_contains(
+            generated_content,
             'Accesul rămâne activ 30 de zile de la ultima autentificare '
             'manuală sau automată în acest browser.',
-            generated_content,
         )
         self.assertNotIn("sessionStorage.setItem('pf_auth'", content)
         self.assertIn(
@@ -664,9 +680,9 @@ class TestHtmlIntegrity(unittest.TestCase):
             'limitBuyRecommendationHistoryDisplay(buyRecommendations)',
             content,
         )
-        self.assertIn(
-            'const BUY_RECOMMENDATION_HISTORY_DISPLAY_LIMIT = 50;',
+        self.assert_generated_contains(
             generated_content,
+            'const BUY_RECOMMENDATION_HISTORY_DISPLAY_LIMIT = 50;',
         )
         self.assertIn('📈 Grafic OHLC · marcaj', analysis_content)
         self.assertIn('_buy_recommendation_marker_labels(', analysis_content)

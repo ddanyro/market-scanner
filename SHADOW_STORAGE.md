@@ -74,6 +74,11 @@ R2 remains private. The Cloudflare Worker exposes only the last two named
 artifacts; it never exposes state or the IBKR cache. After migration, GitHub
 Pages contains only a small dashboard loader.
 
+`dashboard_state.json`, `watchlist_compact.json`, and the IBKR cache are local
+working copies only and are ignored by Git. They may be deleted between runs;
+the next update restores the private state/cache and regenerates the public
+watchlist payload.
+
 Useful integrity checks after loading the Keychain configuration:
 
 ```bash

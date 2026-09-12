@@ -58,6 +58,16 @@ jobs:
       run: |
         pip install pandas requests yfinance ib_insync beautifulsoup4 lxml pycryptodome -r requirements.txt
 
+    - name: Restore private runtime state from R2
+      if: ${{ github.event_name != 'push' && (github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '') }}
+      env:
+        SHADOW_R2_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        SHADOW_R2_ACCESS_KEY_ID: ${{ secrets.SHADOW_R2_ACCESS_KEY_ID }}
+        SHADOW_R2_SECRET_ACCESS_KEY: ${{ secrets.SHADOW_R2_SECRET_ACCESS_KEY }}
+        SHADOW_R2_BUCKET: market-scanner-shadow
+        SHADOW_R2_REQUIRED: "true"
+      run: python runtime_r2_store.py pull
+
     - name: Send Firebase BUY push test
       if: ${{ github.event_name == 'workflow_dispatch' && inputs.push_test_symbol != '' }}
       env:
@@ -117,12 +127,11 @@ jobs:
           MODE="all"
         fi
         echo "Running market scanner in mode: $MODE"
-        python runtime_r2_store.py pull
         python update_sp500_json.py
         python market_scanner.py --mode $MODE
         python evaluate_shadow_forward.py || echo "Shadow outcome evaluation unavailable; collection remains valid."
         python evaluate_technical_events_forward.py || echo "Technical Events outcome evaluation unavailable; immutable collection remains valid."
-        python runtime_r2_store.py push
+        python runtime_r2_store.py push --publish-loader
 
     - name: Commit and Push changes
       if: ${{ github.event_name != 'push' && (github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '') }}
@@ -135,7 +144,7 @@ jobs:
         git config --global user.name 'GitHub Action'
         git config --global user.email 'action@github.com'
         git add -u
-        git add index.html dashboard_state.json portfolio.csv portfolio.json watchlist.csv sp500_tickers.json tws_account.enc.json tws_account_risk.json push/firebase/firebase-messaging-sw.js
+        git add index.html portfolio.csv portfolio.json watchlist.csv sp500_tickers.json tws_account.enc.json tws_account_risk.json push/firebase/firebase-messaging-sw.js
         if [ -z "${SHADOW_R2_ACCESS_KEY_ID:-}" ] || [ -z "${SHADOW_R2_SECRET_ACCESS_KEY:-}" ]; then
           if [ -f shadow_predictions.jsonl ]; then git add shadow_predictions.jsonl; fi
           if [ -f technical_events_predictions.jsonl.gz ]; then git add technical_events_predictions.jsonl.gz; fi
