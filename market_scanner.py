@@ -33,6 +33,7 @@ import unicodedata
 import hashlib
 import hmac
 import html
+import gzip
 from zoneinfo import ZoneInfo
 from io import StringIO
 from market_scanner_analysis import (
@@ -107,6 +108,14 @@ TWS_ACTIVE_ORDER_COLUMNS = [
     'Currency',
 ]
 _YAHOO_HISTORY_MEMORY_CACHE = {}
+BVB_YAHOO_HISTORY_CACHE_FILE = os.environ.get(
+    'BVB_YAHOO_HISTORY_CACHE_FILE', '.bvb_yahoo_history_cache.json.gz'
+)
+BVB_YAHOO_HISTORY_CACHE_TTL_HOURS = float(
+    os.environ.get('BVB_YAHOO_HISTORY_CACHE_TTL_HOURS', '12')
+)
+BVB_YAHOO_INCREMENTAL_OVERLAP_DAYS = 10
+_BVB_YAHOO_HISTORY_CACHE = None
 
 
 def _portfolio_chat_access_token(password):
@@ -754,27 +763,192 @@ def _normalize_downloaded_history(frame):
     return normalized
 
 
-def _download_yahoo_history(symbol, period='1y'):
+def _download_yahoo_history(symbol, period='1y', *, start=None, end=None):
     """Yahoo fără mesajele repetitive ale bibliotecii pentru simboluri absente."""
     import contextlib
     import io
 
-    cache_key = (str(symbol).upper(), str(period))
+    cache_key = (
+        str(symbol).upper(), str(period),
+        str(start or ''), str(end or ''),
+    )
     cached = _YAHOO_HISTORY_MEMORY_CACHE.get(cache_key)
     if cached is not None:
         return cached.copy()
+    request = {
+        'auto_adjust': True,
+        'progress': False,
+    }
+    if start is not None:
+        request.update({'start': start, 'end': end})
+    else:
+        request['period'] = period
     with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
         io.StringIO()
     ):
-        frame = yf.download(
-            symbol,
-            period=period,
-            auto_adjust=True,
-            progress=False,
-        )
+        frame = yf.download(symbol, **request)
     normalized = _normalize_downloaded_history(frame)
     _YAHOO_HISTORY_MEMORY_CACHE[cache_key] = normalized.copy()
     return normalized
+
+
+def _empty_bvb_yahoo_history_cache():
+    return {
+        'schema': 'market-scanner.bvb-yahoo-history-cache.v1',
+        'entries': {},
+    }
+
+
+def _load_bvb_yahoo_history_cache(cache_path=None):
+    """Încarcă o singură dată cache-ul Yahoo BVB comprimat."""
+    global _BVB_YAHOO_HISTORY_CACHE
+    path = cache_path or BVB_YAHOO_HISTORY_CACHE_FILE
+    if (
+        cache_path is None
+        and isinstance(_BVB_YAHOO_HISTORY_CACHE, dict)
+    ):
+        return _BVB_YAHOO_HISTORY_CACHE
+    try:
+        with gzip.open(path, 'rt', encoding='utf-8') as handle:
+            payload = json.load(handle)
+        if payload.get('schema') != _empty_bvb_yahoo_history_cache()['schema']:
+            raise ValueError('schema necunoscută')
+        if not isinstance(payload.get('entries'), dict):
+            raise ValueError('entries invalid')
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        payload = _empty_bvb_yahoo_history_cache()
+    if cache_path is None:
+        _BVB_YAHOO_HISTORY_CACHE = payload
+    return payload
+
+
+def _cached_bvb_yahoo_frame(entry):
+    rows = (entry or {}).get('rows') or []
+    if not isinstance(rows, list) or not rows:
+        return pd.DataFrame()
+    frame = pd.DataFrame(rows)
+    if 'Date' not in frame.columns or 'Close' not in frame.columns:
+        return pd.DataFrame()
+    frame['Date'] = pd.to_datetime(frame['Date'], errors='coerce')
+    for column in ('Open', 'High', 'Low', 'Close', 'Volume'):
+        if column in frame.columns:
+            frame[column] = pd.to_numeric(frame[column], errors='coerce')
+    frame = frame.dropna(subset=['Date', 'Close']).set_index('Date')
+    return _normalize_downloaded_history(frame)
+
+
+def _bvb_yahoo_cache_rows(frame):
+    normalized = _normalize_downloaded_history(frame)
+    if normalized.empty:
+        return []
+    available = [
+        column for column in ('Open', 'High', 'Low', 'Close', 'Volume')
+        if column in normalized.columns
+    ]
+    serializable = normalized[available].copy().reset_index()
+    serializable = serializable.rename(columns={serializable.columns[0]: 'Date'})
+    serializable['Date'] = pd.to_datetime(
+        serializable['Date'], errors='coerce'
+    ).dt.strftime('%Y-%m-%d')
+    serializable = serializable.dropna(subset=['Date', 'Close'])
+    return json.loads(serializable.to_json(orient='records'))
+
+
+def _save_bvb_yahoo_history_cache(payload, cache_path=None):
+    """Salvare atomică; o întrerupere nu poate corupe cache-ul valid."""
+    global _BVB_YAHOO_HISTORY_CACHE
+    path = cache_path or BVB_YAHOO_HISTORY_CACHE_FILE
+    directory = os.path.dirname(os.path.abspath(path))
+    os.makedirs(directory, exist_ok=True)
+    temporary = f'{path}.tmp'
+    with gzip.open(temporary, 'wt', encoding='utf-8', compresslevel=6) as handle:
+        json.dump(payload, handle, ensure_ascii=False, separators=(',', ':'))
+    os.replace(temporary, path)
+    if cache_path is None:
+        _BVB_YAHOO_HISTORY_CACHE = payload
+
+
+def _bvb_yahoo_cache_is_fresh(entry, now):
+    try:
+        checked_at = pd.Timestamp(entry.get('checked_at'))
+        if checked_at.tzinfo is None:
+            checked_at = checked_at.tz_localize('UTC')
+        else:
+            checked_at = checked_at.tz_convert('UTC')
+        age_hours = (
+            pd.Timestamp(now).tz_convert('UTC') - checked_at
+        ).total_seconds() / 3600
+        return age_hours < BVB_YAHOO_HISTORY_CACHE_TTL_HOURS
+    except (TypeError, ValueError, AttributeError):
+        return False
+
+
+def _load_bvb_yahoo_history(
+    symbol,
+    *,
+    period='1y',
+    required_observations=60,
+    cache_path=None,
+    now=None,
+):
+    """Returnează istoricul Yahoo BVB din cache și cere doar barele noi."""
+    payload = _load_bvb_yahoo_history_cache(cache_path)
+    key = str(symbol or '').strip().upper()
+    entries = payload.setdefault('entries', {})
+    entry = entries.get(key) if isinstance(entries.get(key), dict) else {}
+    cached = _cached_bvb_yahoo_frame(entry)
+    current = pd.Timestamp(now or datetime.datetime.now(datetime.timezone.utc))
+    if current.tzinfo is None:
+        current = current.tz_localize('UTC')
+    else:
+        current = current.tz_convert('UTC')
+
+    same_or_broader_period = (
+        entry.get('period') == period
+        or entry.get('period') == '2y'
+        or period != '2y'
+    )
+    if entry and same_or_broader_period and _bvb_yahoo_cache_is_fresh(
+        entry, current
+    ):
+        print(
+            f"  [Yahoo BVB cache] {key}: {len(cached)} ședințe; "
+            "fără download."
+        )
+        return cached
+
+    incremental = not cached.empty and len(cached) >= int(
+        required_observations
+    ) and same_or_broader_period
+    if incremental:
+        start = (
+            cached.index.max()
+            - pd.Timedelta(days=BVB_YAHOO_INCREMENTAL_OVERLAP_DAYS)
+        ).date().isoformat()
+        end = (current + pd.Timedelta(days=1)).date().isoformat()
+        fresh = _download_yahoo_history(
+            key, period=period, start=start, end=end
+        )
+        combined = _merge_ohlcv_histories(cached, fresh)
+        mode = f'incremental {start} → {end}'
+    else:
+        fresh = _download_yahoo_history(key, period=period)
+        combined = _merge_ohlcv_histories(cached, fresh)
+        mode = f'backfill {period}'
+
+    entries[key] = {
+        'checked_at': current.isoformat(),
+        'period': period if period == '2y' or not entry else entry.get(
+            'period', period
+        ),
+        'rows': _bvb_yahoo_cache_rows(combined),
+    }
+    _save_bvb_yahoo_history_cache(payload, cache_path)
+    print(
+        f"  [Yahoo BVB cache] {key}: {mode}; "
+        f"{len(combined)} ședințe păstrate."
+    )
+    return combined
 
 
 def _load_analysis_history(ticker, download_ticker, period='1y'):
@@ -828,8 +1002,10 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
         if len(combined_without_yahoo) < required_combined_history:
             try:
                 yahoo_period = '2y' if needs_sma200_history else period
-                yahoo_history = _download_yahoo_history(
-                    download_ticker, period=yahoo_period
+                yahoo_history = _load_bvb_yahoo_history(
+                    download_ticker,
+                    period=yahoo_period,
+                    required_observations=required_combined_history,
                 )
             except Exception:
                 yahoo_history = pd.DataFrame()

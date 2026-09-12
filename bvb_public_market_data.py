@@ -346,7 +346,10 @@ def fetch_history(
         ):
             break
 
-    if not cache.empty:
+    # Nu rescriem întregul CSV pentru fiecare simbol consultat. Într-o scanare
+    # completă primele apeluri adaugă zilele noi, iar următoarele sute de
+    # simboluri citesc aceeași imagine deja încărcată în memorie.
+    if downloaded_days > 0 and not cache.empty:
         _save_cache(cache_path, cache)
     symbol_history = _symbol_frame(cache, bvb_symbol)
     if len(symbol_history) < int(min_observations):

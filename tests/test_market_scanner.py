@@ -2859,7 +2859,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
     @patch('market_scanner.bvb_public_market_data.fetch_history')
     @patch('market_scanner._load_mcp_market_instrument', return_value=None)
     @patch('market_scanner._load_tws_instrument', return_value=None)
-    @patch('market_scanner._download_yahoo_history')
+    @patch('market_scanner._load_bvb_yahoo_history')
     def test_bvb_history_prefers_public_bvb_before_yahoo_and_tws(
         self, yahoo_download, _load_tws, _load_mcp, bvb_fetch,
     ):
@@ -2893,7 +2893,9 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             attribution['Market_Data_Source'],
             'BVB CSV public zilnic (fără autentificare)',
         )
-        yahoo_download.assert_called_once_with('ALR.RO', period='1y')
+        yahoo_download.assert_called_once_with(
+            'ALR.RO', period='1y', required_observations=60
+        )
         bvb_fetch.assert_called_once_with(
             'ALR.RO',
             min_observations=1,
@@ -2905,7 +2907,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
     @patch('market_scanner.bvb_public_market_data.fetch_history')
     @patch('market_scanner._load_mcp_market_instrument', return_value=None)
     @patch('market_scanner._load_tws_instrument', return_value=None)
-    @patch('market_scanner._download_yahoo_history')
+    @patch('market_scanner._load_bvb_yahoo_history')
     def test_tvbetetf_backfills_enough_public_history_for_sma200(
         self, yahoo_download, _load_tws, _load_mcp, bvb_fetch,
     ):
@@ -2939,7 +2941,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
     @patch('market_scanner.bvb_public_market_data.fetch_history')
     @patch('market_scanner._load_mcp_market_instrument', return_value=None)
     @patch('market_scanner._load_tws_instrument')
-    @patch('market_scanner._download_yahoo_history')
+    @patch('market_scanner._load_bvb_yahoo_history')
     def test_tvbetetf_uses_two_year_yahoo_fallback_when_bvb_is_unavailable(
         self, yahoo_download, load_tws, _load_mcp, bvb_fetch,
     ):
@@ -2978,7 +2980,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
 
         self.assertGreaterEqual(len(frame), 260)
         yahoo_download.assert_called_once_with(
-            'TVBETETF.RO', period='2y'
+            'TVBETETF.RO', period='2y', required_observations=260
         )
         self.assertEqual(selected['data_broker'], 'surse combinate')
         self.assertIn('Yahoo Finance', attribution['Market_Data_Source'])
@@ -2986,7 +2988,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
     @patch('market_scanner.bvb_public_market_data.fetch_history')
     @patch('market_scanner._load_mcp_market_instrument', return_value=None)
     @patch('market_scanner._load_tws_instrument')
-    @patch('market_scanner._download_yahoo_history')
+    @patch('market_scanner._load_bvb_yahoo_history')
     def test_bvb_history_prefers_fresh_ibkr_bar_over_yahoo(
         self, yahoo_download, load_tws, _load_mcp, bvb_fetch,
     ):
@@ -3026,7 +3028,7 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
     @patch('market_scanner.bvb_public_market_data.fetch_history')
     @patch('market_scanner._load_mcp_market_instrument', return_value=None)
     @patch('market_scanner._load_tws_instrument')
-    @patch('market_scanner._download_yahoo_history')
+    @patch('market_scanner._load_bvb_yahoo_history')
     def test_bvb_history_uses_existing_tws_cache_only_as_last_fallback(
         self, yahoo_download, load_tws, _load_mcp, bvb_fetch,
     ):

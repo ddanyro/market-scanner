@@ -37,6 +37,13 @@ ARTIFACTS = {
         "pull": True,
         "optional": True,
     },
+    "bvb-yahoo-history-cache": {
+        "path": Path(".bvb_yahoo_history_cache.json.gz"),
+        "content_type": "application/gzip",
+        "private": True,
+        "pull": True,
+        "optional": True,
+    },
     "shadow-maintenance-state": {
         "path": Path(".shadow_maintenance_state.json"),
         "content_type": "application/json; charset=utf-8",

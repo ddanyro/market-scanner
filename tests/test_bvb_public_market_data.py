@@ -2,7 +2,7 @@ import os
 import sys
 import tempfile
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pandas as pd
 
@@ -74,12 +74,14 @@ class TestBVBPublicMarketData(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             cache_path = os.path.join(temp_dir, "bvb_daily_cache.csv")
             cached.to_csv(cache_path, index=False)
-            frame, metadata = bvb_public_market_data.fetch_history(
-                "DN.RO",
-                cache_path=cache_path,
-                session=session,
-                now="2026-07-31",
-            )
+            with patch.object(bvb_public_market_data, "_save_cache") as save_cache:
+                frame, metadata = bvb_public_market_data.fetch_history(
+                    "DN.RO",
+                    cache_path=cache_path,
+                    session=session,
+                    now="2026-07-31",
+                )
+            save_cache.assert_not_called()
 
         self.assertEqual(len(frame), 60)
         self.assertEqual(metadata["data_broker"], "BVB public")

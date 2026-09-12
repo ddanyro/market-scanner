@@ -51,6 +51,7 @@ def write_runtime_files(root):
     payloads = {
         "dashboard_state.json": b'{"state":"current"}',
         ".ibkr_mcp_market_cache.json": b'{"NVDA":{"price":123}}',
+        ".bvb_yahoo_history_cache.json.gz": b"compressed-bvb-cache",
         ".shadow_maintenance_state.json": (
             b'{"schema":"market-scanner.shadow-maintenance.v1","tasks":{}}'
         ),
@@ -99,6 +100,7 @@ def test_pull_restores_only_private_runtime_state_and_checks_integrity(
     manifest = store.push_runtime(config=r2_config, client=client)
     Path("dashboard_state.json").unlink()
     Path(".ibkr_mcp_market_cache.json").unlink()
+    Path(".bvb_yahoo_history_cache.json.gz").unlink()
     Path(".shadow_maintenance_state.json").unlink()
     Path("watchlist_compact.json").write_text("local-public-copy", encoding="utf-8")
 
@@ -107,6 +109,9 @@ def test_pull_restores_only_private_runtime_state_and_checks_integrity(
     assert Path("dashboard_state.json").read_bytes() == payloads["dashboard_state.json"]
     assert Path(".ibkr_mcp_market_cache.json").read_bytes() == payloads[
         ".ibkr_mcp_market_cache.json"
+    ]
+    assert Path(".bvb_yahoo_history_cache.json.gz").read_bytes() == payloads[
+        ".bvb_yahoo_history_cache.json.gz"
     ]
     assert Path(".shadow_maintenance_state.json").read_bytes() == payloads[
         ".shadow_maintenance_state.json"
