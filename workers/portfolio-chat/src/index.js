@@ -12,6 +12,7 @@ const RUNTIME_MANIFEST_KEY = "market-scanner-runtime/v1/manifest.json";
 const PUBLIC_RUNTIME_ARTIFACTS = new Map([
   ["/runtime/index.html", "dashboard-html"],
   ["/runtime/watchlist_compact.json", "watchlist-compact"],
+  ["/runtime/watchlist_details.json", "watchlist-details"],
 ]);
 const OPENAI_QUOTA_CODES = new Set([
   "credit_balance_exhausted",
@@ -316,10 +317,10 @@ async function runtimeResponse(request, env, origin, artifactName) {
   const artifactBody = artifact.body instanceof ReadableStream
     ? artifact.body
     : new Response(artifact.body).body;
-  const body = descriptor.content_encoding === "gzip"
-    ? artifactBody.pipeThrough(new DecompressionStream("gzip"))
-    : artifactBody;
-  return new Response(body, {status: 200, headers});
+  if (descriptor.content_encoding === "gzip") {
+    headers.set("Content-Encoding", "gzip");
+  }
+  return new Response(artifactBody, {status: 200, headers});
 }
 
 function jsonResponse(payload, status, origin) {

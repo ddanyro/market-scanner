@@ -175,7 +175,7 @@ jobs:
           for shadow_file in \
             shadow_predictions.jsonl technical_events_predictions.jsonl.gz \
             technical_events_predictions.archive-*.jsonl.gz \
-            dashboard_state.json watchlist_compact.json \
+            dashboard_state.json watchlist_compact.json watchlist_details.json \
             analysis/shadow_forward_validation/labelled_predictions.csv \
             analysis/technical_events_validation/labelled_predictions.csv.gz \
             analysis/technical_events_validation/event_observations.csv.gz; do

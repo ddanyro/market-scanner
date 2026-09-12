@@ -50,6 +50,7 @@ def write_runtime_files(root):
             b"ticker,return_1d\nNVDA,0.01\n"
         ),
         "watchlist_compact.json": b'[{"Ticker":"NVDA"}]',
+        "watchlist_details.json": b'{"NVDA":{"ticker":"NVDA"}}',
         "index.html": b"<!doctype html><title>Market Scanner</title><p>full dashboard</p>",
     }
     for name, content in payloads.items():
@@ -122,6 +123,7 @@ def test_loader_does_not_replace_full_dashboard_in_r2(
         publish_loader=True, config=r2_config, client=client
     )
     assert store.LOADER_MARKER in Path("index.html").read_text(encoding="utf-8")
+    assert "cache: 'no-store'" in Path("index.html").read_text(encoding="utf-8")
 
     second = store.push_runtime(config=r2_config, client=client)
     assert second["artifacts"]["dashboard-html"] == first["artifacts"]["dashboard-html"]

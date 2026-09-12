@@ -6065,6 +6065,21 @@ def _write_portable_account_snapshot(path, payload, password):
     return True
 
 
+def _write_runtime_json(path, payload):
+    """Scrie atomic JSON-ul public consumat progresiv de dashboard."""
+    encoded = json.dumps(
+        _json_without_nonfinite_numbers(payload),
+        ensure_ascii=False,
+        allow_nan=False,
+        separators=(',', ':'),
+        sort_keys=True,
+    )
+    temporary_path = f'{path}.tmp'
+    with open(temporary_path, 'w', encoding='utf-8') as handle:
+        handle.write(encoded)
+    os.replace(temporary_path, path)
+
+
 def _load_portable_account_snapshot(raw_path, encrypted_path, password):
     """Încarcă snapshotul local sau copia criptată destinată rulării remote."""
     if os.path.exists(raw_path):
@@ -10977,15 +10992,48 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     row.get('Technical_Events')
                 ),
             }
-    watchlist_detail_json = json.dumps(watchlist_detail_data, ensure_ascii=False).replace('</', '<\\/')
+    _write_runtime_json('watchlist_details.json', watchlist_detail_data)
+    runtime_data_url = os.environ.get(
+        'MARKET_SCANNER_DATA_URL',
+        'https://market-scanner-portfolio-chat.daniel-dragomir.workers.dev',
+    ).rstrip('/')
+    watchlist_detail_endpoint_json = json.dumps(
+        f'{runtime_data_url}/runtime/watchlist_details.json'
+    )
 
     html_footer += f"""
             }};
             const indicatorDetailData = {indicator_detail_json};
-            const watchlistDetailData = {watchlist_detail_json};
+            let watchlistDetailData = {{}};
+            let watchlistDetailPromise = null;
+            const watchlistDetailEndpoint = {watchlist_detail_endpoint_json};
     """
 
     html_footer += """
+            function ensureWatchlistDetailsLoaded() {
+                if (Object.keys(watchlistDetailData).length) {
+                    return Promise.resolve(watchlistDetailData);
+                }
+                if (!watchlistDetailPromise) {
+                    watchlistDetailPromise = fetch(
+                        watchlistDetailEndpoint, {cache: 'no-store'}
+                    ).then(function(response) {
+                        if (!response.ok) throw new Error('HTTP ' + response.status);
+                        return response.json();
+                    }).then(function(payload) {
+                        if (!payload || Array.isArray(payload) || typeof payload !== 'object') {
+                            throw new Error('format invalid');
+                        }
+                        watchlistDetailData = payload;
+                        return watchlistDetailData;
+                    }).catch(function(error) {
+                        watchlistDetailPromise = null;
+                        throw error;
+                    });
+                }
+                return watchlistDetailPromise;
+            }
+
             function openIndicatorDetail(indicatorName) {
                 const detail = indicatorDetailData[indicatorName];
                 openMarketDetailWindow(detail, indicatorName);
@@ -10996,11 +11044,14 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 openMarketDetailWindow(detail, symbol);
             }
 
-            function detailForActiveBuyOrder(symbol) {
+            async function detailForActiveBuyOrder(symbol) {
                 const normalizedSymbol = String(symbol || '').toUpperCase();
-                const baseDetail = buyRecommendationDetailData[normalizedSymbol]
-                    || portfolioDetailData[normalizedSymbol]
-                    || watchlistDetailData[normalizedSymbol];
+                let baseDetail = buyRecommendationDetailData[normalizedSymbol]
+                    || portfolioDetailData[normalizedSymbol];
+                if (!baseDetail) {
+                    const details = await ensureWatchlistDetailsLoaded();
+                    baseDetail = details[normalizedSymbol];
+                }
                 const symbolBase = normalizedSymbol.split('.')[0];
                 const levelKey = Object.keys(activeBuyOrderLevels).find(function(key) {
                     return key === normalizedSymbol || key.split('.')[0] === symbolBase;
@@ -11014,17 +11065,29 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 return detail;
             }
 
-            function openOrderDetail(symbol) {
+            async function openOrderDetail(symbol) {
                 const normalizedSymbol = String(symbol || '').toUpperCase();
-                openMarketDetailWindow(
-                    detailForActiveBuyOrder(normalizedSymbol),
-                    normalizedSymbol
-                );
+                try {
+                    openMarketDetailWindow(
+                        await detailForActiveBuyOrder(normalizedSymbol),
+                        normalizedSymbol
+                    );
+                } catch (error) {
+                    window.alert(
+                        'Detaliile nu au putut fi încărcate. Reîncearcă. ' + error
+                    );
+                }
             }
 
-            function openWatchlistDetail(symbol) {
-                const detail = watchlistDetailData[symbol];
-                openMarketDetailWindow(detail, symbol);
+            async function openWatchlistDetail(symbol) {
+                try {
+                    const details = await ensureWatchlistDetailsLoaded();
+                    openMarketDetailWindow(details[symbol], symbol);
+                } catch (error) {
+                    window.alert(
+                        'Detaliile nu au putut fi încărcate. Reîncearcă. ' + error
+                    );
+                }
             }
 
             function openBuyRecommendationDetail(symbol) {

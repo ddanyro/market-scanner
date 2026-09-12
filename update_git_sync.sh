@@ -63,6 +63,7 @@ SYNC_GENERATED_FILES=(
     "watchlist_a_d.json"
     "watchlist_buy.json"
     "watchlist_compact.json"
+    "watchlist_details.json"
     "watchlist_e_h.json"
     "watchlist_i_l.json"
     "watchlist_m_p.json"
@@ -214,7 +215,7 @@ git_sync_stage_generated() {
     for generated_file in "${SYNC_GENERATED_FILES[@]}"; do
         if shadow_r2_is_primary; then
             case "$generated_file" in
-                shadow_predictions.jsonl|technical_events_predictions.jsonl.gz|dashboard_state.json|watchlist_compact.json|analysis/technical_events_validation/labelled_predictions.csv.gz|analysis/technical_events_validation/event_observations.csv.gz)
+                shadow_predictions.jsonl|technical_events_predictions.jsonl.gz|dashboard_state.json|watchlist_compact.json|watchlist_details.json|analysis/technical_events_validation/labelled_predictions.csv.gz|analysis/technical_events_validation/event_observations.csv.gz)
                     continue
                     ;;
             esac

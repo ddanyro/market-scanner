@@ -277,13 +277,13 @@ class TestHtmlIntegrity(unittest.TestCase):
             content = f.read()
 
         self.assertIn("onclick=\"openOrderDetail(", content)
-        self.assertIn("function openOrderDetail(symbol)", content)
+        self.assertIn("async function openOrderDetail(symbol)", content)
         self.assertIn(
-            "const baseDetail = buyRecommendationDetailData[normalizedSymbol]",
+            "let baseDetail = buyRecommendationDetailData[normalizedSymbol]",
             content,
         )
         self.assertIn("|| portfolioDetailData[normalizedSymbol]", content)
-        self.assertIn("|| watchlistDetailData[normalizedSymbol]", content)
+        self.assertIn("baseDetail = details[normalizedSymbol]", content)
         self.assertIn("activeBuyOrderLevels[levelKey]", content)
         self.assertIn("(baseDetail.levels || []).concat(orderLevels)", content)
         self.assertIn(
@@ -714,9 +714,13 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("onclick=\"openWatchlistDetail('", content)
         self.assertIn("'Chart_OHLC': watch_chart_ohlc", content)
         self.assertIn("'Chart_History': watch_chart_history", content)
-        self.assertIn("const watchlistDetailData =", content)
-        self.assertIn("function openWatchlistDetail(symbol)", content)
-        self.assertIn("openMarketDetailWindow(detail, symbol)", content)
+        self.assertIn("let watchlistDetailData = {{}}", content)
+        self.assertIn("async function openWatchlistDetail(symbol)", content)
+        self.assertIn("ensureWatchlistDetailsLoaded()", content)
+        self.assertIn("watchlistDetailEndpoint, {cache: 'no-store'}", content)
+        self.assertIn("/runtime/watchlist_details.json", content)
+        self.assertIn("openMarketDetailWindow(details[symbol], symbol)", content)
+        self.assertIn("_write_runtime_json('watchlist_details.json'", content)
         self.assertIn("detail.kind === 'watchlist'", content)
         self.assertIn("'label': 'Stop recomandat'", content)
         self.assertIn("'levels': watchlist_levels", content)

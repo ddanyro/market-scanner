@@ -32,6 +32,13 @@ function runtimeR2() {
         content_encoding: "gzip",
         private: false,
       },
+      "watchlist-details": {
+        key: "runtime/watchlist-details.gz",
+        sha256: "details123",
+        content_type: "application/json; charset=utf-8",
+        content_encoding: "gzip",
+        private: false,
+      },
     },
   };
   return {
@@ -41,6 +48,9 @@ function runtimeR2() {
       }
       if (key === "runtime/dashboard.gz") {
         return {body: new TextEncoder().encode("compressed-dashboard")};
+      }
+      if (key === "runtime/watchlist-details.gz") {
+        return {body: new TextEncoder().encode("compressed-details")};
       }
       return null;
     },
@@ -54,8 +64,19 @@ test("serves the public dashboard artifact from private R2", async () => {
   ), workerEnv({MARKET_SCANNER_DATA: runtimeR2()}));
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("Access-Control-Allow-Origin"), SITE_ORIGIN);
-  assert.equal(response.headers.get("Content-Encoding"), null);
+  assert.equal(response.headers.get("Content-Encoding"), "gzip");
   assert.equal(response.headers.get("ETag"), '"abc123"');
+});
+
+test("serves progressive watchlist details as gzip", async () => {
+  const response = await worker.fetch(new Request(
+    "https://worker.example/runtime/watchlist_details.json",
+    {headers: {Origin: SITE_ORIGIN}},
+  ), workerEnv({MARKET_SCANNER_DATA: runtimeR2()}));
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("Content-Type"), "application/json; charset=utf-8");
+  assert.equal(response.headers.get("Content-Encoding"), "gzip");
+  assert.equal(response.headers.get("ETag"), '"details123"');
 });
 
 test("reads runtime artifacts through signed R2 S3 requests without a native binding", async () => {

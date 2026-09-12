@@ -58,6 +58,12 @@ ARTIFACTS = {
         "private": False,
         "pull": False,
     },
+    "watchlist-details": {
+        "path": Path("watchlist_details.json"),
+        "content_type": "application/json; charset=utf-8",
+        "private": False,
+        "pull": False,
+    },
     "dashboard-html": {
         "path": Path("index.html"),
         "content_type": "text/html; charset=utf-8",
