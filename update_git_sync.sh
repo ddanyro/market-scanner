@@ -26,7 +26,6 @@ SYNC_GENERATED_FILES=(
     "analysis/shadow_forward_validation/decision_disagreements.csv"
     "analysis/shadow_forward_validation/decision_matrix.csv"
     "analysis/shadow_forward_validation/forward_validation_report.md"
-    "analysis/shadow_forward_validation/labelled_predictions.csv"
     "analysis/shadow_forward_validation/integrity_report.json"
     "analysis/shadow_forward_validation/market_regimes_forward.csv"
     "analysis/shadow_forward_validation/model_performance.csv"
