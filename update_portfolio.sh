@@ -16,6 +16,7 @@ if ! command -v gh >/dev/null 2>&1; then
 fi
 
 git_sync_start "update_portfolio.sh"
+load_shadow_r2_config
 
 # Snapshotul ordinelor trebuie criptat local cu același PIN pe care GitHub
 # Actions îl primește prin secretul PORTFOLIO_PASSWORD. Altfel rularea remote

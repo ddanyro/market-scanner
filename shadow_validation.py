@@ -475,12 +475,35 @@ def append_snapshot(candidates, state, recorded_at=None, run_mode=None, path=LED
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(snapshot, separators=(",", ":"), ensure_ascii=False)
+    cloud_previous = None
+    if target == LEDGER_PATH:
+        try:
+            import shadow_parquet_store
+            if shadow_parquet_store.is_configured():
+                cloud_previous = shadow_parquet_store.latest_snapshot(
+                    shadow_parquet_store.ENHANCED_DATASET
+                )
+        except Exception as exc:
+            required = os.environ.get("SHADOW_R2_REQUIRED", "").casefold() in {
+                "1", "true", "yes", "on",
+            }
+            if required:
+                raise
+            print(f"[Shadow R2] Nu am putut citi ultimul Enhanced snapshot: {exc}")
     with target.open("a+", encoding="utf-8") as handle:
         fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
         handle.seek(0)
         existing_lines = [line for line in handle.read().splitlines() if line.strip()]
+        previous_candidates = []
         if existing_lines:
-            previous = json.loads(existing_lines[-1])
+            previous_candidates.append(json.loads(existing_lines[-1]))
+        if cloud_previous:
+            previous_candidates.append(cloud_previous)
+        if previous_candidates:
+            previous = max(
+                previous_candidates,
+                key=lambda item: (item.get("recorded_at", ""), item.get("snapshot_id", "")),
+            )
             snapshot["previous_snapshot_hash"] = (
                 previous.get("content_hash") or _content_hash(previous)
             )
@@ -493,10 +516,15 @@ def append_snapshot(candidates, state, recorded_at=None, run_mode=None, path=LED
         handle.flush()
         os.fsync(handle.fileno())
         fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    if target == LEDGER_PATH:
+        import shadow_parquet_store
+        shadow_parquet_store.persist_optional(
+            snapshot, shadow_parquet_store.ENHANCED_DATASET
+        )
     return snapshot
 
 
-def load_ledger(path=LEDGER_PATH):
+def load_local_ledger(path=LEDGER_PATH):
     snapshots = []
     target = Path(path)
     if not target.exists():
@@ -522,6 +550,34 @@ def load_ledger(path=LEDGER_PATH):
         snapshots.append(payload)
         seen_hashes.add(payload.get("content_hash") or _content_hash(payload))
     return snapshots
+
+
+def load_ledger(path=LEDGER_PATH):
+    snapshots = load_local_ledger(path)
+    target = Path(path)
+    if target != LEDGER_PATH:
+        return snapshots
+    try:
+        import shadow_parquet_store
+        cloud = shadow_parquet_store.load_snapshots(
+            shadow_parquet_store.ENHANCED_DATASET
+        )
+    except Exception as exc:
+        required = os.environ.get("SHADOW_R2_REQUIRED", "").casefold() in {
+            "1", "true", "yes", "on",
+        }
+        if required:
+            raise
+        print(f"[Shadow R2] Citirea Enhanced a eșuat; folosesc local: {exc}")
+        cloud = []
+    merged = {
+        item.get("snapshot_id") or _content_hash(item): item
+        for item in [*snapshots, *cloud]
+    }
+    return sorted(
+        merged.values(),
+        key=lambda item: (item.get("recorded_at", ""), item.get("snapshot_id", "")),
+    )
 
 
 def validate_ledger(snapshots):

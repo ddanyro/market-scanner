@@ -11,6 +11,7 @@ else
 fi
 
 git_sync_start "update_all.sh"
+load_shadow_r2_config
 load_order_cache_password
 
 sync_log_step "Actualizare completă"

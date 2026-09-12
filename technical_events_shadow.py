@@ -237,11 +237,32 @@ def append_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None,
     )
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
+    cloud_previous = None
+    if target == LEDGER_PATH:
+        try:
+            import shadow_parquet_store
+            if shadow_parquet_store.is_configured():
+                cloud_previous = shadow_parquet_store.latest_snapshot(
+                    shadow_parquet_store.TECHNICAL_DATASET
+                )
+        except Exception as exc:
+            required = os.environ.get("SHADOW_R2_REQUIRED", "").casefold() in {
+                "1", "true", "yes", "on",
+            }
+            if required:
+                raise
+            print(f"[Shadow R2] Nu am putut citi ultimul Technical snapshot: {exc}")
     with target.open("a+b") as handle:
         fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-        existing = load_ledger(target)
-        if existing:
-            previous = existing[-1]
+        existing = load_local_ledger(target)
+        previous_candidates = ([existing[-1]] if existing else [])
+        if cloud_previous:
+            previous_candidates.append(cloud_previous)
+        if previous_candidates:
+            previous = max(
+                previous_candidates,
+                key=lambda item: (item.get("recorded_at", ""), item.get("snapshot_id", "")),
+            )
             snapshot["previous_snapshot_hash"] = previous.get("content_hash")
         snapshot["content_hash"] = _hash(snapshot)
         snapshot["snapshot_id"] = snapshot["content_hash"][:24]
@@ -260,10 +281,15 @@ def append_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None,
         os.fsync(handle.fileno())
         fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
     rotate_ledger(target)
+    if target == LEDGER_PATH:
+        import shadow_parquet_store
+        shadow_parquet_store.persist_optional(
+            snapshot, shadow_parquet_store.TECHNICAL_DATASET
+        )
     return snapshot
 
 
-def load_ledger(path=LEDGER_PATH, *, archive_base=None):
+def load_local_ledger(path=LEDGER_PATH, *, archive_base=None):
     target = Path(path)
     parts = [*archive_paths(archive_base or target), target]
     if not any(part.exists() for part in parts):
@@ -283,6 +309,34 @@ def load_ledger(path=LEDGER_PATH, *, archive_base=None):
             known.add(payload["content_hash"])
             rows.append(payload)
     return rows
+
+
+def load_ledger(path=LEDGER_PATH, *, archive_base=None):
+    target = Path(path)
+    rows = load_local_ledger(target, archive_base=archive_base)
+    if target != LEDGER_PATH or archive_base is not None:
+        return rows
+    try:
+        import shadow_parquet_store
+        cloud = shadow_parquet_store.load_snapshots(
+            shadow_parquet_store.TECHNICAL_DATASET
+        )
+    except Exception as exc:
+        required = os.environ.get("SHADOW_R2_REQUIRED", "").casefold() in {
+            "1", "true", "yes", "on",
+        }
+        if required:
+            raise
+        print(f"[Shadow R2] Citirea Technical Events a eșuat; folosesc local: {exc}")
+        cloud = []
+    merged = {
+        item.get("snapshot_id") or item.get("content_hash"): item
+        for item in [*rows, *cloud]
+    }
+    return sorted(
+        merged.values(),
+        key=lambda item: (item.get("recorded_at", ""), item.get("snapshot_id", "")),
+    )
 
 
 def validate_ledger(snapshots):

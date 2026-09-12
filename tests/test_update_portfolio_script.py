@@ -31,6 +31,8 @@ class TestUpdatePortfolioScript(unittest.TestCase):
         self.assertIn('for attempt in 1 2 3', sync)
         self.assertIn('merge_shadow_ledgers.py', sync)
         self.assertIn('technical_events_shadow.rotate_ledger()', sync)
+        self.assertIn('load_shadow_r2_config', sync)
+        self.assertIn('shadow_r2_is_primary', sync)
         self.assertIn(
             'technical_events_predictions.archive-*.jsonl.gz', sync
         )

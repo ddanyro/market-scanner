@@ -119,6 +119,36 @@ load_order_cache_password() {
     echo "Cheia snapshotului a fost salvată local în $ORDER_CACHE_PASSWORD_FILE (ignorat de Git)."
 }
 
+load_shadow_r2_config() {
+    local config_file="${SHADOW_R2_ENV_FILE:-.shadow_r2_env}"
+    if [ -f "$config_file" ]; then
+        # The file is local-only, chmod 600, and contains simple export lines.
+        # shellcheck disable=SC1090
+        source "$config_file"
+    fi
+    export SHADOW_R2_ACCOUNT_ID="${SHADOW_R2_ACCOUNT_ID:-${CLOUDFLARE_ACCOUNT_ID:-}}"
+    export SHADOW_R2_ACCESS_KEY_ID="${SHADOW_R2_ACCESS_KEY_ID:-}"
+    export SHADOW_R2_SECRET_ACCESS_KEY="${SHADOW_R2_SECRET_ACCESS_KEY:-}"
+    export SHADOW_R2_BUCKET="${SHADOW_R2_BUCKET:-market-scanner-shadow}"
+    export SHADOW_R2_PREFIX="${SHADOW_R2_PREFIX:-market-scanner-shadow/v1}"
+    export SHADOW_R2_REQUIRED="${SHADOW_R2_REQUIRED:-true}"
+}
+
+shadow_r2_is_configured() {
+    [ -n "${SHADOW_R2_ACCOUNT_ID:-}" ] && \
+    [ -n "${SHADOW_R2_ACCESS_KEY_ID:-}" ] && \
+    [ -n "${SHADOW_R2_SECRET_ACCESS_KEY:-}" ] && \
+    [ -n "${SHADOW_R2_BUCKET:-}" ]
+}
+
+shadow_r2_is_primary() {
+    shadow_r2_is_configured && \
+    case "${SHADOW_R2_REQUIRED:-false}" in
+        1|true|TRUE|yes|YES|on|ON) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 git_sync_assert_ready() {
     local caller_name="${1:-update script}"
     if ! command -v git >/dev/null 2>&1; then
@@ -153,15 +183,24 @@ git_sync_stage_generated() {
     local files_to_add=()
     local generated_file
     for generated_file in "${SYNC_GENERATED_FILES[@]}"; do
+        if shadow_r2_is_primary; then
+            case "$generated_file" in
+                shadow_predictions.jsonl|technical_events_predictions.jsonl.gz|analysis/technical_events_validation/labelled_predictions.csv.gz|analysis/technical_events_validation/event_observations.csv.gz)
+                    continue
+                    ;;
+            esac
+        fi
         if [ -e "$generated_file" ]; then
             files_to_add+=("$generated_file")
         fi
     done
-    for generated_file in technical_events_predictions.archive-*.jsonl.gz; do
-        if [ -e "$generated_file" ]; then
-            files_to_add+=("$generated_file")
-        fi
-    done
+    if ! shadow_r2_is_primary; then
+        for generated_file in technical_events_predictions.archive-*.jsonl.gz; do
+            if [ -e "$generated_file" ]; then
+                files_to_add+=("$generated_file")
+            fi
+        done
+    fi
     if [ "${#files_to_add[@]}" -gt 0 ]; then
         git add -- "${files_to_add[@]}"
     fi
@@ -220,8 +259,10 @@ git_sync_integrate_remote() {
     ledger_before="$(git hash-object shadow_predictions.jsonl 2>/dev/null || true)"
     local technical_ledger_before
     technical_ledger_before="$(git hash-object technical_events_predictions.jsonl.gz 2>/dev/null || true)"
-    git_sync_merge_remote_ledger
-    git_sync_merge_remote_technical_ledger
+    if ! shadow_r2_is_primary; then
+        git_sync_merge_remote_ledger
+        git_sync_merge_remote_technical_ledger
+    fi
     local ledger_after
     ledger_after="$(git hash-object shadow_predictions.jsonl 2>/dev/null || true)"
     local technical_ledger_after
@@ -237,6 +278,9 @@ git_sync_integrate_remote() {
 git_sync_finish() {
     local commit_prefix="$1"
     sync_log_step "Pregătire și sincronizare finală"
+    if shadow_r2_is_configured; then
+        "$(sync_python_bin)" shadow_parquet_store.py flush
+    fi
     git_sync_stage_generated
     if git diff --cached --quiet; then
         echo "Nu există fișiere generate modificate pentru commit."
