@@ -179,22 +179,22 @@ jobs:
       if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
       uses: actions/configure-pages@v6
 
+    - name: Exclude private shadow data from Pages source
+      if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
+      run: |
+        find . -path './.git' -prune -o -type f \( \
+          -name 'shadow_predictions.jsonl' -o \
+          -name 'technical_events_predictions*.jsonl.gz' -o \
+          -name 'labelled_predictions.csv.gz' -o \
+          -name 'event_observations.csv.gz' \
+        \) -delete
+
     - name: Build GitHub Pages artifact
       if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
       uses: actions/jekyll-build-pages@v1
       with:
         source: ./
         destination: ./_site
-
-    - name: Exclude private shadow data from Pages artifact
-      if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
-      run: |
-        find ./_site -type f \( \
-          -name 'shadow_predictions.jsonl' -o \
-          -name 'technical_events_predictions*.jsonl.gz' -o \
-          -name 'labelled_predictions.csv.gz' -o \
-          -name 'event_observations.csv.gz' \
-        \) -delete
 
     - name: Upload GitHub Pages artifact
       if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
