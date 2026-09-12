@@ -116,6 +116,17 @@ BVB_YAHOO_HISTORY_CACHE_TTL_HOURS = float(
 )
 BVB_YAHOO_INCREMENTAL_OVERLAP_DAYS = 10
 _BVB_YAHOO_HISTORY_CACHE = None
+CBOE_INDICATOR_HISTORY_URLS = {
+    name: (
+        'https://cdn.cboe.com/api/global/us_indices/daily_prices/'
+        f'{name}_History.csv'
+    )
+    for name in (
+        'VIX3M', 'VIX', 'VIX1D', 'VIX9D', 'VXN',
+        'LTV', 'SKEW', 'GVZ', 'OVX',
+    )
+}
+MARKET_INDICATOR_MAX_AGE_DAYS = 7
 
 
 def _portfolio_chat_access_token(password):
@@ -3453,6 +3464,105 @@ def _download_market_indicator_history(
     return pd.DataFrame(), None
 
 
+def _market_indicator_history_is_stale(
+    history, *, now=None, max_age_days=MARKET_INDICATOR_MAX_AGE_DAYS
+):
+    if history is None or history.empty:
+        return True
+    dates = pd.to_datetime(history.index, format='mixed', errors='coerce')
+    dates = dates[~dates.isna()]
+    if len(dates) == 0:
+        return True
+    latest = pd.Timestamp(dates.max())
+    if latest.tzinfo is not None:
+        latest = latest.tz_localize(None)
+    current = pd.Timestamp(now or datetime.datetime.now()).tz_localize(None)
+    return (current.normalize() - latest.normalize()).days > int(max_age_days)
+
+
+def _market_indicator_has_usable_ohlc(history, minimum=5):
+    if history is None or history.empty:
+        return False
+    required = {'Open', 'High', 'Low', 'Close'}
+    if not required.issubset(history.columns):
+        return False
+    numeric = history[list(required)].apply(pd.to_numeric, errors='coerce')
+    return int(numeric.dropna().shape[0]) >= int(minimum)
+
+
+def _download_cboe_indicator_history(name, *, session=None, timeout=20):
+    """OHLC/close oficial Cboe pentru indicii publicați în dashboard."""
+    url = CBOE_INDICATOR_HISTORY_URLS.get(str(name or '').upper())
+    if not url:
+        return pd.DataFrame()
+    client = session or requests
+    response = client.get(url, timeout=timeout)
+    response.raise_for_status()
+    raw = pd.read_csv(StringIO(response.text))
+    raw.columns = [str(column).strip().upper() for column in raw.columns]
+    if 'DATE' not in raw.columns:
+        return pd.DataFrame()
+    if 'CLOSE' not in raw.columns:
+        value_columns = [column for column in raw.columns if column != 'DATE']
+        if len(value_columns) != 1:
+            return pd.DataFrame()
+        raw = raw.rename(columns={value_columns[0]: 'CLOSE'})
+    raw['DATE'] = pd.to_datetime(raw['DATE'], errors='coerce')
+    rename = {
+        'OPEN': 'Open', 'HIGH': 'High', 'LOW': 'Low',
+        'CLOSE': 'Close',
+    }
+    available = [column for column in rename if column in raw.columns]
+    frame = raw[['DATE', *available]].rename(columns=rename).set_index('DATE')
+    for column in frame.columns:
+        frame[column] = pd.to_numeric(frame[column], errors='coerce')
+    frame = frame.dropna(subset=['Close']).sort_index()
+    return frame.tail(180)
+
+
+def _select_market_indicator_history(name, yahoo_history, yahoo_period):
+    """Preferă Yahoo când este complet; repară seriile stale cu Cboe oficial."""
+    history = _normalize_downloaded_history(yahoo_history)
+    if not history.empty:
+        # Yahoo atașează fusul bursei, în timp ce CSV-urile Cboe folosesc
+        # date calendaristice fără fus. Indicatorii sunt zilnici, deci
+        # normalizăm indexul înainte de îmbinare.
+        history.index = pd.to_datetime(
+            history.index, format='mixed', errors='coerce'
+        )
+        if history.index.tz is not None:
+            history.index = history.index.tz_localize(None)
+        history = history[~history.index.isna()].sort_index()
+    source = 'Yahoo Finance'
+    needs_official = (
+        str(name or '').upper() in CBOE_INDICATOR_HISTORY_URLS
+        and (
+            _market_indicator_history_is_stale(history)
+            or not _market_indicator_has_usable_ohlc(history)
+        )
+    )
+    if needs_official:
+        try:
+            official = _download_cboe_indicator_history(name)
+        except Exception as error:
+            print(
+                f"  ⚠ Istoric oficial Cboe indisponibil pentru {name}: "
+                f"{str(error)[:80]}"
+            )
+            official = pd.DataFrame()
+        if not official.empty:
+            # Cboe este autoritatea pentru valorile indicilor săi. Pentru
+            # seriile close-only păstrăm OHLC Yahoo acolo unde există.
+            history = official.combine_first(history).sort_index()
+            source = 'Cboe official'
+            yahoo_period = 'cboe-official'
+            print(
+                f"  ℹ {name}: istoric oficial Cboe până la "
+                f"{history.index[-1].strftime('%Y-%m-%d')}"
+            )
+    return history, yahoo_period, source
+
+
 def get_market_indicators():
     """Preia indicatori volum și sentiment, cu persistență locală."""
     indicators = {}
@@ -3505,6 +3615,11 @@ def get_market_indicators():
             hist, history_period = _download_market_indicator_history(data)
             if history_period and history_period != '6mo':
                 print(f"  ℹ {name}: fallback Yahoo {history_period}")
+            hist, history_period, history_source = (
+                _select_market_indicator_history(
+                    name, hist, history_period
+                )
+            )
             
             current_val = None
             
@@ -3585,7 +3700,20 @@ def get_market_indicators():
                     'history_dates': [x['date'] for x in history_db[name]][-60:],
                     'ohlc': ohlc_data,
                     'ticker': ticker,
-                    'history_period': history_period
+                    'history_period': history_period,
+                    'data_source': history_source,
+                    'data_as_of': history_db[name][-1]['date'],
+                    'ohlc_as_of': (
+                        ohlc_data[-1]['date'] if ohlc_data else None
+                    ),
+                    'data_stale': _market_indicator_history_is_stale(
+                        pd.DataFrame(
+                            {'Close': data_points},
+                            index=[
+                                item['date'] for item in history_db[name]
+                            ],
+                        )
+                    ),
                 }
             else:
                 print(f"  ⚠ {name}: Nu există date (nici Yahoo, nici Local)")
@@ -11096,7 +11224,11 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             'explanation': indicator_explanations.get(name, ''),
             'ohlc': indicator.get('ohlc', []),
             'series': indicator.get('history', indicator.get('sparkline', [])),
-            'seriesDates': indicator.get('history_dates', [])
+            'seriesDates': indicator.get('history_dates', []),
+            'dataSource': indicator.get('data_source', 'Yahoo Finance'),
+            'dataAsOf': indicator.get('data_as_of'),
+            'ohlcAsOf': indicator.get('ohlc_as_of'),
+            'dataStale': bool(indicator.get('data_stale', False))
         }
     indicator_detail_json = json.dumps(indicator_detail_data, ensure_ascii=False).replace('</', '<\\/')
     watchlist_detail_data = {}
@@ -11593,8 +11725,10 @@ drawIndicatorDetail(detail,initialCount);
                         detail.markers || []
                     );
                     document.getElementById('chartNote').textContent = (
-                        'Lumânări OHLC zilnice reale, furnizate de Yahoo Finance'
-                        + (detail.currency ? ', în ' + detail.currency : '') + '.'
+                        'Lumânări OHLC zilnice reale · sursă: '
+                        + (detail.dataSource || 'Yahoo Finance')
+                        + (detail.ohlcAsOf ? ' · ultima dată: ' + formatRomanianDate(detail.ohlcAsOf, false, false) : '')
+                        + (detail.currency ? ' · ' + detail.currency : '') + '.'
                     );
                 } else {
                     drawLineSeries(
@@ -11608,6 +11742,8 @@ drawIndicatorDetail(detail,initialCount);
                     document.getElementById('chartNote').textContent = (
                         'Istoric zilnic real afișat liniar'
                         + (detail.currency ? ' în ' + detail.currency : '')
+                        + ' · sursă: ' + (detail.dataSource || 'cache local')
+                        + (detail.dataAsOf ? ' · ultima dată: ' + formatRomanianDate(detail.dataAsOf, false, false) : '')
                         + ': sursa nu oferă suficiente date OHLC utile pentru lumânări.'
                     );
                 }

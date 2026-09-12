@@ -159,6 +159,71 @@ class TestPortfolioOptionsContext(unittest.TestCase):
 class TestMarketAnalysis(unittest.TestCase):
     """Test market analysis functions."""
 
+    def test_cboe_indicator_history_parses_official_ohlc(self):
+        session = Mock()
+        response = Mock()
+        response.text = (
+            'DATE,OPEN,HIGH,LOW,CLOSE\n'
+            '09/10/2026,19.57,19.85,19.17,19.73\n'
+            '09/11/2026,18.88,18.92,18.54,18.60\n'
+        )
+        response.raise_for_status.return_value = None
+        session.get.return_value = response
+
+        history = market_scanner._download_cboe_indicator_history(
+            'VIX3M', session=session
+        )
+
+        self.assertEqual(len(history), 2)
+        self.assertEqual(history.index[-1].strftime('%Y-%m-%d'), '2026-09-11')
+        self.assertAlmostEqual(float(history['Close'].iloc[-1]), 18.60)
+        session.get.assert_called_once_with(
+            market_scanner.CBOE_INDICATOR_HISTORY_URLS['VIX3M'], timeout=20
+        )
+
+    @patch('market_scanner._download_cboe_indicator_history')
+    @patch('market_scanner._market_indicator_history_is_stale', return_value=True)
+    def test_stale_yahoo_indicator_is_replaced_by_cboe(
+        self, _is_stale, cboe_download,
+    ):
+        yahoo = pd.DataFrame(
+            {'Open': [20], 'High': [21], 'Low': [19], 'Close': [20.5]},
+            index=pd.DatetimeIndex(['2026-07-17'], tz='America/New_York'),
+        )
+        official = pd.DataFrame(
+            {'Open': [18.88], 'High': [18.92], 'Low': [18.54], 'Close': [18.6]},
+            index=pd.to_datetime(['2026-09-11']),
+        )
+        cboe_download.return_value = official
+
+        history, period, source = market_scanner._select_market_indicator_history(
+            'VIX3M', yahoo, '6mo'
+        )
+
+        self.assertEqual(history.index[-1].strftime('%Y-%m-%d'), '2026-09-11')
+        self.assertEqual(period, 'cboe-official')
+        self.assertEqual(source, 'Cboe official')
+
+    @patch('market_scanner._download_cboe_indicator_history')
+    @patch('market_scanner._market_indicator_history_is_stale', return_value=False)
+    def test_fresh_complete_yahoo_indicator_avoids_cboe_request(
+        self, _is_stale, cboe_download,
+    ):
+        dates = pd.date_range('2026-09-01', periods=5, freq='B')
+        yahoo = pd.DataFrame({
+            'Open': [15] * 5, 'High': [16] * 5,
+            'Low': [14] * 5, 'Close': [15.5] * 5,
+        }, index=dates)
+
+        history, period, source = market_scanner._select_market_indicator_history(
+            'VIX', yahoo, '6mo'
+        )
+
+        self.assertEqual(len(history), 5)
+        self.assertEqual(period, '6mo')
+        self.assertEqual(source, 'Yahoo Finance')
+        cboe_download.assert_not_called()
+
     def test_market_indicator_history_falls_back_when_six_months_is_empty(self):
         dates = pd.date_range('2026-09-02', periods=5, freq='B')
         valid = pd.DataFrame({
