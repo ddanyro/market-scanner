@@ -58,29 +58,28 @@ def archive_paths(path=LEDGER_PATH):
     return sorted(target.parent.glob(f"{_archive_prefix(target)}*.jsonl.gz"))
 
 
-def _read_payloads(target):
+def _iter_payloads(target):
     if not target.exists() or target.stat().st_size == 0:
-        return []
-    if target.suffix == ".gz":
-        with gzip.open(target, "rt", encoding="utf-8") as handle:
-            lines = handle.read().splitlines()
-    else:
-        lines = target.read_text(encoding="utf-8").splitlines()
-    rows = []
-    for line_number, line in enumerate(lines, 1):
-        if not line.strip():
-            continue
-        payload = json.loads(line)
-        if payload.get("schema") != SCHEMA:
-            raise ValueError(
-                f"unknown Technical Events schema in {target}:{line_number}"
-            )
-        if payload.get("content_hash") != _hash(payload):
-            raise ValueError(
-                f"invalid Technical Events hash in {target}:{line_number}"
-            )
-        rows.append(payload)
-    return rows
+        return
+    opener = gzip.open if target.suffix == ".gz" else open
+    with opener(target, "rt", encoding="utf-8") as handle:
+        for line_number, line in enumerate(handle, 1):
+            if not line.strip():
+                continue
+            payload = json.loads(line)
+            if payload.get("schema") != SCHEMA:
+                raise ValueError(
+                    f"unknown Technical Events schema in {target}:{line_number}"
+                )
+            if payload.get("content_hash") != _hash(payload):
+                raise ValueError(
+                    f"invalid Technical Events hash in {target}:{line_number}"
+                )
+            yield payload
+
+
+def _read_payloads(target):
+    return list(_iter_payloads(target))
 
 
 def rotate_ledger(path=LEDGER_PATH, *, max_bytes=MAX_ACTIVE_LEDGER_BYTES,
@@ -238,12 +237,15 @@ def append_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None,
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     cloud_previous = None
+    cloud_snapshot_ids = set()
     if target == LEDGER_PATH:
         try:
             import shadow_parquet_store
             if shadow_parquet_store.is_configured():
-                cloud_previous = shadow_parquet_store.latest_snapshot(
-                    shadow_parquet_store.TECHNICAL_DATASET
+                cloud_previous, cloud_snapshot_ids = (
+                    shadow_parquet_store.latest_snapshot_and_ids(
+                        shadow_parquet_store.TECHNICAL_DATASET
+                    )
                 )
         except Exception as exc:
             required = os.environ.get("SHADOW_R2_REQUIRED", "").casefold() in {
@@ -254,10 +256,12 @@ def append_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None,
             print(f"[Shadow R2] Nu am putut citi ultimul Technical snapshot: {exc}")
     with target.open("a+b") as handle:
         fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-        existing = load_local_ledger(
-            target, allow_external_root=target == LEDGER_PATH
+        existing_latest = latest_local_snapshot(
+            target,
+            allow_external_root=target == LEDGER_PATH,
+            external_parent_ids=cloud_snapshot_ids,
         )
-        previous_candidates = ([existing[-1]] if existing else [])
+        previous_candidates = ([existing_latest] if existing_latest else [])
         if cloud_previous:
             previous_candidates.append(cloud_previous)
         if previous_candidates:
@@ -291,36 +295,85 @@ def append_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None,
     return snapshot
 
 
-def load_local_ledger(
-    path=LEDGER_PATH, *, archive_base=None, allow_external_root=False
+def _iter_validated_local_ledger(
+    path=LEDGER_PATH, *, archive_base=None, allow_external_root=False,
+    external_parent_ids=None,
 ):
     target = Path(path)
     parts = [*archive_paths(archive_base or target), target]
     if not any(part.exists() for part in parts):
-        return []
-    rows = []
+        return
     known = set()
+    row_count = 0
+    external_parent_ids = set(external_parent_ids or ())
     for part in parts:
-        for payload in _read_payloads(part):
+        for payload in _iter_payloads(part):
             parent = payload.get("previous_snapshot_hash")
-            # Concurrent first writers may legitimately create more than one
-            # immutable root before Git reconciliation. Every non-root parent
-            # must still exist in an earlier archive or active-ledger row.
+            # A local WAL can be interleaved with snapshots written directly
+            # to R2. Every parent must exist locally or in the R2 catalog.
             if (
                 parent is not None
                 and parent not in known
-                and not (allow_external_root and not known)
+                and str(parent)[:24] not in external_parent_ids
+                and not (allow_external_root and row_count == 0)
             ):
                 raise ValueError(
                     f"unknown Technical Events parent while loading {part}"
                 )
             known.add(payload["content_hash"])
-            rows.append(payload)
-    return rows
+            row_count += 1
+            yield payload
+
+
+def load_local_ledger(
+    path=LEDGER_PATH, *, archive_base=None, allow_external_root=False,
+    external_parent_ids=None,
+):
+    return list(_iter_validated_local_ledger(
+        path,
+        archive_base=archive_base,
+        allow_external_root=allow_external_root,
+        external_parent_ids=external_parent_ids,
+    ))
+
+
+def latest_local_snapshot(
+    path=LEDGER_PATH, *, archive_base=None, allow_external_root=False,
+    external_parent_ids=None,
+):
+    latest = None
+    for latest in _iter_validated_local_ledger(
+        path,
+        archive_base=archive_base,
+        allow_external_root=allow_external_root,
+        external_parent_ids=external_parent_ids,
+    ):
+        pass
+    return latest
 
 
 def load_ledger(path=LEDGER_PATH, *, archive_base=None):
     target = Path(path)
+    cloud = []
+    external_parent_ids = set()
+    if target == LEDGER_PATH and archive_base is None:
+        try:
+            import shadow_parquet_store
+            cloud = shadow_parquet_store.load_snapshots(
+                shadow_parquet_store.TECHNICAL_DATASET
+            )
+            external_parent_ids = {
+                str(item.get("content_hash") or "")[:24]
+                for item in cloud
+                if item.get("content_hash")
+            }
+        except Exception as exc:
+            required = os.environ.get("SHADOW_R2_REQUIRED", "").casefold() in {
+                "1", "true", "yes", "on",
+            }
+            if required:
+                raise
+            print(f"[Shadow R2] Citirea Technical Events a eșuat; folosesc local: {exc}")
     # Fișierul canonic local este un segment append-only ancorat în ultimul
     # snapshot păstrat în R2. Arhivele/fișierele explicite rămân strict
     # self-contained și resping părinții necunoscuți.
@@ -328,22 +381,10 @@ def load_ledger(path=LEDGER_PATH, *, archive_base=None):
         target,
         archive_base=archive_base,
         allow_external_root=target == LEDGER_PATH and archive_base is None,
+        external_parent_ids=external_parent_ids,
     )
     if target != LEDGER_PATH or archive_base is not None:
         return rows
-    try:
-        import shadow_parquet_store
-        cloud = shadow_parquet_store.load_snapshots(
-            shadow_parquet_store.TECHNICAL_DATASET
-        )
-    except Exception as exc:
-        required = os.environ.get("SHADOW_R2_REQUIRED", "").casefold() in {
-            "1", "true", "yes", "on",
-        }
-        if required:
-            raise
-        print(f"[Shadow R2] Citirea Technical Events a eșuat; folosesc local: {exc}")
-        cloud = []
     merged = {
         item.get("snapshot_id") or item.get("content_hash"): item
         for item in [*rows, *cloud]

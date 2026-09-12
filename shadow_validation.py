@@ -524,12 +524,15 @@ def append_snapshot(candidates, state, recorded_at=None, run_mode=None, path=LED
     return snapshot
 
 
-def load_local_ledger(path=LEDGER_PATH, *, allow_external_root=False):
+def load_local_ledger(
+    path=LEDGER_PATH, *, allow_external_root=False, external_parent_ids=None
+):
     snapshots = []
     target = Path(path)
     if not target.exists():
         return snapshots
     seen_hashes = set()
+    external_parent_ids = set(external_parent_ids or ())
     for line_number, line in enumerate(target.read_text(encoding="utf-8").splitlines(), 1):
         if not line.strip():
             continue
@@ -543,7 +546,11 @@ def load_local_ledger(path=LEDGER_PATH, *, allow_external_root=False):
             if payload.get("snapshot_id") != payload["content_hash"][:24]:
                 raise ValueError(f"Invalid snapshot id at line {line_number}")
             parent_hash = payload.get("previous_snapshot_hash")
-            if seen_hashes and parent_hash not in seen_hashes:
+            if (
+                seen_hashes
+                and parent_hash not in seen_hashes
+                and str(parent_hash)[:24] not in external_parent_ids
+            ):
                 raise ValueError(f"Unknown snapshot parent at line {line_number}")
             if (
                 not seen_hashes
@@ -558,28 +565,37 @@ def load_local_ledger(path=LEDGER_PATH, *, allow_external_root=False):
 
 def load_ledger(path=LEDGER_PATH):
     target = Path(path)
+    cloud = []
+    external_parent_ids = set()
+    if target == LEDGER_PATH:
+        try:
+            import shadow_parquet_store
+            cloud = shadow_parquet_store.load_snapshots(
+                shadow_parquet_store.ENHANCED_DATASET
+            )
+            external_parent_ids = {
+                str(item.get("content_hash") or "")[:24]
+                for item in cloud
+                if item.get("content_hash")
+            }
+        except Exception as exc:
+            required = os.environ.get("SHADOW_R2_REQUIRED", "").casefold() in {
+                "1", "true", "yes", "on",
+            }
+            if required:
+                raise
+            print(f"[Shadow R2] Citirea Enhanced a eșuat; folosesc local: {exc}")
     # După migrarea în R2, fișierul local este un WAL/segment nou. Prima sa
     # înregistrare continuă intenționat hash-chain-ul ultimului snapshot R2 și
     # nu mai este o rădăcină autonomă. Ledgerele explicite păstrează validarea
     # strictă, astfel încât un fișier corupt nu este acceptat accidental.
     snapshots = load_local_ledger(
-        path, allow_external_root=target == LEDGER_PATH
+        path,
+        allow_external_root=target == LEDGER_PATH,
+        external_parent_ids=external_parent_ids,
     )
     if target != LEDGER_PATH:
         return snapshots
-    try:
-        import shadow_parquet_store
-        cloud = shadow_parquet_store.load_snapshots(
-            shadow_parquet_store.ENHANCED_DATASET
-        )
-    except Exception as exc:
-        required = os.environ.get("SHADOW_R2_REQUIRED", "").casefold() in {
-            "1", "true", "yes", "on",
-        }
-        if required:
-            raise
-        print(f"[Shadow R2] Citirea Enhanced a eșuat; folosesc local: {exc}")
-        cloud = []
     merged = {
         item.get("snapshot_id") or _content_hash(item): item
         for item in [*snapshots, *cloud]

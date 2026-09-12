@@ -301,6 +301,50 @@ def test_canonical_technical_segment_can_continue_r2_chain(tmp_path, monkeypatch
     ]
 
 
+def test_canonical_technical_segment_accepts_interleaved_verified_r2_parents(
+    tmp_path, monkeypatch
+):
+    path = tmp_path / "technical_events_predictions.jsonl.gz"
+    result = technical_events.analyze(
+        frame_from_close(np.linspace(90, 110, 60)), timeframe_config=TEST_CONFIG
+    )
+
+    def make_snapshot(ticker, recorded_at, parent=None):
+        row = technical_events_shadow.build_snapshot(
+            [{"Ticker": ticker, "Technical_Events": result}], {},
+            recorded_at=recorded_at,
+        )
+        row["previous_snapshot_hash"] = parent
+        row["content_hash"] = technical_events_shadow._hash(row)
+        row["snapshot_id"] = row["content_hash"][:24]
+        row["content_hash"] = technical_events_shadow._hash(row)
+        return row
+
+    cloud_one = make_snapshot("CLOUD1", "2026-09-12T07:00:00Z")
+    local_one = make_snapshot(
+        "LOCAL1", "2026-09-12T08:00:00Z", cloud_one["content_hash"]
+    )
+    cloud_two = make_snapshot("CLOUD2", "2026-09-12T09:00:00Z")
+    local_two = make_snapshot(
+        "LOCAL2", "2026-09-12T10:00:00Z", cloud_two["content_hash"]
+    )
+    payload = "".join(json.dumps(row) + "\n" for row in (local_one, local_two))
+    path.write_bytes(__import__("gzip").compress(payload.encode("utf-8")))
+    monkeypatch.setattr(technical_events_shadow, "LEDGER_PATH", path)
+    import shadow_parquet_store
+    monkeypatch.setattr(
+        shadow_parquet_store,
+        "load_snapshots",
+        lambda _dataset: [cloud_one, cloud_two],
+    )
+
+    loaded = technical_events_shadow.load_ledger(path)
+
+    assert [row["predictions"][0]["ticker"] for row in loaded] == [
+        "CLOUD1", "LOCAL1", "CLOUD2", "LOCAL2",
+    ]
+
+
 def test_technical_ledgers_merge_without_losing_observations(tmp_path):
     left = tmp_path / "left.jsonl.gz"
     right = tmp_path / "right.jsonl.gz"

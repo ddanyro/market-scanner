@@ -165,6 +165,47 @@ def test_canonical_local_segment_can_continue_r2_hash_chain(tmp_path, monkeypatc
         shadow_validation.load_ledger(copy)
 
 
+def test_canonical_enhanced_segment_accepts_interleaved_verified_r2_parents(
+    tmp_path, monkeypatch
+):
+    path = tmp_path / "shadow_predictions.jsonl"
+
+    def make_snapshot(symbol, recorded_at, parent=None):
+        row = shadow_validation.build_snapshot(
+            [candidate(symbol=symbol)], {}, recorded_at, "all"
+        )
+        row["previous_snapshot_hash"] = parent
+        row["content_hash"] = shadow_validation._content_hash(row)
+        row["snapshot_id"] = row["content_hash"][:24]
+        row["content_hash"] = shadow_validation._content_hash(row)
+        return row
+
+    cloud_one = make_snapshot("CLOUD1", "2026-09-12T07:00:00Z")
+    local_one = make_snapshot(
+        "LOCAL1", "2026-09-12T08:00:00Z", cloud_one["content_hash"]
+    )
+    cloud_two = make_snapshot("CLOUD2", "2026-09-12T09:00:00Z")
+    local_two = make_snapshot(
+        "LOCAL2", "2026-09-12T10:00:00Z", cloud_two["content_hash"]
+    )
+    path.write_text(
+        "".join(json.dumps(row) + "\n" for row in (local_one, local_two))
+    )
+    monkeypatch.setattr(shadow_validation, "LEDGER_PATH", path)
+    import shadow_parquet_store
+    monkeypatch.setattr(
+        shadow_parquet_store,
+        "load_snapshots",
+        lambda _dataset: [cloud_one, cloud_two],
+    )
+
+    loaded = shadow_validation.load_ledger(path)
+
+    assert [row["predictions"][0]["symbol"] for row in loaded] == [
+        "CLOUD1", "LOCAL1", "CLOUD2", "LOCAL2",
+    ]
+
+
 def test_concurrent_legacy_ledgers_are_merged_by_snapshot_id(tmp_path):
     first = tmp_path / "first.jsonl"
     second = tmp_path / "second.jsonl"

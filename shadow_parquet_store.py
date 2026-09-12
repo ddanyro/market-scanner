@@ -463,14 +463,28 @@ def load_snapshots(dataset, *, config=None, client=None):
     )
 
 
-def latest_snapshot(dataset, *, config=None, client=None):
+def latest_snapshot_and_ids(dataset, *, config=None, client=None):
+    """Return the latest snapshot and the immutable IDs present in R2."""
     config = config if config is not None else R2Config.from_env()
     if config is None:
-        return None
+        return None, set()
     client = client or R2Client(config)
     prefix = f"{config.prefix.strip('/')}/{dataset}/"
     keys = client.list_keys(prefix)
-    return _download_snapshot(client, keys[-1]) if keys else None
+    snapshot_ids = {
+        key.rsplit("/", 1)[-1].removesuffix(".parquet").split("-", 1)[-1]
+        for key in keys
+        if key.endswith(".parquet") and "-" in key.rsplit("/", 1)[-1]
+    }
+    latest = _download_snapshot(client, keys[-1]) if keys else None
+    return latest, snapshot_ids
+
+
+def latest_snapshot(dataset, *, config=None, client=None):
+    latest, _snapshot_ids = latest_snapshot_and_ids(
+        dataset, config=config, client=client
+    )
+    return latest
 
 
 def persist_optional(snapshot, dataset):

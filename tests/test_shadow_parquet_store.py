@@ -206,6 +206,11 @@ def test_persist_is_idempotent_and_loads_from_partition(tmp_path, monkeypatch):
     assert store.latest_snapshot(
         store.ENHANCED_DATASET, config=config(), client=client
     ) == second
+    latest, snapshot_ids = store.latest_snapshot_and_ids(
+        store.ENHANCED_DATASET, config=config(), client=client
+    )
+    assert latest == second
+    assert snapshot_ids == {"first", "second"}
 
 
 def test_failed_upload_stays_in_spool(tmp_path, monkeypatch):
