@@ -126,6 +126,18 @@ load_shadow_r2_config() {
         # shellcheck disable=SC1090
         source "$config_file"
     fi
+    local keychain_account="market-scanner"
+    if [ "$(uname -s)" = "Darwin" ] && command -v security >/dev/null 2>&1; then
+        if [ -z "${SHADOW_R2_ACCOUNT_ID:-${CLOUDFLARE_ACCOUNT_ID:-}}" ]; then
+            SHADOW_R2_ACCOUNT_ID="$(security find-generic-password -a "$keychain_account" -s market-scanner-cloudflare-account-id -w 2>/dev/null || true)"
+        fi
+        if [ -z "${SHADOW_R2_ACCESS_KEY_ID:-}" ]; then
+            SHADOW_R2_ACCESS_KEY_ID="$(security find-generic-password -a "$keychain_account" -s market-scanner-shadow-r2-access-key-id -w 2>/dev/null || true)"
+        fi
+        if [ -z "${SHADOW_R2_SECRET_ACCESS_KEY:-}" ]; then
+            SHADOW_R2_SECRET_ACCESS_KEY="$(security find-generic-password -a "$keychain_account" -s market-scanner-shadow-r2-secret-access-key -w 2>/dev/null || true)"
+        fi
+    fi
     export SHADOW_R2_ACCOUNT_ID="${SHADOW_R2_ACCOUNT_ID:-${CLOUDFLARE_ACCOUNT_ID:-}}"
     export SHADOW_R2_ACCESS_KEY_ID="${SHADOW_R2_ACCESS_KEY_ID:-}"
     export SHADOW_R2_SECRET_ACCESS_KEY="${SHADOW_R2_SECRET_ACCESS_KEY:-}"

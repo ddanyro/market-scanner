@@ -8,13 +8,22 @@ compact aggregate reports after the one-time migration is verified.
 ## R2 configuration
 
 Create an R2 bucket and an R2 API token restricted to object read/write for
-that bucket. The scanner reuses the existing `CLOUDFLARE_ACCOUNT_ID` and the
-canonical bucket `market-scanner-shadow`. Configure only the R2 S3 credentials
-locally in `.shadow_r2_env`:
+that bucket. The scanner uses the canonical bucket `market-scanner-shadow`.
+On macOS, configure local access once in Keychain; the prompts do not echo
+the values:
+
+```bash
+./configure_shadow_r2_keychain.sh
+```
+
+All local update scripts load these entries automatically. As a backward-
+compatible alternative, configuration may still be supplied in
+`.shadow_r2_env`:
 
 ```bash
 export SHADOW_R2_ACCESS_KEY_ID="..."
 export SHADOW_R2_SECRET_ACCESS_KEY="..."
+export CLOUDFLARE_ACCOUNT_ID="..."
 ```
 
 The file is ignored by Git. Add the two R2 credentials as GitHub Actions

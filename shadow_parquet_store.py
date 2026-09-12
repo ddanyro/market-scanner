@@ -500,7 +500,7 @@ def verify_migration():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "command", choices=("status", "migrate", "verify", "flush"),
+        "command", choices=("status", "probe", "migrate", "verify", "flush"),
         nargs="?", default="status",
     )
     args = parser.parse_args()
@@ -512,6 +512,21 @@ def main():
         return
     if args.command == "flush":
         flush_spool()
+        return
+    if args.command == "probe":
+        config = R2Config.from_env()
+        if config is None:
+            raise SystemExit("R2 nu este configurat; setează variabilele SHADOW_R2_*")
+        client = R2Client(config)
+        counts = {
+            dataset: len(client.list_keys(f"{config.prefix}/{dataset}/"))
+            for dataset in sorted(KNOWN_DATASETS)
+        }
+        print(json.dumps({
+            "connected": True,
+            "bucket": config.bucket,
+            "objects": counts,
+        }, indent=2))
         return
     config = R2Config.from_env()
     print(json.dumps({

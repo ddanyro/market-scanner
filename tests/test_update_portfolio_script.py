@@ -33,6 +33,9 @@ class TestUpdatePortfolioScript(unittest.TestCase):
         self.assertIn('technical_events_shadow.rotate_ledger()', sync)
         self.assertIn('load_shadow_r2_config', sync)
         self.assertIn('shadow_r2_is_primary', sync)
+        self.assertIn('market-scanner-cloudflare-account-id', sync)
+        self.assertIn('market-scanner-shadow-r2-access-key-id', sync)
+        self.assertIn('market-scanner-shadow-r2-secret-access-key', sync)
         self.assertIn(
             'technical_events_predictions.archive-*.jsonl.gz', sync
         )
@@ -49,6 +52,11 @@ class TestUpdatePortfolioScript(unittest.TestCase):
             script = (self.root / filename).read_text(encoding='utf-8')
             self.assertIn('evaluate_shadow_forward.py', script)
             self.assertIn('evaluate_technical_events_forward.py', script)
+
+    def test_ro_update_loads_shared_r2_configuration(self):
+        script = (self.root / 'update_ro.sh').read_text(encoding='utf-8')
+        self.assertIn('source "./update_git_sync.sh"', script)
+        self.assertIn('load_shadow_r2_config', script)
 
 
 if __name__ == '__main__':
