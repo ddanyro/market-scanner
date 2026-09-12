@@ -58,6 +58,43 @@ test("serves the public dashboard artifact from private R2", async () => {
   assert.equal(response.headers.get("ETag"), '"abc123"');
 });
 
+test("reads runtime artifacts through signed R2 S3 requests without a native binding", async () => {
+  const originalFetch = globalThis.fetch;
+  const requests = [];
+  globalThis.fetch = async (url, options = {}) => {
+    requests.push({url: String(url), options});
+    if (String(url).endsWith("/market-scanner-runtime/v1/manifest.json")) {
+      return new Response(JSON.stringify({artifacts: {
+        "dashboard-html": {
+          key: "runtime/dashboard.gz",
+          sha256: "signed123",
+          content_type: "text/html; charset=utf-8",
+          content_encoding: "gzip",
+          private: false,
+        },
+      }}));
+    }
+    return new Response(new Uint8Array([31, 139, 8, 0]), {status: 200});
+  };
+  try {
+    const response = await worker.fetch(new Request(
+      "https://worker.example/runtime/index.html",
+      {headers: {Origin: SITE_ORIGIN}},
+    ), workerEnv({
+      SHADOW_R2_ACCOUNT_ID: "account",
+      SHADOW_R2_ACCESS_KEY_ID: "access",
+      SHADOW_R2_SECRET_ACCESS_KEY: "secret",
+    }));
+    assert.equal(response.status, 200);
+    assert.equal(requests.length, 2);
+    assert.match(requests[0].url, /^https:\/\/account\.r2\.cloudflarestorage\.com\/market-scanner-shadow\//);
+    assert.match(requests[0].options.headers.Authorization, /^AWS4-HMAC-SHA256 Credential=access\//);
+    assert.equal(response.headers.get("ETag"), '"signed123"');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("does not expose private or unknown R2 artifacts", async () => {
   const response = await worker.fetch(new Request(
     "https://worker.example/runtime/dashboard_state.json",

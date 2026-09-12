@@ -37,11 +37,17 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PORTFOLIO_PASSWORD: ${{ secrets.PORTFOLIO_PASSWORD }}
+          SHADOW_R2_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SHADOW_R2_ACCESS_KEY_ID: ${{ secrets.SHADOW_R2_ACCESS_KEY_ID }}
+          SHADOW_R2_SECRET_ACCESS_KEY: ${{ secrets.SHADOW_R2_SECRET_ACCESS_KEY }}
         run: |
           jq -n \
             --arg openai "$OPENAI_API_KEY" \
             --arg password "$PORTFOLIO_PASSWORD" \
-            '{OPENAI_API_KEY:$openai,PORTFOLIO_PASSWORD:$password}' \
+            --arg r2account "$SHADOW_R2_ACCOUNT_ID" \
+            --arg r2access "$SHADOW_R2_ACCESS_KEY_ID" \
+            --arg r2secret "$SHADOW_R2_SECRET_ACCESS_KEY" \
+            '{OPENAI_API_KEY:$openai,PORTFOLIO_PASSWORD:$password,SHADOW_R2_ACCOUNT_ID:$r2account,SHADOW_R2_ACCESS_KEY_ID:$r2access,SHADOW_R2_SECRET_ACCESS_KEY:$r2secret}' \
             > "$RUNNER_TEMP/portfolio-chat-secrets.json"
           npx wrangler deploy --secrets-file "$RUNNER_TEMP/portfolio-chat-secrets.json"
 

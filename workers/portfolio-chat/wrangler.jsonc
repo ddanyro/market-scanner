@@ -8,12 +8,6 @@
   "ai": {
     "binding": "AI"
   },
-  "r2_buckets": [
-    {
-      "binding": "MARKET_SCANNER_DATA",
-      "bucket_name": "market-scanner-shadow"
-    }
-  ],
   "ratelimits": [
     {
       "name": "PORTFOLIO_CHAT_RATE_LIMITER",

@@ -26,6 +26,74 @@ const OPENAI_TOTAL_BUDGET_MS = 65000;
 const OPENAI_RETRY_BASE_MS = 500;
 const OPENAI_MAX_RETRY_DELAY_MS = 5000;
 
+const textEncoder = new TextEncoder();
+
+function hex(bytes) {
+  return Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function sha256(value) {
+  const bytes = typeof value === "string" ? textEncoder.encode(value) : value;
+  return hex(await crypto.subtle.digest("SHA-256", bytes));
+}
+
+async function hmacSha256(key, value) {
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw", key, {name: "HMAC", hash: "SHA-256"}, false, ["sign"],
+  );
+  return new Uint8Array(await crypto.subtle.sign("HMAC", cryptoKey, textEncoder.encode(value)));
+}
+
+function uriPart(value) {
+  return encodeURIComponent(value).replace(/[!'()*]/g, (character) => (
+    `%${character.charCodeAt(0).toString(16).toUpperCase()}`
+  ));
+}
+
+async function signedR2Get(env, key) {
+  const accountId = String(env.SHADOW_R2_ACCOUNT_ID || "").trim();
+  const accessKey = String(env.SHADOW_R2_ACCESS_KEY_ID || "").trim();
+  const secretKey = String(env.SHADOW_R2_SECRET_ACCESS_KEY || "").trim();
+  const bucket = String(env.SHADOW_R2_BUCKET || "market-scanner-shadow").trim();
+  if (!accountId || !accessKey || !secretKey || !bucket) return null;
+
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const dateStamp = amzDate.slice(0, 8);
+  const host = `${accountId}.r2.cloudflarestorage.com`;
+  const canonicalUri = `/${[bucket, ...key.split("/")].map(uriPart).join("/")}`;
+  const payloadHash = await sha256(new Uint8Array());
+  const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
+  const signedHeaders = "host;x-amz-content-sha256;x-amz-date";
+  const canonicalRequest = [
+    "GET", canonicalUri, "", canonicalHeaders, signedHeaders, payloadHash,
+  ].join("\n");
+  const scope = `${dateStamp}/auto/s3/aws4_request`;
+  const stringToSign = [
+    "AWS4-HMAC-SHA256", amzDate, scope, await sha256(textEncoder.encode(canonicalRequest)),
+  ].join("\n");
+  const dateKey = await hmacSha256(textEncoder.encode(`AWS4${secretKey}`), dateStamp);
+  const regionKey = await hmacSha256(dateKey, "auto");
+  const serviceKey = await hmacSha256(regionKey, "s3");
+  const signingKey = await hmacSha256(serviceKey, "aws4_request");
+  const signature = hex(await hmacSha256(signingKey, stringToSign));
+  const response = await fetch(`https://${host}${canonicalUri}`, {headers: {
+    "x-amz-content-sha256": payloadHash,
+    "x-amz-date": amzDate,
+    "Authorization": `AWS4-HMAC-SHA256 Credential=${accessKey}/${scope},SignedHeaders=${signedHeaders},Signature=${signature}`,
+  }});
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`R2 GET failed with HTTP ${response.status}`);
+  return response;
+}
+
+async function runtimeObject(env, key) {
+  if (env.MARKET_SCANNER_DATA && typeof env.MARKET_SCANNER_DATA.get === "function") {
+    return env.MARKET_SCANNER_DATA.get(key);
+  }
+  return signedR2Get(env, key);
+}
+
 function safeOpenAIErrorReason(payload) {
   const code = String(payload?.error?.code || "").trim();
   if (OPENAI_QUOTA_CODES.has(code)) return code;
@@ -217,10 +285,12 @@ async function runtimeResponse(request, env, origin, artifactName) {
   if (request.method !== "GET") {
     return jsonResponse({error: "Metodă neacceptată."}, 405, origin);
   }
-  if (!env.MARKET_SCANNER_DATA || typeof env.MARKET_SCANNER_DATA.get !== "function") {
+  if ((!env.MARKET_SCANNER_DATA || typeof env.MARKET_SCANNER_DATA.get !== "function")
+      && (!env.SHADOW_R2_ACCOUNT_ID || !env.SHADOW_R2_ACCESS_KEY_ID
+          || !env.SHADOW_R2_SECRET_ACCESS_KEY)) {
     return jsonResponse({error: "Stocarea dashboardului nu este configurată."}, 503, origin);
   }
-  const manifestObject = await env.MARKET_SCANNER_DATA.get(RUNTIME_MANIFEST_KEY);
+  const manifestObject = await runtimeObject(env, RUNTIME_MANIFEST_KEY);
   if (!manifestObject) {
     return jsonResponse({error: "Manifestul dashboardului lipsește."}, 503, origin);
   }
@@ -229,7 +299,7 @@ async function runtimeResponse(request, env, origin, artifactName) {
   if (!descriptor || descriptor.private) {
     return jsonResponse({error: "Artefact indisponibil."}, 404, origin);
   }
-  const artifact = await env.MARKET_SCANNER_DATA.get(descriptor.key);
+  const artifact = await runtimeObject(env, descriptor.key);
   if (!artifact) {
     return jsonResponse({error: "Versiunea dashboardului lipsește."}, 503, origin);
   }
