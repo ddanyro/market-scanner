@@ -161,6 +161,22 @@ shadow_r2_is_primary() {
     esac
 }
 
+runtime_r2_pull() {
+    if shadow_r2_is_configured; then
+        "$(sync_python_bin)" runtime_r2_store.py pull
+    else
+        echo "Avertisment: R2 runtime nu este configurat; folosesc fișierele locale." >&2
+    fi
+}
+
+runtime_r2_push() {
+    if shadow_r2_is_configured; then
+        "$(sync_python_bin)" runtime_r2_store.py push
+    else
+        echo "Avertisment: R2 runtime nu este configurat; păstrez fișierele locale." >&2
+    fi
+}
+
 git_sync_assert_ready() {
     local caller_name="${1:-update script}"
     if ! command -v git >/dev/null 2>&1; then
@@ -197,7 +213,7 @@ git_sync_stage_generated() {
     for generated_file in "${SYNC_GENERATED_FILES[@]}"; do
         if shadow_r2_is_primary; then
             case "$generated_file" in
-                shadow_predictions.jsonl|technical_events_predictions.jsonl.gz|analysis/technical_events_validation/labelled_predictions.csv.gz|analysis/technical_events_validation/event_observations.csv.gz)
+                shadow_predictions.jsonl|technical_events_predictions.jsonl.gz|dashboard_state.json|watchlist_compact.json|analysis/technical_events_validation/labelled_predictions.csv.gz|analysis/technical_events_validation/event_observations.csv.gz)
                     continue
                     ;;
             esac
@@ -290,6 +306,7 @@ git_sync_integrate_remote() {
 git_sync_finish() {
     local commit_prefix="$1"
     sync_log_step "Pregătire și sincronizare finală"
+    runtime_r2_push
     if shadow_r2_is_configured; then
         "$(sync_python_bin)" shadow_parquet_store.py flush
     fi

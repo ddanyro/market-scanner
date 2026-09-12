@@ -12,6 +12,7 @@ fi
 
 git_sync_start "update_international.sh"
 load_shadow_r2_config
+runtime_r2_pull
 load_order_cache_password
 
 sync_log_step "Actualizare internațională"

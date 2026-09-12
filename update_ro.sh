@@ -4,6 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 source "./update_git_sync.sh"
 load_shadow_r2_config
+runtime_r2_pull
 
 if [ -x ".venv/bin/python" ]; then
     PYTHON_BIN=".venv/bin/python"
@@ -12,3 +13,4 @@ else
 fi
 
 "$PYTHON_BIN" -u market_scanner.py --mode ro
+runtime_r2_push

@@ -8,6 +8,11 @@ import {
 } from "./chat_core.js";
 
 const ALLOWED_ORIGIN = "https://ddanyro.github.io";
+const RUNTIME_MANIFEST_KEY = "market-scanner-runtime/v1/manifest.json";
+const PUBLIC_RUNTIME_ARTIFACTS = new Map([
+  ["/runtime/index.html", "dashboard-html"],
+  ["/runtime/watchlist_compact.json", "watchlist-compact"],
+]);
 const OPENAI_QUOTA_CODES = new Set([
   "credit_balance_exhausted",
   "organization_spend_limit_exceeded",
@@ -197,9 +202,49 @@ function corsHeaders(origin) {
   return origin === ALLOWED_ORIGIN ? {
     "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
     "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Vary": "Origin",
   } : {};
+}
+
+async function runtimeResponse(request, env, origin, artifactName) {
+  if (origin && origin !== ALLOWED_ORIGIN) {
+    return jsonResponse({error: "Origine neautorizată."}, 403, origin);
+  }
+  if (request.method === "OPTIONS") {
+    return new Response(null, {status: 204, headers: corsHeaders(origin)});
+  }
+  if (request.method !== "GET") {
+    return jsonResponse({error: "Metodă neacceptată."}, 405, origin);
+  }
+  if (!env.MARKET_SCANNER_DATA || typeof env.MARKET_SCANNER_DATA.get !== "function") {
+    return jsonResponse({error: "Stocarea dashboardului nu este configurată."}, 503, origin);
+  }
+  const manifestObject = await env.MARKET_SCANNER_DATA.get(RUNTIME_MANIFEST_KEY);
+  if (!manifestObject) {
+    return jsonResponse({error: "Manifestul dashboardului lipsește."}, 503, origin);
+  }
+  const manifest = await manifestObject.json();
+  const descriptor = manifest?.artifacts?.[artifactName];
+  if (!descriptor || descriptor.private) {
+    return jsonResponse({error: "Artefact indisponibil."}, 404, origin);
+  }
+  const artifact = await env.MARKET_SCANNER_DATA.get(descriptor.key);
+  if (!artifact) {
+    return jsonResponse({error: "Versiunea dashboardului lipsește."}, 503, origin);
+  }
+  const headers = new Headers({
+    "Content-Type": descriptor.content_type || "application/octet-stream",
+    "Content-Encoding": descriptor.content_encoding || "gzip",
+    "Cache-Control": "public, max-age=60, must-revalidate",
+    "ETag": `\"${descriptor.sha256}\"`,
+    "X-Content-Type-Options": "nosniff",
+  });
+  if (origin === ALLOWED_ORIGIN) {
+    headers.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+    headers.set("Vary", "Origin");
+  }
+  return new Response(artifact.body, {status: 200, headers});
 }
 
 function jsonResponse(payload, status, origin) {
@@ -216,6 +261,10 @@ function jsonResponse(payload, status, origin) {
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
+    const artifactName = PUBLIC_RUNTIME_ARTIFACTS.get(new URL(request.url).pathname);
+    if (artifactName) {
+      return runtimeResponse(request, env, origin, artifactName);
+    }
     if (origin !== ALLOWED_ORIGIN) {
       return jsonResponse({error: "Origine neautorizată."}, 403, origin);
     }

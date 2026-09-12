@@ -321,10 +321,10 @@ class R2Client:
                 return False
             raise
 
-    def put(self, key, content):
+    def put(self, key, content, *, content_type="application/vnd.apache.parquet"):
         return self._request(
             "PUT", key, body=content,
-            headers={"content-type": "application/vnd.apache.parquet"},
+            headers={"content-type": content_type},
         )
 
     def get(self, key):

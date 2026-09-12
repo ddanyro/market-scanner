@@ -22,6 +22,50 @@ function workerEnv(overrides = {}) {
   };
 }
 
+function runtimeR2() {
+  const manifest = {
+    artifacts: {
+      "dashboard-html": {
+        key: "runtime/dashboard.gz",
+        sha256: "abc123",
+        content_type: "text/html; charset=utf-8",
+        content_encoding: "gzip",
+        private: false,
+      },
+    },
+  };
+  return {
+    get: async (key) => {
+      if (key === "market-scanner-runtime/v1/manifest.json") {
+        return {json: async () => manifest};
+      }
+      if (key === "runtime/dashboard.gz") {
+        return {body: new TextEncoder().encode("compressed-dashboard")};
+      }
+      return null;
+    },
+  };
+}
+
+test("serves the public dashboard artifact from private R2", async () => {
+  const response = await worker.fetch(new Request(
+    "https://worker.example/runtime/index.html",
+    {headers: {Origin: SITE_ORIGIN}},
+  ), workerEnv({MARKET_SCANNER_DATA: runtimeR2()}));
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), SITE_ORIGIN);
+  assert.equal(response.headers.get("Content-Encoding"), "gzip");
+  assert.equal(response.headers.get("ETag"), '"abc123"');
+});
+
+test("does not expose private or unknown R2 artifacts", async () => {
+  const response = await worker.fetch(new Request(
+    "https://worker.example/runtime/dashboard_state.json",
+    {headers: {Origin: SITE_ORIGIN}},
+  ), workerEnv({MARKET_SCANNER_DATA: runtimeR2()}));
+  assert.equal(response.status, 405);
+});
+
 test("enables web search only for questions that need fresh external data", () => {
   assert.equal(shouldUseWebSearch("Cum arată riscul portofoliului?"), false);
   assert.equal(shouldUseWebSearch("Care sunt știrile recente despre NVDA?"), true);

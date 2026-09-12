@@ -17,6 +17,7 @@ fi
 
 git_sync_start "update_portfolio.sh"
 load_shadow_r2_config
+runtime_r2_pull
 
 # Snapshotul ordinelor trebuie criptat local cu același PIN pe care GitHub
 # Actions îl primește prin secretul PORTFOLIO_PASSWORD. Altfel rularea remote

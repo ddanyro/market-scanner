@@ -57,3 +57,27 @@ python shadow_parquet_store.py verify
 Run the existing validation reports once and compare their sample counts before
 removing legacy ledger files from Git tracking. The application merges R2 and
 local snapshots by `snapshot_id` during the transition.
+
+## Runtime artifacts
+
+The same private bucket stores versioned gzip copies of the large runtime
+artifacts under `market-scanner-runtime/v1/`. Each update restores the private
+state and IBKR cache, generates the dashboard, uploads immutable versions, and
+then atomically replaces the manifest that points to the current set:
+
+- `dashboard-state` — private scanner state, restored before a run;
+- `ibkr-market-cache` — private reusable IBKR cache, restored before a run;
+- `watchlist-compact` — public dashboard payload served through the Worker;
+- `dashboard-html` — public generated dashboard served through the Worker.
+
+R2 remains private. The Cloudflare Worker exposes only the last two named
+artifacts; it never exposes state or the IBKR cache. After migration, GitHub
+Pages contains only a small dashboard loader.
+
+Useful integrity checks after loading the Keychain configuration:
+
+```bash
+python runtime_r2_store.py push
+python runtime_r2_store.py pull
+python runtime_r2_store.py verify
+```

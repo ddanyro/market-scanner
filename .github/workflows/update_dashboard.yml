@@ -117,10 +117,12 @@ jobs:
           MODE="all"
         fi
         echo "Running market scanner in mode: $MODE"
+        python runtime_r2_store.py pull
         python update_sp500_json.py
         python market_scanner.py --mode $MODE
         python evaluate_shadow_forward.py || echo "Shadow outcome evaluation unavailable; collection remains valid."
         python evaluate_technical_events_forward.py || echo "Technical Events outcome evaluation unavailable; immutable collection remains valid."
+        python runtime_r2_store.py push
 
     - name: Commit and Push changes
       if: ${{ github.event_name != 'push' && (github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '') }}
@@ -165,6 +167,7 @@ jobs:
           for shadow_file in \
             shadow_predictions.jsonl technical_events_predictions.jsonl.gz \
             technical_events_predictions.archive-*.jsonl.gz \
+            dashboard_state.json watchlist_compact.json \
             analysis/shadow_forward_validation/labelled_predictions.csv \
             analysis/technical_events_validation/labelled_predictions.csv.gz \
             analysis/technical_events_validation/event_observations.csv.gz; do
