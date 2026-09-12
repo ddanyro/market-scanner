@@ -843,14 +843,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Biotechnology",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -861,6 +861,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -916,10 +919,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "elevated",
-    "volatility_score": 64.12,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 64.12
   },
   {
     "ATR_14": 1.02,
@@ -1765,12 +1765,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Applic...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 654750909,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -1778,7 +1778,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -1789,6 +1789,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -1844,10 +1847,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "elevated",
-    "volatility_score": 57.18,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 57.18
   },
   {
     "ATR_14": 0.19,
@@ -2693,14 +2693,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "REIT - Industrial",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -2711,6 +2711,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": 81,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "option_chain_not_advertised",
@@ -2766,10 +2769,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.33,
@@ -3615,14 +3615,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Packaged Foods",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -3633,6 +3633,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -3688,10 +3691,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 2.83,
@@ -4537,19 +4537,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductor Equ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 270963,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -4560,6 +4560,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -4615,10 +4618,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 72.71,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 72.71
   },
   {
     "ATR_14": 0.25,
@@ -5464,14 +5464,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Banks - Regional",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -5482,6 +5482,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": 330,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "option_chain_not_advertised",
@@ -5537,10 +5540,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "elevated",
-    "volatility_score": 66.94,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 66.94
   },
   {
     "ATR_14": 0.94,
@@ -6386,19 +6386,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Utilities - Regul...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 5026984,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -6409,6 +6409,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -6464,10 +6467,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.53,
@@ -7313,12 +7313,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Apparel Manufactu...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 358053635,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -7326,7 +7326,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -7337,6 +7337,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -7392,10 +7395,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 2.29,
@@ -8241,14 +8241,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Infras...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -8259,6 +8259,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -8314,10 +8317,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "elevated",
-    "volatility_score": 58.6,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 58.6
   },
   {
     "ATR_14": 0.09,
@@ -9163,17 +9163,17 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Farm Products",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 635438413,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": false,
       "sections": [
         "STK",
         "WAR"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -9184,6 +9184,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -9239,10 +9242,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "elevated",
-    "volatility_score": 53.41,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 53.41
   },
   {
     "ATR_14": 2.92,
@@ -10088,14 +10088,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Medical Devices",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -10106,6 +10106,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -10161,10 +10164,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "elevated",
-    "volatility_score": 68.95,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 68.95
   },
   {
     "ATR_14": 11.83,
@@ -11010,12 +11010,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductor Equ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 732440574,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -11024,7 +11024,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -11035,6 +11035,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -11090,10 +11093,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "elevated",
-    "volatility_score": 69.12,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 69.12
   },
   {
     "ATR_14": 0.49,
@@ -11939,16 +11939,16 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Biotechnology",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 908479452,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": false,
       "sections": [
         "STK"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -11959,6 +11959,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -12014,10 +12017,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 0.0,
     "volatility_regime": "extreme",
-    "volatility_score": 5.52,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 5.52
   },
   {
     "ATR_14": 0.32,
@@ -12863,14 +12863,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Information Techn...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -12881,6 +12881,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -12936,10 +12939,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 74.79,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 74.79
   },
   {
     "ATR_14": 26.39,
@@ -13785,12 +13785,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Drug Manufacturer...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 9160,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -13799,7 +13799,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -13810,6 +13810,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -13865,10 +13868,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.74,
@@ -14714,19 +14714,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "REIT - Office",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 2586128,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -14737,6 +14737,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -14792,10 +14795,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 12.51,
@@ -15641,12 +15641,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Uranium",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 168391375,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -15655,7 +15655,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -15666,6 +15666,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -15721,10 +15724,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 0.0,
     "volatility_regime": "elevated",
-    "volatility_score": 46.77,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 46.77
   },
   {
     "ATR_14": 0.6,
@@ -16570,12 +16570,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Packaged Foods",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 199169586,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -16584,7 +16584,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -16595,6 +16595,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -16650,10 +16653,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 9.54,
@@ -17499,12 +17499,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Electronic Compon...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 4457282,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -17513,7 +17513,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -17524,6 +17524,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -17579,10 +17582,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 74.21,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 74.21
   },
   {
     "ATR_14": 6.44,
@@ -18428,14 +18428,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Diagnostics & Res...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -18446,6 +18446,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": 75,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "option_chain_not_advertised",
@@ -18501,10 +18504,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.33,
@@ -19350,12 +19350,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Auto Manufacturers",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 810758322,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -19364,7 +19364,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -19375,6 +19375,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -19430,10 +19433,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 0.0,
     "volatility_regime": "elevated",
-    "volatility_score": 48.85,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 48.85
   },
   {
     "ATR_14": 9.87,
@@ -20279,12 +20279,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Capital Markets",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 109435481,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -20292,7 +20292,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -20303,6 +20303,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 79,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -20358,10 +20361,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 3.07,
@@ -21207,12 +21207,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Biotechnology",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 4369855,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -21220,7 +21220,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -21231,6 +21231,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -21286,10 +21289,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.01,
@@ -22135,14 +22135,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Airlines",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -22153,6 +22153,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -22208,10 +22211,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.24,
@@ -23057,14 +23057,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Applic...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -23075,6 +23075,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -23130,10 +23133,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "elevated",
-    "volatility_score": 50.53,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 50.53
   },
   {
     "ATR_14": 0.12,
@@ -23979,14 +23979,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Agricultural Inputs",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -23997,6 +23997,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": 304,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "option_chain_not_advertised",
@@ -24052,10 +24055,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 2.77,
@@ -24901,14 +24901,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Capital Markets",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -24919,6 +24919,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -24974,10 +24977,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "elevated",
-    "volatility_score": 56.74,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 56.74
   },
   {
     "ATR_14": 8.59,
@@ -25823,12 +25823,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Insurance - Prope...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 242140470,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -25836,7 +25836,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -25847,6 +25847,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -25902,10 +25905,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.06,
@@ -26751,17 +26751,17 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Aerospace & Defense",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 875129824,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": false,
       "sections": [
         "STK",
         "WAR"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -26772,6 +26772,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -26827,10 +26830,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 0.0,
     "volatility_regime": "extreme",
-    "volatility_score": 41.61,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 41.61
   },
   {
     "ATR_14": 2.07,
@@ -27676,19 +27676,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductors",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 315776201,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -27699,6 +27699,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -27754,10 +27757,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 0.0,
     "volatility_regime": "elevated",
-    "volatility_score": 63.01,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 63.01
   },
   {
     "ATR_14": 4.13,
@@ -28603,12 +28603,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductors",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 271320,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -28617,7 +28617,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -28628,6 +28628,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -28683,10 +28686,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 71.85,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 71.85
   },
   {
     "ATR_14": 9.84,
@@ -29532,14 +29532,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Applic...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -29550,6 +29550,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": 15,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "option_chain_not_advertised",
@@ -29605,10 +29608,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 2.14,
@@ -30454,12 +30454,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Household & Perso...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8864,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -30468,7 +30468,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -30479,6 +30479,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -30534,10 +30537,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.82,
@@ -31393,12 +31393,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Gold",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 16671499,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -31406,7 +31406,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -31605,11 +31605,11 @@
       "put_call_volume_ratio": null,
       "quote_coverage_ratio": 1.0,
       "quoted_contract_ratio": 1.0,
+      "score_available": false,
       "snapshot_error_count": 0,
       "snapshot_errors": [],
       "source": "IBKR MCP option chain snapshots",
-      "volume_coverage_ratio": 0.0,
-      "score_available": false
+      "volume_coverage_ratio": 0.0
     },
     "Options_Data_Available": false,
     "Options_Data_Partial": true,
@@ -32512,12 +32512,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductor Equ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 270957,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -32526,7 +32526,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -32537,6 +32537,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -32592,10 +32595,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 70.45,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 70.45
   },
   {
     "ATR_14": 3.53,
@@ -33441,12 +33441,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Farm & Heavy Cons...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 271224,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -33454,7 +33454,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -33465,6 +33465,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 387,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -33520,10 +33523,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 74.03,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 74.03
   },
   {
     "ATR_14": 2.81,
@@ -34369,19 +34369,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductor Equ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 258298726,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -34392,6 +34392,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -34447,10 +34450,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "elevated",
-    "volatility_score": 64.21,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 64.21
   },
   {
     "ATR_14": 1.88,
@@ -35296,14 +35296,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Industr...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -35314,6 +35314,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -35369,10 +35372,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 12.87,
@@ -36218,14 +36218,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Diagnostics & Res...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -36236,6 +36236,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -36291,10 +36294,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 4.48,
@@ -37140,12 +37140,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Industr...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8377,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -37153,7 +37153,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -37164,6 +37164,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -37219,10 +37222,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.01,
@@ -38068,16 +38068,16 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Electronics & Com...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 619557147,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": false,
       "sections": [
         "STK"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -38088,6 +38088,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -38143,10 +38146,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 0.0,
     "volatility_regime": "elevated",
-    "volatility_score": 65.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 65.0
   },
   {
     "ATR_14": 2.15,
@@ -38992,19 +38992,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Building Materials",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 631329277,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -39015,6 +39015,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -39070,10 +39073,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 70.37,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 70.37
   },
   {
     "ATR_14": 1.17,
@@ -39919,12 +39919,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Gold",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8823,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -39933,7 +39933,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -39944,6 +39944,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 200,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -39999,10 +40002,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 68.86,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 68.86
   },
   {
     "ATR_14": 2.23,
@@ -40848,14 +40848,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Utilities - Regul...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -40866,6 +40866,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -40921,10 +40924,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.62,
@@ -41770,12 +41770,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Beverages - Non-A...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 324057162,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -41784,7 +41784,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -41795,6 +41795,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 255,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -41850,10 +41853,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.09,
@@ -42699,19 +42699,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductors",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 631370187,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -42722,6 +42722,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -42777,10 +42780,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 70.09,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 70.09
   },
   {
     "ATR_14": 0.18,
@@ -43626,18 +43626,18 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Other Precious Me...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "AMEX",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 761715322,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "AMEX",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -43648,6 +43648,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -43703,10 +43706,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 0.0,
     "volatility_regime": "elevated",
-    "volatility_score": 56.42,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 56.42
   },
   {
     "ATR_14": 2.14,
@@ -44552,12 +44552,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Residential Const...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 9091,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -44566,7 +44566,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -44577,6 +44577,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -44632,10 +44635,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 3.99,
@@ -45481,12 +45481,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Entertainment",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 37511786,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -45495,7 +45495,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -45506,6 +45506,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -45561,10 +45564,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 6.82,
@@ -46410,12 +46410,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Chemicals",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 617155599,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -46424,7 +46424,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -46435,6 +46435,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -46490,10 +46493,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 10.88,
@@ -47339,19 +47339,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Real Estate Services",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 6608072,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -47362,6 +47362,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -47417,10 +47420,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 73.5,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 73.5
   },
   {
     "ATR_14": 0.12,
@@ -48266,17 +48266,17 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Other Precious Me...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "AMEX",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 633287814,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "AMEX",
+      "market": "SUA",
+      "options_supported": false,
       "sections": [
         "CFD",
         "STK"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -48287,6 +48287,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "option_chain_not_advertised",
@@ -48342,10 +48345,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 67.86,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 67.86
   },
   {
     "ATR_14": 0.13,
@@ -49191,14 +49191,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas Refinin...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -49209,6 +49209,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": 329,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "option_chain_not_advertised",
@@ -49264,10 +49267,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.87,
@@ -50113,14 +50113,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Telecom Services",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -50131,6 +50131,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -50186,10 +50189,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.0,
@@ -51035,12 +51035,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Department Stores",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8942,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -51049,7 +51049,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -51060,6 +51060,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -51115,10 +51118,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "elevated",
-    "volatility_score": 59.46,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 59.46
   },
   {
     "ATR_14": 6.03,
@@ -51964,14 +51964,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Information Techn...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -51982,6 +51982,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": 358,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "option_chain_not_advertised",
@@ -52037,10 +52040,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.24,
@@ -52886,16 +52886,16 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Packaged Foods",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "AMEX",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 446864687,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "AMEX",
+      "market": "SUA",
+      "options_supported": false,
       "sections": [
         "STK"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -52906,6 +52906,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -52961,10 +52964,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "elevated",
-    "volatility_score": 57.74,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 57.74
   },
   {
     "ATR_14": 2.04,
@@ -53810,12 +53810,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Chemicals",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 74866700,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -53823,7 +53823,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -53834,6 +53834,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 202,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -53889,10 +53892,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 73.14,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 73.14
   },
   {
     "ATR_14": 3.07,
@@ -54738,12 +54738,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Financial Data & ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 136370275,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -54752,7 +54752,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -54763,6 +54763,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 74,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -54818,10 +54821,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 2.01,
@@ -55667,14 +55667,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Chemicals",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -55685,6 +55685,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": 305,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "option_chain_not_advertised",
@@ -55740,10 +55743,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 6.07,
@@ -56589,19 +56589,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Aluminum",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 39204349,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -56612,6 +56612,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -56667,10 +56670,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "elevated",
-    "volatility_score": 69.68,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 69.68
   },
   {
     "ATR_14": 1.61,
@@ -57174,18 +57174,18 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "-",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "ARCA",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 896729330,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "ARCA",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -57196,6 +57196,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 386,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -57251,10 +57254,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 70.67,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 70.67
   },
   {
     "ATR_14": 0.02,
@@ -58100,14 +58100,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Staffing & Employ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -58118,6 +58118,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -58173,10 +58176,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 0.0,
     "volatility_regime": "extreme",
-    "volatility_score": 0.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 0.0
   },
   {
     "ATR_14": 0.52,
@@ -59022,14 +59022,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Banks - Regional",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -59040,6 +59040,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -59095,10 +59098,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.37,
@@ -59944,12 +59944,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Banks - Regional",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8809,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -59957,7 +59957,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -59968,6 +59968,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -60023,10 +60026,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 2.83,
@@ -60872,12 +60872,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Building Products...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 244164913,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -60885,7 +60885,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -60896,6 +60896,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 254,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -60951,10 +60954,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.39,
@@ -61800,16 +61800,16 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Publishing",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 474517455,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": false,
       "sections": [
         "STK"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -61820,6 +61820,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -61875,10 +61878,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "elevated",
-    "volatility_score": 63.32,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 63.32
   },
   {
     "ATR_14": 2.04,
@@ -62724,12 +62724,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Insurance - Prope...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 430625913,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -62737,7 +62737,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -62748,6 +62748,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -62803,10 +62806,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "elevated",
-    "volatility_score": 68.27,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 68.27
   },
   {
     "ATR_14": 0.42,
@@ -63652,14 +63652,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "REIT - Residential",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -63670,6 +63670,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -63725,10 +63728,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 11.55,
@@ -64574,12 +64574,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Aerospace & Defense",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 611191,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -64588,7 +64588,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -64599,6 +64599,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -64654,10 +64657,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.03,
@@ -65544,17 +65544,17 @@
     },
     "Industry": "-",
     "Instrument_Metadata": {
-      "market": "Europa / Nasdaq-100",
-      "country": "GB",
-      "exchange": "LSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 453904034,
+      "country": "GB",
+      "currency": "USD",
+      "exchange": "LSE",
+      "market": "Europa / Nasdaq-100",
+      "options_supported": false,
       "sections": [
         "CFD",
         "STK"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "Europa / Nasdaq-100",
@@ -65565,6 +65565,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "market_not_usa;option_chain_not_advertised",
@@ -65622,10 +65625,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.85,
@@ -66471,19 +66471,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Asset Management",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 47550606,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -66494,6 +66494,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 158,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -66549,10 +66552,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 14.34,
@@ -67398,14 +67398,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Applic...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -67416,6 +67416,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": 222,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "option_chain_not_advertised",
@@ -67471,10 +67474,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "elevated",
-    "volatility_score": 66.53,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 66.53
   },
   {
     "ATR_14": 0.19,
@@ -68320,14 +68320,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductors",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -68338,6 +68338,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -68393,10 +68396,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "elevated",
-    "volatility_score": 60.13,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 60.13
   },
   {
     "ATR_14": 1.48,
@@ -69242,12 +69242,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Insurance - Prope...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 9252,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -69255,7 +69255,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -69266,6 +69266,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -69321,10 +69324,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.31,
@@ -70170,12 +70170,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "REIT - Retail",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8845,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -70183,7 +70183,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -70194,6 +70194,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -70249,10 +70252,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 2.89,
@@ -71098,12 +71098,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "-",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "ARCA",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 9579970,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "ARCA",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -71112,7 +71112,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -71123,6 +71123,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -71178,10 +71181,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.26,
@@ -72027,12 +72027,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Airports & Air Se...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 507188246,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -72041,7 +72041,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -72052,6 +72052,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -72107,10 +72110,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "elevated",
-    "volatility_score": 68.58,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 68.58
   },
   {
     "ATR_14": 1.58,
@@ -72956,12 +72956,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Auto & Truck Deal...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 2586156,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -72969,7 +72969,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -72980,6 +72980,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 256,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -73035,10 +73038,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 2.91,
@@ -73884,12 +73884,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Asset Management",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 321328198,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -73898,7 +73898,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -73909,6 +73909,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -73964,10 +73967,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 74.85,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 74.85
   },
   {
     "ATR_14": 2.13,
@@ -74813,12 +74813,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "REIT - Specialty",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 174076715,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -74826,7 +74826,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -74837,6 +74837,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -74892,10 +74895,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 7.61,
@@ -75741,12 +75741,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas Midstream",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 4728003,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -75755,7 +75755,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -75766,6 +75766,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 78,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -75821,10 +75824,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.34,
@@ -76670,19 +76670,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Utilities - Regul...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8803,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -76693,6 +76693,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 377,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -76748,10 +76751,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.98,
@@ -77597,12 +77597,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "REIT - Industrial",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 718209238,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -77610,7 +77610,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -77621,6 +77621,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -77676,10 +77679,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.08,
@@ -78525,12 +78525,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Mortgage Finance",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 469015102,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -78538,7 +78538,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -78549,6 +78549,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -78604,10 +78607,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "extreme",
-    "volatility_score": 39.37,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 39.37
   },
   {
     "ATR_14": 1.37,
@@ -79453,12 +79453,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Grocery Stores",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8908,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -79467,7 +79467,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -79478,6 +79478,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 332,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -79533,10 +79536,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.64,
@@ -80382,19 +80382,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Biotechnology",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 204698526,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -80405,6 +80405,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -80460,10 +80463,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "elevated",
-    "volatility_score": 60.43,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 60.43
   },
   {
     "ATR_14": 4.99,
@@ -81309,12 +81309,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Drug Manufacturer...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8719,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -81323,7 +81323,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -81334,6 +81334,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 76,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -81389,127 +81392,15 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
-    "Ticker": "LQQ.PA",
-    "History_Ticker": "LQQ.PA",
-    "Currency": "EUR",
-    "Price": 9.39,
-    "Price_Native": 9.39,
-    "Target": null,
-    "Pct_To_Target": null,
-    "Consensus": "-",
-    "Analysts": 0,
-    "Company_Name": "AMUND NASDAQ 100 DALY LEV",
-    "Industry": "ETF leveraged",
-    "Sector": "Nasdaq-100",
-    "Trend": "Bullish Pullback",
-    "RSI": 50.6,
-    "RSI_Status": "Neutral",
     "ATR_14": 0.2,
-    "Finviz_ATR": null,
-    "Vol_W": null,
-    "Vol_M": null,
-    "Stop_Loss": 8.98,
-    "SMA_50": 9.44,
-    "SMA_200": 8.38,
-    "VIX_Tag": "Normal",
-    "Chart_History": [
-      9.539,
-      9.22,
-      9.51,
-      9.839,
-      9.585,
-      9.335,
-      9.259,
-      9.552,
-      9.575,
-      9.87,
-      9.981,
-      10.06,
-      9.998,
-      10.2,
-      10.28,
-      10.38,
-      10.48,
-      10.508,
-      10.35,
-      9.92,
-      9.85,
-      9.319,
-      9.285,
-      9.329,
-      9.881,
-      10.39,
-      10.175,
-      10.09,
-      10.305,
-      10.39,
-      10.35,
-      9.815,
-      9.841,
-      9.726,
-      9.669,
-      9.813,
-      10.235,
-      10.218,
-      9.745,
-      9.88,
-      10.01,
-      9.517,
-      9.379,
-      9.885,
-      9.956,
-      9.805,
-      9.879,
-      9.72,
-      9.553,
-      9.154,
-      9.33,
-      9.524,
-      9.534,
-      9.024,
-      9.046,
-      8.769,
-      8.687,
-      8.446,
-      8.631,
-      8.711,
-      9.076,
-      9.64,
-      9.708,
-      9.603,
-      9.717,
-      9.706,
-      9.657,
-      9.77,
-      9.988,
-      9.859,
-      9.995,
-      9.553,
-      9.495,
-      9.295,
-      9.337,
-      9.187,
-      9.285,
-      9.289,
-      9.493,
-      9.665,
-      9.425,
-      9.306,
-      9.29,
-      9.48,
-      9.469,
-      9.505,
-      9.532,
-      9.399,
-      9.309,
-      9.47
-    ],
+    "Analysts": 0,
+    "Ask": 9.455,
+    "Avg_90D_USD_Volume": 11248434.0,
+    "Avg_Volume": 862110,
+    "Bid": 9.395,
     "Chart_Dates": [
       "2026-05-11",
       "2026-05-12",
@@ -81602,673 +81493,754 @@
       "2026-09-10",
       "2026-09-11"
     ],
+    "Chart_History": [
+      9.539,
+      9.22,
+      9.51,
+      9.839,
+      9.585,
+      9.335,
+      9.259,
+      9.552,
+      9.575,
+      9.87,
+      9.981,
+      10.06,
+      9.998,
+      10.2,
+      10.28,
+      10.38,
+      10.48,
+      10.508,
+      10.35,
+      9.92,
+      9.85,
+      9.319,
+      9.285,
+      9.329,
+      9.881,
+      10.39,
+      10.175,
+      10.09,
+      10.305,
+      10.39,
+      10.35,
+      9.815,
+      9.841,
+      9.726,
+      9.669,
+      9.813,
+      10.235,
+      10.218,
+      9.745,
+      9.88,
+      10.01,
+      9.517,
+      9.379,
+      9.885,
+      9.956,
+      9.805,
+      9.879,
+      9.72,
+      9.553,
+      9.154,
+      9.33,
+      9.524,
+      9.534,
+      9.024,
+      9.046,
+      8.769,
+      8.687,
+      8.446,
+      8.631,
+      8.711,
+      9.076,
+      9.64,
+      9.708,
+      9.603,
+      9.717,
+      9.706,
+      9.657,
+      9.77,
+      9.988,
+      9.859,
+      9.995,
+      9.553,
+      9.495,
+      9.295,
+      9.337,
+      9.187,
+      9.285,
+      9.289,
+      9.493,
+      9.665,
+      9.425,
+      9.306,
+      9.29,
+      9.48,
+      9.469,
+      9.505,
+      9.532,
+      9.399,
+      9.309,
+      9.47
+    ],
     "Chart_OHLC": [
       {
+        "close": 9.539,
         "date": "2026-05-11",
-        "open": 9.475,
         "high": 9.539,
         "low": 9.414,
-        "close": 9.539
+        "open": 9.475
       },
       {
+        "close": 9.22,
         "date": "2026-05-12",
-        "open": 9.414,
         "high": 9.475,
         "low": 9.204,
-        "close": 9.22
+        "open": 9.414
       },
       {
+        "close": 9.51,
         "date": "2026-05-13",
-        "open": 9.508,
         "high": 9.605,
         "low": 9.37,
-        "close": 9.51
+        "open": 9.508
       },
       {
+        "close": 9.839,
         "date": "2026-05-14",
-        "open": 9.706,
         "high": 9.846,
         "low": 9.623,
-        "close": 9.839
+        "open": 9.706
       },
       {
+        "close": 9.585,
         "date": "2026-05-15",
-        "open": 9.638,
         "high": 9.674,
         "low": 9.441,
-        "close": 9.585
+        "open": 9.638
       },
       {
+        "close": 9.335,
         "date": "2026-05-18",
-        "open": 9.462,
         "high": 9.627,
         "low": 9.326,
-        "close": 9.335
+        "open": 9.462
       },
       {
+        "close": 9.259,
         "date": "2026-05-19",
-        "open": 9.376,
         "high": 9.448,
         "low": 9.182,
-        "close": 9.259
+        "open": 9.376
       },
       {
+        "close": 9.552,
         "date": "2026-05-20",
-        "open": 9.425,
         "high": 9.603,
         "low": 9.419,
-        "close": 9.552
+        "open": 9.425
       },
       {
+        "close": 9.575,
         "date": "2026-05-21",
-        "open": 9.572,
         "high": 9.675,
         "low": 9.501,
-        "close": 9.575
+        "open": 9.572
       },
       {
+        "close": 9.87,
         "date": "2026-05-22",
-        "open": 9.756,
         "high": 9.87,
         "low": 9.697,
-        "close": 9.87
+        "open": 9.756
       },
       {
+        "close": 9.981,
         "date": "2026-05-25",
-        "open": 10.003,
         "high": 10.025,
         "low": 9.956,
-        "close": 9.981
+        "open": 10.003
       },
       {
+        "close": 10.06,
         "date": "2026-05-26",
-        "open": 9.952,
         "high": 10.118,
         "low": 9.866,
-        "close": 10.06
+        "open": 9.952
       },
       {
+        "close": 9.998,
         "date": "2026-05-27",
-        "open": 10.098,
         "high": 10.268,
         "low": 9.95,
-        "close": 9.998
+        "open": 10.098
       },
       {
+        "close": 10.2,
         "date": "2026-05-28",
-        "open": 10.005,
         "high": 10.2,
         "low": 9.98,
-        "close": 10.2
+        "open": 10.005
       },
       {
+        "close": 10.28,
         "date": "2026-05-29",
-        "open": 10.253,
         "high": 10.385,
         "low": 10.21,
-        "close": 10.28
+        "open": 10.253
       },
       {
+        "close": 10.38,
         "date": "2026-06-01",
-        "open": 10.408,
         "high": 10.418,
         "low": 10.245,
-        "close": 10.38
+        "open": 10.408
       },
       {
+        "close": 10.48,
         "date": "2026-06-02",
-        "open": 10.365,
         "high": 10.495,
         "low": 10.32,
-        "close": 10.48
+        "open": 10.365
       },
       {
+        "close": 10.508,
         "date": "2026-06-03",
-        "open": 10.52,
         "high": 10.603,
         "low": 10.417,
-        "close": 10.508
+        "open": 10.52
       },
       {
+        "close": 10.35,
         "date": "2026-06-04",
-        "open": 10.42,
         "high": 10.438,
         "low": 10.145,
-        "close": 10.35
+        "open": 10.42
       },
       {
+        "close": 9.92,
         "date": "2026-06-05",
-        "open": 10.122,
         "high": 10.19,
         "low": 9.905,
-        "close": 9.92
+        "open": 10.122
       },
       {
+        "close": 9.85,
         "date": "2026-06-08",
-        "open": 9.52,
         "high": 9.906,
         "low": 9.503,
-        "close": 9.85
+        "open": 9.52
       },
       {
+        "close": 9.319,
         "date": "2026-06-09",
-        "open": 9.867,
         "high": 9.94,
         "low": 9.296,
-        "close": 9.319
+        "open": 9.867
       },
       {
+        "close": 9.285,
         "date": "2026-06-10",
-        "open": 9.403,
         "high": 9.567,
         "low": 9.168,
-        "close": 9.285
+        "open": 9.403
       },
       {
+        "close": 9.329,
         "date": "2026-06-11",
-        "open": 9.294,
         "high": 9.471,
         "low": 9.185,
-        "close": 9.329
+        "open": 9.294
       },
       {
+        "close": 9.881,
         "date": "2026-06-12",
-        "open": 9.614,
         "high": 9.895,
         "low": 9.573,
-        "close": 9.881
+        "open": 9.614
       },
       {
+        "close": 10.39,
         "date": "2026-06-15",
-        "open": 10.183,
         "high": 10.39,
         "low": 10.165,
-        "close": 10.39
+        "open": 10.183
       },
       {
+        "close": 10.175,
         "date": "2026-06-16",
-        "open": 10.385,
         "high": 10.473,
         "low": 10.152,
-        "close": 10.175
+        "open": 10.385
       },
       {
+        "close": 10.09,
         "date": "2026-06-17",
-        "open": 10.18,
         "high": 10.2,
         "low": 10.035,
-        "close": 10.09
+        "open": 10.18
       },
       {
+        "close": 10.305,
         "date": "2026-06-18",
-        "open": 10.173,
         "high": 10.39,
         "low": 10.147,
-        "close": 10.305
+        "open": 10.173
       },
       {
+        "close": 10.39,
         "date": "2026-06-19",
-        "open": 10.325,
         "high": 10.395,
         "low": 10.287,
-        "close": 10.39
+        "open": 10.325
       },
       {
+        "close": 10.35,
         "date": "2026-06-22",
-        "open": 10.45,
         "high": 10.603,
         "low": 10.282,
-        "close": 10.35
+        "open": 10.45
       },
       {
+        "close": 9.815,
         "date": "2026-06-23",
-        "open": 9.938,
         "high": 10.025,
         "low": 9.728,
-        "close": 9.815
+        "open": 9.938
       },
       {
+        "close": 9.841,
         "date": "2026-06-24",
-        "open": 9.875,
         "high": 9.954,
         "low": 9.721,
-        "close": 9.841
+        "open": 9.875
       },
       {
+        "close": 9.726,
         "date": "2026-06-25",
-        "open": 10.093,
         "high": 10.175,
         "low": 9.543,
-        "close": 9.726
+        "open": 10.093
       },
       {
+        "close": 9.669,
         "date": "2026-06-26",
-        "open": 9.651,
         "high": 9.728,
         "low": 9.415,
-        "close": 9.669
+        "open": 9.651
       },
       {
+        "close": 9.813,
         "date": "2026-06-29",
-        "open": 9.704,
         "high": 9.855,
         "low": 9.495,
-        "close": 9.813
+        "open": 9.704
       },
       {
+        "close": 10.235,
         "date": "2026-06-30",
-        "open": 10.065,
         "high": 10.253,
         "low": 9.98,
-        "close": 10.235
+        "open": 10.065
       },
       {
+        "close": 10.218,
         "date": "2026-07-01",
-        "open": 10.233,
         "high": 10.275,
         "low": 10.055,
-        "close": 10.218
+        "open": 10.233
       },
       {
+        "close": 9.745,
         "date": "2026-07-02",
-        "open": 9.931,
         "high": 10.1475,
         "low": 9.695,
-        "close": 9.745
+        "open": 9.931
       },
       {
+        "close": 9.88,
         "date": "2026-07-03",
-        "open": 9.84,
         "high": 9.916,
         "low": 9.826,
-        "close": 9.88
+        "open": 9.84
       },
       {
+        "close": 10.01,
         "date": "2026-07-06",
-        "open": 9.866,
         "high": 10.01,
         "low": 9.828,
-        "close": 10.01
+        "open": 9.866
       },
       {
+        "close": 9.517,
         "date": "2026-07-07",
-        "open": 9.767,
         "high": 9.792,
         "low": 9.439,
-        "close": 9.517
+        "open": 9.767
       },
       {
+        "close": 9.379,
         "date": "2026-07-08",
-        "open": 9.517,
         "high": 9.579,
         "low": 9.273,
-        "close": 9.379
+        "open": 9.517
       },
       {
+        "close": 9.885,
         "date": "2026-07-09",
-        "open": 9.3,
         "high": 9.998,
         "low": 9.3,
-        "close": 9.885
+        "open": 9.3
       },
       {
+        "close": 9.956,
         "date": "2026-07-10",
-        "open": 9.846,
         "high": 9.959,
         "low": 9.727,
-        "close": 9.956
+        "open": 9.846
       },
       {
+        "close": 9.805,
         "date": "2026-07-13",
-        "open": 9.754,
         "high": 9.859,
         "low": 9.574,
-        "close": 9.805
+        "open": 9.754
       },
       {
+        "close": 9.879,
         "date": "2026-07-14",
-        "open": 9.72,
         "high": 9.894,
         "low": 9.676,
-        "close": 9.879
+        "open": 9.72
       },
       {
+        "close": 9.72,
         "date": "2026-07-15",
-        "open": 9.983,
         "high": 10.012,
         "low": 9.659,
-        "close": 9.72
+        "open": 9.983
       },
       {
+        "close": 9.553,
         "date": "2026-07-16",
-        "open": 9.703,
         "high": 9.71,
         "low": 9.462,
-        "close": 9.553
+        "open": 9.703
       },
       {
+        "close": 9.154,
         "date": "2026-07-17",
-        "open": 9.146,
         "high": 9.241,
         "low": 8.939,
-        "close": 9.154
+        "open": 9.146
       },
       {
+        "close": 9.33,
         "date": "2026-07-20",
-        "open": 9.193,
         "high": 9.446,
         "low": 9.181,
-        "close": 9.33
+        "open": 9.193
       },
       {
+        "close": 9.524,
         "date": "2026-07-21",
-        "open": 9.412,
         "high": 9.531,
         "low": 9.37,
-        "close": 9.524
+        "open": 9.412
       },
       {
+        "close": 9.534,
         "date": "2026-07-22",
-        "open": 9.39,
         "high": 9.545,
         "low": 9.321,
-        "close": 9.534
+        "open": 9.39
       },
       {
+        "close": 9.024,
         "date": "2026-07-23",
-        "open": 9.362,
         "high": 9.413,
         "low": 9.008,
-        "close": 9.024
+        "open": 9.362
       },
       {
+        "close": 9.046,
         "date": "2026-07-24",
-        "open": 9.077,
         "high": 9.166,
         "low": 8.884,
-        "close": 9.046
+        "open": 9.077
       },
       {
+        "close": 8.769,
         "date": "2026-07-27",
-        "open": 9.149,
         "high": 9.182,
         "low": 8.689,
-        "close": 8.769
+        "open": 9.149
       },
       {
+        "close": 8.687,
         "date": "2026-07-28",
-        "open": 8.692,
         "high": 8.753,
         "low": 8.479,
-        "close": 8.687
+        "open": 8.692
       },
       {
+        "close": 8.446,
         "date": "2026-07-29",
-        "open": 8.654,
         "high": 8.741,
         "low": 8.403,
-        "close": 8.446
+        "open": 8.654
       },
       {
+        "close": 8.631,
         "date": "2026-07-30",
-        "open": 8.365,
         "high": 8.763,
         "low": 8.27,
-        "close": 8.631
+        "open": 8.365
       },
       {
+        "close": 8.711,
         "date": "2026-07-31",
-        "open": 8.903,
         "high": 9.08,
         "low": 8.7,
-        "close": 8.711
+        "open": 8.903
       },
       {
+        "close": 9.076,
         "date": "2026-08-03",
-        "open": 8.966,
         "high": 9.113,
         "low": 8.793,
-        "close": 9.076
+        "open": 8.966
       },
       {
+        "close": 9.64,
         "date": "2026-08-04",
-        "open": 9.296,
         "high": 9.652,
         "low": 9.248,
-        "close": 9.64
+        "open": 9.296
       },
       {
+        "close": 9.708,
         "date": "2026-08-05",
-        "open": 9.807,
         "high": 9.89,
         "low": 9.641,
-        "close": 9.708
+        "open": 9.807
       },
       {
+        "close": 9.603,
         "date": "2026-08-06",
-        "open": 9.537,
         "high": 9.655,
         "low": 9.36,
-        "close": 9.603
+        "open": 9.537
       },
       {
+        "close": 9.717,
         "date": "2026-08-07",
-        "open": 9.577,
         "high": 9.734,
         "low": 9.561,
-        "close": 9.717
+        "open": 9.577
       },
       {
+        "close": 9.706,
         "date": "2026-08-10",
-        "open": 9.786,
         "high": 9.824,
         "low": 9.623,
-        "close": 9.706
+        "open": 9.786
       },
       {
+        "close": 9.657,
         "date": "2026-08-11",
-        "open": 9.697,
         "high": 9.776,
         "low": 9.616,
-        "close": 9.657
+        "open": 9.697
       },
       {
+        "close": 9.77,
         "date": "2026-08-12",
-        "open": 9.688,
         "high": 9.835,
         "low": 9.675,
-        "close": 9.77
+        "open": 9.688
       },
       {
+        "close": 9.988,
         "date": "2026-08-13",
-        "open": 9.782,
         "high": 10.024,
         "low": 9.744,
-        "close": 9.988
+        "open": 9.782
       },
       {
+        "close": 9.859,
         "date": "2026-08-14",
-        "open": 9.976,
         "high": 10.02,
         "low": 9.847,
-        "close": 9.859
+        "open": 9.976
       },
       {
+        "close": 9.995,
         "date": "2026-08-17",
-        "open": 10.036,
         "high": 10.036,
         "low": 9.91,
-        "close": 9.995
+        "open": 10.036
       },
       {
+        "close": 9.553,
         "date": "2026-08-18",
-        "open": 9.749,
         "high": 9.757,
         "low": 9.498,
-        "close": 9.553
+        "open": 9.749
       },
       {
+        "close": 9.495,
         "date": "2026-08-19",
-        "open": 9.566,
         "high": 9.612,
         "low": 9.35,
-        "close": 9.495
+        "open": 9.566
       },
       {
+        "close": 9.295,
         "date": "2026-08-20",
-        "open": 9.503,
         "high": 9.524,
         "low": 9.248,
-        "close": 9.295
+        "open": 9.503
       },
       {
+        "close": 9.337,
         "date": "2026-08-21",
-        "open": 9.333,
         "high": 9.43,
         "low": 9.242,
-        "close": 9.337
+        "open": 9.333
       },
       {
+        "close": 9.187,
         "date": "2026-08-24",
-        "open": 9.192,
         "high": 9.279,
         "low": 9.078,
-        "close": 9.187
+        "open": 9.192
       },
       {
+        "close": 9.285,
         "date": "2026-08-25",
-        "open": 9.298,
         "high": 9.373,
         "low": 9.18,
-        "close": 9.285
+        "open": 9.298
       },
       {
+        "close": 9.289,
         "date": "2026-08-26",
-        "open": 9.263,
         "high": 9.328,
         "low": 9.205,
-        "close": 9.289
+        "open": 9.263
       },
       {
+        "close": 9.493,
         "date": "2026-08-27",
-        "open": 9.44,
         "high": 9.545,
         "low": 9.38,
-        "close": 9.493
+        "open": 9.44
       },
       {
+        "close": 9.665,
         "date": "2026-08-28",
-        "open": 9.528,
         "high": 9.67,
         "low": 9.48,
-        "close": 9.665
+        "open": 9.528
       },
       {
+        "close": 9.425,
         "date": "2026-08-31",
-        "open": 9.502,
         "high": 9.535,
         "low": 9.387,
-        "close": 9.425
+        "open": 9.502
       },
       {
+        "close": 9.306,
         "date": "2026-09-01",
-        "open": 9.505,
         "high": 9.516,
         "low": 9.195,
-        "close": 9.306
+        "open": 9.505
       },
       {
+        "close": 9.29,
         "date": "2026-09-02",
-        "open": 9.249,
         "high": 9.295,
         "low": 9.11,
-        "close": 9.29
+        "open": 9.249
       },
       {
+        "close": 9.48,
         "date": "2026-09-03",
-        "open": 9.277,
         "high": 9.48,
         "low": 9.2,
-        "close": 9.48
+        "open": 9.277
       },
       {
+        "close": 9.469,
         "date": "2026-09-04",
-        "open": 9.53,
         "high": 9.6,
         "low": 9.46,
-        "close": 9.469
+        "open": 9.53
       },
       {
+        "close": 9.505,
         "date": "2026-09-07",
-        "open": 9.582,
         "high": 9.593,
         "low": 9.491,
-        "close": 9.505
+        "open": 9.582
       },
       {
+        "close": 9.532,
         "date": "2026-09-08",
-        "open": 9.531,
         "high": 9.582,
         "low": 9.427,
-        "close": 9.532
+        "open": 9.531
       },
       {
+        "close": 9.399,
         "date": "2026-09-09",
-        "open": 9.508,
         "high": 9.53,
         "low": 9.339,
-        "close": 9.399
+        "open": 9.508
       },
       {
+        "close": 9.309,
         "date": "2026-09-10",
-        "open": 9.435,
         "high": 9.444,
         "low": 9.196,
-        "close": 9.309
+        "open": 9.435
       },
       {
+        "close": 9.47,
         "date": "2026-09-11",
-        "open": 9.326,
         "high": 9.48,
         "low": 9.313,
-        "close": 9.47
+        "open": 9.326
       }
     ],
+    "Check_Details": "\u2717 Trend (P 9.4 < SMA50 9.4) \u2717 RS (Weak, Val: -11.69) \u2713 RSI (50.6) \u2713 ATR (Risk 4.4%)",
+    "Checks_Passed": 2,
+    "Company_Name": "AMUND NASDAQ 100 DALY LEV",
+    "Consensus": "-",
+    "Contract_ID": 41975920,
+    "Country": "FR",
+    "Currency": "EUR",
     "Daily_Change": 0.161,
-    "RS_vs_SPX": -11.69,
-    "RS_Benchmark": "^GSPC",
-    "RS_Status": "Lagging",
+    "Data_Broker": "IBKR",
+    "Date": "2026-09-12 19:43",
     "Decision": "AVOID",
     "Decision_Color": "#f44336",
-    "Checks_Passed": 2,
-    "Smart_Entry": null,
-    "Smart_Entry_EUR": null,
-    "Smart_Type": null,
-    "Smart_Reason": null,
-    "Strategy": "Pullback",
-    "RR_Ratio": 0,
-    "Volume": 408908,
-    "Avg_Volume": 862110,
+    "Dividend_Yield_IBKR": 0.0,
     "Earnings_Danger": false,
     "Earnings_Msg": "",
-    "Check_Details": "\u2717 Trend (P 9.4 < SMA50 9.4) \u2717 RS (Weak, Val: -11.69) \u2713 RSI (50.6) \u2713 ATR (Risk 4.4%)",
-    "Date": "2026-09-12 19:43",
-    "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-12T16:20:02.493906+00:00",
-    "Data_Broker": "IBKR",
+    "Exchange": "SBF",
     "Execution_Brokers": [
       "IBKR",
       "Tradeville"
     ],
-    "IBKR_Data_Only": false,
-    "Bid": 9.395,
-    "Ask": 9.455,
-    "Spread_Pct": 0.6366047745358142,
-    "Quote_Status": "FROZEN_DELAYED",
-    "Avg_90D_USD_Volume": 11248434.0,
+    "Finviz_ATR": null,
     "Historical_Vol": 0.29194489926916,
-    "YTD_Change_IBKR": 1.9999999465942384,
-    "Dividend_Yield_IBKR": 0.0,
+    "History_Ticker": "LQQ.PA",
+    "IBKR_Data_Only": false,
     "IBKR_Misc_Statistics": {
       "high_13w": 10.602499961853027,
       "high_26w": 10.602499961853027,
@@ -82306,61 +82278,90 @@
         "misc_statistics"
       ]
     },
-    "Market": "Europa / Nasdaq-100",
-    "Country": "FR",
-    "Exchange": "SBF",
-    "Security_Type": "STK",
-    "Contract_ID": 41975920,
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Options_Supported": false,
+    "Industry": "ETF leveraged",
     "Instrument_Metadata": {
-      "market": "Europa / Nasdaq-100",
-      "country": "FR",
-      "exchange": "SBF",
-      "security_type": "STK",
-      "currency": "EUR",
       "contract_id": 41975920,
+      "country": "FR",
+      "currency": "EUR",
+      "exchange": "SBF",
+      "market": "Europa / Nasdaq-100",
+      "options_supported": false,
       "sections": [
         "STK"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "technical_score": 50.0,
-    "momentum_score": 48.8,
-    "research_score": 50,
-    "volatility_score": 75.0,
-    "liquidity_score": 56.1,
-    "options_score": 50.0,
-    "relative_opportunity_score": 50.0,
-    "risk_reward_score": 0.0,
-    "portfolio_fit_available": false,
-    "portfolio_fit_score": null,
-    "portfolio_adjustment_applied": false,
-    "raw_stock_score": 47.93,
-    "raw_stock_score_availability_adjusted": 47.7,
-    "options_score_observed": null,
-    "portfolio_adjusted_score": 47.93,
-    "risk_score": 61.83,
-    "volatility_regime": "calm",
+    "Market": "Europa / Nasdaq-100",
+    "Market_Data_Fetched_At": "2026-09-12T16:20:02.493906+00:00",
+    "Market_Data_Source": "IBKR MCP",
+    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
+    "Options_Cohort": "OPTIONS_NOT_ELIGIBLE",
+    "Options_Collection_Eligible": false,
+    "Options_Collection_Rank": null,
+    "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
+    "Options_Data_Available": false,
+    "Options_Data_Partial": false,
+    "Options_Eligibility_Reason": "decision_not_buy_or_wait;market_not_usa;option_chain_not_advertised",
+    "Options_Score": null,
+    "Options_Supported": false,
+    "Pct_To_Target": null,
+    "Price": 9.39,
+    "Price_Native": 9.39,
+    "Quote_Status": "FROZEN_DELAYED",
+    "RR_Ratio": 0,
+    "RSI": 50.6,
+    "RSI_Status": "Neutral",
+    "RS_Benchmark": "^GSPC",
+    "RS_Status": "Lagging",
+    "RS_vs_SPX": -11.69,
+    "SMA_200": 8.38,
+    "SMA_50": 9.44,
+    "Sector": "Nasdaq-100",
+    "Security_Type": "STK",
+    "Smart_Entry": null,
+    "Smart_Entry_EUR": null,
+    "Smart_Reason": null,
+    "Smart_Type": null,
+    "Spread_Pct": 0.6366047745358142,
+    "Stop_Loss": 8.98,
+    "Strategy": "Pullback",
+    "Target": null,
+    "Technical_Events_Ref": "watchlist:LQQ.PA",
+    "Ticker": "LQQ.PA",
+    "Trend": "Bullish Pullback",
+    "VIX_Tag": "Normal",
+    "Vol_M": null,
+    "Vol_W": null,
+    "Volume": 408908,
+    "YTD_Change_IBKR": 1.9999999465942384,
+    "_cached_at": 1789231403.1453068,
     "current_decision": "AVOID",
     "enhanced_decision": "AVOID",
     "enhanced_decision_reason": "",
     "enhanced_stop": 8.99,
     "enhanced_stop_distance_pct": 4.26,
+    "liquidity_score": 56.1,
+    "momentum_score": 48.8,
+    "options_score": 50.0,
+    "options_score_observed": null,
+    "portfolio_adjusted_score": 47.93,
+    "portfolio_adjustment_applied": false,
+    "portfolio_fit_available": false,
+    "portfolio_fit_score": null,
+    "raw_stock_score": 47.93,
+    "raw_stock_score_availability_adjusted": 47.7,
+    "relative_opportunity_score": 50.0,
+    "research_score": 50,
+    "risk_reward_score": 0.0,
+    "risk_score": 61.83,
     "score_version": "ibkr-enhanced-v1-shadow",
-    "_cached_at": 1789231403.1453068,
-    "Options_Collection_Eligible": false,
-    "Options_Eligibility_Reason": "decision_not_buy_or_wait;market_not_usa;option_chain_not_advertised",
-    "Options_Collection_Rank": null,
-    "Options_Collection_Selected": false,
-    "Options_Data_Available": false,
-    "Options_Data_Partial": false,
-    "Options_Cohort": "OPTIONS_NOT_ELIGIBLE",
-    "Options_Context": {
-      "score_available": false
-    },
-    "Options_Score": null
+    "technical_score": 50.0,
+    "volatility_regime": "calm",
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.17,
@@ -83206,12 +83207,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Beverages - Non-A...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8894,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -83220,7 +83221,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -83231,6 +83232,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 160,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -83286,10 +83290,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 4.81,
@@ -84135,12 +84136,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Industr...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8620,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -84148,7 +84149,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -84159,6 +84160,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -84214,10 +84218,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 3.1,
@@ -85063,14 +85064,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas Integrated",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -85081,6 +85082,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": 252,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "option_chain_not_advertised",
@@ -85136,10 +85140,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 2.14,
@@ -85985,12 +85986,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Aerospace & Defense",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 68492173,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -85999,7 +86000,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -86010,6 +86011,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -86065,10 +86069,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "elevated",
-    "volatility_score": 65.88,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 65.88
   },
   {
     "ATR_14": 0.22,
@@ -86914,14 +86915,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Communication Equ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -86932,6 +86933,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -86987,10 +86991,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "elevated",
-    "volatility_score": 64.12,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 64.12
   },
   {
     "ATR_14": 2.26,
@@ -87836,14 +87837,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Computer Hardware",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -87854,6 +87855,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -87909,10 +87913,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "elevated",
-    "volatility_score": 57.63,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 57.63
   },
   {
     "ATR_14": 1.65,
@@ -88758,14 +88759,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Packaged Foods",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -88776,6 +88777,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -88831,10 +88835,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 10.51,
@@ -89680,14 +89681,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Medical Instrumen...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -89698,6 +89699,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -89753,10 +89757,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 4.35,
@@ -90602,12 +90603,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductors",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 270639,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -90616,7 +90617,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -90627,6 +90628,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 253,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -90682,10 +90686,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "elevated",
-    "volatility_score": 67.76,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 67.76
   },
   {
     "ATR_14": 57.29,
@@ -91531,12 +91532,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Communication Equ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 201113895,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -91544,7 +91545,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -91555,6 +91556,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -91610,10 +91614,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "elevated",
-    "volatility_score": 57.47,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 57.47
   },
   {
     "ATR_14": 0.34,
@@ -92459,12 +92460,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Auto Manufacturers",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 436980133,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -92472,7 +92473,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -92483,6 +92484,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -92538,10 +92542,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 74.85,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 74.85
   },
   {
     "ATR_14": 3.43,
@@ -93387,14 +93388,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "REIT - Specialty",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -93405,6 +93406,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -93460,10 +93464,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 74.33,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 74.33
   },
   {
     "ATR_14": 3.62,
@@ -94309,12 +94310,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Information Techn...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 134280621,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -94323,7 +94324,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -94334,6 +94335,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 201,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -94389,10 +94393,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 5.52,
@@ -95238,14 +95239,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Apparel Retail",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -95256,6 +95257,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -95311,10 +95315,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 0.0,
     "volatility_regime": "elevated",
-    "volatility_score": 60.64,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 60.64
   },
   {
     "ATR_14": 0.34,
@@ -96160,12 +96161,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Internet Retail",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 360310571,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -96173,7 +96174,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -96184,6 +96185,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 331,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -96239,10 +96243,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 65.99,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 65.99
   },
   {
     "ATR_14": 3.0,
@@ -97088,14 +97089,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductor Equ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -97106,6 +97107,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -97161,10 +97165,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 70.26,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 70.26
   },
   {
     "ATR_14": 1.59,
@@ -98010,12 +98011,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Chemicals",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8385,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -98023,7 +98024,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -98034,6 +98035,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 157,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -98089,10 +98093,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.3,
@@ -98938,14 +98939,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductors",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -98956,6 +98957,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -99011,10 +99015,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "elevated",
-    "volatility_score": 57.03,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 57.03
   },
   {
     "ATR_14": 0.07,
@@ -99860,14 +99861,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Biotechnology",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -99878,6 +99879,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -99933,10 +99937,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "elevated",
-    "volatility_score": 55.69,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 55.69
   },
   {
     "ATR_14": 2.94,
@@ -100782,12 +100783,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Capital Markets",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 43645865,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "IOPT",
@@ -100795,7 +100796,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -100806,6 +100807,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -100861,10 +100865,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 73.06,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 73.06
   },
   {
     "ATR_14": 0.82,
@@ -101710,19 +101711,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Building Materials",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 794909199,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -101733,6 +101734,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 16,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -101788,10 +101792,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 74.84,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 74.84
   },
   {
     "ATR_14": 5.33,
@@ -102637,12 +102638,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Banks - Diversified",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 1520593,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -102651,7 +102652,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -102662,6 +102663,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 159,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -102717,10 +102721,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.82,
@@ -103613,12 +103614,12 @@
     "Implied_Volatility": 0.12344394847851192,
     "Industry": "-",
     "Instrument_Metadata": {
-      "market": "Europa / Nasdaq-100",
-      "country": "NL",
-      "exchange": "AEB",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 100292038,
+      "country": "NL",
+      "currency": "USD",
+      "exchange": "AEB",
+      "market": "Europa / Nasdaq-100",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -103626,7 +103627,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "Europa / Nasdaq-100",
@@ -103637,6 +103638,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;market_not_usa",
@@ -103700,10 +103704,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.96,
@@ -104549,18 +104550,18 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Utilities - Indep...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 179161051,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -104571,6 +104572,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -104626,10 +104630,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 74.35,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 74.35
   },
   {
     "ATR_14": 1.12,
@@ -105475,14 +105476,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Resorts & Casinos",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -105493,6 +105494,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -105548,10 +105552,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.25,
@@ -106397,14 +106398,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Diagnostics & Res...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -106415,6 +106416,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -106470,10 +106474,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "elevated",
-    "volatility_score": 58.67,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 58.67
   },
   {
     "ATR_14": 0.72,
@@ -107319,12 +107320,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas Midstream",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 83975037,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -107333,7 +107334,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -107344,6 +107345,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -107399,10 +107403,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.87,
@@ -108248,12 +108249,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas Equipme...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 302202060,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -108261,7 +108262,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -108272,6 +108273,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -108327,10 +108331,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "elevated",
-    "volatility_score": 68.15,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 68.15
   },
   {
     "ATR_14": 5.22,
@@ -109176,12 +109177,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Aerospace & Defense",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 371886040,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -109190,7 +109191,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -109201,6 +109202,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -109256,10 +109260,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.32,
@@ -110105,18 +110106,18 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Telecom Services",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 4814075,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -110127,6 +110128,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -110182,10 +110186,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "elevated",
-    "volatility_score": 66.71,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 66.71
   },
   {
     "ATR_14": 0.14,
@@ -111031,12 +111032,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Other Industrial ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 657517509,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -111045,7 +111046,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -111056,6 +111057,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -111111,10 +111115,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "elevated",
-    "volatility_score": 64.64,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 64.64
   },
   {
     "ATR_14": 1.63,
@@ -111960,14 +111961,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Applic...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -111978,6 +111979,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": 251,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "option_chain_not_advertised",
@@ -112033,10 +112037,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "elevated",
-    "volatility_score": 69.15,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 69.15
   },
   {
     "ATR_14": 1.33,
@@ -112882,19 +112883,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas Midstream",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 430754442,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -112905,6 +112906,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 77,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -112960,10 +112964,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.74,
@@ -113809,14 +113810,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "REIT - Healthcare...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -113827,6 +113828,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": 80,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "option_chain_not_advertised",
@@ -113882,10 +113886,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 3.86,
@@ -114731,12 +114732,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Home Improvement ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 9199,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -114745,7 +114746,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -114756,6 +114757,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -114811,10 +114815,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.33,
@@ -115660,12 +115661,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Household & Perso...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 629043863,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -115673,7 +115674,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -115684,6 +115685,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -115739,10 +115743,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.8,
@@ -116588,14 +116589,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Aerospace & Defense",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": null,
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": null,
-      "sections": [],
+      "country": "US",
+      "currency": "USD",
+      "exchange": null,
+      "market": "SUA",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Market": "SUA",
@@ -116606,6 +116607,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -116661,10 +116665,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 0.0,
     "volatility_regime": "elevated",
-    "volatility_score": 60.65,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 60.65
   },
   {
     "ATR_14": 0.48,
@@ -117510,12 +117511,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Internet Retail",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 152486141,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -117524,7 +117525,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -117535,6 +117536,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait",
@@ -117590,10 +117594,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.03,
@@ -118439,17 +118440,17 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Security & Protec...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 728763141,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": false,
       "sections": [
         "STK",
         "WAR"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -118460,6 +118461,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;option_chain_not_advertised",
@@ -118515,9 +118519,6 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "extreme",
-    "volatility_score": 36.43,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 36.43
   }
 ]
