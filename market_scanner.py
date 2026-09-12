@@ -988,7 +988,10 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
                 f"{ticker}: {len(bvb_history)} ședințe"
             )
         except bvb_public_market_data.BVBPublicStaleDataError as exc:
-            print(f"  [BVB] {ticker}: cache-ul public este depășit ({exc})")
+            print(
+                f"  [BVB] {ticker}: ultima bară publică este veche "
+                f"({exc}); folosim istoricul combinat/cache."
+            )
         except Exception as exc:
             print(f"  [BVB] {ticker}: CSV/cache public indisponibil ({exc})")
 
