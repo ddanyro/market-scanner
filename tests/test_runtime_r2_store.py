@@ -11,16 +11,20 @@ from shadow_parquet_store import R2Config
 class MemoryR2:
     def __init__(self):
         self.objects = {}
+        self.get_calls = []
+        self.put_calls = []
 
     def exists(self, key):
         return key in self.objects
 
     def get(self, key):
+        self.get_calls.append(key)
         if key not in self.objects:
             raise RuntimeError("R2 GET a eșuat: HTTP 404")
         return self.objects[key][0]
 
     def put(self, key, content, *, content_type="application/octet-stream"):
+        self.put_calls.append(key)
         self.objects[key] = (bytes(content), content_type)
 
 
@@ -39,6 +43,9 @@ def write_runtime_files(root):
     payloads = {
         "dashboard_state.json": b'{"state":"current"}',
         ".ibkr_mcp_market_cache.json": b'{"NVDA":{"price":123}}',
+        ".shadow_maintenance_state.json": (
+            b'{"schema":"market-scanner.shadow-maintenance.v1","tasks":{}}'
+        ),
         "analysis/enhanced_scoring_validation/recommendations_with_outcomes.csv": (
             b"ticker,return_1d\nNVDA,0.01\n"
         ),
@@ -67,6 +74,7 @@ def test_push_uses_versioned_gzip_objects_and_atomic_manifest(
     for name, descriptor in manifest["artifacts"].items():
         assert "/versions/" in descriptor["key"]
         assert descriptor["key"].endswith(".gz")
+        assert descriptor["sha256"] in descriptor["key"]
         assert descriptor["private"] is store.ARTIFACTS[name]["private"]
         assert gzip.decompress(client.get(descriptor["key"])) == payloads[
             str(store.ARTIFACTS[name]["path"])
@@ -82,6 +90,7 @@ def test_pull_restores_only_private_runtime_state_and_checks_integrity(
     manifest = store.push_runtime(config=r2_config, client=client)
     Path("dashboard_state.json").unlink()
     Path(".ibkr_mcp_market_cache.json").unlink()
+    Path(".shadow_maintenance_state.json").unlink()
     Path("watchlist_compact.json").write_text("local-public-copy", encoding="utf-8")
 
     store.pull_runtime(config=r2_config, client=client)
@@ -90,10 +99,14 @@ def test_pull_restores_only_private_runtime_state_and_checks_integrity(
     assert Path(".ibkr_mcp_market_cache.json").read_bytes() == payloads[
         ".ibkr_mcp_market_cache.json"
     ]
+    assert Path(".shadow_maintenance_state.json").read_bytes() == payloads[
+        ".shadow_maintenance_state.json"
+    ]
     assert Path("watchlist_compact.json").read_text() == "local-public-copy"
 
     dashboard = manifest["artifacts"]["dashboard-state"]
     client.objects[dashboard["key"]] = (gzip.compress(b"tampered"), "application/gzip")
+    Path("dashboard_state.json").unlink()
     with pytest.raises(RuntimeError, match="Checksum R2 invalid"):
         store.pull_runtime(config=r2_config, client=client)
 
@@ -115,3 +128,59 @@ def test_loader_does_not_replace_full_dashboard_in_r2(
     key = second["artifacts"]["dashboard-html"]["key"]
     assert gzip.decompress(client.get(key)) == payloads["index.html"]
     store.verify_runtime(config=r2_config, client=client)
+
+
+def test_pull_skips_r2_objects_when_local_checksums_are_unchanged(
+    tmp_path, monkeypatch, r2_config
+):
+    monkeypatch.chdir(tmp_path)
+    write_runtime_files(tmp_path)
+    client = MemoryR2()
+    manifest = store.push_runtime(config=r2_config, client=client)
+    client.get_calls.clear()
+
+    store.pull_runtime(config=r2_config, client=client)
+
+    requested_objects = [
+        key for key in client.get_calls if key != store.MANIFEST_KEY
+    ]
+    assert requested_objects == []
+    assert set(manifest["artifacts"]) == set(store.ARTIFACTS)
+
+
+def test_second_push_reuses_unchanged_r2_versions(
+    tmp_path, monkeypatch, r2_config
+):
+    monkeypatch.chdir(tmp_path)
+    write_runtime_files(tmp_path)
+    client = MemoryR2()
+    first = store.push_runtime(config=r2_config, client=client)
+    version_puts_before = [
+        key for key in client.put_calls if "/versions/" in key
+    ]
+
+    second = store.push_runtime(config=r2_config, client=client)
+
+    version_puts_after = [
+        key for key in client.put_calls if "/versions/" in key
+    ]
+    assert version_puts_after == version_puts_before
+    assert second["artifacts"] == first["artifacts"]
+
+
+def test_push_canonicalizes_json_before_hashing_and_upload(
+    tmp_path, monkeypatch, r2_config
+):
+    monkeypatch.chdir(tmp_path)
+    write_runtime_files(tmp_path)
+    Path("dashboard_state.json").write_text(
+        '{\n  "z": 2,\n  "a": 1\n}\n', encoding="utf-8"
+    )
+    client = MemoryR2()
+
+    manifest = store.push_runtime(config=r2_config, client=client)
+
+    expected = b'{"a":1,"z":2}'
+    descriptor = manifest["artifacts"]["dashboard-state"]
+    assert Path("dashboard_state.json").read_bytes() == expected
+    assert gzip.decompress(client.get(descriptor["key"])) == expected

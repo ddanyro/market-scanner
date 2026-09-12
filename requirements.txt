@@ -2,6 +2,7 @@ yfinance
 pandas
 numpy
 requests
+boto3>=1.34,<2
 duckdb>=1.4,<2
 beautifulsoup4
 lxml

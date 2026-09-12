@@ -172,6 +172,16 @@ class TestIBKRMCPNormalisation(unittest.TestCase):
         })
         self.assertEqual(selected["underlying_contract_id"], 2)
 
+    def test_bvb_listing_accepts_ibkr_eu_country_classification(self):
+        selected = ibkr_mcp._select_contract("TVBETETF.RO", {
+            "results": [{
+                "symbol": "TVBETETF", "country_code": "EU",
+                "exchange": "BVB", "underlying_contract_id": 813325574,
+                "sections": [{"security_type": "STK"}],
+            }]
+        })
+        self.assertEqual(selected["underlying_contract_id"], 813325574)
+
     def test_price_history_normalises_epoch_and_missing_volume(self):
         bars = ibkr_mcp._normalise_price_history({
             "time": [1785801600000, 1785888000000],
@@ -184,6 +194,161 @@ class TestIBKRMCPNormalisation(unittest.TestCase):
 
 
 class TestIBKRMCPMarketData(unittest.IsolatedAsyncioTestCase):
+    async def test_completed_session_history_is_not_requested_again(self):
+        dt = __import__("datetime")
+        now = dt.datetime.now(dt.timezone.utc)
+        session_key = ibkr_mcp._latest_completed_session_date("HCA", now)
+        calls = []
+
+        class FakeSession:
+            async def call(self, name, arguments=None):
+                calls.append((name, arguments))
+                if name == "get_price_snapshot":
+                    return {"last": 400, "volume": 12345}
+                raise AssertionError(f"unexpected history request: {name}")
+
+        cache = {
+            "contracts": {"HCA": {
+                "status": "ok", "resolved_at": now.isoformat(),
+                "contract_id": 123, "symbol": "HCA", "exchange": "NYSE",
+                "country_code": "US", "security_type": "STK",
+            }},
+            "instruments": {"HCA": {
+                "symbol": "HCA",
+                "fetched_at": (now - dt.timedelta(hours=2)).isoformat(),
+                "history_fetched_at": (now - dt.timedelta(hours=6)).isoformat(),
+                "full_history_fetched_at": (now - dt.timedelta(days=2)).isoformat(),
+                "history_checked_session": session_key,
+                "market_data": {"market_price": 399, "quote": {}},
+                "bars": [{
+                    "date": session_key, "open": 395, "high": 401,
+                    "low": 394, "close": 399, "volume": 10000,
+                }],
+            }},
+            "failures": {},
+        }
+
+        _symbol, instrument, status = await ibkr_mcp._fetch_market_instrument(
+            FakeSession(), "HCA", cache
+        )
+
+        self.assertEqual(status, "updated")
+        self.assertEqual([name for name, _args in calls], ["get_price_snapshot"])
+        self.assertEqual(instrument["history_refresh_mode"], "cache")
+        self.assertEqual(instrument["bars"][0]["date"], session_key)
+
+    async def test_missing_session_uses_incremental_history_and_merges_cache(self):
+        dt = __import__("datetime")
+        now = dt.datetime.now(dt.timezone.utc)
+        expected = ibkr_mcp._latest_completed_session_date("HCA", now)
+        old_date = (dt.date.fromisoformat(expected) - dt.timedelta(days=4)).isoformat()
+        history_arguments = []
+
+        class FakeSession:
+            async def call(self, name, arguments=None):
+                if name == "get_price_history":
+                    history_arguments.append(arguments)
+                    return {
+                        "time": [expected], "open": [400], "high": [405],
+                        "low": [399], "close": [404], "volume": [20000],
+                    }
+                if name == "get_price_snapshot":
+                    return {"last": 404}
+                raise AssertionError(name)
+
+        cache = {
+            "contracts": {"HCA": {
+                "status": "ok", "resolved_at": now.isoformat(),
+                "contract_id": 123, "symbol": "HCA", "exchange": "NYSE",
+                "country_code": "US", "security_type": "STK",
+            }},
+            "instruments": {"HCA": {
+                "fetched_at": (now - dt.timedelta(hours=2)).isoformat(),
+                "full_history_fetched_at": (now - dt.timedelta(days=2)).isoformat(),
+                "history_checked_session": old_date,
+                "market_data": {},
+                "bars": [{
+                    "date": old_date, "open": 390, "high": 395,
+                    "low": 389, "close": 394, "volume": 10000,
+                }],
+            }},
+            "failures": {},
+        }
+
+        _symbol, instrument, status = await ibkr_mcp._fetch_market_instrument(
+            FakeSession(), "HCA", cache
+        )
+
+        self.assertEqual(status, "updated")
+        self.assertEqual(history_arguments[0]["period"], "ONE_MONTH")
+        self.assertEqual([bar["date"] for bar in instrument["bars"]], [
+            old_date, expected,
+        ])
+        self.assertEqual(instrument["history_refresh_mode"], "incremental")
+        self.assertEqual(instrument["history_checked_session"], expected)
+
+    async def test_old_bvb_negative_cache_is_re_resolved_with_canonical_country(self):
+        class FakeSession:
+            async def call(self, name, arguments=None):
+                self.name = name
+                self.arguments = arguments
+                return {"results": [{
+                    "symbol": "TVBETETF", "country_code": "EU",
+                    "exchange": "BVB", "underlying_contract_id": 813325574,
+                    "sections": [{"security_type": "STK"}],
+                }]}
+
+        cache = {"contracts": {"TVBETETF.RO": {
+            "status": "not_found",
+            "resolved_at": __import__("datetime").datetime.now(
+                __import__("datetime").timezone.utc
+            ).isoformat(),
+        }}}
+        session = FakeSession()
+        contract = await ibkr_mcp._resolve_market_contract(
+            session, "TVBETETF.RO", cache
+        )
+        self.assertEqual(session.arguments, {"query": "TVBETETF"})
+        self.assertEqual(contract["contract_id"], 813325574)
+        self.assertEqual(contract["country_code"], "RO")
+
+    async def test_non_us_history_and_snapshot_use_contract_id_without_exchange(self):
+        requested = []
+
+        class FakeSession:
+            async def call(self, name, arguments=None):
+                requested.append((name, dict(arguments or {})))
+                if name == "get_price_history":
+                    return {
+                        "time": ["2026-09-11T00:00:00Z"],
+                        "open": [100], "high": [102], "low": [99],
+                        "close": [101], "volume": [1000],
+                    }
+                if name == "get_price_snapshot":
+                    return {"last": 101}
+                raise AssertionError(name)
+
+        cache = {
+            "contracts": {"LQQ.PA": {
+                "status": "ok", "resolved_at": __import__("datetime").datetime.now(
+                    __import__("datetime").timezone.utc
+                ).isoformat(),
+                "contract_id": 41975920, "symbol": "LQQ",
+                "exchange": "SBF", "country_code": "FR",
+                "security_type": "STK",
+            }},
+            "instruments": {}, "failures": {},
+        }
+        _symbol, instrument, status = await ibkr_mcp._fetch_market_instrument(
+            FakeSession(), "LQQ.PA", cache
+        )
+        self.assertEqual(status, "updated")
+        self.assertIsNotNone(instrument)
+        market_calls = [args for name, args in requested if name.startswith("get_price_")]
+        self.assertEqual(len(market_calls), 2)
+        self.assertTrue(all(args["contract_id"] == 41975920 for args in market_calls))
+        self.assertTrue(all("exchange" not in args for args in market_calls))
+
     async def test_fetch_market_instrument_combines_history_and_snapshot(self):
         requested_snapshot_fields = []
 
@@ -299,6 +464,42 @@ class TestIBKRMCPMarketData(unittest.IsolatedAsyncioTestCase):
 
 
 class TestIBKRMCPBuildSnapshot(unittest.IsolatedAsyncioTestCase):
+    async def test_persistent_session_retries_only_transient_tool_errors(self):
+        successful = __import__("types").SimpleNamespace(
+            isError=False, structuredContent={"ok": True}, content=[]
+        )
+        inner = mock.AsyncMock()
+        inner.call_tool.side_effect = [
+            ibkr_mcp.IBKRMCPError(
+                "code -32400: An error occurred. Please try again later."
+            ),
+            successful,
+        ]
+        session = ibkr_mcp.ReadOnlyMCPSession()
+        session.session = inner
+        with mock.patch.object(ibkr_mcp.asyncio, "sleep", mock.AsyncMock()):
+            result = await session.call("get_account_summary")
+        self.assertEqual(result, {"ok": True})
+        self.assertEqual(inner.call_tool.await_count, 2)
+
+    def test_transient_market_failure_has_short_cache_ttl(self):
+        transient = {
+            "error": "code -32400: Please try again later",
+            "transient": True,
+        }
+        permanent = {
+            "error": "No market data permissions",
+            "transient": False,
+        }
+        self.assertEqual(
+            ibkr_mcp._failure_ttl_seconds(transient),
+            ibkr_mcp.TRANSIENT_FAILURE_TTL_SECONDS,
+        )
+        self.assertEqual(
+            ibkr_mcp._failure_ttl_seconds(permanent),
+            ibkr_mcp.MARKET_DATA_TTL_HOURS * 3600,
+        )
+
     async def test_authorisation_required_is_not_hidden_by_retry(self):
         error = ibkr_mcp.IBKRMCPAuthorizationRequired("login required")
         with mock.patch.object(
@@ -369,10 +570,20 @@ class TestIBKRMCPBuildSnapshot(unittest.IsolatedAsyncioTestCase):
             },
         }
 
-        async def fake_call(name, **_kwargs):
-            return responses[name]
+        class FakeSession:
+            def __init__(self, *, interactive=False):
+                self.interactive = interactive
 
-        with mock.patch.object(ibkr_mcp, "call_tool", side_effect=fake_call):
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *_args):
+                return False
+
+            async def call(self, name, _arguments=None):
+                return responses[name]
+
+        with mock.patch.object(ibkr_mcp, "ReadOnlyMCPSession", FakeSession):
             payload = await ibkr_mcp.build_account_snapshot()
 
         self.assertEqual(payload["source"], "IBKR MCP (read-only)")

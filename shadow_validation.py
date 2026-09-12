@@ -524,7 +524,7 @@ def append_snapshot(candidates, state, recorded_at=None, run_mode=None, path=LED
     return snapshot
 
 
-def load_local_ledger(path=LEDGER_PATH):
+def load_local_ledger(path=LEDGER_PATH, *, allow_external_root=False):
     snapshots = []
     target = Path(path)
     if not target.exists():
@@ -545,7 +545,11 @@ def load_local_ledger(path=LEDGER_PATH):
             parent_hash = payload.get("previous_snapshot_hash")
             if seen_hashes and parent_hash not in seen_hashes:
                 raise ValueError(f"Unknown snapshot parent at line {line_number}")
-            if not seen_hashes and parent_hash is not None:
+            if (
+                not seen_hashes
+                and parent_hash is not None
+                and not allow_external_root
+            ):
                 raise ValueError(f"Broken snapshot root at line {line_number}")
         snapshots.append(payload)
         seen_hashes.add(payload.get("content_hash") or _content_hash(payload))
@@ -553,8 +557,14 @@ def load_local_ledger(path=LEDGER_PATH):
 
 
 def load_ledger(path=LEDGER_PATH):
-    snapshots = load_local_ledger(path)
     target = Path(path)
+    # După migrarea în R2, fișierul local este un WAL/segment nou. Prima sa
+    # înregistrare continuă intenționat hash-chain-ul ultimului snapshot R2 și
+    # nu mai este o rădăcină autonomă. Ledgerele explicite păstrează validarea
+    # strictă, astfel încât un fișier corupt nu este acceptat accidental.
+    snapshots = load_local_ledger(
+        path, allow_external_root=target == LEDGER_PATH
+    )
     if target != LEDGER_PATH:
         return snapshots
     try:

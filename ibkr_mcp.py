@@ -23,6 +23,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
+from zoneinfo import ZoneInfo
 
 
 MCP_URL = os.environ.get(
@@ -40,14 +41,27 @@ MARKET_CACHE_FILE = Path(
     )
 )
 MARKET_CACHE_VERSION = 2
+CONTRACT_RESOLVER_VERSION = 2
 MARKET_DATA_TTL_HOURS = float(
     os.environ.get("IBKR_MCP_MARKET_TTL_HOURS", "1")
+)
+HISTORY_FULL_REFRESH_DAYS = max(
+    1, int(os.environ.get("IBKR_MCP_HISTORY_FULL_REFRESH_DAYS", "7"))
+)
+HISTORY_MAX_BARS = max(
+    220, int(os.environ.get("IBKR_MCP_HISTORY_MAX_BARS", "280"))
 )
 CONTRACT_CACHE_TTL_DAYS = float(
     os.environ.get("IBKR_MCP_CONTRACT_TTL_DAYS", "30")
 )
 MARKET_DATA_CONCURRENCY = max(
-    1, min(10, int(os.environ.get("IBKR_MCP_MARKET_CONCURRENCY", "5")))
+    1, min(10, int(os.environ.get("IBKR_MCP_MARKET_CONCURRENCY", "2")))
+)
+TRANSIENT_FAILURE_TTL_SECONDS = max(
+    30, int(os.environ.get("IBKR_MCP_TRANSIENT_FAILURE_TTL_SECONDS", "120"))
+)
+MCP_CALL_ATTEMPTS = max(
+    1, min(5, int(os.environ.get("IBKR_MCP_CALL_ATTEMPTS", "3")))
 )
 MARKET_DATA_BATCH_SIZE = max(
     1, int(os.environ.get("IBKR_MCP_MARKET_BATCH", "70"))
@@ -115,6 +129,58 @@ class IBKRMCPAuthorizationRequired(IBKRMCPError):
     """Raised when IBKR requires a new interactive OAuth authorisation."""
 
 
+def _is_transient_mcp_error(error: Any) -> bool:
+    """Distinguish retryable IBKR/service failures from permanent data gaps."""
+    message = str(error or "").casefold()
+    permanent_markers = (
+        "no market data permissions",
+        "contract_not_found",
+        "not permitted",
+        "permission denied",
+        "invalid contract",
+    )
+    if any(marker in message for marker in permanent_markers):
+        return False
+    transient_markers = (
+        "-32400",
+        "try again later",
+        "temporarily",
+        "timeout",
+        "timed out",
+        "connection",
+        "stream",
+        "rate limit",
+        "too many requests",
+        "http 408",
+        "http 409",
+        "http 425",
+        "http 429",
+        "http 500",
+        "http 502",
+        "http 503",
+        "http 504",
+    )
+    return any(marker in message for marker in transient_markers)
+
+
+def _failure_ttl_seconds(failure: dict[str, Any]) -> float:
+    transient = failure.get("transient")
+    if transient is None:
+        transient = _is_transient_mcp_error(failure.get("error"))
+    if transient:
+        return float(TRANSIENT_FAILURE_TTL_SECONDS)
+    return MARKET_DATA_TTL_HOURS * 3600
+
+
+def _market_failure(error: Any) -> dict[str, Any]:
+    message = str(error or "market_data_error")
+    return {
+        "failed_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "error": message[:500],
+        "transient": _is_transient_mcp_error(message),
+    }
+
+
 def _load_sdk():
     try:
         import httpx
@@ -157,11 +223,14 @@ class FileTokenStorage:
             ) from exc
 
     def _write(self, payload: dict[str, Any]) -> None:
-        self.path.write_text(
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = self.path.with_name(f".{self.path.name}.{os.getpid()}.tmp")
+        temporary.write_text(
             json.dumps(payload, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
-        self.path.chmod(stat.S_IRUSR | stat.S_IWUSR)
+        temporary.chmod(stat.S_IRUSR | stat.S_IWUSR)
+        os.replace(temporary, self.path)
 
     def get_tokens(self) -> dict[str, Any] | None:
         raw = self._read().get("tokens")
@@ -314,19 +383,28 @@ class ReadOnlyOAuthClient:
         refresh_token = token.get("refresh_token")
         if not refresh_token:
             return None
-        response = await client.post(
-            TOKEN_URL,
-            data={
-                "grant_type": "refresh_token",
-                "refresh_token": refresh_token,
-                "client_id": client_info["client_id"],
-                "scope": READ_ONLY_SCOPES,
-                "resource": MCP_URL,
-            },
-        )
-        if response.status_code != 200:
-            return None
-        return await self._store_token(response.json(), previous=token)
+        for attempt in range(MCP_CALL_ATTEMPTS):
+            try:
+                response = await client.post(
+                    TOKEN_URL,
+                    data={
+                        "grant_type": "refresh_token",
+                        "refresh_token": refresh_token,
+                        "client_id": client_info["client_id"],
+                        "scope": READ_ONLY_SCOPES,
+                        "resource": MCP_URL,
+                    },
+                )
+            except Exception:
+                response = None
+            if response is not None and response.status_code == 200:
+                return await self._store_token(response.json(), previous=token)
+            status = getattr(response, "status_code", 0)
+            if status and status not in {408, 409, 425, 429} and status < 500:
+                return None
+            if attempt + 1 < MCP_CALL_ATTEMPTS:
+                await asyncio.sleep(0.5 * (2 ** attempt))
+        return None
 
     async def access_token(self, *, interactive: bool) -> str:
         sdk = _load_sdk()
@@ -506,7 +584,8 @@ def _tool_result_json(result: Any, name: str) -> dict[str, Any]:
 class ReadOnlyMCPSession:
     """O singură conexiune MCP reutilizată de toate simbolurile unei rulări."""
 
-    def __init__(self):
+    def __init__(self, *, interactive: bool = False):
+        self.interactive = interactive
         self.sdk: dict[str, Any] | None = None
         self.http_client = None
         self.stream_context = None
@@ -517,7 +596,7 @@ class ReadOnlyMCPSession:
         try:
             self.sdk = _load_sdk()
             token = await ReadOnlyOAuthClient(FileTokenStorage()).access_token(
-                interactive=False
+                interactive=self.interactive
             )
             self.http_client = self.sdk["httpx"].AsyncClient(
                 headers={
@@ -561,8 +640,22 @@ class ReadOnlyMCPSession:
             raise IBKRMCPError(
                 f"Instrumentul IBKR {name} nu este permis de clientul read-only."
             )
-        result = await self.session.call_tool(name, arguments or {})
-        return _tool_result_json(result, name)
+        last_error: Exception | None = None
+        for attempt in range(MCP_CALL_ATTEMPTS):
+            try:
+                result = await self.session.call_tool(name, arguments or {})
+                return _tool_result_json(result, name)
+            except IBKRMCPAuthorizationRequired:
+                raise
+            except Exception as exc:
+                last_error = exc
+                if (
+                    not _is_transient_mcp_error(exc)
+                    or attempt + 1 >= MCP_CALL_ATTEMPTS
+                ):
+                    raise
+                await asyncio.sleep(0.5 * (2 ** attempt))
+        raise IBKRMCPError(f"Instrumentul IBKR {name} a eșuat: {last_error}")
 
 
 def _read_market_cache(path: Path = MARKET_CACHE_FILE) -> dict[str, Any]:
@@ -630,6 +723,20 @@ def _expected_country(symbol: str) -> str:
     )
 
 
+def _listing_identity_matches(
+    symbol: str, country_code: Any, exchange: Any
+) -> bool:
+    """Match a provider listing without requiring IBKR's broad EU country tag."""
+    expected_country = _expected_country(symbol)
+    country = str(country_code or "").upper()
+    venue = str(exchange or "").upper()
+    if country == expected_country:
+        return True
+    # IBKR classifies some Romanian listings as EU although the exchange is
+    # unambiguously BVB. This is venue metadata, not a ticker allow-list.
+    return expected_country == "RO" and country in {"EU", ""} and venue == "BVB"
+
+
 def _select_contract(symbol: str, payload: dict[str, Any]) -> dict[str, Any] | None:
     normalized_symbol = _market_symbol(symbol)
     query = _contract_query(symbol).replace(" ", "").replace("-", "")
@@ -648,9 +755,10 @@ def _select_contract(symbol: str, payload: dict[str, Any]) -> dict[str, Any] | N
         }
         if "STK" not in security_types and "FUND" not in security_types:
             continue
-        if (
-            explicit_listing
-            and str(item.get("country_code", "")).upper() != country
+        if explicit_listing and not _listing_identity_matches(
+            normalized_symbol,
+            item.get("country_code"),
+            item.get("exchange"),
         ):
             continue
         result_symbol = str(item.get("symbol", "")).upper()
@@ -864,11 +972,17 @@ async def _resolve_market_contract(
     normalized = _market_symbol(symbol)
     cached = cache["contracts"].get(normalized)
     if isinstance(cached, dict):
+        stale_negative = (
+            cached.get("status") == "not_found"
+            and cached.get("resolver_version") != CONTRACT_RESOLVER_VERSION
+        )
         ttl_days = (
             1 if cached.get("status") == "not_found"
             else CONTRACT_CACHE_TTL_DAYS
         )
-        if _fresh_iso(cached.get("resolved_at"), ttl_days * 86400):
+        if not stale_negative and _fresh_iso(
+            cached.get("resolved_at"), ttl_days * 86400
+        ):
             return cached if cached.get("contract_id") else None
     response = await session.call(
         "search_contracts", {"query": _contract_query(normalized)}
@@ -878,15 +992,23 @@ async def _resolve_market_contract(
     if match is None:
         cache["contracts"][normalized] = {
             "status": "not_found", "resolved_at": resolved_at,
+            "resolver_version": CONTRACT_RESOLVER_VERSION,
         }
         return None
     contract = {
         "status": "ok",
+        "resolver_version": CONTRACT_RESOLVER_VERSION,
         "resolved_at": resolved_at,
         "contract_id": int(match["underlying_contract_id"]),
         "symbol": str(match.get("symbol") or _contract_query(normalized)),
         "exchange": str(match.get("exchange") or ""),
-        "country_code": str(match.get("country_code") or ""),
+        "country_code": (
+            _expected_country(normalized)
+            if _listing_identity_matches(
+                normalized, match.get("country_code"), match.get("exchange")
+            )
+            else str(match.get("country_code") or "")
+        ),
         "description": str(match.get("description") or ""),
         "issuer": str(match.get("issuer") or ""),
         "currency": str(match.get("currency") or "").upper(),
@@ -976,6 +1098,95 @@ def runtime_enabled() -> bool:
     return True
 
 
+def _previous_weekday(value: datetime.date) -> datetime.date:
+    value -= datetime.timedelta(days=1)
+    while value.weekday() >= 5:
+        value -= datetime.timedelta(days=1)
+    return value
+
+
+def _latest_completed_session_date(
+    symbol: str, now: datetime.datetime | None = None
+) -> str:
+    """Return the latest likely completed daily session for a listing.
+
+    Exchange holidays are handled naturally after the first successful check:
+    the requested session key is persisted even if IBKR returns no newer bar.
+    """
+    normalized = _market_symbol(symbol)
+    venue_rules = (
+        (".RO", "Europe/Bucharest", (18, 15)),
+        (".PA", "Europe/Paris", (17, 45)),
+        (".DE", "Europe/Berlin", (17, 45)),
+        (".AS", "Europe/Amsterdam", (17, 45)),
+        (".L", "Europe/London", (16, 45)),
+        (".MI", "Europe/Rome", (17, 45)),
+        (".MC", "Europe/Madrid", (17, 45)),
+    )
+    timezone_name, close_time = "America/New_York", (16, 15)
+    for suffix, candidate_timezone, candidate_close in venue_rules:
+        if normalized.endswith(suffix):
+            timezone_name, close_time = candidate_timezone, candidate_close
+            break
+    current = now or datetime.datetime.now(datetime.timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=datetime.timezone.utc)
+    local = current.astimezone(ZoneInfo(timezone_name))
+    session = local.date()
+    if session.weekday() >= 5:
+        while session.weekday() >= 5:
+            session = _previous_weekday(session)
+    elif (local.hour, local.minute) < close_time:
+        session = _previous_weekday(session)
+    return session.isoformat()
+
+
+def _bar_session_date(bar: dict[str, Any]) -> str:
+    raw = str(bar.get("date") or "")
+    return raw[:10] if re.fullmatch(r"\d{4}-\d{2}-\d{2}.*", raw) else raw
+
+
+def _merge_price_bars(
+    existing: list[dict[str, Any]], incoming: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Merge overlapping daily windows and keep a bounded indicator history."""
+    by_session: dict[str, dict[str, Any]] = {}
+    for bar in [*(existing or []), *(incoming or [])]:
+        if not isinstance(bar, dict):
+            continue
+        key = _bar_session_date(bar)
+        if key:
+            by_session[key] = bar
+    return [by_session[key] for key in sorted(by_session)][-HISTORY_MAX_BARS:]
+
+
+def _history_refresh_plan(
+    symbol: str,
+    existing: dict[str, Any] | None,
+    now: datetime.datetime | None = None,
+) -> tuple[bool, bool, str]:
+    """Return (refresh_needed, full_refresh, completed_session_key)."""
+    current = now or datetime.datetime.now(datetime.timezone.utc)
+    instrument = existing if isinstance(existing, dict) else {}
+    bars = instrument.get("bars") if isinstance(instrument.get("bars"), list) else []
+    session_key = _latest_completed_session_date(symbol, current)
+    if not bars:
+        return True, True, session_key
+    latest_bar = _bar_session_date(bars[-1])
+    already_checked = str(instrument.get("history_checked_session") or "")
+    if latest_bar >= session_key or already_checked == session_key:
+        return False, False, session_key
+    full_at = (
+        instrument.get("full_history_fetched_at")
+        or instrument.get("history_fetched_at")
+        or instrument.get("fetched_at")
+    )
+    full_due = not _fresh_iso(
+        full_at, HISTORY_FULL_REFRESH_DAYS * 86400
+    )
+    return True, full_due, session_key
+
+
 async def _fetch_market_instrument(
     session: ReadOnlyMCPSession,
     symbol: str,
@@ -987,71 +1198,139 @@ async def _fetch_market_instrument(
     if isinstance(existing, dict) and _fresh_iso(
         existing.get("fetched_at"), MARKET_DATA_TTL_HOURS * 3600
     ):
+        existing["last_run_history_mode"] = "cache"
         return normalized, existing, "cached"
     recent_failure = cache.get("failures", {}).get(normalized)
     if isinstance(recent_failure, dict) and _fresh_iso(
-        recent_failure.get("failed_at"), MARKET_DATA_TTL_HOURS * 3600
+        recent_failure.get("failed_at"), _failure_ttl_seconds(recent_failure)
     ):
+        if isinstance(existing, dict) and existing.get("bars"):
+            existing["last_run_history_mode"] = "cache"
+            return normalized, existing, "cached"
         return normalized, None, str(
             recent_failure.get("error") or "market_data_error_cached"
         )
     contract = await _resolve_market_contract(session, normalized, cache)
     if not contract:
         return normalized, None, "contract_not_found"
-    arguments = {
+    now = datetime.datetime.now(datetime.timezone.utc)
+    fetched_at = now.isoformat()
+    history_needed, full_refresh, session_key = _history_refresh_plan(
+        normalized, existing, now
+    )
+    existing_bars = (
+        list(existing.get("bars") or []) if isinstance(existing, dict) else []
+    )
+    history_arguments = {
         "contract_id": contract["contract_id"],
         "security_type": contract.get("security_type", "STK"),
-        "period": "ONE_YEAR",
+        "period": "ONE_YEAR" if full_refresh else "ONE_MONTH",
         "step": "ONE_DAY",
         "outside_rth": False,
         "include_corporate_actions": True,
     }
-    if contract.get("exchange") and _expected_country(normalized) != "US":
-        arguments["exchange"] = contract["exchange"]
-    history_task = session.call("get_price_history", arguments)
+    # contract_id is globally unique. Supplying the listing venue as well can
+    # make IBKR reject an otherwise authorised contract (for example LQQ on
+    # SBF), so history and quotes are intentionally conId-only.
     snapshot_task = session.call(
         "get_price_snapshot",
         {
             "contract_id": contract["contract_id"],
-            **(
-                {"exchange": contract["exchange"]}
-                if contract.get("exchange") and _expected_country(normalized) != "US"
-                else {}
-            ),
             "market_data_names": list(SNAPSHOT_FIELDS),
         },
     )
-    history_result, snapshot_result = await asyncio.gather(
-        history_task, snapshot_task, return_exceptions=True
-    )
-    if isinstance(history_result, Exception):
-        error = str(history_result)
-        cache["failures"][normalized] = {
-            "failed_at": datetime.datetime.now(
-                datetime.timezone.utc
-            ).isoformat(),
-            "error": error[:500],
-        }
-        return normalized, None, error
-    bars = _normalise_price_history(history_result)
+    if history_needed:
+        history_result, snapshot_result = await asyncio.gather(
+            session.call("get_price_history", history_arguments),
+            snapshot_task,
+            return_exceptions=True,
+        )
+    else:
+        history_result = None
+        snapshot_result = (
+            await asyncio.gather(snapshot_task, return_exceptions=True)
+        )[0]
+
+    history_error = None
+    history_updated = False
+    if history_needed and isinstance(history_result, Exception):
+        history_error = str(history_result)
+        incoming_bars = []
+    elif history_needed:
+        incoming_bars = _normalise_price_history(history_result)
+        if not incoming_bars:
+            history_error = str(history_result.get("error") or "no_history")
+    else:
+        incoming_bars = []
+    if history_needed and incoming_bars:
+        bars = (
+            incoming_bars[-HISTORY_MAX_BARS:]
+            if full_refresh
+            else _merge_price_bars(existing_bars, incoming_bars)
+        )
+        history_updated = True
+    else:
+        bars = existing_bars
     if not bars:
-        error = str(history_result.get("error") or "no_history")
-        cache["failures"][normalized] = {
-            "failed_at": datetime.datetime.now(
-                datetime.timezone.utc
-            ).isoformat(),
-            "error": error[:500],
-        }
+        error = history_error or "no_history"
+        cache["failures"][normalized] = _market_failure(error)
         return normalized, None, error
+
     snapshot = snapshot_result if isinstance(snapshot_result, dict) else {}
     snapshot_metrics = _normalise_snapshot_metrics(snapshot)
     latest = _snapshot_number(snapshot.get("last")) or bars[-1]["close"]
-    fetched_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
     aliases = sorted({normalized, _contract_query(normalized), contract["symbol"]})
+    previous_market = (
+        dict(existing.get("market_data") or {})
+        if isinstance(existing, dict) else {}
+    )
+    previous_quote = dict(previous_market.get("quote") or {})
+    quote_observed = bool(snapshot) and not snapshot.get("error")
+    quote = {
+        "bid": snapshot_metrics.get("bid"),
+        "ask": snapshot_metrics.get("ask"),
+        "midpoint": snapshot_metrics.get("midpoint"),
+        "spread_pct": snapshot_metrics.get("spread_pct"),
+        "top_status": snapshot_metrics.get("top_status"),
+    } if quote_observed else previous_quote
+    history_fetched_at = (
+        fetched_at if history_updated
+        else (existing or {}).get("history_fetched_at")
+        or (existing or {}).get("fetched_at")
+    )
     instrument = {
         "symbol": normalized,
         "aliases": aliases,
-        "fetched_at": fetched_at,
+        "fetched_at": (
+            fetched_at if quote_observed or history_updated
+            else (existing or {}).get("fetched_at") or fetched_at
+        ),
+        "quote_fetched_at": (
+            fetched_at if quote_observed
+            else (existing or {}).get("quote_fetched_at")
+        ),
+        "history_fetched_at": history_fetched_at,
+        "history_checked_session": (
+            session_key if history_updated
+            else (existing or {}).get("history_checked_session")
+        ),
+        "full_history_fetched_at": (
+            fetched_at if history_updated and full_refresh
+            else (existing or {}).get("full_history_fetched_at")
+            or (existing or {}).get("history_fetched_at")
+            or (existing or {}).get("fetched_at")
+        ),
+        "history_refresh_mode": (
+            "full" if history_updated and full_refresh
+            else "incremental" if history_updated
+            else "cache"
+        ),
+        "last_run_history_mode": (
+            "full" if history_updated and full_refresh
+            else "incremental" if history_updated
+            else "cache"
+        ),
+        "history_refresh_error": history_error,
         "data_provider": "IBKR MCP",
         "data_broker": "IBKR",
         "ibkr_data_only": normalized in {"TVBETETF", "TVBETETF.RO"},
@@ -1066,23 +1345,32 @@ async def _fetch_market_instrument(
             "market_price": latest,
             "last": latest,
             "close": bars[-1]["close"],
-            "prior_close": _snapshot_number(snapshot.get("prior-close")),
-            "volume": _snapshot_number(snapshot.get("volume")),
-            "delayed": history_result.get("delayed"),
-            "quote": {
-                "bid": snapshot_metrics.get("bid"),
-                "ask": snapshot_metrics.get("ask"),
-                "midpoint": snapshot_metrics.get("midpoint"),
-                "spread_pct": snapshot_metrics.get("spread_pct"),
-                "top_status": snapshot_metrics.get("top_status"),
-            },
-            "snapshot_metrics": snapshot_metrics,
+            "prior_close": (
+                _snapshot_number(snapshot.get("prior-close"))
+                or previous_market.get("prior_close")
+            ),
+            "volume": (
+                _snapshot_number(snapshot.get("volume"))
+                or previous_market.get("volume")
+            ),
+            "delayed": (
+                history_result.get("delayed")
+                if isinstance(history_result, dict)
+                else previous_market.get("delayed")
+            ),
+            "quote": quote,
+            "snapshot_metrics": (
+                snapshot_metrics if quote_observed
+                else previous_market.get("snapshot_metrics", {})
+            ),
         },
         "bars": bars,
     }
     cache["instruments"][normalized] = instrument
     cache["failures"].pop(normalized, None)
-    return normalized, instrument, "updated"
+    return normalized, instrument, (
+        "updated" if quote_observed or history_updated else "cached"
+    )
 
 
 async def _prefetch_market_data_async(
@@ -1105,11 +1393,13 @@ async def _prefetch_market_data_async(
         if isinstance(existing, dict) and _fresh_iso(
             existing.get("fetched_at"), MARKET_DATA_TTL_HOURS * 3600
         ):
+            existing["last_run_history_mode"] = "cache"
             results.append((symbol, existing, "cached"))
             continue
         recent_failure = cache.get("failures", {}).get(symbol)
         if isinstance(recent_failure, dict) and _fresh_iso(
-            recent_failure.get("failed_at"), MARKET_DATA_TTL_HOURS * 3600
+            recent_failure.get("failed_at"),
+            _failure_ttl_seconds(recent_failure),
         ):
             results.append((
                 symbol, None,
@@ -1664,6 +1954,51 @@ async def _call_with_retry(
     return {}
 
 
+async def _session_call(
+    session: ReadOnlyMCPSession,
+    name: str,
+    *, required: bool = True,
+    arguments: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Call one tool on an already initialised, reusable MCP connection."""
+    try:
+        return await session.call(name, arguments)
+    except IBKRMCPAuthorizationRequired:
+        raise
+    except Exception as exc:
+        if required:
+            raise IBKRMCPError(f"IBKR MCP {name} indisponibil: {exc}") from exc
+        print(f"  -> IBKR MCP {name} indisponibil; continuăm fără el.")
+        return {}
+
+
+async def _read_account_tools(*, interactive: bool) -> tuple[dict[str, Any], ...]:
+    """Read the account through one session instead of seven handshakes."""
+    async with ReadOnlyMCPSession(interactive=interactive) as session:
+        summary = await _session_call(session, "get_account_summary")
+        positions = await _session_call(session, "get_account_positions")
+        orders = await _session_call(session, "get_account_orders")
+        balances = await _session_call(
+            session, "get_account_balances", required=False
+        )
+        performance = await _session_call(
+            session, "get_pa_performance_all_periods", required=False
+        )
+        allocation = await _session_call(
+            session,
+            "get_pa_allocation",
+            arguments={"type": "ALL"},
+            required=False,
+        )
+        trades = await _session_call(
+            session,
+            "get_account_trades",
+            arguments={"period": "DAYS_90"},
+            required=False,
+        )
+    return summary, positions, orders, balances, performance, allocation, trades
+
+
 def _normalise_trades(payload: dict[str, Any]) -> list[dict[str, Any]]:
     """Persist an analysis-ready journal while leaving future score links null."""
     rows = []
@@ -1751,31 +2086,28 @@ def _normalise_trades(payload: dict[str, Any]) -> list[dict[str, Any]]:
 
 async def build_account_snapshot(*, interactive: bool = False) -> dict[str, Any]:
     """Read the authorised account without exposing any mutation tools."""
-    summary = await _call_with_retry(
-        "get_account_summary", interactive=interactive
-    )
-    positions = await _call_with_retry(
-        "get_account_positions", interactive=interactive
-    )
-    orders = await _call_with_retry(
-        "get_account_orders", interactive=interactive
-    )
-    balances = await _call_with_retry(
-        "get_account_balances", required=False, attempts=2,
-        interactive=interactive,
-    )
-    performance = await _call_with_retry(
-        "get_pa_performance_all_periods", required=False, attempts=1,
-        interactive=interactive,
-    )
-    allocation = await _call_with_retry(
-        "get_pa_allocation", arguments={"type": "ALL"}, required=False,
-        attempts=1, interactive=interactive,
-    )
-    trades = await _call_with_retry(
-        "get_account_trades", arguments={"period": "DAYS_90"},
-        required=False, attempts=1, interactive=interactive,
-    )
+    last_error: Exception | None = None
+    for attempt in range(2):
+        try:
+            (
+                summary,
+                positions,
+                orders,
+                balances,
+                performance,
+                allocation,
+                trades,
+            ) = await _read_account_tools(interactive=interactive)
+            break
+        except IBKRMCPAuthorizationRequired:
+            raise
+        except Exception as exc:
+            last_error = exc
+            if not _is_transient_mcp_error(exc) or attempt == 1:
+                raise
+            await asyncio.sleep(1)
+    else:  # pragma: no cover - defensive; loop either breaks or raises
+        raise IBKRMCPError(f"IBKR MCP cont indisponibil: {last_error}")
 
     base_currency = str(summary.get("currency", "EUR")).upper() or "EUR"
     account_id, nav_history = _normalise_nav_history(

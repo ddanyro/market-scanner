@@ -135,6 +135,36 @@ def test_hash_chain_detects_snapshot_tampering(tmp_path):
         raise AssertionError("tampered ledger was accepted")
 
 
+def test_canonical_local_segment_can_continue_r2_hash_chain(tmp_path, monkeypatch):
+    path = tmp_path / "shadow_predictions.jsonl"
+    cloud = shadow_validation.build_snapshot(
+        [candidate(symbol="CLOUD")], {}, "2026-09-12T07:00:00Z", "all"
+    )
+    child = shadow_validation.build_snapshot(
+        [candidate(symbol="LOCAL")], {}, "2026-09-12T08:00:00Z", "all"
+    )
+    child["previous_snapshot_hash"] = cloud["content_hash"]
+    child["content_hash"] = shadow_validation._content_hash(child)
+    child["snapshot_id"] = child["content_hash"][:24]
+    child["content_hash"] = shadow_validation._content_hash(child)
+    path.write_text(json.dumps(child) + "\n")
+    monkeypatch.setattr(shadow_validation, "LEDGER_PATH", path)
+    import shadow_parquet_store
+    monkeypatch.setattr(
+        shadow_parquet_store, "load_snapshots", lambda _dataset: [cloud]
+    )
+
+    loaded = shadow_validation.load_ledger(path)
+
+    assert [row["predictions"][0]["symbol"] for row in loaded] == [
+        "CLOUD", "LOCAL",
+    ]
+    copy = tmp_path / "copy.jsonl"
+    copy.write_text(json.dumps(child) + "\n")
+    with __import__("pytest").raises(ValueError, match="Broken snapshot root"):
+        shadow_validation.load_ledger(copy)
+
+
 def test_concurrent_legacy_ledgers_are_merged_by_snapshot_id(tmp_path):
     first = tmp_path / "first.jsonl"
     second = tmp_path / "second.jsonl"

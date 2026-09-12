@@ -268,6 +268,39 @@ def test_tampered_shadow_snapshot_is_rejected(tmp_path):
         raise AssertionError("tampered Technical Events snapshot was accepted")
 
 
+def test_canonical_technical_segment_can_continue_r2_chain(tmp_path, monkeypatch):
+    path = tmp_path / "technical_events_predictions.jsonl.gz"
+    result = technical_events.analyze(
+        frame_from_close(np.linspace(90, 110, 60)), timeframe_config=TEST_CONFIG
+    )
+    cloud = technical_events_shadow.build_snapshot(
+        [{"Ticker": "CLOUD", "Technical_Events": result}], {},
+        recorded_at="2026-09-12T07:00:00Z",
+    )
+    local = technical_events_shadow.build_snapshot(
+        [{"Ticker": "LOCAL", "Technical_Events": result}], {},
+        recorded_at="2026-09-12T08:00:00Z",
+    )
+    local["previous_snapshot_hash"] = cloud["content_hash"]
+    local["content_hash"] = technical_events_shadow._hash(local)
+    local["snapshot_id"] = local["content_hash"][:24]
+    local["content_hash"] = technical_events_shadow._hash(local)
+    path.write_bytes(__import__("gzip").compress(
+        (json.dumps(local) + "\n").encode("utf-8")
+    ))
+    monkeypatch.setattr(technical_events_shadow, "LEDGER_PATH", path)
+    import shadow_parquet_store
+    monkeypatch.setattr(
+        shadow_parquet_store, "load_snapshots", lambda _dataset: [cloud]
+    )
+
+    loaded = technical_events_shadow.load_ledger(path)
+
+    assert [row["predictions"][0]["ticker"] for row in loaded] == [
+        "CLOUD", "LOCAL",
+    ]
+
+
 def test_technical_ledgers_merge_without_losing_observations(tmp_path):
     left = tmp_path / "left.jsonl.gz"
     right = tmp_path / "right.jsonl.gz"

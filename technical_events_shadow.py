@@ -254,7 +254,9 @@ def append_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None,
             print(f"[Shadow R2] Nu am putut citi ultimul Technical snapshot: {exc}")
     with target.open("a+b") as handle:
         fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-        existing = load_local_ledger(target)
+        existing = load_local_ledger(
+            target, allow_external_root=target == LEDGER_PATH
+        )
         previous_candidates = ([existing[-1]] if existing else [])
         if cloud_previous:
             previous_candidates.append(cloud_previous)
@@ -289,7 +291,9 @@ def append_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None,
     return snapshot
 
 
-def load_local_ledger(path=LEDGER_PATH, *, archive_base=None):
+def load_local_ledger(
+    path=LEDGER_PATH, *, archive_base=None, allow_external_root=False
+):
     target = Path(path)
     parts = [*archive_paths(archive_base or target), target]
     if not any(part.exists() for part in parts):
@@ -302,7 +306,11 @@ def load_local_ledger(path=LEDGER_PATH, *, archive_base=None):
             # Concurrent first writers may legitimately create more than one
             # immutable root before Git reconciliation. Every non-root parent
             # must still exist in an earlier archive or active-ledger row.
-            if parent is not None and parent not in known:
+            if (
+                parent is not None
+                and parent not in known
+                and not (allow_external_root and not known)
+            ):
                 raise ValueError(
                     f"unknown Technical Events parent while loading {part}"
                 )
@@ -313,7 +321,14 @@ def load_local_ledger(path=LEDGER_PATH, *, archive_base=None):
 
 def load_ledger(path=LEDGER_PATH, *, archive_base=None):
     target = Path(path)
-    rows = load_local_ledger(target, archive_base=archive_base)
+    # Fișierul canonic local este un segment append-only ancorat în ultimul
+    # snapshot păstrat în R2. Arhivele/fișierele explicite rămân strict
+    # self-contained și resping părinții necunoscuți.
+    rows = load_local_ledger(
+        target,
+        archive_base=archive_base,
+        allow_external_root=target == LEDGER_PATH and archive_base is None,
+    )
     if target != LEDGER_PATH or archive_base is not None:
         return rows
     try:

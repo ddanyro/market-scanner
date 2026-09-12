@@ -1,4 +1,5 @@
 import pytest
+import requests
 
 import shadow_parquet_store as store
 
@@ -61,6 +62,17 @@ class RecordingSession:
         return FakeResponse()
 
 
+class StoredThenDisconnectedSession:
+    def __init__(self):
+        self.methods = []
+
+    def request(self, method, url, data, headers, timeout):
+        self.methods.append(method)
+        if method == "PUT":
+            raise requests.ConnectionError("response lost")
+        return FakeResponse()
+
+
 def test_r2_config_is_disabled_when_no_values(monkeypatch):
     for name in (
         "SHADOW_R2_ACCOUNT_ID", "SHADOW_R2_ACCESS_KEY_ID",
@@ -114,6 +126,44 @@ def test_r2_request_uses_sigv4_without_exposing_secret():
     assert timeout == 90
     assert headers["Authorization"].startswith("AWS4-HMAC-SHA256 Credential=access/")
     assert "secret" not in headers["Authorization"]
+
+
+def test_r2_large_put_uses_bulk_upload_timeout():
+    session = RecordingSession()
+    client = store.R2Client(config(), session=session)
+
+    client.put("runtime/dashboard.json.gz", b"x" * (5 * 1024 * 1024))
+
+    assert session.request_data[-1] == 600
+
+
+def test_r2_put_accepts_head_confirmation_after_lost_response():
+    session = StoredThenDisconnectedSession()
+    client = store.R2Client(config(), session=session)
+
+    client.put("runtime/dashboard.json.gz", b"payload")
+
+    assert session.methods == ["PUT", "HEAD"]
+
+
+def test_r2_large_put_uses_multipart_client(monkeypatch):
+    client = store.R2Client(config())
+    observed = {}
+
+    def fake_multipart(key, content, content_type):
+        observed.update(key=key, size=len(content), content_type=content_type)
+        return "uploaded"
+
+    monkeypatch.setattr(client, "_multipart_put", fake_multipart)
+
+    result = client.put("runtime/dashboard.json.gz", b"x" * (4 * 1024 * 1024))
+
+    assert result == "uploaded"
+    assert observed == {
+        "key": "runtime/dashboard.json.gz",
+        "size": 4 * 1024 * 1024,
+        "content_type": "application/vnd.apache.parquet",
+    }
 
 
 def test_parquet_round_trip_preserves_full_snapshot(tmp_path):

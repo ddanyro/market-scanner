@@ -888,8 +888,11 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
 
     mcp_history = _tws_instrument_history_frame(mcp_instrument)
     if not mcp_history.empty:
+        history_mode = str(
+            (mcp_instrument or {}).get('last_run_history_mode') or 'cache'
+        ).lower()
         print(
-            f"  [IBKR MCP] Istoric pentru {ticker}: "
+            f"  [IBKR MCP/{history_mode}] Istoric pentru {ticker}: "
             f"{len(mcp_history)} ședințe"
         )
         return (

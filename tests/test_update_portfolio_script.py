@@ -47,11 +47,19 @@ class TestUpdatePortfolioScript(unittest.TestCase):
             sync,
         )
 
-    def test_international_and_all_refresh_forward_reports_before_commit(self):
-        for filename in ('update_international.sh', 'update_all.sh'):
+    def test_all_updates_use_cadenced_shadow_maintenance_before_commit(self):
+        for filename in (
+            'update_portfolio.sh', 'update_international.sh', 'update_all.sh',
+        ):
             script = (self.root / filename).read_text(encoding='utf-8')
-            self.assertIn('evaluate_shadow_forward.py', script)
-            self.assertIn('evaluate_technical_events_forward.py', script)
+            self.assertIn('run_shadow_maintenance.py', script)
+            self.assertNotIn('evaluate_shadow_forward.py', script)
+            self.assertNotIn('evaluate_technical_events_forward.py', script)
+        runner = (self.root / 'run_shadow_maintenance.py').read_text(
+            encoding='utf-8'
+        )
+        self.assertIn('evaluate_shadow_forward.py', runner)
+        self.assertIn('evaluate_technical_events_forward.py', runner)
 
     def test_ro_update_loads_shared_r2_configuration(self):
         script = (self.root / 'update_ro.sh').read_text(encoding='utf-8')

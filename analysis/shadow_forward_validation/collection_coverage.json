@@ -1,18 +1,19 @@
 {
-  "generated_at": "2026-09-12T05:53:08+00:00",
+  "generated_at": "2026-09-12T08:57:30+00:00",
   "ledger_path": "shadow_predictions.jsonl",
-  "last_snapshot_id": "ca68feaaa0642d0563ae627e",
-  "snapshots": 52,
+  "last_snapshot_id": "ccd078d3f928b1565067339f",
+  "snapshots": 55,
   "pre_official_snapshots_excluded": 27,
-  "predictions": 414,
-  "execution_eligible": 383,
+  "predictions": 445,
+  "execution_eligible": 413,
   "options_observed": 0,
   "options_quality": {
-    "unavailable": 374,
+    "unavailable": 399,
     "partial": 27,
-    "quote_only": 13
+    "quote_only": 17,
+    "contracts_only": 2
   },
-  "portfolio_fit_observed": 252,
+  "portfolio_fit_observed": 271,
   "locked_holdout_snapshots": 0,
   "performance_outcomes_evaluated": false,
   "integrity_errors": []

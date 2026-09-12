@@ -36,6 +36,13 @@ ARTIFACTS = {
         "pull": True,
         "optional": True,
     },
+    "shadow-maintenance-state": {
+        "path": Path(".shadow_maintenance_state.json"),
+        "content_type": "application/json; charset=utf-8",
+        "private": True,
+        "pull": True,
+        "optional": True,
+    },
     "enhanced-validation-dataset": {
         "path": Path(
             "analysis/enhanced_scoring_validation/recommendations_with_outcomes.csv"
@@ -97,13 +104,26 @@ def _atomic_write(path, content):
             os.unlink(temporary)
 
 
+def _artifact_bytes(path, spec):
+    raw = path.read_bytes()
+    if str(spec.get("content_type", "")).startswith("application/json"):
+        canonical = json.dumps(
+            json.loads(raw), ensure_ascii=False, separators=(",", ":"), sort_keys=True
+        ).encode("utf-8")
+        if canonical != raw:
+            _atomic_write(path, canonical)
+        return canonical
+    return raw
+
+
 def push_runtime(*, publish_loader=False, config=None, client=None):
     config = config or _config()
     client = client or R2Client(config)
     previous = _read_manifest(client)
     artifacts = dict(previous.get("artifacts") or {})
     generated_at = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
-    stamp = generated_at.replace("-", "").replace(":", "").replace("+00:00", "Z")
+    uploaded = []
+    unchanged = []
 
     for name, spec in ARTIFACTS.items():
         path = spec["path"]
@@ -111,13 +131,17 @@ def push_runtime(*, publish_loader=False, config=None, client=None):
             if spec.get("optional"):
                 continue
             raise FileNotFoundError(f"Lipsește artefactul runtime obligatoriu: {path}")
-        raw = path.read_bytes()
+        raw = _artifact_bytes(path, spec)
         if name == "dashboard-html" and LOADER_MARKER.encode() in raw:
             # Never replace the full dashboard in R2 with its tiny Pages loader.
             continue
         digest = _sha256(raw)
-        compressed = gzip.compress(raw, compresslevel=6, mtime=0)
-        key = f"{PREFIX}/{name}/versions/{stamp}-{digest[:16]}.gz"
+        previous_descriptor = artifacts.get(name) or {}
+        if previous_descriptor.get("sha256") == digest:
+            unchanged.append(name)
+            continue
+        compressed = gzip.compress(raw, compresslevel=9, mtime=0)
+        key = f"{PREFIX}/{name}/versions/{digest}.gz"
         if not client.exists(key):
             client.put(key, compressed, content_type="application/gzip")
         artifacts[name] = {
@@ -130,6 +154,7 @@ def push_runtime(*, publish_loader=False, config=None, client=None):
             "private": bool(spec["private"]),
             "updated_at": generated_at,
         }
+        uploaded.append(name)
 
     manifest = {
         "schema": "market-scanner.runtime-r2.v1",
@@ -144,7 +169,8 @@ def push_runtime(*, publish_loader=False, config=None, client=None):
     if publish_loader:
         _atomic_write(Path("index.html"), loader_html().encode("utf-8"))
     print(json.dumps({
-        "pushed": sorted(artifacts),
+        "pushed": sorted(uploaded),
+        "unchanged": sorted(unchanged),
         "manifest": MANIFEST_KEY,
         "loader_published": publish_loader,
     }, ensure_ascii=False))
@@ -156,6 +182,7 @@ def pull_runtime(*, config=None, client=None):
     client = client or R2Client(config)
     manifest = _read_manifest(client)
     restored = []
+    unchanged = []
     for name, spec in ARTIFACTS.items():
         if not spec.get("pull"):
             continue
@@ -164,13 +191,32 @@ def pull_runtime(*, config=None, client=None):
             if spec.get("optional"):
                 continue
             raise RuntimeError(f"Manifestul R2 nu conține {name}")
+        path = spec["path"]
+        if path.exists():
+            try:
+                local_digest = _sha256(path.read_bytes())
+            except OSError:
+                local_digest = None
+            if local_digest == descriptor.get("sha256"):
+                unchanged.append(name)
+                print(f"[R2 runtime] {name}: neschimbat (cache local).", flush=True)
+                continue
+        print(
+            f"[R2 runtime] {name}: descarc "
+            f"{descriptor.get('stored_bytes', 0) / 1048576:.2f} MB...",
+            flush=True,
+        )
         compressed = client.get(descriptor["key"])
         raw = gzip.decompress(compressed)
         if _sha256(raw) != descriptor.get("sha256"):
             raise RuntimeError(f"Checksum R2 invalid pentru {name}")
-        _atomic_write(spec["path"], raw)
+        _atomic_write(path, raw)
         restored.append(name)
-    print(json.dumps({"pulled": restored, "manifest": MANIFEST_KEY}))
+    print(json.dumps({
+        "pulled": restored,
+        "unchanged": unchanged,
+        "manifest": MANIFEST_KEY,
+    }))
     return manifest
 
 

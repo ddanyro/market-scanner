@@ -12,6 +12,7 @@ import argparse
 import datetime as dt
 import hashlib
 import hmac
+import io
 import json
 import os
 import tempfile
@@ -302,8 +303,12 @@ class R2Client:
         url = self.config.endpoint + canonical_uri
         if canonical_query:
             url += "?" + canonical_query
+        # Large runtime artifacts can take more than 90 seconds to upload on a
+        # slow uplink.  Keep the normal timeout for metadata and immutable
+        # snapshots, but allow bulk PUTs enough time to finish.
+        timeout = 600 if method == "PUT" and len(body) >= 5 * 1024 * 1024 else 90
         response = self.session.request(
-            method, url, data=body, headers=request_headers, timeout=90
+            method, url, data=body, headers=request_headers, timeout=timeout
         )
         if response.status_code >= 400:
             raise RuntimeError(
@@ -321,11 +326,61 @@ class R2Client:
                 return False
             raise
 
-    def put(self, key, content, *, content_type="application/vnd.apache.parquet"):
-        return self._request(
-            "PUT", key, body=content,
-            headers={"content-type": content_type},
+    def _multipart_put(self, key, content, content_type):
+        import boto3
+        from boto3.s3.transfer import TransferConfig
+        from botocore.config import Config
+
+        client = boto3.client(
+            "s3",
+            endpoint_url=self.config.endpoint,
+            aws_access_key_id=self.config.access_key_id,
+            aws_secret_access_key=self.config.secret_access_key,
+            region_name="auto",
+            config=Config(
+                connect_timeout=30,
+                read_timeout=600,
+                retries={"max_attempts": 5, "mode": "adaptive"},
+                s3={"addressing_style": "path"},
+                tcp_keepalive=True,
+            ),
         )
+        client.upload_fileobj(
+            io.BytesIO(content),
+            self.config.bucket,
+            key,
+            ExtraArgs={"ContentType": content_type},
+            Config=TransferConfig(
+                multipart_threshold=4 * 1024 * 1024,
+                multipart_chunksize=5 * 1024 * 1024,
+                max_concurrency=1,
+                use_threads=False,
+            ),
+        )
+        return client.head_object(Bucket=self.config.bucket, Key=key)
+
+    def put(self, key, content, *, content_type="application/vnd.apache.parquet"):
+        if len(content) >= 4 * 1024 * 1024 and isinstance(
+            self.session, requests.Session
+        ):
+            return self._multipart_put(key, content, content_type)
+        last_error = None
+        for _attempt in range(3):
+            try:
+                return self._request(
+                    "PUT", key, body=content,
+                    headers={"content-type": content_type},
+                )
+            except requests.RequestException as exc:
+                last_error = exc
+                # R2 may persist the complete object and close the connection
+                # before the client receives the response.  A successful HEAD
+                # makes the retry idempotent and avoids another large upload.
+                try:
+                    return self._request("HEAD", key)
+                except (requests.RequestException, RuntimeError):
+                    continue
+        raise last_error
 
     def get(self, key):
         return self._request("GET", key).content

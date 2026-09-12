@@ -163,6 +163,7 @@ shadow_r2_is_primary() {
 
 runtime_r2_pull() {
     if shadow_r2_is_configured; then
+        echo "Verific starea runtime din Cloudflare R2..."
         "$(sync_python_bin)" runtime_r2_store.py pull
     else
         echo "Avertisment: R2 runtime nu este configurat; folosesc fișierele locale." >&2

@@ -129,8 +129,7 @@ jobs:
         echo "Running market scanner in mode: $MODE"
         python update_sp500_json.py
         python market_scanner.py --mode $MODE
-        python evaluate_shadow_forward.py || echo "Shadow outcome evaluation unavailable; collection remains valid."
-        python evaluate_technical_events_forward.py || echo "Technical Events outcome evaluation unavailable; immutable collection remains valid."
+        python run_shadow_maintenance.py || echo "Periodic shadow maintenance unavailable; immutable collection remains valid."
         python runtime_r2_store.py push --publish-loader
 
     - name: Commit and Push changes
