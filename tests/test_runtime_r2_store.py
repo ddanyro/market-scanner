@@ -13,6 +13,7 @@ class MemoryR2:
         self.objects = {}
         self.get_calls = []
         self.put_calls = []
+        self.delete_calls = []
 
     def exists(self, key):
         return key in self.objects
@@ -26,6 +27,13 @@ class MemoryR2:
     def put(self, key, content, *, content_type="application/octet-stream"):
         self.put_calls.append(key)
         self.objects[key] = (bytes(content), content_type)
+
+    def delete(self, key):
+        self.delete_calls.append(key)
+        self.objects.pop(key, None)
+
+    def list_keys(self, prefix):
+        return sorted(key for key in self.objects if key.startswith(prefix))
 
 
 @pytest.fixture
@@ -168,6 +176,35 @@ def test_second_push_reuses_unchanged_r2_versions(
     ]
     assert version_puts_after == version_puts_before
     assert second["artifacts"] == first["artifacts"]
+
+
+def test_runtime_retention_keeps_current_and_two_previous_versions_only(
+    tmp_path, monkeypatch, r2_config
+):
+    monkeypatch.chdir(tmp_path)
+    write_runtime_files(tmp_path)
+    client = MemoryR2()
+    shadow_key = "market-scanner-shadow/v1/enhanced-scoring/snapshot.parquet"
+    client.objects[shadow_key] = (b"PAR1", "application/vnd.apache.parquet")
+
+    manifest = None
+    for version in range(5):
+        Path("dashboard_state.json").write_text(
+            json.dumps({"state": version}), encoding="utf-8"
+        )
+        manifest = store.push_runtime(config=r2_config, client=client)
+
+    descriptor = manifest["artifacts"]["dashboard-state"]
+    version_prefix = f"{store.PREFIX}/dashboard-state/versions/"
+    retained_versions = client.list_keys(version_prefix)
+
+    assert len(retained_versions) == 3
+    assert descriptor["key"] in retained_versions
+    assert set(descriptor["previous_keys"]) == set(retained_versions) - {
+        descriptor["key"]
+    }
+    assert len(client.delete_calls) == 2
+    assert shadow_key in client.objects
 
 
 def test_push_canonicalizes_json_before_hashing_and_upload(

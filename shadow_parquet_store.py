@@ -385,6 +385,9 @@ class R2Client:
     def get(self, key):
         return self._request("GET", key).content
 
+    def delete(self, key):
+        return self._request("DELETE", key)
+
     def list_keys(self, prefix):
         keys = []
         token = None

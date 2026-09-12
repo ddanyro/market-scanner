@@ -128,6 +128,20 @@ def test_r2_request_uses_sigv4_without_exposing_secret():
     assert "secret" not in headers["Authorization"]
 
 
+def test_r2_delete_uses_signed_delete_request():
+    session = RecordingSession()
+    client = store.R2Client(config(), session=session)
+
+    client.delete("runtime/obsolete.json.gz")
+
+    method, url, body, headers, timeout = session.request_data
+    assert method == "DELETE"
+    assert url.endswith("/shadow/runtime/obsolete.json.gz")
+    assert body == b""
+    assert timeout == 90
+    assert headers["Authorization"].startswith("AWS4-HMAC-SHA256 Credential=access/")
+
+
 def test_r2_large_put_uses_bulk_upload_timeout():
     session = RecordingSession()
     client = store.R2Client(config(), session=session)

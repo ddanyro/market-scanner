@@ -21,6 +21,7 @@ WORKER_BASE_URL = os.environ.get(
     "https://market-scanner-portfolio-chat.daniel-dragomir.workers.dev",
 ).rstrip("/")
 LOADER_MARKER = "market-scanner-r2-loader-v1"
+PREVIOUS_VERSIONS_TO_KEEP = 2
 
 ARTIFACTS = {
     "dashboard-state": {
@@ -122,6 +123,37 @@ def _artifact_bytes(path, spec):
     return raw
 
 
+def _previous_version_keys(previous_descriptor, current_key):
+    candidates = [
+        previous_descriptor.get("key"),
+        *(previous_descriptor.get("previous_keys") or []),
+    ]
+    retained = []
+    for key in candidates:
+        if not key or key == current_key or key in retained:
+            continue
+        retained.append(key)
+        if len(retained) >= PREVIOUS_VERSIONS_TO_KEEP:
+            break
+    return retained
+
+
+def _prune_runtime_versions(client, artifacts):
+    """Delete unreferenced runtime versions, never shadow snapshot datasets."""
+    pruned = []
+    for name, descriptor in artifacts.items():
+        prefix = f"{PREFIX}/{name}/versions/"
+        retained = {
+            descriptor.get("key"),
+            *(descriptor.get("previous_keys") or []),
+        }
+        for key in client.list_keys(prefix):
+            if key not in retained:
+                client.delete(key)
+                pruned.append(key)
+    return pruned
+
+
 def push_runtime(*, publish_loader=False, config=None, client=None):
     config = config or _config()
     client = client or R2Client(config)
@@ -159,6 +191,7 @@ def push_runtime(*, publish_loader=False, config=None, client=None):
             "content_encoding": "gzip",
             "private": bool(spec["private"]),
             "updated_at": generated_at,
+            "previous_keys": _previous_version_keys(previous_descriptor, key),
         }
         uploaded.append(name)
 
@@ -172,6 +205,14 @@ def push_runtime(*, publish_loader=False, config=None, client=None):
         json.dumps(manifest, separators=(",", ":"), sort_keys=True).encode("utf-8"),
         content_type="application/json",
     )
+    retention_warning = None
+    try:
+        pruned = _prune_runtime_versions(client, artifacts)
+    except Exception as exc:
+        # The new manifest is already valid. A retention failure must not make
+        # the freshly published runtime unavailable; retry on the next push.
+        pruned = []
+        retention_warning = str(exc)
     if publish_loader:
         _atomic_write(Path("index.html"), loader_html().encode("utf-8"))
     print(json.dumps({
@@ -179,6 +220,8 @@ def push_runtime(*, publish_loader=False, config=None, client=None):
         "unchanged": sorted(unchanged),
         "manifest": MANIFEST_KEY,
         "loader_published": publish_loader,
+        "pruned_versions": len(pruned),
+        "retention_warning": retention_warning,
     }, ensure_ascii=False))
     return manifest
 
