@@ -182,7 +182,7 @@ jobs:
     - name: Exclude private shadow data from Pages source
       if: ${{ github.event_name != 'workflow_dispatch' || inputs.push_test_symbol == '' }}
       run: |
-        find . -path './.git' -prune -o -type f \( \
+        find . -type f \( \
           -name 'shadow_predictions.jsonl' -o \
           -name 'technical_events_predictions*.jsonl.gz' -o \
           -name 'labelled_predictions.csv.gz' -o \
