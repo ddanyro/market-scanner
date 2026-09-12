@@ -54,7 +54,7 @@ test("serves the public dashboard artifact from private R2", async () => {
   ), workerEnv({MARKET_SCANNER_DATA: runtimeR2()}));
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("Access-Control-Allow-Origin"), SITE_ORIGIN);
-  assert.equal(response.headers.get("Content-Encoding"), "gzip");
+  assert.equal(response.headers.get("Content-Encoding"), null);
   assert.equal(response.headers.get("ETag"), '"abc123"');
 });
 

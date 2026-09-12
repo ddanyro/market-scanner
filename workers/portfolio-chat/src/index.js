@@ -305,7 +305,6 @@ async function runtimeResponse(request, env, origin, artifactName) {
   }
   const headers = new Headers({
     "Content-Type": descriptor.content_type || "application/octet-stream",
-    "Content-Encoding": descriptor.content_encoding || "gzip",
     "Cache-Control": "public, max-age=60, must-revalidate",
     "ETag": `\"${descriptor.sha256}\"`,
     "X-Content-Type-Options": "nosniff",
@@ -314,7 +313,13 @@ async function runtimeResponse(request, env, origin, artifactName) {
     headers.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
     headers.set("Vary", "Origin");
   }
-  return new Response(artifact.body, {status: 200, headers});
+  const artifactBody = artifact.body instanceof ReadableStream
+    ? artifact.body
+    : new Response(artifact.body).body;
+  const body = descriptor.content_encoding === "gzip"
+    ? artifactBody.pipeThrough(new DecompressionStream("gzip"))
+    : artifactBody;
+  return new Response(body, {status: 200, headers});
 }
 
 function jsonResponse(payload, status, origin) {
