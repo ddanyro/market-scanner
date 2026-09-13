@@ -254,6 +254,38 @@ test("falls back to Workers AI when OpenAI credit is exhausted", async (context)
   assert.match(payload.notice, /creditul OpenAI este epuizat/);
 });
 
+test("keeps a continuation on GPT instead of switching to Workers AI", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    error: {code: "credit_balance_exhausted", type: "insufficient_quota"},
+  }), {status: 429, headers: {"Content-Type": "application/json"}});
+  const password = "portfolio-test";
+  let fallbackCalls = 0;
+  const response = await worker.fetch(new Request("https://worker.example", {
+    method: "POST",
+    headers: {Origin: SITE_ORIGIN, "Content-Type": "application/json"},
+    body: JSON.stringify({
+      message: "Continuă exact răspunsul anterior.",
+      continuation: true,
+      context: {},
+      history: [{role: "assistant", content: "Răspuns parțial."}],
+      accessToken: await expectedAccessToken(password),
+    }),
+  }), workerEnv({
+    PORTFOLIO_PASSWORD: password,
+    AI: {run: async () => {
+      fallbackCalls += 1;
+      return {choices: [{message: {content: "Fallback nedorit."}}]};
+    }},
+  }));
+  const payload = await response.json();
+  assert.equal(response.status, 503);
+  assert.equal(payload.retryable, true);
+  assert.match(payload.error, /GPT nu a putut continua/);
+  assert.equal(fallbackCalls, 0);
+});
+
 test("retries a temporary OpenAI server error before using the answer", async (context) => {
   const originalFetch = globalThis.fetch;
   context.after(() => { globalThis.fetch = originalFetch; });

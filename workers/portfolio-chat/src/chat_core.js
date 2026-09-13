@@ -1,5 +1,6 @@
 const TOKEN_MESSAGE = "market-scanner-portfolio-chat-v1";
 const MAX_MESSAGE_LENGTH = 2000;
+const MAX_ASSISTANT_HISTORY_LENGTH = 16000;
 const MAX_CONTEXT_LENGTH = 180000;
 const MAX_HISTORY_ITEMS = 8;
 export const CLOUDFLARE_FALLBACK_MODEL = "@cf/openai/gpt-oss-120b";
@@ -105,7 +106,13 @@ export async function validateChatRequest(body, password) {
   const history = Array.isArray(body.history) ? body.history.slice(-MAX_HISTORY_ITEMS) : [];
   const cleanHistory = history.flatMap((item) => {
     const role = item && item.role === "assistant" ? "assistant" : "user";
-    const content = String(item && item.content || "").trim().slice(0, MAX_MESSAGE_LENGTH);
+    let content = String(item && item.content || "").trim();
+    if (role === "assistant" && content.length > MAX_ASSISTANT_HISTORY_LENGTH) {
+      content = "[Începutul răspunsului anterior a fost omis.]\n" +
+        content.slice(-MAX_ASSISTANT_HISTORY_LENGTH);
+    } else {
+      content = content.slice(0, MAX_MESSAGE_LENGTH);
+    }
     return content ? [{role, content}] : [];
   });
   const useWebSearch = shouldUseWebSearch(message, body.webSearch);
@@ -117,6 +124,7 @@ export async function validateChatRequest(body, password) {
     rawContextChars: rawContextJson.length,
     history: cleanHistory,
     useWebSearch,
+    continuation: body.continuation === true,
   };
 }
 
@@ -126,7 +134,10 @@ export function buildOpenAIRequest(validated) {
     model: "gpt-5.6-terra",
     reasoning: {effort: "low"},
     store: false,
-    max_output_tokens: 2200,
+    // Responses API counts reasoning tokens in this budget as well.  A larger
+    // ceiling prevents a normal portfolio report from ending after a short
+    // visible answer even when low-effort reasoning consumed part of it.
+    max_output_tokens: 5000,
     prompt_cache_key: "market-scanner:portfolio-chat:v2",
     prompt_cache_options: {mode: "explicit", ttl: "30m"},
     input: [

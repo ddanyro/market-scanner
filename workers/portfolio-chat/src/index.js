@@ -419,6 +419,16 @@ export default {
           ...openAITelemetry(failure.response),
           message: String(openAIError && openAIError.message || openAIError),
         }));
+        // A continuation must stay with the provider that authored the
+        // partial answer. Switching to Workers AI here loses the exact
+        // reasoning/thread and produces a visibly unrelated continuation.
+        if (validated.continuation) {
+          return jsonResponse({
+            error: "GPT nu a putut continua acum. Reîncearcă folosind același buton.",
+            reason,
+            retryable: true,
+          }, 503, origin);
+        }
         const fallbackResponse = await cloudflareFallbackResponse(
           env, validated, reason, origin,
         );
@@ -444,6 +454,13 @@ export default {
           event: "openai_portfolio_chat_invalid_response",
           message: String(parseError && parseError.message || parseError),
         }));
+        if (validated.continuation) {
+          return jsonResponse({
+            error: "GPT nu a returnat o continuare utilizabilă. Reîncearcă folosind același buton.",
+            reason: "openai_invalid_response",
+            retryable: true,
+          }, 503, origin);
+        }
         const fallbackResponse = await cloudflareFallbackResponse(
           env, validated, "openai_invalid_response", origin,
         );

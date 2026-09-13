@@ -26,6 +26,22 @@ test("validates the derived portfolio token and trims history", async () => {
   assert.equal(result.message, "Ce risc am?");
 });
 
+test("keeps the tail of a long assistant answer for a GPT continuation", async () => {
+  const password = "secret";
+  const longAnswer = "început-omis " + "x".repeat(17000) + " FINAL-IMPORTANT";
+  const result = await validateChatRequest({
+    message: "Continuă răspunsul.",
+    continuation: true,
+    accessToken: await expectedAccessToken(password),
+    context: {},
+    history: [{role: "assistant", content: longAnswer}],
+  }, password);
+  assert.equal(result.continuation, true);
+  assert.match(result.history[0].content, /^\[Începutul răspunsului anterior/);
+  assert.match(result.history[0].content, /FINAL-IMPORTANT$/);
+  assert.ok(result.history[0].content.length > 2000);
+});
+
 test("builds a bounded Workers AI continuity request without claiming web access", () => {
   const request = buildCloudflareAIRequest({
     message: "Ce cumpăr?", contextJson: "{}", history: [{role: "user", content: "Salut"}],
@@ -99,6 +115,7 @@ test("uses Responses API fields, Terra, explicit caching, conditional web search
   });
   assert.equal(request.model, "gpt-5.6-terra");
   assert.equal(request.store, false);
+  assert.equal(request.max_output_tokens, 5000);
   assert.deepEqual(request.reasoning, {effort: "low"});
   assert.equal(request.prompt_cache_key, "market-scanner:portfolio-chat:v2");
   assert.deepEqual(request.prompt_cache_options, {mode: "explicit", ttl: "30m"});

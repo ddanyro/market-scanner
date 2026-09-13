@@ -8339,7 +8339,7 @@ def generate_html_dashboard(
                 const input = document.getElementById('portfolio-chat-input');
                 if (!input) return;
                 input.value = 'Continuă exact răspunsul anterior de unde s-a întrerupt, fără să repeți partea deja afișată.';
-                void sendPortfolioChatMessage();
+                void sendPortfolioChatMessage(true);
             }
 
             function addPortfolioChatIncompleteNotice(reason) {
@@ -8359,7 +8359,7 @@ def generate_html_dashboard(
                 bubble.appendChild(action);
             }
 
-            async function sendPortfolioChatMessage() {
+            async function sendPortfolioChatMessage(isContinuation) {
                 const input = document.getElementById('portfolio-chat-input');
                 const button = document.getElementById('portfolio-chat-send');
                 if (!input || !button) return;
@@ -8393,7 +8393,9 @@ def generate_html_dashboard(
                             message: message,
                             history: priorHistory,
                             context: portfolioChatConfig.context || {},
-                            accessToken: portfolioChatConfig.access_token || ''
+                            accessToken: portfolioChatConfig.access_token || '',
+                            continuation: isContinuation === true,
+                            webSearch: isContinuation === true ? false : undefined
                         })
                     });
                     const payload = await response.json().catch(function() { return {}; });
