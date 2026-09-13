@@ -755,21 +755,54 @@ def _ibkr_enhanced_market_fields(instrument):
     return {key: value for key, value in fields.items() if value is not None}
 
 
-def _instrument_data_attribution(symbol, instrument):
+def _history_observed_at(history):
+    """Returnează timestampul ultimei bare fără a-l confunda cu ora fetchului."""
+    if history is None or getattr(history, 'empty', True):
+        return None
+    try:
+        value = pd.Timestamp(history.index[-1])
+        if value.tzinfo is None:
+            value = value.tz_localize('UTC')
+        else:
+            value = value.tz_convert('UTC')
+        return value.isoformat()
+    except (IndexError, TypeError, ValueError):
+        return None
+
+
+def _instrument_data_attribution(symbol, instrument, *, fetched_at=None,
+                                 observed_at=None):
+    """Descrie sursa, momentul fetchului și momentul efectiv al cotației."""
     execution_brokers = _buy_candidate_brokers(symbol)
     if not instrument:
         return {
             'Market_Data_Source': 'Yahoo Finance',
-            'Market_Data_Fetched_At': None,
+            'Market_Data_Fetched_At': fetched_at,
+            'Market_Data_Observed_At': observed_at,
+            'Market_Data_Timing': 'delayed_or_end_of_day',
             'Data_Broker': None,
             'Execution_Brokers': execution_brokers,
             'IBKR_Data_Only': False,
         }
+    market_data = instrument.get('market_data', {})
+    instrument_observed_at = (
+        observed_at
+        or market_data.get('observed_at')
+        or market_data.get('timestamp')
+        or market_data.get('as_of')
+    )
+    provider = instrument.get('data_provider', 'IBKR TWS API')
     return {
         'Market_Data_Source': instrument.get(
             'data_provider', 'IBKR TWS API'
         ),
-        'Market_Data_Fetched_At': instrument.get('fetched_at'),
+        'Market_Data_Fetched_At': instrument.get('fetched_at') or fetched_at,
+        'Market_Data_Observed_At': instrument_observed_at,
+        'Market_Data_Timing': (
+            'realtime_or_snapshot'
+            if 'IBKR' in str(provider).upper()
+            else 'delayed_or_end_of_day'
+        ),
         'Data_Broker': instrument.get('data_broker', 'IBKR'),
         # Eligibilitatea de tranzacționare vine din regulile dashboardului,
         # nu din brokerul care a furnizat cotația.
@@ -1083,6 +1116,16 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
                         )
                     ),
                 })
+            elif not selected_instrument and used_sources:
+                selected_instrument = {
+                    'data_provider': used_sources[0],
+                    'data_broker': (
+                        'IBKR' if used_sources[0].startswith('IBKR') else None
+                    ),
+                    'fetched_at': datetime.datetime.now(
+                        datetime.timezone.utc
+                    ).isoformat(timespec='seconds'),
+                }
             print(
                 f"  [BVB combinat] {ticker}: {len(combined)} ședințe "
                 f"din {', '.join(used_sources)}"
@@ -1091,7 +1134,13 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
                 combined,
                 selected_instrument,
                 mcp_instrument or tws_instrument,
-                _instrument_data_attribution(ticker, selected_instrument),
+                _instrument_data_attribution(
+                    ticker, selected_instrument,
+                    fetched_at=datetime.datetime.now(
+                        datetime.timezone.utc
+                    ).isoformat(timespec='seconds'),
+                    observed_at=_history_observed_at(combined),
+                ),
             )
 
         print(
@@ -1115,7 +1164,10 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
             mcp_history,
             mcp_instrument,
             mcp_instrument,
-            _instrument_data_attribution(ticker, mcp_instrument),
+            _instrument_data_attribution(
+                ticker, mcp_instrument,
+                observed_at=_history_observed_at(mcp_history),
+            ),
         )
     tws_history = _tws_instrument_history_frame(tws_instrument)
     if not tws_history.empty:
@@ -1127,7 +1179,10 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
             tws_history,
             tws_instrument,
             tws_instrument,
-            _instrument_data_attribution(ticker, tws_instrument),
+            _instrument_data_attribution(
+                ticker, tws_instrument,
+                observed_at=_history_observed_at(tws_history),
+            ),
         )
     yahoo_history = pd.DataFrame()
     selected_yahoo_symbol = str(download_ticker or '').upper()
@@ -1162,11 +1217,18 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
             f"{selected_yahoo_symbol} pentru {ticker}: "
             f"{len(yahoo_history)} ședințe"
         )
+    yahoo_fetched_at = datetime.datetime.now(
+        datetime.timezone.utc
+    ).isoformat(timespec='seconds')
     return (
         yahoo_history,
         None,
         tws_instrument or _load_tws_instrument_metadata(ticker),
-        _instrument_data_attribution(ticker, None),
+        _instrument_data_attribution(
+            ticker, None,
+            fetched_at=yahoo_fetched_at,
+            observed_at=_history_observed_at(yahoo_history),
+        ),
     )
 
 
@@ -3333,34 +3395,63 @@ def get_vix_data():
 # HISTORY_FILE = "market_history.json" # This is now market_utils.MARKET_HISTORY_FILE at the top.
 
 
+def get_earnings_snapshot(ticker_symbol):
+    """Returnează calendarul cu proveniență și stare tri-state.
+
+    ``UNKNOWN`` este intenționat diferit de ``CLEAR``: absența unei date în
+    Yahoo nu demonstrează că emitentul nu raportează în curând.
+    """
+    fetched_at = datetime.datetime.now(
+        datetime.timezone.utc
+    ).isoformat(timespec='seconds')
+    base = {
+        'available': False,
+        'status': 'UNKNOWN',
+        'next_date': None,
+        'days_to_earnings': None,
+        'source': 'Yahoo Finance calendar',
+        'fetched_at': fetched_at,
+    }
+    if _known_fund_profile(ticker_symbol):
+        return {
+            **base,
+            'status': 'NOT_APPLICABLE',
+            'source': 'instrument metadata',
+        }
+    try:
+        lookup_symbol = ticker_symbol[:-3] if ticker_symbol.endswith('.US') else ticker_symbol
+        if lookup_symbol in ['LQQ.FR', 'FR.LQQ']:
+            lookup_symbol = 'LQQ.PA'
+        calendar = yf.Ticker(lookup_symbol).calendar
+        dates = calendar.get('Earnings Date') if isinstance(calendar, dict) else None
+        if not dates:
+            return base
+        value = dates[0]
+        if isinstance(value, datetime.datetime):
+            value = value.date()
+        if not isinstance(value, datetime.date):
+            value = pd.Timestamp(value).date()
+        days = (value - datetime.date.today()).days
+        if days < 0:
+            return base
+        return {
+            **base,
+            'available': True,
+            'status': 'RISK' if days <= 5 else 'CLEAR',
+            'next_date': value.isoformat(),
+            'days_to_earnings': days,
+        }
+    except Exception:
+        return base
+
+
 def get_next_earnings_date(ticker_symbol):
     """
     Returnează următoarea dată de earnings (datetime.date) sau None dacă nu e găsită.
     Folosește yfinance calendar.
     """
-    # ETF-urile nu raportează earnings ca o companie. Yahoo răspunde cu 404
-    # pentru quoteSummary/calendarEvents, deși istoricul de preț este valid.
-    if _known_fund_profile(ticker_symbol):
-        return None
-    try:
-        lookup_symbol = ticker_symbol[:-3] if ticker_symbol.endswith('.US') else ticker_symbol
-        if lookup_symbol in ['LQQ.FR', 'FR.LQQ']:
-            lookup_symbol = 'LQQ.PA'
-        t = yf.Ticker(lookup_symbol)
-        cal = t.calendar
-        if cal and isinstance(cal, dict) and 'Earnings Date' in cal:
-            dates = cal['Earnings Date']
-            if dates:
-                # Return first date (usually range start or confirmed date)
-                d = dates[0]
-                # Ensure it's a date object
-                if isinstance(d, datetime.datetime):
-                    return d.date()
-                return d
-    except Exception as e:
-        # print(f"Earnings check failed for {ticker_symbol}: {e}")
-        pass
-    return None
+    value = get_earnings_snapshot(ticker_symbol).get('next_date')
+    return datetime.date.fromisoformat(value) if value else None
 
 def load_market_history():
     if os.path.exists(market_utils.MARKET_HISTORY_FILE):
@@ -4937,18 +5028,14 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             pass
             
         # --- Earnings Check (Danger Zone) ---
-        earnings_danger = False
+        earnings_snapshot = get_earnings_snapshot(ticker)
+        earnings_danger = earnings_snapshot['status'] == 'RISK'
         earnings_msg = ""
-        try:
-            next_earn = get_next_earnings_date(ticker)
-            if next_earn:
-                today_date = datetime.date.today()
-                days_to_earn = (next_earn - today_date).days
-                if 0 <= days_to_earn <= 5:
-                    earnings_danger = True
-                    earnings_msg = f"Report in {days_to_earn} days ({next_earn})"
-        except Exception as e:
-            pass
+        if earnings_snapshot.get('next_date'):
+            earnings_msg = (
+                f"Report in {earnings_snapshot['days_to_earnings']} days "
+                f"({earnings_snapshot['next_date']})"
+            )
 
         # --- 4-Check Decision Logic ---
         checks_passed = 0
@@ -5108,6 +5195,12 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'Avg_Volume': avg_vol_3m,
             'Earnings_Danger': earnings_danger,
             'Earnings_Msg': earnings_msg,
+            'Earnings_Status': earnings_snapshot['status'],
+            'Earnings_Available': earnings_snapshot['available'],
+            'Next_Earnings_Date': earnings_snapshot['next_date'],
+            'Days_To_Earnings': earnings_snapshot['days_to_earnings'],
+            'Earnings_Source': earnings_snapshot['source'],
+            'Earnings_Fetched_At': earnings_snapshot['fetched_at'],
             
             'Check_Details': " ".join(check_details),
             'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
@@ -7614,11 +7707,11 @@ def generate_html_dashboard(
             .portfolio-chat-panel {{
                 position: fixed; right: 24px; bottom: 98px; z-index: 1199;
                 width: min(430px, calc(100vw - 32px)); height: min(680px, calc(100vh - 130px));
-                display: none; flex-direction: column; overflow: hidden;
+                display: none; grid-template-rows: auto auto minmax(0, 1fr) auto; overflow: hidden;
                 background: var(--bg-white); border: 1px solid var(--border-light);
                 border-radius: 22px; box-shadow: 0 22px 60px rgba(15,23,42,.25);
             }}
-            .portfolio-chat-panel.open {{ display: flex; }}
+            .portfolio-chat-panel.open {{ display: grid; }}
             .portfolio-chat-header {{
                 padding: 17px 18px; color: white;
                 background: linear-gradient(135deg, #7760f9, #4f46e5);
@@ -7645,6 +7738,12 @@ def generate_html_dashboard(
             .portfolio-chat-message.user {{ align-self: flex-end; background: #7760f9; color: white; border-bottom-right-radius: 5px; }}
             .portfolio-chat-message.assistant {{ align-self: flex-start; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-bottom-left-radius: 5px; }}
             .portfolio-chat-message.error {{ border-color: #fecaca; color: #b91c1c; }}
+            .portfolio-chat-message.incomplete {{ border-color: #f59e0b; color: #92400e; background: #fffbeb; }}
+            .portfolio-chat-continue {{
+                display: block; margin-top: 8px; border: 1px solid #f59e0b;
+                border-radius: 9px; padding: 7px 10px; background: white;
+                color: #92400e; font-weight: 750; cursor: pointer;
+            }}
             .portfolio-chat-message a {{ color: #4f46e5; font-weight: 700; }}
             .portfolio-chat-message h1, .portfolio-chat-message h2,
             .portfolio-chat-message h3, .portfolio-chat-message h4,
@@ -7675,7 +7774,9 @@ def generate_html_dashboard(
                 text-align: left; vertical-align: top;
             }}
             .portfolio-chat-message th {{ background: #eef2ff; font-weight: 750; }}
-            .portfolio-chat-suggestions {{ padding: 10px 14px 0; display: flex; gap: 7px; overflow-x: auto; flex: 0 0 auto; }}
+            .portfolio-chat-suggestions {{ padding: 8px 14px; min-width: 0; background: var(--bg-white); }}
+            .portfolio-chat-suggestions summary {{ display: none; cursor: pointer; color: #4f46e5; font-size: 12px; font-weight: 750; }}
+            .portfolio-chat-suggestion-list {{ display: flex; gap: 7px; overflow-x: auto; scrollbar-width: thin; }}
             .portfolio-chat-suggestion {{
                 flex: 0 0 auto; border: 1px solid #c7d2fe; color: #4f46e5;
                 background: #eef2ff; border-radius: 999px; padding: 7px 10px; cursor: pointer; font-size: 12px;
@@ -7694,11 +7795,16 @@ def generate_html_dashboard(
             @media (max-width: 640px) {{
                 .portfolio-chat-launcher {{ right: 16px; bottom: 16px; width: 56px; height: 56px; }}
                 .portfolio-chat-panel {{
-                    right: 8px; bottom: 80px; width: calc(100vw - 16px);
-                    height: min(76vh, 680px); border-radius: 18px;
-                    height: min(76dvh, 680px);
+                    inset: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom));
+                    width: auto; height: auto; max-height: none; border-radius: 18px;
                 }}
                 .portfolio-chat-message {{ max-width: 94%; font-size: 13px; }}
+                .portfolio-chat-suggestions summary {{ display: block; }}
+                .portfolio-chat-suggestions:not([open]) .portfolio-chat-suggestion-list {{ display: none; }}
+                .portfolio-chat-suggestions[open] {{ border-bottom: 1px solid var(--border-light); }}
+                .portfolio-chat-suggestion-list {{ padding-top: 7px; }}
+                .portfolio-chat-form {{ padding-bottom: max(14px, env(safe-area-inset-bottom)); }}
+                .portfolio-chat-launcher {{ z-index: 1198; }}
             }}
             /* Hide sorting icons if they clash or let them be */
         </style>
@@ -8176,6 +8282,30 @@ def generate_html_dashboard(
                 void sendPortfolioChatMessage();
             }
 
+            function continuePortfolioChatAnswer() {
+                const input = document.getElementById('portfolio-chat-input');
+                if (!input) return;
+                input.value = 'Continuă exact răspunsul anterior de unde s-a întrerupt, fără să repeți partea deja afișată.';
+                void sendPortfolioChatMessage();
+            }
+
+            function addPortfolioChatIncompleteNotice(reason) {
+                const bubble = addPortfolioChatMessage(
+                    'assistant',
+                    'Răspunsul a fost întrerupt de furnizor înainte de final' +
+                        (reason ? ' (' + String(reason) + ')' : '') + '.',
+                    [], false
+                );
+                if (!bubble) return;
+                bubble.classList.add('incomplete');
+                const action = document.createElement('button');
+                action.type = 'button';
+                action.className = 'portfolio-chat-continue';
+                action.textContent = 'Continuă răspunsul';
+                action.onclick = continuePortfolioChatAnswer;
+                bubble.appendChild(action);
+            }
+
             async function sendPortfolioChatMessage() {
                 const input = document.getElementById('portfolio-chat-input');
                 const button = document.getElementById('portfolio-chat-send');
@@ -8191,6 +8321,10 @@ def generate_html_dashboard(
                     return;
                 }
                 input.value = '';
+                const suggestions = document.getElementById('portfolio-chat-suggestions');
+                if (suggestions && window.matchMedia('(max-width: 640px)').matches) {
+                    suggestions.open = false;
+                }
                 addPortfolioChatMessage('user', message, []);
                 const priorHistory = portfolioChatHistory.slice(-8);
                 portfolioChatHistory.push({ role: 'user', content: message });
@@ -8247,6 +8381,11 @@ def generate_html_dashboard(
                     portfolioChatHistory.push({
                         role: 'assistant', content: payload.text || ''
                     });
+                    if (payload.complete === false) {
+                        addPortfolioChatIncompleteNotice(
+                            payload.incomplete_reason || 'limită de răspuns'
+                        );
+                    }
                 } catch (error) {
                     if (pending) pending.remove();
                     const detail = error.message || 'eroare necunoscută';
@@ -9272,6 +9411,14 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             'rsi': item.get('RSI'),
             'checks_passed': item.get('Checks_Passed'),
             'earnings_risk': bool(item.get('Earnings_Danger')),
+            'earnings_status': item.get('Earnings_Status') or (
+                'RISK' if item.get('Earnings_Danger') else 'UNKNOWN'
+            ),
+            'earnings_available': bool(item.get('Earnings_Available')),
+            'next_earnings_date': item.get('Next_Earnings_Date'),
+            'days_to_earnings': item.get('Days_To_Earnings'),
+            'earnings_source': item.get('Earnings_Source'),
+            'earnings_fetched_at': item.get('Earnings_Fetched_At'),
             'entry_reason': item.get('Smart_Reason'),
             'price_native': item.get('Price_Native'),
             'currency': item.get('Currency'),
@@ -9368,6 +9515,10 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             'market_data_fetched_at': item.get(
                 'Market_Data_Fetched_At'
             ),
+            'market_data_observed_at': item.get(
+                'Market_Data_Observed_At'
+            ),
+            'market_data_timing': item.get('Market_Data_Timing'),
             'data_broker': item.get('Data_Broker'),
             'ibkr_data_only': bool(item.get('IBKR_Data_Only')),
             'data_age_hours': item.get(
@@ -9892,11 +10043,14 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     <div><div class="portfolio-chat-title">Asistent portofoliu</div><div class="portfolio-chat-subtitle">GPT-5.6 Terra + fallback Cloudflare · datele dashboardului + surse web când sunt disponibile</div></div>
                     <button type="button" class="portfolio-chat-close" onclick="togglePortfolioChat(false)" aria-label="Închide chatul">×</button>
                 </div>
-                <div class="portfolio-chat-suggestions">
-                    <button type="button" class="portfolio-chat-suggestion" onclick="usePortfolioChatSuggestion('Care sunt cele mai importante riscuri din portofoliu acum?')">Riscuri acum</button>
-                    <button type="button" class="portfolio-chat-suggestion" onclick="usePortfolioChatSuggestion('Ce oportunități executabile există acum în SUA și România?')">Oportunități BUY</button>
-                    <button type="button" class="portfolio-chat-suggestion" onclick="usePortfolioChatSuggestion('Cum influențează calendarul următoarele mele decizii?')">Calendar</button>
-                </div>
+                <details id="portfolio-chat-suggestions" class="portfolio-chat-suggestions" open>
+                    <summary>Întrebări rapide</summary>
+                    <div class="portfolio-chat-suggestion-list">
+                        <button type="button" class="portfolio-chat-suggestion" onclick="usePortfolioChatSuggestion('Care sunt cele mai importante riscuri din portofoliu acum?')">Riscuri acum</button>
+                        <button type="button" class="portfolio-chat-suggestion" onclick="usePortfolioChatSuggestion('Ce oportunități executabile există acum în SUA și România?')">Oportunități BUY</button>
+                        <button type="button" class="portfolio-chat-suggestion" onclick="usePortfolioChatSuggestion('Cum influențează calendarul următoarele mele decizii?')">Calendar</button>
+                    </div>
+                </details>
                 <div id="portfolio-chat-messages" class="portfolio-chat-messages">
                     <div class="portfolio-chat-message assistant">Bună! Pot explica portofoliul, stopurile, cash-ul, piețele SUA/BVB și ideile de cumpărare. Pentru informații recente pot verifica și surse publice pe internet.</div>
                 </div>

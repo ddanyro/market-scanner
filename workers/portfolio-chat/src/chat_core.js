@@ -34,7 +34,8 @@ export function selectContextForMessage(context, message, useWebSearch = false) 
 
   const keys = new Set([
     "schema", "as_of", "portfolio", "positions", "broker_liquidity",
-    "tvbetetf_lookthrough", "market_context", "data_rules",
+    "earnings_calendar", "data_quality", "tvbetetf_lookthrough",
+    "market_context", "data_rules",
   ]);
   if (wantsBuy) {
     ["buy_candidates", "current_ai_analysis", "universe_stats"].forEach((key) => keys.add(key));
@@ -165,6 +166,10 @@ function buildAssistantInstructions() {
     "Răspunde în română, clar și practic, fără jargon inutil.",
     "Folosește mai întâi datele structurate ale dashboardului de mai jos.",
     "Separă explicit faptele din dashboard, informațiile web recente și inferențele tale.",
+    "Începe cu o secțiune scurtă despre prospețimea și limitele datelor când există surse stale, timestampuri lipsă sau calendar UNKNOWN.",
+    "Nu interpreta earnings_status UNKNOWN drept lipsa riscului; numai CLEAR confirmă că data a fost verificată și nu este apropiată.",
+    "Nu include conturile stale în cashul, NAV-ul sau riscul curent. Menționează-le separat numai ca ultima situație cunoscută.",
+    "Când citezi un preț, precizează sursa și momentul observed_at/fetched_at disponibile în context.",
     "Când întrebarea depinde de informații actuale, folosește căutarea web și citează surse primare sau credibile.",
     "Pentru companii preferă raportări oficiale, relația cu investitorii, SEC/BVB și comunicate oficiale.",
     "Ține cont de broker, moneda instrumentului, cashul brokerului, stopuri, concentrare, lichiditate, calendar economic, regimul pieței și rotația sectoarelor.",
@@ -202,6 +207,12 @@ export function extractCloudflareAIAnswer(payload, fallbackReason) {
   ) || "").trim();
   if (!text) throw new Error("Cloudflare Workers AI nu a returnat text utilizabil.");
   const reason = String(fallbackReason || "openai_unavailable");
+  const finishReason = String(
+    payload?.choices?.[0]?.finish_reason
+      || payload?.result?.choices?.[0]?.finish_reason
+      || "stop",
+  );
+  const complete = !["length", "max_tokens"].includes(finishReason);
   const notices = {
     credit_balance_exhausted: "creditul OpenAI este epuizat",
     organization_spend_limit_exceeded: "limita de cheltuieli OpenAI a organizației a fost atinsă",
@@ -222,6 +233,8 @@ export function extractCloudflareAIAnswer(payload, fallbackReason) {
     degraded: true,
     notice: `Răspuns de continuitate: ${detail}. Analiza folosește Cloudflare Workers AI și datele dashboardului, fără verificare web live.`,
     reason,
+    complete,
+    incomplete_reason: complete ? null : finishReason,
   };
 }
 
@@ -240,12 +253,16 @@ export function extractOpenAIAnswer(payload) {
       title: String(item.title || item.url),
     }))
     .filter((item) => Number.isInteger(item.start_index) && Number.isInteger(item.end_index));
+  const incompleteReason = String(payload?.incomplete_details?.reason || "").trim();
+  const complete = payload?.status !== "incomplete" && !incompleteReason;
   return {
     text,
     citations,
     model: String(payload.model || "gpt-5.6-terra"),
     provider: "openai",
     degraded: false,
+    complete,
+    incomplete_reason: complete ? null : (incompleteReason || "incomplete"),
     usage: normalizeOpenAIUsage(payload.usage),
   };
 }

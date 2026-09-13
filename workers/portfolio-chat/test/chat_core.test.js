@@ -44,6 +44,15 @@ test("extracts and labels a degraded Workers AI answer", () => {
   assert.equal(answer.provider, "cloudflare-workers-ai");
   assert.equal(answer.degraded, true);
   assert.match(answer.notice, /fără verificare web live/);
+  assert.equal(answer.complete, true);
+});
+
+test("marks a length-limited Workers AI response as incomplete", () => {
+  const answer = extractCloudflareAIAnswer({
+    choices: [{finish_reason: "length", message: {content: "Răspuns parțial."}}],
+  }, "openai_unavailable");
+  assert.equal(answer.complete, false);
+  assert.equal(answer.incomplete_reason, "length");
 });
 
 test("rejects an invalid portfolio token", async () => {
@@ -126,4 +135,18 @@ test("extracts text and clickable citation coordinates", () => {
   assert.equal(answer.usage.cached_tokens, 900);
   assert.equal(answer.usage.uncached_input_tokens, 300);
   assert.ok(answer.usage.estimated_cost_usd > 0);
+  assert.equal(answer.complete, true);
+});
+
+test("preserves partial OpenAI text and exposes incomplete status", () => {
+  const answer = extractOpenAIAnswer({
+    status: "incomplete",
+    incomplete_details: {reason: "max_output_tokens"},
+    output: [{type: "message", content: [{
+      type: "output_text", text: "**Infer", annotations: [],
+    }]}],
+  });
+  assert.equal(answer.text, "**Infer");
+  assert.equal(answer.complete, false);
+  assert.equal(answer.incomplete_reason, "max_output_tokens");
 });

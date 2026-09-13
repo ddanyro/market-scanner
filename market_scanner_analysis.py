@@ -1104,6 +1104,8 @@ def _normalize_tws_account_data(account_data, now=None):
                 'fetched_at': account_fetched_at,
                 'age_hours': account_age_hours,
                 'stale': account_stale,
+                'freshness_status': 'STALE' if account_stale else 'CURRENT',
+                'usable_for_current_analysis': not account_stale,
                 'cash_currencies': [
                     str(currency) for currency in raw_account.get('cash_currencies', [])
                 ],
@@ -1165,6 +1167,8 @@ def _normalize_tws_account_data(account_data, now=None):
             'fetched_at': account_fetched_at,
             'age_hours': account_age_hours,
             'stale': account_stale,
+            'freshness_status': 'STALE' if account_stale else 'CURRENT',
+            'usable_for_current_analysis': not account_stale,
             'summary': summary,
             'cash_by_currency': cash_by_currency,
             'cash_pct_of_net_liquidation': (
@@ -1470,8 +1474,15 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
             flags.append('Raport recompensă/risc sub 1,5 la stopul activ')
         if str(row.get('Sell_Decision', '')).upper() in {'EXIT', 'REDUCE'}:
             flags.append(f"Decizia existentă este {str(row.get('Sell_Decision')).upper()}")
-        if bool(row.get('Earnings_Danger')):
+        earnings_status = str(row.get('Earnings_Status') or '').upper()
+        if not earnings_status:
+            earnings_status = (
+                'RISK' if bool(row.get('Earnings_Danger')) else 'UNKNOWN'
+            )
+        if earnings_status == 'RISK':
             flags.append('Catalizator de rezultate apropiat; stopul poate să nu limiteze un gap')
+        elif earnings_status == 'UNKNOWN':
+            flags.append('Calendarul de rezultate nu este verificat')
         weight_pct = (current_value / total_value * 100) if total_value > 0 else None
         if weight_pct is not None and weight_pct > 25:
             flags.append('Concentrare peste 25% din valoarea portofoliului')
@@ -1516,12 +1527,30 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
             'trend': str(row.get('Trend', '')),
             'rsi': _safe_number(row.get('RSI')) or None,
             'relative_strength_vs_spx_pct': _safe_number(row.get('RS_vs_SPX')) or None,
-            'earnings_risk': bool(row.get('Earnings_Danger')),
+            'earnings_risk': (
+                True if earnings_status == 'RISK'
+                else False if earnings_status in {'CLEAR', 'NOT_APPLICABLE'}
+                else None
+            ),
+            'earnings_status': earnings_status,
+            'earnings_available': bool(row.get('Earnings_Available')),
+            'next_earnings_date': row.get('Next_Earnings_Date'),
+            'days_to_earnings': _safe_number(
+                row.get('Days_To_Earnings'), None
+            ),
+            'earnings_source': row.get('Earnings_Source'),
+            'earnings_fetched_at': row.get('Earnings_Fetched_At'),
             'market_data_source': str(
                 row.get('Market_Data_Source', '')
             ).strip() or None,
             'market_data_fetched_at': str(
                 row.get('Market_Data_Fetched_At', '')
+            ).strip() or None,
+            'market_data_observed_at': str(
+                row.get('Market_Data_Observed_At', '')
+            ).strip() or None,
+            'market_data_timing': str(
+                row.get('Market_Data_Timing', '')
             ).strip() or None,
             'data_broker': str(row.get('Data_Broker', '')).strip() or None,
             'execution_brokers': list(
@@ -1612,8 +1641,12 @@ def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
         'consensus', 'analysts', 'trend', 'strategy', 'currency',
         'execution_currency', 'price_native', 'entry_native', 'stop_native',
         'target_native', 'rr_ratio', 'rsi', 'relative_strength',
-        'earnings_risk', 'entry_reason', 'eligible_brokers', 'candidate_source',
-        'strict_eligible', 'data_as_of', 'market_data_source', 'data_age_hours',
+        'earnings_risk', 'earnings_status', 'earnings_available',
+        'next_earnings_date', 'days_to_earnings', 'earnings_source',
+        'earnings_fetched_at', 'entry_reason', 'eligible_brokers', 'candidate_source',
+        'strict_eligible', 'data_as_of', 'market_data_source',
+        'market_data_fetched_at', 'market_data_observed_at',
+        'market_data_timing', 'data_age_hours',
         'liquidity_status', 'liquidity_reason', 'median_turnover_20d_ron',
         'relative_volume_20d', 'liquidity_position_cap_eur',
     )
@@ -1638,12 +1671,59 @@ def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
         })
 
     market_overviews = dashboard_state.get('market_overviews') or {}
+    positions = snapshot.get('positions') or []
+    broker_liquidity = dict(snapshot.get('account_liquidity') or {})
+    accounts = [
+        item for item in broker_liquidity.get('accounts', [])
+        if isinstance(item, dict)
+    ]
+    broker_liquidity['current_accounts'] = [
+        item for item in accounts if not item.get('stale', True)
+    ]
+    broker_liquidity['last_known_stale_accounts'] = [
+        item for item in accounts if item.get('stale', True)
+    ]
+    # Câmpul canonic ``accounts`` din context conține numai situația curentă.
+    # Snapshoturile vechi rămân accesibile explicit, fără a putea fi însumate
+    # accidental de model cu datele IBKR proaspete.
+    broker_liquidity['accounts'] = broker_liquidity['current_accounts']
+    broker_liquidity['analysis_rule'] = (
+        'Folosește current_accounts pentru situația curentă. '
+        'last_known_stale_accounts sunt numai informative și nu intră în '
+        'totaluri, dimensionare sau concluzii curente.'
+    )
+    earnings_calendar = [
+        {
+            'symbol': item.get('symbol'),
+            'status': item.get('earnings_status', 'UNKNOWN'),
+            'next_date': item.get('next_earnings_date'),
+            'days_to_earnings': item.get('days_to_earnings'),
+            'source': item.get('earnings_source'),
+            'fetched_at': item.get('earnings_fetched_at'),
+        }
+        for item in positions if isinstance(item, dict)
+    ]
     return {
-        'schema': 'market-scanner.portfolio-chat.v1',
+        'schema': 'market-scanner.portfolio-chat.v2',
         'as_of': snapshot.get('as_of'),
         'portfolio': snapshot.get('portfolio') or {},
-        'positions': snapshot.get('positions') or [],
-        'broker_liquidity': snapshot.get('account_liquidity') or {},
+        'positions': positions,
+        'broker_liquidity': broker_liquidity,
+        'earnings_calendar': earnings_calendar,
+        'data_quality': {
+            'positions_without_quote_fetch_timestamp': sum(
+                not item.get('market_data_fetched_at')
+                for item in positions if isinstance(item, dict)
+            ),
+            'positions_with_unknown_earnings': sum(
+                item.get('earnings_status', 'UNKNOWN') == 'UNKNOWN'
+                for item in positions if isinstance(item, dict)
+            ),
+            'stale_broker_accounts': [
+                item.get('label')
+                for item in broker_liquidity['last_known_stale_accounts']
+            ],
+        },
         'tvbetetf_lookthrough': snapshot.get('tvbetetf_lookthrough') or {},
         'market_context': snapshot.get('market_context') or {},
         'us_market_regime': snapshot.get('us_market_regime') or {},
@@ -1677,6 +1757,9 @@ def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
             'Valorile monetare au moneda indicată explicit; nu presupune EUR.',
             'TVBETETF este deținut prin Tradeville; celelalte poziții indică brokerul în date.',
             'Datele locale pot fi întârziate; verifică as_of și data_as_of.',
+            'Nu interpreta earnings_status UNKNOWN drept lipsa riscului; numai CLEAR înseamnă calendar verificat fără raport apropiat.',
+            'Exclude conturile stale din situația curentă; prezintă-le separat drept ultima situație cunoscută.',
+            'Pentru orice preț important menționează market_data_source, market_data_observed_at și market_data_fetched_at.',
             'Nu inventa prețuri, stopuri, știri, rapoarte sau evenimente lipsă.',
         ],
     }

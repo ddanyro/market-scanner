@@ -4840,6 +4840,62 @@ class TestDynamicEvents(unittest.TestCase):
         self.assertIn('BET / BET-TR', rendered)
 
 
+class TestPortfolioChatDataQuality(unittest.TestCase):
+    def test_yahoo_attribution_has_fetch_and_observation_timestamps(self):
+        history = pd.DataFrame(
+            {'Close': [100.0]},
+            index=pd.DatetimeIndex(['2026-09-11']),
+        )
+        attribution = market_scanner._instrument_data_attribution(
+            'AAPL', None,
+            fetched_at='2026-09-12T09:00:00+00:00',
+            observed_at=market_scanner._history_observed_at(history),
+        )
+        self.assertEqual(attribution['Market_Data_Source'], 'Yahoo Finance')
+        self.assertEqual(
+            attribution['Market_Data_Fetched_At'],
+            '2026-09-12T09:00:00+00:00',
+        )
+        self.assertIn('2026-09-11', attribution['Market_Data_Observed_At'])
+        self.assertEqual(
+            attribution['Market_Data_Timing'], 'delayed_or_end_of_day'
+        )
+
+    @patch('market_scanner.yf.Ticker')
+    def test_missing_earnings_calendar_is_unknown_not_clear(self, ticker):
+        ticker.return_value.calendar = {}
+        snapshot = market_scanner.get_earnings_snapshot('AAPL')
+        self.assertFalse(snapshot['available'])
+        self.assertEqual(snapshot['status'], 'UNKNOWN')
+
+    def test_chat_context_separates_stale_accounts_and_unknown_earnings(self):
+        snapshot = {
+            'as_of': '2026-09-12T10:00:00+00:00',
+            'portfolio': {'position_count': 1},
+            'positions': [{
+                'symbol': 'AAPL', 'earnings_status': 'UNKNOWN',
+                'market_data_fetched_at': None,
+            }],
+            'account_liquidity': {'accounts': [
+                {'label': 'IBKR', 'stale': False},
+                {'label': 'Tradeville', 'stale': True},
+            ]},
+        }
+        context = market_scanner_analysis.build_portfolio_chat_context(snapshot)
+        liquidity = context['broker_liquidity']
+        self.assertEqual(
+            [item['label'] for item in liquidity['current_accounts']], ['IBKR']
+        )
+        self.assertEqual(
+            [item['label'] for item in liquidity['last_known_stale_accounts']],
+            ['Tradeville'],
+        )
+        self.assertEqual(context['earnings_calendar'][0]['status'], 'UNKNOWN')
+        self.assertEqual(
+            context['data_quality']['positions_without_quote_fetch_timestamp'], 1
+        )
+
+
 if __name__ == '__main__':
     # Run tests with verbose output
     unittest.main(verbosity=2)
