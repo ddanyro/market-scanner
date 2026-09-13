@@ -3453,6 +3453,21 @@ def get_next_earnings_date(ticker_symbol):
     value = get_earnings_snapshot(ticker_symbol).get('next_date')
     return datetime.date.fromisoformat(value) if value else None
 
+
+def _earnings_result_fields(snapshot):
+    """Mapează contractul earnings în câmpurile canonice ale unui instrument."""
+    snapshot = snapshot if isinstance(snapshot, dict) else {}
+    status = str(snapshot.get('status') or 'UNKNOWN').upper()
+    return {
+        'Earnings_Danger': status == 'RISK',
+        'Earnings_Status': status,
+        'Earnings_Available': bool(snapshot.get('available')),
+        'Next_Earnings_Date': snapshot.get('next_date'),
+        'Days_To_Earnings': snapshot.get('days_to_earnings'),
+        'Earnings_Source': snapshot.get('source'),
+        'Earnings_Fetched_At': snapshot.get('fetched_at'),
+    }
+
 def load_market_history():
     if os.path.exists(market_utils.MARKET_HISTORY_FILE):
         try:
@@ -4041,6 +4056,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         actual_download_ticker = _preferred_yahoo_history_symbols(
             ticker, actual_download_ticker
         )[0]
+        earnings_snapshot = get_earnings_snapshot(actual_download_ticker)
         
         # --- CACHED DOWNLOAD ---
         if not df.empty:
@@ -4177,6 +4193,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 'Chart_OHLC': [],
                 'Daily_Change': 0.0,
                 'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                **_earnings_result_fields(earnings_snapshot),
                 **data_attribution,
             }
             return result
@@ -4785,6 +4802,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             'Daily_Change': round(daily_change, 4),
             'Technical_Events': technical_events_result,
             'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+            **_earnings_result_fields(earnings_snapshot),
             **data_attribution,
             **enhanced_market_fields,
         }
@@ -5193,14 +5211,8 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'RR_Ratio': analysis.calculate_risk_reward(last_close, suggested_stop, target_val) if target_val and suggested_stop else 0,
             'Volume': int(df['Volume'].iloc[-1]) if 'Volume' in df.columns else 0,
             'Avg_Volume': avg_vol_3m,
-            'Earnings_Danger': earnings_danger,
             'Earnings_Msg': earnings_msg,
-            'Earnings_Status': earnings_snapshot['status'],
-            'Earnings_Available': earnings_snapshot['available'],
-            'Next_Earnings_Date': earnings_snapshot['next_date'],
-            'Days_To_Earnings': earnings_snapshot['days_to_earnings'],
-            'Earnings_Source': earnings_snapshot['source'],
-            'Earnings_Fetched_At': earnings_snapshot['fetched_at'],
+            **_earnings_result_fields(earnings_snapshot),
             
             'Check_Details': " ".join(check_details),
             'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),

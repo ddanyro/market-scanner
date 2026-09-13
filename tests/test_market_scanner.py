@@ -4868,6 +4868,23 @@ class TestPortfolioChatDataQuality(unittest.TestCase):
         self.assertFalse(snapshot['available'])
         self.assertEqual(snapshot['status'], 'UNKNOWN')
 
+    def test_earnings_fields_preserve_unknown_and_risk_states(self):
+        unknown = market_scanner._earnings_result_fields({
+            'status': 'UNKNOWN', 'available': False,
+            'source': 'Yahoo Finance calendar',
+        })
+        risk = market_scanner._earnings_result_fields({
+            'status': 'RISK', 'available': True,
+            'next_date': '2026-09-15', 'days_to_earnings': 2,
+            'source': 'Yahoo Finance calendar',
+        })
+        self.assertFalse(unknown['Earnings_Danger'])
+        self.assertFalse(unknown['Earnings_Available'])
+        self.assertEqual(unknown['Earnings_Status'], 'UNKNOWN')
+        self.assertTrue(risk['Earnings_Danger'])
+        self.assertTrue(risk['Earnings_Available'])
+        self.assertEqual(risk['Days_To_Earnings'], 2)
+
     def test_chat_context_separates_stale_accounts_and_unknown_earnings(self):
         snapshot = {
             'as_of': '2026-09-12T10:00:00+00:00',
