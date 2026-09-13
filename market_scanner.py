@@ -3395,7 +3395,42 @@ def get_vix_data():
 # HISTORY_FILE = "market_history.json" # This is now market_utils.MARKET_HISTORY_FILE at the top.
 
 
-def get_earnings_snapshot(ticker_symbol):
+def _instrument_is_fund_or_etp(ticker_symbol, instrument=None):
+    """Detectează fondurile din metadata, chiar dacă secType IBKR este STK."""
+    if _known_fund_profile(ticker_symbol):
+        return True
+    instrument = instrument if isinstance(instrument, dict) else {}
+    contract = instrument.get('contract', {})
+    contract = contract if isinstance(contract, dict) else {}
+    explicit_types = {
+        str(value or '').strip().upper()
+        for value in (
+            instrument.get('instrument_type'),
+            instrument.get('security_type'),
+            contract.get('security_type'),
+            contract.get('stock_type'),
+        )
+    }
+    if explicit_types & {'ETF', 'ETP', 'ETN', 'FUND', 'CEF'}:
+        return True
+    exchanges = ' '.join(str(value or '').upper() for value in (
+        instrument.get('exchange'), contract.get('exchange'),
+        contract.get('primary_exchange'),
+    ))
+    if re.search(r'(^|[.\s_-])(ETF|ETP|ETN)([.\s_-]|$)', exchanges):
+        return True
+    description = ' '.join(str(value or '').upper() for value in (
+        instrument.get('description'), contract.get('description'),
+        contract.get('long_name'),
+    ))
+    return bool(re.search(
+        r'\b(UCITS ETF|EXCHANGE[ -]TRADED (?:FUND|PRODUCT|NOTE)|'
+        r'DAILY LEVERAGED|DLY LEVERAGED)\b',
+        description,
+    ))
+
+
+def get_earnings_snapshot(ticker_symbol, instrument=None):
     """Returnează calendarul cu proveniență și stare tri-state.
 
     ``UNKNOWN`` este intenționat diferit de ``CLEAR``: absența unei date în
@@ -3412,11 +3447,11 @@ def get_earnings_snapshot(ticker_symbol):
         'source': 'Yahoo Finance calendar',
         'fetched_at': fetched_at,
     }
-    if _known_fund_profile(ticker_symbol):
+    if _instrument_is_fund_or_etp(ticker_symbol, instrument):
         return {
             **base,
             'status': 'NOT_APPLICABLE',
-            'source': 'instrument metadata',
+            'source': 'IBKR/instrument metadata',
         }
     try:
         lookup_symbol = ticker_symbol[:-3] if ticker_symbol.endswith('.US') else ticker_symbol
@@ -4056,7 +4091,10 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         actual_download_ticker = _preferred_yahoo_history_symbols(
             ticker, actual_download_ticker
         )[0]
-        earnings_snapshot = get_earnings_snapshot(actual_download_ticker)
+        earnings_snapshot = get_earnings_snapshot(
+            actual_download_ticker,
+            selected_market_instrument or tws_instrument,
+        )
         
         # --- CACHED DOWNLOAD ---
         if not df.empty:
@@ -5046,7 +5084,10 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             pass
             
         # --- Earnings Check (Danger Zone) ---
-        earnings_snapshot = get_earnings_snapshot(ticker)
+        earnings_snapshot = get_earnings_snapshot(
+            ticker,
+            selected_market_instrument or tws_instrument,
+        )
         earnings_danger = earnings_snapshot['status'] == 'RISK'
         earnings_msg = ""
         if earnings_snapshot.get('next_date'):

@@ -4885,6 +4885,28 @@ class TestPortfolioChatDataQuality(unittest.TestCase):
         self.assertTrue(risk['Earnings_Available'])
         self.assertEqual(risk['Days_To_Earnings'], 2)
 
+    @patch('market_scanner.yf.Ticker')
+    def test_ibkr_etf_exchange_is_not_subject_to_earnings(self, ticker):
+        snapshot = market_scanner.get_earnings_snapshot('GENERIC', {
+            'contract': {
+                'exchange': 'BVME.ETF',
+                'security_type': 'STK',
+                'long_name': 'Generic index product',
+            },
+        })
+        self.assertEqual(snapshot['status'], 'NOT_APPLICABLE')
+        self.assertFalse(snapshot['available'])
+        self.assertEqual(snapshot['source'], 'IBKR/instrument metadata')
+        ticker.assert_not_called()
+
+    def test_regular_ibkr_stock_is_not_misclassified_as_fund(self):
+        self.assertFalse(market_scanner._instrument_is_fund_or_etp('AAPL', {
+            'contract': {
+                'exchange': 'NASDAQ', 'security_type': 'STK',
+                'long_name': 'APPLE INC',
+            },
+        }))
+
     def test_chat_context_separates_stale_accounts_and_unknown_earnings(self):
         snapshot = {
             'as_of': '2026-09-12T10:00:00+00:00',
