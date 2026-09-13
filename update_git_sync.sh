@@ -3,7 +3,9 @@
 
 SYNC_REMOTE_NAME="${SYNC_REMOTE_NAME:-origin}"
 SYNC_BRANCH_NAME="${SYNC_BRANCH_NAME:-main}"
-ORDER_CACHE_PASSWORD_FILE="${PORTFOLIO_ORDER_CACHE_PASSWORD_FILE:-.portfolio_order_cache_password}"
+PORTFOLIO_PASSWORD_KEYCHAIN_ACCOUNT="${PORTFOLIO_PASSWORD_KEYCHAIN_ACCOUNT:-market-scanner}"
+PORTFOLIO_PASSWORD_KEYCHAIN_SERVICE="${PORTFOLIO_PASSWORD_KEYCHAIN_SERVICE:-market-scanner-portfolio-password}"
+ORDER_CACHE_PASSWORD_KEYCHAIN_SERVICE="${ORDER_CACHE_PASSWORD_KEYCHAIN_SERVICE:-market-scanner-order-cache-password}"
 
 SYNC_GENERATED_FILES=(
     "analysis/technical_events_validation/coverage.csv"
@@ -85,38 +87,65 @@ sync_python_bin() {
 }
 
 load_order_cache_password() {
-    if [ -n "${PORTFOLIO_ORDER_CACHE_PASSWORD:-}" ]; then
-        export PORTFOLIO_ORDER_CACHE_PASSWORD
+    if [ -n "${PORTFOLIO_ORDER_CACHE_PASSWORD:-}" ] && [ -n "${PORTFOLIO_PASSWORD:-}" ]; then
+        export PORTFOLIO_ORDER_CACHE_PASSWORD PORTFOLIO_PASSWORD
         return
     fi
 
-    if [ -f "$ORDER_CACHE_PASSWORD_FILE" ]; then
-        IFS= read -r PORTFOLIO_ORDER_CACHE_PASSWORD < "$ORDER_CACHE_PASSWORD_FILE"
-        if [ -n "$PORTFOLIO_ORDER_CACHE_PASSWORD" ]; then
-            export PORTFOLIO_ORDER_CACHE_PASSWORD
+    if [ "$(uname -s)" = "Darwin" ] && command -v security >/dev/null 2>&1; then
+        if [ -z "${PORTFOLIO_PASSWORD:-}" ]; then
+            PORTFOLIO_PASSWORD="$(
+                security find-generic-password \
+                    -a "$PORTFOLIO_PASSWORD_KEYCHAIN_ACCOUNT" \
+                    -s "$PORTFOLIO_PASSWORD_KEYCHAIN_SERVICE" \
+                    -w 2>/dev/null || true
+            )"
+        fi
+        if [ -z "${PORTFOLIO_ORDER_CACHE_PASSWORD:-}" ]; then
+            PORTFOLIO_ORDER_CACHE_PASSWORD="$(
+                security find-generic-password \
+                    -a "$PORTFOLIO_PASSWORD_KEYCHAIN_ACCOUNT" \
+                    -s "$ORDER_CACHE_PASSWORD_KEYCHAIN_SERVICE" \
+                    -w 2>/dev/null || true
+            )"
+        fi
+        if [ -n "${PORTFOLIO_PASSWORD:-}" ] || [ -n "${PORTFOLIO_ORDER_CACHE_PASSWORD:-}" ]; then
+            PORTFOLIO_PASSWORD="${PORTFOLIO_PASSWORD:-$PORTFOLIO_ORDER_CACHE_PASSWORD}"
+            PORTFOLIO_ORDER_CACHE_PASSWORD="${PORTFOLIO_ORDER_CACHE_PASSWORD:-$PORTFOLIO_PASSWORD}"
+            export PORTFOLIO_ORDER_CACHE_PASSWORD PORTFOLIO_PASSWORD
             return
         fi
     fi
 
     if [ ! -t 0 ]; then
-        echo "Eroare: lipsește cheia comună pentru snapshotul ordinelor IBKR." >&2
-        echo "Rulează scriptul o dată într-un terminal interactiv pentru configurare." >&2
+        echo "Eroare: parola portofoliului nu este disponibilă în mediu sau Keychain." >&2
+        echo "Rulează un update într-un terminal interactiv pentru configurare." >&2
         return 1
     fi
 
-    printf 'PIN-ul portofoliului remote (va fi salvat local, în afara Git): ' >&2
-    IFS= read -r -s PORTFOLIO_ORDER_CACHE_PASSWORD
+    printf 'Parola dashboardului (va fi păstrată în macOS Keychain): ' >&2
+    IFS= read -r -s PORTFOLIO_PASSWORD
     printf '\n' >&2
-    if [ -z "$PORTFOLIO_ORDER_CACHE_PASSWORD" ]; then
-        echo "Eroare: PIN-ul remote nu poate fi gol." >&2
+    if [ -z "$PORTFOLIO_PASSWORD" ]; then
+        echo "Eroare: parola dashboardului nu poate fi goală." >&2
         return 1
     fi
+    PORTFOLIO_ORDER_CACHE_PASSWORD="$PORTFOLIO_PASSWORD"
 
-    umask 077
-    printf '%s\n' "$PORTFOLIO_ORDER_CACHE_PASSWORD" > "$ORDER_CACHE_PASSWORD_FILE"
-    chmod 600 "$ORDER_CACHE_PASSWORD_FILE"
-    export PORTFOLIO_ORDER_CACHE_PASSWORD
-    echo "Cheia snapshotului a fost salvată local în $ORDER_CACHE_PASSWORD_FILE (ignorat de Git)."
+    if [ "$(uname -s)" = "Darwin" ] && command -v security >/dev/null 2>&1; then
+        security add-generic-password -U \
+            -a "$PORTFOLIO_PASSWORD_KEYCHAIN_ACCOUNT" \
+            -s "$PORTFOLIO_PASSWORD_KEYCHAIN_SERVICE" \
+            -w "$PORTFOLIO_PASSWORD" >/dev/null
+        security add-generic-password -U \
+            -a "$PORTFOLIO_PASSWORD_KEYCHAIN_ACCOUNT" \
+            -s "$ORDER_CACHE_PASSWORD_KEYCHAIN_SERVICE" \
+            -w "$PORTFOLIO_ORDER_CACHE_PASSWORD" >/dev/null
+        echo "Parolele locale au fost salvate în macOS Keychain."
+    else
+        echo "Parola este disponibilă numai pentru această rulare; nu a fost salvată pe disc."
+    fi
+    export PORTFOLIO_ORDER_CACHE_PASSWORD PORTFOLIO_PASSWORD
 }
 
 load_shadow_r2_config() {

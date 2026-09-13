@@ -7674,18 +7674,18 @@ def generate_html_dashboard(
                  has_stats = True
          except: pass
 
-    # Citire parolă
-    # Pe GitHub Actions ignorăm password.txt pentru securitate
-    is_github = os.environ.get('GITHUB_ACTIONS') == 'true'
-    password = "1234" # Default fallback
-    
-    if 'PORTFOLIO_PASSWORD' in os.environ:
-        password = os.environ['PORTFOLIO_PASSWORD']
-    elif not is_github and os.path.exists("password.txt"):
-        try:
-            with open("password.txt", "r") as f:
-                password = f.read().strip()
-        except: pass
+    # Parola vine exclusiv din secretul workflowului sau din Keychain-ul local,
+    # încărcat de scripturile update. Nu există fallback din fișier sau PIN
+    # implicit, pentru ca un deploy greșit configurat să nu devină public.
+    password = (
+        os.environ.get('PORTFOLIO_PASSWORD', '').strip()
+        or os.environ.get('PORTFOLIO_ORDER_CACHE_PASSWORD', '').strip()
+    )
+    if not password:
+        raise RuntimeError(
+            'Lipsește PORTFOLIO_PASSWORD. Configurează secretul workflowului '
+            'sau parola din macOS Keychain prin scriptul local de update.'
+        )
 
     firebase_web_push_html = _firebase_web_push_html(
         os.environ.get('FIREBASE_WEB_CONFIG'),
@@ -10070,9 +10070,6 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             "model_label": "GPT-5.6 Terra",
         },
     }
-    # Use password variable (should be defined)
-    if not password: password = "1234" # Fallback
-    
     portfolio_json = json.dumps(
         _json_without_nonfinite_numbers(full_pf_data),
         allow_nan=False,

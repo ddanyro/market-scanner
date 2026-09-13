@@ -5,6 +5,7 @@ cd "$(dirname "$0")"
 source "./update_git_sync.sh"
 load_shadow_r2_config
 runtime_r2_pull
+load_order_cache_password
 
 if [ -x ".venv/bin/python" ]; then
     PYTHON_BIN=".venv/bin/python"

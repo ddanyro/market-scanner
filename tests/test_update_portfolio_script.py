@@ -41,7 +41,11 @@ class TestUpdatePortfolioScript(unittest.TestCase):
         )
         self.assertIn('git rebase --autostash -X theirs', sync)
         self.assertIn('load_order_cache_password()', sync)
-        self.assertIn('.portfolio_order_cache_password', sync)
+        self.assertIn('market-scanner-portfolio-password', sync)
+        self.assertIn('market-scanner-order-cache-password', sync)
+        self.assertIn('security find-generic-password', sync)
+        self.assertIn('security add-generic-password', sync)
+        self.assertNotIn('.portfolio_order_cache_password', sync)
         self.assertNotIn(
             '"analysis/technical_events_validation/event_observations.csv"',
             sync,
@@ -65,6 +69,19 @@ class TestUpdatePortfolioScript(unittest.TestCase):
         script = (self.root / 'update_ro.sh').read_text(encoding='utf-8')
         self.assertIn('source "./update_git_sync.sh"', script)
         self.assertIn('load_shadow_r2_config', script)
+        self.assertIn('load_order_cache_password', script)
+
+    def test_runtime_never_reads_a_local_password_file(self):
+        for filename in (
+            'market_scanner.py', 'ibkr_web_api.py', 'ib_tws_sync.py',
+            'update_git_sync.sh',
+        ):
+            content = (self.root / filename).read_text(encoding='utf-8')
+            self.assertNotIn('password.txt', content, filename)
+            self.assertNotIn('.portfolio_order_cache_password', content, filename)
+        scanner = (self.root / 'market_scanner.py').read_text(encoding='utf-8')
+        self.assertNotIn('password = "1234"', scanner)
+        self.assertIn("Lipsește PORTFOLIO_PASSWORD", scanner)
 
 
 if __name__ == '__main__':

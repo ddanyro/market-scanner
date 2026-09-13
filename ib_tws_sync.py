@@ -894,12 +894,6 @@ def fetch_active_orders(
                 or os.environ.get('TWS_ACCOUNT_PASSWORD', '')
                 or os.environ.get('PORTFOLIO_PASSWORD', '')
             )
-            if not account_password and os.path.exists('password.txt'):
-                try:
-                    with open('password.txt', 'r', encoding='utf-8') as handle:
-                        account_password = handle.read().strip()
-                except OSError:
-                    account_password = ''
             if account_password:
                 import market_security
                 encrypted_account = market_security.encrypt_for_js(
