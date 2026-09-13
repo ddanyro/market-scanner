@@ -60,6 +60,9 @@ MARKET_DATA_CONCURRENCY = max(
 TRANSIENT_FAILURE_TTL_SECONDS = max(
     30, int(os.environ.get("IBKR_MCP_TRANSIENT_FAILURE_TTL_SECONDS", "120"))
 )
+BVB_MARKET_FAILURE_TTL_HOURS = max(
+    1, float(os.environ.get("IBKR_MCP_BVB_FAILURE_TTL_HOURS", "12"))
+)
 MCP_CALL_ATTEMPTS = max(
     1, min(5, int(os.environ.get("IBKR_MCP_CALL_ATTEMPTS", "3")))
 )
@@ -163,7 +166,16 @@ def _is_transient_mcp_error(error: Any) -> bool:
     return any(marker in message for marker in transient_markers)
 
 
-def _failure_ttl_seconds(failure: dict[str, Any]) -> float:
+def _failure_ttl_seconds(
+    failure: dict[str, Any], symbol: Any = None,
+) -> float:
+    # IBKR currently resolves a subset of BVB contracts but repeatedly returns
+    # "Details currently unavailable" for their daily history.  Retrying those
+    # contracts every two minutes adds latency without improving the scanner,
+    # which already has Yahoo/BVB fallbacks.  Recheck periodically so recovery
+    # is still detected, just not on every update_all run.
+    if _market_symbol(symbol).endswith(".RO"):
+        return BVB_MARKET_FAILURE_TTL_HOURS * 3600
     transient = failure.get("transient")
     if transient is None:
         transient = _is_transient_mcp_error(failure.get("error"))
@@ -1202,7 +1214,8 @@ async def _fetch_market_instrument(
         return normalized, existing, "cached"
     recent_failure = cache.get("failures", {}).get(normalized)
     if isinstance(recent_failure, dict) and _fresh_iso(
-        recent_failure.get("failed_at"), _failure_ttl_seconds(recent_failure)
+        recent_failure.get("failed_at"),
+        _failure_ttl_seconds(recent_failure, normalized),
     ):
         if isinstance(existing, dict) and existing.get("bars"):
             existing["last_run_history_mode"] = "cache"
@@ -1399,12 +1412,26 @@ async def _prefetch_market_data_async(
         recent_failure = cache.get("failures", {}).get(symbol)
         if isinstance(recent_failure, dict) and _fresh_iso(
             recent_failure.get("failed_at"),
-            _failure_ttl_seconds(recent_failure),
+            _failure_ttl_seconds(recent_failure, symbol),
         ):
             results.append((
                 symbol, None,
                 str(recent_failure.get("error") or "market_data_error_cached"),
             ))
+            continue
+        cached_contract = cache.get("contracts", {}).get(symbol)
+        if (
+            isinstance(cached_contract, dict)
+            and cached_contract.get("status") == "not_found"
+            and cached_contract.get("resolver_version")
+            == CONTRACT_RESOLVER_VERSION
+            and _fresh_iso(
+                cached_contract.get("resolved_at"), 86400
+            )
+        ):
+            # Negative contract resolution is already cached for one day.
+            # Do not schedule a no-op MCP task or open a session for it.
+            results.append((symbol, None, "contract_not_found_cached"))
             continue
         pending_symbols.append(symbol)
     selected_symbols = pending_symbols

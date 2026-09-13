@@ -500,6 +500,48 @@ class TestIBKRMCPBuildSnapshot(unittest.IsolatedAsyncioTestCase):
             ibkr_mcp.MARKET_DATA_TTL_HOURS * 3600,
         )
 
+    def test_bvb_market_failure_uses_longer_cache_ttl(self):
+        transient = {
+            "error": "Details currently unavailable. Please try again later",
+            "transient": True,
+        }
+        self.assertEqual(
+            ibkr_mcp._failure_ttl_seconds(transient, "BRD.RO"),
+            ibkr_mcp.BVB_MARKET_FAILURE_TTL_HOURS * 3600,
+        )
+
+    async def test_prefetch_skips_fresh_negative_contract_cache(self):
+        now = __import__("datetime").datetime.now(
+            __import__("datetime").timezone.utc
+        ).isoformat()
+        cache = {
+            "contracts": {
+                "4RT.RO": {
+                    "status": "not_found",
+                    "resolver_version": ibkr_mcp.CONTRACT_RESOLVER_VERSION,
+                    "resolved_at": now,
+                },
+            },
+            "instruments": {},
+            "failures": {},
+        }
+
+        with (
+            mock.patch.object(ibkr_mcp, "_read_market_cache", return_value=cache),
+            mock.patch.object(ibkr_mcp, "_write_market_cache"),
+            mock.patch.object(ibkr_mcp, "ReadOnlyMCPSession") as session,
+        ):
+            stats = await ibkr_mcp._prefetch_market_data_async(
+                ["4RT.RO"], concurrency=1, batch_size=50
+            )
+
+        self.assertEqual(stats["scheduled"], 0)
+        self.assertEqual(stats["unavailable"], 1)
+        self.assertEqual(
+            stats["errors"]["4RT.RO"], "contract_not_found_cached"
+        )
+        session.assert_not_called()
+
     async def test_authorisation_required_is_not_hidden_by_retry(self):
         error = ibkr_mcp.IBKRMCPAuthorizationRequired("login required")
         with mock.patch.object(
