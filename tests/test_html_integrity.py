@@ -543,6 +543,13 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("if (hasUnsupportedRow) return", content)
         self.assertIn("initPortfolioDataTable('#buying-orders-table')", content)
         self.assertIn("initPortfolioDataTable('#selling-orders-table')", content)
+        self.assertIn("var table = $('#watchlist-table').DataTable({", content)
+        self.assertIn('var wlTable = table;', content)
+        self.assertNotIn(
+            "$('#portfolio-table, #watchlist-table, #buying-orders-table, "
+            "#selling-orders-table').DataTable(",
+            content,
+        )
 
     def test_buy_orders_are_last_and_followed_by_market_recommendations(self):
         file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')

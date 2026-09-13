@@ -11151,7 +11151,10 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
 
         <script>
             $(document).ready(function() {
-                var table = $('#portfolio-table, #watchlist-table, #buying-orders-table, #selling-orders-table').DataTable({
+                // Tabelele portofoliului sunt populate și inițializate exclusiv
+                // de renderPortfolio(). Aici inițializăm doar watchlistul, ca
+                // fiecare DataTable să aibă un singur proprietar.
+                var table = $('#watchlist-table').DataTable({
                     paging: false,
                     ordering: true,
                     info: false,
@@ -11161,7 +11164,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
 
                 // Populate Sector datalist dynamically
                 var sectors = {};
-                var wlTable = $('#watchlist-table').DataTable();
+                var wlTable = table;
                 wlTable.column(8).data().each(function(val) {
                     if (val) {
                         var cleanVal = val.trim();
