@@ -7712,6 +7712,36 @@ def generate_html_dashboard(
         
         {css}
         <style>
+            body.dashboard-locked {{ overflow: hidden; }}
+            body.dashboard-locked #dashboard-shell {{
+                visibility: hidden;
+            }}
+            .dashboard-global-lock {{
+                position: fixed; inset: 0; z-index: 10000;
+                display: grid; place-items: center; padding: 20px;
+                background: var(--bg-light);
+            }}
+            .dashboard-global-lock-card {{
+                width: min(460px, 100%); padding: 42px 34px;
+                text-align: center; background: var(--bg-white);
+                border: 1px solid var(--border-light);
+                border-radius: 24px; box-shadow: var(--shadow-md);
+            }}
+            .dashboard-global-lock-form {{
+                display: flex; gap: 12px; justify-content: center;
+                align-items: center;
+            }}
+            .dashboard-global-lock-input {{
+                min-width: 0; width: 210px; padding: 14px 18px;
+                border: 1px solid var(--border-light);
+                border-radius: var(--radius-sm); background: var(--bg-white);
+                color: var(--text-primary); text-align: center;
+                font-size: 18px; font-weight: 600; letter-spacing: 5px;
+            }}
+            @media (max-width: 480px) {{
+                .dashboard-global-lock-form {{ align-items: stretch; flex-direction: column; }}
+                .dashboard-global-lock-input {{ width: 100%; }}
+            }}
             /* DataTables Dark Mode Overrides */
             .dataTables_wrapper .dataTables_length, 
             .dataTables_wrapper .dataTables_filter, 
@@ -7955,6 +7985,12 @@ def generate_html_dashboard(
 
                     document.getElementById('portfolio-lock').style.display = 'none';
                     document.getElementById('portfolio-data').style.display = 'block';
+                    document.body.classList.remove('dashboard-locked');
+                    const dashboardShell = document.getElementById('dashboard-shell');
+                    if (dashboardShell) {
+                        dashboardShell.removeAttribute('inert');
+                        dashboardShell.setAttribute('aria-hidden', 'false');
+                    }
                     window.marketScannerPortfolioAuthenticated = true;
                     window.dispatchEvent(new CustomEvent(
                         'market-scanner:portfolio-authenticated',
@@ -7996,6 +8032,16 @@ def generate_html_dashboard(
             }
 
             async function restorePortfolioAccess() {
+                const pendingKey = 'market-scanner-pending-credential-v1';
+                const pendingCredential = sessionStorage.getItem(pendingKey);
+                if (pendingCredential) {
+                    sessionStorage.removeItem(pendingKey);
+                    const unlockedFromGate = await unlockPortfolioWithCredential(
+                        pendingCredential,
+                        { remember: true, silent: true }
+                    );
+                    if (unlockedFromGate) return;
+                }
                 if (!window.PortfolioAuthPersistence) return;
                 const credential = await window.PortfolioAuthPersistence
                     .restoreCredential();
@@ -8010,6 +8056,9 @@ def generate_html_dashboard(
             }
 
             async function logoutPortfolio() {
+                localStorage.removeItem('market-scanner-dashboard-access-v1');
+                sessionStorage.removeItem('market-scanner-dashboard-access-v1');
+                sessionStorage.removeItem('market-scanner-pending-credential-v1');
                 if (window.PortfolioAuthPersistence) {
                     await window.PortfolioAuthPersistence.clearCredential();
                 }
@@ -8712,7 +8761,21 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     # Continue HTML (f-string again for {timestamp})
     html_head += f"""
     </head>
-    <body>
+    <body class="dashboard-locked">
+
+    <div id="portfolio-lock" class="dashboard-global-lock" role="dialog" aria-modal="true" aria-labelledby="dashboard-lock-title">
+        <div class="dashboard-global-lock-card">
+            <h2 id="dashboard-lock-title" style="color: var(--text-primary); margin-bottom: 12px;">Market Scanner protejat</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 28px; font-size: 16px;">Introdu parola pentru a accesa întregul dashboard.</p>
+            <div class="dashboard-global-lock-form">
+                <input type="password" id="pf-pass" class="dashboard-global-lock-input" autocomplete="current-password" placeholder="Parolă" aria-label="Parolă" onkeyup="if(event.key==='Enter') unlockPortfolio()">
+                <button onclick="unlockPortfolio()" class="btn-primary">Accesează</button>
+            </div>
+            <p style="color: var(--text-secondary); margin: 18px 0 0; font-size: 13px;">Accesul rămâne activ 30 de zile pe acest dispozitiv.</p>
+        </div>
+    </div>
+
+    <div id="dashboard-shell" inert aria-hidden="true">
     
     <div id="global-tooltip"></div>
     
@@ -8734,17 +8797,6 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         
     <div class="container">
         <div id="portfolio" class="tab-content">
-            
-            <!-- LOCK SCREEN Local -->
-            <div id="portfolio-lock" style="max-width: 500px; margin: 80px auto; text-align: center; padding: 48px; background: var(--bg-white); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); border: 1px solid var(--border-light);">
-                <h2 style="color: var(--text-primary); margin-bottom: 12px;">Secțiune Protejată</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 32px; font-size: 16px;">Introdu PIN-ul pentru a accesa portofoliul</p>
-                <div style="display: flex; gap: 12px; justify-content: center; align-items: center;">
-                    <input type="password" id="pf-pass" style="padding: 14px 20px; font-size: 18px; text-align: center; width: 180px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: var(--bg-white); color: var(--text-primary); letter-spacing: 8px; font-weight: 600; transition: all 0.2s;" placeholder="••••" onkeyup="if(event.key==='Enter') unlockPortfolio()" onfocus="this.style.borderColor='var(--primary-purple)'; this.style.boxShadow='0 0 0 3px rgba(119,96,249,0.1)'" onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none'">
-                    <button onclick="unlockPortfolio()" class="btn-primary">Unlock</button>
-                </div>
-                <p style="color: var(--text-secondary); margin: 18px 0 0; font-size: 13px;">Accesul rămâne activ 30 de zile de la ultima autentificare manuală sau automată în acest browser.</p>
-            </div>
             
             <!-- ACTUAL DATA (Hidden) -->
             <div id="portfolio-data" style="display: none;">
@@ -11561,8 +11613,15 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     return Promise.resolve(watchlistDetailData);
                 }
                 if (!watchlistDetailPromise) {
+                    const runtimeToken = sessionStorage.getItem(
+                        'market-scanner-dashboard-access-v1'
+                    ) || '';
                     watchlistDetailPromise = fetch(
-                        watchlistDetailEndpoint, {cache: 'no-store'}
+                        watchlistDetailEndpoint,
+                        {
+                            cache: 'no-store',
+                            headers: {Authorization: 'Bearer ' + runtimeToken}
+                        }
                     ).then(function(response) {
                         if (!response.ok) throw new Error('HTTP ' + response.status);
                         return response.json();
@@ -12252,6 +12311,7 @@ drawIndicatorDetail(detail,initialCount);
             });
         </script>
     </div> <!-- End container -->
+    </div> <!-- End authenticated dashboard shell -->
     </body>
     </html>
     """

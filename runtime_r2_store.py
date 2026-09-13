@@ -303,33 +303,97 @@ def loader_html():
     endpoint = f"{WORKER_BASE_URL}/runtime/index.html"
     return f"""<!doctype html>
 <html lang=\"ro\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
-<title>Market Scanner</title></head><body>
+<meta name=\"theme-color\" content=\"#7760f9\"><title>Market Scanner</title>
+<style>
+*{{box-sizing:border-box}}body{{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f7fb;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif}}
+.gate{{width:min(440px,calc(100vw - 32px));padding:36px;border:1px solid #e5e7eb;border-radius:24px;background:#fff;box-shadow:0 24px 70px rgba(15,23,42,.15);text-align:center}}
+.mark{{width:62px;height:62px;margin:0 auto 18px;display:grid;place-items:center;border-radius:18px;background:linear-gradient(135deg,#7760f9,#4f46e5);color:#fff;font-size:30px;font-weight:800}}
+h1{{margin:0 0 10px;font-size:28px}}p{{margin:0 0 24px;color:#64748b;line-height:1.5}}form{{display:flex;gap:10px}}input{{min-width:0;flex:1;padding:14px 16px;border:1px solid #cbd5e1;border-radius:12px;font:inherit;text-align:center;letter-spacing:5px}}input:focus{{outline:3px solid rgba(119,96,249,.18);border-color:#7760f9}}button{{padding:14px 18px;border:0;border-radius:12px;background:#6654ed;color:#fff;font:inherit;font-weight:750;cursor:pointer}}button:disabled{{opacity:.6;cursor:wait}}#status{{min-height:22px;margin:16px 0 0;color:#b91c1c;font-size:14px}}#loading{{display:none;color:#475569}}
+@media(max-width:480px){{.gate{{padding:28px 20px}}form{{flex-direction:column}}}}
+</style></head><body>
 <!-- {LOADER_MARKER} -->
-<p id=\"loading\" style=\"font:16px system-ui;padding:24px\">Se încarcă Market Scanner…</p>
+<main class=\"gate\" aria-labelledby=\"gate-title\">
+  <div class=\"mark\" aria-hidden=\"true\">M</div>
+  <h1 id=\"gate-title\">Market Scanner</h1>
+  <p>Introdu parola pentru a accesa întregul dashboard.</p>
+  <form id=\"access-form\">
+    <input id=\"access-password\" type=\"password\" autocomplete=\"current-password\" placeholder=\"Parolă\" aria-label=\"Parolă\" required>
+    <button id=\"access-submit\" type=\"submit\">Accesează</button>
+  </form>
+  <p id=\"status\" role=\"alert\"></p>
+  <p id=\"loading\">Se încarcă dashboardul…</p>
+</main>
 <script>
 var endpoint = {json.dumps(endpoint)};
-if (window.location.protocol === 'file:') {{
-  window.location.replace(endpoint);
-}} else {{
-  fetch(endpoint, {{cache: 'no-store'}})
-    .then(function(response) {{ if (!response.ok) throw new Error('HTTP ' + response.status); return response.text(); }})
-    .then(function(html) {{ document.open(); document.write(html); document.close(); }})
-    .catch(function(error) {{ document.getElementById('loading').textContent = 'Dashboardul nu poate fi încărcat. Reîncarcă pagina. ' + error; }});
+var tokenMessage = 'market-scanner-portfolio-chat-v1';
+var tokenStorageKey = 'market-scanner-dashboard-access-v1';
+var tokenTtlMs = 30 * 24 * 60 * 60 * 1000;
+function bytesToHex(buffer) {{
+  return Array.from(new Uint8Array(buffer)).map(function(value) {{
+    return value.toString(16).padStart(2, '0');
+  }}).join('');
 }}
+async function accessToken(password) {{
+  var encoder = new TextEncoder();
+  var key = await crypto.subtle.importKey('raw',encoder.encode(password),{{name:'HMAC',hash:'SHA-256'}},false,['sign']);
+  return bytesToHex(await crypto.subtle.sign('HMAC',key,encoder.encode(tokenMessage)));
+}}
+function savedToken() {{
+  try {{
+    var record = JSON.parse(localStorage.getItem(tokenStorageKey) || 'null');
+    if (!record || !record.token || record.expiresAt <= Date.now()) {{
+      localStorage.removeItem(tokenStorageKey); return '';
+    }}
+    return record.token;
+  }} catch (_error) {{ localStorage.removeItem(tokenStorageKey); return ''; }}
+}}
+async function loadDashboard(token,password) {{
+  var status=document.getElementById('status');
+  var loading=document.getElementById('loading');
+  var submit=document.getElementById('access-submit');
+  status.textContent=''; loading.style.display='block'; submit.disabled=true;
+  try {{
+    var response=await fetch(endpoint,{{cache:'no-store',headers:{{Authorization:'Bearer '+token}}}});
+    if(response.status===401)throw new Error('Parolă incorectă.');
+    if(!response.ok)throw new Error('Dashboard indisponibil (HTTP '+response.status+').');
+    var html=await response.text();
+    sessionStorage.setItem(tokenStorageKey,token);
+    if(password){{
+      sessionStorage.setItem('market-scanner-pending-credential-v1',password);
+      localStorage.setItem(tokenStorageKey,JSON.stringify({{token:token,expiresAt:Date.now()+tokenTtlMs}}));
+    }}
+    document.open();document.write(html);document.close();
+  }}catch(error){{
+    localStorage.removeItem(tokenStorageKey);sessionStorage.removeItem(tokenStorageKey);
+    status.textContent=error&&error.message?error.message:String(error);
+    loading.style.display='none';submit.disabled=false;
+    document.getElementById('access-password').focus();
+  }}
+}}
+document.getElementById('access-form').addEventListener('submit',async function(event){{
+  event.preventDefault();var password=document.getElementById('access-password').value;
+  if(!password)return;await loadDashboard(await accessToken(password),password);
+}});
+var existingToken=savedToken();
+if(existingToken){{loadDashboard(existingToken,'');}}else{{document.getElementById('access-password').focus();}}
 </script></body></html>"""
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("push", "pull", "verify"))
+    parser.add_argument("command", choices=("push", "pull", "verify", "loader"))
     parser.add_argument("--publish-loader", action="store_true")
     args = parser.parse_args()
     if args.command == "push":
         push_runtime(publish_loader=args.publish_loader)
     elif args.command == "pull":
         pull_runtime()
-    else:
+    elif args.command == "verify":
         verify_runtime()
+    else:
+        _atomic_write(
+            Path("index.html"), loader_html().encode("utf-8"), mode=0o644
+        )
 
 
 if __name__ == "__main__":

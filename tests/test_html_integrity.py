@@ -546,15 +546,21 @@ class TestHtmlIntegrity(unittest.TestCase):
             generated_content, 'Deconectare de pe acest dispozitiv'
         )
         self.assertIn(
-            'Accesul rămâne activ 30 de zile de la ultima autentificare '
-            'manuală sau automată în acest browser.',
+            'Accesul rămâne activ 30 de zile pe acest dispozitiv.',
             content,
         )
         self.assert_generated_contains(
             generated_content,
-            'Accesul rămâne activ 30 de zile de la ultima autentificare '
-            'manuală sau automată în acest browser.',
+            'Accesul rămâne activ 30 de zile pe acest dispozitiv.',
         )
+        self.assertIn('Market Scanner protejat', content)
+        self.assertIn('pentru a accesa întregul dashboard', content)
+        self.assertIn('id="dashboard-shell" inert aria-hidden="true"', content)
+        self.assertIn("document.body.classList.remove('dashboard-locked')", content)
+        self.assertIn("dashboardShell.removeAttribute('inert')", content)
+        self.assertIn("market-scanner-pending-credential-v1", content)
+        self.assertIn("market-scanner-dashboard-access-v1", content)
+        self.assertIn("headers: {Authorization: 'Bearer ' + runtimeToken}", content)
         self.assertNotIn("sessionStorage.setItem('pf_auth'", content)
         self.assertIn(
             'const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;',
@@ -717,7 +723,9 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("let watchlistDetailData = {{}}", content)
         self.assertIn("async function openWatchlistDetail(symbol)", content)
         self.assertIn("ensureWatchlistDetailsLoaded()", content)
-        self.assertIn("watchlistDetailEndpoint, {cache: 'no-store'}", content)
+        self.assertIn("watchlistDetailEndpoint,", content)
+        self.assertIn("cache: 'no-store'", content)
+        self.assertIn("headers: {Authorization: 'Bearer ' + runtimeToken}", content)
         self.assertIn("/runtime/watchlist_details.json", content)
         self.assertIn("openMarketDetailWindow(details[symbol], symbol)", content)
         self.assertIn("_write_runtime_json('watchlist_details.json'", content)

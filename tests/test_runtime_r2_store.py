@@ -139,13 +139,13 @@ def test_loader_does_not_replace_full_dashboard_in_r2(
     )
     assert store.LOADER_MARKER in Path("index.html").read_text(encoding="utf-8")
     assert stat.S_IMODE(Path("index.html").stat().st_mode) == 0o644
-    assert "cache: 'no-store'" in Path("index.html").read_text(encoding="utf-8")
-    assert "window.location.protocol === 'file:'" in Path("index.html").read_text(
-        encoding="utf-8"
-    )
-    assert "window.location.replace(endpoint)" in Path("index.html").read_text(
-        encoding="utf-8"
-    )
+    loader = Path("index.html").read_text(encoding="utf-8")
+    assert "cache:'no-store'" in loader
+    assert "Introdu parola pentru a accesa întregul dashboard" in loader
+    assert "Authorization:'Bearer '+token" in loader
+    assert "market-scanner-dashboard-access-v1" in loader
+    assert "market-scanner-pending-credential-v1" in loader
+    assert "window.location.replace(endpoint)" not in loader
 
     second = store.push_runtime(config=r2_config, client=client)
     assert second["artifacts"]["dashboard-html"] == first["artifacts"]["dashboard-html"]

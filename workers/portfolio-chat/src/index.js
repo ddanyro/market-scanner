@@ -4,6 +4,8 @@ import {
   CLOUDFLARE_FALLBACK_MODEL,
   extractCloudflareAIAnswer,
   extractOpenAIAnswer,
+  expectedAccessToken,
+  safeTokenEqual,
   validateChatRequest,
 } from "./chat_core.js";
 
@@ -290,7 +292,7 @@ function corsHeaders(origin) {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Vary": "Origin",
+    "Vary": "Origin, Authorization",
   } : {};
 }
 
@@ -308,7 +310,7 @@ function isPublicRuntimeOrigin(origin) {
 function publicRuntimeCorsHeaders(origin) {
   return origin && isPublicRuntimeOrigin(origin) ? {
     "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Authorization, Content-Type",
     "Access-Control-Allow-Methods": "GET, OPTIONS",
     "Vary": "Origin",
   } : {};
@@ -335,6 +337,13 @@ async function runtimeResponse(request, env, origin, artifactName) {
   if (request.method !== "GET") {
     return runtimeJsonResponse({error: "Metodă neacceptată."}, 405, origin);
   }
+  const authorization = String(request.headers.get("Authorization") || "");
+  const receivedToken = authorization.replace(/^Bearer\s+/i, "").trim();
+  const expectedToken = await expectedAccessToken(env.PORTFOLIO_PASSWORD);
+  if (!env.PORTFOLIO_PASSWORD
+      || !(await safeTokenEqual(receivedToken, expectedToken))) {
+    return runtimeJsonResponse({error: "Autentificare necesară."}, 401, origin);
+  }
   if ((!env.MARKET_SCANNER_DATA || typeof env.MARKET_SCANNER_DATA.get !== "function")
       && (!env.SHADOW_R2_ACCOUNT_ID || !env.SHADOW_R2_ACCESS_KEY_ID
           || !env.SHADOW_R2_SECRET_ACCESS_KEY)) {
@@ -355,7 +364,7 @@ async function runtimeResponse(request, env, origin, artifactName) {
   }
   const headers = new Headers({
     "Content-Type": descriptor.content_type || "application/octet-stream",
-    "Cache-Control": "public, max-age=60, must-revalidate",
+    "Cache-Control": "private, max-age=60, must-revalidate",
     "ETag": `\"${descriptor.sha256}\"`,
     "X-Content-Type-Options": "nosniff",
   });

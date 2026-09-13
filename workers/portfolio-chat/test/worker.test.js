@@ -23,6 +23,13 @@ function workerEnv(overrides = {}) {
   };
 }
 
+async function runtimeHeaders(origin = SITE_ORIGIN, password = "portfolio-test") {
+  return {
+    Origin: origin,
+    Authorization: `Bearer ${await expectedAccessToken(password)}`,
+  };
+}
+
 function runtimeR2() {
   const manifest = {
     artifacts: {
@@ -61,7 +68,7 @@ function runtimeR2() {
 test("serves the public dashboard artifact from private R2", async () => {
   const response = await worker.fetch(new Request(
     "https://worker.example/runtime/index.html",
-    {headers: {Origin: SITE_ORIGIN}},
+    {headers: await runtimeHeaders()},
   ), workerEnv({MARKET_SCANNER_DATA: runtimeR2()}));
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("Access-Control-Allow-Origin"), SITE_ORIGIN);
@@ -72,7 +79,7 @@ test("serves the public dashboard artifact from private R2", async () => {
 test("serves progressive watchlist details as gzip", async () => {
   const response = await worker.fetch(new Request(
     "https://worker.example/runtime/watchlist_details.json",
-    {headers: {Origin: SITE_ORIGIN}},
+    {headers: await runtimeHeaders()},
   ), workerEnv({MARKET_SCANNER_DATA: runtimeR2()}));
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("Content-Type"), "application/json; charset=utf-8");
@@ -84,7 +91,7 @@ test("serves public runtime artifacts to loopback development origins", async ()
   for (const origin of ["http://localhost:8000", "http://127.0.0.1:8000", "http://[::1]:8000"]) {
     const response = await worker.fetch(new Request(
       "https://worker.example/runtime/index.html",
-      {headers: {Origin: origin}},
+      {headers: await runtimeHeaders(origin)},
     ), workerEnv({MARKET_SCANNER_DATA: runtimeR2()}));
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("Access-Control-Allow-Origin"), origin);
@@ -100,6 +107,22 @@ test("rejects non-loopback and file origins for runtime artifacts", async () => 
     assert.equal(response.status, 403);
     assert.equal(response.headers.get("Access-Control-Allow-Origin"), null);
   }
+});
+
+test("requires the dashboard password for every runtime artifact", async () => {
+  for (const authorization of ["", "Bearer invalid-token"]) {
+    const response = await worker.fetch(new Request(
+      "https://worker.example/runtime/index.html",
+      {headers: {Origin: SITE_ORIGIN, Authorization: authorization}},
+    ), workerEnv({MARKET_SCANNER_DATA: runtimeR2()}));
+    assert.equal(response.status, 401);
+  }
+  const preflight = await worker.fetch(new Request(
+    "https://worker.example/runtime/index.html",
+    {method: "OPTIONS", headers: {Origin: SITE_ORIGIN}},
+  ), workerEnv({MARKET_SCANNER_DATA: runtimeR2()}));
+  assert.equal(preflight.status, 204);
+  assert.match(preflight.headers.get("Access-Control-Allow-Headers"), /Authorization/);
 });
 
 test("reads runtime artifacts through signed R2 S3 requests without a native binding", async () => {
@@ -123,7 +146,7 @@ test("reads runtime artifacts through signed R2 S3 requests without a native bin
   try {
     const response = await worker.fetch(new Request(
       "https://worker.example/runtime/index.html",
-      {headers: {Origin: SITE_ORIGIN}},
+      {headers: await runtimeHeaders()},
     ), workerEnv({
       SHADOW_R2_ACCOUNT_ID: "account",
       SHADOW_R2_ACCESS_KEY_ID: "access",
