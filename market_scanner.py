@@ -7712,35 +7712,25 @@ def generate_html_dashboard(
         
         {css}
         <style>
-            body.dashboard-locked {{ overflow: hidden; }}
-            body.dashboard-locked #dashboard-shell {{
-                visibility: hidden;
+            .header-actions {{
+                display: flex; align-items: center; justify-content: flex-end;
+                gap: 12px; min-width: 0;
             }}
-            .dashboard-global-lock {{
-                position: fixed; inset: 0; z-index: 10000;
-                display: grid; place-items: center; padding: 20px;
-                background: var(--bg-light);
-            }}
-            .dashboard-global-lock-card {{
-                width: min(460px, 100%); padding: 42px 34px;
-                text-align: center; background: var(--bg-white);
+            .dashboard-logout {{
                 border: 1px solid var(--border-light);
-                border-radius: 24px; box-shadow: var(--shadow-md);
+                background: var(--bg-white); color: var(--text-secondary);
+                border-radius: var(--radius-sm); padding: 8px 12px;
+                cursor: pointer; white-space: nowrap; font: inherit;
+                font-size: 0.78rem; font-weight: 650;
             }}
-            .dashboard-global-lock-form {{
-                display: flex; gap: 12px; justify-content: center;
-                align-items: center;
+            .dashboard-logout:hover {{
+                color: var(--primary-purple); border-color: var(--primary-purple);
+                background: var(--light-purple-bg);
             }}
-            .dashboard-global-lock-input {{
-                min-width: 0; width: 210px; padding: 14px 18px;
-                border: 1px solid var(--border-light);
-                border-radius: var(--radius-sm); background: var(--bg-white);
-                color: var(--text-primary); text-align: center;
-                font-size: 18px; font-weight: 600; letter-spacing: 5px;
-            }}
-            @media (max-width: 480px) {{
-                .dashboard-global-lock-form {{ align-items: stretch; flex-direction: column; }}
-                .dashboard-global-lock-input {{ width: 100%; }}
+            @media (max-width: 640px) {{
+                .header-actions {{ gap: 6px; }}
+                .header-generated {{ display: none; }}
+                .dashboard-logout {{ padding: 8px 9px; font-size: 0.72rem; }}
             }}
             /* DataTables Dark Mode Overrides */
             .dataTables_wrapper .dataTables_length, 
@@ -7896,172 +7886,27 @@ def generate_html_dashboard(
     # JS Block (Raw String to avoid f-string syntax errors with { })
     html_head += """
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-        <!-- CryptoJS for AES Decryption -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-        <script src="portfolio_auth.js"></script>
-        
         <script>
-            // Variabila cu datele criptate va fi injectată aici de Python
-            // const ENCRYPTED_DATA = { ... }; 
             let portfolioDetailData = {};
             let buyRecommendationDetailData = {};
             let activeBuyOrderLevels = {};
             let portfolioChatConfig = null;
             let portfolioChatHistory = [];
 
-            async function reloadIfPortfolioPageIsStale() {
-                if (typeof PORTFOLIO_BLOB_VERSION === 'undefined') return false;
-                try {
-                    const freshUrl = new URL(window.location.href);
-                    freshUrl.searchParams.set('_portfolio_refresh', Date.now().toString());
-                    const response = await fetch(freshUrl.href, {
-                        cache: 'no-store',
-                        credentials: 'same-origin',
-                        headers: { 'Cache-Control': 'no-cache' }
-                    });
-                    if (!response.ok) return false;
-                    const freshHtml = await response.text();
-                    const versionMatch = freshHtml.match(
-                        /const PORTFOLIO_BLOB_VERSION = "([a-f0-9]+)";/
-                    );
-                    if (
-                        !versionMatch
-                        || versionMatch[1] === PORTFOLIO_BLOB_VERSION
-                    ) {
-                        return false;
-                    }
-                    sessionStorage.setItem(
-                        'marketScannerOpenPortfolioAfterRefresh',
-                        '1'
-                    );
-                    window.location.replace(freshUrl.href);
-                    return true;
-                } catch (refreshError) {
-                    console.warn(
-                        'Versiunea publicată nu a putut fi verificată.',
-                        refreshError
-                    );
-                    return false;
+            function initializeProtectedDashboard() {
+                if (typeof PORTFOLIO_DATA !== 'undefined') {
+                    renderPortfolio(PORTFOLIO_DATA);
                 }
+                window.marketScannerPortfolioAuthenticated = true;
+                window.dispatchEvent(new CustomEvent(
+                    'market-scanner:portfolio-authenticated',
+                    { detail: { authenticated: true } }
+                ));
             }
 
-
-            async function unlockPortfolioWithCredential(input, options) {
-                const settings = Object.assign(
-                    { remember: true, silent: false },
-                    options || {}
-                );
-                try {
-                    // Decrypt
-                    // ENCRYPTED_DATA is defined below in the body/script injection
-                    if (typeof ENCRYPTED_DATA === 'undefined') {
-                        throw new Error('Datele criptate lipsesc.');
-                    }
-                    
-                    const salt = CryptoJS.enc.Base64.parse(ENCRYPTED_DATA.salt);
-                    const iv = CryptoJS.enc.Base64.parse(ENCRYPTED_DATA.iv);
-                    const ciphertext = ENCRYPTED_DATA.ciphertext;
-                    
-                    // Derive Key matches Python PBKDF2 (SHA256, 1000 iter, 32 bytes)
-                    const key = CryptoJS.PBKDF2(input, salt, { 
-                        keySize: 256/32, 
-                        iterations: 1000,
-                        hasher: CryptoJS.algo.SHA256
-                    });
-                    
-                    const decrypted = CryptoJS.AES.decrypt(ciphertext, key, { 
-                        iv: iv, 
-                        padding: CryptoJS.pad.Pkcs7,
-                        mode: CryptoJS.mode.CBC
-                    });
-                    
-                    const strData = decrypted.toString(CryptoJS.enc.Utf8);
-                    
-                    if (!strData) {
-                        throw new Error('Decriptarea a eșuat.');
-                    }
-                    const data = JSON.parse(strData);
-                    renderPortfolio(data);
-
-                    document.getElementById('portfolio-lock').style.display = 'none';
-                    document.getElementById('portfolio-data').style.display = 'block';
-                    document.body.classList.remove('dashboard-locked');
-                    const dashboardShell = document.getElementById('dashboard-shell');
-                    if (dashboardShell) {
-                        dashboardShell.removeAttribute('inert');
-                        dashboardShell.setAttribute('aria-hidden', 'false');
-                    }
-                    window.marketScannerPortfolioAuthenticated = true;
-                    window.dispatchEvent(new CustomEvent(
-                        'market-scanner:portfolio-authenticated',
-                        { detail: { authenticated: true } }
-                    ));
-                    const passwordInput = document.getElementById('pf-pass');
-                    if (passwordInput) passwordInput.value = '';
-                    if (
-                        settings.remember &&
-                        window.PortfolioAuthPersistence
-                    ) {
-                        await window.PortfolioAuthPersistence
-                            .rememberCredential(input);
-                    }
-                    return true;
-                } catch (e) {
-                    console.error(e);
-                    if (await reloadIfPortfolioPageIsStale()) {
-                        return false;
-                    }
-                    if (!settings.silent) {
-                        alert(
-                            'PIN incorect sau datele portofoliului nu au putut '
-                            + 'fi decriptate.'
-                        );
-                    }
-                    return false;
-                }
-            }
-
-            function unlockPortfolio() {
-                const passwordInput = document.getElementById('pf-pass');
-                const input = passwordInput ? passwordInput.value : '';
-                if (!input) return;
-                void unlockPortfolioWithCredential(input, {
-                    remember: true,
-                    silent: false
-                });
-            }
-
-            async function restorePortfolioAccess() {
-                const pendingKey = 'market-scanner-pending-credential-v1';
-                const pendingCredential = sessionStorage.getItem(pendingKey);
-                if (pendingCredential) {
-                    sessionStorage.removeItem(pendingKey);
-                    const unlockedFromGate = await unlockPortfolioWithCredential(
-                        pendingCredential,
-                        { remember: true, silent: true }
-                    );
-                    if (unlockedFromGate) return;
-                }
-                if (!window.PortfolioAuthPersistence) return;
-                const credential = await window.PortfolioAuthPersistence
-                    .restoreCredential();
-                if (!credential) return;
-                const unlocked = await unlockPortfolioWithCredential(
-                    credential,
-                    { remember: true, silent: true }
-                );
-                if (!unlocked) {
-                    await window.PortfolioAuthPersistence.clearCredential();
-                }
-            }
-
-            async function logoutPortfolio() {
+            function logoutDashboard() {
                 localStorage.removeItem('market-scanner-dashboard-access-v1');
                 sessionStorage.removeItem('market-scanner-dashboard-access-v1');
-                sessionStorage.removeItem('market-scanner-pending-credential-v1');
-                if (window.PortfolioAuthPersistence) {
-                    await window.PortfolioAuthPersistence.clearCredential();
-                }
                 window.location.reload();
             }
 
@@ -8728,7 +8573,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             }
             
             window.addEventListener('DOMContentLoaded', function () {
-                void restorePortfolioAccess();
+                initializeProtectedDashboard();
             });
             
             // Global Tooltip Logic
@@ -8761,21 +8606,9 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     # Continue HTML (f-string again for {timestamp})
     html_head += f"""
     </head>
-    <body class="dashboard-locked">
+    <body>
 
-    <div id="portfolio-lock" class="dashboard-global-lock" role="dialog" aria-modal="true" aria-labelledby="dashboard-lock-title">
-        <div class="dashboard-global-lock-card">
-            <h2 id="dashboard-lock-title" style="color: var(--text-primary); margin-bottom: 12px;">Market Scanner protejat</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 28px; font-size: 16px;">Introdu parola pentru a accesa întregul dashboard.</p>
-            <div class="dashboard-global-lock-form">
-                <input type="password" id="pf-pass" class="dashboard-global-lock-input" autocomplete="current-password" placeholder="Parolă" aria-label="Parolă" onkeyup="if(event.key==='Enter') unlockPortfolio()">
-                <button onclick="unlockPortfolio()" class="btn-primary">Accesează</button>
-            </div>
-            <p style="color: var(--text-secondary); margin: 18px 0 0; font-size: 13px;">Accesul rămâne activ 30 de zile pe acest dispozitiv.</p>
-        </div>
-    </div>
-
-    <div id="dashboard-shell" inert aria-hidden="true">
+    <div id="dashboard-shell">
     
     <div id="global-tooltip"></div>
     
@@ -8784,7 +8617,10 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         <div class="container">
             <div class="hamburger" onclick="toggleMenu()">☰</div>
             <div class="app-title">Market Scanner</div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary);">Generated: {timestamp}</div>
+            <div class="header-actions">
+                <div class="header-generated" style="font-size: 0.8rem; color: var(--text-secondary);">Generated: {timestamp}</div>
+                <button type="button" class="dashboard-logout" onclick="logoutDashboard()">Deconectare</button>
+            </div>
         </div>
         
         <div id="navMenu" class="menu-dropdown">
@@ -8798,11 +8634,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     <div class="container">
         <div id="portfolio" class="tab-content">
             
-            <!-- ACTUAL DATA (Hidden) -->
-            <div id="portfolio-data" style="display: none;">
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
-                    <button type="button" onclick="logoutPortfolio()" style="border: 1px solid var(--border-light); background: var(--bg-white); color: var(--text-secondary); border-radius: var(--radius-sm); padding: 8px 12px; cursor: pointer;">Deconectare de pe acest dispozitiv</button>
-                </div>
+            <div id="portfolio-data">
                 <div class="summary">
                     <div class="summary-card">
                         <h3>Total Investment</h3>
@@ -8896,7 +8728,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     </tr>
                 </thead>
                 <tbody id="portfolio-rows-body">
-                    <!-- Rows will be injected by JS after decryption -->
+                    <!-- Rows are injected from the protected runtime payload. -->
     """
     
     # Portfolio rows generation (for encryption)
@@ -10072,12 +9904,20 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     }
     portfolio_json = json.dumps(
         _json_without_nonfinite_numbers(full_pf_data),
+        ensure_ascii=False,
         allow_nan=False,
     )
-    encrypted_blob = market_security.encrypt_for_js(portfolio_json, password)
-    portfolio_blob_version = hashlib.sha256(
-        encrypted_blob.encode('utf-8')
-    ).hexdigest()[:20]
+    # Runtime-ul complet este livrat numai după autentificarea globală în
+    # Worker. Evităm un al doilea prompt pentru portofoliu și escapăm payloadul
+    # înainte de inserarea în JavaScript pentru a nu permite închiderea tagului.
+    portfolio_json_for_script = (
+        portfolio_json
+        .replace('&', '\\u0026')
+        .replace('<', '\\u003c')
+        .replace('>', '\\u003e')
+        .replace('\u2028', '\\u2028')
+        .replace('\u2029', '\\u2029')
+    )
     
     html_head += f"""
                 </tbody>
@@ -10107,7 +9947,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     </tr>
                 </thead>
                 <tbody id="selling-orders-rows-body">
-                    <!-- Injected by JS after decryption -->
+                    <!-- Injected from the protected runtime payload. -->
                 </tbody>
             </table>
             </div> <!-- End table-container -->
@@ -10135,7 +9975,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     </tr>
                 </thead>
                 <tbody id="buying-orders-rows-body">
-                    <!-- Injected by JS after decryption -->
+                    <!-- Injected from the protected runtime payload. -->
                 </tbody>
             </table>
             </div> <!-- End table-container -->
@@ -10165,10 +10005,9 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             </aside>
             <button type="button" class="portfolio-chat-launcher" onclick="togglePortfolioChat()" aria-label="Deschide asistentul AI" title="Asistent AI portofoliu">💬</button>
             
-            <!-- Encrypted Data Injection -->
+            <!-- Portfolio data is inside the globally protected runtime. -->
             <script>
-                const PORTFOLIO_BLOB_VERSION = "{portfolio_blob_version}";
-                const ENCRYPTED_DATA = {encrypted_blob};
+                const PORTFOLIO_DATA = {portfolio_json_for_script};
             </script>
             
         </div> <!-- End portfolio-data -->

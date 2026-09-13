@@ -347,7 +347,7 @@ function savedToken() {{
     return record.token;
   }} catch (_error) {{ localStorage.removeItem(tokenStorageKey); return ''; }}
 }}
-async function loadDashboard(token,password) {{
+async function loadDashboard(token,rememberAccess) {{
   var status=document.getElementById('status');
   var loading=document.getElementById('loading');
   var submit=document.getElementById('access-submit');
@@ -358,8 +358,7 @@ async function loadDashboard(token,password) {{
     if(!response.ok)throw new Error('Dashboard indisponibil (HTTP '+response.status+').');
     var html=await response.text();
     sessionStorage.setItem(tokenStorageKey,token);
-    if(password){{
-      sessionStorage.setItem('market-scanner-pending-credential-v1',password);
+    if(rememberAccess){{
       localStorage.setItem(tokenStorageKey,JSON.stringify({{token:token,expiresAt:Date.now()+tokenTtlMs}}));
     }}
     document.open();document.write(html);document.close();
@@ -372,10 +371,10 @@ async function loadDashboard(token,password) {{
 }}
 document.getElementById('access-form').addEventListener('submit',async function(event){{
   event.preventDefault();var password=document.getElementById('access-password').value;
-  if(!password)return;await loadDashboard(await accessToken(password),password);
+  if(!password)return;await loadDashboard(await accessToken(password),true);
 }});
 var existingToken=savedToken();
-if(existingToken){{loadDashboard(existingToken,'');}}else{{document.getElementById('access-password').focus();}}
+if(existingToken){{loadDashboard(existingToken,false);}}else{{document.getElementById('access-password').focus();}}
 </script></body></html>"""
 
 

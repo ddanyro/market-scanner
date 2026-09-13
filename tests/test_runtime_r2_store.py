@@ -144,7 +144,8 @@ def test_loader_does_not_replace_full_dashboard_in_r2(
     assert "Introdu parola pentru a accesa întregul dashboard" in loader
     assert "Authorization:'Bearer '+token" in loader
     assert "market-scanner-dashboard-access-v1" in loader
-    assert "market-scanner-pending-credential-v1" in loader
+    assert "market-scanner-pending-credential-v1" not in loader
+    assert "loadDashboard(token,rememberAccess)" in loader
     assert "window.location.replace(endpoint)" not in loader
 
     second = store.push_runtime(config=r2_config, client=client)
