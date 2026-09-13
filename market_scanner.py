@@ -8361,6 +8361,10 @@ def generate_html_dashboard(
                 Object.keys(sparklines).forEach(function(sparkId) {
                     const ctx = document.getElementById(sparkId);
                     if (!ctx) return;
+                    if (
+                        typeof Chart.getChart === 'function'
+                        && Chart.getChart(ctx)
+                    ) return;
                     
                     const dataPoints = sparklines[sparkId];
                     if (!dataPoints || dataPoints.length === 0) return;
@@ -12096,6 +12100,14 @@ drawIndicatorDetail(detail,initialCount);
                 Object.keys(sparklineData).forEach(function(sparkId) {
                     const ctx = document.getElementById(sparkId);
                     if (!ctx) return;
+                    // Portofoliul poate fi randat înainte de evenimentul load.
+                    // Un canvas deja administrat de Chart.js trebuie omis;
+                    // altfel prima dublură oprește întreaga buclă și ascunde
+                    // inclusiv minigraficele indicatorilor și watchlistului.
+                    if (
+                        typeof Chart.getChart === 'function'
+                        && Chart.getChart(ctx)
+                    ) return;
                     
                     const data = sparklineData[sparkId];
                     

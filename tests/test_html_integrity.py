@@ -551,6 +551,17 @@ class TestHtmlIntegrity(unittest.TestCase):
             content,
         )
 
+    def test_sparkline_initialization_skips_canvases_already_in_use(self):
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
+        with open(file_path, 'r', encoding='utf-8') as handle:
+            content = handle.read()
+
+        self.assertGreaterEqual(
+            content.count("typeof Chart.getChart === 'function'"),
+            2,
+        )
+        self.assertGreaterEqual(content.count('Chart.getChart(ctx)'), 2)
+
     def test_buy_orders_are_last_and_followed_by_market_recommendations(self):
         file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
         with open(file_path, 'r', encoding='utf-8') as f:
