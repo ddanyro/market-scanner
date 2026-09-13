@@ -115,7 +115,7 @@ test("uses Responses API fields, Terra, explicit caching, conditional web search
   });
   assert.equal(request.model, "gpt-5.6-terra");
   assert.equal(request.store, false);
-  assert.equal(request.max_output_tokens, 5000);
+  assert.equal(request.max_output_tokens, 4096);
   assert.deepEqual(request.reasoning, {effort: "low"});
   assert.equal(request.prompt_cache_key, "market-scanner:portfolio-chat:v2");
   assert.deepEqual(request.prompt_cache_options, {mode: "explicit", ttl: "30m"});

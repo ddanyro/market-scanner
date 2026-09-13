@@ -137,7 +137,7 @@ export function buildOpenAIRequest(validated) {
     // Responses API counts reasoning tokens in this budget as well.  A larger
     // ceiling prevents a normal portfolio report from ending after a short
     // visible answer even when low-effort reasoning consumed part of it.
-    max_output_tokens: 5000,
+    max_output_tokens: 4096,
     prompt_cache_key: "market-scanner:portfolio-chat:v2",
     prompt_cache_options: {mode: "explicit", ttl: "30m"},
     input: [

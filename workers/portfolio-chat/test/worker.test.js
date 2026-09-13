@@ -319,6 +319,49 @@ test("retries a temporary OpenAI server error before using the answer", async (c
   assert.equal(payload.text, "Recuperat.");
 });
 
+test("retries an invalid web-search request on the same GPT without web", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  const requests = [];
+  globalThis.fetch = async (url, options) => {
+    requests.push(JSON.parse(options.body));
+    if (requests.length === 1) {
+      return new Response(JSON.stringify({
+        error: {code: "invalid_value", param: "max_output_tokens", message: "Invalid value"},
+      }), {status: 400, headers: {"Content-Type": "application/json"}});
+    }
+    return new Response(JSON.stringify({
+      model: "gpt-5.6-terra",
+      output: [{type: "message", content: [{
+        type: "output_text", text: "Răspuns GPT din dashboard.", annotations: [],
+      }]}],
+    }), {status: 200, headers: {"Content-Type": "application/json"}});
+  };
+  const password = "portfolio-test";
+  let fallbackCalls = 0;
+  const response = await worker.fetch(new Request("https://worker.example", {
+    method: "POST",
+    headers: {Origin: SITE_ORIGIN, "Content-Type": "application/json"},
+    body: JSON.stringify({
+      message: "Ce știri sunt azi?", context: {}, history: [],
+      accessToken: await expectedAccessToken(password),
+    }),
+  }), workerEnv({
+    PORTFOLIO_PASSWORD: password,
+    AI: {run: async () => { fallbackCalls += 1; return {}; }},
+  }));
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(requests.length, 2);
+  assert.ok(requests[0].tools);
+  assert.equal(requests[1].tools, undefined);
+  assert.equal(payload.provider, "openai");
+  assert.equal(payload.degraded, true);
+  assert.equal(payload.reason, "web_search_invalid_value");
+  assert.match(payload.notice, /căutarea web a fost respinsă/);
+  assert.equal(fallbackCalls, 0);
+});
+
 test("falls back to Workers AI for a non-429 OpenAI error", async (context) => {
   const originalFetch = globalThis.fetch;
   context.after(() => { globalThis.fetch = originalFetch; });

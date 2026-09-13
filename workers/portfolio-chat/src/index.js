@@ -151,7 +151,8 @@ async function requestOpenAI(env, validated) {
   const retryBaseMs = Number.isFinite(configuredRetryBaseMs)
     ? Math.max(0, configuredRetryBaseMs)
     : OPENAI_RETRY_BASE_MS;
-  const requestBody = JSON.stringify(buildOpenAIRequest(validated));
+  let webSearchEnabled = validated.useWebSearch;
+  let webSearchDowngraded = false;
   let lastFailure = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -170,7 +171,10 @@ async function requestOpenAI(env, validated) {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${env.OPENAI_API_KEY}`,
         },
-        body: requestBody,
+        body: JSON.stringify(buildOpenAIRequest({
+          ...validated,
+          useWebSearch: webSearchEnabled,
+        })),
         signal: controller.signal,
       });
       payload = await response.json().catch(() => ({}));
@@ -185,7 +189,9 @@ async function requestOpenAI(env, validated) {
           web_search_enabled: validated.useWebSearch,
           ...openAITelemetry(response),
         }));
-        return {response, payload, attempt, elapsedMs};
+        return {
+          response, payload, attempt, elapsedMs, webSearchDowngraded,
+        };
       }
 
       const reason = openAIHttpReason(response, payload);
@@ -203,8 +209,19 @@ async function requestOpenAI(env, validated) {
         raw_context_chars: validated.rawContextChars,
         context_chars: validated.contextJson.length,
         web_search_enabled: validated.useWebSearch,
+        error_param: payload?.error?.param || null,
+        error_message: String(payload?.error?.message || "").slice(0, 500) || null,
         ...openAITelemetry(response),
       }));
+      // A tool-specific invalid_value must not take the entire chat down.
+      // Retry once with the same GPT and the same dashboard context, but
+      // without web search, and disclose the downgrade in the response.
+      if (response.status === 400 && reason === "invalid_value" && webSearchEnabled
+          && attempt < maxAttempts) {
+        webSearchEnabled = false;
+        webSearchDowngraded = true;
+        continue;
+      }
       if (!retryable || attempt >= maxAttempts) break;
       const delayMs = retryDelayMs(response, attempt, retryBaseMs);
       if (elapsedMs + delayMs >= totalBudgetMs) break;
@@ -441,6 +458,11 @@ export default {
       const payload = openAIResult.payload;
       try {
         const answer = extractOpenAIAnswer(payload);
+        if (openAIResult.webSearchDowngraded) {
+          answer.degraded = true;
+          answer.reason = "web_search_invalid_value";
+          answer.notice = "GPT a răspuns folosind datele dashboardului; căutarea web a fost respinsă de endpoint și a fost omisă pentru această cerere.";
+        }
         console.log(JSON.stringify({
           event: "openai_portfolio_chat_usage",
           model: answer.model,
