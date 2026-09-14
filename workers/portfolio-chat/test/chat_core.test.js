@@ -236,6 +236,24 @@ test("builds a minimal OpenAI compatibility request without optional fields", ()
   assert.equal("prompt_cache_breakpoint" in request.input[0].content[1], false);
 });
 
+test("serializes assistant history as Responses API output text", () => {
+  const request = buildOpenAIRequest({
+    message: "Mă refer strict la ordinele de cumpărare.",
+    contextJson: "{}",
+    history: [
+      {role: "user", content: "Analizează ordinele."},
+      {role: "assistant", content: "Am analizat ordinele de vânzare."},
+    ],
+    useWebSearch: false,
+  });
+  assert.equal(request.input[1].role, "user");
+  assert.equal(request.input[1].content[0].type, "input_text");
+  assert.equal(request.input[2].role, "assistant");
+  assert.equal(request.input[2].content[0].type, "output_text");
+  assert.equal(request.input.at(-1).role, "user");
+  assert.equal(request.input.at(-1).content[0].type, "input_text");
+});
+
 test("extracts text and clickable citation coordinates", () => {
   const answer = extractOpenAIAnswer({
     model: "gpt-5.6-terra",

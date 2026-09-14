@@ -321,7 +321,10 @@ export function buildOpenAIRequest(validated) {
       },
       ...validated.history.map((item) => ({
         role: item.role,
-        content: [{type: "input_text", text: item.content}],
+        content: [{
+          type: item.role === "assistant" ? "output_text" : "input_text",
+          text: item.content,
+        }],
       })),
       {role: "user", content: [{type: "input_text", text: validated.message}]},
     ],
