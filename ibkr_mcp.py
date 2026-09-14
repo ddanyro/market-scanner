@@ -939,6 +939,14 @@ def _normalise_snapshot_metrics(snapshot: dict[str, Any]) -> dict[str, Any]:
         for field in SNAPSHOT_FIELDS
         if field not in {"bid_ask", "top_status", "misc_statistics"}
     }
+    last_payload = raw.get("last")
+    observed_at = None
+    if isinstance(last_payload, dict):
+        observed_at = _iso_timestamp(
+            last_payload.get("ts")
+            or last_payload.get("timestamp")
+            or last_payload.get("time")
+        )
     return {
         "groups": {
             group: [field for field in fields if field in raw]
@@ -951,6 +959,7 @@ def _normalise_snapshot_metrics(snapshot: dict[str, Any]) -> dict[str, Any]:
         "midpoint": midpoint,
         "spread_pct": spread_pct,
         "top_status": _snapshot_status(raw.get("top_status")),
+        "observed_at": observed_at,
         "derived": {
             "iv_percentile_52w": _snapshot_named_scalar(
                 raw.get("implied_volatility_percentile"), "52"
@@ -1203,11 +1212,12 @@ async def _fetch_market_instrument(
     session: ReadOnlyMCPSession,
     symbol: str,
     cache: dict[str, Any],
+    force_quote: bool = False,
 ) -> tuple[str, dict[str, Any] | None, str | None]:
     normalized = _market_symbol(symbol)
     cache.setdefault("failures", {})
     existing = cache["instruments"].get(normalized)
-    if isinstance(existing, dict) and _fresh_iso(
+    if not force_quote and isinstance(existing, dict) and _fresh_iso(
         existing.get("fetched_at"), MARKET_DATA_TTL_HOURS * 3600
     ):
         existing["last_run_history_mode"] = "cache"
@@ -1376,6 +1386,10 @@ async def _fetch_market_instrument(
                 snapshot_metrics if quote_observed
                 else previous_market.get("snapshot_metrics", {})
             ),
+            "observed_at": (
+                snapshot_metrics.get("observed_at") if quote_observed
+                else previous_market.get("observed_at")
+            ),
         },
         "bars": bars,
     }
@@ -1389,6 +1403,7 @@ async def _fetch_market_instrument(
 async def _prefetch_market_data_async(
     symbols: list[str], concurrency: int,
     batch_size: int = MARKET_DATA_BATCH_SIZE,
+    force_quotes: bool = False,
 ) -> dict[str, Any]:
     cache = _read_market_cache()
     unique_symbols = sorted(set(
@@ -1397,13 +1412,14 @@ async def _prefetch_market_data_async(
     stats = {
         "requested": len(unique_symbols), "scheduled": 0, "deferred": 0,
         "cached": 0, "updated": 0, "unavailable": 0, "errors": {},
+        "updated_symbols": [], "cached_symbols": [],
     }
     semaphore = asyncio.Semaphore(max(1, min(10, int(concurrency))))
     results = []
     pending_symbols = []
     for symbol in unique_symbols:
         existing = cache["instruments"].get(symbol)
-        if isinstance(existing, dict) and _fresh_iso(
+        if not force_quotes and isinstance(existing, dict) and _fresh_iso(
             existing.get("fetched_at"), MARKET_DATA_TTL_HOURS * 3600
         ):
             existing["last_run_history_mode"] = "cache"
@@ -1457,6 +1473,10 @@ async def _prefetch_market_data_async(
             async def fetch(symbol):
                 async with semaphore:
                     try:
+                        if force_quotes:
+                            return await _fetch_market_instrument(
+                                session, symbol, cache, force_quote=True
+                            )
                         return await _fetch_market_instrument(session, symbol, cache)
                     except (Exception, asyncio.CancelledError) as exc:
                         return symbol, None, str(exc)
@@ -1487,8 +1507,10 @@ async def _prefetch_market_data_async(
     for symbol, instrument, status in results:
         if status == "cached":
             stats["cached"] += 1
+            stats["cached_symbols"].append(symbol)
         elif status == "updated" and instrument:
             stats["updated"] += 1
+            stats["updated_symbols"].append(symbol)
         else:
             stats["unavailable"] += 1
             stats["errors"][symbol] = str(status or "indisponibil")[:240]
@@ -1499,14 +1521,17 @@ async def _prefetch_market_data_async(
 def prefetch_market_data(
     symbols: list[str], *, concurrency: int = MARKET_DATA_CONCURRENCY,
     batch_size: int = MARKET_DATA_BATCH_SIZE,
+    force_quotes: bool = False,
 ) -> dict[str, Any]:
     """Prefetch local OHLCV + snapshot, fără autentificare interactivă."""
     if not symbols:
         return {"requested": 0, "scheduled": 0, "deferred": 0,
                 "cached": 0, "updated": 0, "unavailable": 0,
-                "errors": {}}
+                "errors": {}, "updated_symbols": [], "cached_symbols": []}
     return asyncio.run(
-        _prefetch_market_data_async(symbols, concurrency, batch_size)
+        _prefetch_market_data_async(
+            symbols, concurrency, batch_size, force_quotes=force_quotes
+        )
     )
 
 

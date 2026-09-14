@@ -4895,6 +4895,56 @@ class TestPortfolioChatDataQuality(unittest.TestCase):
             attribution['Market_Data_Timing'], 'delayed_or_end_of_day'
         )
 
+    def test_ibkr_quote_timestamp_has_priority_over_history_date(self):
+        attribution = market_scanner._instrument_data_attribution(
+            'PANW', {
+                'data_provider': 'IBKR MCP',
+                'fetched_at': '2026-09-14T14:41:46+00:00',
+                'market_data': {
+                    'observed_at': '2026-09-14T14:41:42+00:00',
+                },
+            },
+            observed_at='2026-09-11T00:00:00+00:00',
+        )
+        self.assertEqual(
+            attribution['Market_Data_Observed_At'],
+            '2026-09-14T14:41:42+00:00',
+        )
+
+    @patch('market_scanner._load_mcp_market_instrument')
+    @patch('market_scanner._prefetch_ibkr_mcp_market_data')
+    def test_final_portfolio_quote_refresh_updates_price_value_and_provenance(
+        self, prefetch, load_instrument,
+    ):
+        prefetch.return_value = {'updated': 1, 'updated_symbols': ['PANW']}
+        load_instrument.return_value = {
+            'data_provider': 'IBKR MCP',
+            'data_broker': 'IBKR',
+            'fetched_at': '2026-09-14T14:41:46+00:00',
+            'market_data': {
+                'market_price': 372.2,
+                'observed_at': '2026-09-14T14:41:42+00:00',
+                'snapshot_metrics': {'scalars': {}, 'derived': {}, 'raw': {}},
+            },
+        }
+        state = {'portfolio': [{
+            'Symbol': 'PANW', 'Currency': 'USD', 'Shares': 6,
+            'Buy_Price': 300, 'Investment': 1800,
+            'Price_Native': 366.42, 'Current_Price': 316.59,
+        }]}
+        result = market_scanner._refresh_portfolio_quotes_before_save(
+            state, {'USD': 0.864}
+        )
+        panw = result['portfolio'][0]
+        self.assertEqual(panw['Price_Native'], 372.2)
+        self.assertEqual(panw['Current_Price'], 321.58)
+        self.assertEqual(panw['Current_Value'], 1929.48)
+        self.assertEqual(
+            panw['Market_Data_Observed_At'],
+            '2026-09-14T14:41:42+00:00',
+        )
+        self.assertTrue(prefetch.call_args.kwargs['force_quotes'])
+
     @patch('market_scanner.yf.Ticker')
     def test_missing_earnings_calendar_is_unknown_not_clear(self, ticker):
         ticker.return_value.calendar = {}

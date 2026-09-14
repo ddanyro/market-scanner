@@ -371,7 +371,7 @@ class TestIBKRMCPMarketData(unittest.IsolatedAsyncioTestCase):
                 if name == "get_price_snapshot":
                     requested_snapshot_fields.extend(arguments["market_data_names"])
                     return {
-                        "last": {"price": 224.5},
+                        "last": {"price": 224.5, "ts": 1789396902},
                         "volume": 1_100_000,
                         "bid-ask": {"bid": 224.4, "ask": 224.6},
                         "top-status": "REALTIME",
@@ -399,6 +399,10 @@ class TestIBKRMCPMarketData(unittest.IsolatedAsyncioTestCase):
         metrics = instrument["market_data"]["snapshot_metrics"]
         self.assertEqual(metrics["derived"]["iv_percentile_52w"], 0.82)
         self.assertEqual(metrics["derived"]["historical_vol"], 0.24)
+        self.assertEqual(
+            instrument["market_data"]["observed_at"],
+            "2026-09-14T14:41:42+00:00",
+        )
 
     async def test_nested_volume_and_historical_vol_are_propagated(self):
         metrics = ibkr_mcp._normalise_snapshot_metrics({
@@ -424,6 +428,40 @@ class TestIBKRMCPMarketData(unittest.IsolatedAsyncioTestCase):
         self.assertIs(result, instrument)
         self.assertEqual(status, "cached")
         session.call.assert_not_awaited()
+
+    async def test_force_quote_bypasses_fresh_instrument_cache(self):
+        now = __import__("datetime").datetime.now(
+            __import__("datetime").timezone.utc
+        ).isoformat()
+        instrument = {
+            "fetched_at": now,
+            "bars": [{
+                "date": "2026-09-11", "open": 10, "high": 11,
+                "low": 9, "close": 10, "volume": 100,
+            }],
+            "market_data": {"market_price": 10},
+        }
+        cache = {
+            "contracts": {"AAPL": {
+                "contract_id": 265598, "symbol": "AAPL",
+                "security_type": "STK", "resolved_at": now,
+            }},
+            "instruments": {"AAPL": instrument},
+            "failures": {},
+        }
+
+        class FakeSession:
+            async def call(self, name, arguments=None):
+                self.name = name
+                return {"last": {"price": 11, "ts": 1789396902}}
+
+        session = FakeSession()
+        _symbol, result, status = await ibkr_mcp._fetch_market_instrument(
+            session, "AAPL", cache, force_quote=True
+        )
+        self.assertEqual(status, "updated")
+        self.assertEqual(session.name, "get_price_snapshot")
+        self.assertEqual(result["market_data"]["market_price"], 11)
 
     async def test_prefetch_limits_large_universe_to_rotating_batch(self):
         cache = {

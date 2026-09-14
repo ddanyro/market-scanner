@@ -593,7 +593,9 @@ def _load_mcp_market_instrument(symbol, now=None):
     )
 
 
-def _prefetch_ibkr_mcp_market_data(symbols, label='watchlist'):
+def _prefetch_ibkr_mcp_market_data(
+    symbols, label='watchlist', *, force_quotes=False,
+):
     """Prefetch MCP when the current environment is explicitly authorised."""
     if os.environ.get('IBKR_MCP_MARKET_DATA_ENABLED', '1').strip().lower() in {
         '0', 'false', 'no', 'off'
@@ -610,7 +612,9 @@ def _prefetch_ibkr_mcp_market_data(symbols, label='watchlist'):
         if not ibkr_mcp.runtime_enabled():
             return None
         started_at = time.perf_counter()
-        stats = ibkr_mcp.prefetch_market_data(unique_symbols)
+        stats = ibkr_mcp.prefetch_market_data(
+            unique_symbols, force_quotes=force_quotes,
+        )
         elapsed = time.perf_counter() - started_at
         print(
             f"  -> IBKR MCP {label}: lot "
@@ -786,8 +790,8 @@ def _instrument_data_attribution(symbol, instrument, *, fetched_at=None,
         }
     market_data = instrument.get('market_data', {})
     instrument_observed_at = (
-        observed_at
-        or market_data.get('observed_at')
+        market_data.get('observed_at')
+        or observed_at
         or market_data.get('timestamp')
         or market_data.get('as_of')
     )
@@ -815,6 +819,79 @@ def _instrument_data_attribution(symbol, instrument, *, fetched_at=None,
             )
         ),
     }
+
+
+def _refresh_portfolio_quotes_before_save(state, rates):
+    """Reia numai snapshoturile de preț după etapele lente ale scanării.
+
+    Istoricul și indicatorii rămân nemodificați. Sunt actualizate cotația
+    afișată, valoarea poziției, P&L și proveniența snapshotului live.
+    """
+    positions = [
+        dict(item) for item in (state or {}).get('portfolio', [])
+        if isinstance(item, dict)
+    ]
+    symbols = [
+        str(item.get('Symbol') or '').strip().upper()
+        for item in positions if str(item.get('Symbol') or '').strip()
+    ]
+    if not symbols:
+        return state
+    stats = _prefetch_ibkr_mcp_market_data(
+        symbols,
+        label='refresh final cotații portofoliu',
+        force_quotes=True,
+    )
+    if not stats or not stats.get('updated'):
+        return state
+    updated_symbols = {
+        str(symbol).strip().upper()
+        for symbol in stats.get('updated_symbols', symbols)
+    }
+
+    refreshed = 0
+    now_text = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+    for item in positions:
+        symbol = str(item.get('Symbol') or '').strip().upper()
+        if symbol not in updated_symbols:
+            continue
+        instrument = _load_mcp_market_instrument(symbol)
+        price_native = _tws_instrument_market_price(instrument)
+        if not instrument or not price_native:
+            continue
+        currency = str(item.get('Currency') or 'USD').upper()
+        rate = 1.0 if currency == 'EUR' else _safe_float_text(
+            (rates or {}).get(currency)
+        )
+        if not rate or rate <= 0:
+            continue
+        current_price = price_native * rate
+        shares = _safe_float_text(item.get('Shares')) or 0
+        buy_price = _safe_float_text(item.get('Buy_Price')) or 0
+        current_value = current_price * shares
+        investment = _safe_float_text(item.get('Investment'))
+        if investment is None:
+            investment = buy_price * shares
+        profit = current_value - investment
+        item.update({
+            'Price_Native': round(price_native, 2),
+            'Current_Price': round(current_price, 2),
+            'Current_Value': round(current_value, 2),
+            'Profit': round(profit, 2),
+            'Profit_Pct': round(
+                profit / investment * 100, 2
+            ) if investment > 0 else None,
+            'Date': now_text,
+            **_ibkr_enhanced_market_fields(instrument),
+            **_instrument_data_attribution(symbol, instrument),
+        })
+        refreshed += 1
+    state['portfolio'] = positions
+    print(
+        f"  -> Refresh final: {refreshed}/{len(positions)} cotații "
+        "de portofoliu actualizate înainte de salvare."
+    )
+    return state
 
 
 def _normalize_downloaded_history(frame):
@@ -12875,6 +12952,11 @@ def main():
             refresh_missing=True,
             target_markets={'SUA', 'Europa / Nasdaq-100'},
         )
+
+    # Scanările și analizele auxiliare pot dura minute. Refacem numai
+    # snapshoturile pozițiilor la final, înainte ca dashboardul să fie salvat.
+    if args.mode in {'all', 'portfolio'}:
+        state = _refresh_portfolio_quotes_before_save(state, rates)
         
     # 4. Salvare Stare
     # Deduplicate Watchlist in State BEFORE saving
