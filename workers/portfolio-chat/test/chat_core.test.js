@@ -209,6 +209,7 @@ test("uses Responses API fields, Terra, explicit caching, conditional web search
   assert.equal(request.prompt_cache_key, "market-scanner:portfolio-chat:v3");
   assert.deepEqual(request.prompt_cache_options, {mode: "explicit", ttl: "30m"});
   assert.deepEqual(request.tools, [{type: "web_search"}]);
+  assert.match(request.input[0].content[0].text, /profit lunar de 3\.000 EUR/);
   assert.match(request.input[0].content[0].text, /Nu inventa/);
   assert.deepEqual(
     request.input[0].content[0].prompt_cache_breakpoint,
