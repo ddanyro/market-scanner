@@ -4,12 +4,46 @@ import {
   buildCloudflareAIRequest,
   buildOpenAIRequest,
   CLOUDFLARE_FALLBACK_MODEL,
+  compactContextForModel,
   expectedAccessToken,
   extractCloudflareAIAnswer,
   extractOpenAIAnswer,
   selectContextForMessage,
   validateChatRequest,
 } from "../src/chat_core.js";
+
+test("compacts broad context while preserving positions and active orders", async () => {
+  const password = "secret";
+  const result = await validateChatRequest({
+    message: "Analizează în ansamblu tot portofoliul și contextul pieței.",
+    accessToken: await expectedAccessToken(password),
+    context: {
+      positions: [
+        {symbol: "NVDA", shares: 10, chart_ohlc: "x".repeat(220000)},
+        {symbol: "MSFT", shares: 5},
+      ],
+      active_buy_orders: [{symbol: "AAPL", action: "BUY", limit_price: 210}],
+      active_sell_orders: [{symbol: "NVDA", action: "SELL", stop_price: 170}],
+      market_overviews: {SUA: {analysis: "m".repeat(120000)}},
+      current_ai_analysis: {portfolio_overview: "a".repeat(120000)},
+    },
+  }, password);
+  assert.equal(result.contextCompacted, true);
+  assert.equal(result.context.positions.length, 2);
+  assert.equal(result.context.positions[0].symbol, "NVDA");
+  assert.equal(result.context.positions[0].chart_ohlc, undefined);
+  assert.equal(result.context.active_buy_orders[0].symbol, "AAPL");
+  assert.equal(result.context.active_sell_orders[0].symbol, "NVDA");
+  assert.equal(result.context.context_compaction.applied, true);
+  assert.ok(result.contextJson.length < 180000);
+});
+
+test("leaves an already small context unchanged", () => {
+  const context = {positions: [{symbol: "NVDA"}]};
+  const result = compactContextForModel(context);
+  assert.equal(result.compacted, false);
+  assert.equal(result.context, context);
+});
 
 test("validates the derived portfolio token and trims history", async () => {
   const password = "secret";

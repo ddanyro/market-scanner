@@ -4,6 +4,7 @@ const MAX_ASSISTANT_HISTORY_LENGTH = 16000;
 const MAX_CONTEXT_LENGTH = 180000;
 const MAX_RAW_CONTEXT_LENGTH = 1000000;
 const MAX_HISTORY_ITEMS = 8;
+const BULKY_CONTEXT_KEY = /(^|_)(chart|charts|sparkline|ohlc|series|price_history|raw_html|html_blob|embedding|embeddings)($|_)/i;
 export const CLOUDFLARE_FALLBACK_MODEL = "@cf/openai/gpt-oss-120b";
 
 const WEB_SEARCH_PATTERNS = [
@@ -58,6 +59,84 @@ export function selectContextForMessage(context, message, useWebSearch = false) 
   return Object.fromEntries(
     Object.entries(source).filter(([key]) => keys.has(key)),
   );
+}
+
+function compactContextValue(value, path, stats, limits) {
+  if (value === null || value === undefined || typeof value === "number" ||
+      typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    if (value.length <= limits.maxString) return value;
+    stats.truncated_strings += 1;
+    return value.slice(0, limits.maxString) + `… [${value.length - limits.maxString} caractere omise]`;
+  }
+  if (Array.isArray(value)) {
+    const joined = path.join(".");
+    let maxItems = limits.maxArray;
+    if (/positions$/.test(joined)) maxItems = 250;
+    else if (/active_(buy|sell)_orders$/.test(joined)) maxItems = 250;
+    else if (/buy_candidates$/.test(joined)) maxItems = 40;
+    else if (/evidence\.items$/.test(joined)) maxItems = 40;
+    const selected = value.slice(0, maxItems).map((item, index) =>
+      compactContextValue(item, [...path, String(index)], stats, limits));
+    if (value.length > maxItems) {
+      stats.truncated_arrays.push({path: joined, kept: maxItems, total: value.length});
+    }
+    return selected;
+  }
+  if (typeof value === "object") {
+    const result = {};
+    for (const [key, item] of Object.entries(value)) {
+      if (BULKY_CONTEXT_KEY.test(key)) {
+        stats.omitted_bulky_fields.push([...path, key].join("."));
+        continue;
+      }
+      result[key] = compactContextValue(item, [...path, key], stats, limits);
+    }
+    return result;
+  }
+  return String(value);
+}
+
+/**
+ * Reduces transport/model size without turning broad portfolio questions into
+ * HTTP 413 errors. Financial rows, positions and orders are retained; only
+ * chart payloads, oversized prose and exceptionally long arrays are bounded.
+ * The model receives an explicit audit record of every kind of reduction.
+ */
+export function compactContextForModel(context, maxLength = MAX_CONTEXT_LENGTH) {
+  const originalJson = JSON.stringify(context);
+  if (originalJson.length <= maxLength) return {
+    context, contextJson: originalJson, compacted: false,
+  };
+
+  const passes = [
+    {maxString: 4000, maxArray: 120},
+    {maxString: 1500, maxArray: 60},
+    {maxString: 600, maxArray: 30},
+  ];
+  let last = context;
+  let lastJson = originalJson;
+  for (const limits of passes) {
+    const stats = {
+      original_chars: originalJson.length,
+      truncated_strings: 0,
+      truncated_arrays: [],
+      omitted_bulky_fields: [],
+    };
+    const compacted = compactContextValue(context, [], stats, limits);
+    compacted.context_compaction = {
+      applied: true,
+      ...stats,
+      note: "Au fost eliminate numai payloaduri de grafic și limitate texte/liste foarte mari; pozițiile și ordinele au prioritate.",
+    };
+    const json = JSON.stringify(compacted);
+    last = compacted;
+    lastJson = json;
+    if (json.length <= maxLength) return {
+      context: compacted, contextJson: json, compacted: true,
+    };
+  }
+  return {context: last, contextJson: lastJson, compacted: true};
 }
 
 export async function expectedAccessToken(password) {
@@ -124,7 +203,8 @@ export async function validateChatRequest(body, password) {
   });
   const useWebSearch = shouldUseWebSearch(message, body.webSearch);
   const selectedContext = selectContextForMessage(context, message, useWebSearch);
-  const selectedContextJson = JSON.stringify(selectedContext);
+  const preparedContext = compactContextForModel(selectedContext);
+  const selectedContextJson = preparedContext.contextJson;
   if (selectedContextJson.length > MAX_CONTEXT_LENGTH) {
     throw Object.assign(new Error(
       "Contextul relevant pentru această întrebare este prea mare.",
@@ -132,8 +212,9 @@ export async function validateChatRequest(body, password) {
   }
   return {
     message,
-    context: selectedContext,
+    context: preparedContext.context,
     contextJson: selectedContextJson,
+    contextCompacted: preparedContext.compacted,
     rawContextChars: rawContextJson.length,
     history: cleanHistory,
     useWebSearch,
