@@ -91536,8 +91536,8 @@
     "Country": "US",
     "Currency": "USD",
     "Daily_Change": 2.713,
-    "Data_Broker": null,
-    "Date": "2026-09-14 07:22",
+    "Data_Broker": "IBKR",
+    "Date": "2026-09-14 18:20",
     "Days_To_Earnings": 52,
     "Decision": "WAIT",
     "Decision_Color": "#ff9800",
@@ -91554,7 +91554,36 @@
     "Finviz_ATR": 5.77,
     "History_Ticker": "WPM",
     "IBKR_Data_Only": false,
-    "IBKR_Snapshot_Groups": {},
+    "IBKR_Snapshot_Groups": {
+      "quote": [
+        "last",
+        "bid_ask",
+        "top_status",
+        "prior_close",
+        "volume",
+        "open",
+        "low",
+        "high"
+      ],
+      "ranking": [
+        "avg_90d_usd_volume",
+        "year_to_date_change",
+        "cumulative_perf_1d",
+        "cumulative_perf_1w",
+        "cumulative_perf_1m",
+        "cumulative_perf_ytd",
+        "cumulative_perf_1y"
+      ],
+      "risk": [
+        "implied_volatility_percentile",
+        "implied_vol_underlying",
+        "historical_vol",
+        "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
+      ]
+    },
     "Industry": "Gold",
     "Instrument_Metadata": {
       "contract_id": 274836867,
@@ -91575,10 +91604,10 @@
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
-    "Market_Data_Fetched_At": "2026-09-14T04:22:00+00:00",
-    "Market_Data_Observed_At": "2026-09-11T00:00:00+00:00",
-    "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Timing": "delayed_or_end_of_day",
+    "Market_Data_Fetched_At": "2026-09-14T15:20:21.444586+00:00",
+    "Market_Data_Observed_At": "2026-09-14T15:19:20+00:00",
+    "Market_Data_Source": "IBKR MCP",
+    "Market_Data_Timing": "realtime_or_snapshot",
     "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
     "Next_Earnings_Date": "2026-11-05",
     "Options_Cohort": "OPTIONS_UNAVAILABLE",
@@ -91593,9 +91622,9 @@
     "Options_Eligibility_Reason": "eligible",
     "Options_Score": null,
     "Options_Supported": true,
-    "Pct_To_Target": 15.24,
-    "Price": 133.16,
-    "Price_Native": 154.12,
+    "Pct_To_Target": 19.56,
+    "Price": 128.36,
+    "Price_Native": 148.56,
     "RR_Ratio": 1.95,
     "RSI": 59.21,
     "RSI_Status": "Neutral",
@@ -91643,7 +91672,26 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 70.47
+    "volatility_score": 70.47,
+    "Bid": 148.39000000000001,
+    "Ask": 148.61,
+    "Spread_Pct": 0.1481481481481474,
+    "Quote_Status": "REALTIME",
+    "Avg_90D_USD_Volume": 315071777.0,
+    "Historical_Vol": 0.5091780147159537,
+    "Implied_Volatility": 0.4811673738858332,
+    "IV_Percentile": 0.6439999938011169,
+    "YTD_Change_IBKR": 31.393999633789065,
+    "Dividend_Yield_IBKR": 0.49,
+    "IBKR_Misc_Statistics": {
+      "high_13w": 163.7899932861328,
+      "high_26w": 163.7899932861328,
+      "high_52w": 165.26600646972656,
+      "low_13w": 101.5999984741211,
+      "low_26w": 101.5999984741211,
+      "low_52w": 92.13289642333984,
+      "open_52w": 107.30000305175781
+    }
   },
   {
     "ATR_14": 1.04,
@@ -110263,8 +110311,8 @@
     "Country": "US",
     "Currency": "USD",
     "Daily_Change": 2.7994,
-    "Data_Broker": null,
-    "Date": "2026-09-14 07:24",
+    "Data_Broker": "IBKR",
+    "Date": "2026-09-14 18:20",
     "Days_To_Earnings": 43,
     "Decision": "WAIT",
     "Decision_Color": "#ff9800",
@@ -110281,7 +110329,36 @@
     "Finviz_ATR": 5.95,
     "History_Ticker": "V",
     "IBKR_Data_Only": false,
-    "IBKR_Snapshot_Groups": {},
+    "IBKR_Snapshot_Groups": {
+      "quote": [
+        "last",
+        "bid_ask",
+        "top_status",
+        "prior_close",
+        "volume",
+        "open",
+        "low",
+        "high"
+      ],
+      "ranking": [
+        "avg_90d_usd_volume",
+        "year_to_date_change",
+        "cumulative_perf_1d",
+        "cumulative_perf_1w",
+        "cumulative_perf_1m",
+        "cumulative_perf_ytd",
+        "cumulative_perf_1y"
+      ],
+      "risk": [
+        "implied_volatility_percentile",
+        "implied_vol_underlying",
+        "historical_vol",
+        "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
+      ]
+    },
     "Industry": "Credit Services",
     "Instrument_Metadata": {
       "contract_id": 49462172,
@@ -110302,10 +110379,10 @@
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
-    "Market_Data_Fetched_At": "2026-09-14T04:24:45+00:00",
-    "Market_Data_Observed_At": "2026-09-11T00:00:00+00:00",
-    "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Timing": "delayed_or_end_of_day",
+    "Market_Data_Fetched_At": "2026-09-14T15:20:20.943148+00:00",
+    "Market_Data_Observed_At": "2026-09-14T15:20:19+00:00",
+    "Market_Data_Source": "IBKR MCP",
+    "Market_Data_Timing": "realtime_or_snapshot",
     "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
     "Next_Earnings_Date": "2026-10-27",
     "Options_Cohort": "OPTIONS_UNAVAILABLE",
@@ -110320,9 +110397,9 @@
     "Options_Eligibility_Reason": "eligible",
     "Options_Score": null,
     "Options_Supported": true,
-    "Pct_To_Target": 13.2,
-    "Price": 320.07,
-    "Price_Native": 370.45,
+    "Pct_To_Target": 11.93,
+    "Price": 323.7,
+    "Price_Native": 374.65,
     "RR_Ratio": 4.32,
     "RSI": 50.66,
     "RSI_Status": "Neutral",
@@ -110370,7 +110447,26 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0
+    "volatility_score": 75.0,
+    "Bid": 374.53000000000003,
+    "Ask": 374.69,
+    "Spread_Pct": 0.04271108619630233,
+    "Quote_Status": "REALTIME",
+    "Avg_90D_USD_Volume": 2847639759.0,
+    "Historical_Vol": 0.17283687929686767,
+    "Implied_Volatility": 0.20207106335458813,
+    "IV_Percentile": 0.2160000056028366,
+    "YTD_Change_IBKR": 25.371008300781284,
+    "Dividend_Yield_IBKR": 0.72,
+    "IBKR_Misc_Statistics": {
+      "high_13w": 385.55999755859375,
+      "high_26w": 385.55999755859375,
+      "high_52w": 385.55999755859375,
+      "low_13w": 322.7799987792969,
+      "low_26w": 293.29400634765625,
+      "low_52w": 293.29400634765625,
+      "open_52w": 339.1440124511719
+    }
   },
   {
     "ATR_14": 1.19,

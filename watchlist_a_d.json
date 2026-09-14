@@ -190222,8 +190222,8 @@
     "Country": "US",
     "Currency": "USD",
     "Daily_Change": 10.8259,
-    "Data_Broker": null,
-    "Date": "2026-09-14 07:14",
+    "Data_Broker": "IBKR",
+    "Date": "2026-09-14 18:20",
     "Days_To_Earnings": 50,
     "Decision": "WAIT",
     "Decision_Color": "#ff9800",
@@ -190240,7 +190240,36 @@
     "Finviz_ATR": 22.64,
     "History_Ticker": "AMD",
     "IBKR_Data_Only": false,
-    "IBKR_Snapshot_Groups": {},
+    "IBKR_Snapshot_Groups": {
+      "quote": [
+        "last",
+        "bid_ask",
+        "top_status",
+        "prior_close",
+        "volume",
+        "open",
+        "low",
+        "high"
+      ],
+      "ranking": [
+        "avg_90d_usd_volume",
+        "year_to_date_change",
+        "cumulative_perf_1d",
+        "cumulative_perf_1w",
+        "cumulative_perf_1m",
+        "cumulative_perf_ytd",
+        "cumulative_perf_1y"
+      ],
+      "risk": [
+        "implied_volatility_percentile",
+        "implied_vol_underlying",
+        "historical_vol",
+        "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
+      ]
+    },
     "Industry": "Semiconductors",
     "Instrument_Metadata": {
       "contract_id": 4391,
@@ -190261,10 +190290,10 @@
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
-    "Market_Data_Fetched_At": "2026-09-14T04:14:45+00:00",
-    "Market_Data_Observed_At": "2026-09-11T00:00:00+00:00",
-    "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Timing": "delayed_or_end_of_day",
+    "Market_Data_Fetched_At": "2026-09-14T15:20:15.008511+00:00",
+    "Market_Data_Observed_At": "2026-09-14T15:20:09+00:00",
+    "Market_Data_Source": "IBKR MCP",
+    "Market_Data_Timing": "realtime_or_snapshot",
     "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
     "Next_Earnings_Date": "2026-11-03",
     "Options_Cohort": "OPTIONS_UNAVAILABLE",
@@ -190279,9 +190308,9 @@
     "Options_Eligibility_Reason": "eligible",
     "Options_Score": null,
     "Options_Supported": true,
-    "Pct_To_Target": 19.17,
-    "Price": 445.94,
-    "Price_Native": 516.13,
+    "Pct_To_Target": 26.61,
+    "Price": 419.73,
+    "Price_Native": 485.8,
     "RR_Ratio": 2.6,
     "RSI": 57.96,
     "RSI_Status": "Neutral",
@@ -190329,7 +190358,26 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 71.56
+    "volatility_score": 71.56,
+    "Bid": 485.7,
+    "Ask": 485.90000000000003,
+    "Spread_Pct": 0.04116920543434448,
+    "Quote_Status": "REALTIME",
+    "Avg_90D_USD_Volume": 12379942369.0,
+    "Historical_Vol": 0.5491627251298107,
+    "Implied_Volatility": 0.5060581114651028,
+    "IV_Percentile": 0.19599999487400055,
+    "YTD_Change_IBKR": 271.63999633789064,
+    "Dividend_Yield_IBKR": 0.0,
+    "IBKR_Misc_Statistics": {
+      "high_13w": 584.72998046875,
+      "high_26w": 584.72998046875,
+      "high_52w": 584.72998046875,
+      "low_13w": 424.0320129394531,
+      "low_26w": 192.8300018310547,
+      "low_52w": 149.85000610351562,
+      "open_52w": 157.0
+    }
   },
   {
     "ATR_14": 0.46,
