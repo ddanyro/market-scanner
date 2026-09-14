@@ -282,7 +282,13 @@ export async function validateChatRequest(body, password) {
     }
     return content ? [{role, content}] : [];
   });
-  const useWebSearch = shouldUseWebSearch(message, body.webSearch);
+  // Older generated dashboards explicitly disabled web search on every
+  // continuation. Ignore only that legacy flag; an explicit user request
+  // such as „fără căutare web” is still honoured by shouldUseWebSearch().
+  const webSearchPreference = body.continuation === true && body.webSearch === false
+    ? undefined
+    : body.webSearch;
+  const useWebSearch = shouldUseWebSearch(message, webSearchPreference);
   const selectedContext = selectContextForMessage(context, message, useWebSearch);
   const preparedContext = compactContextForModel(selectedContext);
   const selectedContextJson = preparedContext.contextJson;

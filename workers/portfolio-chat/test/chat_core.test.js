@@ -125,6 +125,19 @@ test("keeps the tail of a long assistant answer for a GPT continuation", async (
   assert.ok(result.history[0].content.length > 2000);
 });
 
+test("enables portfolio web search for legacy continuation payloads", async () => {
+  const password = "secret";
+  const result = await validateChatRequest({
+    message: "Mă refer strict la ordinele de cumpărare.",
+    continuation: true,
+    webSearch: false,
+    accessToken: await expectedAccessToken(password),
+    context: {active_buy_orders: [{symbol: "MSFT"}]},
+    history: [{role: "assistant", content: "Am analizat portofoliul."}],
+  }, password);
+  assert.equal(result.useWebSearch, true);
+});
+
 test("builds a bounded Workers AI continuity request without claiming web access", () => {
   const request = buildCloudflareAIRequest({
     message: "Ce cumpăr?", contextJson: "{}", history: [{role: "user", content: "Salut"}],
