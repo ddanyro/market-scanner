@@ -17783,10 +17783,10 @@
   {
     "ATR_14": 1.44,
     "Analysts": 20,
-    "Ask": 63.190000000000005,
-    "Avg_90D_USD_Volume": 124734591.0,
+    "Ask": 63.13,
+    "Avg_90D_USD_Volume": 124581857.0,
     "Avg_Volume": 1975751,
-    "Bid": 63.06,
+    "Bid": 63.0,
     "Chart_Dates": [
       "2026-05-05",
       "2026-05-06",
@@ -18612,7 +18612,7 @@
     "Currency": "USD",
     "Daily_Change": -0.4925,
     "Data_Broker": "IBKR",
-    "Date": "2026-09-14 18:20",
+    "Date": "2026-09-14 18:34",
     "Days_To_Earnings": 43,
     "Decision": "WAIT",
     "Decision_Color": "#ff9800",
@@ -18641,9 +18641,6 @@
       "open_52w": 47.689300537109375
     },
     "IBKR_Snapshot_Groups": {
-      "display": [
-        "dividend_yield"
-      ],
       "quote": [
         "last",
         "bid_ask",
@@ -18668,10 +18665,13 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
       ]
     },
-    "IV_Percentile": 0.24799999594688416,
-    "Implied_Volatility": 0.400412210266121,
+    "IV_Percentile": 0.13199999928474426,
+    "Implied_Volatility": 0.3899991951131615,
     "Industry": "Oil & Gas E&P",
     "Instrument_Metadata": {
       "contract_id": 101694297,
@@ -18690,8 +18690,8 @@
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
-    "Market_Data_Fetched_At": "2026-09-14T15:20:19.749705+00:00",
-    "Market_Data_Observed_At": "2026-09-14T15:18:55+00:00",
+    "Market_Data_Fetched_At": "2026-09-14T15:34:43.121048+00:00",
+    "Market_Data_Observed_At": "2026-09-14T15:33:42+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
@@ -18708,9 +18708,9 @@
     "Options_Eligibility_Reason": "eligible",
     "Options_Score": null,
     "Options_Supported": true,
-    "Pct_To_Target": 9.59,
-    "Price": 54.48,
-    "Price_Native": 63.05,
+    "Pct_To_Target": 9.47,
+    "Price": 54.54,
+    "Price_Native": 63.12,
     "Quote_Status": "REALTIME",
     "RR_Ratio": 2.42,
     "RSI": 67.49,
@@ -18726,7 +18726,7 @@
     "Smart_Entry_EUR": null,
     "Smart_Reason": null,
     "Smart_Type": null,
-    "Spread_Pct": 0.20594059405940998,
+    "Spread_Pct": 0.20613652580671143,
     "Stop_Loss": 49.87,
     "Strategy": "Breakout",
     "Target": 59.7,
@@ -18737,7 +18737,7 @@
     "Vol_M": 2.76,
     "Vol_W": 2.34,
     "Volume": 1526500,
-    "YTD_Change_IBKR": 21.201401519775395,
+    "YTD_Change_IBKR": 21.271401519775395,
     "_cached_at": 1789358688.6025593,
     "current_decision": "WAIT",
     "enhanced_decision": "WAIT",

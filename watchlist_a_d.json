@@ -189397,10 +189397,10 @@
   {
     "ATR_14": 16.45,
     "Analysts": 50,
-    "Ask": 485.90000000000003,
-    "Avg_90D_USD_Volume": 12379942369.0,
+    "Ask": 489.53000000000003,
+    "Avg_90D_USD_Volume": 12473040837.0,
     "Avg_Volume": 25485840,
-    "Bid": 485.7,
+    "Bid": 489.25,
     "Chart_Dates": [
       "2026-05-05",
       "2026-05-06",
@@ -190226,7 +190226,7 @@
     "Currency": "USD",
     "Daily_Change": 10.8259,
     "Data_Broker": "IBKR",
-    "Date": "2026-09-14 18:20",
+    "Date": "2026-09-14 18:34",
     "Days_To_Earnings": 50,
     "Decision": "WAIT",
     "Decision_Color": "#ff9800",
@@ -190255,9 +190255,6 @@
       "open_52w": 157.0
     },
     "IBKR_Snapshot_Groups": {
-      "display": [
-        "dividend_yield"
-      ],
       "quote": [
         "last",
         "bid_ask",
@@ -190282,10 +190279,13 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
       ]
     },
-    "IV_Percentile": 0.19599999487400055,
-    "Implied_Volatility": 0.5060581114651028,
+    "IV_Percentile": 0.17599999904632568,
+    "Implied_Volatility": 0.5006731951658585,
     "Industry": "Semiconductors",
     "Instrument_Metadata": {
       "contract_id": 4391,
@@ -190306,8 +190306,8 @@
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
-    "Market_Data_Fetched_At": "2026-09-14T15:20:15.008511+00:00",
-    "Market_Data_Observed_At": "2026-09-14T15:20:09+00:00",
+    "Market_Data_Fetched_At": "2026-09-14T15:34:38.493451+00:00",
+    "Market_Data_Observed_At": "2026-09-14T15:34:26+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
@@ -190324,9 +190324,9 @@
     "Options_Eligibility_Reason": "eligible",
     "Options_Score": null,
     "Options_Supported": true,
-    "Pct_To_Target": 26.61,
-    "Price": 419.73,
-    "Price_Native": 485.8,
+    "Pct_To_Target": 25.6,
+    "Price": 423.09,
+    "Price_Native": 489.69,
     "Quote_Status": "REALTIME",
     "RR_Ratio": 2.6,
     "RSI": 57.96,
@@ -190342,7 +190342,7 @@
     "Smart_Entry_EUR": null,
     "Smart_Reason": null,
     "Smart_Type": null,
-    "Spread_Pct": 0.04116920543434448,
+    "Spread_Pct": 0.05721408283782455,
     "Stop_Loss": 413.04,
     "Strategy": "Normal",
     "Target": 531.42,
@@ -190353,7 +190353,7 @@
     "Vol_M": 3.6,
     "Vol_W": 4.1,
     "Volume": 19001000,
-    "YTD_Change_IBKR": 271.63999633789064,
+    "YTD_Change_IBKR": 275.5299963378906,
     "_cached_at": 1789359286.432826,
     "current_decision": "WAIT",
     "enhanced_decision": "WAIT",
