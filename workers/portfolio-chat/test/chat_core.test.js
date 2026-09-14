@@ -45,6 +45,31 @@ test("leaves an already small context unchanged", () => {
   assert.equal(result.context, context);
 });
 
+test("always fits exceptionally large relevant sections instead of returning 413", async () => {
+  const password = "secret";
+  const hugeRows = Array.from({length: 50}, (_, index) => ({
+    symbol: `SYM${index}`,
+    ...Object.fromEntries(Array.from({length: 10}, (_, field) => [
+      `field_${field}`, `${field}-` + "d".repeat(180),
+    ])),
+  }));
+  const result = await validateChatRequest({
+    message: "Analizează toate datele disponibile.",
+    accessToken: await expectedAccessToken(password),
+    context: {
+      positions: hugeRows,
+      active_buy_orders: hugeRows,
+      active_sell_orders: hugeRows,
+      buy_candidates: hugeRows,
+      market_overviews: {SUA: hugeRows, BVB: hugeRows},
+    },
+  }, password);
+  assert.equal(result.contextCompacted, true);
+  assert.ok(result.contextJson.length <= 180000);
+  assert.equal(result.context.context_compaction.forced_budget, true);
+  assert.ok(result.context.context_compaction.summarized_sections.length > 0);
+});
+
 test("validates the derived portfolio token and trims history", async () => {
   const password = "secret";
   const history = Array.from({length: 12}, (_, index) => ({

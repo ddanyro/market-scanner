@@ -87,7 +87,10 @@ function compactContextValue(value, path, stats, limits) {
     const result = {};
     for (const [key, item] of Object.entries(value)) {
       if (BULKY_CONTEXT_KEY.test(key)) {
-        stats.omitted_bulky_fields.push([...path, key].join("."));
+        stats.omitted_bulky_field_count += 1;
+        if (stats.omitted_bulky_fields.length < 25) {
+          stats.omitted_bulky_fields.push([...path, key].join("."));
+        }
         continue;
       }
       result[key] = compactContextValue(item, [...path, key], stats, limits);
@@ -95,6 +98,77 @@ function compactContextValue(value, path, stats, limits) {
     return result;
   }
   return String(value);
+}
+
+function sectionSummary(value) {
+  if (Array.isArray(value)) {
+    const fields = new Set();
+    value.slice(0, 20).forEach((item) => {
+      if (item && typeof item === "object" && !Array.isArray(item)) {
+        Object.keys(item).forEach((key) => fields.add(key));
+      }
+    });
+    return {
+      available: true,
+      detail_omitted_due_to_context_limit: true,
+      item_count: value.length,
+      available_fields: [...fields].slice(0, 40),
+    };
+  }
+  if (value && typeof value === "object") {
+    return {
+      available: true,
+      detail_omitted_due_to_context_limit: true,
+      available_fields: Object.keys(value).slice(0, 60),
+    };
+  }
+  const text = String(value ?? "");
+  return text.length > 300 ? text.slice(0, 300) + "…" : value;
+}
+
+function forceContextWithinBudget(context, maxLength, originalChars) {
+  const reserve = 1200;
+  const result = {};
+  const omittedSections = [];
+  for (const [key, value] of Object.entries(context)) {
+    if (key === "context_compaction") continue;
+    result[key] = value;
+    if (JSON.stringify(result).length > maxLength - reserve) {
+      result[key] = sectionSummary(value);
+      omittedSections.push(key);
+    }
+  }
+  result.context_compaction = {
+    applied: true,
+    original_chars: originalChars,
+    forced_budget: true,
+    summarized_sections: omittedSections,
+    note: "Secțiunile enumerate au fost rezumate deoarece detaliile lor nu încăpeau în fereastra modelului; nu interpreta rezumatul ca date complete.",
+  };
+  let json = JSON.stringify(result);
+  if (json.length <= maxLength) return {context: result, contextJson: json};
+
+  // Ultima plasă de siguranță: păstrează secțiunile în ordinea lor de
+  // prioritate și înlocuiește orice secțiune care nu încape cu un marker mic.
+  const bounded = {};
+  const dropped = [];
+  for (const [key, value] of Object.entries(result)) {
+    if (key === "context_compaction") continue;
+    bounded[key] = value;
+    if (JSON.stringify(bounded).length > maxLength - reserve) {
+      bounded[key] = {available: true, detail_omitted_due_to_context_limit: true};
+      dropped.push(key);
+    }
+  }
+  bounded.context_compaction = {
+    applied: true,
+    original_chars: originalChars,
+    forced_budget: true,
+    summarized_sections: [...new Set([...omittedSections, ...dropped])],
+    note: "Unele detalii nu au încăput în fereastra modelului; cere o secțiune concretă pentru analiza completă a acelei secțiuni.",
+  };
+  json = JSON.stringify(bounded);
+  return {context: bounded, contextJson: json};
 }
 
 /**
@@ -121,6 +195,7 @@ export function compactContextForModel(context, maxLength = MAX_CONTEXT_LENGTH) 
       original_chars: originalJson.length,
       truncated_strings: 0,
       truncated_arrays: [],
+      omitted_bulky_field_count: 0,
       omitted_bulky_fields: [],
     };
     const compacted = compactContextValue(context, [], stats, limits);
@@ -136,7 +211,8 @@ export function compactContextForModel(context, maxLength = MAX_CONTEXT_LENGTH) 
       context: compacted, contextJson: json, compacted: true,
     };
   }
-  return {context: last, contextJson: lastJson, compacted: true};
+  const forced = forceContextWithinBudget(last, maxLength, originalJson.length);
+  return {...forced, compacted: true};
 }
 
 export async function expectedAccessToken(password) {
