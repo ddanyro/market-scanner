@@ -90711,10 +90711,10 @@
   {
     "ATR_14": 5.2,
     "Analysts": 10,
-    "Ask": 149.84,
-    "Avg_90D_USD_Volume": 317414506.0,
+    "Ask": 150.65,
+    "Avg_90D_USD_Volume": 319280226.0,
     "Avg_Volume": 2119551,
-    "Bid": 149.12,
+    "Bid": 150.52,
     "Chart_Dates": [
       "2026-05-05",
       "2026-05-06",
@@ -91540,7 +91540,7 @@
     "Currency": "USD",
     "Daily_Change": 2.713,
     "Data_Broker": "IBKR",
-    "Date": "2026-09-14 18:39",
+    "Date": "2026-09-14 20:24",
     "Days_To_Earnings": 52,
     "Decision": "WAIT",
     "Decision_Color": "#ff9800",
@@ -91569,9 +91569,6 @@
       "open_52w": 107.30000305175781
     },
     "IBKR_Snapshot_Groups": {
-      "display": [
-        "dividend_yield"
-      ],
       "quote": [
         "last",
         "bid_ask",
@@ -91596,10 +91593,13 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
       ]
     },
-    "IV_Percentile": 0.6679999828338623,
-    "Implied_Volatility": 0.48214489974224484,
+    "IV_Percentile": 0.6439999938011169,
+    "Implied_Volatility": 0.4811502638721877,
     "Industry": "Gold",
     "Instrument_Metadata": {
       "contract_id": 274836867,
@@ -91620,8 +91620,8 @@
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
-    "Market_Data_Fetched_At": "2026-09-14T15:39:26.939447+00:00",
-    "Market_Data_Observed_At": "2026-09-14T15:37:47+00:00",
+    "Market_Data_Fetched_At": "2026-09-14T17:24:42.099047+00:00",
+    "Market_Data_Observed_At": "2026-09-14T17:15:46+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
@@ -91638,9 +91638,9 @@
     "Options_Eligibility_Reason": "eligible",
     "Options_Score": null,
     "Options_Supported": true,
-    "Pct_To_Target": 18.78,
-    "Price": 129.19,
-    "Price_Native": 149.53,
+    "Pct_To_Target": 17.87,
+    "Price": 130.2,
+    "Price_Native": 150.69,
     "Quote_Status": "REALTIME",
     "RR_Ratio": 1.95,
     "RSI": 59.21,
@@ -91656,7 +91656,7 @@
     "Smart_Entry_EUR": null,
     "Smart_Reason": null,
     "Smart_Type": null,
-    "Spread_Pct": 0.4816697886004809,
+    "Spread_Pct": 0.08632997974565558,
     "Stop_Loss": 122.77,
     "Strategy": "Normal",
     "Target": 153.46,
@@ -91667,7 +91667,7 @@
     "Vol_M": 3.25,
     "Vol_W": 2.25,
     "Volume": 1203200,
-    "YTD_Change_IBKR": 32.363999633789064,
+    "YTD_Change_IBKR": 33.52399963378906,
     "_cached_at": 1789359721.7382843,
     "current_decision": "WAIT",
     "enhanced_decision": "WAIT",
@@ -109486,10 +109486,10 @@
   {
     "ATR_14": 4.9,
     "Analysts": 37,
-    "Ask": 375.37,
-    "Avg_90D_USD_Volume": 2853493149.0,
+    "Ask": 375.95,
+    "Avg_90D_USD_Volume": 2857521994.0,
     "Avg_Volume": 7600922,
-    "Bid": 375.31,
+    "Bid": 375.86,
     "Chart_Dates": [
       "2026-05-05",
       "2026-05-06",
@@ -110315,7 +110315,7 @@
     "Currency": "USD",
     "Daily_Change": 2.7994,
     "Data_Broker": "IBKR",
-    "Date": "2026-09-14 18:39",
+    "Date": "2026-09-14 20:24",
     "Days_To_Earnings": 43,
     "Decision": "WAIT",
     "Decision_Color": "#ff9800",
@@ -110344,9 +110344,6 @@
       "open_52w": 339.1440124511719
     },
     "IBKR_Snapshot_Groups": {
-      "display": [
-        "dividend_yield"
-      ],
       "quote": [
         "last",
         "bid_ask",
@@ -110371,10 +110368,13 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
       ]
     },
     "IV_Percentile": 0.19599999487400055,
-    "Implied_Volatility": 0.20102459988496832,
+    "Implied_Volatility": 0.2003381889936065,
     "Industry": "Credit Services",
     "Instrument_Metadata": {
       "contract_id": 49462172,
@@ -110395,8 +110395,8 @@
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
-    "Market_Data_Fetched_At": "2026-09-14T15:39:26.531449+00:00",
-    "Market_Data_Observed_At": "2026-09-14T15:39:24+00:00",
+    "Market_Data_Fetched_At": "2026-09-14T17:24:41.649427+00:00",
+    "Market_Data_Observed_At": "2026-09-14T17:24:33+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
@@ -110413,9 +110413,9 @@
     "Options_Eligibility_Reason": "eligible",
     "Options_Score": null,
     "Options_Supported": true,
-    "Pct_To_Target": 11.73,
-    "Price": 324.28,
-    "Price_Native": 375.32,
+    "Pct_To_Target": 11.56,
+    "Price": 324.79,
+    "Price_Native": 375.91,
     "Quote_Status": "REALTIME",
     "RR_Ratio": 4.32,
     "RSI": 50.66,
@@ -110431,7 +110431,7 @@
     "Smart_Entry_EUR": null,
     "Smart_Reason": null,
     "Smart_Type": null,
-    "Spread_Pct": 0.015985506474130728,
+    "Spread_Pct": 0.02394221944373578,
     "Stop_Loss": 310.28,
     "Strategy": "Pullback",
     "Target": 362.33,
@@ -110442,7 +110442,7 @@
     "Vol_M": 1.46,
     "Vol_W": 1.08,
     "Volume": 3492700,
-    "YTD_Change_IBKR": 26.041008300781243,
+    "YTD_Change_IBKR": 26.631008300781275,
     "_cached_at": 1789359886.3723288,
     "current_decision": "WAIT",
     "enhanced_decision": "WAIT",
