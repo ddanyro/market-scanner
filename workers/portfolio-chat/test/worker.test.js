@@ -170,8 +170,10 @@ test("does not expose private or unknown R2 artifacts", async () => {
   assert.equal(response.status, 405);
 });
 
-test("enables web search only for questions that need fresh external data", () => {
-  assert.equal(shouldUseWebSearch("Cum arată riscul portofoliului?"), false);
+test("enables web search for portfolio questions and fresh external data", () => {
+  assert.equal(shouldUseWebSearch("Cum arată riscul portofoliului?"), true);
+  assert.equal(shouldUseWebSearch("Ce ordine de cumpărare am?"), true);
+  assert.equal(shouldUseWebSearch("Mă refer strict la ordinele de cumpărare"), true);
   assert.equal(shouldUseWebSearch("Care sunt știrile recente despre NVDA?"), true);
   assert.equal(shouldUseWebSearch("Verifică pe internet rezultatele de azi"), true);
   assert.equal(shouldUseWebSearch("Analizează fără căutare web știrile din dashboard"), false);
@@ -412,6 +414,7 @@ test("retries invalid_value without web search before using fallback", async (co
     headers: {Origin: SITE_ORIGIN, "Content-Type": "application/json"},
     body: JSON.stringify({
       message: "Ce ordine de cumpărare am?", context: {}, history: [],
+      webSearch: false,
       accessToken: await expectedAccessToken(password),
     }),
   }), workerEnv({PORTFOLIO_PASSWORD: password}));

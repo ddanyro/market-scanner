@@ -24,7 +24,10 @@ export function shouldUseWebSearch(message, explicitPreference) {
   if (explicitPreference === false) return false;
   const text = String(message || "").trim();
   if (/\b(fără|fara|nu)\s+(web|internet|căutare|cautare)\b/i.test(text)) return false;
-  return WEB_SEARCH_PATTERNS.some((pattern) => pattern.test(text));
+  return WEB_SEARCH_PATTERNS.some((pattern) => pattern.test(text))
+    || PORTFOLIO_CONTEXT_PATTERN.test(text)
+    || ORDER_CONTEXT_PATTERN.test(text)
+    || BUY_CONTEXT_PATTERN.test(text);
 }
 
 export function selectContextForMessage(context, message, useWebSearch = false) {
@@ -37,7 +40,9 @@ export function selectContextForMessage(context, message, useWebSearch = false) 
   // universului de candidați și a contextului complet de piață.
   const wantsBuy = !wantsOrders && BUY_CONTEXT_PATTERN.test(text);
   const wantsMarket = wantsBuy || MARKET_CONTEXT_PATTERN.test(text);
-  const wantsEvidence = useWebSearch || EVIDENCE_CONTEXT_PATTERN.test(text);
+  // Web search does not require injecting the dashboard's potentially large
+  // cached evidence section. Include it only when the question asks for it.
+  const wantsEvidence = EVIDENCE_CONTEXT_PATTERN.test(text);
   if (!wantsPortfolio && !wantsBuy && !wantsOrders && !wantsMarket && !wantsEvidence) return source;
 
   const keys = new Set([

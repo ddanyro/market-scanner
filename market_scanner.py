@@ -8443,8 +8443,7 @@ def generate_html_dashboard(
                             history: priorHistory,
                             context: portfolioChatConfig.context || {},
                             accessToken: portfolioChatConfig.access_token || '',
-                            continuation: isContinuation === true,
-                            webSearch: isContinuation === true ? false : undefined
+                            continuation: isContinuation === true
                         })
                     });
                     const payload = await response.json().catch(function() { return {}; });
