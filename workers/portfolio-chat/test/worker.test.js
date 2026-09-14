@@ -342,7 +342,7 @@ test("retries a temporary OpenAI server error before using the answer", async (c
   assert.equal(payload.text, "Recuperat.");
 });
 
-test("retries an invalid web-search request on the same GPT without web", async (context) => {
+test("retries invalid_value on the same GPT with a minimal request", async (context) => {
   const originalFetch = globalThis.fetch;
   context.after(() => { globalThis.fetch = originalFetch; });
   const requests = [];
@@ -378,11 +378,52 @@ test("retries an invalid web-search request on the same GPT without web", async 
   assert.equal(requests.length, 2);
   assert.ok(requests[0].tools);
   assert.equal(requests[1].tools, undefined);
+  assert.equal(requests[1].prompt_cache_options, undefined);
+  assert.equal(requests[1].max_output_tokens, undefined);
+  assert.equal(requests[1].reasoning, undefined);
   assert.equal(payload.provider, "openai");
   assert.equal(payload.degraded, true);
-  assert.equal(payload.reason, "web_search_invalid_value");
-  assert.match(payload.notice, /căutarea web a fost respinsă/);
+  assert.equal(payload.reason, "openai_invalid_value_recovered");
+  assert.match(payload.notice, /parametrii opționali/);
   assert.equal(fallbackCalls, 0);
+});
+
+test("retries invalid_value without web search before using fallback", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  const requests = [];
+  globalThis.fetch = async (url, options) => {
+    requests.push(JSON.parse(options.body));
+    if (requests.length === 1) {
+      return new Response(JSON.stringify({
+        error: {code: "invalid_value", param: "prompt_cache_options", message: "Invalid value"},
+      }), {status: 400, headers: {"Content-Type": "application/json"}});
+    }
+    return new Response(JSON.stringify({
+      model: "gpt-5.6-terra",
+      output: [{type: "message", content: [{
+        type: "output_text", text: "Răspuns GPT recuperat.", annotations: [],
+      }]}],
+    }), {status: 200, headers: {"Content-Type": "application/json"}});
+  };
+  const password = "portfolio-test";
+  const response = await worker.fetch(new Request("https://worker.example", {
+    method: "POST",
+    headers: {Origin: SITE_ORIGIN, "Content-Type": "application/json"},
+    body: JSON.stringify({
+      message: "Ce ordine de cumpărare am?", context: {}, history: [],
+      accessToken: await expectedAccessToken(password),
+    }),
+  }), workerEnv({PORTFOLIO_PASSWORD: password}));
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(requests.length, 2);
+  assert.equal(requests[0].tools, undefined);
+  assert.ok(requests[0].prompt_cache_options);
+  assert.equal(requests[1].prompt_cache_options, undefined);
+  assert.equal(payload.provider, "openai");
+  assert.equal(payload.reason, "openai_invalid_value_recovered");
+  assert.match(payload.notice, /modelul și datele dashboardului au rămas/);
 });
 
 test("falls back to Workers AI for a non-429 OpenAI error", async (context) => {

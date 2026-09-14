@@ -155,6 +155,7 @@ async function requestOpenAI(env, validated) {
     : OPENAI_RETRY_BASE_MS;
   let webSearchEnabled = validated.useWebSearch;
   let webSearchDowngraded = false;
+  let compatibilityMode = false;
   let lastFailure = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -176,6 +177,7 @@ async function requestOpenAI(env, validated) {
         body: JSON.stringify(buildOpenAIRequest({
           ...validated,
           useWebSearch: webSearchEnabled,
+          compatibilityMode,
         })),
         signal: controller.signal,
       });
@@ -193,6 +195,7 @@ async function requestOpenAI(env, validated) {
         }));
         return {
           response, payload, attempt, elapsedMs, webSearchDowngraded,
+          compatibilityMode,
         };
       }
 
@@ -215,13 +218,14 @@ async function requestOpenAI(env, validated) {
         error_message: String(payload?.error?.message || "").slice(0, 500) || null,
         ...openAITelemetry(response),
       }));
-      // A tool-specific invalid_value must not take the entire chat down.
-      // Retry once with the same GPT and the same dashboard context, but
-      // without web search, and disclose the downgrade in the response.
-      if (response.status === 400 && reason === "invalid_value" && webSearchEnabled
-          && attempt < maxAttempts) {
+      // Some API/account combinations can reject an otherwise documented
+      // optional Responses field with `invalid_value`. Retry the same model,
+      // question and dashboard context using only the stable core payload.
+      if (response.status === 400 && reason === "invalid_value"
+          && !compatibilityMode && attempt < maxAttempts) {
+        webSearchDowngraded = webSearchEnabled;
         webSearchEnabled = false;
-        webSearchDowngraded = true;
+        compatibilityMode = true;
         continue;
       }
       if (!retryable || attempt >= maxAttempts) break;
@@ -467,10 +471,12 @@ export default {
       const payload = openAIResult.payload;
       try {
         const answer = extractOpenAIAnswer(payload);
-        if (openAIResult.webSearchDowngraded) {
+        if (openAIResult.compatibilityMode) {
           answer.degraded = true;
-          answer.reason = "web_search_invalid_value";
-          answer.notice = "GPT a răspuns folosind datele dashboardului; căutarea web a fost respinsă de endpoint și a fost omisă pentru această cerere.";
+          answer.reason = "openai_invalid_value_recovered";
+          answer.notice = openAIResult.webSearchDowngraded
+            ? "GPT a răspuns folosind datele dashboardului; căutarea web și parametrii opționali respinși de endpoint au fost omiși pentru această cerere."
+            : "GPT a răspuns după omiterea parametrilor opționali respinși de endpoint; modelul și datele dashboardului au rămas neschimbate.";
         }
         console.log(JSON.stringify({
           event: "openai_portfolio_chat_usage",

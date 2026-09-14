@@ -300,30 +300,23 @@ export async function validateChatRequest(body, password) {
 
 export function buildOpenAIRequest(validated) {
   const instructions = buildAssistantInstructions();
+  const compatibilityMode = validated.compatibilityMode === true;
+  const cachedText = (text) => compatibilityMode
+    ? {type: "input_text", text}
+    : {
+        type: "input_text",
+        text,
+        prompt_cache_breakpoint: {mode: "explicit"},
+      };
   const request = {
     model: "gpt-5.6-terra",
-    reasoning: {effort: "low"},
     store: false,
-    // Responses API counts reasoning tokens in this budget as well.  A larger
-    // ceiling prevents a normal portfolio report from ending after a short
-    // visible answer even when low-effort reasoning consumed part of it.
-    max_output_tokens: 4096,
-    prompt_cache_key: "market-scanner:portfolio-chat:v3",
-    prompt_cache_options: {mode: "explicit", ttl: "30m"},
     input: [
       {
         role: "system",
         content: [
-          {
-            type: "input_text",
-            text: instructions,
-            prompt_cache_breakpoint: {mode: "explicit"},
-          },
-          {
-            type: "input_text",
-            text: "CONTEXT DASHBOARD:\n" + validated.contextJson,
-            prompt_cache_breakpoint: {mode: "explicit"},
-          },
+          cachedText(instructions),
+          cachedText("CONTEXT DASHBOARD:\n" + validated.contextJson),
         ],
       },
       ...validated.history.map((item) => ({
@@ -333,7 +326,16 @@ export function buildOpenAIRequest(validated) {
       {role: "user", content: [{type: "input_text", text: validated.message}]},
     ],
   };
-  if (validated.useWebSearch) {
+  if (!compatibilityMode) {
+    request.reasoning = {effort: "low"};
+    // Responses API counts reasoning tokens in this budget as well.  A larger
+    // ceiling prevents a normal portfolio report from ending after a short
+    // visible answer even when low-effort reasoning consumed part of it.
+    request.max_output_tokens = 4096;
+    request.prompt_cache_key = "market-scanner:portfolio-chat:v3";
+    request.prompt_cache_options = {mode: "explicit", ttl: "30m"};
+  }
+  if (validated.useWebSearch && !compatibilityMode) {
     request.tools = [{type: "web_search"}];
     request.tool_choice = "auto";
     request.include = ["web_search_call.action.sources"];

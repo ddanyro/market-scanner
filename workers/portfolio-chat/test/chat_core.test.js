@@ -220,6 +220,22 @@ test("uses Responses API fields, Terra, explicit caching, conditional web search
   );
 });
 
+test("builds a minimal OpenAI compatibility request without optional fields", () => {
+  const request = buildOpenAIRequest({
+    message: "Cum arată riscul?", contextJson: "{}", history: [],
+    useWebSearch: true, compatibilityMode: true,
+  });
+  assert.equal(request.model, "gpt-5.6-terra");
+  assert.equal(request.store, false);
+  assert.equal("reasoning" in request, false);
+  assert.equal("max_output_tokens" in request, false);
+  assert.equal("prompt_cache_key" in request, false);
+  assert.equal("prompt_cache_options" in request, false);
+  assert.equal("tools" in request, false);
+  assert.equal("prompt_cache_breakpoint" in request.input[0].content[0], false);
+  assert.equal("prompt_cache_breakpoint" in request.input[0].content[1], false);
+});
+
 test("extracts text and clickable citation coordinates", () => {
   const answer = extractOpenAIAnswer({
     model: "gpt-5.6-terra",
