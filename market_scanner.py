@@ -821,7 +821,9 @@ def _instrument_data_attribution(symbol, instrument, *, fetched_at=None,
     }
 
 
-def _refresh_portfolio_quotes_before_save(state, rates):
+def _refresh_portfolio_quotes_before_save(
+    state, rates, *, additional_symbols=None,
+):
     """Reia numai snapshoturile de preț după etapele lente ale scanării.
 
     Istoricul și indicatorii rămân nemodificați. Sunt actualizate cotația
@@ -831,10 +833,17 @@ def _refresh_portfolio_quotes_before_save(state, rates):
         dict(item) for item in (state or {}).get('portfolio', [])
         if isinstance(item, dict)
     ]
-    symbols = [
+    held_symbols = [
         str(item.get('Symbol') or '').strip().upper()
         for item in positions if str(item.get('Symbol') or '').strip()
     ]
+    symbols = list(dict.fromkeys([
+        *held_symbols,
+        *(
+            str(symbol).strip().upper()
+            for symbol in (additional_symbols or []) if str(symbol).strip()
+        ),
+    ]))
     if not symbols:
         return state
     stats = _prefetch_ibkr_mcp_market_data(
@@ -887,9 +896,47 @@ def _refresh_portfolio_quotes_before_save(state, rates):
         })
         refreshed += 1
     state['portfolio'] = positions
+
+    order_symbols = updated_symbols.difference(held_symbols)
+    watchlist = [
+        dict(item) if isinstance(item, dict) else item
+        for item in (state or {}).get('watchlist', [])
+    ]
+    refreshed_orders = 0
+    for item in watchlist:
+        if not isinstance(item, dict):
+            continue
+        symbol = str(item.get('Ticker') or '').strip().upper()
+        if symbol not in order_symbols:
+            continue
+        instrument = _load_mcp_market_instrument(symbol)
+        price_native = _tws_instrument_market_price(instrument)
+        if not instrument or not price_native:
+            continue
+        currency = str(item.get('Currency') or 'USD').upper()
+        rate = 1.0 if currency == 'EUR' else _safe_float_text(
+            (rates or {}).get(currency)
+        )
+        if not rate or rate <= 0:
+            continue
+        price = price_native * rate
+        item.update({
+            'Price_Native': round(price_native, 2),
+            'Price': round(price, 2),
+            'Date': now_text,
+            **_ibkr_enhanced_market_fields(instrument),
+            **_instrument_data_attribution(symbol, instrument),
+        })
+        target = _safe_float_text(item.get('Target'))
+        if target and price > 0:
+            item['Pct_To_Target'] = round((target / price - 1) * 100, 2)
+        refreshed_orders += 1
+    state['watchlist'] = watchlist
     print(
         f"  -> Refresh final: {refreshed}/{len(positions)} cotații "
-        "de portofoliu actualizate înainte de salvare."
+        "deținute și "
+        f"{refreshed_orders}/{len(order_symbols)} din ordinele BUY "
+        "actualizate înainte de salvare."
     )
     return state
 
@@ -2989,6 +3036,37 @@ def _portfolio_market_data_symbols(portfolio_data):
         )
         if symbol_column:
             symbols.extend(portfolio_data[symbol_column].dropna().tolist())
+    return list(dict.fromkeys(
+        str(symbol).strip().upper() for symbol in symbols
+        if str(symbol).strip()
+    ))
+
+
+def _active_buy_order_market_data_symbols():
+    """Simbolurile ordinelor BUY active din snapshoturile locale curente."""
+    symbols = []
+    for path in ('tws_orders.csv', 'tradeville_orders.csv'):
+        if not os.path.exists(path):
+            continue
+        try:
+            orders = _read_order_snapshot(path)
+        except Exception:
+            continue
+        if orders.empty or 'Action' not in orders.columns:
+            continue
+        symbol_column = next(
+            (
+                column for column in ('Symbol', 'Ticker', 'symbol', 'ticker')
+                if column in orders.columns
+            ),
+            None,
+        )
+        if not symbol_column:
+            continue
+        buy_orders = orders[
+            orders['Action'].astype(str).str.upper() == 'BUY'
+        ]
+        symbols.extend(buy_orders[symbol_column].dropna().tolist())
     return list(dict.fromkeys(
         str(symbol).strip().upper() for symbol in symbols
         if str(symbol).strip()
@@ -12295,6 +12373,7 @@ def update_portfolio_data(state, rates, vix_val, sync_before_load=True):
     _prefetch_ibkr_mcp_market_data(
         _portfolio_market_data_symbols(portfolio_data),
         label='portofoliu + TVBETETF',
+        force_quotes=True,
     )
     _refresh_bvb_proxy_from_market_data(state)
     
@@ -12405,6 +12484,7 @@ def update_portfolio_positions_only(state, rates, vix_val):
     _prefetch_ibkr_mcp_market_data(
         _portfolio_market_data_symbols(portfolio_data),
         label='portofoliu + TVBETETF',
+        force_quotes=True,
     )
     _refresh_bvb_proxy_from_market_data(state)
     portfolio_results = []
@@ -12956,7 +13036,11 @@ def main():
     # Scanările și analizele auxiliare pot dura minute. Refacem numai
     # snapshoturile pozițiilor la final, înainte ca dashboardul să fie salvat.
     if args.mode in {'all', 'portfolio'}:
-        state = _refresh_portfolio_quotes_before_save(state, rates)
+        state = _refresh_portfolio_quotes_before_save(
+            state,
+            rates,
+            additional_symbols=_active_buy_order_market_data_symbols(),
+        )
         
     # 4. Salvare Stare
     # Deduplicate Watchlist in State BEFORE saving

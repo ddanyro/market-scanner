@@ -947,7 +947,9 @@ class TestMarketAnalysis(unittest.TestCase):
             ['JPM', 'TVBETETF.RO'],
         )
         mock_prefetch.assert_called_once_with(
-            ['TVBETETF.RO', 'JPM'], label='portofoliu + TVBETETF'
+            ['TVBETETF.RO', 'JPM'],
+            label='portofoliu + TVBETETF',
+            force_quotes=True,
         )
         mock_refresh.assert_called_once_with(state)
 
@@ -957,6 +959,25 @@ class TestMarketAnalysis(unittest.TestCase):
                 {}, mode='portfolio'
             ),
             ['TVBETETF.RO'],
+        )
+
+    @patch('market_scanner._read_order_snapshot')
+    @patch('market_scanner.os.path.exists', return_value=True)
+    def test_active_buy_order_symbols_exclude_sell_orders(
+        self, _exists, read_orders,
+    ):
+        read_orders.side_effect = [
+            pd.DataFrame([
+                {'Symbol': 'AAPL', 'Action': 'BUY'},
+                {'Symbol': 'PANW', 'Action': 'SELL'},
+            ]),
+            pd.DataFrame([
+                {'Symbol': 'TVBETETF.RO', 'Action': 'BUY'},
+            ]),
+        ]
+        self.assertEqual(
+            market_scanner._active_buy_order_market_data_symbols(),
+            ['AAPL', 'TVBETETF.RO'],
         )
 
     @patch('market_scanner._load_analysis_history')
@@ -4944,6 +4965,40 @@ class TestPortfolioChatDataQuality(unittest.TestCase):
             '2026-09-14T14:41:42+00:00',
         )
         self.assertTrue(prefetch.call_args.kwargs['force_quotes'])
+
+    @patch('market_scanner._load_mcp_market_instrument')
+    @patch('market_scanner._prefetch_ibkr_mcp_market_data')
+    def test_final_refresh_updates_buy_order_symbol_in_watchlist(
+        self, prefetch, load_instrument,
+    ):
+        prefetch.return_value = {'updated': 1, 'updated_symbols': ['AAPL']}
+        load_instrument.return_value = {
+            'data_provider': 'IBKR MCP',
+            'data_broker': 'IBKR',
+            'fetched_at': '2026-09-14T15:00:02+00:00',
+            'market_data': {
+                'market_price': 335.0,
+                'observed_at': '2026-09-14T15:00:01+00:00',
+                'snapshot_metrics': {'scalars': {}, 'derived': {}, 'raw': {}},
+            },
+        }
+        state = {
+            'portfolio': [],
+            'watchlist': [{
+                'Ticker': 'AAPL', 'Currency': 'USD', 'Price': 287.08,
+                'Price_Native': 332.27, 'Target': 320.0,
+            }],
+        }
+        result = market_scanner._refresh_portfolio_quotes_before_save(
+            state, {'USD': 0.864}, additional_symbols=['AAPL']
+        )
+        aapl = result['watchlist'][0]
+        self.assertEqual(aapl['Price_Native'], 335.0)
+        self.assertEqual(aapl['Price'], 289.44)
+        self.assertEqual(
+            aapl['Market_Data_Observed_At'],
+            '2026-09-14T15:00:01+00:00',
+        )
 
     @patch('market_scanner.yf.Ticker')
     def test_missing_earnings_calendar_is_unknown_not_clear(self, ticker):
