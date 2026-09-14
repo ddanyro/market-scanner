@@ -90711,7 +90711,10 @@
   {
     "ATR_14": 5.2,
     "Analysts": 10,
+    "Ask": 148.61,
+    "Avg_90D_USD_Volume": 315071777.0,
     "Avg_Volume": 2119551,
+    "Bid": 148.39000000000001,
     "Chart_Dates": [
       "2026-05-05",
       "2026-05-06",
@@ -91541,6 +91544,7 @@
     "Days_To_Earnings": 52,
     "Decision": "WAIT",
     "Decision_Color": "#ff9800",
+    "Dividend_Yield_IBKR": 0.49,
     "Earnings_Available": true,
     "Earnings_Danger": false,
     "Earnings_Fetched_At": "2026-09-14T04:22:01+00:00",
@@ -91552,9 +91556,22 @@
       "IBKR"
     ],
     "Finviz_ATR": 5.77,
+    "Historical_Vol": 0.5091780147159537,
     "History_Ticker": "WPM",
     "IBKR_Data_Only": false,
+    "IBKR_Misc_Statistics": {
+      "high_13w": 163.7899932861328,
+      "high_26w": 163.7899932861328,
+      "high_52w": 165.26600646972656,
+      "low_13w": 101.5999984741211,
+      "low_26w": 101.5999984741211,
+      "low_52w": 92.13289642333984,
+      "open_52w": 107.30000305175781
+    },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -91579,11 +91596,10 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
+    "IV_Percentile": 0.6439999938011169,
+    "Implied_Volatility": 0.4811673738858332,
     "Industry": "Gold",
     "Instrument_Metadata": {
       "contract_id": 274836867,
@@ -91625,6 +91641,7 @@
     "Pct_To_Target": 19.56,
     "Price": 128.36,
     "Price_Native": 148.56,
+    "Quote_Status": "REALTIME",
     "RR_Ratio": 1.95,
     "RSI": 59.21,
     "RSI_Status": "Neutral",
@@ -91639,6 +91656,7 @@
     "Smart_Entry_EUR": null,
     "Smart_Reason": null,
     "Smart_Type": null,
+    "Spread_Pct": 0.1481481481481474,
     "Stop_Loss": 122.77,
     "Strategy": "Normal",
     "Target": 153.46,
@@ -91649,6 +91667,7 @@
     "Vol_M": 3.25,
     "Vol_W": 2.25,
     "Volume": 1203200,
+    "YTD_Change_IBKR": 31.393999633789065,
     "_cached_at": 1789359721.7382843,
     "current_decision": "WAIT",
     "enhanced_decision": "WAIT",
@@ -91672,26 +91691,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 70.47,
-    "Bid": 148.39000000000001,
-    "Ask": 148.61,
-    "Spread_Pct": 0.1481481481481474,
-    "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 315071777.0,
-    "Historical_Vol": 0.5091780147159537,
-    "Implied_Volatility": 0.4811673738858332,
-    "IV_Percentile": 0.6439999938011169,
-    "YTD_Change_IBKR": 31.393999633789065,
-    "Dividend_Yield_IBKR": 0.49,
-    "IBKR_Misc_Statistics": {
-      "high_13w": 163.7899932861328,
-      "high_26w": 163.7899932861328,
-      "high_52w": 165.26600646972656,
-      "low_13w": 101.5999984741211,
-      "low_26w": 101.5999984741211,
-      "low_52w": 92.13289642333984,
-      "open_52w": 107.30000305175781
-    }
+    "volatility_score": 70.47
   },
   {
     "ATR_14": 1.04,
@@ -109486,7 +109486,10 @@
   {
     "ATR_14": 4.9,
     "Analysts": 37,
+    "Ask": 374.69,
+    "Avg_90D_USD_Volume": 2847639759.0,
     "Avg_Volume": 7600922,
+    "Bid": 374.53000000000003,
     "Chart_Dates": [
       "2026-05-05",
       "2026-05-06",
@@ -110316,6 +110319,7 @@
     "Days_To_Earnings": 43,
     "Decision": "WAIT",
     "Decision_Color": "#ff9800",
+    "Dividend_Yield_IBKR": 0.72,
     "Earnings_Available": true,
     "Earnings_Danger": false,
     "Earnings_Fetched_At": "2026-09-14T04:24:46+00:00",
@@ -110327,9 +110331,22 @@
       "IBKR"
     ],
     "Finviz_ATR": 5.95,
+    "Historical_Vol": 0.17283687929686767,
     "History_Ticker": "V",
     "IBKR_Data_Only": false,
+    "IBKR_Misc_Statistics": {
+      "high_13w": 385.55999755859375,
+      "high_26w": 385.55999755859375,
+      "high_52w": 385.55999755859375,
+      "low_13w": 322.7799987792969,
+      "low_26w": 293.29400634765625,
+      "low_52w": 293.29400634765625,
+      "open_52w": 339.1440124511719
+    },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -110354,11 +110371,10 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
+    "IV_Percentile": 0.2160000056028366,
+    "Implied_Volatility": 0.20207106335458813,
     "Industry": "Credit Services",
     "Instrument_Metadata": {
       "contract_id": 49462172,
@@ -110400,6 +110416,7 @@
     "Pct_To_Target": 11.93,
     "Price": 323.7,
     "Price_Native": 374.65,
+    "Quote_Status": "REALTIME",
     "RR_Ratio": 4.32,
     "RSI": 50.66,
     "RSI_Status": "Neutral",
@@ -110414,6 +110431,7 @@
     "Smart_Entry_EUR": null,
     "Smart_Reason": null,
     "Smart_Type": null,
+    "Spread_Pct": 0.04271108619630233,
     "Stop_Loss": 310.28,
     "Strategy": "Pullback",
     "Target": 362.33,
@@ -110424,6 +110442,7 @@
     "Vol_M": 1.46,
     "Vol_W": 1.08,
     "Volume": 3492700,
+    "YTD_Change_IBKR": 25.371008300781284,
     "_cached_at": 1789359886.3723288,
     "current_decision": "WAIT",
     "enhanced_decision": "WAIT",
@@ -110447,26 +110466,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Bid": 374.53000000000003,
-    "Ask": 374.69,
-    "Spread_Pct": 0.04271108619630233,
-    "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 2847639759.0,
-    "Historical_Vol": 0.17283687929686767,
-    "Implied_Volatility": 0.20207106335458813,
-    "IV_Percentile": 0.2160000056028366,
-    "YTD_Change_IBKR": 25.371008300781284,
-    "Dividend_Yield_IBKR": 0.72,
-    "IBKR_Misc_Statistics": {
-      "high_13w": 385.55999755859375,
-      "high_26w": 385.55999755859375,
-      "high_52w": 385.55999755859375,
-      "low_13w": 322.7799987792969,
-      "low_26w": 293.29400634765625,
-      "low_52w": 293.29400634765625,
-      "open_52w": 339.1440124511719
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.19,

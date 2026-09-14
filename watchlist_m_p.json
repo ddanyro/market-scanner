@@ -17783,7 +17783,10 @@
   {
     "ATR_14": 1.44,
     "Analysts": 20,
+    "Ask": 63.190000000000005,
+    "Avg_90D_USD_Volume": 124734591.0,
     "Avg_Volume": 1975751,
+    "Bid": 63.06,
     "Chart_Dates": [
       "2026-05-05",
       "2026-05-06",
@@ -18613,6 +18616,7 @@
     "Days_To_Earnings": 43,
     "Decision": "WAIT",
     "Decision_Color": "#ff9800",
+    "Dividend_Yield_IBKR": 2.46,
     "Earnings_Available": true,
     "Earnings_Danger": false,
     "Earnings_Fetched_At": "2026-09-14T04:04:48+00:00",
@@ -18624,9 +18628,22 @@
       "IBKR"
     ],
     "Finviz_ATR": 1.73,
+    "Historical_Vol": 0.4141595604309045,
     "History_Ticker": "MTDR",
     "IBKR_Data_Only": false,
+    "IBKR_Misc_Statistics": {
+      "high_13w": 62.119998931884766,
+      "high_26w": 66.23670196533203,
+      "high_52w": 66.23670196533203,
+      "low_13w": 45.439998626708984,
+      "low_26w": 45.439998626708984,
+      "low_52w": 36.261600494384766,
+      "open_52w": 47.689300537109375
+    },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -18651,11 +18668,10 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
+    "IV_Percentile": 0.24799999594688416,
+    "Implied_Volatility": 0.400412210266121,
     "Industry": "Oil & Gas E&P",
     "Instrument_Metadata": {
       "contract_id": 101694297,
@@ -18695,6 +18711,7 @@
     "Pct_To_Target": 9.59,
     "Price": 54.48,
     "Price_Native": 63.05,
+    "Quote_Status": "REALTIME",
     "RR_Ratio": 2.42,
     "RSI": 67.49,
     "RSI_Status": "Neutral",
@@ -18709,6 +18726,7 @@
     "Smart_Entry_EUR": null,
     "Smart_Reason": null,
     "Smart_Type": null,
+    "Spread_Pct": 0.20594059405940998,
     "Stop_Loss": 49.87,
     "Strategy": "Breakout",
     "Target": 59.7,
@@ -18719,6 +18737,7 @@
     "Vol_M": 2.76,
     "Vol_W": 2.34,
     "Volume": 1526500,
+    "YTD_Change_IBKR": 21.201401519775395,
     "_cached_at": 1789358688.6025593,
     "current_decision": "WAIT",
     "enhanced_decision": "WAIT",
@@ -18742,26 +18761,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Bid": 63.06,
-    "Ask": 63.190000000000005,
-    "Spread_Pct": 0.20594059405940998,
-    "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 124734591.0,
-    "Historical_Vol": 0.4141595604309045,
-    "Implied_Volatility": 0.400412210266121,
-    "IV_Percentile": 0.24799999594688416,
-    "YTD_Change_IBKR": 21.201401519775395,
-    "Dividend_Yield_IBKR": 2.46,
-    "IBKR_Misc_Statistics": {
-      "high_13w": 62.119998931884766,
-      "high_26w": 66.23670196533203,
-      "high_52w": 66.23670196533203,
-      "low_13w": 45.439998626708984,
-      "low_26w": 45.439998626708984,
-      "low_52w": 36.261600494384766,
-      "open_52w": 47.689300537109375
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 34.16,
