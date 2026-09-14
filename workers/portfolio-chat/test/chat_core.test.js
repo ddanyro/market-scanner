@@ -38,10 +38,14 @@ test("filters a large unrelated dashboard context before enforcing the model lim
       active_sell_orders: [],
       order_summary: {total: 1, buy_count: 1, sell_count: 0},
       evidence: {items: [{body: "x".repeat(220000)}]},
+      buy_candidates: [{body: "y".repeat(220000)}],
+      market_overviews: {SUA: {body: "z".repeat(220000)}},
     },
   }, password);
   assert.equal(result.context.active_buy_orders[0].symbol, "MSFT");
   assert.equal(result.context.evidence, undefined);
+  assert.equal(result.context.buy_candidates, undefined);
+  assert.equal(result.context.market_overviews, undefined);
   assert.ok(result.contextJson.length < 180000);
   assert.ok(result.rawContextChars > 180000);
 });

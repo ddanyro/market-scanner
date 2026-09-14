@@ -30,8 +30,11 @@ export function selectContextForMessage(context, message, useWebSearch = false) 
   const source = context && typeof context === "object" ? context : {};
   const text = String(message || "");
   const wantsPortfolio = PORTFOLIO_CONTEXT_PATTERN.test(text);
-  const wantsBuy = BUY_CONTEXT_PATTERN.test(text);
   const wantsOrders = ORDER_CONTEXT_PATTERN.test(text);
+  // „ordine de cumpărare” descrie ordine deja plasate, nu căutarea unor
+  // oportunități BUY. Prioritatea explicită evită încărcarea inutilă a
+  // universului de candidați și a contextului complet de piață.
+  const wantsBuy = !wantsOrders && BUY_CONTEXT_PATTERN.test(text);
   const wantsMarket = wantsBuy || MARKET_CONTEXT_PATTERN.test(text);
   const wantsEvidence = useWebSearch || EVIDENCE_CONTEXT_PATTERN.test(text);
   if (!wantsPortfolio && !wantsBuy && !wantsOrders && !wantsMarket && !wantsEvidence) return source;
