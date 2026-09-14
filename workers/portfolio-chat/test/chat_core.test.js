@@ -88,6 +88,10 @@ test("selects only relevant context for focused questions", () => {
     us_sector_rotation: {technology: "strong"},
     evidence: {items: [{title: "News"}]},
     rates: {fed: 4},
+    active_buy_orders: [{symbol: "AAPL", action: "BUY"}],
+    active_sell_orders: [{symbol: "NVDA", action: "SELL"}],
+    active_orders: [{symbol: "AAPL", action: "BUY"}],
+    order_summary: {total: 2, buy_count: 1, sell_count: 1},
   };
   const news = selectContextForMessage(context, "Care sunt știrile recente?", true);
   assert.ok(news.evidence);
@@ -96,12 +100,15 @@ test("selects only relevant context for focused questions", () => {
 
   const buy = selectContextForMessage(context, "Ce instrument cumpăr?", false);
   assert.ok(buy.buy_candidates);
+  assert.equal(buy.active_buy_orders[0].symbol, "AAPL");
+  assert.equal(buy.order_summary.buy_count, 1);
   assert.ok(buy.us_sector_rotation);
   assert.equal(buy.evidence, undefined);
 
   const risk = selectContextForMessage(context, "Ce risc am în portofoliu?", false);
   assert.ok(risk.positions);
   assert.ok(risk.broker_liquidity);
+  assert.equal(risk.active_sell_orders[0].symbol, "NVDA");
   assert.equal(risk.buy_candidates, undefined);
   assert.equal(risk.evidence, undefined);
 
@@ -117,7 +124,7 @@ test("uses Responses API fields, Terra, explicit caching, conditional web search
   assert.equal(request.store, false);
   assert.equal(request.max_output_tokens, 4096);
   assert.deepEqual(request.reasoning, {effort: "low"});
-  assert.equal(request.prompt_cache_key, "market-scanner:portfolio-chat:v2");
+  assert.equal(request.prompt_cache_key, "market-scanner:portfolio-chat:v3");
   assert.deepEqual(request.prompt_cache_options, {mode: "explicit", ttl: "30m"});
   assert.deepEqual(request.tools, [{type: "web_search"}]);
   assert.match(request.input[0].content[0].text, /Nu inventa/);

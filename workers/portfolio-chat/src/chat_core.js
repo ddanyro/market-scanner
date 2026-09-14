@@ -36,7 +36,8 @@ export function selectContextForMessage(context, message, useWebSearch = false) 
   const keys = new Set([
     "schema", "as_of", "portfolio", "positions", "broker_liquidity",
     "earnings_calendar", "data_quality", "tvbetetf_lookthrough",
-    "market_context", "data_rules",
+    "market_context", "active_orders", "active_buy_orders",
+    "active_sell_orders", "order_summary", "data_rules",
   ]);
   if (wantsBuy) {
     ["buy_candidates", "current_ai_analysis", "universe_stats"].forEach((key) => keys.add(key));
@@ -138,7 +139,7 @@ export function buildOpenAIRequest(validated) {
     // ceiling prevents a normal portfolio report from ending after a short
     // visible answer even when low-effort reasoning consumed part of it.
     max_output_tokens: 4096,
-    prompt_cache_key: "market-scanner:portfolio-chat:v2",
+    prompt_cache_key: "market-scanner:portfolio-chat:v3",
     prompt_cache_options: {mode: "explicit", ttl: "30m"},
     input: [
       {
@@ -184,6 +185,7 @@ function buildAssistantInstructions() {
     "Când întrebarea depinde de informații actuale, folosește căutarea web și citează surse primare sau credibile.",
     "Pentru companii preferă raportări oficiale, relația cu investitorii, SEC/BVB și comunicate oficiale.",
     "Ține cont de broker, moneda instrumentului, cashul brokerului, stopuri, concentrare, lichiditate, calendar economic, regimul pieței și rotația sectoarelor.",
+    "Ordinele deja plasate sunt în active_buy_orders/active_sell_orders. Nu le confunda cu buy_candidates, care sunt numai oportunități analizate.",
     "Nu amesteca Tradeville cu IBKR și nu trata o acțiune individuală BVB drept semnal pentru întreaga piață.",
     "Nu inventa prețuri, evenimente, știri, rapoarte, consensuri sau valori lipsă.",
     "Dacă datele sunt vechi ori insuficiente, spune exact ce lipsește și formulează un răspuns condiționat.",

@@ -737,6 +737,76 @@ def _safe_number(value, default=0.0):
         return default
 
 
+def _normalise_active_orders_for_snapshot(orders_df):
+    """Returnează ordine active compacte, fără valori pandas ne-serializabile."""
+    if orders_df is None or orders_df.empty:
+        return []
+
+    def text_value(row, *columns):
+        for column in columns:
+            value = row.get(column)
+            if value is None:
+                continue
+            try:
+                if math.isnan(float(value)):
+                    continue
+            except (TypeError, ValueError):
+                pass
+            text = str(value).strip()
+            if text and text.lower() != 'nan':
+                return text
+        return None
+
+    def positive_number(row, *columns):
+        for column in columns:
+            value = _safe_number(row.get(column), None)
+            if value is not None and 0 < value < 1e10:
+                return value
+        return None
+
+    orders = []
+    for _, row in orders_df.iterrows():
+        symbol = (text_value(row, 'Symbol') or '').upper()
+        action = (text_value(row, 'Action') or '').upper()
+        if not symbol or action not in {'BUY', 'SELL'}:
+            continue
+        order_type = (text_value(row, 'OrderType') or 'UNKNOWN').upper()
+        quantity = positive_number(row, 'Total_Qty', 'Quantity')
+        limit_price = positive_number(row, 'Limit_Price')
+        stop_price = positive_number(row, 'Stop_Price')
+        auxiliary_price = positive_number(row, 'Aux_Price')
+        calculated_stop = positive_number(row, 'Calculated_Stop')
+        trail_pct = positive_number(row, 'Trail_Pct')
+        if order_type in {'LMT', 'LIMIT'}:
+            effective_price = limit_price or auxiliary_price or stop_price
+        else:
+            effective_price = (
+                stop_price or auxiliary_price or limit_price or calculated_stop
+            )
+        source = text_value(row, 'Order_Source', 'Source')
+        broker = (
+            'Tradeville'
+            if (source and 'tradeville' in source.lower()) or symbol.endswith('.RO')
+            else 'IBKR'
+        )
+        orders.append({
+            'symbol': symbol,
+            'broker': broker,
+            'source': source or f'{broker} active orders snapshot',
+            'action': action,
+            'order_type': order_type,
+            'quantity': quantity,
+            'currency': text_value(row, 'Currency'),
+            'limit_price': limit_price,
+            'stop_price': stop_price,
+            'auxiliary_price': auxiliary_price,
+            'trailing_percent': trail_pct,
+            'calculated_stop': calculated_stop,
+            'effective_order_price': effective_price,
+        })
+    return orders
+
+
 def _clamp_score(value):
     return max(0.0, min(100.0, float(value)))
 
@@ -1380,11 +1450,28 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
                                   market_context=None, etf_holdings=None,
                                   sector_rotation=None, us_market_regime=None):
     """Normalizează numai datele necesare evaluării riscului, fără valori inventate."""
+    active_orders = _normalise_active_orders_for_snapshot(orders_df)
     if portfolio_df is None or portfolio_df.empty:
         return {
             'as_of': datetime.datetime.now().isoformat(timespec='seconds'),
             'positions': [],
-            'portfolio': {},
+            'portfolio': {'position_count': 0},
+            'active_orders': active_orders,
+            'active_buy_orders': [
+                item for item in active_orders if item['action'] == 'BUY'
+            ],
+            'active_sell_orders': [
+                item for item in active_orders if item['action'] == 'SELL'
+            ],
+            'order_summary': {
+                'total': len(active_orders),
+                'buy_count': sum(
+                    item['action'] == 'BUY' for item in active_orders
+                ),
+                'sell_count': sum(
+                    item['action'] == 'SELL' for item in active_orders
+                ),
+            },
             'account_liquidity': _normalize_tws_account_data(account_data),
             'market_context': market_context or {},
         }
@@ -1489,13 +1576,24 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
 
         positions.append({
             'symbol': symbol,
+            'company_name': str(row.get('Company_Name', '')).strip() or None,
             'broker': str(row.get('Broker', '')).strip() or (
                 'Tradeville' if symbol.endswith('.RO') else 'IBKR'
             ),
-            'market': 'România / BVB' if symbol.endswith('.RO') else 'SUA',
+            'market': str(row.get('Market', '')).strip() or (
+                'România / BVB' if symbol.endswith('.RO') else 'SUA'
+            ),
+            'country': str(row.get('Country', '')).strip() or None,
+            'exchange': str(row.get('Exchange', '')).strip() or None,
+            'security_type': str(row.get('Security_Type', '')).strip() or None,
+            'market_metadata_source': str(
+                row.get('Market_Metadata_Source', '')
+            ).strip() or None,
             'sector': str(row.get('Sector', '')).strip() or None,
             'industry': str(row.get('Industry', '')).strip() or None,
             'shares': shares,
+            'entry_date': row.get('Entry_Date'),
+            'currency': str(row.get('Currency', '')).strip() or None,
             'contract_id': row.get('Contract_ID'),
             'asset_class': row.get('Asset_Class'),
             'market_value_ibkr': _safe_number(
@@ -1508,8 +1606,12 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
                 row.get('Unrealized_PnL_IBKR'), None
             ),
             'current_price_eur': price or None,
+            'price_native': price_native or None,
             'buy_price_eur': buy_price or None,
+            'investment_eur': _safe_number(row.get('Investment'), None),
+            'profit_eur': _safe_number(row.get('Profit'), None),
             'profit_pct': _safe_number(row.get('Profit_Pct')),
+            'daily_change_pct': _safe_number(row.get('Daily_Change'), None),
             'current_value_eur': round(current_value, 2),
             'portfolio_weight_pct': round(weight_pct, 2) if weight_pct is not None else None,
             'active_stops': active_stops,
@@ -1524,9 +1626,67 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
             'reward_risk_to_target': round(reward_risk, 2) if reward_risk is not None else None,
             'decision': str(row.get('Sell_Decision', 'HOLD')),
             'decision_reason': str(row.get('Sell_Reason', ''))[:600],
+            'status': str(row.get('Status', '')).strip() or None,
+            'consensus': str(row.get('Consensus', '')).strip() or None,
+            'analysts': _safe_number(row.get('Analysts'), None),
+            'trail_percent': _safe_number(row.get('Trail_Pct'), None),
+            'max_potential_profit_eur': _safe_number(
+                row.get('Max_Profit'), None
+            ),
             'trend': str(row.get('Trend', '')),
+            'vix_regime': str(row.get('VIX_Tag', '')).strip() or None,
             'rsi': _safe_number(row.get('RSI')) or None,
             'relative_strength_vs_spx_pct': _safe_number(row.get('RS_vs_SPX')) or None,
+            'technical_events': row.get('Technical_Events'),
+            'enhanced_components': {
+                key: _safe_number(row.get(column), None)
+                for key, column in (
+                    ('volatility_score', 'volatility_score'),
+                    ('liquidity_score', 'liquidity_score'),
+                    ('risk_score', 'risk_score'),
+                )
+                if _safe_number(row.get(column), None) is not None
+            },
+            'enhanced_score_version': row.get('score_version'),
+            'volatility_regime': row.get('volatility_regime'),
+            'market_snapshot': {
+                key: value for key, value in (
+                    ('bid', _safe_number(row.get('Bid'), None)),
+                    ('ask', _safe_number(row.get('Ask'), None)),
+                    ('spread_pct', _safe_number(row.get('Spread_Pct'), None)),
+                    ('quote_status', row.get('Quote_Status')),
+                    ('average_90d_usd_volume', _safe_number(
+                        row.get('Avg_90D_USD_Volume'), None
+                    )),
+                    ('historical_volatility', _safe_number(
+                        row.get('Historical_Vol'), None
+                    )),
+                    ('implied_volatility', _safe_number(
+                        row.get('Implied_Volatility'), None
+                    )),
+                    ('iv_percentile', _safe_number(
+                        row.get('IV_Percentile'), None
+                    )),
+                    ('performance_1d', _safe_number(
+                        row.get('Perf_1D_IBKR'), None
+                    )),
+                    ('performance_1w', _safe_number(
+                        row.get('Perf_1W_IBKR'), None
+                    )),
+                    ('performance_1m', _safe_number(
+                        row.get('Perf_1M_IBKR'), None
+                    )),
+                    ('performance_ytd', _safe_number(
+                        row.get('Perf_YTD_IBKR'), None
+                    )),
+                    ('performance_1y', _safe_number(
+                        row.get('Perf_1Y_IBKR'), None
+                    )),
+                    ('dividend_yield', _safe_number(
+                        row.get('Dividend_Yield_IBKR'), None
+                    )),
+                ) if value not in (None, '')
+            },
             'earnings_risk': (
                 True if earnings_status == 'RISK'
                 else False if earnings_status in {'CLEAR', 'NOT_APPLICABLE'}
@@ -1560,11 +1720,45 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
             'data_flags': flags,
         })
 
+    total_investment = sum(
+        max(_safe_number(row.get('Investment')), 0)
+        for _, row in portfolio_df.iterrows()
+    )
+    total_profit = sum(
+        _safe_number(row.get('Profit')) for _, row in portfolio_df.iterrows()
+    )
+    total_max_profit = sum(
+        _safe_number(row.get('Max_Profit'))
+        for _, row in portfolio_df.iterrows()
+    )
+    total_pl_at_stop = 0.0
+    for item in positions:
+        stop = _safe_number(item.get('primary_stop_eur'))
+        buy = _safe_number(item.get('buy_price_eur'))
+        shares = _safe_number(item.get('shares'))
+        if stop > 0 and buy > 0 and shares > 0:
+            total_pl_at_stop += (stop - buy) * shares
+
     snapshot = {
         'as_of': datetime.datetime.now().isoformat(timespec='seconds'),
         'portfolio': {
             'position_count': len(positions),
+            'total_investment_eur': round(total_investment, 2),
             'total_value_eur': round(total_value, 2),
+            'total_profit_eur': round(total_profit, 2),
+            'roi_pct': round(
+                (total_value - total_investment) / total_investment * 100, 2
+            ) if total_investment > 0 else None,
+            'max_potential_profit_eur': round(total_max_profit, 2),
+            'pl_at_active_stops_eur': round(total_pl_at_stop, 2),
+            'positions_on_profit': sum(
+                _safe_number(item.get('profit_eur')) > 0 for item in positions
+            ),
+            'positions_with_positive_pl_at_stop': sum(
+                _safe_number(item.get('primary_stop_eur'))
+                > _safe_number(item.get('buy_price_eur')) > 0
+                for item in positions
+            ),
             'positions_without_stop': sum(not item['active_stops'] for item in positions),
             'positions_with_incomplete_stop_coverage': sum(
                 item['stop_coverage_pct'] is not None and item['stop_coverage_pct'] < 100
@@ -1576,6 +1770,22 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
         'us_sector_rotation': sector_rotation or {},
         'us_market_regime': us_market_regime or {},
         'positions': positions,
+        'active_orders': active_orders,
+        'active_buy_orders': [
+            item for item in active_orders if item['action'] == 'BUY'
+        ],
+        'active_sell_orders': [
+            item for item in active_orders if item['action'] == 'SELL'
+        ],
+        'order_summary': {
+            'total': len(active_orders),
+            'buy_count': sum(
+                item['action'] == 'BUY' for item in active_orders
+            ),
+            'sell_count': sum(
+                item['action'] == 'SELL' for item in active_orders
+            ),
+        },
     }
     if isinstance(etf_holdings, dict) and etf_holdings.get('holdings'):
         etf_position = next(
@@ -1704,10 +1914,16 @@ def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
         for item in positions if isinstance(item, dict)
     ]
     return {
-        'schema': 'market-scanner.portfolio-chat.v2',
+        'schema': 'market-scanner.portfolio-chat.v3',
         'as_of': snapshot.get('as_of'),
         'portfolio': snapshot.get('portfolio') or {},
         'positions': positions,
+        'active_orders': snapshot.get('active_orders') or [],
+        'active_buy_orders': snapshot.get('active_buy_orders') or [],
+        'active_sell_orders': snapshot.get('active_sell_orders') or [],
+        'order_summary': snapshot.get('order_summary') or {
+            'total': 0, 'buy_count': 0, 'sell_count': 0,
+        },
         'broker_liquidity': broker_liquidity,
         'earnings_calendar': earnings_calendar,
         'data_quality': {
@@ -1761,6 +1977,7 @@ def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
             'Exclude conturile stale din situația curentă; prezintă-le separat drept ultima situație cunoscută.',
             'Pentru orice preț important menționează market_data_source, market_data_observed_at și market_data_fetched_at.',
             'Nu inventa prețuri, stopuri, știri, rapoarte sau evenimente lipsă.',
+            'Ordinele active sunt în active_buy_orders și active_sell_orders; nu le confunda cu buy_candidates, care sunt doar idei și nu ordine plasate.',
         ],
     }
 

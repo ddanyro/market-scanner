@@ -566,6 +566,40 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertEqual(context['buy_candidates'][0]['currency'], 'USD')
         self.assertNotIn('chart_ohlc_native', context['buy_candidates'][0])
         self.assertEqual(context['economic_cycle']['current'], 'Expansion')
+
+    def test_portfolio_chat_context_contains_active_buy_and_sell_orders(self):
+        portfolio = pd.DataFrame([{
+            'Symbol': 'NVDA', 'Shares': 5, 'Buy_Price': 100,
+            'Current_Price': 120, 'Current_Value': 600,
+            'Investment': 500, 'Profit': 100, 'Profit_Pct': 20,
+            'Target': 140, 'Suggested_Stop': 110, 'Trail_Stop': 108,
+            'Currency': 'USD', 'Price_Native': 120,
+        }])
+        orders = pd.DataFrame([
+            {
+                'Symbol': 'MSFT', 'Action': 'BUY', 'OrderType': 'LMT',
+                'Total_Qty': 3, 'Limit_Price': 410, 'Currency': 'USD',
+            },
+            {
+                'Symbol': 'NVDA', 'Action': 'SELL', 'OrderType': 'STP',
+                'Total_Qty': 5, 'Stop_Price': 108, 'Currency': 'USD',
+            },
+        ])
+        snapshot = market_scanner_analysis.build_portfolio_risk_snapshot(
+            portfolio, orders
+        )
+        context = market_scanner_analysis.build_portfolio_chat_context(snapshot)
+
+        self.assertEqual(context['order_summary'], {
+            'total': 2, 'buy_count': 1, 'sell_count': 1,
+        })
+        self.assertEqual(context['active_buy_orders'][0]['symbol'], 'MSFT')
+        self.assertEqual(
+            context['active_buy_orders'][0]['effective_order_price'], 410
+        )
+        self.assertEqual(context['active_sell_orders'][0]['symbol'], 'NVDA')
+        self.assertEqual(context['portfolio']['total_investment_eur'], 500)
+        self.assertEqual(context['positions'][0]['profit_eur'], 100)
         
     def test_event_impact_fomc(self):
         """Test FOMC event impact description."""
