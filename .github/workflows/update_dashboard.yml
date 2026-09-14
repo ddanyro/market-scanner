@@ -154,7 +154,8 @@ jobs:
         if [ -f technical_events_state.json.gz ]; then git add technical_events_state.json.gz; fi
         if [ -f analysis/shadow_forward_validation/readiness_report.md ]; then git add analysis/shadow_forward_validation/readiness_report.md; fi
         if [ -f analysis/shadow_forward_validation/forward_validation_report.md ]; then git add analysis/shadow_forward_validation/forward_validation_report.md; fi
-        if [ -f analysis/shadow_forward_validation/labelled_predictions.csv ]; then git add analysis/shadow_forward_validation/labelled_predictions.csv; fi
+        # labelled_predictions.csv este export row-level privat și ignorat de
+        # Git; runtime_r2_store.py l-a publicat deja în R2 înainte de acest pas.
         if [ -f analysis/shadow_forward_validation/coverage.csv ]; then git add analysis/shadow_forward_validation/coverage.csv; fi
         if [ -f analysis/shadow_forward_validation/performance.csv ]; then git add analysis/shadow_forward_validation/performance.csv; fi
         if [ -f analysis/shadow_forward_validation/model_performance.csv ]; then git add analysis/shadow_forward_validation/model_performance.csv; fi
