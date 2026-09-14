@@ -1918,7 +1918,6 @@ def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
         'as_of': snapshot.get('as_of'),
         'portfolio': snapshot.get('portfolio') or {},
         'positions': positions,
-        'active_orders': snapshot.get('active_orders') or [],
         'active_buy_orders': snapshot.get('active_buy_orders') or [],
         'active_sell_orders': snapshot.get('active_sell_orders') or [],
         'order_summary': snapshot.get('order_summary') or {

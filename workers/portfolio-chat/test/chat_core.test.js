@@ -26,6 +26,26 @@ test("validates the derived portfolio token and trims history", async () => {
   assert.equal(result.message, "Ce risc am?");
 });
 
+test("filters a large unrelated dashboard context before enforcing the model limit", async () => {
+  const password = "secret";
+  const result = await validateChatRequest({
+    message: "Ce ordine de cumpărare am?",
+    accessToken: await expectedAccessToken(password),
+    context: {
+      schema: "v3",
+      positions: [{symbol: "NVDA"}],
+      active_buy_orders: [{symbol: "MSFT", action: "BUY"}],
+      active_sell_orders: [],
+      order_summary: {total: 1, buy_count: 1, sell_count: 0},
+      evidence: {items: [{body: "x".repeat(220000)}]},
+    },
+  }, password);
+  assert.equal(result.context.active_buy_orders[0].symbol, "MSFT");
+  assert.equal(result.context.evidence, undefined);
+  assert.ok(result.contextJson.length < 180000);
+  assert.ok(result.rawContextChars > 180000);
+});
+
 test("keeps the tail of a long assistant answer for a GPT continuation", async () => {
   const password = "secret";
   const longAnswer = "început-omis " + "x".repeat(17000) + " FINAL-IMPORTANT";
@@ -90,7 +110,6 @@ test("selects only relevant context for focused questions", () => {
     rates: {fed: 4},
     active_buy_orders: [{symbol: "AAPL", action: "BUY"}],
     active_sell_orders: [{symbol: "NVDA", action: "SELL"}],
-    active_orders: [{symbol: "AAPL", action: "BUY"}],
     order_summary: {total: 2, buy_count: 1, sell_count: 1},
   };
   const news = selectContextForMessage(context, "Care sunt știrile recente?", true);

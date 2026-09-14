@@ -2,6 +2,7 @@ const TOKEN_MESSAGE = "market-scanner-portfolio-chat-v1";
 const MAX_MESSAGE_LENGTH = 2000;
 const MAX_ASSISTANT_HISTORY_LENGTH = 16000;
 const MAX_CONTEXT_LENGTH = 180000;
+const MAX_RAW_CONTEXT_LENGTH = 1000000;
 const MAX_HISTORY_ITEMS = 8;
 export const CLOUDFLARE_FALLBACK_MODEL = "@cf/openai/gpt-oss-120b";
 
@@ -12,7 +13,8 @@ const WEB_SEARCH_PATTERNS = [
   /\b(earnings|rezultate|raportări|raportari|calendar|dividend|cpi|fomc|fed|ecb|bce)\b/i,
 ];
 const PORTFOLIO_CONTEXT_PATTERN = /(risc|expunere|concentr|stop|portofoliu|poziți|poziti|position|cash|lichiditate)/i;
-const BUY_CONTEXT_PATTERN = /(cumpăr|cumpar|cumpărare|cumparare|buy|ordin|oportunit|candidat|entry|intrare|instrument)/i;
+const BUY_CONTEXT_PATTERN = /(cumpăr|cumpar|cumpărare|cumparare|buy|oportunit|candidat|entry|intrare|instrument)/i;
+const ORDER_CONTEXT_PATTERN = /(ordin|comandă|comanda|placed order|open order)/i;
 const MARKET_CONTEXT_PATTERN = /(piață|piata|market|sector|regim|macro|economie|economic|dobând|doband|vix|spx|s&p|nasdaq|bvb|românia|romania)/i;
 const EVIDENCE_CONTEXT_PATTERN = /(știri|stiri|news|surs|evidence|raport|rezultate|calendar|recent|azi|astăzi|astazi|web|internet)/i;
 
@@ -29,14 +31,15 @@ export function selectContextForMessage(context, message, useWebSearch = false) 
   const text = String(message || "");
   const wantsPortfolio = PORTFOLIO_CONTEXT_PATTERN.test(text);
   const wantsBuy = BUY_CONTEXT_PATTERN.test(text);
+  const wantsOrders = ORDER_CONTEXT_PATTERN.test(text);
   const wantsMarket = wantsBuy || MARKET_CONTEXT_PATTERN.test(text);
   const wantsEvidence = useWebSearch || EVIDENCE_CONTEXT_PATTERN.test(text);
-  if (!wantsPortfolio && !wantsBuy && !wantsMarket && !wantsEvidence) return source;
+  if (!wantsPortfolio && !wantsBuy && !wantsOrders && !wantsMarket && !wantsEvidence) return source;
 
   const keys = new Set([
     "schema", "as_of", "portfolio", "positions", "broker_liquidity",
     "earnings_calendar", "data_quality", "tvbetetf_lookthrough",
-    "market_context", "active_orders", "active_buy_orders",
+    "market_context", "active_buy_orders",
     "active_sell_orders", "order_summary", "data_rules",
   ]);
   if (wantsBuy) {
@@ -101,7 +104,7 @@ export async function validateChatRequest(body, password) {
   }
   const context = body.context && typeof body.context === "object" ? body.context : {};
   const rawContextJson = JSON.stringify(context);
-  if (rawContextJson.length > MAX_CONTEXT_LENGTH) {
+  if (rawContextJson.length > MAX_RAW_CONTEXT_LENGTH) {
     throw Object.assign(new Error("Contextul portofoliului este prea mare."), {statusCode: 413});
   }
   const history = Array.isArray(body.history) ? body.history.slice(-MAX_HISTORY_ITEMS) : [];
@@ -118,10 +121,16 @@ export async function validateChatRequest(body, password) {
   });
   const useWebSearch = shouldUseWebSearch(message, body.webSearch);
   const selectedContext = selectContextForMessage(context, message, useWebSearch);
+  const selectedContextJson = JSON.stringify(selectedContext);
+  if (selectedContextJson.length > MAX_CONTEXT_LENGTH) {
+    throw Object.assign(new Error(
+      "Contextul relevant pentru această întrebare este prea mare.",
+    ), {statusCode: 413});
+  }
   return {
     message,
     context: selectedContext,
-    contextJson: JSON.stringify(selectedContext),
+    contextJson: selectedContextJson,
     rawContextChars: rawContextJson.length,
     history: cleanHistory,
     useWebSearch,
