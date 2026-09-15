@@ -952,17 +952,17 @@
       }
     ],
     "Daily_Change": -3.24,
-    "Date": "2026-09-15 07:39",
+    "Date": "2026-09-15 08:01",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-09-15T04:39:19+00:00",
+    "Earnings_Fetched_At": "2026-09-15T05:01:37+00:00",
     "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-15T04:35:35.685237+00:00",
-    "Market_Data_Observed_At": "2026-09-14T07:04:00+00:00",
+    "Market_Data_Fetched_At": "2026-09-15T05:01:48.788070+00:00",
+    "Market_Data_Observed_At": null,
     "Market_Data_Timing": "realtime_or_snapshot",
     "Data_Broker": "IBKR",
     "Execution_Brokers": [
@@ -971,7 +971,7 @@
     "IBKR_Data_Only": false,
     "Quote_Status": "FROZEN_DELAYED",
     "Avg_90D_USD_Volume": 1770466.0,
-    "Historical_Vol": 0.25124583600131567,
+    "Historical_Vol": 0.23158367055800805,
     "YTD_Change_IBKR": 31.0220004272461,
     "Perf_1W_IBKR": -5.02,
     "Perf_1M_IBKR": 7.0,
@@ -988,9 +988,6 @@
       "open_52w": 115.37999725341797
     },
     "IBKR_Snapshot_Groups": {
-      "display": [
-        "dividend_yield"
-      ],
       "quote": [
         "last",
         "bid_ask",
@@ -1013,6 +1010,9 @@
       "risk": [
         "historical_vol",
         "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
       ]
     },
     "Market": "Europa / Nasdaq-100",
@@ -1045,8 +1045,8 @@
     "History_Ticker": "CLS",
     "Company_Name": "CELESTICA INC",
     "Shares": 1,
-    "Current_Price": 275.11,
-    "Price_Native": 317.5,
+    "Current_Price": 274.7,
+    "Price_Native": 317.02,
     "Currency": "USD",
     "Contract_ID": 695996615,
     "Asset_Class": null,
@@ -1056,16 +1056,16 @@
     "Buy_Price": 245.22,
     "Target": 405.05,
     "Trail_Stop": 270.65,
-    "Suggested_Stop": 242.92,
+    "Suggested_Stop": 242.5,
     "Finviz_ATR": 20.99,
     "Vol_W": 5.55,
     "Vol_M": 5.12,
     "Trail_Pct": 8.4,
     "Investment": 245.22,
     "Entry_Date": "2026-09-11",
-    "Current_Value": 275.11,
-    "Profit": 29.89,
-    "Profit_Pct": 12.19,
+    "Current_Value": 274.7,
+    "Profit": 29.48,
+    "Profit_Pct": 12.02,
     "Max_Profit": 159.83,
     "Consensus": "Strong Buy",
     "Analysts": 16,
@@ -1966,32 +1966,32 @@
       }
     ],
     "Daily_Change": -26.4023,
-    "Date": "2026-09-15 07:39",
+    "Date": "2026-09-15 08:01",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-10-26",
     "Days_To_Earnings": 41,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-15T04:39:20+00:00",
+    "Earnings_Fetched_At": "2026-09-15T05:01:40+00:00",
     "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-15T04:35:35.685374+00:00",
-    "Market_Data_Observed_At": "2026-09-15T04:21:20+00:00",
+    "Market_Data_Fetched_At": "2026-09-15T05:01:48.788235+00:00",
+    "Market_Data_Observed_At": "2026-09-15T04:36:42+00:00",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Data_Broker": "IBKR",
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "Bid": 317.02,
-    "Ask": 320.72,
-    "Spread_Pct": 1.1603474770282702,
+    "Bid": 315.7,
+    "Ask": 319.89,
+    "Spread_Pct": 1.3184600135307347,
     "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 780906807.0,
-    "Historical_Vol": 0.7712328031234926,
+    "Avg_90D_USD_Volume": 779726196.0,
+    "Historical_Vol": 0.7741568874724812,
     "Implied_Volatility": 0.6237549268115291,
-    "IV_Percentile": 0.08799999952316284,
-    "YTD_Change_IBKR": 21.8900146484375,
+    "IV_Percentile": 0.087649405002594,
+    "YTD_Change_IBKR": 21.410014648437482,
     "Dividend_Yield_IBKR": 0.0,
     "IBKR_Misc_Statistics": {
       "high_13w": 403.44000244140625,
@@ -2003,9 +2003,6 @@
       "open_52w": 241.1199951171875
     },
     "IBKR_Snapshot_Groups": {
-      "display": [
-        "dividend_yield"
-      ],
       "quote": [
         "last",
         "bid_ask",
@@ -2030,6 +2027,9 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -2056,9 +2056,9 @@
       "options_supported": true,
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "volatility_score": 30.95,
-    "liquidity_score": 70.63,
-    "risk_score": 48.57,
+    "volatility_score": 30.68,
+    "liquidity_score": 66.67,
+    "risk_score": 47.27,
     "volatility_regime": "extreme",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
@@ -2067,8 +2067,8 @@
     "History_Ticker": "CRWD",
     "Company_Name": "CROWDSTRIKE HOLDINGS INC - A",
     "Shares": 4,
-    "Current_Price": 201.69,
-    "Price_Native": 232.76,
+    "Current_Price": 201.8,
+    "Price_Native": 232.89,
     "Currency": "USD",
     "Contract_ID": 370757467,
     "Asset_Class": null,
@@ -2077,17 +2077,17 @@
     "Unrealized_PnL_IBKR": null,
     "Buy_Price": 182.18,
     "Target": 205.82,
-    "Trail_Stop": 180.83,
-    "Suggested_Stop": 175.34,
+    "Trail_Stop": 189.49,
+    "Suggested_Stop": 175.46,
     "Finviz_ATR": 12.85,
     "Vol_W": 5.2,
     "Vol_M": 5.76,
-    "Trail_Pct": 12.81,
+    "Trail_Pct": 7.8,
     "Investment": 728.73,
     "Entry_Date": "2026-09-11",
-    "Current_Value": 806.75,
-    "Profit": 78.02,
-    "Profit_Pct": 10.71,
+    "Current_Value": 807.2,
+    "Profit": 78.47,
+    "Profit_Pct": 10.77,
     "Max_Profit": 94.55,
     "Consensus": "Buy",
     "Analysts": 50,
@@ -2979,32 +2979,32 @@
       }
     ],
     "Daily_Change": 24.8166,
-    "Date": "2026-09-15 07:39",
+    "Date": "2026-09-15 08:01",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-12-01",
     "Days_To_Earnings": 77,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-15T04:39:20+00:00",
+    "Earnings_Fetched_At": "2026-09-15T05:01:42+00:00",
     "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-15T04:35:39.381783+00:00",
-    "Market_Data_Observed_At": "2026-09-15T04:35:18+00:00",
+    "Market_Data_Fetched_At": "2026-09-15T05:01:52.579792+00:00",
+    "Market_Data_Observed_At": "2026-09-15T04:56:45+00:00",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Data_Broker": "IBKR",
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "Bid": 232.6,
-    "Ask": 232.96,
-    "Spread_Pct": 0.15465246155168558,
+    "Bid": 232.92000000000002,
+    "Ask": 233.19,
+    "Spread_Pct": 0.11585248117396402,
     "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 1950033906.0,
-    "Historical_Vol": 0.6017565571419393,
+    "Avg_90D_USD_Volume": 1951374396.0,
+    "Historical_Vol": 0.640938017457757,
     "Implied_Volatility": 0.4230008320867185,
-    "IV_Percentile": 0.2879999876022339,
-    "YTD_Change_IBKR": 115.56999755859374,
+    "IV_Percentile": 0.2908366620540619,
+    "YTD_Change_IBKR": 115.69999755859376,
     "Dividend_Yield_IBKR": 0.0,
     "IBKR_Misc_Statistics": {
       "high_13w": 239.3699951171875,
@@ -3016,9 +3016,6 @@
       "open_52w": 110.39399719238281
     },
     "IBKR_Snapshot_Groups": {
-      "display": [
-        "dividend_yield"
-      ],
       "quote": [
         "last",
         "bid_ask",
@@ -3043,6 +3040,9 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -3069,9 +3069,9 @@
       "options_supported": true,
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "volatility_score": 41.56,
-    "liquidity_score": 99.35,
-    "risk_score": 61.43,
+    "volatility_score": 38.45,
+    "liquidity_score": 99.36,
+    "risk_score": 60.19,
     "volatility_regime": "extreme",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
@@ -3080,8 +3080,8 @@
     "History_Ticker": "PANW",
     "Company_Name": "PALO ALTO NETWORKS INC",
     "Shares": 6,
-    "Current_Price": 323.02,
-    "Price_Native": 372.79,
+    "Current_Price": 321.6,
+    "Price_Native": 371.15,
     "Currency": "USD",
     "Contract_ID": 110619459,
     "Asset_Class": null,
@@ -3091,16 +3091,16 @@
     "Buy_Price": 294.9,
     "Target": 345.79,
     "Trail_Stop": 309.7,
-    "Suggested_Stop": 284.88,
+    "Suggested_Stop": 283.46,
     "Finviz_ATR": 19.43,
     "Vol_W": 5.3,
     "Vol_M": 5.06,
     "Trail_Pct": 5.58,
     "Investment": 1769.39,
     "Entry_Date": "2026-09-11",
-    "Current_Value": 1938.14,
-    "Profit": 168.74,
-    "Profit_Pct": 9.54,
+    "Current_Value": 1929.61,
+    "Profit": 160.22,
+    "Profit_Pct": 9.06,
     "Max_Profit": 305.32,
     "Consensus": "Buy",
     "Analysts": 50,
@@ -4019,32 +4019,32 @@
       }
     ],
     "Daily_Change": 37.5108,
-    "Date": "2026-09-15 07:39",
+    "Date": "2026-09-15 08:01",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-11-19",
     "Days_To_Earnings": 65,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-15T04:39:21+00:00",
+    "Earnings_Fetched_At": "2026-09-15T05:01:44+00:00",
     "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-15T04:35:40.594965+00:00",
-    "Market_Data_Observed_At": "2026-09-15T02:54:07+00:00",
+    "Market_Data_Fetched_At": "2026-09-15T05:01:55.171945+00:00",
+    "Market_Data_Observed_At": "2026-09-15T04:36:54+00:00",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Data_Broker": "IBKR",
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "Bid": 371.07,
+    "Bid": 369.96,
     "Ask": 372.5,
-    "Spread_Pct": 0.38463090226878627,
+    "Spread_Pct": 0.684211944077801,
     "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 2471464490.0,
-    "Historical_Vol": 0.5371917587477678,
+    "Avg_90D_USD_Volume": 2462507464.0,
+    "Historical_Vol": 0.5694630457893471,
     "Implied_Volatility": 0.4393603805119496,
-    "IV_Percentile": 0.4959999918937683,
-    "YTD_Change_IBKR": 188.59000305175783,
+    "IV_Percentile": 0.49800798296928406,
+    "YTD_Change_IBKR": 186.95000305175785,
     "Dividend_Yield_IBKR": 0.0,
     "IBKR_Misc_Statistics": {
       "high_13w": 398.8800048828125,
@@ -4056,9 +4056,6 @@
       "open_52w": 198.0449981689453
     },
     "IBKR_Snapshot_Groups": {
-      "display": [
-        "dividend_yield"
-      ],
       "quote": [
         "last",
         "bid_ask",
@@ -4083,6 +4080,9 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -4109,9 +4109,9 @@
       "options_supported": true,
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "volatility_score": 49.45,
-    "liquidity_score": 97.53,
-    "risk_score": 64.04,
+    "volatility_score": 46.75,
+    "liquidity_score": 90.02,
+    "risk_score": 60.71,
     "volatility_regime": "elevated",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
@@ -5059,17 +5059,17 @@
       }
     ],
     "Daily_Change": -0.0433,
-    "Date": "2026-09-15 07:39",
+    "Date": "2026-09-15 08:01",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-11-10",
     "Days_To_Earnings": 56,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-15T04:39:22+00:00",
+    "Earnings_Fetched_At": "2026-09-15T05:01:46+00:00",
     "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-15T04:35:41.118824+00:00",
-    "Market_Data_Observed_At": "2026-09-14T13:30:00+00:00",
+    "Market_Data_Fetched_At": "2026-09-15T05:01:55.850163+00:00",
+    "Market_Data_Observed_At": null,
     "Market_Data_Timing": "realtime_or_snapshot",
     "Data_Broker": "IBKR",
     "Execution_Brokers": [
@@ -5081,9 +5081,9 @@
     "Spread_Pct": 1.2690951821386585,
     "Quote_Status": "REALTIME",
     "Avg_90D_USD_Volume": 370184530.0,
-    "Historical_Vol": 0.35871784170754595,
+    "Historical_Vol": 0.3561541086871244,
     "Implied_Volatility": 0.47159968871074553,
-    "IV_Percentile": 0.9959999918937683,
+    "IV_Percentile": 0.9920318722724915,
     "YTD_Change_IBKR": 9.532300376892092,
     "Dividend_Yield_IBKR": 6.11,
     "IBKR_Misc_Statistics": {
@@ -5096,9 +5096,6 @@
       "open_52w": 12.058899879455566
     },
     "IBKR_Snapshot_Groups": {
-      "display": [
-        "dividend_yield"
-      ],
       "quote": [
         "last",
         "bid_ask",
@@ -5123,6 +5120,9 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -5149,9 +5149,9 @@
       "options_supported": true,
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "volatility_score": 32.71,
+    "volatility_score": 33.15,
     "liquidity_score": 63.05,
-    "risk_score": 47.0,
+    "risk_score": 47.17,
     "volatility_regime": "extreme",
     "score_version": "ibkr-enhanced-v1-shadow"
   }
