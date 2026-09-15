@@ -8443,12 +8443,61 @@ def generate_html_dashboard(
                             history: priorHistory,
                             context: portfolioChatConfig.context || {},
                             accessToken: portfolioChatConfig.access_token || '',
-                            continuation: isContinuation === true
+                            continuation: isContinuation === true,
+                            streamProgress: true
                         })
                     });
-                    const payload = await response.json().catch(function() { return {}; });
                     if (!response.ok) {
-                        throw new Error(payload.error || 'Serviciul AI nu a răspuns.');
+                        const errorPayload = await response.json().catch(function() { return {}; });
+                        throw new Error(errorPayload.error || 'Serviciul AI nu a răspuns.');
+                    }
+                    let payload = null;
+                    const contentType = response.headers.get('Content-Type') || '';
+                    if (contentType.indexOf('text/event-stream') >= 0 && response.body) {
+                        const reader = response.body.getReader();
+                        const decoder = new TextDecoder();
+                        let buffer = '';
+                        while (true) {
+                            const chunk = await reader.read();
+                            buffer += decoder.decode(chunk.value || new Uint8Array(), {
+                                stream: !chunk.done
+                            });
+                            const frames = buffer.split(/\r?\n\r?\n/);
+                            buffer = frames.pop() || '';
+                            frames.forEach(function(frame) {
+                                let eventName = 'message';
+                                const dataLines = [];
+                                frame.split(/\r?\n/).forEach(function(line) {
+                                    if (line.indexOf('event:') === 0) {
+                                        eventName = line.slice(6).trim();
+                                    } else if (line.indexOf('data:') === 0) {
+                                        dataLines.push(line.slice(5).trim());
+                                    }
+                                });
+                                if (!dataLines.length) return;
+                                let eventPayload = {};
+                                try {
+                                    eventPayload = JSON.parse(dataLines.join('\n'));
+                                } catch (streamParseError) {
+                                    return;
+                                }
+                                if (eventName === 'progress') {
+                                    if (pending && eventPayload.message) {
+                                        pending.textContent = eventPayload.message;
+                                    }
+                                } else if (eventName === 'result') {
+                                    payload = eventPayload;
+                                } else if (eventName === 'error') {
+                                    throw new Error(eventPayload.error || 'Serviciul AI nu a răspuns.');
+                                }
+                            });
+                            if (chunk.done) break;
+                        }
+                        if (!payload) {
+                            throw new Error('Fluxul AI s-a încheiat fără un răspuns utilizabil.');
+                        }
+                    } else {
+                        payload = await response.json().catch(function() { return {}; });
                     }
                     if (payload.usage && typeof payload.usage === 'object') {
                         try {

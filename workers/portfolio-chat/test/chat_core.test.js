@@ -201,6 +201,7 @@ test("extracts and labels a degraded Workers AI answer", () => {
   assert.equal(answer.model, CLOUDFLARE_FALLBACK_MODEL);
   assert.equal(answer.provider, "cloudflare-workers-ai");
   assert.equal(answer.degraded, true);
+  assert.match(answer.notice, /^Răspuns AI de rezervă:/);
   assert.match(answer.notice, /fără verificare web live/);
   assert.equal(answer.complete, true);
 });

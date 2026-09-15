@@ -464,7 +464,7 @@ export function extractCloudflareAIAnswer(payload, fallbackReason) {
     model: CLOUDFLARE_FALLBACK_MODEL,
     provider: "cloudflare-workers-ai",
     degraded: true,
-    notice: `Răspuns de continuitate: ${detail}. Analiza folosește Cloudflare Workers AI și datele dashboardului, fără verificare web live.`,
+    notice: `Răspuns AI de rezervă: ${detail}. Analiza folosește Cloudflare Workers AI și datele dashboardului, fără verificare web live.`,
     reason,
     complete,
     incomplete_reason: complete ? null : finishReason,

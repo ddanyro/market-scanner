@@ -241,6 +241,37 @@ test("forwards an authenticated request to OpenAI", async (context) => {
   assert.equal((await response.json()).text, "Răspuns test.");
 });
 
+test("streams real progress stages before the final chat result", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    status: "completed",
+    output: [{
+      type: "message",
+      content: [{type: "output_text", text: "Răspuns final.", annotations: []}],
+    }],
+  }), {status: 200, headers: {"Content-Type": "application/json"}});
+  const password = "portfolio-test";
+  const response = await worker.fetch(new Request("https://worker.example", {
+    method: "POST",
+    headers: {Origin: SITE_ORIGIN, "Content-Type": "application/json"},
+    body: JSON.stringify({
+      message: "Ce oportunități există acum?",
+      context: {positions: [{symbol: "NVDA"}], active_buy_orders: []},
+      history: [], streamProgress: true,
+      accessToken: await expectedAccessToken(password),
+    }),
+  }), workerEnv({PORTFOLIO_PASSWORD: password}));
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("Content-Type"), /text\/event-stream/);
+  const body = await response.text();
+  assert.match(body, /event: progress/);
+  assert.match(body, /context_ready/);
+  assert.match(body, /openai_web_search/);
+  assert.match(body, /event: result/);
+  assert.match(body, /Răspuns final/);
+});
+
 test("falls back to Workers AI when OpenAI credit is exhausted", async (context) => {
   const originalFetch = globalThis.fetch;
   context.after(() => { globalThis.fetch = originalFetch; });

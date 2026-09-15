@@ -25,8 +25,11 @@ const OPENAI_QUOTA_CODES = new Set([
 ]);
 const OPENAI_RETRYABLE_STATUSES = new Set([408, 409, 429, 500, 502, 503, 504]);
 const OPENAI_MAX_ATTEMPTS = 3;
-const OPENAI_ATTEMPT_TIMEOUT_MS = 35000;
-const OPENAI_TOTAL_BUDGET_MS = 65000;
+// Responses that combine a broad portfolio context with web search regularly
+// need more than 35 seconds.  The old deadline aborted healthy OpenAI requests
+// before the model could finish its search and synthesis.
+const OPENAI_ATTEMPT_TIMEOUT_MS = 90000;
+const OPENAI_TOTAL_BUDGET_MS = 120000;
 const OPENAI_RETRY_BASE_MS = 500;
 const OPENAI_MAX_RETRY_DELAY_MS = 5000;
 
@@ -144,7 +147,16 @@ function openAITelemetry(response) {
   };
 }
 
-async function requestOpenAI(env, validated) {
+function reportProgress(callback, stage, message, details = {}) {
+  if (typeof callback !== "function") return;
+  try {
+    callback({stage, message, ...details, at: new Date().toISOString()});
+  } catch {
+    // Progress reporting must never interrupt the actual model request.
+  }
+}
+
+async function requestOpenAI(env, validated, onProgress = null) {
   const startedAt = Date.now();
   const maxAttempts = Math.max(1, Number(env.OPENAI_MAX_ATTEMPTS) || OPENAI_MAX_ATTEMPTS);
   const timeoutMs = Math.max(1, Number(env.OPENAI_ATTEMPT_TIMEOUT_MS) || OPENAI_ATTEMPT_TIMEOUT_MS);
@@ -158,6 +170,15 @@ async function requestOpenAI(env, validated) {
   let compatibilityMode = false;
   let lastFailure = null;
 
+  reportProgress(
+    onProgress,
+    validated.useWebSearch ? "openai_web_search" : "openai_analysis",
+    validated.useWebSearch
+      ? "OpenAI analizează datele și caută informații recente pe web…"
+      : "OpenAI analizează datele portofoliului…",
+    {web_search: validated.useWebSearch},
+  );
+
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const remainingBudgetMs = totalBudgetMs - (Date.now() - startedAt);
     if (remainingBudgetMs <= 0) break;
@@ -167,6 +188,11 @@ async function requestOpenAI(env, validated) {
     );
     let response = null;
     let payload = {};
+    if (attempt > 1) {
+      reportProgress(onProgress, "openai_retry", `Reîncerc OpenAI (${attempt}/${maxAttempts})…`, {
+        attempt, max_attempts: maxAttempts,
+      });
+    }
     try {
       response = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
@@ -223,6 +249,12 @@ async function requestOpenAI(env, validated) {
       // question and dashboard context using only the stable core payload.
       if (response.status === 400 && reason === "invalid_value"
           && !compatibilityMode && attempt < maxAttempts) {
+        reportProgress(
+          onProgress,
+          "openai_compatibility_retry",
+          "OpenAI a respins un parametru opțional; reîncerc aceeași analiză în mod compatibil…",
+          {attempt},
+        );
         webSearchDowngraded = webSearchEnabled;
         webSearchEnabled = false;
         compatibilityMode = true;
@@ -401,6 +433,148 @@ function jsonResponse(payload, status, origin) {
   });
 }
 
+function streamChatResponse(env, validated, origin) {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      let closed = false;
+      const send = (event, payload) => {
+        if (closed) return;
+        controller.enqueue(encoder.encode(
+          `event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`,
+        ));
+      };
+      const close = () => {
+        if (!closed) {
+          closed = true;
+          controller.close();
+        }
+      };
+      const fail = (message, reason = "stream_error") => {
+        send("error", {error: message, reason});
+        close();
+      };
+
+      send("progress", {
+        stage: "context_ready",
+        message: "Am pregătit datele relevante din portofoliu și ordine…",
+        positions: Array.isArray(validated.context?.positions)
+          ? validated.context.positions.length : 0,
+        active_buy_orders: Array.isArray(validated.context?.active_buy_orders)
+          ? validated.context.active_buy_orders.length : 0,
+        context_chars: validated.contextJson.length,
+        at: new Date().toISOString(),
+      });
+
+      (async () => {
+        let openAIResult;
+        try {
+          openAIResult = await requestOpenAI(
+            env, validated, (payload) => send("progress", payload),
+          );
+        } catch (openAIError) {
+          const failure = openAIError.openAIFailure || {};
+          const reason = failure.reason || "openai_transport_error";
+          console.error(JSON.stringify({
+            event: "openai_portfolio_chat_failed",
+            reason,
+            status: failure.response?.status,
+            code: failure.payload?.error?.code,
+            attempt: failure.attempt,
+            elapsed_ms: failure.elapsedMs,
+            ...openAITelemetry(failure.response),
+            message: String(openAIError && openAIError.message || openAIError),
+          }));
+          if (validated.continuation) {
+            fail("GPT nu a putut continua acum. Reîncearcă folosind același buton.", reason);
+            return;
+          }
+          send("progress", {
+            stage: "cloudflare_fallback",
+            message: "OpenAI nu a finalizat cererea; pornesc serviciul AI de rezervă…",
+            reason,
+            at: new Date().toISOString(),
+          });
+          const fallbackResponse = await cloudflareFallbackResponse(
+            env, validated, reason, origin,
+          );
+          if (!fallbackResponse) {
+            fail("Nici OpenAI, nici serviciul AI de rezervă nu au putut răspunde.", "both_providers_unavailable");
+            return;
+          }
+          send("result", await fallbackResponse.json());
+          close();
+          return;
+        }
+
+        try {
+          send("progress", {
+            stage: "finalizing",
+            message: "Formatez concluziile și sursele…",
+            at: new Date().toISOString(),
+          });
+          const answer = extractOpenAIAnswer(openAIResult.payload);
+          if (openAIResult.compatibilityMode) {
+            answer.degraded = true;
+            answer.reason = "openai_invalid_value_recovered";
+            answer.notice = openAIResult.webSearchDowngraded
+              ? "GPT a răspuns folosind datele dashboardului; căutarea web și parametrii opționali respinși de endpoint au fost omiși pentru această cerere."
+              : "GPT a răspuns după omiterea parametrilor opționali respinși de endpoint; modelul și datele dashboardului au rămas neschimbate.";
+          }
+          console.log(JSON.stringify({
+            event: "openai_portfolio_chat_usage",
+            model: answer.model,
+            usage: answer.usage,
+            attempt: openAIResult.attempt,
+            elapsed_ms: openAIResult.elapsedMs,
+          }));
+          send("result", answer);
+          close();
+        } catch (parseError) {
+          console.error(JSON.stringify({
+            event: "openai_portfolio_chat_invalid_response",
+            message: String(parseError && parseError.message || parseError),
+          }));
+          if (validated.continuation) {
+            fail("GPT nu a returnat o continuare utilizabilă. Reîncearcă folosind același buton.", "openai_invalid_response");
+            return;
+          }
+          send("progress", {
+            stage: "cloudflare_fallback",
+            message: "Răspunsul OpenAI nu este utilizabil; pornesc serviciul AI de rezervă…",
+            reason: "openai_invalid_response",
+            at: new Date().toISOString(),
+          });
+          const fallbackResponse = await cloudflareFallbackResponse(
+            env, validated, "openai_invalid_response", origin,
+          );
+          if (!fallbackResponse) {
+            fail("Nici OpenAI, nici serviciul AI de rezervă nu au putut răspunde.", "both_providers_unavailable");
+            return;
+          }
+          send("result", await fallbackResponse.json());
+          close();
+        }
+      })().catch((error) => {
+        console.error(JSON.stringify({
+          event: "portfolio_chat_stream_failed",
+          message: String(error && error.message || error),
+        }));
+        fail("Chatul AI este temporar indisponibil.");
+      });
+    },
+  });
+  return new Response(stream, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-Accel-Buffering": "no",
+      ...corsHeaders(origin),
+    },
+  });
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
@@ -432,6 +606,9 @@ export default {
       }
       if (!rateLimit.success) {
         return jsonResponse({error: "Prea multe întrebări. Reîncearcă peste câteva minute."}, 429, origin);
+      }
+      if (body.streamProgress === true) {
+        return streamChatResponse(env, validated, origin);
       }
       let openAIResult;
       try {
