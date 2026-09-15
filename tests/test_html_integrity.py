@@ -49,7 +49,15 @@ class TestHtmlIntegrity(unittest.TestCase):
             scanner = handle.read()
 
         self.assertIn("cron: '17 6-17 * * 1-5'", workflow)
+        self.assertIn('Restore complete runtime state from R2', workflow)
+        self.assertIn('python runtime_r2_store.py pull', workflow)
         self.assertIn('python market_scanner.py --mode ro', workflow)
+        self.assertIn(
+            'python runtime_r2_store.py push --publish-loader', workflow
+        )
+        self.assertGreaterEqual(
+            workflow.count('SHADOW_R2_REQUIRED: "true"'), 2
+        )
         self.assertIn('group: market-dashboard-writes', workflow)
         self.assertIn(
             'PORTFOLIO_ORDER_CACHE_PASSWORD: ${{ secrets.PORTFOLIO_PASSWORD }}',

@@ -29,6 +29,15 @@ jobs:
       run: |
         pip install pandas requests yfinance ib_insync beautifulsoup4 lxml pycryptodome -r requirements.txt
 
+    - name: Restore complete runtime state from R2
+      env:
+        SHADOW_R2_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        SHADOW_R2_ACCESS_KEY_ID: ${{ secrets.SHADOW_R2_ACCESS_KEY_ID }}
+        SHADOW_R2_SECRET_ACCESS_KEY: ${{ secrets.SHADOW_R2_SECRET_ACCESS_KEY }}
+        SHADOW_R2_BUCKET: market-scanner-shadow
+        SHADOW_R2_REQUIRED: "true"
+      run: python runtime_r2_store.py pull
+
     - name: Update Romanian market
       env:
         TZ: 'Europe/Bucharest'
@@ -44,7 +53,14 @@ jobs:
         FIREBASE_WEB_CONFIG: ${{ secrets.FIREBASE_WEB_CONFIG }}
         FIREBASE_VAPID_KEY: ${{ secrets.FIREBASE_VAPID_KEY }}
         FIREBASE_SITE_URL: https://ddanyro.github.io/market-scanner/
-      run: python market_scanner.py --mode ro
+        SHADOW_R2_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        SHADOW_R2_ACCESS_KEY_ID: ${{ secrets.SHADOW_R2_ACCESS_KEY_ID }}
+        SHADOW_R2_SECRET_ACCESS_KEY: ${{ secrets.SHADOW_R2_SECRET_ACCESS_KEY }}
+        SHADOW_R2_BUCKET: market-scanner-shadow
+        SHADOW_R2_REQUIRED: "true"
+      run: |
+        python market_scanner.py --mode ro
+        python runtime_r2_store.py push --publish-loader
 
     - name: Commit and push Romanian market changes
       run: |
