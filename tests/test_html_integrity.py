@@ -264,6 +264,7 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('"Stop activ" if len(active_stops) == 1', content)
         self.assertIn("for price_column in ('Calculated_Stop', 'Stop_Price', 'Aux_Price')", content)
         self.assertIn('"label": "Stop propus"', content)
+        self.assertIn('"label": "Target"', content)
         self.assertIn("quantity_label", content)
         self.assertIn('"color": "#2563eb"', content)
         self.assertIn("drawHorizontalLevels(ctx,width,pad,min,max,levels,currency)", content)

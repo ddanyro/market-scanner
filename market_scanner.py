@@ -10012,6 +10012,16 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             for index, value in enumerate(buy_levels)
         ]
 
+        target = row.get('Target', 0)
+        if pd.notna(target) and float(target) > 0:
+            target_value = to_native(target)
+            if target_value is not None and target_value > 0:
+                chart_levels.append({
+                    "label": "Target",
+                    "value": target_value,
+                    "color": "#16a34a"
+                })
+
         # Toate ordinele SELL cu un preț stop valid sunt păstrate separat.
         active_stops = []
         if not orders_df.empty and 'Symbol' in orders_df.columns:
