@@ -112,9 +112,34 @@ class TestTwsInstrumentSync(unittest.TestCase):
         replacement_loop = Mock()
         with (
             patch.object(
-                ib_tws_sync.asyncio,
+                ib_tws_sync.asyncio.get_event_loop_policy(),
                 'get_event_loop',
                 side_effect=RuntimeError('no current event loop'),
+            ),
+            patch.object(
+                ib_tws_sync.asyncio,
+                'new_event_loop',
+                return_value=replacement_loop,
+            ) as new_event_loop,
+            patch.object(
+                ib_tws_sync.asyncio, 'set_event_loop'
+            ) as set_event_loop,
+        ):
+            result = ib_tws_sync._ensure_event_loop()
+
+        self.assertIs(result, replacement_loop)
+        new_event_loop.assert_called_once_with()
+        set_event_loop.assert_called_once_with(replacement_loop)
+
+    def test_closed_event_loop_is_recreated_for_tws_fallback(self):
+        closed_loop = Mock()
+        closed_loop.is_closed.return_value = True
+        replacement_loop = Mock()
+        with (
+            patch.object(
+                ib_tws_sync.asyncio.get_event_loop_policy(),
+                'get_event_loop',
+                return_value=closed_loop,
             ),
             patch.object(
                 ib_tws_sync.asyncio,

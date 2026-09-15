@@ -6,6 +6,28 @@ import os
 import pandas as pd
 import sys
 
+
+def _install_event_loop():
+    """Instalează un loop activ înainte ca ``eventkit`` să fie importat.
+
+    Python 3.13 nu mai creează implicit un event loop. În plus, sincronizarea
+    MCP folosește ``asyncio.run()``, care elimină loopul curent. ``eventkit``
+    citește loopul chiar în timpul importului ``ib_insync``, deci inițializarea
+    trebuie făcută înainte de import, nu doar înainte de ``IB()``.
+    """
+    try:
+        loop = asyncio.get_event_loop_policy().get_event_loop()
+    except RuntimeError:
+        loop = None
+    if loop is None or loop.is_closed():
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    return loop
+
+
+# ``eventkit.util`` construiește ``main_event_loop`` la import.
+_install_event_loop()
+
 # Încercăm să importăm ib_insync, dacă nu există, ieșim silențios (e opțional)
 try:
     from ib_insync import IB, Stock, Forex, Crypto
@@ -57,12 +79,7 @@ def _ensure_event_loop():
     loop-ul curent. Versiunile ib_insync bazate pe ``get_event_loop()`` au
     nevoie ca următorul fallback TWS să creeze explicit unul nou.
     """
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    return loop
+    return _install_event_loop()
 
 
 def _write_active_orders_snapshot(orders_data, output_file='tws_orders.csv'):
