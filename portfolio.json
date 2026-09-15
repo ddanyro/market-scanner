@@ -952,17 +952,17 @@
       }
     ],
     "Daily_Change": -3.24,
-    "Date": "2026-09-15 07:35",
+    "Date": "2026-09-15 07:39",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-09-15T04:35:23+00:00",
+    "Earnings_Fetched_At": "2026-09-15T04:39:19+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-09-15T04:35:35.685237+00:00",
-    "Market_Data_Observed_At": null,
+    "Market_Data_Observed_At": "2026-09-14T07:04:00+00:00",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Data_Broker": "IBKR",
     "Execution_Brokers": [
@@ -988,6 +988,9 @@
       "open_52w": 115.37999725341797
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -1010,9 +1013,6 @@
       "risk": [
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "Europa / Nasdaq-100",
@@ -1966,14 +1966,14 @@
       }
     ],
     "Daily_Change": -26.4023,
-    "Date": "2026-09-15 07:35",
+    "Date": "2026-09-15 07:39",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-10-26",
     "Days_To_Earnings": 41,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-15T04:35:26+00:00",
+    "Earnings_Fetched_At": "2026-09-15T04:39:20+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-09-15T04:35:35.685374+00:00",
     "Market_Data_Observed_At": "2026-09-15T04:21:20+00:00",
@@ -1987,6 +1987,7 @@
     "Ask": 320.72,
     "Spread_Pct": 1.1603474770282702,
     "Quote_Status": "REALTIME",
+    "Avg_90D_USD_Volume": 780906807.0,
     "Historical_Vol": 0.7712328031234926,
     "Implied_Volatility": 0.6237549268115291,
     "IV_Percentile": 0.08799999952316284,
@@ -2002,6 +2003,9 @@
       "open_52w": 241.1199951171875
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -2026,9 +2030,6 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -2056,11 +2057,10 @@
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "volatility_score": 30.95,
-    "liquidity_score": 27.24,
-    "risk_score": 35.55,
+    "liquidity_score": 70.63,
+    "risk_score": 48.57,
     "volatility_regime": "extreme",
-    "score_version": "ibkr-enhanced-v1-shadow",
-    "Avg_90D_USD_Volume": 780906807.0
+    "score_version": "ibkr-enhanced-v1-shadow"
   },
   {
     "Symbol": "CRWD",
@@ -2078,7 +2078,7 @@
     "Buy_Price": 182.18,
     "Target": 205.82,
     "Trail_Stop": 180.83,
-    "Suggested_Stop": 175.23,
+    "Suggested_Stop": 175.34,
     "Finviz_ATR": 12.85,
     "Vol_W": 5.2,
     "Vol_M": 5.76,
@@ -2979,14 +2979,14 @@
       }
     ],
     "Daily_Change": 24.8166,
-    "Date": "2026-09-15 07:35",
+    "Date": "2026-09-15 07:39",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-12-01",
     "Days_To_Earnings": 77,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-15T04:35:28+00:00",
+    "Earnings_Fetched_At": "2026-09-15T04:39:20+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-09-15T04:35:39.381783+00:00",
     "Market_Data_Observed_At": "2026-09-15T04:35:18+00:00",
@@ -3016,6 +3016,9 @@
       "open_52w": 110.39399719238281
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -3040,9 +3043,6 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -3069,9 +3069,9 @@
       "options_supported": true,
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "volatility_score": 41.55,
+    "volatility_score": 41.56,
     "liquidity_score": 99.35,
-    "risk_score": 61.42,
+    "risk_score": 61.43,
     "volatility_regime": "extreme",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
@@ -3099,7 +3099,7 @@
     "Investment": 1769.39,
     "Entry_Date": "2026-09-11",
     "Current_Value": 1938.14,
-    "Profit": 168.75,
+    "Profit": 168.74,
     "Profit_Pct": 9.54,
     "Max_Profit": 305.32,
     "Consensus": "Buy",
@@ -4019,14 +4019,14 @@
       }
     ],
     "Daily_Change": 37.5108,
-    "Date": "2026-09-15 07:35",
+    "Date": "2026-09-15 07:39",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-11-19",
     "Days_To_Earnings": 65,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-15T04:35:30+00:00",
+    "Earnings_Fetched_At": "2026-09-15T04:39:21+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-09-15T04:35:40.594965+00:00",
     "Market_Data_Observed_At": "2026-09-15T02:54:07+00:00",
@@ -4056,6 +4056,9 @@
       "open_52w": 198.0449981689453
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -4080,9 +4083,6 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -5059,17 +5059,17 @@
       }
     ],
     "Daily_Change": -0.0433,
-    "Date": "2026-09-15 07:35",
+    "Date": "2026-09-15 07:39",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-11-10",
     "Days_To_Earnings": 56,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-15T04:35:32+00:00",
+    "Earnings_Fetched_At": "2026-09-15T04:39:22+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-09-15T04:35:41.118824+00:00",
-    "Market_Data_Observed_At": null,
+    "Market_Data_Observed_At": "2026-09-14T13:30:00+00:00",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Data_Broker": "IBKR",
     "Execution_Brokers": [
@@ -5096,6 +5096,9 @@
       "open_52w": 12.058899879455566
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -5120,9 +5123,6 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "SUA",
