@@ -8462,12 +8462,12 @@ def generate_html_dashboard(
                             buffer += decoder.decode(chunk.value || new Uint8Array(), {
                                 stream: !chunk.done
                             });
-                            const frames = buffer.split(/\r?\n\r?\n/);
+                            const frames = buffer.split(/\\r?\\n\\r?\\n/);
                             buffer = frames.pop() || '';
                             frames.forEach(function(frame) {
                                 let eventName = 'message';
                                 const dataLines = [];
-                                frame.split(/\r?\n/).forEach(function(line) {
+                                frame.split(/\\r?\\n/).forEach(function(line) {
                                     if (line.indexOf('event:') === 0) {
                                         eventName = line.slice(6).trim();
                                     } else if (line.indexOf('data:') === 0) {
@@ -8477,7 +8477,7 @@ def generate_html_dashboard(
                                 if (!dataLines.length) return;
                                 let eventPayload = {};
                                 try {
-                                    eventPayload = JSON.parse(dataLines.join('\n'));
+                                    eventPayload = JSON.parse(dataLines.join('\\n'));
                                 } catch (streamParseError) {
                                     return;
                                 }

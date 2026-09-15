@@ -551,6 +551,16 @@ class TestHtmlIntegrity(unittest.TestCase):
             content,
         )
 
+    def test_chat_sse_regexes_survive_python_html_generation(self):
+        """Escape-urile regex trebuie să rămână JavaScript, nu newline-uri."""
+        file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
+        with open(file_path, 'r', encoding='utf-8') as handle:
+            content = handle.read()
+
+        self.assertIn(r'buffer.split(/\\r?\\n\\r?\\n/)', content)
+        self.assertIn(r'frame.split(/\\r?\\n/)', content)
+        self.assertIn(r"dataLines.join('\\n')", content)
+
     def test_sparkline_initialization_skips_canvases_already_in_use(self):
         file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
         with open(file_path, 'r', encoding='utf-8') as handle:
