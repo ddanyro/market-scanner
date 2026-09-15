@@ -16,6 +16,7 @@ import io
 import json
 import os
 import tempfile
+import time
 import urllib.parse
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
@@ -307,9 +308,33 @@ class R2Client:
         # slow uplink.  Keep the normal timeout for metadata and immutable
         # snapshots, but allow bulk PUTs enough time to finish.
         timeout = 600 if method == "PUT" and len(body) >= 5 * 1024 * 1024 else 90
-        response = self.session.request(
-            method, url, data=body, headers=request_headers, timeout=timeout
-        )
+        safe_read = method in {"GET", "HEAD"}
+        # A stalled TLS handshake to R2 must not invalidate an otherwise
+        # successful scanner run. GET/HEAD are idempotent, so retry transient
+        # connection failures with a short connect timeout. PUT keeps its
+        # existing confirmation/retry path, which handles uncertain writes.
+        request_timeout = (15, timeout) if safe_read else timeout
+        attempts = 3 if safe_read else 1
+        response = None
+        for attempt in range(1, attempts + 1):
+            try:
+                response = self.session.request(
+                    method, url, data=body, headers=request_headers,
+                    timeout=request_timeout,
+                )
+            except (requests.Timeout, requests.ConnectionError):
+                if attempt >= attempts:
+                    raise
+                time.sleep(attempt)
+                continue
+            if (
+                safe_read
+                and response.status_code in {429, 500, 502, 503, 504}
+                and attempt < attempts
+            ):
+                time.sleep(attempt)
+                continue
+            break
         if response.status_code >= 400:
             raise RuntimeError(
                 f"R2 {method} {key or self.config.bucket}: "

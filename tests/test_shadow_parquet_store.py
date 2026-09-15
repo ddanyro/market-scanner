@@ -73,6 +73,19 @@ class StoredThenDisconnectedSession:
         return FakeResponse()
 
 
+class TransientReadTimeoutSession:
+    def __init__(self):
+        self.calls = []
+
+    def request(self, method, url, data, headers, timeout):
+        self.calls.append((method, timeout))
+        if len(self.calls) == 1:
+            raise requests.ReadTimeout("temporary R2 timeout")
+        response = FakeResponse()
+        response.content = b"manifest"
+        return response
+
+
 def test_r2_config_is_disabled_when_no_values(monkeypatch):
     for name in (
         "SHADOW_R2_ACCOUNT_ID", "SHADOW_R2_ACCESS_KEY_ID",
@@ -158,6 +171,15 @@ def test_r2_put_accepts_head_confirmation_after_lost_response():
     client.put("runtime/dashboard.json.gz", b"payload")
 
     assert session.methods == ["PUT", "HEAD"]
+
+
+def test_r2_get_retries_transient_timeout(monkeypatch):
+    monkeypatch.setattr(store.time, "sleep", lambda _seconds: None)
+    session = TransientReadTimeoutSession()
+    client = store.R2Client(config(), session=session)
+
+    assert client.get("runtime/manifest.json") == b"manifest"
+    assert session.calls == [("GET", (15, 90)), ("GET", (15, 90))]
 
 
 def test_r2_large_put_uses_multipart_client(monkeypatch):
