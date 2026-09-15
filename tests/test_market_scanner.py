@@ -4536,6 +4536,32 @@ class TestHTMLGeneration(unittest.TestCase):
         self.assertNotIn('document.body.appendChild(button)', html)
         self.assertNotIn('position: fixed', html)
 
+    def test_firebase_public_config_survives_local_generation_without_env(self):
+        with tempfile.TemporaryDirectory() as directory:
+            config_path = os.path.join(directory, 'firebase_web_push.json')
+            worker_path = os.path.join(directory, 'firebase-messaging-sw.js')
+            with open(config_path, 'w', encoding='utf-8') as handle:
+                json.dump({
+                    'config': {
+                        'apiKey': 'public-api-key',
+                        'projectId': 'market-scanner-test',
+                        'messagingSenderId': '123456789',
+                        'appId': '1:123456789:web:abcdef',
+                    },
+                    'vapid_public_key': (
+                        'BPublicVapidKey_abcdefghijklmnopqrstuvwxyz0123456789'
+                    ),
+                }, handle)
+            html = market_scanner._firebase_web_push_html(
+                None,
+                None,
+                worker_path=worker_path,
+                public_config_path=config_path,
+            )
+
+        self.assertIn('Alerte BUY active', html)
+        self.assertIn('market-scanner-test', html)
+
     def test_firebase_menu_control_preserves_subscription_states(self):
         with tempfile.TemporaryDirectory() as directory:
             worker_path = os.path.join(

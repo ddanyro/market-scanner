@@ -184,10 +184,27 @@ firebase.messaging();
         handle.write(worker)
 
 
-def _firebase_web_push_html(config_value, vapid_key, worker_path=None):
+def _firebase_web_push_html(
+    config_value,
+    vapid_key,
+    worker_path=None,
+    public_config_path='firebase_web_push.json',
+):
     """Inițializează abonarea web push prin Firebase Cloud Messaging."""
     config = _firebase_web_config(config_value)
     vapid_key = str(vapid_key or '').strip()
+    if (not config or len(vapid_key) < 40) and public_config_path:
+        try:
+            with open(public_config_path, 'r', encoding='utf-8') as handle:
+                public_config = json.load(handle)
+            if not config:
+                config = _firebase_web_config(public_config.get('config'))
+            if len(vapid_key) < 40:
+                vapid_key = str(
+                    public_config.get('vapid_public_key') or ''
+                ).strip()
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            pass
     if not config or len(vapid_key) < 40:
         return ''
     _write_firebase_service_worker(config, worker_path=worker_path)
