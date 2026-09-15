@@ -109,6 +109,52 @@ test("filters a large unrelated dashboard context before enforcing the model lim
   assert.ok(result.rawContextChars > 180000);
 });
 
+test("prioritises any explicitly mentioned held position and active orders", () => {
+  const context = {
+    positions: [
+      {symbol: "3USL", current_price_eur: 157.37, current_value_eur: 2045.81},
+      {symbol: "PANW", current_price_eur: 372.2},
+    ],
+    active_buy_orders: [
+      {symbol: "PANW", action: "BUY", effective_order_price: 350},
+      {symbol: "MSFT", action: "BUY", effective_order_price: 410},
+    ],
+    active_sell_orders: [
+      {symbol: "3USL", action: "SELL", effective_order_price: 150.651},
+    ],
+  };
+
+  const selected = selectContextForMessage(
+    context,
+    "Care este pierderea pentru PANW și 3USL până la stop?",
+  );
+  assert.deepEqual(selected.requested_instruments.symbols, ["3USL", "PANW"]);
+  assert.deepEqual(
+    selected.requested_instruments.held_positions.map((item) => item.symbol),
+    ["3USL", "PANW"],
+  );
+  assert.deepEqual(
+    selected.requested_instruments.active_buy_orders.map((item) => item.symbol),
+    ["PANW"],
+  );
+  assert.deepEqual(
+    selected.requested_instruments.active_sell_orders.map((item) => item.symbol),
+    ["3USL"],
+  );
+  assert.equal(selected.positions.length, 2);
+  assert.equal(selected.active_buy_orders.length, 2);
+});
+
+test("matches symbols containing an exchange suffix without partial matches", () => {
+  const selected = selectContextForMessage({
+    positions: [{symbol: "LQQ.PA", current_price_eur: 100}],
+    active_buy_orders: [],
+    active_sell_orders: [],
+  }, "Ce risc are LQQ.PA?");
+  assert.deepEqual(selected.requested_instruments.symbols, ["LQQ.PA"]);
+  assert.equal(selected.requested_instruments.held_positions[0].symbol, "LQQ.PA");
+});
+
 test("keeps the tail of a long assistant answer for a GPT continuation", async () => {
   const password = "secret";
   const longAnswer = "început-omis " + "x".repeat(17000) + " FINAL-IMPORTANT";

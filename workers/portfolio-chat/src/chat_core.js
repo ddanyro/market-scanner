@@ -61,9 +61,41 @@ export function selectContextForMessage(context, message, useWebSearch = false) 
     ].forEach((key) => keys.add(key));
   }
   if (wantsEvidence) keys.add("evidence");
-  return Object.fromEntries(
+  const selected = Object.fromEntries(
     Object.entries(source).filter(([key]) => keys.has(key)),
   );
+
+  // Make every explicitly mentioned instrument easy for the model to find.
+  // The complete positions/orders arrays remain present; this is only a small,
+  // prioritised view that prevents a requested row from being overlooked in a
+  // broader portfolio context.
+  const instrumentRows = [
+    ...(Array.isArray(source.positions) ? source.positions : []),
+    ...(Array.isArray(source.active_buy_orders) ? source.active_buy_orders : []),
+    ...(Array.isArray(source.active_sell_orders) ? source.active_sell_orders : []),
+  ].filter((item) => item && typeof item === "object" && !Array.isArray(item));
+  const normalise = (value) => String(value || "").trim().toUpperCase();
+  const messageUpper = text.toUpperCase();
+  const mentionedSymbols = [...new Set(instrumentRows.flatMap((item) => {
+    const symbols = [item.symbol, item.ticker, item.local_symbol]
+      .map(normalise).filter(Boolean);
+    return symbols.filter((symbol) => {
+      const escaped = symbol.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return new RegExp(`(^|[^A-Z0-9])${escaped}([^A-Z0-9]|$)`, "i").test(messageUpper);
+    });
+  }))];
+  if (mentionedSymbols.length) {
+    const matches = (item) => [item.symbol, item.ticker, item.local_symbol]
+      .map(normalise).some((symbol) => mentionedSymbols.includes(symbol));
+    selected.requested_instruments = {
+      symbols: mentionedSymbols,
+      held_positions: (source.positions || []).filter(matches),
+      active_buy_orders: (source.active_buy_orders || []).filter(matches),
+      active_sell_orders: (source.active_sell_orders || []).filter(matches),
+      note: "Vizualizare prioritară extrasă din listele complete; folosește aceste valori pentru instrumentele cerute explicit.",
+    };
+  }
+  return selected;
 }
 
 function compactContextValue(value, path, stats, limits) {
@@ -372,6 +404,8 @@ function buildAssistantInstructions() {
     "Pentru companii preferă raportări oficiale, relația cu investitorii, SEC/BVB și comunicate oficiale.",
     "Ține cont de broker, moneda instrumentului, cashul brokerului, stopuri, concentrare, lichiditate, calendar economic, regimul pieței și rotația sectoarelor.",
     "Ordinele deja plasate sunt în active_buy_orders/active_sell_orders. Nu le confunda cu buy_candidates, care sunt numai oportunități analizate.",
+    "Când utilizatorul menționează un ticker, verifică mai întâi requested_instruments: include poziția deținută și ordinele active asociate acelui ticker. Listele complete rămân în positions și active_buy_orders/active_sell_orders.",
+    "Nu afirma că prețul, valoarea, costul, ponderea sau stopul unei poziții lipsesc înainte să verifici toate câmpurile poziției din requested_instruments și positions.",
     "Nu amesteca Tradeville cu IBKR și nu trata o acțiune individuală BVB drept semnal pentru întreaga piață.",
     "Nu inventa prețuri, evenimente, știri, rapoarte, consensuri sau valori lipsă.",
     "Dacă datele sunt vechi ori insuficiente, spune exact ce lipsește și formulează un răspuns condiționat.",
