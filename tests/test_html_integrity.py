@@ -521,6 +521,15 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("label:'Cash total'", content)
         self.assertIn("label:'NAV IBKR'", content)
         self.assertIn("label:'Cash IBKR'", content)
+        self.assertNotIn("label:'Valoare totală',data:series(history,'timestamp','net_liquidation',timestampKey),hidden:true", content)
+        self.assertNotIn("label:'Cash total',data:series(history,'timestamp','total_cash',timestampKey),hidden:true", content)
+        self.assertIn("label:'NAV IBKR',data:series(ibkrNavHistory,'date','nav',dateKey)", content)
+        self.assertIn("label:'NAV IBKR',data:series(ibkrNavHistory,'date','nav',dateKey),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.06)',borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:true,hidden:true", content)
+        self.assertIn("label:'Cash IBKR',data:series(ibkrCashHistory,'date','cash',dateKey),borderColor:'#15803d',backgroundColor:'rgba(21,128,61,.05)',borderWidth:2,borderDash:[7,5],pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:true,hidden:true", content)
+        self.assertIn("label:'NAV Tradeville · '+account,data:series(items,'date','nav',dateKey),borderColor:color,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:true,hidden:true", content)
+        self.assertIn("label:'NAV ajustat Tradeville · '+account,data:series(items,'date','nav',dateKey),borderColor:'#9333ea',borderWidth:2,borderDash:[4,4],pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:true,hidden:true", content)
+        self.assertIn("label:'Cash Tradeville · '+account,data:series(items,'date','cash',dateKey),borderColor:'#0f766e',borderWidth:2,borderDash:[8,4],pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:true,hidden:true", content)
+        self.assertIn("label:'Profit ajustat Tradeville · '+account,data:series(items,'date','profit',dateKey),borderColor:'#ca8a04',borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:true,yAxisID:'yProfit',hidden:true", content)
         self.assertIn(r"if(/^\\\\d{8}(?:\\\\.0+)?$/", content)
         self.assertIn(
             'history.map(item=>timestampKey(item.timestamp))',
