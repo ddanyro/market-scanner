@@ -6608,7 +6608,7 @@ def _tradeville_stop_orders_from_portfolio(
             'Stop_Price': stop,
             'Trail_Pct': trail_pct,
             'Calculated_Stop': stop,
-            'Order_Source': 'Tradeville manual',
+            'Order_Source': 'Tradeville strategy overlay',
         })
     return pd.DataFrame(records).reindex(
         columns=TWS_ACTIVE_ORDER_COLUMNS + ['Order_Source']
@@ -6734,9 +6734,16 @@ def _write_runtime_json(path, payload):
     os.replace(temporary_path, path)
 
 
-def _load_portable_account_snapshot(raw_path, encrypted_path, password):
-    """Încarcă snapshotul local sau copia criptată destinată rulării remote."""
-    if os.path.exists(raw_path):
+def _load_portable_account_snapshot(
+    raw_path, encrypted_path, password, *, allow_raw=True
+):
+    """Încarcă snapshotul local sau copia criptată destinată rulării remote.
+
+    ``allow_raw=False`` este folosit pentru Tradeville: snapshotul WebSocket
+    criptat este autoritar, iar un export manual local vechi nu are voie să-l
+    suprascrie.
+    """
+    if allow_raw and os.path.exists(raw_path):
         try:
             with open(raw_path, 'r', encoding='utf-8') as handle:
                 payload = json.load(handle)
@@ -9408,11 +9415,14 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         except (OSError, ValueError, TypeError):
             tws_account_data = None
 
+    # Snapshotul WebSocket criptat este autoritar. Un export manual local vechi
+    # nu trebuie să poată suprascrie soldurile celor două persoane Tradeville.
     tradeville_account_data, tradeville_account_source = (
         _load_portable_account_snapshot(
             'tradeville_account.json',
             'tradeville_account.enc.json',
             account_password,
+            allow_raw=False,
         )
     )
     if (
@@ -9438,7 +9448,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             tws_account_data = tradeville_account_data
         else:
             tws_account_data = dict(tws_account_data)
-            tws_account_data['source'] = 'IBKR TWS + Tradeville manual'
+            tws_account_data['source'] = 'IBKR TWS + Tradeville WebSocket'
             ibkr_fetched_at = tws_account_data.get('fetched_at')
             tradeville_fetched_at = tradeville_account_data.get('fetched_at')
             ibkr_accounts = []

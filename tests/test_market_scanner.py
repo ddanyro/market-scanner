@@ -390,7 +390,9 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertEqual(result.iloc[0]['OrderType'], 'STP')
         self.assertEqual(float(result.iloc[0]['Total_Qty']), 3253)
         self.assertEqual(float(result.iloc[0]['Stop_Price']), 56.81)
-        self.assertEqual(result.iloc[0]['Order_Source'], 'Tradeville manual')
+        self.assertEqual(
+            result.iloc[0]['Order_Source'], 'Tradeville strategy overlay'
+        )
 
     def test_explicit_tradeville_sell_order_is_not_duplicated(self):
         explicit = pd.DataFrame([{
@@ -1525,6 +1527,44 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
 
         self.assertIsNone(remote)
         self.assertEqual(source, 'encrypted_cache_invalid')
+
+    def test_tradeville_websocket_snapshot_ignores_old_manual_raw_file(self):
+        old_manual = {
+            'fetched_at': '2026-07-30T10:00:00+00:00',
+            'source': 'Tradeville / snapshot manual',
+            'accounts': [{'label': 'Tradeville vechi'}],
+        }
+        websocket = {
+            'fetched_at': '2026-09-16T14:43:54+00:00',
+            'source': 'Tradeville WebSocket pf4',
+            'accounts': [
+                {'label': 'Personal'},
+                {'label': 'ZENSHOP'},
+            ],
+        }
+        password = 'shared-remote-password'
+        with tempfile.TemporaryDirectory() as temp_dir:
+            raw_path = os.path.join(temp_dir, 'tradeville_account.json')
+            encrypted_path = os.path.join(
+                temp_dir, 'tradeville_account.enc.json'
+            )
+            with open(raw_path, 'w', encoding='utf-8') as handle:
+                json.dump(old_manual, handle)
+            with open(encrypted_path, 'w', encoding='utf-8') as handle:
+                handle.write(market_security.encrypt_for_js(
+                    json.dumps(websocket), password
+                ))
+
+            loaded, source = market_scanner._load_portable_account_snapshot(
+                raw_path,
+                encrypted_path,
+                password,
+                allow_raw=False,
+            )
+
+        self.assertEqual(source, 'encrypted_cache')
+        self.assertEqual(loaded, websocket)
+        self.assertNotEqual(loaded, old_manual)
 
     def test_manual_tradeville_snapshot_keeps_broker_source_and_ratios(self):
         account_data = {

@@ -4622,7 +4622,7 @@ def generate_portfolio_ai_analysis(portfolio_df, orders_df=None, cached=None, ca
             'Semnalează contradicțiile dintre HOLD/REDUCE/EXIT, trend, momentum și protecția activă.',
             'Evaluează concentrarea și raportul recompensă/risc numai când există date suficiente.',
             'Evaluează separat cash-ul, expunerea, Available Funds, Buying Power, Excess Liquidity, Cushion și marja fiecărui cont de broker.',
-            'Pentru snapshotul manual Tradeville folosește numai câmpurile disponibile și menționează data lui; nu presupune marjă sau Buying Power dacă lipsesc.',
+            'Pentru snapshotul Tradeville WebSocket folosește numai câmpurile disponibile și menționează timestampul lui; nu presupune marjă sau Buying Power dacă lipsesc.',
             'Nu dubla expunerea: reconciliază pozițiile cu brokerul lor înainte de a compara portofoliul cu NAV.',
             'Nu trata un sold într-o monedă ca fiind direct comparabil cu altă monedă și nu face conversii nesupuse.',
             'Dacă datele TWS sunt mai vechi de 24 de ore, menționează vechimea și nu formula o acțiune executabilă.',

@@ -429,10 +429,10 @@ def sync_ibkr(allow_flex=True):
                     p['Trail_Pct'] = orders_map[sym].get('trail_pct', 0)
                     p['Trail_Stop_IBKR'] = orders_map[sym].get('trail_stop', 0)
 
-    # === Integrare Portofoliu Manual (Tradeville/Altele) ===
+    # === Integrare snapshot WebSocket Tradeville ===
     MANUAL_FILE = 'tradeville_portfolio.csv'
     if os.path.exists(MANUAL_FILE):
-         print(f"Adăugare poziții manuale din {MANUAL_FILE}...")
+         print(f"Adăugare poziții Tradeville WebSocket din {MANUAL_FILE}...")
          try:
              man_df = pd.read_csv(MANUAL_FILE)
              for _, row in man_df.iterrows():

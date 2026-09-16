@@ -468,7 +468,7 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("account_password = _orders_snapshot_password(password)", content)
         self.assertIn("_load_portable_account_snapshot(", content)
         self.assertIn("'tradeville_account.enc.json'", content)
-        self.assertIn("'IBKR TWS + Tradeville manual'", content)
+        self.assertIn("'IBKR TWS + Tradeville WebSocket'", content)
         self.assertIn("ibkr_account['source'] = 'IBKR TWS'", content)
         self.assertIn("'IBKR' if len(raw_ibkr_accounts) == 1", content)
         self.assertIn("Solduri brute brokeri", analysis_content)
