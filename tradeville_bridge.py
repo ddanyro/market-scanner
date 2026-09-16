@@ -1,0 +1,584 @@
+#!/usr/bin/env python3
+"""Local, read-only bridge between the authenticated Tradeville tab and scanner.
+
+The Chrome extension owns the authenticated WebSocket.  This process only
+accepts one short-lived snapshot over loopback, validates it, and atomically
+updates the scanner's existing Tradeville inputs.  A failed sync never replaces
+the last known-good portfolio or orders with empty files.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hmac
+import json
+import math
+import os
+import secrets
+import tempfile
+import threading
+import time
+from datetime import datetime, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from typing import Any
+from urllib.parse import urlparse
+
+import pandas as pd
+
+import market_security
+
+
+SCHEMA = "market-scanner.tradeville.websocket.v1"
+BRIDGE_HEADER = "market-scanner-tradeville-v1"
+DEFAULT_HOST = "127.0.0.1"
+DEFAULT_PORT = 43129
+MAX_BODY_BYTES = 12 * 1024 * 1024
+PORTFOLIO_PATH = Path("tradeville_portfolio.csv")
+ORDERS_PATH = Path("tradeville_orders.csv")
+ACCOUNT_ENCRYPTED_PATH = Path("tradeville_account.enc.json")
+RAW_ENCRYPTED_PATH = Path("tradeville_ws_snapshot.enc.json")
+STATUS_PATH = Path("tradeville_sync_status.json")
+
+PORTFOLIO_COLUMNS = [
+    "Symbol", "Shares", "Buy_Price", "Current_Price", "Current_Value",
+    "Investment", "Profit", "Profit_Pct", "Currency", "Trail_Pct",
+    "Trail_Stop", "Target", "Description", "Entry_Date", "Broker",
+    "Account", "Account_ID", "Raw_Symbol", "Market", "Exchange",
+    "Snapshot_Timestamp", "Source",
+]
+ORDER_COLUMNS = [
+    "Symbol", "OrderType", "Action", "Total_Qty", "Aux_Price",
+    "Limit_Price", "Stop_Price", "Trail_Pct", "Calculated_Stop",
+    "Currency", "Order_Source", "Account", "Account_ID", "Order_ID",
+    "Status", "Valid_Until", "Executed_Qty", "Raw_Symbol", "Market",
+    "Snapshot_Timestamp",
+]
+
+
+class SnapshotError(ValueError):
+    """Snapshot failed structural or integrity validation."""
+
+
+def _text(value: Any) -> str:
+    if value is None:
+        return ""
+    text = str(value).strip()
+    return "" if text.lower() in {"", "nan", "none", "null"} else text
+
+
+def _number(value: Any, default: float | None = None) -> float | None:
+    if value is None or isinstance(value, bool):
+        return default
+    try:
+        if isinstance(value, str):
+            value = value.strip().replace(" ", "").replace(",", ".")
+        result = float(value)
+    except (TypeError, ValueError):
+        return default
+    return result if math.isfinite(result) else default
+
+
+def _first_number(row: dict[str, Any], *keys: str) -> float | None:
+    lowered = {str(key).lower(): value for key, value in row.items()}
+    for key in keys:
+        number = _number(lowered.get(key.lower()))
+        if number is not None:
+            return number
+    return None
+
+
+def _first_text(row: dict[str, Any], *keys: str) -> str:
+    lowered = {str(key).lower(): value for key, value in row.items()}
+    for key in keys:
+        value = _text(lowered.get(key.lower()))
+        if value:
+            return value
+    return ""
+
+
+def _is_cash_row(row: dict[str, Any]) -> bool:
+    symbol = _first_text(row, "simbol", "symbol").upper()
+    kind = _first_text(row, "tsim", "tip", "type", "ba").lower()
+    return symbol in {"RON", "EUR", "USD", "GBP", "CHF"} or kind in {
+        "bani", "cash", "money",
+    }
+
+
+def _canonical_symbol(raw_symbol: str, market: str, exchange: str) -> str:
+    symbol = _text(raw_symbol).upper()
+    if not symbol:
+        return ""
+    venue = f"{market} {exchange}".upper()
+    if "." not in symbol and any(token in venue for token in ("BVB", "BUCHAREST")):
+        return f"{symbol}.RO"
+    return symbol
+
+
+def _action(value: Any) -> str:
+    text = _text(value).upper()
+    if text in {"C", "CUMP", "CUMPARARE", "BUY", "B"}:
+        return "BUY"
+    if text in {"V", "VANZ", "VANZARE", "SELL", "S"}:
+        return "SELL"
+    return text
+
+
+def _status_payload(ok: bool, **extra: Any) -> dict[str, Any]:
+    return {
+        "schema": "market-scanner.tradeville.sync-status.v1",
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "ok": bool(ok),
+        **extra,
+    }
+
+
+def _atomic_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary = tempfile.mkstemp(
+        prefix=f".{path.name}.", dir=str(path.parent or Path(".")), text=True
+    )
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+    except Exception:
+        try:
+            os.unlink(temporary)
+        except OSError:
+            pass
+        raise
+
+
+def _atomic_json(path: Path, payload: Any) -> None:
+    _atomic_text(path, json.dumps(payload, ensure_ascii=False, indent=2))
+
+
+def _atomic_csv(path: Path, frame: pd.DataFrame) -> None:
+    _atomic_text(path, frame.to_csv(index=False))
+
+
+def _existing_overlays(path: Path = PORTFOLIO_PATH) -> dict[tuple[str, str], dict[str, Any]]:
+    if not path.exists():
+        return {}
+    try:
+        frame = pd.read_csv(path)
+    except (OSError, pd.errors.ParserError, pd.errors.EmptyDataError):
+        return {}
+    overlays: dict[tuple[str, str], dict[str, Any]] = {}
+    for _, row in frame.iterrows():
+        symbol = _text(row.get("Symbol")).upper()
+        account = _text(row.get("Account"))
+        if not symbol:
+            continue
+        values = {
+            key: row.get(key) for key in (
+                "Trail_Pct", "Trail_Stop", "Target", "Description", "Entry_Date"
+            ) if key in frame.columns and not pd.isna(row.get(key))
+        }
+        overlays[(account, symbol)] = values
+        overlays.setdefault(("", symbol), values)
+    return overlays
+
+
+def validate_snapshot(snapshot: Any, expected_accounts: int = 2) -> dict[str, Any]:
+    if not isinstance(snapshot, dict) or snapshot.get("schema") != SCHEMA:
+        raise SnapshotError("schema Tradeville invalidă")
+    fetched_at = _text(snapshot.get("fetched_at"))
+    try:
+        parsed = datetime.fromisoformat(fetched_at.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise SnapshotError("timestamp Tradeville invalid") from exc
+    if parsed.tzinfo is None:
+        raise SnapshotError("timestamp Tradeville fără fus orar")
+    age = (datetime.now(timezone.utc) - parsed.astimezone(timezone.utc)).total_seconds()
+    if age < -120 or age > 300:
+        raise SnapshotError("snapshot Tradeville nu este contemporan")
+
+    accounts = snapshot.get("accounts")
+    if not isinstance(accounts, list) or len(accounts) < expected_accounts:
+        raise SnapshotError(
+            f"snapshot incomplet: {len(accounts) if isinstance(accounts, list) else 0}/"
+            f"{expected_accounts} conturi"
+        )
+    seen: set[str] = set()
+    for account in accounts:
+        if not isinstance(account, dict):
+            raise SnapshotError("cont Tradeville invalid")
+        person = account.get("person")
+        if not isinstance(person, dict):
+            raise SnapshotError("identitatea contului Tradeville lipsește")
+        person_id = _text(person.get("id"))
+        name = _text(person.get("name"))
+        if not person_id or not name or person_id in seen:
+            raise SnapshotError("cont Tradeville lipsă sau duplicat")
+        seen.add(person_id)
+        for key in ("portfolio", "orders", "account_info", "settlement"):
+            if not isinstance(account.get(key), list):
+                raise SnapshotError(f"{key} nu este un snapshot complet")
+    return snapshot
+
+
+def _position_records(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
+    overlays = _existing_overlays()
+    records: list[dict[str, Any]] = []
+    fetched_at = snapshot["fetched_at"]
+    for account in snapshot["accounts"]:
+        person = account["person"]
+        account_name = _text(person.get("name"))
+        account_id = _text(person.get("id"))
+        for raw in account["portfolio"]:
+            if not isinstance(raw, dict) or _is_cash_row(raw):
+                continue
+            raw_symbol = _first_text(raw, "simbol", "symbol")
+            market = _first_text(raw, "market", "piata")
+            exchange = _first_text(raw, "exchange", "bursa")
+            symbol = _canonical_symbol(raw_symbol, market, exchange)
+            shares = _first_number(raw, "sold", "cant", "shares", "quantity") or 0.0
+            if not symbol or shares <= 0:
+                continue
+            buy_price = _first_number(raw, "costm", "buy_price", "costmediu") or 0.0
+            current_price = _first_number(raw, "ppiata", "pret", "current_price") or 0.0
+            investment = _first_number(raw, "investitie", "valcump", "costtotal")
+            if investment is None:
+                investment = shares * buy_price
+            current_value = _first_number(raw, "eval", "evaluare", "current_value")
+            if current_value is None:
+                current_value = shares * current_price
+            profit = _first_number(raw, "profit", "profitpierdere")
+            if profit is None:
+                profit = current_value - investment
+            record = {
+                "Symbol": symbol,
+                "Shares": shares,
+                "Buy_Price": buy_price,
+                "Current_Price": current_price,
+                "Current_Value": current_value,
+                "Investment": investment,
+                "Profit": profit,
+                "Profit_Pct": (profit / investment * 100) if investment else 0.0,
+                "Currency": _first_text(raw, "valuta", "currency").upper(),
+                "Trail_Pct": 0.0,
+                "Trail_Stop": 0.0,
+                "Target": None,
+                "Description": _first_text(raw, "nume", "name"),
+                "Entry_Date": "",
+                "Broker": "Tradeville",
+                "Account": account_name,
+                "Account_ID": account_id,
+                "Raw_Symbol": raw_symbol,
+                "Market": market,
+                "Exchange": exchange,
+                "Snapshot_Timestamp": fetched_at,
+                "Source": "Tradeville WebSocket pf4",
+            }
+            overlay = overlays.get((account_name, symbol)) or overlays.get(("", symbol), {})
+            for key, value in overlay.items():
+                record[key] = value
+            records.append(record)
+    return records
+
+
+def _order_records(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    fetched_at = snapshot["fetched_at"]
+    for account in snapshot["accounts"]:
+        person = account["person"]
+        account_name = _text(person.get("name"))
+        account_id = _text(person.get("id"))
+        for raw in account["orders"]:
+            if not isinstance(raw, dict):
+                continue
+            raw_symbol = _first_text(raw, "simbol", "symbol")
+            market = _first_text(raw, "market", "piata")
+            symbol = _canonical_symbol(raw_symbol, market, _first_text(raw, "exchange", "bursa"))
+            action = _action(_first_text(raw, "csauv", "action", "side"))
+            if not symbol or action not in {"BUY", "SELL"}:
+                continue
+            order_type = _first_text(raw, "tipord", "ordact", "ordertype", "type").upper()
+            price = _first_number(raw, "pret", "price") or 0.0
+            stop = _first_number(raw, "pretn", "stop", "stop_price", "declansat") or 0.0
+            limit_price = _first_number(raw, "pretev", "limit_price")
+            if limit_price is None and order_type in {"LMT", "LIMIT", "LIMITA"}:
+                limit_price = price
+            records.append({
+                "Symbol": symbol,
+                "OrderType": order_type or "UNKNOWN",
+                "Action": action,
+                "Total_Qty": _first_number(raw, "cant", "quantity", "total_qty") or 0.0,
+                "Aux_Price": price if not limit_price else 0.0,
+                "Limit_Price": limit_price or 0.0,
+                "Stop_Price": stop,
+                "Trail_Pct": _first_number(raw, "trail_pct", "trailpct") or 0.0,
+                "Calculated_Stop": stop,
+                "Currency": _first_text(raw, "valuta", "currency").upper(),
+                "Order_Source": "Tradeville WebSocket",
+                "Account": account_name,
+                "Account_ID": account_id,
+                "Order_ID": _first_text(raw, "idord", "id", "order_id"),
+                "Status": _first_text(raw, "stare", "status", "trdstatus"),
+                "Valid_Until": _first_text(raw, "valabil", "valid_until"),
+                "Executed_Qty": _first_number(raw, "cantexec", "executed_qty") or 0.0,
+                "Raw_Symbol": raw_symbol,
+                "Market": market,
+                "Snapshot_Timestamp": fetched_at,
+            })
+    return records
+
+
+def _cash_rows(account: dict[str, Any]) -> list[dict[str, Any]]:
+    return [row for row in account["portfolio"] if isinstance(row, dict) and _is_cash_row(row)]
+
+
+def _eur_value(row: dict[str, Any]) -> float | None:
+    return _first_number(
+        row, "evaleuro", "evaleur", "evaluare_eur", "value_eur", "valoareeur"
+    )
+
+
+def _account_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
+    accounts = []
+    for account in snapshot["accounts"]:
+        person = account["person"]
+        cash_by_currency: dict[str, float] = {}
+        cash_value_eur: dict[str, float] = {}
+        for row in _cash_rows(account):
+            currency = _first_text(row, "valuta", "currency", "simbol", "symbol").upper()
+            amount = _first_number(row, "sold", "cant", "amount", "quantity")
+            if currency and amount is not None:
+                cash_by_currency[currency] = cash_by_currency.get(currency, 0.0) + amount
+            eur = _eur_value(row)
+            if currency and eur is not None:
+                cash_value_eur[currency] = cash_value_eur.get(currency, 0.0) + eur
+
+        all_eur = [
+            _eur_value(row) for row in account["portfolio"] if isinstance(row, dict)
+        ]
+        known_all_eur = [value for value in all_eur if value is not None]
+        total_cash = sum(cash_value_eur.values()) if cash_value_eur else None
+        nav = sum(known_all_eur) if known_all_eur else total_cash
+        summary = {
+            "NetLiquidation": nav,
+            "TotalCashValue": total_cash,
+            "AvailableFunds": total_cash,
+            "GrossPositionValue": (nav - total_cash) if nav is not None and total_cash is not None else None,
+        }
+        accounts.append({
+            "label": _text(person.get("name")),
+            "account_id": _text(person.get("id")),
+            "source": "Tradeville WebSocket pf4",
+            "fetched_at": snapshot["fetched_at"],
+            "base_currency": "EUR",
+            "summary": summary,
+            "cash_by_currency": cash_by_currency,
+            "cash_value_eur_by_currency": cash_value_eur,
+            "raw_account_info": account.get("account_info", []),
+            "raw_settlement": account.get("settlement", []),
+        })
+    return {
+        "fetched_at": snapshot["fetched_at"],
+        "source": "Tradeville WebSocket pf4",
+        "accounts": accounts,
+    }
+
+
+def persist_snapshot(
+    snapshot: dict[str, Any], password: str | None = None,
+    expected_accounts: int = 2,
+) -> dict[str, Any]:
+    validated = validate_snapshot(snapshot, expected_accounts=expected_accounts)
+    positions = pd.DataFrame(_position_records(validated), columns=PORTFOLIO_COLUMNS)
+    orders = pd.DataFrame(_order_records(validated), columns=ORDER_COLUMNS)
+    account = _account_snapshot(validated)
+
+    # Build every artifact before replacing any last-known-good file.
+    portfolio_csv = positions.to_csv(index=False)
+    orders_csv = orders.to_csv(index=False)
+    encrypted_account = None
+    encrypted_raw = None
+    if password:
+        encrypted_account = json.loads(market_security.encrypt_for_js(
+            json.dumps(account, ensure_ascii=False), password
+        ))
+        encrypted_raw = json.loads(market_security.encrypt_for_js(
+            json.dumps(validated, ensure_ascii=False), password
+        ))
+
+    _atomic_text(PORTFOLIO_PATH, portfolio_csv)
+    _atomic_text(ORDERS_PATH, orders_csv)
+    if encrypted_account is not None:
+        _atomic_json(ACCOUNT_ENCRYPTED_PATH, encrypted_account)
+        _atomic_json(RAW_ENCRYPTED_PATH, encrypted_raw)
+
+    status = _status_payload(
+        True,
+        fetched_at=validated["fetched_at"],
+        source=validated.get("source"),
+        account_count=len(validated["accounts"]),
+        position_count=len(positions),
+        active_order_count=len(orders),
+    )
+    _atomic_json(STATUS_PATH, status)
+    return status
+
+
+class _BridgeState:
+    def __init__(self) -> None:
+        self.job_id = secrets.token_urlsafe(12)
+        self.token = secrets.token_urlsafe(32)
+        self.claimed = False
+        self.result: dict[str, Any] | None = None
+        self.event = threading.Event()
+        self.lock = threading.Lock()
+
+
+def _handler_factory(state: _BridgeState):
+    class Handler(BaseHTTPRequestHandler):
+        server_version = "MarketScannerTradevilleBridge/1"
+
+        def log_message(self, _format: str, *_args: Any) -> None:
+            return
+
+        def _authorised(self) -> bool:
+            return hmac.compare_digest(
+                self.headers.get("X-Market-Scanner-Bridge", ""), BRIDGE_HEADER
+            )
+
+        def _json(self, status: int, payload: Any) -> None:
+            data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(data)
+
+        def do_GET(self) -> None:  # noqa: N802
+            if not self._authorised():
+                self._json(403, {"error": "forbidden"})
+                return
+            if urlparse(self.path).path != "/v1/job":
+                self._json(404, {"error": "not_found"})
+                return
+            with state.lock:
+                if state.claimed or state.result is not None:
+                    self.send_response(204)
+                    self.send_header("Cache-Control", "no-store")
+                    self.end_headers()
+                    return
+                state.claimed = True
+                payload = {"id": state.job_id, "token": state.token}
+            self._json(200, payload)
+
+        def do_POST(self) -> None:  # noqa: N802
+            if not self._authorised():
+                self._json(403, {"error": "forbidden"})
+                return
+            expected_path = f"/v1/jobs/{state.job_id}/result"
+            if urlparse(self.path).path != expected_path:
+                self._json(404, {"error": "not_found"})
+                return
+            length = int(self.headers.get("Content-Length", "0") or 0)
+            if length <= 0 or length > MAX_BODY_BYTES:
+                self._json(413, {"error": "invalid_size"})
+                return
+            try:
+                payload = json.loads(self.rfile.read(length).decode("utf-8"))
+            except (UnicodeDecodeError, ValueError):
+                self._json(400, {"error": "invalid_json"})
+                return
+            if not hmac.compare_digest(str(payload.get("token", "")), state.token):
+                self._json(403, {"error": "invalid_token"})
+                return
+            with state.lock:
+                if state.result is not None:
+                    self._json(409, {"error": "already_completed"})
+                    return
+                state.result = payload
+                state.event.set()
+            self._json(200, {"ok": True})
+
+    return Handler
+
+
+def run_sync(
+    timeout: float = 35.0, host: str = DEFAULT_HOST, port: int = DEFAULT_PORT,
+    expected_accounts: int = 2,
+) -> dict[str, Any]:
+    if host not in {"127.0.0.1", "::1", "localhost"}:
+        raise SnapshotError("bridge-ul poate asculta numai pe loopback")
+    state = _BridgeState()
+    server = ThreadingHTTPServer((host, port), _handler_factory(state))
+    worker = threading.Thread(target=server.serve_forever, daemon=True)
+    worker.start()
+    try:
+        print(
+            "Tradeville bridge așteaptă extensia Chrome pe "
+            f"http://{host}:{port} ({int(timeout)}s)..."
+        )
+        if not state.event.wait(timeout):
+            raise TimeoutError(
+                "extensia nu a răspuns; verifică dacă este instalată și "
+                "portal.tradeville.ro este deschis și autentificat"
+            )
+        result = state.result or {}
+        if result.get("ok") is not True:
+            raise SnapshotError(_text(result.get("error")) or "sync Tradeville eșuat")
+        password = os.environ.get("PORTFOLIO_ORDER_CACHE_PASSWORD") or os.environ.get(
+            "PORTFOLIO_PASSWORD"
+        )
+        return persist_snapshot(
+            result.get("snapshot"), password=password,
+            expected_accounts=expected_accounts,
+        )
+    finally:
+        server.shutdown()
+        server.server_close()
+        worker.join(timeout=2)
+
+
+def record_failure(error: Exception) -> None:
+    status = _status_payload(
+        False,
+        stale=True,
+        error=type(error).__name__,
+        message=str(error)[:400],
+        last_good_snapshot_preserved=True,
+    )
+    _atomic_json(STATUS_PATH, status)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("command", nargs="?", default="sync", choices=("sync",))
+    parser.add_argument("--timeout", type=float, default=float(os.environ.get(
+        "TRADEVILLE_BRIDGE_TIMEOUT", "35"
+    )))
+    parser.add_argument("--port", type=int, default=int(os.environ.get(
+        "TRADEVILLE_BRIDGE_PORT", str(DEFAULT_PORT)
+    )))
+    parser.add_argument("--expected-accounts", type=int, default=int(os.environ.get(
+        "TRADEVILLE_EXPECTED_ACCOUNTS", "2"
+    )))
+    args = parser.parse_args()
+    try:
+        status = run_sync(
+            timeout=args.timeout, port=args.port,
+            expected_accounts=args.expected_accounts,
+        )
+    except Exception as error:  # Preserve last-known-good data on every failure.
+        record_failure(error)
+        print(f"Tradeville WebSocket indisponibil: {error}")
+        return 1
+    print(
+        "Tradeville WebSocket sincronizat: "
+        f"{status['account_count']} conturi, {status['position_count']} poziții, "
+        f"{status['active_order_count']} ordine active."
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

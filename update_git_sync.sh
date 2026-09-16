@@ -54,6 +54,8 @@ SYNC_GENERATED_FILES=(
     "technical_events_state.json.gz"
     "sp500_tickers.json"
     "tradeville_account.enc.json"
+    "tradeville_ws_snapshot.enc.json"
+    "tradeville_sync_status.json"
     "tradeville_orders.csv"
     "tradeville_portfolio.csv"
     "tws_account.enc.json"

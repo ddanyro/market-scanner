@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Market Scanner Tradeville Bridge",
+  "version": "1.0.0",
+  "description": "Sincronizare read-only a portofoliului Tradeville cu Market Scanner.",
+  "permissions": ["storage", "scripting"],
+  "host_permissions": [
+    "https://portal.tradeville.ro/*",
+    "http://127.0.0.1:43129/*"
+  ],
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://portal.tradeville.ro/*"],
+      "js": ["page_ws_client.js"],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://portal.tradeville.ro/*"],
+      "js": ["content_bridge.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Market Scanner Tradeville Bridge"
+  }
+}

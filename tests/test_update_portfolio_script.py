@@ -65,6 +65,13 @@ class TestUpdatePortfolioScript(unittest.TestCase):
         self.assertIn('evaluate_shadow_forward.py', runner)
         self.assertIn('evaluate_technical_events_forward.py', runner)
 
+    def test_portfolio_update_runs_tradeville_bridge_before_scanner(self):
+        script = (self.root / 'update_portfolio.sh').read_text(encoding='utf-8')
+        bridge = script.index('tradeville_bridge.py sync')
+        scanner = script.index('market_scanner.py --mode portfolio --tws')
+        self.assertLess(bridge, scanner)
+        self.assertIn('păstrăm ultimul snapshot valid', script)
+
     def test_ro_update_loads_shared_r2_configuration(self):
         script = (self.root / 'update_ro.sh').read_text(encoding='utf-8')
         self.assertIn('source "./update_git_sync.sh"', script)

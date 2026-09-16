@@ -453,15 +453,26 @@ def sync_ibkr(allow_flex=True):
                          'Symbol': sym,
                          'Shares': qty,
                          'Buy_Price': bp,
-                         'Current_Price': 0.0,
-                         'Current_Value': 0.0,
-                         'Profit': 0.0,
-                         'Profit_Pct': 0.0,
-                         'Investment': qty * bp,
+                         'Current_Price': float(row.get('Current_Price', 0) or 0),
+                         'Current_Value': float(row.get('Current_Value', 0) or 0),
+                         'Profit': float(row.get('Profit', 0) or 0),
+                         'Profit_Pct': float(row.get('Profit_Pct', 0) or 0),
+                         'Investment': float(row.get('Investment', qty * bp) or qty * bp),
+                         'Currency': str(row.get('Currency', '') or '').strip(),
                          'Trail_Pct': float(row.get('Trail_Pct', 0)),
                          'Trail_Stop': float(row.get('Trail_Stop', 0)),
                          'Trail_Stop_IBKR': 0, # Manual nu are IBKR Stop
-                         'Entry_Date': str(row.get('Entry_Date', '')).strip() if 'Entry_Date' in row and not pd.isna(row.get('Entry_Date')) else ''
+                         'Entry_Date': str(row.get('Entry_Date', '')).strip() if 'Entry_Date' in row and not pd.isna(row.get('Entry_Date')) else '',
+                         'Target': float(row.get('Target')) if pd.notna(row.get('Target')) else None,
+                         'Description': str(row.get('Description', '') or '').strip(),
+                         'Broker': 'Tradeville',
+                         'Account': str(row.get('Account', '') or '').strip(),
+                         'Account_ID': str(row.get('Account_ID', '') or '').strip(),
+                         'Raw_Symbol': str(row.get('Raw_Symbol', sym) or sym).strip(),
+                         'Market': str(row.get('Market', '') or '').strip(),
+                         'Exchange': str(row.get('Exchange', '') or '').strip(),
+                         'Snapshot_Timestamp': str(row.get('Snapshot_Timestamp', '') or '').strip(),
+                         'Source': str(row.get('Source', 'Tradeville snapshot') or 'Tradeville snapshot').strip(),
                      }
                      positions.append(item)
                  except: pass
@@ -527,6 +538,14 @@ def sync_ibkr(allow_flex=True):
                     return min(dates)
                 return ""
 
+            def join_distinct(series):
+                values = []
+                for value in series:
+                    text = str(value or '').strip()
+                    if text and text.lower() != 'nan' and text not in values:
+                        values.append(text)
+                return ', '.join(values)
+
             agg_rules = {
                 'Shares': 'sum',
                 'Investment': 'sum',
@@ -537,13 +556,28 @@ def sync_ibkr(allow_flex=True):
                 'Trail_Pct': 'max',
                 'Trail_Stop_IBKR': 'max',
                 'Trail_Stop': 'max',
-                'Entry_Date': get_earliest_date
+                'Entry_Date': get_earliest_date,
+                'Target': 'max',
+                'Description': join_distinct,
+                'Broker': join_distinct,
+                'Account': join_distinct,
+                'Account_ID': join_distinct,
+                'Raw_Symbol': 'first',
+                'Market': 'first',
+                'Exchange': 'first',
+                'Snapshot_Timestamp': 'max',
+                'Source': join_distinct,
             }
             
             # Ensure columns exist
+            text_columns = {
+                'Entry_Date', 'Description', 'Broker', 'Account',
+                'Account_ID', 'Raw_Symbol', 'Market', 'Exchange',
+                'Snapshot_Timestamp', 'Source',
+            }
             for col in agg_rules:
                 if col not in df_proxy.columns:
-                    df_proxy[col] = 0.0 if col != 'Entry_Date' else ''
+                    df_proxy[col] = '' if col in text_columns else 0.0
 
             # Group
             grouped = df_proxy.groupby('Symbol', as_index=False).agg(agg_rules)

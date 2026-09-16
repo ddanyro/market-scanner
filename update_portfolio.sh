@@ -30,6 +30,15 @@ else
     PYTHON_BIN="python3"
 fi
 
+log_step "Sincronizare Tradeville WebSocket"
+if [ "${TRADEVILLE_WS_SYNC_ENABLED:-true}" = "true" ]; then
+    if ! "$PYTHON_BIN" -u tradeville_bridge.py sync; then
+        echo "Avertisment: Tradeville WebSocket nu este disponibil; păstrăm ultimul snapshot valid." >&2
+    fi
+else
+    echo "Sincronizarea Tradeville WebSocket este dezactivată prin TRADEVILLE_WS_SYNC_ENABLED."
+fi
+
 log_step "Actualizare portofoliu"
 "$PYTHON_BIN" -u market_scanner.py --mode portfolio --tws
 
