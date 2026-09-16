@@ -8068,6 +8068,12 @@ def generate_html_dashboard(
             let portfolioChatConfig = null;
             let portfolioChatHistory = [];
 
+            function portfolioChatAccessToken() {
+                return sessionStorage.getItem(
+                    'market-scanner-dashboard-access-v1'
+                ) || (portfolioChatConfig && portfolioChatConfig.access_token) || '';
+            }
+
             function initializeProtectedDashboard() {
                 if (typeof PORTFOLIO_DATA !== 'undefined') {
                     renderPortfolio(PORTFOLIO_DATA);
@@ -8462,7 +8468,7 @@ def generate_html_dashboard(
                             message: message,
                             history: priorHistory,
                             context: portfolioChatConfig.context || {},
-                            accessToken: portfolioChatConfig.access_token || '',
+                            accessToken: portfolioChatAccessToken(),
                             continuation: isContinuation === true,
                             streamProgress: true
                         })
