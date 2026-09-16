@@ -27,6 +27,21 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn('font-variant-numeric: tabular-nums;', scanner)
         self.assertIn('white-space: nowrap;', scanner)
 
+    def test_portfolio_chat_has_canonical_endpoint_fallback(self):
+        root = os.path.join(os.path.dirname(__file__), '..')
+        with open(
+            os.path.join(root, 'market_scanner.py'),
+            'r', encoding='utf-8',
+        ) as handle:
+            scanner = handle.read()
+
+        self.assertIn('DEFAULT_PORTFOLIO_CHAT_API_URL', scanner)
+        self.assertIn(
+            "'https://market-scanner-portfolio-chat.daniel-dragomir.workers.dev'",
+            scanner,
+        )
+        self.assertIn("or DEFAULT_PORTFOLIO_CHAT_API_URL", scanner)
+
     def test_romanian_market_has_separate_hourly_update_without_bvb_api(self):
         root = os.path.join(os.path.dirname(__file__), '..')
         with open(

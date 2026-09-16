@@ -128,6 +128,9 @@ CBOE_INDICATOR_HISTORY_URLS = {
     )
 }
 MARKET_INDICATOR_MAX_AGE_DAYS = 7
+DEFAULT_PORTFOLIO_CHAT_API_URL = (
+    'https://market-scanner-portfolio-chat.daniel-dragomir.workers.dev'
+)
 
 
 def _portfolio_chat_access_token(password):
@@ -10120,7 +10123,10 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         buy_candidates=buy_candidate_payload,
         dashboard_state=full_state,
     )
-    portfolio_chat_endpoint = os.environ.get('PORTFOLIO_CHAT_API_URL', '').strip()
+    portfolio_chat_endpoint = (
+        os.environ.get('PORTFOLIO_CHAT_API_URL', '').strip()
+        or DEFAULT_PORTFOLIO_CHAT_API_URL
+    )
     full_pf_data = {
         "html": portfolio_rows_html,
         "buying_orders_html": buying_rows_html,
