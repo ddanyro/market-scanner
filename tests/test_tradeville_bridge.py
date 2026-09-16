@@ -2,7 +2,7 @@ import json
 import os
 import tempfile
 import unittest
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -16,6 +16,7 @@ def sample_snapshot():
     now = datetime.now(timezone.utc).isoformat()
     return {
         "schema": tradeville_bridge.SCHEMA,
+        "bridge_version": 2,
         "fetched_at": now,
         "source": "Tradeville WebSocket pf4",
         "exchange_rates": [],
@@ -39,6 +40,8 @@ def sample_snapshot():
                 ],
                 "account_info": [],
                 "settlement": [],
+                "portfolio_graph": [],
+                "portfolio_graph_request": {"starts_at": "2025-09-16"},
             },
             {
                 "person": {"name": "ZENSHOP COM SRL", "id": "Z/1"},
@@ -48,17 +51,85 @@ def sample_snapshot():
                 "orders": [],
                 "account_info": [],
                 "settlement": [],
+                "portfolio_graph": [],
+                "portfolio_graph_request": {"starts_at": "2025-09-16"},
             },
         ],
     }
 
 
 class TestTradevilleBridge(unittest.TestCase):
+    def test_reconstructs_nav_cash_and_transfer_adjusted_profit(self):
+        epoch = datetime(2000, 1, 1, tzinfo=timezone.utc)
+        minute = lambda value: int(
+            (datetime.fromisoformat(value).replace(tzinfo=timezone.utc) - epoch)
+            .total_seconds() / 60
+        )
+        snapshot = sample_snapshot()
+        snapshot["exchange_rates"] = [{"valuta": "EUR", "curs": 5.0}]
+        account = snapshot["accounts"][0]
+        account["portfolio_graph"] = [
+            [],
+            [{
+                "mnt": minute("2025-09-17"), "cont": "RON",
+                "suma": 500, "aport": 500,
+            }],
+            [{
+                "mnt": minute("2025-09-16"), "cont": "RON",
+                "curs": 1, "valuta": "RON",
+            }],
+            [{"cont": "RON", "sold": 1000}],
+        ]
+
+        history = tradeville_bridge._account_history(
+            account, snapshot, start=date(2025, 9, 16)
+        )
+
+        self.assertEqual(
+            [point["nav"] for point in history["nav_history"]],
+            [200.0, 300.0],
+        )
+        self.assertEqual(
+            [point["cash"] for point in history["cash_history"]],
+            [200.0, 300.0],
+        )
+        self.assertEqual(
+            [point["nav"] for point in history["adjusted_nav_history"]],
+            [300.0, 300.0],
+        )
+        self.assertEqual(
+            [point["profit"] for point in history["profit_history"]],
+            [0.0, 0.0],
+        )
+        self.assertTrue(history["history_metadata"]["raw_reconstructed"])
+
+    def test_history_start_uses_first_ibkr_nav_date(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "tws_account.json"
+            path.write_text(json.dumps({
+                "nav_history": [
+                    {"date": "20250918", "nav": 2},
+                    {"date": "20250916", "nav": 1},
+                ]
+            }), encoding="utf-8")
+            self.assertEqual(
+                tradeville_bridge._history_start(path), date(2025, 9, 16)
+            )
+
     def test_requires_two_distinct_contemporary_accounts(self):
         snapshot = sample_snapshot()
         self.assertIs(tradeville_bridge.validate_snapshot(snapshot), snapshot)
         snapshot["accounts"] = snapshot["accounts"][:1]
         with self.assertRaises(tradeville_bridge.SnapshotError):
+            tradeville_bridge.validate_snapshot(snapshot)
+
+    def test_rejects_old_extension_without_history_protocol(self):
+        snapshot = sample_snapshot()
+        snapshot["schema"] = "market-scanner.tradeville.websocket.v1"
+        snapshot.pop("bridge_version")
+        with self.assertRaisesRegex(
+            tradeville_bridge.SnapshotError, "chrome://extensions"
+        ):
             tradeville_bridge.validate_snapshot(snapshot)
 
     def test_normalises_positions_orders_and_cash_without_mixing_accounts(self):

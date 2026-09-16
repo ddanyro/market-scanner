@@ -1612,6 +1612,34 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         )
         self.assertEqual(normalized['accounts'][0]['label'], 'IBKR')
 
+    def test_tradeville_history_is_normalized_without_losing_account_identity(self):
+        account_data = {
+            'fetched_at': datetime.now().astimezone().isoformat(),
+            'accounts': [],
+            'tradeville_nav_history': [{
+                'date': '2025-09-16', 'nav': 123.456, 'currency': 'EUR',
+                'account': 'Personal', 'account_id': 'P/1',
+                'source': 'graf_pers_brut',
+            }],
+            'tradeville_profit_history': [{
+                'date': '2025-09-16', 'profit': 4.567,
+                'return_pct': 3.7, 'currency': 'EUR',
+                'account': 'Personal', 'account_id': 'P/1',
+            }],
+        }
+
+        normalized = market_scanner_analysis._normalize_tws_account_data(
+            account_data
+        )
+
+        self.assertEqual(normalized['tradeville_nav_history'][0]['nav'], 123.46)
+        self.assertEqual(
+            normalized['tradeville_nav_history'][0]['account_id'], 'P/1'
+        )
+        self.assertEqual(
+            normalized['tradeville_profit_history'][0]['profit'], 4.57
+        )
+
     def test_stale_tradeville_snapshot_does_not_mark_fresh_ibkr_as_stale(self):
         now = datetime(2026, 8, 12, 8, 0, tzinfo=timezone.utc)
         account_data = {
@@ -1750,6 +1778,35 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(history[-1]['net_liquidation'], 301)
         self.assertEqual(history[-1]['total_cash'], 140)
 
+    def test_rebuilt_tradeville_history_drops_legacy_combined_points(self):
+        account_data = {
+            'accounts': [
+                {'label': 'IBKR', 'source': 'IBKR TWS',
+                 'base_currency': 'EUR', 'summary': {
+                    'NetLiquidation': 100, 'TotalCashValue': 50,
+                }},
+                {'label': 'Personal', 'source': 'Tradeville WebSocket pf4',
+                 'base_currency': 'EUR', 'summary': {
+                    'NetLiquidation': 200, 'TotalCashValue': 80,
+                }},
+            ],
+            'tradeville_nav_history': [{
+                'date': '2025-09-16', 'nav': 200, 'currency': 'EUR',
+            }],
+        }
+        legacy = [{
+            'timestamp': '2026-07-30T10:00:00+00:00',
+            'net_liquidation': 999, 'total_cash': 888, 'currency': 'EUR',
+        }]
+
+        rebuilt = market_scanner_analysis.update_broker_totals_history(
+            legacy, account_data, observed_at='2026-09-16T10:00:00+00:00'
+        )
+
+        self.assertEqual(len(rebuilt), 1)
+        self.assertEqual(rebuilt[0]['net_liquidation'], 300)
+        self.assertEqual(rebuilt[0]['source_version'], 'tradeville_ws_graph_v1')
+
     def test_broker_totals_history_uses_stable_account_password(self):
         expected = [{
             'timestamp': '2026-07-30T09:00:00+03:00',
@@ -1825,6 +1882,23 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
                     {'date': '20260729', 'cash': 50, 'currency': 'EUR'},
                     {'date': '20260730', 'cash': 55, 'currency': 'EUR'},
                 ],
+                'tradeville_nav_history': [{
+                    'date': '20260730', 'nav': 200, 'currency': 'EUR',
+                    'account': 'Personal', 'account_id': 'P/1',
+                }],
+                'tradeville_adjusted_nav_history': [{
+                    'date': '20260730', 'nav': 210, 'currency': 'EUR',
+                    'account': 'Personal', 'account_id': 'P/1',
+                }],
+                'tradeville_cash_history': [{
+                    'date': '20260730', 'cash': 80, 'currency': 'EUR',
+                    'account': 'Personal', 'account_id': 'P/1',
+                }],
+                'tradeville_profit_history': [{
+                    'date': '20260730', 'profit': 10, 'return_pct': 5,
+                    'currency': 'EUR', 'account': 'Personal',
+                    'account_id': 'P/1',
+                }],
             },
         }
         rendered = market_scanner_analysis._render_portfolio_ai_html(snapshot)
@@ -1838,6 +1912,10 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertNotIn('<canvas', rendered)
         self.assertIn('data-ibkr-nav-history=', rendered)
         self.assertIn('data-ibkr-cash-history=', rendered)
+        self.assertIn('data-tradeville-nav-history=', rendered)
+        self.assertIn('data-tradeville-adjusted-nav-history=', rendered)
+        self.assertIn('data-tradeville-cash-history=', rendered)
+        self.assertIn('data-tradeville-profit-history=', rendered)
         self.assertIn('20260729', rendered)
         self.assertIn('openBrokerTotalsDetail(this)', rendered)
 
@@ -4164,25 +4242,6 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
             [item['Ticker'] for item in result['external_buy_research']],
             ['DIGI.RO'],
         )
-
-    def test_correct_tradeville_snapshot_does_not_double_count_cash(self):
-        incorrect = {
-            'fetched_at': '2026-07-26T00:00:00+03:00',
-            'accounts': [{
-                'label': 'Tradeville', 'source': 'Tradeville manual',
-                'summary': {
-                    'NetLiquidation': 121216.95,
-                    'TotalCashValue': 48438.86,
-                    'GrossPositionValue': 72778.09,
-                },
-            }],
-        }
-        corrected = market_scanner._correct_tradeville_manual_snapshot(incorrect)
-        summary = corrected['accounts'][0]['summary']
-        self.assertEqual(summary['NetLiquidation'], 72778.09)
-        self.assertEqual(summary['GrossPositionValue'], 24339.23)
-        self.assertEqual(summary['CostBasis'], 11306.92)
-        self.assertEqual(incorrect['accounts'][0]['summary']['NetLiquidation'], 121216.95)
 
     def test_only_validated_external_candidates_are_promoted(self):
         with tempfile.TemporaryDirectory() as temp_dir:

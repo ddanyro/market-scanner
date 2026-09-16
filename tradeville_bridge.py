@@ -18,7 +18,7 @@ import secrets
 import tempfile
 import threading
 import time
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -29,16 +29,18 @@ import pandas as pd
 import market_security
 
 
-SCHEMA = "market-scanner.tradeville.websocket.v1"
+SCHEMA = "market-scanner.tradeville.websocket.v2"
 BRIDGE_HEADER = "market-scanner-tradeville-v1"
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 43129
-MAX_BODY_BYTES = 12 * 1024 * 1024
+MAX_BODY_BYTES = 32 * 1024 * 1024
 PORTFOLIO_PATH = Path("tradeville_portfolio.csv")
 ORDERS_PATH = Path("tradeville_orders.csv")
 ACCOUNT_ENCRYPTED_PATH = Path("tradeville_account.enc.json")
 RAW_ENCRYPTED_PATH = Path("tradeville_ws_snapshot.enc.json")
 STATUS_PATH = Path("tradeville_sync_status.json")
+IBKR_ACCOUNT_PATH = Path("tws_account.json")
+DEFAULT_HISTORY_START = date(2025, 9, 16)
 
 PORTFOLIO_COLUMNS = [
     "Symbol", "Shares", "Buy_Price", "Current_Price", "Current_Value",
@@ -185,7 +187,15 @@ def _existing_overlays(path: Path = PORTFOLIO_PATH) -> dict[tuple[str, str], dic
 
 def validate_snapshot(snapshot: Any, expected_accounts: int = 2) -> dict[str, Any]:
     if not isinstance(snapshot, dict) or snapshot.get("schema") != SCHEMA:
-        raise SnapshotError("schema Tradeville invalidă")
+        raise SnapshotError(
+            "versiune Tradeville bridge veche; apasă Reload în "
+            "chrome://extensions și reîncarcă fila Tradeville"
+        )
+    if snapshot.get("bridge_version") != 2:
+        raise SnapshotError(
+            "extensia Tradeville nu include protocolul de istoric v2; "
+            "apasă Reload în chrome://extensions"
+        )
     fetched_at = _text(snapshot.get("fetched_at"))
     try:
         parsed = datetime.fromisoformat(fetched_at.replace("Z", "+00:00"))
@@ -218,7 +228,308 @@ def validate_snapshot(snapshot: Any, expected_accounts: int = 2) -> dict[str, An
         for key in ("portfolio", "orders", "account_info", "settlement"):
             if not isinstance(account.get(key), list):
                 raise SnapshotError(f"{key} nu este un snapshot complet")
+        if not isinstance(account.get("portfolio_graph"), list):
+            raise SnapshotError(
+                "portfolio_graph lipsește; extensia Chrome trebuie reîncărcată"
+            )
+        if not isinstance(account.get("portfolio_graph_request"), dict):
+            raise SnapshotError(
+                "proveniența portfolio_graph lipsește; extensia Chrome "
+                "trebuie reîncărcată"
+            )
     return snapshot
+
+
+def _decode_parallel_rows(value: Any) -> list[dict[str, Any]]:
+    """Decode the column-oriented tables used by Tradeville's pf4 protocol."""
+    if not value:
+        return []
+    if isinstance(value, list):
+        return [item for item in value if isinstance(item, dict)]
+    if not isinstance(value, dict):
+        return []
+    lengths = [len(item) if isinstance(item, list) else 1 for item in value.values()]
+    length = max(lengths, default=0)
+    return [{
+        key: item[index] if isinstance(item, list) and index < len(item) else (
+            None if isinstance(item, list) else item
+        )
+        for key, item in value.items()
+    } for index in range(length)]
+
+
+def _history_start(path: Path = IBKR_ACCOUNT_PATH) -> date:
+    """Use the first actual IBKR NAV observation as the common start date."""
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        return DEFAULT_HISTORY_START
+    dates: list[date] = []
+    for point in payload.get("nav_history", []):
+        raw = _text(point.get("date")) if isinstance(point, dict) else ""
+        raw = raw.strip("'\"")[:10]
+        try:
+            parsed = (
+                datetime.strptime(raw[:8], "%Y%m%d").date()
+                if "-" not in raw else date.fromisoformat(raw)
+            )
+        except ValueError:
+            continue
+        dates.append(parsed)
+    return min(dates) if dates else DEFAULT_HISTORY_START
+
+
+def _eur_rate(snapshot: dict[str, Any]) -> float | None:
+    for row in snapshot.get("exchange_rates", []):
+        if (
+            isinstance(row, dict)
+            and _first_text(row, "valuta", "currency").upper() == "EUR"
+        ):
+            rate = _first_number(row, "curs", "rate")
+            if rate and rate > 0:
+                return rate
+    return None
+
+
+def _tradeville_graph_points(raw_graph: Any) -> tuple[list[dict[str, Any]], bool]:
+    """Rebuild the non-intraday series using Tradeville PortfolioPage.Ir rules."""
+    if not isinstance(raw_graph, list) or not raw_graph:
+        return [], False
+    if (
+        isinstance(raw_graph[0], dict)
+        and {"data", "eval"} <= set(raw_graph[0])
+    ):
+        return [dict(item) for item in raw_graph if isinstance(item, dict)], False
+    if len(raw_graph) < 4:
+        return [], False
+
+    holdings: dict[str, dict[str, Any]] = {}
+    rates: dict[str, float] = {}
+    for row in _decode_parallel_rows(raw_graph[3]):
+        symbol = _text(row.get("simbol")).strip()
+        account = _text(row.get("cont"))
+        if not symbol and not account:
+            continue
+        key = symbol or f"${account}"
+        if symbol and key in holdings:
+            holdings[key]["sold"] += _number(row.get("sold"), 0.0) or 0.0
+        else:
+            holdings[key] = dict(row)
+            holdings[key]["pret"] = (
+                _number(row.get("pret"), 0.0) if symbol else 1.0
+            )
+            holdings[key]["sold"] = _number(row.get("sold"), 0.0) or 0.0
+
+    events: list[dict[str, Any]] = []
+    for table_index in (2, 1, 0):
+        events.extend(_decode_parallel_rows(raw_graph[table_index]))
+    events.sort(key=lambda row: _number(row.get("mnt"), 0.0) or 0.0)
+
+    points: list[dict[str, Any]] = []
+    epoch = datetime(2000, 1, 1, tzinfo=timezone.utc)
+    index = 0
+    while index < len(events):
+        minute = _number(events[index].get("mnt"), 0.0) or 0.0
+        end = index + 1
+        if minute:
+            while end < len(events):
+                candidate = _number(events[end].get("mnt"), 0.0) or 0.0
+                if candidate >= minute + 5:
+                    break
+                end += 1
+        group = events[index:end]
+        contribution = 0.0
+        turnover = 0.0
+
+        # The portal applies all currency events before holdings/cash events
+        # within the same five-minute bucket.
+        for event in group:
+            if "curs" in event and "valuta" in event:
+                account = _text(event.get("cont"))
+                rate = _number(event.get("curs"))
+                if account and rate is not None:
+                    rates[account] = rate
+                    for holding in holdings.values():
+                        if _text(holding.get("cont")) == account:
+                            holding["curs"] = rate
+
+        for event in group:
+            if "curs" in event and "valuta" in event:
+                continue
+            account = _text(event.get("cont"))
+            quantity = _number(event.get("cant"), 0.0) or 0.0
+            amount = _number(event.get("suma"), 0.0) or 0.0
+            symbol = _text(event.get("simbol")).strip()
+            price = _number(event.get("pret"))
+            if account and (quantity or amount):
+                if symbol:
+                    holding = holdings.setdefault(symbol, {
+                        "cont": account,
+                        "simbol": symbol,
+                        "sold": 0.0,
+                        "pret": price or 0.0,
+                        "curs": rates.get(account, 1.0),
+                    })
+                    if account in rates:
+                        holding["curs"] = rates[account]
+                    holding["sold"] = (
+                        _number(holding.get("sold"), 0.0) or 0.0
+                    ) + quantity
+                    if price is not None:
+                        holding["pret"] = price
+                    if not holding["sold"]:
+                        holdings.pop(symbol, None)
+                cash_key = f"${account}"
+                cash = holdings.setdefault(cash_key, {
+                    "sold": 0.0,
+                    "pret": 1.0,
+                    "cont": account,
+                    "curs": rates.get(account, 1.0),
+                })
+                if account in rates:
+                    cash["curs"] = rates[account]
+                rate = _number(cash.get("curs"), 1.0) or 1.0
+                if event.get("aport") is not None:
+                    contribution += (
+                        _number(event.get("aport"), 0.0) or 0.0
+                    ) * rate
+                if (
+                    (event.get("aport") is None or not _number(event.get("aport"), 0.0))
+                    and amount
+                ):
+                    turnover += abs(amount * rate)
+                cash["sold"] = (
+                    _number(cash.get("sold"), 0.0) or 0.0
+                ) + amount
+            elif symbol and symbol in holdings and price is not None:
+                holdings[symbol]["pret"] = price
+
+        for holding in holdings.values():
+            account = _text(holding.get("cont"))
+            holding["curs"] = rates.get(
+                account, _number(holding.get("curs"), 1.0) or 1.0
+            )
+        nav_ron = sum(
+            (_number(item.get("sold"), 0.0) or 0.0)
+            * (_number(item.get("pret"), 0.0) or 0.0)
+            * (_number(item.get("curs"), 1.0) or 1.0)
+            for item in holdings.values()
+        )
+        cash_ron = sum(
+            (_number(item.get("sold"), 0.0) or 0.0)
+            * (_number(item.get("curs"), 1.0) or 1.0)
+            for key, item in holdings.items() if key.startswith("$")
+        )
+        event_minute = _number(group[-1].get("mnt"), 0.0) or 0.0
+        point_date = (epoch + timedelta(minutes=event_minute)).date().isoformat()
+        points.append({
+            "data": point_date,
+            "eval": nav_ron,
+            "cash": cash_ron,
+            "aport": contribution,
+            "rulaj": turnover,
+        })
+        index = end
+    return points, True
+
+
+def _account_history(
+    account: dict[str, Any],
+    snapshot: dict[str, Any],
+    start: date | None = None,
+) -> dict[str, Any]:
+    start = start or _history_start()
+    points, reconstructed = _tradeville_graph_points(
+        account.get("portfolio_graph")
+    )
+    eur_rate = _eur_rate(snapshot)
+    if not points or not eur_rate:
+        return {
+            "nav_history": [],
+            "adjusted_nav_history": [],
+            "cash_history": [],
+            "profit_history": [],
+            "history_metadata": {
+                "available": False,
+                "start_requested": start.isoformat(),
+                "source": "Tradeville WebSocket pf4 / graf_pers_brut",
+                "reason": "graph_or_eur_rate_missing",
+            },
+        }
+
+    normalized = []
+    for item in points:
+        raw_value = item.get("data")
+        try:
+            if isinstance(raw_value, (int, float)):
+                point_date = datetime.fromtimestamp(
+                    raw_value, tz=timezone.utc
+                ).date()
+            else:
+                point_date = date.fromisoformat(_text(raw_value)[:10])
+        except (ValueError, TypeError, OSError):
+            continue
+        if point_date >= start:
+            normalized.append({**item, "data": point_date.isoformat()})
+    # One immutable end-of-day observation per date.
+    by_date = {item["data"]: item for item in normalized}
+    normalized = [by_date[key] for key in sorted(by_date)]
+    adjusted = [dict(item) for item in normalized]
+    future_contributions = 0.0
+    for item in reversed(adjusted):
+        item["adjusted_eval"] = (
+            _number(item.get("eval"), 0.0) or 0.0
+        ) + future_contributions
+        future_contributions += _number(item.get("aport"), 0.0) or 0.0
+
+    person = account.get("person", {})
+    common = {
+        "currency": "EUR",
+        "account_id": _text(person.get("id")),
+        "account": _text(person.get("name")),
+        "source": "Tradeville WebSocket pf4 / graf_pers_brut",
+    }
+    nav_history = [{
+        **common,
+        "date": item["data"],
+        "nav": round((_number(item.get("eval"), 0.0) or 0.0) / eur_rate, 2),
+    } for item in normalized]
+    adjusted_nav = [{
+        **common,
+        "date": item["data"],
+        "nav": round(
+            (_number(item.get("adjusted_eval"), 0.0) or 0.0) / eur_rate, 2
+        ),
+    } for item in adjusted]
+    cash_history = [{
+        **common,
+        "date": item["data"],
+        "cash": round((_number(item.get("cash"), 0.0) or 0.0) / eur_rate, 2),
+    } for item in normalized if item.get("cash") is not None]
+    base = adjusted_nav[0]["nav"] if adjusted_nav else None
+    profit_history = [{
+        **common,
+        "date": item["date"],
+        "profit": round(item["nav"] - base, 2),
+        "return_pct": round((item["nav"] / base - 1) * 100, 4) if base else None,
+    } for item in adjusted_nav] if base is not None else []
+    return {
+        "nav_history": nav_history,
+        "adjusted_nav_history": adjusted_nav,
+        "cash_history": cash_history,
+        "profit_history": profit_history,
+        "history_metadata": {
+            "available": bool(nav_history),
+            "start_requested": start.isoformat(),
+            "first_date": nav_history[0]["date"] if nav_history else None,
+            "last_date": nav_history[-1]["date"] if nav_history else None,
+            "point_count": len(nav_history),
+            "raw_reconstructed": reconstructed,
+            "transfer_adjustment": "portal_equivalent_backward_contribution_adjustment",
+            "currency_conversion": f"RON divided by current BNR EUR rate {eur_rate}",
+            "source": "Tradeville WebSocket pf4 / graf_pers_brut",
+        },
+    }
 
 
 def _position_records(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
@@ -340,6 +651,7 @@ def _eur_value(row: dict[str, Any]) -> float | None:
 
 def _account_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
     accounts = []
+    history_start = _history_start()
     for account in snapshot["accounts"]:
         person = account["person"]
         cash_by_currency: dict[str, float] = {}
@@ -365,6 +677,7 @@ def _account_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
             "AvailableFunds": total_cash,
             "GrossPositionValue": (nav - total_cash) if nav is not None and total_cash is not None else None,
         }
+        history = _account_history(account, snapshot, start=history_start)
         accounts.append({
             "label": _text(person.get("name")),
             "account_id": _text(person.get("id")),
@@ -376,12 +689,21 @@ def _account_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
             "cash_value_eur_by_currency": cash_value_eur,
             "raw_account_info": account.get("account_info", []),
             "raw_settlement": account.get("settlement", []),
+            **history,
         })
-    return {
+    result = {
         "fetched_at": snapshot["fetched_at"],
         "source": "Tradeville WebSocket pf4",
         "accounts": accounts,
     }
+    for field in (
+        "nav_history", "adjusted_nav_history", "cash_history", "profit_history"
+    ):
+        result[f"tradeville_{field}"] = [
+            point for item in accounts for point in item.get(field, [])
+        ]
+    result["tradeville_history_start"] = history_start.isoformat()
+    return result
 
 
 def persist_snapshot(
@@ -419,6 +741,13 @@ def persist_snapshot(
         account_count=len(validated["accounts"]),
         position_count=len(positions),
         active_order_count=len(orders),
+        history_start=account.get("tradeville_history_start"),
+        history_point_count=sum(
+            len(item.get("nav_history", [])) for item in account["accounts"]
+        ),
+        history_account_count=sum(
+            bool(item.get("nav_history")) for item in account["accounts"]
+        ),
     )
     _atomic_json(STATUS_PATH, status)
     return status
@@ -428,6 +757,7 @@ class _BridgeState:
     def __init__(self) -> None:
         self.job_id = secrets.token_urlsafe(12)
         self.token = secrets.token_urlsafe(32)
+        self.history_start = _history_start().isoformat()
         self.claimed = False
         self.result: dict[str, Any] | None = None
         self.event = threading.Event()
@@ -469,7 +799,11 @@ def _handler_factory(state: _BridgeState):
                     self.end_headers()
                     return
                 state.claimed = True
-                payload = {"id": state.job_id, "token": state.token}
+                payload = {
+                    "id": state.job_id,
+                    "token": state.token,
+                    "historyStart": state.history_start,
+                }
             self._json(200, payload)
 
         def do_POST(self) -> None:  # noqa: N802
@@ -575,7 +909,9 @@ def main() -> int:
     print(
         "Tradeville WebSocket sincronizat: "
         f"{status['account_count']} conturi, {status['position_count']} poziții, "
-        f"{status['active_order_count']} ordine active."
+        f"{status['active_order_count']} ordine active; "
+        f"istoric {status['history_point_count']} puncte pentru "
+        f"{status['history_account_count']} conturi, din {status['history_start']}."
     )
     return 0
 

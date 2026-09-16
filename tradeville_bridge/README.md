@@ -18,7 +18,10 @@ Insigna extensiei devine `ON` când bridge-ul este activ în fila Tradeville.
 
 La fiecare rulare, `tradeville_bridge.py` ascultă temporar numai pe
 `127.0.0.1:43129`. Extensia preia jobul, citește prin WebSocket ambele persoane
-Tradeville și trimite înapoi numai datele de portofoliu, ordine și cont.
+Tradeville și trimite înapoi datele de portofoliu, ordine, cont și istoricul
+`graf_pers_brut`. Istoricul este filtrat automat de la prima dată NAV
+disponibilă în IBKR și păstrează separat NAV, cash, NAV ajustat cu transferuri
+și performanța rezultată.
 
 În caz de browser închis sau sesiune expirată, fișierele existente nu sunt
 șterse și `tradeville_sync_status.json` este marcat cu eroarea curentă.

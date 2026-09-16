@@ -952,6 +952,10 @@ def update_broker_totals_history(history, account_data, observed_at=None,
     totals = _combined_broker_totals(account_data)
     if not totals:
         return list(history or [])
+    source_version = (
+        'tradeville_ws_graph_v1'
+        if account_data.get('tradeville_nav_history') else None
+    )
     timestamp = (
         str(observed_at).strip()
         if observed_at
@@ -968,6 +972,10 @@ def update_broker_totals_history(history, account_data, observed_at=None,
         if (
             value is None or cash is None or not item_timestamp
             or currency != totals['currency']
+            or (
+                source_version is not None
+                and item.get('source_version') != source_version
+            )
         ):
             continue
         valid.append({
@@ -975,12 +983,17 @@ def update_broker_totals_history(history, account_data, observed_at=None,
             'net_liquidation': round(value, 2),
             'total_cash': round(cash, 2),
             'currency': currency,
+            **(
+                {'source_version': item.get('source_version')}
+                if item.get('source_version') else {}
+            ),
         })
     point = {
         'timestamp': timestamp,
         'net_liquidation': totals['net_liquidation'],
         'total_cash': totals['total_cash'],
         'currency': totals['currency'],
+        **({'source_version': source_version} if source_version else {}),
     }
     if valid:
         previous = valid[-1]
@@ -1102,6 +1115,10 @@ def _normalize_tws_account_data(account_data, now=None):
         'combined_history': [],
         'nav_history': [],
         'cash_history': [],
+        'tradeville_nav_history': [],
+        'tradeville_adjusted_nav_history': [],
+        'tradeville_cash_history': [],
+        'tradeville_profit_history': [],
         'portfolio_allocation': {},
         'account_performance': {},
         'trade_journal': [],
@@ -1303,6 +1320,35 @@ def _normalize_tws_account_data(account_data, now=None):
             'currency': currency,
         })
     result['cash_history'] = result['cash_history'][-366:]
+    tradeville_specs = {
+        'tradeville_nav_history': 'nav',
+        'tradeville_adjusted_nav_history': 'nav',
+        'tradeville_cash_history': 'cash',
+        'tradeville_profit_history': 'profit',
+    }
+    for field, value_field in tradeville_specs.items():
+        for item in account_data.get(field, []):
+            if not isinstance(item, dict):
+                continue
+            value = _safe_number(item.get(value_field), None)
+            date_value = str(item.get('date', '')).strip()
+            currency = str(item.get('currency', '')).strip().upper()
+            if value is None or not date_value or not currency:
+                continue
+            normalized = {
+                'date': date_value,
+                value_field: round(value, 2),
+                'currency': currency,
+                'account': str(item.get('account', '')).strip(),
+                'account_id': str(item.get('account_id', '')).strip(),
+                'source': str(item.get('source', '')).strip(),
+            }
+            if value_field == 'profit':
+                normalized['return_pct'] = _safe_number(
+                    item.get('return_pct'), None
+                )
+            result[field].append(normalized)
+        result[field] = result[field][-5000:]
     result['risk_flags'] = list(dict.fromkeys(result['risk_flags']))
     return result
 
@@ -3541,8 +3587,26 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
             item for item in liquidity.get('cash_history', [])
             if str(item.get('currency', '')).upper() == history_currency
         ]
+        tradeville_nav_history = [
+            item for item in liquidity.get('tradeville_nav_history', [])
+            if str(item.get('currency', '')).upper() == history_currency
+        ]
+        tradeville_adjusted_nav_history = [
+            item for item in liquidity.get('tradeville_adjusted_nav_history', [])
+            if str(item.get('currency', '')).upper() == history_currency
+        ]
+        tradeville_cash_history = [
+            item for item in liquidity.get('tradeville_cash_history', [])
+            if str(item.get('currency', '')).upper() == history_currency
+        ]
+        tradeville_profit_history = [
+            item for item in liquidity.get('tradeville_profit_history', [])
+            if str(item.get('currency', '')).upper() == history_currency
+        ]
         history_available = bool(
             combined_history or nav_history or cash_history
+            or tradeville_nav_history or tradeville_adjusted_nav_history
+            or tradeville_cash_history or tradeville_profit_history
         )
         if history_available:
             history_json = html.escape(
@@ -3558,6 +3622,15 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
                 json.dumps(cash_history, ensure_ascii=False),
                 quote=True,
             )
+            tradeville_history_json = {
+                field: html.escape(json.dumps(value, ensure_ascii=False), quote=True)
+                for field, value in {
+                    'nav': tradeville_nav_history,
+                    'adjusted-nav': tradeville_adjusted_nav_history,
+                    'cash': tradeville_cash_history,
+                    'profit': tradeville_profit_history,
+                }.items()
+            }
             history_button = (
                 "<button id='brokerTotalsHistoryButton' type='button' "
                 "aria-label='Deschide istoricul valorii totale și al cash-ului' "
@@ -3565,6 +3638,10 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
                 f"data-history='{history_json}' data-currency='{currency}' "
                 f"data-ibkr-nav-history='{nav_history_json}' "
                 f"data-ibkr-cash-history='{cash_history_json}' "
+                f"data-tradeville-nav-history='{tradeville_history_json['nav']}' "
+                f"data-tradeville-adjusted-nav-history='{tradeville_history_json['adjusted-nav']}' "
+                f"data-tradeville-cash-history='{tradeville_history_json['cash']}' "
+                f"data-tradeville-profit-history='{tradeville_history_json['profit']}' "
                 "style='display:inline-flex;align-items:center;justify-content:center;"
                 "margin-top:14px;padding:8px 16px;border:1px solid var(--primary-purple);"
                 "border-radius:8px;background:var(--primary-purple);color:#fff;"

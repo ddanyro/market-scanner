@@ -10,7 +10,7 @@
   const WS_PROTOCOL = "pf4";
   const COMMANDS = new Set([
     "login", "persoana", "portof", "ordineActive", "infocont",
-    "get_Sume_inDecontare", "activecurente", "cursbnr"
+    "get_Sume_inDecontare", "activecurente", "cursbnr", "graf_pers_brut"
   ]);
 
   function parseJsonStorage(key) {
@@ -56,6 +56,18 @@
   function safeError(error) {
     const message = String(error?.message || error || "unknown_error");
     return message.replace(/[A-Za-z0-9_\-]{24,}/g, "[redacted]").slice(0, 300);
+  }
+
+  function tradevilleWallClockIso() {
+    const parts = Object.fromEntries(
+      new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Bucharest",
+        year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", second: "2-digit",
+        hourCycle: "h23"
+      }).formatToParts(new Date()).map(item => [item.type, item.value])
+    );
+    return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}.000Z`;
   }
 
   function openSocket() {
@@ -114,7 +126,7 @@
     return response;
   }
 
-  async function collectAccount(connection, person) {
+  async function collectAccount(connection, person, historyStart) {
     const personId = String(person.persoana || "");
     usableResponse(await sendAndWait(
       connection,
@@ -136,6 +148,29 @@
     const settlement = usableResponse(await sendAndWait(
       connection, { cmd: "get_Sume_inDecontare" }
     ), "get_Sume_inDecontare");
+    const portfolioGraphRequest = {
+      cmd: "graf_pers_brut",
+      iday: false,
+      nu2a: 1,
+      nuob: 0,
+      admine: "",
+      cont: null,
+      prm: {
+        // The portal sends wall-clock Bucharest time encoded as UTC (J7).
+        dsgraf: tradevilleWallClockIso(),
+        dupas: `${historyStart || "2025-09-16"}T00:00:00.000Z`,
+        opt: "",
+        sims: ""
+      }
+    };
+    const portfolioGraph = usableResponse(await sendAndWait(
+      connection,
+      portfolioGraphRequest,
+      // The socket first emits an empty acknowledgement; the historical
+      // payload follows in a second message with the same command.
+      response => Array.isArray(response.data) && response.data.length > 0,
+      30000
+    ), "graf_pers_brut");
 
     return {
       person: {
@@ -147,11 +182,22 @@
       portfolio: decodeRows(portfolio.data),
       orders: decodeRows(orders.data),
       account_info: decodeRows(accountInfo.data),
-      settlement: decodeRows(settlement.data)
+      settlement: decodeRows(settlement.data),
+      // Keep this payload lossless: it can be an already computed point
+      // series or the four raw parallel-array tables used by the portal.
+      portfolio_graph: portfolioGraph.data,
+      portfolio_graph_request: {
+        iday: false,
+        adjusted_available: true,
+        starts_at: historyStart || "2025-09-16"
+      }
     };
   }
 
-  async function syncTradeville() {
+  async function syncTradeville(historyStart) {
+    historyStart = /^\d{4}-\d{2}-\d{2}$/.test(String(historyStart || ""))
+      ? String(historyStart)
+      : "2025-09-16";
     const user = parseJsonStorage("usersitoken");
     const active = parseJsonStorage("persoanaactiva") || {};
     const sessionToken = cookieValue("legatura");
@@ -188,12 +234,13 @@
       // sequentially. Parallel requests could mix two legal portfolios.
       for (const person of people) {
         if (Number(person.subc || 0) === 1) continue;
-        accounts.push(await collectAccount(connection, person));
+        accounts.push(await collectAccount(connection, person, historyStart));
       }
       if (!accounts.length) throw new Error("tradeville_total_accounts_missing");
 
       return {
-        schema: "market-scanner.tradeville.websocket.v1",
+        schema: "market-scanner.tradeville.websocket.v2",
+        bridge_version: 2,
         fetched_at: new Date().toISOString(),
         source: "Tradeville WebSocket pf4",
         accounts,
@@ -209,7 +256,7 @@
     const request = event.data;
     if (!request || request.source !== REQUEST_SOURCE || request.type !== "SYNC") return;
     try {
-      const snapshot = await syncTradeville();
+      const snapshot = await syncTradeville(request.historyStart);
       window.postMessage({
         source: RESULT_SOURCE,
         type: "SYNC_RESULT",

@@ -2470,33 +2470,6 @@ def _prepare_external_research_candidate(raw_item):
     return item
 
 
-def _correct_tradeville_manual_snapshot(account_data):
-    """Corectează snapshotul din 26 iulie 2026 conform extrasului Tradeville."""
-    if not isinstance(account_data, dict):
-        return account_data
-    if not str(account_data.get('fetched_at', '')).startswith('2026-07-26'):
-        return account_data
-    corrected = json.loads(json.dumps(account_data))
-    for account in corrected.get('accounts', []):
-        source = (
-            str(account.get('label', '')) + ' ' + str(account.get('source', ''))
-        ).lower()
-        summary = account.get('summary', {})
-        if (
-            'tradeville' in source
-            and abs(float(summary.get('TotalCashValue') or 0) - 48438.86) < 0.01
-        ):
-            summary.update({
-                'NetLiquidation': 72778.09,
-                'TotalCashValue': 48438.86,
-                'AvailableFunds': 48438.86,
-                'GrossPositionValue': 24339.23,
-                'CostBasis': 11306.92,
-                'RelativeProfit': 12983.64,
-            })
-    return corrected
-
-
 def _decrypt_broker_totals_history(
     encrypted_payload, account_password='', legacy_password=''
 ):
@@ -8680,11 +8653,31 @@ def generate_html_dashboard(
                 }
             }
 
+            function parseTradevilleHistory(element, datasetKey, valueField) {
+                if (!element) return [];
+                try {
+                    const parsed = JSON.parse(element.dataset[datasetKey] || '[]');
+                    return Array.isArray(parsed) ? parsed.filter(item =>
+                        Number.isFinite(Number(item[valueField])) &&
+                        String(item.date || '').length > 0
+                    ) : [];
+                } catch (error) {
+                    console.error('Istoricul Tradeville este invalid.', error);
+                    return [];
+                }
+            }
+
             function openBrokerTotalsDetail(element) {
                 const history = parseBrokerTotalsHistory(element);
                 const ibkrNavHistory = parseIBKRNavHistory(element);
                 const ibkrCashHistory = parseIBKRCashHistory(element);
-                if (!history.length && !ibkrNavHistory.length && !ibkrCashHistory.length) return;
+                const tradevilleNavHistory = parseTradevilleHistory(element, 'tradevilleNavHistory', 'nav');
+                const tradevilleAdjustedNavHistory = parseTradevilleHistory(element, 'tradevilleAdjustedNavHistory', 'nav');
+                const tradevilleCashHistory = parseTradevilleHistory(element, 'tradevilleCashHistory', 'cash');
+                const tradevilleProfitHistory = parseTradevilleHistory(element, 'tradevilleProfitHistory', 'profit');
+                if (!history.length && !ibkrNavHistory.length && !ibkrCashHistory.length &&
+                    !tradevilleNavHistory.length && !tradevilleAdjustedNavHistory.length &&
+                    !tradevilleCashHistory.length && !tradevilleProfitHistory.length) return;
                 const rawCurrency = String(element.dataset.currency || 'EUR').toUpperCase();
                 const currency = /^[A-Z]{3}$/.test(rawCurrency) ? rawCurrency : 'EUR';
                 const popup = window.open('', '_blank');
@@ -8699,6 +8692,10 @@ def generate_html_dashboard(
                 const ibkrCashPayload = JSON.stringify(
                     ibkrCashHistory
                 ).replace(/</g, '\\u003c');
+                const tradevilleNavPayload = JSON.stringify(tradevilleNavHistory).replace(/</g, '\\u003c');
+                const tradevilleAdjustedNavPayload = JSON.stringify(tradevilleAdjustedNavHistory).replace(/</g, '\\u003c');
+                const tradevilleCashPayload = JSON.stringify(tradevilleCashHistory).replace(/</g, '\\u003c');
+                const tradevilleProfitPayload = JSON.stringify(tradevilleProfitHistory).replace(/</g, '\\u003c');
                 const latest = history.length ? history[history.length - 1] : null;
                 const latestNav = ibkrNavHistory.length ? ibkrNavHistory[ibkrNavHistory.length - 1] : null;
                 const latestCash = ibkrCashHistory.length ? ibkrCashHistory[ibkrCashHistory.length - 1] : null;
@@ -8728,15 +8725,19 @@ h1{margin:0;font-size:clamp(27px,4vw,44px)}.sub{color:#7760f9;font-weight:700;ma
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"><\\/script>
 </head><body><main class="page">
-<div class="top"><div><h1>Evoluție portofoliu</h1><div class="sub">Istoric valoare totală, cash și NAV IBKR · ${currency}</div></div><button class="close" onclick="window.close()">Închide</button></div>
+<div class="top"><div><h1>Evoluție portofoliu</h1><div class="sub">Istoric IBKR + Tradeville: NAV, cash și performanță · ${currency}</div></div><button class="close" onclick="window.close()">Închide</button></div>
 <section class="stats"><div class="stat"><div class="label">Valoare totală / NAV disponibil</div><div class="value">${formatMoney(latestTotalValue)}</div></div>
 <div class="stat"><div class="label">Cash disponibil</div><div class="value">${formatMoney(latestCashValue)}</div></div></section>
 <section class="panel"><div class="chart-toolbar"><div class="range-controls" role="group" aria-label="Interval grafic"><button class="range-btn" data-range="mtd">MTD</button><button class="range-btn" data-range="ytd">YTD</button><button class="range-btn" data-range="1w">1S</button><button class="range-btn" data-range="1m">1L</button><button class="range-btn" data-range="3m">3L</button><button class="range-btn" data-range="6m">6L</button><button class="range-btn" data-range="1y">1A</button><button class="range-btn active" data-range="all">Tot</button></div></div><div class="chart-wrap"><canvas id="brokerTotalsChart"></canvas></div>
-<p class="note">Totalul și cashul combinat includ IBKR și Tradeville numai în punctele pentru care există ambele snapshoturi. Liniile NAV IBKR și Cash IBKR folosesc istoricul real furnizat de PortfolioAnalyst sau de raportul Flex configurat.</p></section>
+<p class="note">Totalul combinat există numai la snapshoturile comune. IBKR folosește PortfolioAnalyst/Flex. Tradeville folosește graf_pers_brut; NAV ajustat și profitul neutralizează transferurile după aceeași regulă ca portalul. Conversia istorică RON→EUR folosește cursul BNR curent, conform afișării portalului.</p></section>
 </main><script>
 const history=${payload};
 const ibkrNavHistory=${ibkrNavPayload};
 const ibkrCashHistory=${ibkrCashPayload};
+const tradevilleNavHistory=${tradevilleNavPayload};
+const tradevilleAdjustedNavHistory=${tradevilleAdjustedNavPayload};
+const tradevilleCashHistory=${tradevilleCashPayload};
+const tradevilleProfitHistory=${tradevilleProfitPayload};
 const currency=${JSON.stringify(currency)};
 const money=value=>Number(value).toLocaleString('ro-RO',{style:'currency',currency:currency,maximumFractionDigits:2});
 const dateKey=value=>{
@@ -8754,7 +8755,11 @@ return Number.isNaN(parsed.getTime())?raw:parsed.toISOString();
 const labels=Array.from(new Set([
 ...history.map(item=>timestampKey(item.timestamp)),
 ...ibkrNavHistory.map(item=>dateKey(item.date)),
-...ibkrCashHistory.map(item=>dateKey(item.date))
+...ibkrCashHistory.map(item=>dateKey(item.date)),
+...tradevilleNavHistory.map(item=>dateKey(item.date)),
+...tradevilleAdjustedNavHistory.map(item=>dateKey(item.date)),
+...tradevilleCashHistory.map(item=>dateKey(item.date)),
+...tradevilleProfitHistory.map(item=>dateKey(item.date))
 ])).sort((left,right)=>{
 const leftTime=new Date(left).getTime();
 const rightTime=new Date(right).getTime();
@@ -8782,10 +8787,30 @@ datasets.push({label:'NAV IBKR',data:series(ibkrNavHistory,'date','nav',dateKey)
 if(ibkrCashHistory.length){
 datasets.push({label:'Cash IBKR',data:series(ibkrCashHistory,'date','cash',dateKey),borderColor:'#15803d',backgroundColor:'rgba(21,128,61,.05)',borderWidth:2,borderDash:[7,5],pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:true});
 }
+const grouped=(items)=>{
+const groups=new Map();
+items.forEach(item=>{const key=String(item.account||item.account_id||'Tradeville');if(!groups.has(key))groups.set(key,[]);groups.get(key).push(item);});
+return groups;
+};
+const palette=['#dc2626','#ea580c','#0891b2','#7c3aed'];
+let tradevilleColor=0;
+grouped(tradevilleNavHistory).forEach((items,account)=>{
+const color=palette[tradevilleColor++%palette.length];
+datasets.push({label:'NAV Tradeville · '+account,data:series(items,'date','nav',dateKey),borderColor:color,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:true});
+});
+grouped(tradevilleAdjustedNavHistory).forEach((items,account)=>{
+datasets.push({label:'NAV ajustat Tradeville · '+account,data:series(items,'date','nav',dateKey),borderColor:'#9333ea',borderWidth:2,borderDash:[4,4],pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:true});
+});
+grouped(tradevilleCashHistory).forEach((items,account)=>{
+datasets.push({label:'Cash Tradeville · '+account,data:series(items,'date','cash',dateKey),borderColor:'#0f766e',borderWidth:2,borderDash:[8,4],pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:true});
+});
+grouped(tradevilleProfitHistory).forEach((items,account)=>{
+datasets.push({label:'Profit ajustat Tradeville · '+account,data:series(items,'date','profit',dateKey),borderColor:'#ca8a04',borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.15,fill:false,spanGaps:true,yAxisID:'yProfit'});
+});
 const chart=new Chart(document.getElementById('brokerTotalsChart'),{
 type:'line',
 data:{labels:labels.map(displayDate),datasets},
-options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top'},tooltip:{callbacks:{label:context=>context.parsed.y===null?'':context.dataset.label+': '+money(context.parsed.y)}}},scales:{x:{ticks:{maxRotation:45,minRotation:0,autoSkip:true,maxTicksLimit:10}},y:{ticks:{callback:value=>money(value)}}}}
+options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top'},tooltip:{callbacks:{label:context=>context.parsed.y===null?'':context.dataset.label+': '+money(context.parsed.y)}}},scales:{x:{ticks:{maxRotation:45,minRotation:0,autoSkip:true,maxTicksLimit:10}},y:{position:'left',ticks:{callback:value=>money(value)}},yProfit:{position:'right',grid:{drawOnChartArea:false},ticks:{callback:value=>money(value)}}}}
 });
 const labelTimes=labels.map(value=>{const time=new Date(value).getTime();return Number.isNaN(time)?null:time;});
 const latestTime=Math.max(...labelTimes.filter(Number.isFinite));
@@ -9444,12 +9469,16 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
 
     # Snapshoturile exacte pot fi analizate împreună, dar conturile rămân
     # distincte. Nu amestecăm un fallback pe benzi cu valori exacte.
+    if tradeville_account_data and not str(
+        tradeville_account_data.get('source', '')
+    ).startswith('Tradeville WebSocket'):
+        # Snapshoturile manuale vechi nu mai fac parte din fluxul autoritar.
+        tradeville_account_data = None
+        tradeville_account_source = 'legacy_manual_ignored'
+
     if tradeville_account_data and (
         tws_account_data is None or tws_account_data.get('privacy_mode') != 'bands_only'
     ):
-        tradeville_account_data = _correct_tradeville_manual_snapshot(
-            tradeville_account_data
-        )
         if tws_account_data is None:
             tws_account_data = tradeville_account_data
         else:
@@ -9479,6 +9508,17 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 ibkr_accounts
                 + tradeville_accounts
             )
+            for history_field in (
+                'tradeville_nav_history',
+                'tradeville_adjusted_nav_history',
+                'tradeville_cash_history',
+                'tradeville_profit_history',
+                'tradeville_history_start',
+            ):
+                if history_field in tradeville_account_data:
+                    tws_account_data[history_field] = tradeville_account_data[
+                        history_field
+                    ]
             timestamps = [
                 value for value in (
                     ibkr_fetched_at,

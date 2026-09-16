@@ -24,7 +24,8 @@ async function pollBridge() {
     source: REQUEST_SOURCE,
     type: "SYNC",
     jobId: response.job.id,
-    token: response.job.token
+    token: response.job.token,
+    historyStart: response.job.historyStart
   }, window.location.origin);
 }
 
