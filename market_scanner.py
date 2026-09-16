@@ -8682,9 +8682,9 @@ def generate_html_dashboard(
 
             function openBrokerTotalsDetail(element) {
                 const history = parseBrokerTotalsHistory(element);
-                if (!history.length) return;
                 const ibkrNavHistory = parseIBKRNavHistory(element);
                 const ibkrCashHistory = parseIBKRCashHistory(element);
+                if (!history.length && !ibkrNavHistory.length && !ibkrCashHistory.length) return;
                 const rawCurrency = String(element.dataset.currency || 'EUR').toUpperCase();
                 const currency = /^[A-Z]{3}$/.test(rawCurrency) ? rawCurrency : 'EUR';
                 const popup = window.open('', '_blank');
@@ -8699,8 +8699,14 @@ def generate_html_dashboard(
                 const ibkrCashPayload = JSON.stringify(
                     ibkrCashHistory
                 ).replace(/</g, '\\u003c');
-                const latest = history[history.length - 1];
-                const formatMoney = value => Number(value).toLocaleString('ro-RO', {
+                const latest = history.length ? history[history.length - 1] : null;
+                const latestNav = ibkrNavHistory.length ? ibkrNavHistory[ibkrNavHistory.length - 1] : null;
+                const latestCash = ibkrCashHistory.length ? ibkrCashHistory[ibkrCashHistory.length - 1] : null;
+                const latestTotalValue = latest ? latest.net_liquidation : (latestNav ? latestNav.nav : null);
+                const latestCashValue = latest ? latest.total_cash : (latestCash ? latestCash.cash : null);
+                const formatMoney = value => value === null || value === undefined
+                    ? 'N/A'
+                    : Number(value).toLocaleString('ro-RO', {
                     style: 'currency',
                     currency: currency,
                     minimumFractionDigits: 2,
@@ -8710,7 +8716,7 @@ def generate_html_dashboard(
                 popup.document.write(`<!DOCTYPE html>
 <html lang="ro"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Istoric total IBKR + Tradeville</title>
+<title>Evoluție portofoliu</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f6f7fb;color:#121827;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .page{max-width:1500px;margin:0 auto;padding:28px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:20px}
@@ -8722,9 +8728,9 @@ h1{margin:0;font-size:clamp(27px,4vw,44px)}.sub{color:#7760f9;font-weight:700;ma
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"><\\/script>
 </head><body><main class="page">
-<div class="top"><div><h1>Total IBKR + Tradeville</h1><div class="sub">Istoric valoare totală, cash și NAV IBKR · ${currency}</div></div><button class="close" onclick="window.close()">Închide</button></div>
-<section class="stats"><div class="stat"><div class="label">Valoare totală</div><div class="value">${formatMoney(latest.net_liquidation)}</div></div>
-<div class="stat"><div class="label">Cash total</div><div class="value">${formatMoney(latest.total_cash)}</div></div></section>
+<div class="top"><div><h1>Evoluție portofoliu</h1><div class="sub">Istoric valoare totală, cash și NAV IBKR · ${currency}</div></div><button class="close" onclick="window.close()">Închide</button></div>
+<section class="stats"><div class="stat"><div class="label">Valoare totală / NAV disponibil</div><div class="value">${formatMoney(latestTotalValue)}</div></div>
+<div class="stat"><div class="label">Cash disponibil</div><div class="value">${formatMoney(latestCashValue)}</div></div></section>
 <section class="panel"><div class="chart-toolbar"><div class="range-controls" role="group" aria-label="Interval grafic"><button class="range-btn" data-range="mtd">MTD</button><button class="range-btn" data-range="ytd">YTD</button><button class="range-btn" data-range="1w">1S</button><button class="range-btn" data-range="1m">1L</button><button class="range-btn" data-range="3m">3L</button><button class="range-btn" data-range="6m">6L</button><button class="range-btn" data-range="1y">1A</button><button class="range-btn active" data-range="all">Tot</button></div></div><div class="chart-wrap"><canvas id="brokerTotalsChart"></canvas></div>
 <p class="note">Totalul și cashul combinat includ IBKR și Tradeville numai în punctele pentru care există ambele snapshoturi. Liniile NAV IBKR și Cash IBKR folosesc istoricul real furnizat de PortfolioAnalyst sau de raportul Flex configurat.</p></section>
 </main><script>

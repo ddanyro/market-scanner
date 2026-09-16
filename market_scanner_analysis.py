@@ -3504,35 +3504,74 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
                 + ''.join(balance_rows + cash_rows) + "</div></div>"
             )
         combined_totals = _combined_broker_totals(liquidity)
+        combined_history = [
+            item for item in liquidity.get('combined_history', [])
+            if isinstance(item, dict)
+        ]
         if combined_totals:
             combined_history = update_broker_totals_history(
-                liquidity.get('combined_history', []),
+                combined_history,
                 liquidity,
                 observed_at=snapshot.get('as_of'),
             )
+        history_currency = str(
+            (combined_totals or {}).get('currency')
+            or next((
+                item.get('currency')
+                for item in reversed(combined_history)
+                if item.get('currency')
+            ), '')
+            or next((
+                item.get('currency')
+                for item in reversed(liquidity.get('nav_history', []))
+                if isinstance(item, dict) and item.get('currency')
+            ), '')
+            or next((
+                account.get('base_currency')
+                for account in liquidity.get('accounts', [])
+                if account.get('base_currency') not in {None, '', 'BASE'}
+            ), '')
+            or 'EUR'
+        ).upper()
+        nav_history = [
+            item for item in liquidity.get('nav_history', [])
+            if str(item.get('currency', '')).upper() == history_currency
+        ]
+        cash_history = [
+            item for item in liquidity.get('cash_history', [])
+            if str(item.get('currency', '')).upper() == history_currency
+        ]
+        history_available = bool(
+            combined_history or nav_history or cash_history
+        )
+        if history_available:
             history_json = html.escape(
                 json.dumps(combined_history, ensure_ascii=False),
                 quote=True,
             )
-            currency = html.escape(combined_totals['currency'])
-            nav_history = [
-                item for item in liquidity.get('nav_history', [])
-                if str(item.get('currency', '')).upper()
-                == combined_totals['currency']
-            ]
+            currency = html.escape(history_currency)
             nav_history_json = html.escape(
                 json.dumps(nav_history, ensure_ascii=False),
                 quote=True,
             )
-            cash_history = [
-                item for item in liquidity.get('cash_history', [])
-                if str(item.get('currency', '')).upper()
-                == combined_totals['currency']
-            ]
             cash_history_json = html.escape(
                 json.dumps(cash_history, ensure_ascii=False),
                 quote=True,
             )
+            history_button = (
+                "<button id='brokerTotalsHistoryButton' type='button' "
+                "aria-label='Deschide istoricul valorii totale și al cash-ului' "
+                "title='Deschide istoricul valorii totale și al cash-ului' "
+                f"data-history='{history_json}' data-currency='{currency}' "
+                f"data-ibkr-nav-history='{nav_history_json}' "
+                f"data-ibkr-cash-history='{cash_history_json}' "
+                "style='display:inline-flex;align-items:center;justify-content:center;"
+                "margin-top:14px;padding:8px 16px;border:1px solid var(--primary-purple);"
+                "border-radius:8px;background:var(--primary-purple);color:#fff;"
+                "font:inherit;font-weight:700;cursor:pointer;' "
+                "onclick='openBrokerTotalsDetail(this)'>Evoluție</button>"
+            )
+        if combined_totals:
             account_cards.append(
                 "<div style='background:var(--bg-white);border:2px solid var(--primary-purple);"
                 "border-radius:var(--radius-sm);padding:14px 16px;min-width:280px;flex:1;'>"
@@ -3545,17 +3584,17 @@ def _render_portfolio_ai_html(snapshot, result=None, source_label='Reguli de ris
                 "<div style='display:flex;justify-content:space-between;gap:18px;'>"
                 "<span>Cash total</span>"
                 f"<b>{combined_totals['total_cash']:,.2f} {currency}</b></div></div>"
-                "<button id='brokerTotalsHistoryButton' type='button' "
-                "aria-label='Deschide istoricul valorii totale și al cash-ului' "
-                "title='Deschide istoricul valorii totale și al cash-ului' "
-                f"data-history='{history_json}' data-currency='{currency}' "
-                f"data-ibkr-nav-history='{nav_history_json}' "
-                f"data-ibkr-cash-history='{cash_history_json}' "
-                "style='display:inline-flex;align-items:center;justify-content:center;"
-                "margin-top:14px;padding:8px 16px;border:1px solid var(--primary-purple);"
-                "border-radius:8px;background:var(--primary-purple);color:#fff;"
-                "font:inherit;font-weight:700;cursor:pointer;' "
-                "onclick='openBrokerTotalsDetail(this)'>Evoluție</button></div>"
+                + history_button + "</div>"
+            )
+        elif history_available:
+            account_cards.append(
+                "<div style='background:var(--bg-white);border:2px solid var(--primary-purple);"
+                "border-radius:var(--radius-sm);padding:14px 16px;min-width:280px;flex:1;'>"
+                "<b>Evoluție portofoliu</b>"
+                "<div style='font-size:13px;color:var(--text-secondary);margin-top:8px;'>"
+                "Istoricul disponibil rămâne accesibil chiar dacă totalul combinat "
+                "IBKR + Tradeville nu poate fi calculat pentru snapshotul curent.</div>"
+                + history_button + "</div>"
             )
     accounts_html = (
         "<details open style='margin:16px 0;'>"

@@ -1841,6 +1841,43 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertIn('20260729', rendered)
         self.assertIn('openBrokerTotalsDetail(this)', rendered)
 
+    def test_balance_renderer_keeps_history_link_without_combined_total(self):
+        snapshot = {
+            'as_of': '2026-09-16T18:00:00+03:00',
+            'portfolio': {},
+            'positions': [],
+            'account_liquidity': {
+                'privacy_mode': 'exact',
+                'accounts': [{
+                    'label': 'IBKR',
+                    'source': 'IBKR TWS',
+                    'base_currency': 'EUR',
+                    'summary': {
+                        'NetLiquidation': 100,
+                        'TotalCashValue': 60,
+                    },
+                    'cash_by_currency': {},
+                }],
+                'combined_history': [],
+                'nav_history': [
+                    {'date': '20260915', 'nav': 95, 'currency': 'EUR'},
+                    {'date': '20260916', 'nav': 100, 'currency': 'EUR'},
+                ],
+                'cash_history': [
+                    {'date': '20260915', 'cash': 55, 'currency': 'EUR'},
+                    {'date': '20260916', 'cash': 60, 'currency': 'EUR'},
+                ],
+            },
+        }
+
+        rendered = market_scanner_analysis._render_portfolio_ai_html(snapshot)
+
+        self.assertIn('Evoluție portofoliu', rendered)
+        self.assertIn("id='brokerTotalsHistoryButton'", rendered)
+        self.assertIn('>Evoluție</button>', rendered)
+        self.assertIn('20260916', rendered)
+        self.assertNotIn('Total IBKR + Tradeville · EUR', rendered)
+
     def test_portfolio_ai_cache_changes_with_broker_snapshot_not_age(self):
         base = {
             'portfolio': {'position_count': 1},
