@@ -1807,6 +1807,196 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
         self.assertEqual(rebuilt[0]['net_liquidation'], 300)
         self.assertEqual(rebuilt[0]['source_version'], 'tradeville_ws_graph_v1')
 
+    def test_rebuilds_daily_combined_nav_and_cash_without_lookahead(self):
+        account_data = {
+            'accounts': [
+                {'label': 'IBKR', 'source': 'IBKR TWS',
+                 'base_currency': 'EUR', 'summary': {
+                    'NetLiquidation': 130, 'TotalCashValue': 65,
+                }},
+                {'label': 'Personal', 'source': 'Tradeville WebSocket pf4',
+                 'base_currency': 'EUR', 'summary': {
+                    'NetLiquidation': 220, 'TotalCashValue': 90,
+                }},
+                {'label': 'Zenshop', 'source': 'Tradeville WebSocket pf4',
+                 'base_currency': 'EUR', 'summary': {
+                    'NetLiquidation': 330, 'TotalCashValue': 120,
+                }},
+            ],
+            'nav_history': [
+                {'date': '20250916', 'nav': 100, 'currency': 'EUR'},
+                {'date': '20250917', 'nav': 110, 'currency': 'EUR'},
+            ],
+            'cash_history': [
+                {'date': '20250916', 'cash': 50, 'currency': 'EUR'},
+                {'date': '20250917', 'cash': 55, 'currency': 'EUR'},
+            ],
+            'tradeville_nav_history': [
+                {'date': '2025-09-16', 'nav': 200, 'currency': 'EUR',
+                 'account_id': 'P/1'},
+                {'date': '2025-09-17', 'nav': 210, 'currency': 'EUR',
+                 'account_id': 'P/1'},
+                # Zenshop începe mai târziu: valoarea sa din 17 septembrie nu
+                # trebuie adăugată retrospectiv pe 16 septembrie.
+                {'date': '2025-09-17', 'nav': 300, 'currency': 'EUR',
+                 'account_id': 'Z/1'},
+            ],
+            'tradeville_cash_history': [
+                {'date': '2025-09-16', 'cash': 80, 'currency': 'EUR',
+                 'account_id': 'P/1'},
+                {'date': '2025-09-17', 'cash': 85, 'currency': 'EUR',
+                 'account_id': 'P/1'},
+                {'date': '2025-09-17', 'cash': 100, 'currency': 'EUR',
+                 'account_id': 'Z/1'},
+            ],
+        }
+
+        rebuilt = market_scanner_analysis.rebuild_broker_totals_history(
+            account_data
+        )
+
+        self.assertEqual(len(rebuilt), 2)
+        self.assertEqual(rebuilt[0]['timestamp'], '2025-09-16T00:00:00+00:00')
+        self.assertEqual(rebuilt[0]['net_liquidation'], 300)
+        self.assertEqual(rebuilt[0]['total_cash'], 130)
+        self.assertFalse(rebuilt[0]['account_coverage_complete'])
+        self.assertEqual(rebuilt[1]['net_liquidation'], 620)
+        self.assertEqual(rebuilt[1]['total_cash'], 240)
+        self.assertTrue(rebuilt[1]['account_coverage_complete'])
+        self.assertEqual(
+            rebuilt[0]['source_version'], 'broker_daily_history_v2'
+        )
+        self.assertEqual(rebuilt[1]['tradeville_account_count'], 2)
+
+    def test_daily_combined_history_forward_fills_only_past_values(self):
+        account_data = {
+            'accounts': [
+                {'label': 'IBKR', 'source': 'IBKR TWS',
+                 'base_currency': 'EUR', 'summary': {
+                    'NetLiquidation': 120, 'TotalCashValue': 60,
+                }},
+                {'label': 'Personal', 'source': 'Tradeville WebSocket pf4',
+                 'base_currency': 'EUR', 'summary': {
+                    'NetLiquidation': 230, 'TotalCashValue': 90,
+                }},
+            ],
+            'nav_history': [
+                {'date': '20250916', 'nav': 100, 'currency': 'EUR'},
+                {'date': '20250917', 'nav': 110, 'currency': 'EUR'},
+            ],
+            'cash_history': [
+                {'date': '20250916', 'cash': 50, 'currency': 'EUR'},
+                {'date': '20250917', 'cash': 55, 'currency': 'EUR'},
+            ],
+            'tradeville_nav_history': [
+                {'date': '2025-09-16', 'nav': 200, 'currency': 'EUR',
+                 'account_id': 'P/1'},
+            ],
+            'tradeville_cash_history': [
+                {'date': '2025-09-16', 'cash': 80, 'currency': 'EUR',
+                 'account_id': 'P/1'},
+            ],
+        }
+
+        rebuilt = market_scanner_analysis.rebuild_broker_totals_history(
+            account_data
+        )
+
+        self.assertEqual(
+            [item['net_liquidation'] for item in rebuilt], [300, 310]
+        )
+        self.assertEqual(
+            [item['total_cash'] for item in rebuilt], [130, 135]
+        )
+
+    def test_combined_nav_is_rebuilt_when_ibkr_cash_history_is_missing(self):
+        account_data = {
+            'accounts': [
+                {'label': 'IBKR', 'source': 'IBKR TWS',
+                 'base_currency': 'EUR', 'summary': {
+                    'NetLiquidation': 110, 'TotalCashValue': 55,
+                }},
+                {'label': 'Personal', 'account_id': 'P/1',
+                 'source': 'Tradeville WebSocket pf4',
+                 'base_currency': 'EUR', 'summary': {
+                    'NetLiquidation': None, 'TotalCashValue': None,
+                }},
+            ],
+            'nav_history': [
+                {'date': '20250916', 'nav': 100, 'currency': 'EUR'},
+            ],
+            'cash_history': [],
+            'tradeville_nav_history': [
+                {'date': '2025-09-16', 'nav': 200, 'currency': 'EUR',
+                 'account_id': 'P/1'},
+            ],
+            'tradeville_cash_history': [
+                {'date': '2025-09-16', 'cash': 80, 'currency': 'EUR',
+                 'account_id': 'P/1'},
+            ],
+        }
+
+        totals = market_scanner_analysis._combined_broker_totals(account_data)
+        rebuilt = market_scanner_analysis.update_broker_totals_history(
+            [], account_data, observed_at='2025-09-17T10:00:00+00:00'
+        )
+
+        self.assertEqual(totals['net_liquidation'], 310)
+        self.assertEqual(totals['total_cash'], 135)
+        self.assertEqual(rebuilt[0]['net_liquidation'], 300)
+        self.assertIsNone(rebuilt[0]['total_cash'])
+        self.assertFalse(rebuilt[0]['cash_available'])
+        self.assertEqual(rebuilt[-1]['net_liquidation'], 310)
+        self.assertEqual(rebuilt[-1]['total_cash'], 135)
+
+    def test_preserves_exact_combined_cash_without_interpolating_it(self):
+        account_data = {
+            'accounts': [
+                {'label': 'IBKR', 'source': 'IBKR TWS',
+                 'base_currency': 'EUR', 'summary': {
+                    'NetLiquidation': 110, 'TotalCashValue': 55,
+                }},
+                {'label': 'Personal', 'account_id': 'P/1',
+                 'source': 'Tradeville WebSocket pf4',
+                 'base_currency': 'EUR', 'summary': {
+                    'NetLiquidation': 210, 'TotalCashValue': 85,
+                }},
+            ],
+            'nav_history': [
+                {'date': '20250916', 'nav': 100, 'currency': 'EUR'},
+                {'date': '20250917', 'nav': 110, 'currency': 'EUR'},
+            ],
+            'cash_history': [],
+            'tradeville_nav_history': [
+                {'date': '2025-09-16', 'nav': 200, 'currency': 'EUR',
+                 'account_id': 'P/1'},
+                {'date': '2025-09-17', 'nav': 210, 'currency': 'EUR',
+                 'account_id': 'P/1'},
+            ],
+            'tradeville_cash_history': [
+                {'date': '2025-09-16', 'cash': 80, 'currency': 'EUR',
+                 'account_id': 'P/1'},
+                {'date': '2025-09-17', 'cash': 85, 'currency': 'EUR',
+                 'account_id': 'P/1'},
+            ],
+        }
+        exact = [{
+            'timestamp': '2025-09-17T14:00:00+03:00',
+            'net_liquidation': 319,
+            'total_cash': 139,
+            'currency': 'EUR',
+        }]
+
+        rebuilt = market_scanner_analysis.update_broker_totals_history(
+            exact, account_data, observed_at='2025-09-18T10:00:00+00:00'
+        )
+
+        self.assertIsNone(rebuilt[0]['total_cash'])
+        self.assertEqual(rebuilt[1]['total_cash'], 139)
+        self.assertEqual(
+            rebuilt[1]['cash_provenance'], 'immutable_combined_snapshot'
+        )
+
     def test_broker_totals_history_uses_stable_account_password(self):
         expected = [{
             'timestamp': '2026-07-30T09:00:00+03:00',

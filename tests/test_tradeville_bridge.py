@@ -148,6 +148,29 @@ class TestTradevilleBridge(unittest.TestCase):
             account["accounts"][1]["cash_by_currency"]["RON"], 71539.17
         )
 
+    def test_account_summary_uses_latest_graph_when_portfolio_is_empty(self):
+        epoch = datetime(2000, 1, 1, tzinfo=timezone.utc)
+        minute = lambda value: int(
+            (datetime.fromisoformat(value).replace(tzinfo=timezone.utc) - epoch)
+            .total_seconds() / 60
+        )
+        snapshot = sample_snapshot()
+        snapshot["exchange_rates"] = [{"valuta": "EUR", "curs": 5.0}]
+        account = snapshot["accounts"][0]
+        account["portfolio"] = []
+        account["portfolio_graph"] = [
+            [], [],
+            [{"mnt": minute("2026-09-16"), "cont": "RON",
+              "curs": 1, "valuta": "RON"}],
+            [{"cont": "RON", "sold": 1000}],
+        ]
+
+        result = tradeville_bridge._account_snapshot(snapshot)
+
+        summary = result["accounts"][0]["summary"]
+        self.assertEqual(summary["NetLiquidation"], 200)
+        self.assertEqual(summary["TotalCashValue"], 200)
+
     def test_persist_is_atomic_and_encrypts_portable_snapshots(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

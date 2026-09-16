@@ -8611,8 +8611,10 @@ def generate_html_dashboard(
                 try {
                     const parsed = JSON.parse(element.dataset.history || '[]');
                     return Array.isArray(parsed) ? parsed.filter(item =>
-                        Number.isFinite(Number(item.net_liquidation)) &&
-                        Number.isFinite(Number(item.total_cash)) &&
+                        (
+                            (item.net_liquidation !== null && item.net_liquidation !== undefined && Number.isFinite(Number(item.net_liquidation))) ||
+                            (item.total_cash !== null && item.total_cash !== undefined && Number.isFinite(Number(item.total_cash)))
+                        ) &&
                         String(item.timestamp || '').length > 0
                     ) : [];
                 } catch (error) {
@@ -8696,11 +8698,16 @@ def generate_html_dashboard(
                 const tradevilleAdjustedNavPayload = JSON.stringify(tradevilleAdjustedNavHistory).replace(/</g, '\\u003c');
                 const tradevilleCashPayload = JSON.stringify(tradevilleCashHistory).replace(/</g, '\\u003c');
                 const tradevilleProfitPayload = JSON.stringify(tradevilleProfitHistory).replace(/</g, '\\u003c');
-                const latest = history.length ? history[history.length - 1] : null;
+                const latestTotal = [...history].reverse().find(item =>
+                    item.net_liquidation !== null && item.net_liquidation !== undefined && Number.isFinite(Number(item.net_liquidation))
+                );
+                const latestTotalCash = [...history].reverse().find(item =>
+                    item.total_cash !== null && item.total_cash !== undefined && Number.isFinite(Number(item.total_cash))
+                );
                 const latestNav = ibkrNavHistory.length ? ibkrNavHistory[ibkrNavHistory.length - 1] : null;
                 const latestCash = ibkrCashHistory.length ? ibkrCashHistory[ibkrCashHistory.length - 1] : null;
-                const latestTotalValue = latest ? latest.net_liquidation : (latestNav ? latestNav.nav : null);
-                const latestCashValue = latest ? latest.total_cash : (latestCash ? latestCash.cash : null);
+                const latestTotalValue = latestTotal ? latestTotal.net_liquidation : (latestNav ? latestNav.nav : null);
+                const latestCashValue = latestTotalCash ? latestTotalCash.total_cash : (latestCash ? latestCash.cash : null);
                 const formatMoney = value => value === null || value === undefined
                     ? 'N/A'
                     : Number(value).toLocaleString('ro-RO', {
@@ -8729,7 +8736,7 @@ h1{margin:0;font-size:clamp(27px,4vw,44px)}.sub{color:#7760f9;font-weight:700;ma
 <section class="stats"><div class="stat"><div class="label">Valoare totală / NAV disponibil</div><div class="value">${formatMoney(latestTotalValue)}</div></div>
 <div class="stat"><div class="label">Cash disponibil</div><div class="value">${formatMoney(latestCashValue)}</div></div></section>
 <section class="panel"><div class="chart-toolbar"><div class="range-controls" role="group" aria-label="Interval grafic"><button class="range-btn" data-range="mtd">MTD</button><button class="range-btn" data-range="ytd">YTD</button><button class="range-btn" data-range="1w">1S</button><button class="range-btn" data-range="1m">1L</button><button class="range-btn" data-range="3m">3L</button><button class="range-btn" data-range="6m">6L</button><button class="range-btn" data-range="1y">1A</button><button class="range-btn active" data-range="all">Tot</button></div></div><div class="chart-wrap"><canvas id="brokerTotalsChart"></canvas></div>
-<p class="note">Totalul combinat există numai la snapshoturile comune. IBKR folosește PortfolioAnalyst/Flex. Tradeville folosește graf_pers_brut; NAV ajustat și profitul neutralizează transferurile după aceeași regulă ca portalul. Conversia istorică RON→EUR folosește cursul BNR curent, conform afișării portalului.</p></section>
+<p class="note">NAV-ul total este reconstruit zilnic numai din valorile disponibile la data respectivă. Cash-ul total istoric apare doar unde există și seria cash IBKR; lipsa este N/A, niciodată zero estimat. IBKR folosește PortfolioAnalyst/Flex. Tradeville folosește graf_pers_brut; NAV ajustat și profitul neutralizează transferurile după aceeași regulă ca portalul. Conversia istorică RON→EUR folosește cursul BNR curent, conform afișării portalului.</p></section>
 </main><script>
 const history=${payload};
 const ibkrNavHistory=${ibkrNavPayload};
@@ -8768,7 +8775,10 @@ if(Number.isNaN(rightTime))return -1;
 return leftTime-rightTime;
 });
 const series=(items,dateField,valueField,keyFunction)=>{
-const values=new Map(items.map(item=>[keyFunction(item[dateField]),Number(item[valueField])]));
+const values=new Map(items.map(item=>[
+keyFunction(item[dateField]),
+item[valueField]===null||item[valueField]===undefined?null:Number(item[valueField])
+]));
 return labels.map(label=>values.has(label)?values.get(label):null);
 };
 const displayDate=value=>{

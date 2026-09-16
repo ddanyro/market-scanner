@@ -934,6 +934,19 @@ def _combined_broker_totals(account_data):
             summary.get('NetLiquidation'), None
         )
         cash = _safe_number(summary.get('TotalCashValue'), None)
+        if _broker_account_kind(account) == 'tradeville':
+            account_id = str(account.get('account_id', '')).strip()
+            account_label = str(account.get('label', '')).strip()
+            if net_liquidation is None:
+                net_liquidation = _latest_tradeville_history_value(
+                    account_data.get('tradeville_nav_history'),
+                    'nav', currency, account_id, account_label,
+                )
+            if cash is None:
+                cash = _latest_tradeville_history_value(
+                    account_data.get('tradeville_cash_history'),
+                    'cash', currency, account_id, account_label,
+                )
         if net_liquidation is None or cash is None:
             return None
         total_value += net_liquidation
@@ -946,23 +959,230 @@ def _combined_broker_totals(account_data):
     }
 
 
+def _broker_history_date(value):
+    """Normalizează datele IBKR/Tradeville fără a muta ziua bursieră."""
+    raw = str(value or '').strip().strip("'\"")
+    if not raw:
+        return None
+    try:
+        if re.fullmatch(r'\d{8}(?:\.0+)?', raw):
+            return datetime.datetime.strptime(raw[:8], '%Y%m%d').date()
+        return datetime.date.fromisoformat(raw[:10])
+    except (TypeError, ValueError):
+        return None
+
+
+def _latest_tradeville_history_value(points, value_field, currency,
+                                      account_id='', account_label=''):
+    """Fallback exact din ultimul punct graf_pers_brut al aceluiași cont."""
+    candidates = []
+    for item in points or []:
+        if not isinstance(item, dict):
+            continue
+        if str(item.get('currency', '')).strip().upper() != currency:
+            continue
+        item_id = str(item.get('account_id', '')).strip()
+        item_label = str(item.get('account', '')).strip()
+        if account_id:
+            if item_id != account_id:
+                continue
+        elif account_label and item_label != account_label:
+            continue
+        day = _broker_history_date(item.get('date'))
+        value = _safe_number(item.get(value_field), None)
+        if day is not None and value is not None:
+            candidates.append((day, value))
+    return max(candidates, default=(None, None))[1]
+
+
+def _daily_history_map(points, value_field, currency):
+    """Returnează ultima observație validă din fiecare zi."""
+    values = {}
+    for item in points or []:
+        if not isinstance(item, dict):
+            continue
+        if str(item.get('currency', '')).strip().upper() != currency:
+            continue
+        day = _broker_history_date(item.get('date'))
+        value = _safe_number(item.get(value_field), None)
+        if day is None or value is None:
+            continue
+        values[day] = value
+    return values
+
+
+def _tradeville_daily_history_maps(points, value_field, currency):
+    """Păstrează separat fiecare cont Tradeville înainte de agregare."""
+    grouped = {}
+    for item in points or []:
+        if not isinstance(item, dict):
+            continue
+        account_key = (
+            str(item.get('account_id', '')).strip()
+            or str(item.get('account', '')).strip()
+            or 'Tradeville'
+        )
+        grouped.setdefault(account_key, []).append(item)
+    return {
+        account_key: values
+        for account_key, account_points in grouped.items()
+        if (values := _daily_history_map(
+            account_points, value_field, currency
+        ))
+    }
+
+
+def rebuild_broker_totals_history(account_data, max_points=1095):
+    """Reconstruiește zilnic totalul IBKR + toate conturile Tradeville.
+
+    Se face forward-fill numai după prima observație a fiecărei serii. Astfel,
+    o valoare viitoare nu este folosită pentru o zi istorică. Fiecare cont
+    Tradeville intră în total din prima sa observație, iar cash-ul rămâne N/A
+    până când există o observație exactă pentru toate conturile active.
+    """
+    if not isinstance(account_data, dict):
+        return []
+    current_totals = _combined_broker_totals(account_data)
+    if not current_totals:
+        return []
+    currency = current_totals['currency']
+    ibkr_nav = _daily_history_map(
+        account_data.get('nav_history'), 'nav', currency
+    )
+    ibkr_cash = _daily_history_map(
+        account_data.get('cash_history'), 'cash', currency
+    )
+    tradeville_nav = _tradeville_daily_history_maps(
+        account_data.get('tradeville_nav_history'), 'nav', currency
+    )
+    tradeville_cash = _tradeville_daily_history_maps(
+        account_data.get('tradeville_cash_history'), 'cash', currency
+    )
+    if not ibkr_nav or not tradeville_nav:
+        return []
+
+    nav_series = {
+        'ibkr_nav': ibkr_nav,
+        **{
+            f'tradeville_nav:{key}': values
+            for key, values in tradeville_nav.items()
+        },
+    }
+    cash_series = {
+        **({'ibkr_cash': ibkr_cash} if ibkr_cash else {}),
+        **{
+            f'tradeville_cash:{key}': values
+            for key, values in tradeville_cash.items()
+        },
+    }
+    series = {**nav_series, **cash_series}
+    all_days = sorted({day for values in series.values() for day in values})
+    first_combined_nav_day = max(
+        min(ibkr_nav),
+        min(min(values) for values in tradeville_nav.values()),
+    )
+    latest = {}
+    rebuilt = []
+    for day in all_days:
+        for name, values in series.items():
+            if day in values:
+                latest[name] = values[day]
+        active_tradeville_accounts = [
+            key for key in tradeville_nav
+            if f'tradeville_nav:{key}' in latest
+        ]
+        if (
+            day < first_combined_nav_day
+            or 'ibkr_nav' not in latest
+            or not active_tradeville_accounts
+        ):
+            continue
+        cash_complete = bool(
+            'ibkr_cash' in latest
+            and all(
+                f'tradeville_cash:{key}' in latest
+                for key in active_tradeville_accounts
+            )
+        )
+        rebuilt.append({
+            'timestamp': f'{day.isoformat()}T00:00:00+00:00',
+            'net_liquidation': round(
+                latest['ibkr_nav']
+                + sum(
+                    latest[f'tradeville_nav:{key}']
+                    for key in active_tradeville_accounts
+                ),
+                2,
+            ),
+            'total_cash': (
+                round(
+                    latest['ibkr_cash']
+                    + sum(
+                        latest[f'tradeville_cash:{key}']
+                        for key in active_tradeville_accounts
+                    ),
+                    2,
+                )
+                if cash_complete else None
+            ),
+            'currency': currency,
+            'source_version': 'broker_daily_history_v2',
+            'provenance': 'IBKR PortfolioAnalyst/Flex + Tradeville graf_pers_brut',
+            'tradeville_account_count': len(active_tradeville_accounts),
+            'tradeville_account_count_known': len(tradeville_nav),
+            'account_coverage_complete': (
+                len(active_tradeville_accounts) == len(tradeville_nav)
+            ),
+            'nav_available': True,
+            'cash_available': cash_complete,
+        })
+    return rebuilt[-max(1, int(max_points)):]
+
+
 def update_broker_totals_history(history, account_data, observed_at=None,
                                  max_points=1095):
-    """Păstrează evoluția zilnică și elimină doar duplicatele aceleiași zile."""
+    """Reconstruiește istoricul și adaugă snapshotul curent exact."""
     totals = _combined_broker_totals(account_data)
     if not totals:
         return list(history or [])
+    rebuilt = rebuild_broker_totals_history(
+        account_data, max_points=max_points
+    )
+    if rebuilt:
+        # Cash-ul IBKR nu este întotdeauna furnizat retroactiv de Flex. Nu
+        # aruncăm însă snapshoturile agregate exacte deja colectate: le legăm
+        # de ziua corespunzătoare, fără interpolare și fără extrapolare.
+        known_cash_by_day = {}
+        for item in history or []:
+            if not isinstance(item, dict):
+                continue
+            if str(item.get('currency', '')).strip().upper() != totals['currency']:
+                continue
+            day = _broker_history_date(item.get('timestamp'))
+            cash = _safe_number(item.get('total_cash'), None)
+            if day is not None and cash is not None:
+                known_cash_by_day[day] = cash
+        for item in rebuilt:
+            day = _broker_history_date(item.get('timestamp'))
+            if item.get('total_cash') is None and day in known_cash_by_day:
+                item['total_cash'] = round(known_cash_by_day[day], 2)
+                item['cash_available'] = True
+                item['cash_provenance'] = 'immutable_combined_snapshot'
     source_version = (
-        'tradeville_ws_graph_v1'
-        if account_data.get('tradeville_nav_history') else None
+        'broker_daily_history_v2' if rebuilt
+        else (
+            'tradeville_ws_graph_v1'
+            if account_data.get('tradeville_nav_history') else None
+        )
     )
     timestamp = (
         str(observed_at).strip()
         if observed_at
         else datetime.datetime.now().astimezone().isoformat(timespec='seconds')
     )
-    valid = []
-    for item in history or []:
+    valid = list(rebuilt)
+    historical_input = [] if rebuilt else (history or [])
+    for item in historical_input:
         if not isinstance(item, dict):
             continue
         value = _safe_number(item.get('net_liquidation'), None)
@@ -1227,7 +1447,22 @@ def _normalize_tws_account_data(account_data, now=None):
                     'Cash-ul de bază este sub 5% din Net Liquidation'
                 )
             continue
-        raw_summary = raw_account.get('summary', {})
+        raw_summary = dict(raw_account.get('summary', {}) or {})
+        if account_kind == 'tradeville':
+            account_id = str(raw_account.get('account_id', '')).strip()
+            account_currency = str(
+                raw_account.get('base_currency', 'EUR')
+            ).upper()
+            if _safe_number(raw_summary.get('NetLiquidation'), None) is None:
+                raw_summary['NetLiquidation'] = _latest_tradeville_history_value(
+                    account_data.get('tradeville_nav_history'),
+                    'nav', account_currency, account_id, account_label,
+                )
+            if _safe_number(raw_summary.get('TotalCashValue'), None) is None:
+                raw_summary['TotalCashValue'] = _latest_tradeville_history_value(
+                    account_data.get('tradeville_cash_history'),
+                    'cash', account_currency, account_id, account_label,
+                )
         summary = {
             key: _safe_number(raw_summary.get(key), None)
             for key in (
@@ -1249,6 +1484,7 @@ def _normalize_tws_account_data(account_data, now=None):
             account_label = 'IBKR'
         result['accounts'].append({
             'label': account_label,
+            'account_id': str(raw_account.get('account_id', '')).strip(),
             'source': str(raw_account.get('source', account_data.get('source', result['source']))),
             'base_currency': str(raw_account.get('base_currency', 'BASE')),
             'fetched_at': account_fetched_at,

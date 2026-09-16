@@ -654,6 +654,7 @@ def _account_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
     history_start = _history_start()
     for account in snapshot["accounts"]:
         person = account["person"]
+        history = _account_history(account, snapshot, start=history_start)
         cash_by_currency: dict[str, float] = {}
         cash_value_eur: dict[str, float] = {}
         for row in _cash_rows(account):
@@ -671,13 +672,16 @@ def _account_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
         known_all_eur = [value for value in all_eur if value is not None]
         total_cash = sum(cash_value_eur.values()) if cash_value_eur else None
         nav = sum(known_all_eur) if known_all_eur else total_cash
+        if nav is None and history["nav_history"]:
+            nav = history["nav_history"][-1]["nav"]
+        if total_cash is None and history["cash_history"]:
+            total_cash = history["cash_history"][-1]["cash"]
         summary = {
             "NetLiquidation": nav,
             "TotalCashValue": total_cash,
             "AvailableFunds": total_cash,
             "GrossPositionValue": (nav - total_cash) if nav is not None and total_cash is not None else None,
         }
-        history = _account_history(account, snapshot, start=history_start)
         accounts.append({
             "label": _text(person.get("name")),
             "account_id": _text(person.get("id")),
