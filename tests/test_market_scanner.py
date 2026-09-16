@@ -567,6 +567,93 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertNotIn('chart_ohlc_native', context['buy_candidates'][0])
         self.assertEqual(context['economic_cycle']['current'], 'Expansion')
 
+    def test_tvbetetf_market_reaches_chat_when_etf_is_not_held(self):
+        portfolio = pd.DataFrame([{
+            'Symbol': 'NVDA', 'Current_Price': 100, 'Shares': 1,
+        }])
+        history = list(range(40, 300))
+        proxy = {
+            'Symbol': 'TVBETETF.RO',
+            'Price_Native': 55.05,
+            'Chart_History': history,
+            'Chart_Dates': [f'day-{index}' for index in range(260)],
+            'RSI': 25.85,
+            'Market_Data_Source': 'Yahoo Finance',
+            'Market_Data_Observed_At': '2026-09-15T00:00:00+00:00',
+            'Market_Data_Fetched_At': '2026-09-16T03:59:10+00:00',
+        }
+        market_context = market_scanner_analysis.build_portfolio_market_context(
+            portfolio, {}, bvb_proxy=proxy,
+        )
+        context = market_scanner_analysis.build_portfolio_chat_context(
+            {'market_context': market_context}
+        )
+
+        signal = context['tvbetetf_market']
+        self.assertEqual(signal['symbol'], 'TVBETETF.RO')
+        self.assertEqual(signal['current_price'], 55.05)
+        self.assertEqual(signal['currency'], 'RON')
+        self.assertEqual(signal['history_observations'], 260)
+        self.assertIsNotNone(signal['sma200'])
+        self.assertEqual(signal['rsi14'], 25.85)
+        self.assertEqual(signal['market_data_source'], 'Yahoo Finance')
+
+    def test_lqq_full_technical_context_reaches_chat(self):
+        technical_events = {
+            'available': True,
+            'shadow_mode': True,
+            'overall_direction': 'BEARISH',
+            'overall_event_score': 29.12,
+            'confidence': 78.13,
+            'bullish_events': 17,
+            'bearish_events': 19,
+            'nearest_support': 9.274,
+            'nearest_resistance': 9.6033,
+            'timeframes': {
+                'SHORT_TERM': {
+                    'available': True, 'direction': 'NEUTRAL',
+                    'event_score': 44.54,
+                },
+                'INTERMEDIATE_TERM': {
+                    'available': True, 'direction': 'BEARISH',
+                    'event_score': 39.4,
+                },
+                'LONG_TERM': {
+                    'available': True, 'direction': 'BEARISH',
+                    'event_score': 0.0,
+                },
+            },
+            'events': [{
+                'type': 'BREAKDOWN', 'direction': 'BEARISH',
+                'timestamp': '2026-09-14T00:00:00',
+                'timeframe': 'SHORT_TERM',
+            }],
+        }
+        context = market_scanner_analysis.build_portfolio_chat_context(
+            {}, dashboard_state={'watchlist': [{
+                'Ticker': 'LQQ.PA', 'Price_Native': 9.31,
+                'Currency': 'EUR', 'Chart_History': list(range(1, 91)),
+                'SMA_50': 9.43, 'SMA_200': 8.39, 'RSI': 46.34,
+                'Trend': 'Bullish Pullback', 'Decision': 'AVOID',
+                'Stop_Loss': 8.87, 'Target': None,
+                'Technical_Events': technical_events,
+            }]}
+        )
+
+        lqq = context['lqq_market']
+        self.assertEqual(lqq['current_price'], 9.31)
+        self.assertEqual(lqq['sma50'], 9.43)
+        self.assertEqual(lqq['sma200'], 8.39)
+        self.assertFalse(lqq['target_available'])
+        self.assertEqual(lqq['target_status'], 'MISSING_NO_VALID_TARGET')
+        self.assertEqual(
+            lqq['technical_events']['overall_direction'], 'BEARISH'
+        )
+        self.assertEqual(
+            lqq['technical_events']['timeframes']['SHORT_TERM']['direction'],
+            'NEUTRAL',
+        )
+
     def test_portfolio_chat_context_contains_active_buy_and_sell_orders(self):
         portfolio = pd.DataFrame([{
             'Symbol': 'NVDA', 'Shares': 5, 'Buy_Price': 100,

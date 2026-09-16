@@ -227,6 +227,8 @@ test("selects only relevant context for focused questions", () => {
     positions: [{symbol: "NVDA"}],
     broker_liquidity: {cash: 10},
     market_context: {vix: 15},
+    tvbetetf_market: {current_price: 55.05, technical_verdict: "PRUDENȚĂ"},
+    lqq_market: {current_price: 9.31, sma200: 8.39},
     buy_candidates: [{symbol: "MSFT"}],
     us_sector_rotation: {technology: "strong"},
     evidence: {items: [{title: "News"}]},
@@ -237,6 +239,8 @@ test("selects only relevant context for focused questions", () => {
   };
   const news = selectContextForMessage(context, "Care sunt știrile recente?", true);
   assert.ok(news.evidence);
+  assert.equal(news.tvbetetf_market.current_price, 55.05);
+  assert.equal(news.lqq_market.sma200, 8.39);
   assert.equal(news.buy_candidates, undefined);
   assert.equal(news.rates, undefined);
 

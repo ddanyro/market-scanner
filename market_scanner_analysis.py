@@ -1331,7 +1331,213 @@ def _market_series_summary(label, series, source):
     }
 
 
-def build_portfolio_market_context(portfolio_df, market_indicators=None):
+def _tvbetetf_market_summary(item):
+    """Rezumat compact TVBETETF în RON pentru contextul AI al portofoliului."""
+    if not isinstance(item, dict):
+        try:
+            item = item.to_dict()
+        except AttributeError:
+            return None
+    history = [
+        _safe_number(value, None)
+        for value in list(item.get('Chart_History') or [])
+    ]
+    history = [value for value in history if value is not None and value > 0]
+    if not history:
+        return None
+    price = (
+        _safe_number(item.get('Price_Native'), None)
+        or _safe_number(item.get('Current_Price'), None)
+        or history[-1]
+    )
+    # În portofoliu istoricul poate fi în EUR, iar Price_Native este în RON.
+    scale = price / history[-1] if price > 0 and history[-1] > 0 else 1.0
+    native_history = [value * scale for value in history]
+
+    def average(window):
+        if len(native_history) < window:
+            return None
+        return round(sum(native_history[-window:]) / window, 4)
+
+    sma10, sma50, sma200 = average(10), average(50), average(200)
+    rsi = _safe_number(item.get('RSI'), None)
+    above_sma10 = price >= sma10 if sma10 is not None else None
+    above_sma50 = price >= sma50 if sma50 is not None else None
+    above_sma200 = price >= sma200 if sma200 is not None else None
+    trend_points = (
+        40 if above_sma200 is True
+        else 0 if above_sma200 is False
+        else 25 if above_sma50 is True
+        else 5
+    )
+    momentum_points = 25 if above_sma50 is True else 0
+    timing_points = 15 if above_sma10 is True else 0
+    if rsi is None:
+        rsi_points = 10
+    elif 45 <= rsi < 70:
+        rsi_points = 20
+    elif 35 <= rsi < 75:
+        rsi_points = 8
+    else:
+        rsi_points = 0
+    score = int(trend_points + momentum_points + timing_points + rsi_points)
+    major_trend_ok = above_sma200 if sma200 is not None else above_sma50
+    healthy_rsi = rsi is None or 45 <= rsi < 70
+    if major_trend_ok and above_sma10 and healthy_rsi:
+        verdict = 'CUMPĂRĂ'
+    elif major_trend_ok and (not above_sma10 or not healthy_rsi):
+        verdict = 'AȘTEAPTĂ CONFIRMAREA'
+    elif above_sma50 is False:
+        verdict = 'PRUDENȚĂ'
+    else:
+        verdict = 'NEUTRU'
+    dates = list(item.get('Chart_Dates') or [])
+    return {
+        'symbol': 'TVBETETF.RO',
+        'role': 'proxy investibil pentru direcția pieței principale BVB; nu este indice oficial',
+        'currency': 'RON',
+        'current_price': round(price, 4),
+        'last_session_date': dates[-1] if dates else None,
+        'history_observations': len(native_history),
+        'sma10': sma10,
+        'sma50': sma50,
+        'sma200': sma200,
+        'rsi14': round(rsi, 2) if rsi is not None else None,
+        'above_sma10': above_sma10,
+        'above_sma50': above_sma50,
+        'above_sma200': above_sma200,
+        'local_swing_score': score,
+        'technical_verdict': verdict,
+        'market_data_source': item.get('Market_Data_Source'),
+        'market_data_observed_at': item.get('Market_Data_Observed_At'),
+        'market_data_fetched_at': item.get('Market_Data_Fetched_At'),
+        'market_data_timing': item.get('Market_Data_Timing'),
+        'proxy_refreshed_at': item.get('BVB_Proxy_Refreshed_At'),
+    }
+
+
+def _technical_events_chat_summary(value, max_events=10):
+    """Păstrează semnalul Technical Events fără payloadul complet voluminos."""
+    if not isinstance(value, dict):
+        return {
+            'available': False,
+            'status': 'MISSING',
+        }
+    timeframes = {}
+    for name, detail in (value.get('timeframes') or {}).items():
+        if not isinstance(detail, dict):
+            continue
+        timeframes[name] = {
+            key: detail.get(key) for key in (
+                'available', 'direction', 'event_score', 'recent_event_score',
+                'context_score', 'structural_score', 'structural_direction',
+                'bullish_events', 'bearish_events', 'scored_events',
+            ) if detail.get(key) is not None
+        }
+    events = sorted(
+        [item for item in (value.get('events') or []) if isinstance(item, dict)],
+        key=lambda item: str(item.get('timestamp') or ''),
+        reverse=True,
+    )[:max_events]
+    event_fields = (
+        'type', 'name', 'direction', 'timestamp', 'timeframe',
+        'effective_strength', 'scoring_effective_strength',
+        'confirmation_status', 'signal_family',
+    )
+    return {
+        'available': bool(value.get('available', True)),
+        'status': 'AVAILABLE',
+        'shadow_mode': bool(value.get('shadow_mode', True)),
+        'affects_baseline': bool(value.get('affects_baseline', False)),
+        'affects_enhanced': bool(value.get('affects_enhanced', False)),
+        'engine_version': value.get('engine_version'),
+        'generated_at': value.get('generated_at'),
+        'data_as_of': value.get('data_as_of'),
+        'overall_direction': value.get('overall_direction'),
+        'overall_event_score': value.get('overall_event_score'),
+        'confidence': value.get('confidence'),
+        'bullish_events': value.get('bullish_events'),
+        'bearish_events': value.get('bearish_events'),
+        'nearest_support': value.get('nearest_support'),
+        'nearest_resistance': value.get('nearest_resistance'),
+        'timeframes': timeframes,
+        'recent_events': [
+            {key: item.get(key) for key in event_fields if item.get(key) is not None}
+            for item in events
+        ],
+        'input_provenance': {
+            key: (value.get('input_provenance') or {}).get(key)
+            for key in ('provider', 'fetched_at', 'benchmark', 'ticker', 'bars')
+            if (value.get('input_provenance') or {}).get(key) is not None
+        },
+    }
+
+
+def _lqq_market_summary(dashboard_state):
+    """Datele LQQ monitorizate permanent, chiar dacă nu este poziție/candidat BUY."""
+    rows = dashboard_state.get('watchlist') or []
+    item = next((
+        row for row in rows
+        if isinstance(row, dict)
+        and str(row.get('Ticker') or row.get('Symbol') or '').upper()
+        in {'LQQ', 'LQQ.PA', 'LQQ.FR', 'FR.LQQ'}
+    ), None)
+    if not item:
+        return {}
+    history = [
+        _safe_number(value, None)
+        for value in list(item.get('Chart_History') or [])
+    ]
+    history = [value for value in history if value is not None and value > 0]
+    price = (
+        _safe_number(item.get('Price_Native'), None)
+        or _safe_number(item.get('Price'), None)
+    )
+    scale = (
+        price / history[-1]
+        if price and history and history[-1] > 0 else 1.0
+    )
+    sma10 = (
+        round(sum(history[-10:]) / 10 * scale, 4)
+        if len(history) >= 10 else None
+    )
+    sma50 = _safe_number(item.get('SMA_50'), None)
+    sma200 = _safe_number(item.get('SMA_200'), None)
+    target = _safe_number(item.get('Target'), None)
+    return {
+        'symbol': 'LQQ.PA',
+        'name': item.get('Company_Name') or 'LQQ — Nasdaq-100 Daily (2x) Leveraged UCITS ETF',
+        'market': item.get('Market') or 'Europa / Nasdaq-100',
+        'currency': item.get('Currency') or 'EUR',
+        'current_price': price,
+        'entry': _safe_number(item.get('Smart_Entry'), None) or price,
+        'stop': _safe_number(item.get('Stop_Loss'), None),
+        'target': target,
+        'target_available': target is not None and target > 0,
+        'target_status': (
+            'AVAILABLE' if target is not None and target > 0
+            else 'MISSING_NO_VALID_TARGET'
+        ),
+        'sma10': sma10,
+        'sma50': sma50,
+        'sma200': sma200,
+        'rsi14': _safe_number(item.get('RSI'), None),
+        'trend': item.get('Trend'),
+        'scanner_decision': item.get('Decision'),
+        'risk_reward_ratio': _safe_number(item.get('RR_Ratio'), None),
+        'data_as_of': item.get('Date'),
+        'market_data_source': item.get('Market_Data_Source'),
+        'market_data_observed_at': item.get('Market_Data_Observed_At'),
+        'market_data_fetched_at': item.get('Market_Data_Fetched_At'),
+        'market_data_timing': item.get('Market_Data_Timing'),
+        'technical_events': _technical_events_chat_summary(
+            item.get('Technical_Events')
+        ),
+    }
+
+
+def build_portfolio_market_context(portfolio_df, market_indicators=None,
+                                   bvb_proxy=None):
     """Contextul piețelor relevante pozițiilor: SUA și România/BVB."""
     market_indicators = market_indicators or {}
     markets = {}
@@ -1354,25 +1560,39 @@ def build_portfolio_market_context(portfolio_df, market_indicators=None):
             ],
         }
 
+    bvb_rows = pd.DataFrame()
     if portfolio_df is not None and not portfolio_df.empty:
         bvb_rows = portfolio_df[
             portfolio_df['Symbol'].astype(str).str.upper().str.endswith('.RO')
         ] if 'Symbol' in portfolio_df.columns else pd.DataFrame()
-        if not bvb_rows.empty:
-            proxy_row = bvb_rows.iloc[0]
-            bvb_proxy = _market_series_summary(
-                'TVBETETF (proxy BET-TR)',
-                proxy_row.get('Chart_History', proxy_row.get('Sparkline', [])),
-                'ETF care urmărește piața principală BVB; folosit ca proxy, nu ca indice oficial',
+    proxy_row = bvb_proxy if isinstance(bvb_proxy, dict) else None
+    if proxy_row is None and not bvb_rows.empty:
+        proxy_matches = bvb_rows[
+            bvb_rows['Symbol'].astype(str).str.upper().isin(
+                {'TVBETETF', 'TVBETETF.RO'}
             )
-            if bvb_proxy:
-                markets['România / BVB'] = {
-                    'benchmarks': [bvb_proxy],
-                    'applies_to': [
-                        str(row.get('Symbol', '')).upper()
-                        for _, row in bvb_rows.iterrows()
-                    ],
-                }
+        ]
+        if not proxy_matches.empty:
+            proxy_row = proxy_matches.iloc[0]
+    proxy_summary = _tvbetetf_market_summary(proxy_row)
+    if proxy_summary:
+        proxy_history = proxy_row.get('Chart_History', [])
+        benchmark = _market_series_summary(
+            'TVBETETF (proxy BET-TR)',
+            proxy_history,
+            'ETF care urmărește piața principală BVB; folosit ca proxy, nu ca indice oficial',
+        )
+        if benchmark:
+            benchmark['latest'] = proxy_summary['current_price']
+            benchmark['currency'] = 'RON'
+            markets['România / BVB'] = {
+                'benchmarks': [benchmark],
+                'tvbetetf_technical_signal': proxy_summary,
+                'applies_to': [
+                    str(row.get('Symbol', '')).upper()
+                    for _, row in bvb_rows.iterrows()
+                ],
+            }
     return markets
 
 
@@ -1845,6 +2065,7 @@ def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
     dashboard_state = (
         dashboard_state if isinstance(dashboard_state, dict) else {}
     )
+    lqq_market = _lqq_market_summary(dashboard_state)
 
     candidate_fields = (
         'symbol', 'company_name', 'market', 'sector', 'industry', 'decision',
@@ -1940,6 +2161,12 @@ def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
             ],
         },
         'tvbetetf_lookthrough': snapshot.get('tvbetetf_lookthrough') or {},
+        'tvbetetf_market': (
+            (snapshot.get('market_context') or {})
+            .get('România / BVB', {})
+            .get('tvbetetf_technical_signal', {})
+        ),
+        'lqq_market': lqq_market,
         'market_context': snapshot.get('market_context') or {},
         'us_market_regime': snapshot.get('us_market_regime') or {},
         'us_sector_rotation': snapshot.get('us_sector_rotation') or {},

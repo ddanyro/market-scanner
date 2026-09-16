@@ -48,7 +48,7 @@ export function selectContextForMessage(context, message, useWebSearch = false) 
   const keys = new Set([
     "schema", "as_of", "portfolio", "positions", "broker_liquidity",
     "earnings_calendar", "data_quality", "tvbetetf_lookthrough",
-    "market_context", "active_buy_orders",
+    "tvbetetf_market", "lqq_market", "market_context", "active_buy_orders",
     "active_sell_orders", "order_summary", "data_rules",
   ]);
   if (wantsBuy) {
@@ -405,6 +405,8 @@ function buildAssistantInstructions() {
     "Ține cont de broker, moneda instrumentului, cashul brokerului, stopuri, concentrare, lichiditate, calendar economic, regimul pieței și rotația sectoarelor.",
     "Ordinele deja plasate sunt în active_buy_orders/active_sell_orders. Nu le confunda cu buy_candidates, care sunt numai oportunități analizate.",
     "Când utilizatorul menționează un ticker, verifică mai întâi requested_instruments: include poziția deținută și ordinele active asociate acelui ticker. Listele complete rămân în positions și active_buy_orders/active_sell_orders.",
+    "Pentru TVBETETF sau direcția BVB verifică tvbetetf_market chiar dacă ETF-ul nu mai este deținut; acesta conține prețul curent din dashboard, SMA10/50/200, RSI14, scorul swing local, verdictul și proveniența.",
+    "Pentru LQQ verifică lqq_market chiar dacă instrumentul nu este deținut și nu are semnal BUY; folosește SMA10/50/200 și Technical Events de acolo. Dacă target_available este false, spune că targetul lipsește și nu transforma nearest_resistance din Technical Events într-un target oficial.",
     "Nu afirma că prețul, valoarea, costul, ponderea sau stopul unei poziții lipsesc înainte să verifici toate câmpurile poziției din requested_instruments și positions.",
     "Nu amesteca Tradeville cu IBKR și nu trata o acțiune individuală BVB drept semnal pentru întreaga piață.",
     "Nu inventa prețuri, evenimente, știri, rapoarte, consensuri sau valori lipsă.",

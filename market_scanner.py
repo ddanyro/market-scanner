@@ -9511,7 +9511,9 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     cached_portfolio_ai = full_state.get('last_portfolio_ai_analysis')
     cached_portfolio_evidence = full_state.get('last_portfolio_ai_evidence')
     portfolio_market_context = analysis.build_portfolio_market_context(
-        portfolio_df, full_state.get('market_indicators', {})
+        portfolio_df,
+        full_state.get('market_indicators', {}),
+        bvb_proxy=full_state.get('bvb_proxy'),
     )
     tvbetetf_holdings = analysis.fetch_tvbetetf_holdings(
         cached=(full_state or {}).get('tvbetetf_holdings')
