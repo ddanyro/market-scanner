@@ -1,11 +1,13 @@
 "use strict";
 
 (() => {
-  if (window.__marketScannerTradevilleBridgeInstalled) return;
+  const BRIDGE_VERSION = 2;
+  if (window.__marketScannerTradevilleBridgeVersion === BRIDGE_VERSION) return;
   window.__marketScannerTradevilleBridgeInstalled = true;
+  window.__marketScannerTradevilleBridgeVersion = BRIDGE_VERSION;
 
-  const REQUEST_SOURCE = "market-scanner-tradeville-extension";
-  const RESULT_SOURCE = "market-scanner-tradeville-page";
+  const REQUEST_SOURCE = "market-scanner-tradeville-extension-v2";
+  const RESULT_SOURCE = "market-scanner-tradeville-page-v2";
   const WS_URL = "wss://portal.tradeville.ro";
   const WS_PROTOCOL = "pf4";
   const COMMANDS = new Set([
@@ -240,7 +242,7 @@
 
       return {
         schema: "market-scanner.tradeville.websocket.v2",
-        bridge_version: 2,
+        bridge_version: BRIDGE_VERSION,
         fetched_at: new Date().toISOString(),
         source: "Tradeville WebSocket pf4",
         accounts,

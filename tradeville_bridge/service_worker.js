@@ -31,6 +31,7 @@ async function injectIntoOpenTradevilleTabs() {
 
 chrome.runtime.onInstalled.addListener(injectIntoOpenTradevilleTabs);
 chrome.runtime.onStartup.addListener(injectIntoOpenTradevilleTabs);
+chrome.action.onClicked.addListener(injectIntoOpenTradevilleTabs);
 
 async function bridgeFetch(path, options = {}) {
   const headers = new Headers(options.headers || {});
@@ -52,8 +53,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.type === "TRADEVILLE_BRIDGE_READY") {
     chrome.action.setBadgeBackgroundColor({ color: "#188038" });
     chrome.action.setBadgeText({ text: "ON" });
-    sendResponse({ ok: true });
-    return false;
+    // A reloaded unpacked extension invalidates the old content-script
+    // context while the page itself can remain open. Reinject the versioned
+    // page client from the current extension package.
+    chrome.scripting.executeScript({
+      target: { tabId: sender.tab.id },
+      files: ["page_ws_client.js"],
+      world: "MAIN"
+    }).then(
+      () => sendResponse({ ok: true, version: 2 }),
+      () => sendResponse({ ok: false, error: "page_injection_failed" })
+    );
+    return true;
   }
 
   if (message?.type === "TRADEVILLE_BRIDGE_POLL") {

@@ -1,13 +1,15 @@
 "use strict";
 
-if (window.__marketScannerTradevilleContentBridgeInstalled) {
+const CONTENT_BRIDGE_VERSION = 2;
+if (window.__marketScannerTradevilleContentBridgeVersion === CONTENT_BRIDGE_VERSION) {
   // The service worker may inject the bridge into a tab that already received
   // the manifest content script. Never create a second polling loop.
 } else {
 window.__marketScannerTradevilleContentBridgeInstalled = true;
+window.__marketScannerTradevilleContentBridgeVersion = CONTENT_BRIDGE_VERSION;
 
-const REQUEST_SOURCE = "market-scanner-tradeville-extension";
-const RESULT_SOURCE = "market-scanner-tradeville-page";
+const REQUEST_SOURCE = "market-scanner-tradeville-extension-v2";
+const RESULT_SOURCE = "market-scanner-tradeville-page-v2";
 let activeJob = null;
 
 async function pollBridge() {
