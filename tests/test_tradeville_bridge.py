@@ -59,6 +59,26 @@ def sample_snapshot():
 
 
 class TestTradevilleBridge(unittest.TestCase):
+    def test_content_bridge_can_be_reinjected_without_global_const_collision(self):
+        root = Path(__file__).resolve().parents[1]
+        content = (root / "tradeville_bridge" / "content_bridge.js").read_text(
+            encoding="utf-8"
+        )
+        manifest = json.loads(
+            (root / "tradeville_bridge" / "manifest.json").read_text(
+                encoding="utf-8"
+            )
+        )
+
+        self.assertTrue(content.startswith('"use strict";\n\n(() => {'))
+        self.assertTrue(content.rstrip().endswith("})();"))
+        self.assertIn(
+            "if (window.__marketScannerTradevilleContentBridgeVersion === CONTENT_BRIDGE_VERSION)",
+            content,
+        )
+        self.assertIn("return;", content)
+        self.assertEqual(manifest["version"], "1.3.1")
+
     def test_reconstructs_nav_cash_and_transfer_adjusted_profit(self):
         epoch = datetime(2000, 1, 1, tzinfo=timezone.utc)
         minute = lambda value: int(

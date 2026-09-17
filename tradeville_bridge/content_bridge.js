@@ -1,16 +1,18 @@
 "use strict";
 
-const CONTENT_BRIDGE_VERSION = 2;
-if (window.__marketScannerTradevilleContentBridgeVersion === CONTENT_BRIDGE_VERSION) {
-  // The service worker may inject the bridge into a tab that already received
-  // the manifest content script. Never create a second polling loop.
-} else {
-window.__marketScannerTradevilleContentBridgeInstalled = true;
-window.__marketScannerTradevilleContentBridgeVersion = CONTENT_BRIDGE_VERSION;
+(() => {
+  const CONTENT_BRIDGE_VERSION = 2;
+  if (window.__marketScannerTradevilleContentBridgeVersion === CONTENT_BRIDGE_VERSION) {
+    // The service worker may inject the bridge into a tab that already received
+    // the manifest content script. Never create a second polling loop.
+    return;
+  }
+  window.__marketScannerTradevilleContentBridgeInstalled = true;
+  window.__marketScannerTradevilleContentBridgeVersion = CONTENT_BRIDGE_VERSION;
 
-const REQUEST_SOURCE = "market-scanner-tradeville-extension-v2";
-const RESULT_SOURCE = "market-scanner-tradeville-page-v2";
-let activeJob = null;
+  const REQUEST_SOURCE = "market-scanner-tradeville-extension-v2";
+  const RESULT_SOURCE = "market-scanner-tradeville-page-v2";
+  let activeJob = null;
 
 async function pollBridge() {
   if (activeJob) return;
@@ -50,7 +52,7 @@ window.addEventListener("message", async event => {
   }
 });
 
-setInterval(pollBridge, 1000);
-pollBridge();
-chrome.runtime.sendMessage({ type: "TRADEVILLE_BRIDGE_READY" }).catch(() => {});
-}
+  setInterval(pollBridge, 1000);
+  pollBridge();
+  chrome.runtime.sendMessage({ type: "TRADEVILLE_BRIDGE_READY" }).catch(() => {});
+})();
