@@ -848,12 +848,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Healthcare Plans",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 13878278,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -862,7 +862,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -876,6 +876,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 31,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -931,10 +934,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 71.5,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 71.5
   },
   {
     "ATR_14": 4.13,
@@ -1758,6 +1758,778 @@
     ],
     "Check_Details": "\u2713 Trend (P 102.2 > SMA50 100.5) \u2713 RS (Trend: Up, Val: 3.79) \u2713 RSI (48.9) \u2713 ATR (Risk 8.1%)",
     "Checks_Passed": 4,
+    "Company_Context": {
+      "available": true,
+      "connections": [
+        {
+          "links": [
+            {
+              "key": "ba3db4b5-569f-4529-8ba1-98e667ef35da",
+              "link_type": "company_theme",
+              "name": "Agricultural Processing",
+              "rank": 1,
+              "type": "theme"
+            },
+            {
+              "key": "bd4bce95-8832-456c-b92f-7a486312836f",
+              "link_type": "company_theme",
+              "name": "Agribusiness",
+              "rank": 2,
+              "type": "theme"
+            },
+            {
+              "key": "705f4d7d-0d83-43e9-801f-c058a71d52e3",
+              "link_type": "company_theme",
+              "name": "Agricultural Commodities",
+              "rank": 3,
+              "type": "theme"
+            },
+            {
+              "key": "4cb9ff3c-99f1-425f-a3ff-03d6ae0779ab",
+              "link_type": "company_theme",
+              "name": "Food Ingredients",
+              "rank": 4,
+              "type": "theme"
+            },
+            {
+              "key": "68bc0a89-c530-4e8f-b4ef-a6a1eee111f3",
+              "link_type": "company_theme",
+              "name": "Renewable Energy",
+              "rank": 5,
+              "type": "theme"
+            },
+            {
+              "key": "54e64bb3-b6ab-4e95-8e81-d0d4b1addd13",
+              "link_type": "company_theme",
+              "name": "Marine Transportation",
+              "rank": 6,
+              "type": "theme"
+            },
+            {
+              "key": "dafd4de4-d98f-4182-bec7-9a4507fa674b",
+              "link_type": "company_theme",
+              "name": "Supply Chain Management",
+              "rank": 7,
+              "type": "theme"
+            },
+            {
+              "key": "45e8a248-c80e-445b-b806-110ebfb5e14d",
+              "link_type": "company_theme",
+              "name": "Energy Transition",
+              "rank": 8,
+              "type": "theme"
+            },
+            {
+              "key": "bf867998-a5eb-4b09-b066-3176b0297d3c",
+              "link_type": "company_theme",
+              "name": "Food Processing",
+              "rank": 9,
+              "type": "theme"
+            },
+            {
+              "key": "8ff17986-b0a3-4e0e-9751-b001446836d7",
+              "link_type": "company_theme",
+              "name": "Industrial Transportation",
+              "rank": 10,
+              "type": "theme"
+            },
+            {
+              "key": "030b1ecf-fdf7-4fda-8d68-0fdefe2febab",
+              "link_type": "company_theme",
+              "name": "Global Logistics",
+              "rank": 11,
+              "type": "theme"
+            },
+            {
+              "key": "6d47eac2-d4db-46e8-81d0-fd5cee93bfd0",
+              "link_type": "company_theme",
+              "name": "Diversified Financial Services",
+              "rank": 12,
+              "type": "theme"
+            },
+            {
+              "key": "3052d9b9-7407-4522-861e-cf7c19e3a25e",
+              "link_type": "company_theme",
+              "name": "Plant-based Products",
+              "rank": 13,
+              "type": "theme"
+            },
+            {
+              "key": "69d9c830-3a7b-41b6-a796-746539839d1a",
+              "link_type": "company_theme",
+              "name": "Food And Beverage",
+              "rank": 14,
+              "type": "theme"
+            },
+            {
+              "key": "f8147a1d-cce7-41b3-9c36-668b5f8d9816",
+              "link_type": "company_theme",
+              "name": "Agricultural Chemicals",
+              "rank": 15,
+              "type": "theme"
+            }
+          ],
+          "title": "Investment Theme Exposure",
+          "type": "company_theme"
+        },
+        {
+          "links": [
+            {
+              "key": "Agribusiness",
+              "link_type": "company_product",
+              "name": "Agribusiness",
+              "rank": 1,
+              "type": "product"
+            },
+            {
+              "key": "Oilseeds",
+              "link_type": "company_product",
+              "name": "Oilseeds",
+              "rank": 2,
+              "type": "product"
+            },
+            {
+              "key": "Viterra",
+              "link_type": "company_product",
+              "name": "Viterra",
+              "rank": 3,
+              "type": "product"
+            },
+            {
+              "key": "Refined and Specialty Oils",
+              "link_type": "company_product",
+              "name": "Refined and Specialty Oils",
+              "rank": 4,
+              "type": "product"
+            },
+            {
+              "key": "Renewable Fuels",
+              "link_type": "company_product",
+              "name": "Renewable Fuels",
+              "rank": 5,
+              "type": "product"
+            },
+            {
+              "key": "Logistics and Financial Services",
+              "link_type": "company_product",
+              "name": "Logistics and Financial Services",
+              "rank": 6,
+              "type": "product"
+            },
+            {
+              "key": "Plant-based Proteins",
+              "link_type": "company_product",
+              "name": "Plant-based Proteins",
+              "rank": 7,
+              "type": "product"
+            },
+            {
+              "key": "Fertilizer and Seeds",
+              "link_type": "company_product",
+              "name": "Fertilizer and Seeds",
+              "rank": 8,
+              "type": "product"
+            }
+          ],
+          "title": "Brand & Product",
+          "type": "company_product"
+        },
+        {
+          "links": [
+            {
+              "contract_id": 4165,
+              "exchange": "SMART",
+              "key": "US0394831020",
+              "link_type": "company_competitor",
+              "name": "ARCHER-DANIELS-MIDLAND CO",
+              "symbol": "ADM",
+              "type": "company"
+            },
+            {
+              "contract_id": 4726335,
+              "exchange": "SMART",
+              "key": "US0341641035",
+              "link_type": "company_competitor",
+              "name": "ANDERSONS INC/THE",
+              "symbol": "ANDE",
+              "type": "company"
+            },
+            {
+              "contract_id": 756577,
+              "exchange": "SMART",
+              "key": "US8115431079",
+              "link_type": "company_competitor",
+              "name": "SEABOARD CORP",
+              "symbol": "SEB",
+              "type": "company"
+            },
+            {
+              "contract_id": 107051249,
+              "exchange": "SMART",
+              "key": "US4571871023",
+              "link_type": "company_competitor",
+              "name": "INGREDION INC",
+              "symbol": "INGR",
+              "type": "company"
+            },
+            {
+              "contract_id": 47990698,
+              "exchange": "SGX",
+              "key": "SG1T56930848",
+              "link_type": "company_competitor",
+              "name": "WILMAR INTERNATIONAL LTD",
+              "symbol": "F34",
+              "type": "company"
+            },
+            {
+              "contract_id": 38333348,
+              "exchange": "SMART",
+              "key": "US3932221043",
+              "link_type": "company_competitor",
+              "name": "GREEN PLAINS INC",
+              "symbol": "GPRE",
+              "type": "company"
+            },
+            {
+              "contract_id": 886099493,
+              "exchange": "SMART",
+              "key": "US6273335033",
+              "link_type": "company_competitor",
+              "name": "SADOT GROUP INC",
+              "symbol": "SDOT",
+              "type": "company"
+            },
+            {
+              "contract_id": 14063656,
+              "exchange": "SMART",
+              "key": "AU000000GNC9",
+              "link_type": "company_competitor",
+              "name": "GRAINCORP LTD-A",
+              "symbol": "GNC",
+              "type": "company"
+            },
+            {
+              "contract_id": 99990497,
+              "exchange": "SMART",
+              "key": "US55303J1060",
+              "link_type": "company_competitor",
+              "name": "MGP INGREDIENTS INC",
+              "symbol": "MGPI",
+              "type": "company"
+            },
+            {
+              "contract_id": 431495220,
+              "exchange": "SMART",
+              "key": "US8618961085",
+              "link_type": "company_competitor",
+              "name": "STONEX GROUP INC",
+              "symbol": "SNEX",
+              "type": "company"
+            },
+            {
+              "contract_id": 764577,
+              "exchange": "SMART",
+              "key": "US0576652004",
+              "link_type": "company_competitor",
+              "name": "BALCHEM CORP",
+              "symbol": "BCPC",
+              "type": "company"
+            },
+            {
+              "contract_id": 6604385,
+              "exchange": "SMART",
+              "key": "US2372661015",
+              "link_type": "company_competitor",
+              "name": "DARLING INGREDIENTS INC",
+              "symbol": "DAR",
+              "type": "company"
+            }
+          ],
+          "title": "Competitors",
+          "type": "company_competitor"
+        },
+        {
+          "links": [
+            {
+              "key": "BR",
+              "link_type": "company_country",
+              "name": "BR",
+              "rank": 1,
+              "symbol": "BR",
+              "type": "country"
+            },
+            {
+              "key": "US",
+              "link_type": "company_country",
+              "name": "US",
+              "rank": 2,
+              "symbol": "US",
+              "type": "country"
+            },
+            {
+              "key": "AR",
+              "link_type": "company_country",
+              "name": "AR",
+              "rank": 3,
+              "symbol": "AR",
+              "type": "country"
+            },
+            {
+              "key": "CN",
+              "link_type": "company_country",
+              "name": "CN",
+              "rank": 4,
+              "symbol": "CN",
+              "type": "country"
+            },
+            {
+              "key": "CA",
+              "link_type": "company_country",
+              "name": "CA",
+              "rank": 5,
+              "symbol": "CA",
+              "type": "country"
+            },
+            {
+              "key": "NL",
+              "link_type": "company_country",
+              "name": "NL",
+              "rank": 6,
+              "symbol": "NL",
+              "type": "country"
+            },
+            {
+              "key": "DE",
+              "link_type": "company_country",
+              "name": "DE",
+              "rank": 7,
+              "symbol": "DE",
+              "type": "country"
+            },
+            {
+              "key": "ES",
+              "link_type": "company_country",
+              "name": "ES",
+              "rank": 8,
+              "symbol": "ES",
+              "type": "country"
+            },
+            {
+              "key": "UA",
+              "link_type": "company_country",
+              "name": "UA",
+              "rank": 9,
+              "symbol": "UA",
+              "type": "country"
+            },
+            {
+              "key": "CH",
+              "link_type": "company_country",
+              "name": "CH",
+              "rank": 10,
+              "symbol": "CH",
+              "type": "country"
+            },
+            {
+              "key": "IN",
+              "link_type": "company_country",
+              "name": "IN",
+              "rank": 11,
+              "symbol": "IN",
+              "type": "country"
+            },
+            {
+              "key": "FR",
+              "link_type": "company_country",
+              "name": "FR",
+              "rank": 12,
+              "symbol": "FR",
+              "type": "country"
+            },
+            {
+              "key": "AU",
+              "link_type": "company_country",
+              "name": "AU",
+              "rank": 13,
+              "symbol": "AU",
+              "type": "country"
+            }
+          ],
+          "title": "Country Exposure",
+          "type": "company_country"
+        },
+        {
+          "links": [
+            {
+              "key": "South_America",
+              "link_type": "company_region",
+              "name": "South America",
+              "rank": 1,
+              "type": "region"
+            },
+            {
+              "key": "North_America",
+              "link_type": "company_region",
+              "name": "North America",
+              "rank": 2,
+              "type": "region"
+            },
+            {
+              "key": "Europe",
+              "link_type": "company_region",
+              "name": "Europe",
+              "rank": 3,
+              "type": "region"
+            },
+            {
+              "key": "Asia",
+              "link_type": "company_region",
+              "name": "Asia",
+              "rank": 4,
+              "type": "region"
+            },
+            {
+              "key": "Oceania",
+              "link_type": "company_region",
+              "name": "Oceania",
+              "rank": 5,
+              "type": "region"
+            },
+            {
+              "key": "Middle_East",
+              "link_type": "company_region",
+              "name": "Middle East",
+              "rank": 6,
+              "type": "region"
+            }
+          ],
+          "title": "Region Exposure",
+          "type": "company_region"
+        }
+      ],
+      "fetched_at": "2026-09-17T05:10:51.849101+00:00",
+      "peer_count": 25,
+      "peer_rank": 1,
+      "source": "IBKR MCP company research",
+      "theme_count": 5,
+      "themes": [
+        {
+          "description": "Transformation of raw agricultural goods into finished products suitable for consumer markets, involving processes like milling, fermentation, canning, and packaging to extend shelf life and enhance quality.",
+          "key": "ba3db4b5-569f-4529-8ba1-98e667ef35da",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 4165,
+              "description": "Procures, transports, stores, and processes agricultural commodities into food ingredients, animal feed, and renewable fuels through an extensive global supply chain network.",
+              "evidence": "Agricultural processing forms the core operating identity of ADM, driven by extensive global soybean crushing, corn wet-milling, and dry-milling ethanol operations across its Carbohydrate Solutions and Ag Services & Oilseeds segments. To support this infrastructure, the company dedicates the bulk of its $1.3 billion to $1.5 billion annual capital expenditure budget to maintaining and optimizing large-scale facilities, recently achieving its best overall global site crush production on record and demonstrating the capability to extract up to 22 different products from a single wet mill. The physical transformation of raw grains and seeds into food, fuels, and refined oils represents the fundamental engine of the business, accounting for the majority of the firm's total operating profits and dictating ongoing strategic initiatives like sidestream valorization.",
+              "exchange": "SMART",
+              "key": "US0394831020",
+              "name": "ARCHER-DANIELS-MIDLAND CO",
+              "rank": 2,
+              "symbol": "ADM"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 38333348,
+              "description": "Converts agricultural commodities into biofuels, high-protein ingredients, and renewable oils through large-scale biorefining operations.",
+              "evidence": "Green Plains operates by processing raw corn into finished commercial goods such as ethanol, ultra-high protein, and distillers corn oil. In the second quarter of 2026, the company generated $446 million in base product revenue by maintaining 97% operational reliability across its platform to produce 174 million gallons of ethanol. Under the leadership of CEO Chris Osowski, dedicated operational teams at facilities like York, Nebraska, and Superior, Iowa, achieved recent production and efficiency records. To further optimize extraction yields, the company is deploying capital to expand its proprietary Maximizing Stillage Co-products (MSC) technology and implement low-energy distillation upgrades across its biorefineries.",
+              "exchange": "SMART",
+              "key": "US3932221043",
+              "name": "GREEN PLAINS INC",
+              "rank": 3,
+              "symbol": "GPRE"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 107051249,
+              "description": "Transforms agricultural commodities, such as corn, tapioca, and potatoes, into value-added food ingredients, starches, and sweeteners for global food, beverage, and industrial markets.",
+              "evidence": "Ingredion's operational infrastructure at manufacturing sites like Argo and Mogi Guacu is dedicated to the large-scale transformation of raw commodities into functional ingredients. Recent operations rely on a specialized multidisciplinary team to oversee complex processing tasks, including front-end grinding, corn germ processing, and syrup refining. The company directs its capital expenditures\u2014including $110 million in recent quarters and $400 million to $440 million in expected annual commitments\u2014to maintain these facilities and optimize polyols and tapioca processing networks. This direct conversion of grains, fruits, and vegetables into value-added solutions forms the foundation of the company's business model, driving the entirety of its $1.79 billion in quarterly net sales.",
+              "exchange": "SMART",
+              "key": "US4571871023",
+              "name": "INGREDION INC",
+              "rank": 4,
+              "symbol": "INGR"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 6604385,
+              "description": "Transforms agricultural and animal by-products into specialty ingredients and renewable fuels, supporting the broader agricultural processing supply chain through resource recovery and waste reduction.",
+              "evidence": "Darling Ingredients operates a global rendering network that transforms raw agricultural livestock byproducts, primarily poultry and cattle, into value-added proteins, fats, gelatin, and collagen. This processing capability is anchored by the company's dedicated Feed Ingredients segment, which handled 3.8 million metric tons of raw material volume in Q2 2026 and generated $985 million in sales, representing the majority of the company's total consolidated revenue. Further expanding its global agricultural processing capacity, Darling recently integrated three rendering facilities acquired from the Patense Group in Brazil and has committed capital to build and expand additional plants across the U.S., Paraguay, and China.",
+              "exchange": "SMART",
+              "key": "US2372661015",
+              "name": "DARLING INGREDIENTS INC",
+              "rank": 5,
+              "symbol": "DAR"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 757612274,
+              "description": "Functions as a vertically integrated agricultural processor by managing extensive pork production operations, encompassing livestock farming, meatpacking, and the manufacturing of consumer packaged meat products.",
+              "evidence": "Smithfield's core operations center on transforming live hogs into case-ready primal, sub-primal, and packaged meat offerings, a capability driven by a dedicated Fresh Pork segment that recently generated $2.0 billion to account for over half of total quarterly revenue. To support these continuous agricultural processing demands, the company directs more than 50% of its planned capital investments toward facility expansions and manufacturing optimizations under specialized executive leadership. This infrastructure strategy is anchored by a $1.3 billion commitment to construct a new facility in Sioux Falls, designed to serve as the most technologically advanced, efficient, and largest combined pork processing plant in the company's network.",
+              "exchange": "SMART",
+              "key": "US8322482071",
+              "name": "SMITHFIELD FOODS INC",
+              "rank": 6,
+              "symbol": "SFD"
+            }
+          ],
+          "name": "Agricultural Processing",
+          "total_count": 75
+        },
+        {
+          "description": "Encompasses all aspects of agriculture, from crop and livestock production to processing and distribution, integrating technology and sustainability practices to maximize productivity and market reach.",
+          "key": "bd4bce95-8832-456c-b92f-7a486312836f",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 366239371,
+              "description": "Provides a comprehensive portfolio of advanced seed genetics, crop protection products, and digital agronomic solutions designed to enhance global agricultural productivity and support sustainable farming operations.",
+              "evidence": "Corteva functions entirely as an agribusiness pure-play, highlighted by an ongoing restructuring led by CEO Charles Magro to divide its 22,000-employee workforce into two specialized entities: a Crop Protection business and a newly established advanced seed and genetics company named Vylor. The company's comprehensive grip on global farming inputs is anchored by its century-old Pioneer brand, leading corn market share in Brazil, and an extensive out-licensing network for its proprietary Enlist seed traits. Corteva aggressively expands this footprint through strategic capital deployment, most recently executing a $700 million payout for Bayer crop technology and launching a Latin American biofuels joint venture with BP. Furthermore, the company sustains its vast agricultural ecosystem through structural farmer support, dedicating over $1 billion annually to agricultural R&D and funding a nearly $1 billion crop-and-seed barter program to mitigate financial risks for growers.",
+              "exchange": "SMART",
+              "key": "US22052L1044",
+              "name": "CORTEVA INC",
+              "rank": 1,
+              "symbol": "CTVA"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 4165,
+              "description": "Procures, transports, stores, and processes agricultural commodities into food, feed, and industrial products, operating as a foundational global supply chain link between farmers and consumers.",
+              "evidence": "ADM operates as an essential global agricultural supply chain manager and processor, with agribusiness directly driving its entire organizational structure and all of its operating profit across the Ag Services and Oilseeds, Carbohydrate Solutions, and Nutrition segments. The company controls an end-to-end value chain spanning crop origination, grain export logistics, oilseed crushing, and specialized ingredient processing, sustained by a total corporate capital expenditure budget of $1.3 billion to $1.5 billion. Expanding this integrated footprint, ADM recently achieved record global site crush production and structurally grew its animal nutrition division by contributing physical feed mills to a joint venture with Alltech.",
+              "exchange": "SMART",
+              "key": "US0394831020",
+              "name": "ARCHER-DANIELS-MIDLAND CO",
+              "rank": 2,
+              "symbol": "ADM"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 88292752,
+              "description": "Focuses on the production and distribution of concentrated phosphate and potash crop nutrients, supplying essential fertilizers to enhance global agricultural yields and support broad farming operations.",
+              "evidence": "Mosaic's integration into the agribusiness sector is driven by its position as an end-to-end supplier of crop nutrients, livestock feed ingredients like dicalcium phosphate, and global distribution logistics. The company's operations are intertwined with agricultural market conditions, demonstrated by a $1.25 billion capital expenditure budget directed at crop supply chains and fertilizer production networks. Organizationally, this alignment is formalized through dedicated executive leadership and the Mosaic Fertilizantes segment, which actively manages localized seasonal demand and farmer credit risks in South America. The company also continually scales its agribusiness infrastructure through physical capacity expansions, such as the completion of a 1 million tonne crop nutrient blending facility in Palmeirante to supply fast-growing agricultural regions in Brazil.",
+              "exchange": "SMART",
+              "key": "US61945C1036",
+              "name": "MOSAIC CO/THE",
+              "rank": 4,
+              "symbol": "MOS"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 4230,
+              "description": "Designs, manufactures, and distributes a comprehensive portfolio of agricultural machinery and precision farming technologies that directly support and enhance global agribusiness operations.",
+              "evidence": "AGCO operates as a pure-play global manufacturer in the agribusiness sector, generating its entire $2.3 billion in recent quarterly net sales exclusively from agricultural equipment, precision technology, and replacement parts. The company equips the agricultural supply chain through major brands like Fendt, Massey Ferguson, and Valtra, recently achieving record-high global market share and customer satisfaction scores. Demonstrating a complete organizational commitment, AGCO directs 100% of its budget toward agricultural solutions, forecasting approximately $350 million in capital expenditures and over $500 million in engineering expenses. This operational focus is structurally reinforced by dedicated divisions such as AGCO Power and PTx, along with the strategic divestiture of its Grain & Protein segment to concentrate entirely on advancing farm machinery.",
+              "exchange": "SMART",
+              "key": "US0010841023",
+              "name": "AGCO CORP",
+              "rank": 5,
+              "symbol": "AGCO"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 6393,
+              "description": "Manufactures a comprehensive portfolio of agricultural equipment, including tractors, harvesters, and precision farming technologies, that optimize crop production and streamline farm management operations globally.",
+              "evidence": "Deere & Company functions as a foundational equipment and technology provider for the global agribusiness sector, organizing its core operations around its Production & Precision Agriculture and Small Agriculture & Turf segments. During Q2 2026, these agricultural divisions generated nearly $8 billion in combined revenue\u2014comprising nearly 60% of total net sales\u2014by supplying essential machinery and solutions to crop, dairy, and livestock producers. To continually align with the agricultural market business cycle, Deere is directing a $20 billion, 10-year capital investment into U.S. manufacturing to maximize agricultural productivity, alongside expanding its global footprint with 20 new machinery models recently introduced in key markets such as Brazil.",
+              "exchange": "SMART",
+              "key": "US2441991054",
+              "name": "DEERE & CO",
+              "rank": 6,
+              "symbol": "DE"
+            }
+          ],
+          "name": "Agribusiness",
+          "total_count": 75
+        },
+        {
+          "description": "Raw products derived from farming, such as grains, livestock, and dairy, traded on global markets with price influenced by supply-demand dynamics, weather patterns, and geopolitical factors.",
+          "key": "705f4d7d-0d83-43e9-801f-c058a71d52e3",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 4165,
+              "description": "Sources, processes, and distributes a wide range of agricultural commodities globally, converting raw crops into essential ingredients for food, animal feed, and industrial applications.",
+              "evidence": "ADM's business model is fundamentally structured around the global sourcing, trading, and processing of agricultural commodities such as corn, soybeans, and sorghum. The company drives its earnings through the Ag Services and Oilseeds (AS&O) division, which oversees large-scale physical commodity flows and secured $273 million in segment operating profit during the second quarter of 2026. By navigating global supply-demand dynamics, ADM executes extensive export programs, including recent shipments of soybeans and sorghum to China alongside ongoing corn exports. Operating as a fundamental player in international grain and feed markets, the company manages raw feedstock margin profiles in response to global consumption patterns, weather, and geopolitical events.",
+              "exchange": "SMART",
+              "key": "US0394831020",
+              "name": "ARCHER-DANIELS-MIDLAND CO",
+              "rank": 2,
+              "symbol": "ADM"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 275405,
+              "description": "Processes and distributes beef, pork, and poultry on a global scale, driving demand for feed grains and supplying protein-based agricultural commodities to consumer and commercial food markets.",
+              "evidence": "Tyson Foods acts directly as a primary buyer and processor of agricultural commodities, generating $13.7 billion in revenue by transforming raw livestock like cattle, hogs, and poultry into wholesale and retail meat products. The company utilizes dedicated live production teams working alongside family farmers to manage input acquisitions and navigate volatile supply-demand dynamics, including fluctuating cattle cycles, hog supplies, and grain feed costs. To insulate its operations from unpredictable raw material inflation, Tyson strategically leverages a value-added product mix to balance pricing and out-compete pure commodity market participants.",
+              "exchange": "SMART",
+              "key": "US9024941034",
+              "name": "TYSON FOODS INC-CL A",
+              "rank": 3,
+              "symbol": "TSN"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 505002201,
+              "description": "Cultivates, sources, and distributes large volumes of fresh fruits and vegetables across a global supply chain, directly driving the production and delivery of essential farm-grown goods to worldwide markets.",
+              "evidence": "Dole's operational foundation is built entirely on the cultivation, sourcing, and global trading of agricultural crops such as bananas, pineapples, cherries, and citrus. In Q2 2026, the company's Fresh Fruit division countered elevated sourcing costs, weather disruptions in Costa Rica, and shifting global supply volumes by deploying dynamic pricing frameworks. To secure commodity yields, Dole recently established production joint ventures in Guatemala and Chile to expand capacity for its core crops. These supply-chain enhancements build directly upon previous infrastructural commitments, including a $16 million rehabilitation of Honduran farms and a 15-year research and development program to breed the new Colada Royale pineapple.",
+              "exchange": "SMART",
+              "key": "IE0003LFZ4U7",
+              "name": "DOLE PLC",
+              "rank": 4,
+              "symbol": "DOLE"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 71395583,
+              "description": "Engages in the large-scale production, processing, and distribution of poultry, directly supplying essential protein products to the global agricultural commodities market.",
+              "evidence": "Pilgrim's Pride operates directly within agricultural commodity markets by producing unbranded poultry and navigating the pricing dynamics of essential feed inputs like corn, wheat, and soybeans. The company's profitability depends on managing global supply-demand shifts and crop yields, utilizing strategies such as derivative hedging to control raw material costs. To mitigate vulnerability to fluctuating values in the live bird segment and jumbo commodity cutouts, the business is strategically converting traditional commodity processing assets to expand its portfolio of higher-margin prepared foods.",
+              "exchange": "SMART",
+              "key": "US72147K1088",
+              "name": "PILGRIM'S PRIDE CORP",
+              "rank": 5,
+              "symbol": "PPC"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 4726335,
+              "description": "Merchandises, stores, and transports a diverse range of agricultural commodities, including grains, feed ingredients, and plant nutrients, to support and sustain global agricultural supply chains.",
+              "evidence": "The Andersons operates fundamentally as an agricultural commodity-based business driven by the purchasing, storing, and merchandising of raw grains such as corn, soybeans, and wheat. The company leverages a vast physical footprint, featuring 266 million bushels of grain storage capacity, alongside a dedicated merchandising workforce to capitalize on market volatility and capture value from domestic and export grain flows. To further expand its international commodity reach, the company is actively directing capital toward the construction of a Port of Houston facility engineered exclusively for global soybean meal exports.",
+              "exchange": "SMART",
+              "key": "US0341641035",
+              "name": "ANDERSONS INC/THE",
+              "rank": 6,
+              "symbol": "ANDE"
+            }
+          ],
+          "name": "Agricultural Commodities",
+          "total_count": 75
+        },
+        {
+          "description": "Essential components used in food production, contributing to flavor, nutrition, and preservation, including additives and functional compounds supporting dietary requirements.",
+          "key": "4cb9ff3c-99f1-425f-a3ff-03d6ae0779ab",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 107051249,
+              "description": "Develops and manufactures a broad portfolio of specialty food ingredients, including starches, sweeteners, and plant-based proteins, designed to enhance the texture, taste, and nutritional profile of food and beverage products globally.",
+              "evidence": "Ingredion's business model is fundamentally defined by its role as a leading food ingredient supplier, with its 'Food and Industrial Ingredients' and 'Texture and Healthful Solutions' segments generating nearly all of its $1.8 billion in recent quarterly net sales. The company directs its entire $400 million to $440 million annual capital expenditure budget toward manufacturing core offerings such as functional native starches, stevia-based sweeteners, and pea protein isolates. To sustain its competitive position in the clean-label and sugar-reduction markets, Ingredion leverages an extensive global infrastructure, utilizing patented technologies and over 30 dedicated Idea Labs to continuously develop its billion-dollar ingredient solutions portfolio.",
+              "exchange": "SMART",
+              "key": "US4571871023",
+              "name": "INGREDION INC",
+              "rank": 1,
+              "symbol": "INGR"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 8385,
+              "description": "Provides a comprehensive portfolio of specialty food ingredients, including flavors, texturants, and cultures, that enhance the taste, nutritional value, and shelf life of global food and beverage products.",
+              "evidence": "IFF's involvement with the Food Ingredients theme is driven by its dedicated Food Ingredients segment, an operating division producing natural, artificial, and plant-based specialty components that generated $839 million, or roughly 30%, of the company's total Q1 2026 net sales. Under the leadership of Andy Muller, the division recently demonstrated approximately 5% volume expansion and expected EBITDA margins exceeding 14%, fueled by double-digit growth in inclusions and mid-single-digit growth in systems. Despite the segment's substantial financial scale and dedicated R&D pipeline investments, management is currently executing a disciplined divestiture of the Food Ingredients business to focus on optimizing the company's three remaining core divisions.",
+              "exchange": "SMART",
+              "key": "US4595061015",
+              "name": "INTL FLAVORS & FRAGRANCES",
+              "rank": 2,
+              "symbol": "IFF"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 13186,
+              "description": "Develops and manufactures customized flavor systems, natural and synthetic colors, and specialty extracts that serve as foundational ingredients for the global food and beverage industry.",
+              "evidence": "Sensient operates as a pure-play food ingredients manufacturer, generating the vast majority of its revenue through its dedicated Flavors & Extracts and Color business groups. The company's top strategic priority is executing a wholesale conversion from synthetic to natural food colors, an initiative supported by a committed $225 million to $250 million capital expenditure program over the next couple of years to capture a $1 billion sales opportunity. To drive this transition, Sensient deploys a specialized workforce of R&D and applications engineers alongside proprietary technologies, such as Advanced Emulsion Technology and clean-label titanium dioxide alternatives like Avalanche. Recent targeted investments, including the acquisition of natural color extraction firm Biolie SAS, reinforce the company's structural focus on supplying specialized natural additives for baked goods, cereals, and confections.",
+              "exchange": "SMART",
+              "key": "US81725T1007",
+              "name": "SENSIENT TECHNOLOGIES CORP",
+              "rank": 3,
+              "symbol": "SXT"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 271556,
+              "description": "Manufactures and distributes a comprehensive portfolio of spices, herbs, extracts, and seasoning mixes, providing essential flavor solutions to food manufacturers, foodservice operators, and retailers globally.",
+              "evidence": "McCormick's core business model is built entirely around the Food Ingredients theme, as the company operates as a self-described 'global leader in flavor' that manufactures and distributes a vast portfolio of spices, seasonings, and condiments to the food and beverage industry. This focus is structurally embedded in its dedicated Flavor Solutions business segment, which supplies essential flavor components to large consumer packaged goods manufacturers and generated $793.9 million in the second quarter of 2026, comprising 41% of total net sales. To accelerate its leadership in flavor formulation and expand its ingredient footprint, McCormick has executed major capital allocations, underscored by a $15.7 billion commitment to acquire the Unilever Foods business and a $750 million debt-funded investment in McCormick de Mexico.",
+              "exchange": "SMART",
+              "key": "US5797802064",
+              "name": "MCCORMICK & CO-NON VTG SHRS",
+              "rank": 4,
+              "symbol": "MKC"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 4165,
+              "description": "Manufactures and supplies a comprehensive portfolio of food and beverage ingredients by processing agricultural commodities into specialized nutritional components, flavors, and texturants for the global market.",
+              "evidence": "ADM's engagement with the Food Ingredients theme is driven by its multi-billion-dollar Human Nutrition and Carbohydrate Solutions segments, which supply components such as natural colors, flavors, starches, and sweeteners to global manufacturers. To address health-focused consumer demands, the company is actively expanding its physical capacity for natural ingredients, highlighted by higher flavor sales in North America and high-quality output from its specialized Decatur East plant. Additionally, ADM bolsters its product pipeline through proprietary technological developments, including patented clean citrus flavors and a breakthrough stable natural blue pigment designed specifically for the beverage industry.",
+              "exchange": "SMART",
+              "key": "US0394831020",
+              "name": "ARCHER-DANIELS-MIDLAND CO",
+              "rank": 5,
+              "symbol": "ADM"
+            }
+          ],
+          "name": "Food Ingredients",
+          "total_count": 31
+        },
+        {
+          "description": "Energy sourced from natural processes that are constantly replenished, such as sunlight, wind, and geothermal heat, fundamental in reducing carbon footprints and fossil fuel reliance.",
+          "key": "68bc0a89-c530-4e8f-b4ef-a6a1eee111f3",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 751356955,
+              "description": "Operates a globally diversified portfolio of clean power generating assets, directly driving the transition toward sustainable and decarbonized energy systems.",
+              "evidence": "Brookfield Renewable functions as a pure-play developer and operator of zero-emission power, dedicating its corporate structure, strategic roadmap, and 6,000-employee global workforce entirely to advancing clean energy. This thematic integration is reflected in its financial execution, as 100% of the company's $939 million proportionate revenue and over 90% of its funds from operations in Q1 2026 were generated directly from hydroelectric, wind, utility-scale solar, and low-carbon nuclear platforms. To expand its 47 GW of operational capacity and 250,000 MW development pipeline, the firm committed an $8.8 billion capital allocation strategy that prominently features the multibillion-dollar acquisition of the Boralex renewable platform. The organization actively scales its physical generation footprint by commissioning 9 GW of new zero-emission capacity over the trailing twelve months, establishing a 10 GW annual addition target for 2027, and securing direct gigawatt-scale power purchase agreements to supply large commercial partners.",
+              "exchange": "SMART",
+              "key": "CA11285B1085",
+              "name": "BROOKFIELD RENEWABLE CORP",
+              "rank": 1,
+              "symbol": "BEPC"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 41622169,
+              "description": "Designs and manufactures advanced thin-film photovoltaic solar modules for utility-scale applications, providing essential infrastructure that drives the global transition to sustainable power generation.",
+              "evidence": "First Solar operates exclusively as a pure-play manufacturer of photovoltaic energy solutions, generating its entire $1 billion in recent quarterly revenue directly from the production of 4.3 gigawatts of solar modules. The company's commercial strategy is fundamentally dedicated to scaling renewable energy infrastructure, driven by a 47.9-gigawatt contracted global backlog and an operational focus on supplying the U.S. utility-scale solar market. To advance this clean technology pipeline, First Solar allocates the entirety of its structural resources to the theme, highlighted by a projected $0.8 billion to $1 billion in 2026 capital expenditures for factory expansions and an active $67 million quarterly R&D budget targeted at next-generation CuRe and perovskite solar cells.",
+              "exchange": "SMART",
+              "key": "US3364331070",
+              "name": "FIRST SOLAR INC",
+              "rank": 2,
+              "symbol": "FSLR"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 105368327,
+              "description": "Designs and manufactures microinverter-based solar and energy storage systems that enable the efficient generation, management, and utilization of clean power for residential and commercial applications.",
+              "evidence": "Enphase's entire business model fundamentally centers on the renewable energy sector, driven by the mass production of distributed power electronics, solar microinverters, and energy storage systems. Demonstrating this operational reliance, the company recently generated $282.9 million in quarterly revenue strictly through the shipment of over 1.4 million microinverters, including the rollout of its GaN-based IQ9S models tailored for 480-volt commercial grid integration. To maximize the utility of these solar generation assets, Enphase engineers its physical hardware alongside advanced software like PowerMatch, seamlessly connecting distributed solar and battery installations directly into utility Virtual Power Plants (VPPs) and dynamic grid tariffs. By continuously directing capital and research resources toward sophisticated hardware and grid-integration architectures, Enphase ensures its technology serves as the critical foundation for global clean energy infrastructure.",
+              "exchange": "SMART",
+              "key": "US29355A1079",
+              "name": "ENPHASE ENERGY INC",
+              "rank": 3,
+              "symbol": "ENPH"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 188625650,
+              "description": "Designs and manufactures direct current optimized inverter systems, power optimizers, and energy storage solutions that maximize electricity generation from solar photovoltaic arrays, driving the global transition toward sustainable power grids.",
+              "evidence": "SolarEdge operates as a pure-play provider of renewable energy equipment, generating its entire operating revenue from the manufacture and sale of solar hardware components such as inverters, power optimizers, and integrated batteries. The company addresses the U.S. residential and Commercial & Industrial (C&I) solar markets through advanced photovoltaic architectures, specifically leveraging the newly launched Nexis platform and software-defined Single SKU inverters. To capitalize on advanced manufacturing production tax credits, SolarEdge has allocated its core capital expenditures toward relocating over 90% of its global inverter and optimizer production to domestic U.S. facilities. This localized manufacturing strategy supplies third-party solar operators with integrated, compliant hardware designed to maximize energy yields and financial returns on rooftop installations.",
+              "exchange": "SMART",
+              "key": "US83417M1045",
+              "name": "SOLAREDGE TECHNOLOGIES INC",
+              "rank": 4,
+              "symbol": "SEDG"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 613058308,
+              "description": "Provides critical infrastructure and technology solutions that optimize power generation for utility-scale clean energy projects, supporting the global transition to sustainable power.",
+              "evidence": "Nextpower functions as a pure-play renewable energy equipment provider, generating the entirety of its revenue from structural and electrical hardware that powers utility-scale solar plants. Operating an \"everything but the panel\" strategy, the company supplies flagship NX Horizon trackers, NX Earth Truss foundations, and electrical balance of systems (eBOS) to fulfill a global solar project backlog exceeding $5.25 billion. To further capture expanding solar generation capacity, Nextpower recently dedicated its full $75 million to $100 million capital expenditure budget toward scaling its structural component production, alongside a $130 million acquisition targeting utility-scale inverter technologies. The company's commitment to advancing clean energy deployments is also reinforced by regional localization efforts, notably the Nextpower Arabia joint venture designed to manufacture up to 12 gigawatts of solar infrastructure annually.",
+              "exchange": "SMART",
+              "key": "US65290E1010",
+              "name": "NEXTPOWER INC-CL A",
+              "rank": 5,
+              "symbol": "NXT"
+            }
+          ],
+          "name": "Renewable Energy",
+          "total_count": 75
+        }
+      ]
+    },
     "Company_Name": "Bunge Global SA",
     "Consensus": "Buy",
     "Contract_ID": 663174498,
@@ -1785,12 +2557,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Farm Products",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 663174498,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -1799,7 +2571,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -1814,8 +2586,173 @@
     "Options_Collection_Rank": 2,
     "Options_Collection_Selected": true,
     "Options_Context": {
+      "analytics_available": false,
       "available": true,
-      "fetched_at": "2026-09-17T05:10:57.293264+00:00",
+      "average_spread_pct": 61.203888614263505,
+      "chain_contracts_count": 7,
+      "chain_contracts_sampled": [
+        {
+          "call_contract_id": 856008630,
+          "call_contract_id_ex": "856008630@SMART",
+          "call_description": "BG OCT 16 '26 115 Call",
+          "put_contract_id": 856010271,
+          "put_contract_id_ex": "856010271@SMART",
+          "put_description": "BG OCT 16 '26 115 Put",
+          "strike": "115"
+        },
+        {
+          "call_contract_id": 856008696,
+          "call_contract_id_ex": "856008696@SMART",
+          "call_description": "BG OCT 16 '26 120 Call",
+          "put_contract_id": 856010338,
+          "put_contract_id_ex": "856010338@SMART",
+          "put_description": "BG OCT 16 '26 120 Put",
+          "strike": "120"
+        },
+        {
+          "call_contract_id": 856008558,
+          "call_contract_id_ex": "856008558@SMART",
+          "call_description": "BG OCT 16 '26 110 Call",
+          "put_contract_id": 856010192,
+          "put_contract_id_ex": "856010192@SMART",
+          "put_description": "BG OCT 16 '26 110 Put",
+          "strike": "110"
+        },
+        {
+          "call_contract_id": 856008774,
+          "call_contract_id_ex": "856008774@SMART",
+          "call_description": "BG OCT 16 '26 125 Call",
+          "put_contract_id": 856010404,
+          "put_contract_id_ex": "856010404@SMART",
+          "put_description": "BG OCT 16 '26 125 Put",
+          "strike": "125"
+        },
+        {
+          "call_contract_id": 856008485,
+          "call_contract_id_ex": "856008485@SMART",
+          "call_description": "BG OCT 16 '26 105 Call",
+          "put_contract_id": 856010112,
+          "put_contract_id_ex": "856010112@SMART",
+          "put_description": "BG OCT 16 '26 105 Put",
+          "strike": "105"
+        }
+      ],
+      "contract_iv_coverage_ratio": 0.0,
+      "contracts": [
+        {
+          "ask": 8.5,
+          "bid": 5.5,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 42.857142857142854,
+          "strike": 115.0,
+          "volume": null
+        },
+        {
+          "ask": 4.0,
+          "bid": 2.15,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 60.162601626016254,
+          "strike": 115.0,
+          "volume": null
+        },
+        {
+          "ask": 4.4,
+          "bid": 3.7,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 17.283950617283953,
+          "strike": 120.0,
+          "volume": null
+        },
+        {
+          "ask": 8.1,
+          "bid": 5.9,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 31.428571428571416,
+          "strike": 120.0,
+          "volume": null
+        },
+        {
+          "ask": 12.0,
+          "bid": 8.6,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 33.00970873786408,
+          "strike": 110.0,
+          "volume": null
+        },
+        {
+          "ask": 3.3000000000000003,
+          "bid": 0.6,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 138.46153846153845,
+          "strike": 110.0,
+          "volume": null
+        },
+        {
+          "ask": 4.4,
+          "bid": 1.9000000000000001,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 79.36507936507937,
+          "strike": 125.0,
+          "volume": null
+        },
+        {
+          "ask": 11.5,
+          "bid": 8.700000000000001,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 27.72277227722771,
+          "strike": 125.0,
+          "volume": null
+        },
+        {
+          "ask": 15.8,
+          "bid": 12.9,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 20.209059233449477,
+          "strike": 105.0,
+          "volume": null
+        },
+        {
+          "ask": 2.35,
+          "bid": 0.25,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 161.53846153846155,
+          "strike": 105.0,
+          "volume": null
+        }
+      ],
+      "contracts_sampled": 10,
+      "data_quality": "quote_only",
+      "exchange": "SMART",
       "expiration": "20261016",
       "expirations": [
         "20260918",
@@ -1825,182 +2762,17 @@
         "20270416",
         "20280121"
       ],
-      "exchange": "SMART",
-      "contracts_sampled": 10,
-      "chain_contracts_count": 7,
-      "chain_contracts_sampled": [
-        {
-          "strike": "115",
-          "call_contract_id_ex": "856008630@SMART",
-          "call_contract_id": 856008630,
-          "call_description": "BG OCT 16 '26 115 Call",
-          "put_contract_id_ex": "856010271@SMART",
-          "put_contract_id": 856010271,
-          "put_description": "BG OCT 16 '26 115 Put"
-        },
-        {
-          "strike": "120",
-          "call_contract_id_ex": "856008696@SMART",
-          "call_contract_id": 856008696,
-          "call_description": "BG OCT 16 '26 120 Call",
-          "put_contract_id_ex": "856010338@SMART",
-          "put_contract_id": 856010338,
-          "put_description": "BG OCT 16 '26 120 Put"
-        },
-        {
-          "strike": "110",
-          "call_contract_id_ex": "856008558@SMART",
-          "call_contract_id": 856008558,
-          "call_description": "BG OCT 16 '26 110 Call",
-          "put_contract_id_ex": "856010192@SMART",
-          "put_contract_id": 856010192,
-          "put_description": "BG OCT 16 '26 110 Put"
-        },
-        {
-          "strike": "125",
-          "call_contract_id_ex": "856008774@SMART",
-          "call_contract_id": 856008774,
-          "call_description": "BG OCT 16 '26 125 Call",
-          "put_contract_id_ex": "856010404@SMART",
-          "put_contract_id": 856010404,
-          "put_description": "BG OCT 16 '26 125 Put"
-        },
-        {
-          "strike": "105",
-          "call_contract_id_ex": "856008485@SMART",
-          "call_contract_id": 856008485,
-          "call_description": "BG OCT 16 '26 105 Call",
-          "put_contract_id_ex": "856010112@SMART",
-          "put_contract_id": 856010112,
-          "put_description": "BG OCT 16 '26 105 Put"
-        }
-      ],
+      "fetched_at": "2026-09-17T05:10:57.293264+00:00",
+      "open_interest_coverage_ratio": 0.0,
+      "put_call_open_interest_ratio": null,
+      "put_call_volume_ratio": null,
+      "quote_coverage_ratio": 1.0,
+      "quoted_contract_ratio": 1.0,
+      "score_available": false,
       "snapshot_error_count": 0,
       "snapshot_errors": [],
-      "quoted_contract_ratio": 1.0,
-      "average_spread_pct": 61.203888614263505,
-      "put_call_volume_ratio": null,
-      "put_call_open_interest_ratio": null,
-      "contracts": [
-        {
-          "side": "call",
-          "strike": 115.0,
-          "bid": 5.5,
-          "ask": 8.5,
-          "spread_pct": 42.857142857142854,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 115.0,
-          "bid": 2.15,
-          "ask": 4.0,
-          "spread_pct": 60.162601626016254,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 120.0,
-          "bid": 3.7,
-          "ask": 4.4,
-          "spread_pct": 17.283950617283953,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 120.0,
-          "bid": 5.9,
-          "ask": 8.1,
-          "spread_pct": 31.428571428571416,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 110.0,
-          "bid": 8.6,
-          "ask": 12.0,
-          "spread_pct": 33.00970873786408,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 110.0,
-          "bid": 0.6,
-          "ask": 3.3000000000000003,
-          "spread_pct": 138.46153846153845,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 125.0,
-          "bid": 1.9000000000000001,
-          "ask": 4.4,
-          "spread_pct": 79.36507936507937,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 125.0,
-          "bid": 8.700000000000001,
-          "ask": 11.5,
-          "spread_pct": 27.72277227722771,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 105.0,
-          "bid": 12.9,
-          "ask": 15.8,
-          "spread_pct": 20.209059233449477,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 105.0,
-          "bid": 0.25,
-          "ask": 2.35,
-          "spread_pct": 161.53846153846155,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        }
-      ],
       "source": "IBKR MCP option chain snapshots",
-      "quote_coverage_ratio": 1.0,
-      "volume_coverage_ratio": 0.0,
-      "open_interest_coverage_ratio": 0.0,
-      "contract_iv_coverage_ratio": 0.0,
-      "data_quality": "quote_only",
-      "analytics_available": false,
-      "score_available": false
+      "volume_coverage_ratio": 0.0
     },
     "Options_Data_Available": false,
     "Options_Data_Partial": true,
@@ -2057,779 +2829,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 69.79,
-    "Company_Context": {
-      "available": true,
-      "fetched_at": "2026-09-17T05:10:51.849101+00:00",
-      "theme_count": 5,
-      "peer_count": 25,
-      "peer_rank": 1,
-      "themes": [
-        {
-          "name": "Agricultural Processing",
-          "key": "ba3db4b5-569f-4529-8ba1-98e667ef35da",
-          "description": "Transformation of raw agricultural goods into finished products suitable for consumer markets, involving processes like milling, fermentation, canning, and packaging to extend shelf life and enhance quality.",
-          "linked_companies": [
-            {
-              "rank": 2,
-              "name": "ARCHER-DANIELS-MIDLAND CO",
-              "key": "US0394831020",
-              "contract_id": 4165,
-              "symbol": "ADM",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Procures, transports, stores, and processes agricultural commodities into food ingredients, animal feed, and renewable fuels through an extensive global supply chain network.",
-              "evidence": "Agricultural processing forms the core operating identity of ADM, driven by extensive global soybean crushing, corn wet-milling, and dry-milling ethanol operations across its Carbohydrate Solutions and Ag Services & Oilseeds segments. To support this infrastructure, the company dedicates the bulk of its $1.3 billion to $1.5 billion annual capital expenditure budget to maintaining and optimizing large-scale facilities, recently achieving its best overall global site crush production on record and demonstrating the capability to extract up to 22 different products from a single wet mill. The physical transformation of raw grains and seeds into food, fuels, and refined oils represents the fundamental engine of the business, accounting for the majority of the firm's total operating profits and dictating ongoing strategic initiatives like sidestream valorization."
-            },
-            {
-              "rank": 3,
-              "name": "GREEN PLAINS INC",
-              "key": "US3932221043",
-              "contract_id": 38333348,
-              "symbol": "GPRE",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Converts agricultural commodities into biofuels, high-protein ingredients, and renewable oils through large-scale biorefining operations.",
-              "evidence": "Green Plains operates by processing raw corn into finished commercial goods such as ethanol, ultra-high protein, and distillers corn oil. In the second quarter of 2026, the company generated $446 million in base product revenue by maintaining 97% operational reliability across its platform to produce 174 million gallons of ethanol. Under the leadership of CEO Chris Osowski, dedicated operational teams at facilities like York, Nebraska, and Superior, Iowa, achieved recent production and efficiency records. To further optimize extraction yields, the company is deploying capital to expand its proprietary Maximizing Stillage Co-products (MSC) technology and implement low-energy distillation upgrades across its biorefineries."
-            },
-            {
-              "rank": 4,
-              "name": "INGREDION INC",
-              "key": "US4571871023",
-              "contract_id": 107051249,
-              "symbol": "INGR",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Transforms agricultural commodities, such as corn, tapioca, and potatoes, into value-added food ingredients, starches, and sweeteners for global food, beverage, and industrial markets.",
-              "evidence": "Ingredion's operational infrastructure at manufacturing sites like Argo and Mogi Guacu is dedicated to the large-scale transformation of raw commodities into functional ingredients. Recent operations rely on a specialized multidisciplinary team to oversee complex processing tasks, including front-end grinding, corn germ processing, and syrup refining. The company directs its capital expenditures\u2014including $110 million in recent quarters and $400 million to $440 million in expected annual commitments\u2014to maintain these facilities and optimize polyols and tapioca processing networks. This direct conversion of grains, fruits, and vegetables into value-added solutions forms the foundation of the company's business model, driving the entirety of its $1.79 billion in quarterly net sales."
-            },
-            {
-              "rank": 5,
-              "name": "DARLING INGREDIENTS INC",
-              "key": "US2372661015",
-              "contract_id": 6604385,
-              "symbol": "DAR",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Transforms agricultural and animal by-products into specialty ingredients and renewable fuels, supporting the broader agricultural processing supply chain through resource recovery and waste reduction.",
-              "evidence": "Darling Ingredients operates a global rendering network that transforms raw agricultural livestock byproducts, primarily poultry and cattle, into value-added proteins, fats, gelatin, and collagen. This processing capability is anchored by the company's dedicated Feed Ingredients segment, which handled 3.8 million metric tons of raw material volume in Q2 2026 and generated $985 million in sales, representing the majority of the company's total consolidated revenue. Further expanding its global agricultural processing capacity, Darling recently integrated three rendering facilities acquired from the Patense Group in Brazil and has committed capital to build and expand additional plants across the U.S., Paraguay, and China."
-            },
-            {
-              "rank": 6,
-              "name": "SMITHFIELD FOODS INC",
-              "key": "US8322482071",
-              "contract_id": 757612274,
-              "symbol": "SFD",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Functions as a vertically integrated agricultural processor by managing extensive pork production operations, encompassing livestock farming, meatpacking, and the manufacturing of consumer packaged meat products.",
-              "evidence": "Smithfield's core operations center on transforming live hogs into case-ready primal, sub-primal, and packaged meat offerings, a capability driven by a dedicated Fresh Pork segment that recently generated $2.0 billion to account for over half of total quarterly revenue. To support these continuous agricultural processing demands, the company directs more than 50% of its planned capital investments toward facility expansions and manufacturing optimizations under specialized executive leadership. This infrastructure strategy is anchored by a $1.3 billion commitment to construct a new facility in Sioux Falls, designed to serve as the most technologically advanced, efficient, and largest combined pork processing plant in the company's network."
-            }
-          ],
-          "total_count": 75
-        },
-        {
-          "name": "Agribusiness",
-          "key": "bd4bce95-8832-456c-b92f-7a486312836f",
-          "description": "Encompasses all aspects of agriculture, from crop and livestock production to processing and distribution, integrating technology and sustainability practices to maximize productivity and market reach.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "CORTEVA INC",
-              "key": "US22052L1044",
-              "contract_id": 366239371,
-              "symbol": "CTVA",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides a comprehensive portfolio of advanced seed genetics, crop protection products, and digital agronomic solutions designed to enhance global agricultural productivity and support sustainable farming operations.",
-              "evidence": "Corteva functions entirely as an agribusiness pure-play, highlighted by an ongoing restructuring led by CEO Charles Magro to divide its 22,000-employee workforce into two specialized entities: a Crop Protection business and a newly established advanced seed and genetics company named Vylor. The company's comprehensive grip on global farming inputs is anchored by its century-old Pioneer brand, leading corn market share in Brazil, and an extensive out-licensing network for its proprietary Enlist seed traits. Corteva aggressively expands this footprint through strategic capital deployment, most recently executing a $700 million payout for Bayer crop technology and launching a Latin American biofuels joint venture with BP. Furthermore, the company sustains its vast agricultural ecosystem through structural farmer support, dedicating over $1 billion annually to agricultural R&D and funding a nearly $1 billion crop-and-seed barter program to mitigate financial risks for growers."
-            },
-            {
-              "rank": 2,
-              "name": "ARCHER-DANIELS-MIDLAND CO",
-              "key": "US0394831020",
-              "contract_id": 4165,
-              "symbol": "ADM",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Procures, transports, stores, and processes agricultural commodities into food, feed, and industrial products, operating as a foundational global supply chain link between farmers and consumers.",
-              "evidence": "ADM operates as an essential global agricultural supply chain manager and processor, with agribusiness directly driving its entire organizational structure and all of its operating profit across the Ag Services and Oilseeds, Carbohydrate Solutions, and Nutrition segments. The company controls an end-to-end value chain spanning crop origination, grain export logistics, oilseed crushing, and specialized ingredient processing, sustained by a total corporate capital expenditure budget of $1.3 billion to $1.5 billion. Expanding this integrated footprint, ADM recently achieved record global site crush production and structurally grew its animal nutrition division by contributing physical feed mills to a joint venture with Alltech."
-            },
-            {
-              "rank": 4,
-              "name": "MOSAIC CO/THE",
-              "key": "US61945C1036",
-              "contract_id": 88292752,
-              "symbol": "MOS",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Focuses on the production and distribution of concentrated phosphate and potash crop nutrients, supplying essential fertilizers to enhance global agricultural yields and support broad farming operations.",
-              "evidence": "Mosaic's integration into the agribusiness sector is driven by its position as an end-to-end supplier of crop nutrients, livestock feed ingredients like dicalcium phosphate, and global distribution logistics. The company's operations are intertwined with agricultural market conditions, demonstrated by a $1.25 billion capital expenditure budget directed at crop supply chains and fertilizer production networks. Organizationally, this alignment is formalized through dedicated executive leadership and the Mosaic Fertilizantes segment, which actively manages localized seasonal demand and farmer credit risks in South America. The company also continually scales its agribusiness infrastructure through physical capacity expansions, such as the completion of a 1 million tonne crop nutrient blending facility in Palmeirante to supply fast-growing agricultural regions in Brazil."
-            },
-            {
-              "rank": 5,
-              "name": "AGCO CORP",
-              "key": "US0010841023",
-              "contract_id": 4230,
-              "symbol": "AGCO",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Designs, manufactures, and distributes a comprehensive portfolio of agricultural machinery and precision farming technologies that directly support and enhance global agribusiness operations.",
-              "evidence": "AGCO operates as a pure-play global manufacturer in the agribusiness sector, generating its entire $2.3 billion in recent quarterly net sales exclusively from agricultural equipment, precision technology, and replacement parts. The company equips the agricultural supply chain through major brands like Fendt, Massey Ferguson, and Valtra, recently achieving record-high global market share and customer satisfaction scores. Demonstrating a complete organizational commitment, AGCO directs 100% of its budget toward agricultural solutions, forecasting approximately $350 million in capital expenditures and over $500 million in engineering expenses. This operational focus is structurally reinforced by dedicated divisions such as AGCO Power and PTx, along with the strategic divestiture of its Grain & Protein segment to concentrate entirely on advancing farm machinery."
-            },
-            {
-              "rank": 6,
-              "name": "DEERE & CO",
-              "key": "US2441991054",
-              "contract_id": 6393,
-              "symbol": "DE",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Manufactures a comprehensive portfolio of agricultural equipment, including tractors, harvesters, and precision farming technologies, that optimize crop production and streamline farm management operations globally.",
-              "evidence": "Deere & Company functions as a foundational equipment and technology provider for the global agribusiness sector, organizing its core operations around its Production & Precision Agriculture and Small Agriculture & Turf segments. During Q2 2026, these agricultural divisions generated nearly $8 billion in combined revenue\u2014comprising nearly 60% of total net sales\u2014by supplying essential machinery and solutions to crop, dairy, and livestock producers. To continually align with the agricultural market business cycle, Deere is directing a $20 billion, 10-year capital investment into U.S. manufacturing to maximize agricultural productivity, alongside expanding its global footprint with 20 new machinery models recently introduced in key markets such as Brazil."
-            }
-          ],
-          "total_count": 75
-        },
-        {
-          "name": "Agricultural Commodities",
-          "key": "705f4d7d-0d83-43e9-801f-c058a71d52e3",
-          "description": "Raw products derived from farming, such as grains, livestock, and dairy, traded on global markets with price influenced by supply-demand dynamics, weather patterns, and geopolitical factors.",
-          "linked_companies": [
-            {
-              "rank": 2,
-              "name": "ARCHER-DANIELS-MIDLAND CO",
-              "key": "US0394831020",
-              "contract_id": 4165,
-              "symbol": "ADM",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Sources, processes, and distributes a wide range of agricultural commodities globally, converting raw crops into essential ingredients for food, animal feed, and industrial applications.",
-              "evidence": "ADM's business model is fundamentally structured around the global sourcing, trading, and processing of agricultural commodities such as corn, soybeans, and sorghum. The company drives its earnings through the Ag Services and Oilseeds (AS&O) division, which oversees large-scale physical commodity flows and secured $273 million in segment operating profit during the second quarter of 2026. By navigating global supply-demand dynamics, ADM executes extensive export programs, including recent shipments of soybeans and sorghum to China alongside ongoing corn exports. Operating as a fundamental player in international grain and feed markets, the company manages raw feedstock margin profiles in response to global consumption patterns, weather, and geopolitical events."
-            },
-            {
-              "rank": 3,
-              "name": "TYSON FOODS INC-CL A",
-              "key": "US9024941034",
-              "contract_id": 275405,
-              "symbol": "TSN",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Processes and distributes beef, pork, and poultry on a global scale, driving demand for feed grains and supplying protein-based agricultural commodities to consumer and commercial food markets.",
-              "evidence": "Tyson Foods acts directly as a primary buyer and processor of agricultural commodities, generating $13.7 billion in revenue by transforming raw livestock like cattle, hogs, and poultry into wholesale and retail meat products. The company utilizes dedicated live production teams working alongside family farmers to manage input acquisitions and navigate volatile supply-demand dynamics, including fluctuating cattle cycles, hog supplies, and grain feed costs. To insulate its operations from unpredictable raw material inflation, Tyson strategically leverages a value-added product mix to balance pricing and out-compete pure commodity market participants."
-            },
-            {
-              "rank": 4,
-              "name": "DOLE PLC",
-              "key": "IE0003LFZ4U7",
-              "contract_id": 505002201,
-              "symbol": "DOLE",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Cultivates, sources, and distributes large volumes of fresh fruits and vegetables across a global supply chain, directly driving the production and delivery of essential farm-grown goods to worldwide markets.",
-              "evidence": "Dole's operational foundation is built entirely on the cultivation, sourcing, and global trading of agricultural crops such as bananas, pineapples, cherries, and citrus. In Q2 2026, the company's Fresh Fruit division countered elevated sourcing costs, weather disruptions in Costa Rica, and shifting global supply volumes by deploying dynamic pricing frameworks. To secure commodity yields, Dole recently established production joint ventures in Guatemala and Chile to expand capacity for its core crops. These supply-chain enhancements build directly upon previous infrastructural commitments, including a $16 million rehabilitation of Honduran farms and a 15-year research and development program to breed the new Colada Royale pineapple."
-            },
-            {
-              "rank": 5,
-              "name": "PILGRIM'S PRIDE CORP",
-              "key": "US72147K1088",
-              "contract_id": 71395583,
-              "symbol": "PPC",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Engages in the large-scale production, processing, and distribution of poultry, directly supplying essential protein products to the global agricultural commodities market.",
-              "evidence": "Pilgrim's Pride operates directly within agricultural commodity markets by producing unbranded poultry and navigating the pricing dynamics of essential feed inputs like corn, wheat, and soybeans. The company's profitability depends on managing global supply-demand shifts and crop yields, utilizing strategies such as derivative hedging to control raw material costs. To mitigate vulnerability to fluctuating values in the live bird segment and jumbo commodity cutouts, the business is strategically converting traditional commodity processing assets to expand its portfolio of higher-margin prepared foods."
-            },
-            {
-              "rank": 6,
-              "name": "ANDERSONS INC/THE",
-              "key": "US0341641035",
-              "contract_id": 4726335,
-              "symbol": "ANDE",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Merchandises, stores, and transports a diverse range of agricultural commodities, including grains, feed ingredients, and plant nutrients, to support and sustain global agricultural supply chains.",
-              "evidence": "The Andersons operates fundamentally as an agricultural commodity-based business driven by the purchasing, storing, and merchandising of raw grains such as corn, soybeans, and wheat. The company leverages a vast physical footprint, featuring 266 million bushels of grain storage capacity, alongside a dedicated merchandising workforce to capitalize on market volatility and capture value from domestic and export grain flows. To further expand its international commodity reach, the company is actively directing capital toward the construction of a Port of Houston facility engineered exclusively for global soybean meal exports."
-            }
-          ],
-          "total_count": 75
-        },
-        {
-          "name": "Food Ingredients",
-          "key": "4cb9ff3c-99f1-425f-a3ff-03d6ae0779ab",
-          "description": "Essential components used in food production, contributing to flavor, nutrition, and preservation, including additives and functional compounds supporting dietary requirements.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "INGREDION INC",
-              "key": "US4571871023",
-              "contract_id": 107051249,
-              "symbol": "INGR",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Develops and manufactures a broad portfolio of specialty food ingredients, including starches, sweeteners, and plant-based proteins, designed to enhance the texture, taste, and nutritional profile of food and beverage products globally.",
-              "evidence": "Ingredion's business model is fundamentally defined by its role as a leading food ingredient supplier, with its 'Food and Industrial Ingredients' and 'Texture and Healthful Solutions' segments generating nearly all of its $1.8 billion in recent quarterly net sales. The company directs its entire $400 million to $440 million annual capital expenditure budget toward manufacturing core offerings such as functional native starches, stevia-based sweeteners, and pea protein isolates. To sustain its competitive position in the clean-label and sugar-reduction markets, Ingredion leverages an extensive global infrastructure, utilizing patented technologies and over 30 dedicated Idea Labs to continuously develop its billion-dollar ingredient solutions portfolio."
-            },
-            {
-              "rank": 2,
-              "name": "INTL FLAVORS & FRAGRANCES",
-              "key": "US4595061015",
-              "contract_id": 8385,
-              "symbol": "IFF",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides a comprehensive portfolio of specialty food ingredients, including flavors, texturants, and cultures, that enhance the taste, nutritional value, and shelf life of global food and beverage products.",
-              "evidence": "IFF's involvement with the Food Ingredients theme is driven by its dedicated Food Ingredients segment, an operating division producing natural, artificial, and plant-based specialty components that generated $839 million, or roughly 30%, of the company's total Q1 2026 net sales. Under the leadership of Andy Muller, the division recently demonstrated approximately 5% volume expansion and expected EBITDA margins exceeding 14%, fueled by double-digit growth in inclusions and mid-single-digit growth in systems. Despite the segment's substantial financial scale and dedicated R&D pipeline investments, management is currently executing a disciplined divestiture of the Food Ingredients business to focus on optimizing the company's three remaining core divisions."
-            },
-            {
-              "rank": 3,
-              "name": "SENSIENT TECHNOLOGIES CORP",
-              "key": "US81725T1007",
-              "contract_id": 13186,
-              "symbol": "SXT",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Develops and manufactures customized flavor systems, natural and synthetic colors, and specialty extracts that serve as foundational ingredients for the global food and beverage industry.",
-              "evidence": "Sensient operates as a pure-play food ingredients manufacturer, generating the vast majority of its revenue through its dedicated Flavors & Extracts and Color business groups. The company's top strategic priority is executing a wholesale conversion from synthetic to natural food colors, an initiative supported by a committed $225 million to $250 million capital expenditure program over the next couple of years to capture a $1 billion sales opportunity. To drive this transition, Sensient deploys a specialized workforce of R&D and applications engineers alongside proprietary technologies, such as Advanced Emulsion Technology and clean-label titanium dioxide alternatives like Avalanche. Recent targeted investments, including the acquisition of natural color extraction firm Biolie SAS, reinforce the company's structural focus on supplying specialized natural additives for baked goods, cereals, and confections."
-            },
-            {
-              "rank": 4,
-              "name": "MCCORMICK & CO-NON VTG SHRS",
-              "key": "US5797802064",
-              "contract_id": 271556,
-              "symbol": "MKC",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Manufactures and distributes a comprehensive portfolio of spices, herbs, extracts, and seasoning mixes, providing essential flavor solutions to food manufacturers, foodservice operators, and retailers globally.",
-              "evidence": "McCormick's core business model is built entirely around the Food Ingredients theme, as the company operates as a self-described 'global leader in flavor' that manufactures and distributes a vast portfolio of spices, seasonings, and condiments to the food and beverage industry. This focus is structurally embedded in its dedicated Flavor Solutions business segment, which supplies essential flavor components to large consumer packaged goods manufacturers and generated $793.9 million in the second quarter of 2026, comprising 41% of total net sales. To accelerate its leadership in flavor formulation and expand its ingredient footprint, McCormick has executed major capital allocations, underscored by a $15.7 billion commitment to acquire the Unilever Foods business and a $750 million debt-funded investment in McCormick de Mexico."
-            },
-            {
-              "rank": 5,
-              "name": "ARCHER-DANIELS-MIDLAND CO",
-              "key": "US0394831020",
-              "contract_id": 4165,
-              "symbol": "ADM",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Manufactures and supplies a comprehensive portfolio of food and beverage ingredients by processing agricultural commodities into specialized nutritional components, flavors, and texturants for the global market.",
-              "evidence": "ADM's engagement with the Food Ingredients theme is driven by its multi-billion-dollar Human Nutrition and Carbohydrate Solutions segments, which supply components such as natural colors, flavors, starches, and sweeteners to global manufacturers. To address health-focused consumer demands, the company is actively expanding its physical capacity for natural ingredients, highlighted by higher flavor sales in North America and high-quality output from its specialized Decatur East plant. Additionally, ADM bolsters its product pipeline through proprietary technological developments, including patented clean citrus flavors and a breakthrough stable natural blue pigment designed specifically for the beverage industry."
-            }
-          ],
-          "total_count": 31
-        },
-        {
-          "name": "Renewable Energy",
-          "key": "68bc0a89-c530-4e8f-b4ef-a6a1eee111f3",
-          "description": "Energy sourced from natural processes that are constantly replenished, such as sunlight, wind, and geothermal heat, fundamental in reducing carbon footprints and fossil fuel reliance.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "BROOKFIELD RENEWABLE CORP",
-              "key": "CA11285B1085",
-              "contract_id": 751356955,
-              "symbol": "BEPC",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates a globally diversified portfolio of clean power generating assets, directly driving the transition toward sustainable and decarbonized energy systems.",
-              "evidence": "Brookfield Renewable functions as a pure-play developer and operator of zero-emission power, dedicating its corporate structure, strategic roadmap, and 6,000-employee global workforce entirely to advancing clean energy. This thematic integration is reflected in its financial execution, as 100% of the company's $939 million proportionate revenue and over 90% of its funds from operations in Q1 2026 were generated directly from hydroelectric, wind, utility-scale solar, and low-carbon nuclear platforms. To expand its 47 GW of operational capacity and 250,000 MW development pipeline, the firm committed an $8.8 billion capital allocation strategy that prominently features the multibillion-dollar acquisition of the Boralex renewable platform. The organization actively scales its physical generation footprint by commissioning 9 GW of new zero-emission capacity over the trailing twelve months, establishing a 10 GW annual addition target for 2027, and securing direct gigawatt-scale power purchase agreements to supply large commercial partners."
-            },
-            {
-              "rank": 2,
-              "name": "FIRST SOLAR INC",
-              "key": "US3364331070",
-              "contract_id": 41622169,
-              "symbol": "FSLR",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Designs and manufactures advanced thin-film photovoltaic solar modules for utility-scale applications, providing essential infrastructure that drives the global transition to sustainable power generation.",
-              "evidence": "First Solar operates exclusively as a pure-play manufacturer of photovoltaic energy solutions, generating its entire $1 billion in recent quarterly revenue directly from the production of 4.3 gigawatts of solar modules. The company's commercial strategy is fundamentally dedicated to scaling renewable energy infrastructure, driven by a 47.9-gigawatt contracted global backlog and an operational focus on supplying the U.S. utility-scale solar market. To advance this clean technology pipeline, First Solar allocates the entirety of its structural resources to the theme, highlighted by a projected $0.8 billion to $1 billion in 2026 capital expenditures for factory expansions and an active $67 million quarterly R&D budget targeted at next-generation CuRe and perovskite solar cells."
-            },
-            {
-              "rank": 3,
-              "name": "ENPHASE ENERGY INC",
-              "key": "US29355A1079",
-              "contract_id": 105368327,
-              "symbol": "ENPH",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Designs and manufactures microinverter-based solar and energy storage systems that enable the efficient generation, management, and utilization of clean power for residential and commercial applications.",
-              "evidence": "Enphase's entire business model fundamentally centers on the renewable energy sector, driven by the mass production of distributed power electronics, solar microinverters, and energy storage systems. Demonstrating this operational reliance, the company recently generated $282.9 million in quarterly revenue strictly through the shipment of over 1.4 million microinverters, including the rollout of its GaN-based IQ9S models tailored for 480-volt commercial grid integration. To maximize the utility of these solar generation assets, Enphase engineers its physical hardware alongside advanced software like PowerMatch, seamlessly connecting distributed solar and battery installations directly into utility Virtual Power Plants (VPPs) and dynamic grid tariffs. By continuously directing capital and research resources toward sophisticated hardware and grid-integration architectures, Enphase ensures its technology serves as the critical foundation for global clean energy infrastructure."
-            },
-            {
-              "rank": 4,
-              "name": "SOLAREDGE TECHNOLOGIES INC",
-              "key": "US83417M1045",
-              "contract_id": 188625650,
-              "symbol": "SEDG",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Designs and manufactures direct current optimized inverter systems, power optimizers, and energy storage solutions that maximize electricity generation from solar photovoltaic arrays, driving the global transition toward sustainable power grids.",
-              "evidence": "SolarEdge operates as a pure-play provider of renewable energy equipment, generating its entire operating revenue from the manufacture and sale of solar hardware components such as inverters, power optimizers, and integrated batteries. The company addresses the U.S. residential and Commercial & Industrial (C&I) solar markets through advanced photovoltaic architectures, specifically leveraging the newly launched Nexis platform and software-defined Single SKU inverters. To capitalize on advanced manufacturing production tax credits, SolarEdge has allocated its core capital expenditures toward relocating over 90% of its global inverter and optimizer production to domestic U.S. facilities. This localized manufacturing strategy supplies third-party solar operators with integrated, compliant hardware designed to maximize energy yields and financial returns on rooftop installations."
-            },
-            {
-              "rank": 5,
-              "name": "NEXTPOWER INC-CL A",
-              "key": "US65290E1010",
-              "contract_id": 613058308,
-              "symbol": "NXT",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides critical infrastructure and technology solutions that optimize power generation for utility-scale clean energy projects, supporting the global transition to sustainable power.",
-              "evidence": "Nextpower functions as a pure-play renewable energy equipment provider, generating the entirety of its revenue from structural and electrical hardware that powers utility-scale solar plants. Operating an \"everything but the panel\" strategy, the company supplies flagship NX Horizon trackers, NX Earth Truss foundations, and electrical balance of systems (eBOS) to fulfill a global solar project backlog exceeding $5.25 billion. To further capture expanding solar generation capacity, Nextpower recently dedicated its full $75 million to $100 million capital expenditure budget toward scaling its structural component production, alongside a $130 million acquisition targeting utility-scale inverter technologies. The company's commitment to advancing clean energy deployments is also reinforced by regional localization efforts, notably the Nextpower Arabia joint venture designed to manufacture up to 12 gigawatts of solar infrastructure annually."
-            }
-          ],
-          "total_count": 75
-        }
-      ],
-      "connections": [
-        {
-          "title": "Investment Theme Exposure",
-          "type": "company_theme",
-          "links": [
-            {
-              "key": "ba3db4b5-569f-4529-8ba1-98e667ef35da",
-              "type": "theme",
-              "name": "Agricultural Processing",
-              "link_type": "company_theme",
-              "rank": 1
-            },
-            {
-              "key": "bd4bce95-8832-456c-b92f-7a486312836f",
-              "type": "theme",
-              "name": "Agribusiness",
-              "link_type": "company_theme",
-              "rank": 2
-            },
-            {
-              "key": "705f4d7d-0d83-43e9-801f-c058a71d52e3",
-              "type": "theme",
-              "name": "Agricultural Commodities",
-              "link_type": "company_theme",
-              "rank": 3
-            },
-            {
-              "key": "4cb9ff3c-99f1-425f-a3ff-03d6ae0779ab",
-              "type": "theme",
-              "name": "Food Ingredients",
-              "link_type": "company_theme",
-              "rank": 4
-            },
-            {
-              "key": "68bc0a89-c530-4e8f-b4ef-a6a1eee111f3",
-              "type": "theme",
-              "name": "Renewable Energy",
-              "link_type": "company_theme",
-              "rank": 5
-            },
-            {
-              "key": "54e64bb3-b6ab-4e95-8e81-d0d4b1addd13",
-              "type": "theme",
-              "name": "Marine Transportation",
-              "link_type": "company_theme",
-              "rank": 6
-            },
-            {
-              "key": "dafd4de4-d98f-4182-bec7-9a4507fa674b",
-              "type": "theme",
-              "name": "Supply Chain Management",
-              "link_type": "company_theme",
-              "rank": 7
-            },
-            {
-              "key": "45e8a248-c80e-445b-b806-110ebfb5e14d",
-              "type": "theme",
-              "name": "Energy Transition",
-              "link_type": "company_theme",
-              "rank": 8
-            },
-            {
-              "key": "bf867998-a5eb-4b09-b066-3176b0297d3c",
-              "type": "theme",
-              "name": "Food Processing",
-              "link_type": "company_theme",
-              "rank": 9
-            },
-            {
-              "key": "8ff17986-b0a3-4e0e-9751-b001446836d7",
-              "type": "theme",
-              "name": "Industrial Transportation",
-              "link_type": "company_theme",
-              "rank": 10
-            },
-            {
-              "key": "030b1ecf-fdf7-4fda-8d68-0fdefe2febab",
-              "type": "theme",
-              "name": "Global Logistics",
-              "link_type": "company_theme",
-              "rank": 11
-            },
-            {
-              "key": "6d47eac2-d4db-46e8-81d0-fd5cee93bfd0",
-              "type": "theme",
-              "name": "Diversified Financial Services",
-              "link_type": "company_theme",
-              "rank": 12
-            },
-            {
-              "key": "3052d9b9-7407-4522-861e-cf7c19e3a25e",
-              "type": "theme",
-              "name": "Plant-based Products",
-              "link_type": "company_theme",
-              "rank": 13
-            },
-            {
-              "key": "69d9c830-3a7b-41b6-a796-746539839d1a",
-              "type": "theme",
-              "name": "Food And Beverage",
-              "link_type": "company_theme",
-              "rank": 14
-            },
-            {
-              "key": "f8147a1d-cce7-41b3-9c36-668b5f8d9816",
-              "type": "theme",
-              "name": "Agricultural Chemicals",
-              "link_type": "company_theme",
-              "rank": 15
-            }
-          ]
-        },
-        {
-          "title": "Brand & Product",
-          "type": "company_product",
-          "links": [
-            {
-              "key": "Agribusiness",
-              "type": "product",
-              "name": "Agribusiness",
-              "link_type": "company_product",
-              "rank": 1
-            },
-            {
-              "key": "Oilseeds",
-              "type": "product",
-              "name": "Oilseeds",
-              "link_type": "company_product",
-              "rank": 2
-            },
-            {
-              "key": "Viterra",
-              "type": "product",
-              "name": "Viterra",
-              "link_type": "company_product",
-              "rank": 3
-            },
-            {
-              "key": "Refined and Specialty Oils",
-              "type": "product",
-              "name": "Refined and Specialty Oils",
-              "link_type": "company_product",
-              "rank": 4
-            },
-            {
-              "key": "Renewable Fuels",
-              "type": "product",
-              "name": "Renewable Fuels",
-              "link_type": "company_product",
-              "rank": 5
-            },
-            {
-              "key": "Logistics and Financial Services",
-              "type": "product",
-              "name": "Logistics and Financial Services",
-              "link_type": "company_product",
-              "rank": 6
-            },
-            {
-              "key": "Plant-based Proteins",
-              "type": "product",
-              "name": "Plant-based Proteins",
-              "link_type": "company_product",
-              "rank": 7
-            },
-            {
-              "key": "Fertilizer and Seeds",
-              "type": "product",
-              "name": "Fertilizer and Seeds",
-              "link_type": "company_product",
-              "rank": 8
-            }
-          ]
-        },
-        {
-          "title": "Competitors",
-          "type": "company_competitor",
-          "links": [
-            {
-              "key": "US0394831020",
-              "type": "company",
-              "name": "ARCHER-DANIELS-MIDLAND CO",
-              "link_type": "company_competitor",
-              "contract_id": 4165,
-              "symbol": "ADM",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US0341641035",
-              "type": "company",
-              "name": "ANDERSONS INC/THE",
-              "link_type": "company_competitor",
-              "contract_id": 4726335,
-              "symbol": "ANDE",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US8115431079",
-              "type": "company",
-              "name": "SEABOARD CORP",
-              "link_type": "company_competitor",
-              "contract_id": 756577,
-              "symbol": "SEB",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US4571871023",
-              "type": "company",
-              "name": "INGREDION INC",
-              "link_type": "company_competitor",
-              "contract_id": 107051249,
-              "symbol": "INGR",
-              "exchange": "SMART"
-            },
-            {
-              "key": "SG1T56930848",
-              "type": "company",
-              "name": "WILMAR INTERNATIONAL LTD",
-              "link_type": "company_competitor",
-              "contract_id": 47990698,
-              "symbol": "F34",
-              "exchange": "SGX"
-            },
-            {
-              "key": "US3932221043",
-              "type": "company",
-              "name": "GREEN PLAINS INC",
-              "link_type": "company_competitor",
-              "contract_id": 38333348,
-              "symbol": "GPRE",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US6273335033",
-              "type": "company",
-              "name": "SADOT GROUP INC",
-              "link_type": "company_competitor",
-              "contract_id": 886099493,
-              "symbol": "SDOT",
-              "exchange": "SMART"
-            },
-            {
-              "key": "AU000000GNC9",
-              "type": "company",
-              "name": "GRAINCORP LTD-A",
-              "link_type": "company_competitor",
-              "contract_id": 14063656,
-              "symbol": "GNC",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US55303J1060",
-              "type": "company",
-              "name": "MGP INGREDIENTS INC",
-              "link_type": "company_competitor",
-              "contract_id": 99990497,
-              "symbol": "MGPI",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US8618961085",
-              "type": "company",
-              "name": "STONEX GROUP INC",
-              "link_type": "company_competitor",
-              "contract_id": 431495220,
-              "symbol": "SNEX",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US0576652004",
-              "type": "company",
-              "name": "BALCHEM CORP",
-              "link_type": "company_competitor",
-              "contract_id": 764577,
-              "symbol": "BCPC",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US2372661015",
-              "type": "company",
-              "name": "DARLING INGREDIENTS INC",
-              "link_type": "company_competitor",
-              "contract_id": 6604385,
-              "symbol": "DAR",
-              "exchange": "SMART"
-            }
-          ]
-        },
-        {
-          "title": "Country Exposure",
-          "type": "company_country",
-          "links": [
-            {
-              "key": "BR",
-              "type": "country",
-              "name": "BR",
-              "link_type": "company_country",
-              "rank": 1,
-              "symbol": "BR"
-            },
-            {
-              "key": "US",
-              "type": "country",
-              "name": "US",
-              "link_type": "company_country",
-              "rank": 2,
-              "symbol": "US"
-            },
-            {
-              "key": "AR",
-              "type": "country",
-              "name": "AR",
-              "link_type": "company_country",
-              "rank": 3,
-              "symbol": "AR"
-            },
-            {
-              "key": "CN",
-              "type": "country",
-              "name": "CN",
-              "link_type": "company_country",
-              "rank": 4,
-              "symbol": "CN"
-            },
-            {
-              "key": "CA",
-              "type": "country",
-              "name": "CA",
-              "link_type": "company_country",
-              "rank": 5,
-              "symbol": "CA"
-            },
-            {
-              "key": "NL",
-              "type": "country",
-              "name": "NL",
-              "link_type": "company_country",
-              "rank": 6,
-              "symbol": "NL"
-            },
-            {
-              "key": "DE",
-              "type": "country",
-              "name": "DE",
-              "link_type": "company_country",
-              "rank": 7,
-              "symbol": "DE"
-            },
-            {
-              "key": "ES",
-              "type": "country",
-              "name": "ES",
-              "link_type": "company_country",
-              "rank": 8,
-              "symbol": "ES"
-            },
-            {
-              "key": "UA",
-              "type": "country",
-              "name": "UA",
-              "link_type": "company_country",
-              "rank": 9,
-              "symbol": "UA"
-            },
-            {
-              "key": "CH",
-              "type": "country",
-              "name": "CH",
-              "link_type": "company_country",
-              "rank": 10,
-              "symbol": "CH"
-            },
-            {
-              "key": "IN",
-              "type": "country",
-              "name": "IN",
-              "link_type": "company_country",
-              "rank": 11,
-              "symbol": "IN"
-            },
-            {
-              "key": "FR",
-              "type": "country",
-              "name": "FR",
-              "link_type": "company_country",
-              "rank": 12,
-              "symbol": "FR"
-            },
-            {
-              "key": "AU",
-              "type": "country",
-              "name": "AU",
-              "link_type": "company_country",
-              "rank": 13,
-              "symbol": "AU"
-            }
-          ]
-        },
-        {
-          "title": "Region Exposure",
-          "type": "company_region",
-          "links": [
-            {
-              "key": "South_America",
-              "type": "region",
-              "name": "South America",
-              "link_type": "company_region",
-              "rank": 1
-            },
-            {
-              "key": "North_America",
-              "type": "region",
-              "name": "North America",
-              "link_type": "company_region",
-              "rank": 2
-            },
-            {
-              "key": "Europe",
-              "type": "region",
-              "name": "Europe",
-              "link_type": "company_region",
-              "rank": 3
-            },
-            {
-              "key": "Asia",
-              "type": "region",
-              "name": "Asia",
-              "link_type": "company_region",
-              "rank": 4
-            },
-            {
-              "key": "Oceania",
-              "type": "region",
-              "name": "Oceania",
-              "link_type": "company_region",
-              "rank": 5
-            },
-            {
-              "key": "Middle_East",
-              "type": "region",
-              "name": "Middle East",
-              "link_type": "company_region",
-              "rank": 6
-            }
-          ]
-        }
-      ],
-      "source": "IBKR MCP company research"
-    }
+    "volatility_score": 69.79
   },
   {
     "ATR_14": 15.19,
@@ -3653,317 +3653,6 @@
     ],
     "Check_Details": "\u2713 Trend (P 584.0 > SMA50 546.5) \u2713 RS (Trend: Up, Val: 10.86) \u2713 RSI (56.3) \u2713 ATR (Risk 5.2%)",
     "Checks_Passed": 4,
-    "Company_Name": "Deere & Company",
-    "Consensus": "Buy",
-    "Contract_ID": 6393,
-    "Country": "US",
-    "Currency": "USD",
-    "Daily_Change": -12.7095,
-    "Data_Broker": null,
-    "Date": "2026-09-17 07:07",
-    "Days_To_Earnings": 69,
-    "Decision": "BUY",
-    "Decision_Color": "#4caf50",
-    "Earnings_Available": true,
-    "Earnings_Danger": false,
-    "Earnings_Fetched_At": "2026-09-17T04:07:16+00:00",
-    "Earnings_Msg": "Report in 69 days (2026-11-25)",
-    "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Status": "CLEAR",
-    "Exchange": "NYSE",
-    "Execution_Brokers": [
-      "IBKR"
-    ],
-    "Finviz_ATR": 17.99,
-    "History_Ticker": "DE",
-    "IBKR_Data_Only": false,
-    "IBKR_Snapshot_Groups": {},
-    "Industry": "Farm & Heavy Cons...",
-    "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
-      "contract_id": 6393,
-      "sections": [
-        "BAG",
-        "CFD",
-        "IOPT",
-        "OPT",
-        "STK",
-        "WAR"
-      ],
-      "options_supported": true,
-      "source": "IBKR_MCP_SEARCH_CONTRACTS"
-    },
-    "Market": "SUA",
-    "Market_Data_Fetched_At": "2026-09-17T04:07:15+00:00",
-    "Market_Data_Observed_At": "2026-09-16T00:00:00+00:00",
-    "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Timing": "delayed_or_end_of_day",
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Next_Earnings_Date": "2026-11-25",
-    "Options_Cohort": "OPTIONS_DATA_PARTIAL",
-    "Options_Collection_Eligible": true,
-    "Options_Collection_Rank": 1,
-    "Options_Collection_Selected": true,
-    "Options_Context": {
-      "available": true,
-      "fetched_at": "2026-09-17T05:10:51.262504+00:00",
-      "expiration": "20261016",
-      "expirations": [
-        "20260918",
-        "20260925",
-        "20261002",
-        "20261009",
-        "20261016",
-        "20261023",
-        "20261030",
-        "20261120",
-        "20261218",
-        "20270115",
-        "20270219",
-        "20270319",
-        "20270617",
-        "20270917",
-        "20271217",
-        "20280121",
-        "20290119"
-      ],
-      "exchange": "SMART",
-      "contracts_sampled": 10,
-      "chain_contracts_count": 20,
-      "chain_contracts_sampled": [
-        {
-          "strike": "670",
-          "call_contract_id_ex": "912567266@SMART",
-          "call_contract_id": 912567266,
-          "call_description": "DE OCT 16 '26 670 Call",
-          "put_contract_id_ex": "912569253@SMART",
-          "put_contract_id": 912569253,
-          "put_description": "DE OCT 16 '26 670 Put"
-        },
-        {
-          "strike": "660",
-          "call_contract_id_ex": "912567189@SMART",
-          "call_contract_id": 912567189,
-          "call_description": "DE OCT 16 '26 660 Call",
-          "put_contract_id_ex": "912569183@SMART",
-          "put_contract_id": 912569183,
-          "put_description": "DE OCT 16 '26 660 Put"
-        },
-        {
-          "strike": "680",
-          "call_contract_id_ex": "912567327@SMART",
-          "call_contract_id": 912567327,
-          "call_description": "DE OCT 16 '26 680 Call",
-          "put_contract_id_ex": "912569323@SMART",
-          "put_contract_id": 912569323,
-          "put_description": "DE OCT 16 '26 680 Put"
-        },
-        {
-          "strike": "650",
-          "call_contract_id_ex": "912567117@SMART",
-          "call_contract_id": 912567117,
-          "call_description": "DE OCT 16 '26 650 Call",
-          "put_contract_id_ex": "912569118@SMART",
-          "put_contract_id": 912569118,
-          "put_description": "DE OCT 16 '26 650 Put"
-        },
-        {
-          "strike": "690",
-          "call_contract_id_ex": "912567394@SMART",
-          "call_contract_id": 912567394,
-          "call_description": "DE OCT 16 '26 690 Call",
-          "put_contract_id_ex": "912569393@SMART",
-          "put_contract_id": 912569393,
-          "put_description": "DE OCT 16 '26 690 Put"
-        }
-      ],
-      "snapshot_error_count": 0,
-      "snapshot_errors": [],
-      "quoted_contract_ratio": 1.0,
-      "average_spread_pct": 19.4338922069733,
-      "put_call_volume_ratio": null,
-      "put_call_open_interest_ratio": null,
-      "contracts": [
-        {
-          "side": "call",
-          "strike": 670.0,
-          "bid": 22.900000000000002,
-          "ask": 25.6,
-          "spread_pct": 11.134020618556697,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 670.0,
-          "bid": 19.5,
-          "ask": 26.7,
-          "spread_pct": 31.16883116883116,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 660.0,
-          "bid": 26.6,
-          "ask": 31.400000000000002,
-          "spread_pct": 16.551724137931036,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 660.0,
-          "bid": 16.5,
-          "ask": 22.5,
-          "spread_pct": 30.76923076923077,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 680.0,
-          "bid": 18.400000000000002,
-          "ask": 21.8,
-          "spread_pct": 16.91542288557213,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 680.0,
-          "bid": 26.7,
-          "ask": 32.3,
-          "spread_pct": 18.98305084745762,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 650.0,
-          "bid": 32.0,
-          "ask": 37.4,
-          "spread_pct": 15.56195965417867,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 650.0,
-          "bid": 13.3,
-          "ask": 15.700000000000001,
-          "spread_pct": 16.551724137931036,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 690.0,
-          "bid": 13.5,
-          "ask": 16.4,
-          "spread_pct": 19.39799331103678,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 690.0,
-          "bid": 32.2,
-          "ask": 38.300000000000004,
-          "spread_pct": 17.304964539007095,
-          "volume": null,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        }
-      ],
-      "source": "IBKR MCP option chain snapshots",
-      "quote_coverage_ratio": 1.0,
-      "volume_coverage_ratio": 0.0,
-      "open_interest_coverage_ratio": 0.0,
-      "contract_iv_coverage_ratio": 0.0,
-      "data_quality": "quote_only",
-      "analytics_available": false,
-      "score_available": false
-    },
-    "Options_Data_Available": false,
-    "Options_Data_Partial": true,
-    "Options_Eligibility_Reason": "eligible",
-    "Options_Score": null,
-    "Options_Supported": true,
-    "Pct_To_Target": 2.83,
-    "Price": 583.98,
-    "Price_Native": 669.47,
-    "RR_Ratio": 0.54,
-    "RSI": 56.34,
-    "RSI_Status": "Neutral",
-    "RS_Benchmark": "^GSPC",
-    "RS_Status": "Strong",
-    "RS_vs_SPX": 10.86,
-    "SMA_200": 500.01,
-    "SMA_50": 546.5,
-    "Sector": "Industrials",
-    "Security_Type": "STK",
-    "Smart_Entry": 609.85,
-    "Smart_Entry_EUR": 531.97,
-    "Smart_Reason": "Fib 0.50 Retracement",
-    "Smart_Type": "LIMIT",
-    "Stop_Loss": 553.61,
-    "Strategy": "Normal",
-    "Target": 600.53,
-    "Technical_Events_Ref": "watchlist:DE",
-    "Ticker": "DE",
-    "Trend": "Strong Bullish",
-    "VIX_Tag": "Normal",
-    "Vol_M": 3.04,
-    "Vol_W": 2.26,
-    "Volume": 871600,
-    "_cached_at": 1789618036.5485518,
-    "current_decision": "BUY",
-    "enhanced_decision": "BUY",
-    "enhanced_decision_reason": "",
-    "enhanced_stop": 553.6,
-    "enhanced_stop_distance_pct": 5.2,
-    "liquidity_score": 50,
-    "momentum_score": 78.12,
-    "options_score": 50.0,
-    "options_score_observed": null,
-    "portfolio_adjusted_score": 69.57,
-    "portfolio_adjustment_applied": false,
-    "portfolio_fit_available": false,
-    "portfolio_fit_score": null,
-    "raw_stock_score": 69.57,
-    "raw_stock_score_availability_adjusted": 71.74,
-    "relative_opportunity_score": 50.0,
-    "research_score": 90,
-    "risk_reward_score": 13.5,
-    "risk_score": 60.0,
-    "score_version": "ibkr-enhanced-v1-shadow",
-    "technical_score": 100.0,
-    "volatility_regime": "calm",
-    "volatility_score": 75.0,
     "Company_Context": {
       "available": true,
       "connections": [
@@ -4726,7 +4415,318 @@
           "total_count": 75
         }
       ]
-    }
+    },
+    "Company_Name": "Deere & Company",
+    "Consensus": "Buy",
+    "Contract_ID": 6393,
+    "Country": "US",
+    "Currency": "USD",
+    "Daily_Change": -12.7095,
+    "Data_Broker": null,
+    "Date": "2026-09-17 07:07",
+    "Days_To_Earnings": 69,
+    "Decision": "BUY",
+    "Decision_Color": "#4caf50",
+    "Earnings_Available": true,
+    "Earnings_Danger": false,
+    "Earnings_Fetched_At": "2026-09-17T04:07:16+00:00",
+    "Earnings_Msg": "Report in 69 days (2026-11-25)",
+    "Earnings_Source": "Yahoo Finance calendar",
+    "Earnings_Status": "CLEAR",
+    "Exchange": "NYSE",
+    "Execution_Brokers": [
+      "IBKR"
+    ],
+    "Finviz_ATR": 17.99,
+    "History_Ticker": "DE",
+    "IBKR_Data_Only": false,
+    "IBKR_Snapshot_Groups": {},
+    "Industry": "Farm & Heavy Cons...",
+    "Instrument_Metadata": {
+      "contract_id": 6393,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
+      "sections": [
+        "BAG",
+        "CFD",
+        "IOPT",
+        "OPT",
+        "STK",
+        "WAR"
+      ],
+      "security_type": "STK",
+      "source": "IBKR_MCP_SEARCH_CONTRACTS"
+    },
+    "Market": "SUA",
+    "Market_Data_Fetched_At": "2026-09-17T04:07:15+00:00",
+    "Market_Data_Observed_At": "2026-09-16T00:00:00+00:00",
+    "Market_Data_Source": "Yahoo Finance",
+    "Market_Data_Timing": "delayed_or_end_of_day",
+    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
+    "Next_Earnings_Date": "2026-11-25",
+    "Options_Cohort": "OPTIONS_DATA_PARTIAL",
+    "Options_Collection_Eligible": true,
+    "Options_Collection_Rank": 1,
+    "Options_Collection_Selected": true,
+    "Options_Context": {
+      "analytics_available": false,
+      "available": true,
+      "average_spread_pct": 19.4338922069733,
+      "chain_contracts_count": 20,
+      "chain_contracts_sampled": [
+        {
+          "call_contract_id": 912567266,
+          "call_contract_id_ex": "912567266@SMART",
+          "call_description": "DE OCT 16 '26 670 Call",
+          "put_contract_id": 912569253,
+          "put_contract_id_ex": "912569253@SMART",
+          "put_description": "DE OCT 16 '26 670 Put",
+          "strike": "670"
+        },
+        {
+          "call_contract_id": 912567189,
+          "call_contract_id_ex": "912567189@SMART",
+          "call_description": "DE OCT 16 '26 660 Call",
+          "put_contract_id": 912569183,
+          "put_contract_id_ex": "912569183@SMART",
+          "put_description": "DE OCT 16 '26 660 Put",
+          "strike": "660"
+        },
+        {
+          "call_contract_id": 912567327,
+          "call_contract_id_ex": "912567327@SMART",
+          "call_description": "DE OCT 16 '26 680 Call",
+          "put_contract_id": 912569323,
+          "put_contract_id_ex": "912569323@SMART",
+          "put_description": "DE OCT 16 '26 680 Put",
+          "strike": "680"
+        },
+        {
+          "call_contract_id": 912567117,
+          "call_contract_id_ex": "912567117@SMART",
+          "call_description": "DE OCT 16 '26 650 Call",
+          "put_contract_id": 912569118,
+          "put_contract_id_ex": "912569118@SMART",
+          "put_description": "DE OCT 16 '26 650 Put",
+          "strike": "650"
+        },
+        {
+          "call_contract_id": 912567394,
+          "call_contract_id_ex": "912567394@SMART",
+          "call_description": "DE OCT 16 '26 690 Call",
+          "put_contract_id": 912569393,
+          "put_contract_id_ex": "912569393@SMART",
+          "put_description": "DE OCT 16 '26 690 Put",
+          "strike": "690"
+        }
+      ],
+      "contract_iv_coverage_ratio": 0.0,
+      "contracts": [
+        {
+          "ask": 25.6,
+          "bid": 22.900000000000002,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 11.134020618556697,
+          "strike": 670.0,
+          "volume": null
+        },
+        {
+          "ask": 26.7,
+          "bid": 19.5,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 31.16883116883116,
+          "strike": 670.0,
+          "volume": null
+        },
+        {
+          "ask": 31.400000000000002,
+          "bid": 26.6,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 16.551724137931036,
+          "strike": 660.0,
+          "volume": null
+        },
+        {
+          "ask": 22.5,
+          "bid": 16.5,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 30.76923076923077,
+          "strike": 660.0,
+          "volume": null
+        },
+        {
+          "ask": 21.8,
+          "bid": 18.400000000000002,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 16.91542288557213,
+          "strike": 680.0,
+          "volume": null
+        },
+        {
+          "ask": 32.3,
+          "bid": 26.7,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 18.98305084745762,
+          "strike": 680.0,
+          "volume": null
+        },
+        {
+          "ask": 37.4,
+          "bid": 32.0,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 15.56195965417867,
+          "strike": 650.0,
+          "volume": null
+        },
+        {
+          "ask": 15.700000000000001,
+          "bid": 13.3,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 16.551724137931036,
+          "strike": 650.0,
+          "volume": null
+        },
+        {
+          "ask": 16.4,
+          "bid": 13.5,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 19.39799331103678,
+          "strike": 690.0,
+          "volume": null
+        },
+        {
+          "ask": 38.300000000000004,
+          "bid": 32.2,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 17.304964539007095,
+          "strike": 690.0,
+          "volume": null
+        }
+      ],
+      "contracts_sampled": 10,
+      "data_quality": "quote_only",
+      "exchange": "SMART",
+      "expiration": "20261016",
+      "expirations": [
+        "20260918",
+        "20260925",
+        "20261002",
+        "20261009",
+        "20261016",
+        "20261023",
+        "20261030",
+        "20261120",
+        "20261218",
+        "20270115",
+        "20270219",
+        "20270319",
+        "20270617",
+        "20270917",
+        "20271217",
+        "20280121",
+        "20290119"
+      ],
+      "fetched_at": "2026-09-17T05:10:51.262504+00:00",
+      "open_interest_coverage_ratio": 0.0,
+      "put_call_open_interest_ratio": null,
+      "put_call_volume_ratio": null,
+      "quote_coverage_ratio": 1.0,
+      "quoted_contract_ratio": 1.0,
+      "score_available": false,
+      "snapshot_error_count": 0,
+      "snapshot_errors": [],
+      "source": "IBKR MCP option chain snapshots",
+      "volume_coverage_ratio": 0.0
+    },
+    "Options_Data_Available": false,
+    "Options_Data_Partial": true,
+    "Options_Eligibility_Reason": "eligible",
+    "Options_Score": null,
+    "Options_Supported": true,
+    "Pct_To_Target": 2.83,
+    "Price": 583.98,
+    "Price_Native": 669.47,
+    "RR_Ratio": 0.54,
+    "RSI": 56.34,
+    "RSI_Status": "Neutral",
+    "RS_Benchmark": "^GSPC",
+    "RS_Status": "Strong",
+    "RS_vs_SPX": 10.86,
+    "SMA_200": 500.01,
+    "SMA_50": 546.5,
+    "Sector": "Industrials",
+    "Security_Type": "STK",
+    "Smart_Entry": 609.85,
+    "Smart_Entry_EUR": 531.97,
+    "Smart_Reason": "Fib 0.50 Retracement",
+    "Smart_Type": "LIMIT",
+    "Stop_Loss": 553.61,
+    "Strategy": "Normal",
+    "Target": 600.53,
+    "Technical_Events_Ref": "watchlist:DE",
+    "Ticker": "DE",
+    "Trend": "Strong Bullish",
+    "VIX_Tag": "Normal",
+    "Vol_M": 3.04,
+    "Vol_W": 2.26,
+    "Volume": 871600,
+    "_cached_at": 1789618036.5485518,
+    "current_decision": "BUY",
+    "enhanced_decision": "BUY",
+    "enhanced_decision_reason": "",
+    "enhanced_stop": 553.6,
+    "enhanced_stop_distance_pct": 5.2,
+    "liquidity_score": 50,
+    "momentum_score": 78.12,
+    "options_score": 50.0,
+    "options_score_observed": null,
+    "portfolio_adjusted_score": 69.57,
+    "portfolio_adjustment_applied": false,
+    "portfolio_fit_available": false,
+    "portfolio_fit_score": null,
+    "raw_stock_score": 69.57,
+    "raw_stock_score_availability_adjusted": 71.74,
+    "relative_opportunity_score": 50.0,
+    "research_score": 90,
+    "risk_reward_score": 13.5,
+    "risk_score": 60.0,
+    "score_version": "ibkr-enhanced-v1-shadow",
+    "technical_score": 100.0,
+    "volatility_regime": "calm",
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 4.63,
@@ -5577,12 +5577,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Farm & Heavy Cons...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 4230,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -5590,7 +5590,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -5604,6 +5604,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 17,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -5659,10 +5662,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 67.86,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 67.86
   },
   {
     "ATR_14": 1.92,
@@ -6513,12 +6513,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Entertainment",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 6459,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -6527,7 +6527,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -6541,6 +6541,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 42,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -6596,127 +6599,15 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
-    "Ticker": "KR",
-    "History_Ticker": "KR",
-    "Currency": "USD",
-    "Price": 53.31,
-    "Price_Native": 61.14,
-    "Target": 59.29,
-    "Pct_To_Target": 11.22,
-    "Consensus": "Buy",
-    "Analysts": 22,
-    "Company_Name": "KROGER CO",
-    "Industry": "Grocery Stores",
-    "Sector": "Consumer Defensive",
-    "Trend": "Bearish Rally",
-    "RSI": 61.81,
-    "RSI_Status": "Neutral",
     "ATR_14": 1.45,
-    "Finviz_ATR": 1.63,
-    "Vol_W": 3.52,
-    "Vol_M": 2.5,
-    "Stop_Loss": 50.4,
-    "SMA_50": 50.53,
-    "SMA_200": 55.63,
-    "VIX_Tag": "Normal",
-    "Chart_History": [
-      57.2315,
-      56.4991,
-      56.3422,
-      57.7547,
-      58.2342,
-      57.5628,
-      59.5682,
-      61.5561,
-      59.8821,
-      58.4783,
-      58.6353,
-      56.2811,
-      56.4032,
-      55.5052,
-      54.1886,
-      53.6393,
-      53.6742,
-      53.3864,
-      54.2671,
-      55.4267,
-      54.8948,
-      54.921,
-      56.2027,
-      55.9062,
-      56.4207,
-      55.8539,
-      55.915,
-      53.9009,
-      49.3583,
-      48.6171,
-      49.7419,
-      50.9887,
-      50.3697,
-      50.3348,
-      48.7479,
-      48.4166,
-      49.0357,
-      50.762,
-      50.7882,
-      51.041,
-      51.7211,
-      52.1919,
-      52.7848,
-      51.7124,
-      51.2154,
-      49.3147,
-      51.1021,
-      51.2852,
-      50.8841,
-      50.3784,
-      50.1691,
-      48.6171,
-      49.585,
-      50.5528,
-      51.6078,
-      52.2007,
-      50.4481,
-      50.3435,
-      50.762,
-      50.3871,
-      49.4193,
-      49.9773,
-      49.4629,
-      49.2449,
-      49.0444,
-      48.8787,
-      49.8988,
-      49.428,
-      48.8874,
-      49.1228,
-      49.0618,
-      49.1054,
-      50.483,
-      51.5119,
-      50.9626,
-      51.0149,
-      49.6373,
-      50.3261,
-      50.1691,
-      50.5179,
-      50.762,
-      51.0149,
-      51.0846,
-      49.8727,
-      49.21,
-      49.6547,
-      50.9974,
-      53.1074,
-      54.2758,
-      53.308
-    ],
+    "Analysts": 22,
+    "Ask": 62.7,
+    "Avg_90D_USD_Volume": 442539814.0,
+    "Avg_Volume": 7551806,
+    "Bid": 59.59,
     "Chart_Dates": [
       "2026-05-08",
       "2026-05-11",
@@ -6809,682 +6700,758 @@
       "2026-09-15",
       "2026-09-16"
     ],
+    "Chart_History": [
+      57.2315,
+      56.4991,
+      56.3422,
+      57.7547,
+      58.2342,
+      57.5628,
+      59.5682,
+      61.5561,
+      59.8821,
+      58.4783,
+      58.6353,
+      56.2811,
+      56.4032,
+      55.5052,
+      54.1886,
+      53.6393,
+      53.6742,
+      53.3864,
+      54.2671,
+      55.4267,
+      54.8948,
+      54.921,
+      56.2027,
+      55.9062,
+      56.4207,
+      55.8539,
+      55.915,
+      53.9009,
+      49.3583,
+      48.6171,
+      49.7419,
+      50.9887,
+      50.3697,
+      50.3348,
+      48.7479,
+      48.4166,
+      49.0357,
+      50.762,
+      50.7882,
+      51.041,
+      51.7211,
+      52.1919,
+      52.7848,
+      51.7124,
+      51.2154,
+      49.3147,
+      51.1021,
+      51.2852,
+      50.8841,
+      50.3784,
+      50.1691,
+      48.6171,
+      49.585,
+      50.5528,
+      51.6078,
+      52.2007,
+      50.4481,
+      50.3435,
+      50.762,
+      50.3871,
+      49.4193,
+      49.9773,
+      49.4629,
+      49.2449,
+      49.0444,
+      48.8787,
+      49.8988,
+      49.428,
+      48.8874,
+      49.1228,
+      49.0618,
+      49.1054,
+      50.483,
+      51.5119,
+      50.9626,
+      51.0149,
+      49.6373,
+      50.3261,
+      50.1691,
+      50.5179,
+      50.762,
+      51.0149,
+      51.0846,
+      49.8727,
+      49.21,
+      49.6547,
+      50.9974,
+      53.1074,
+      54.2758,
+      53.308
+    ],
     "Chart_OHLC": [
       {
+        "close": 57.2315,
         "date": "2026-05-08",
-        "open": 57.7285,
         "high": 58.0337,
         "low": 57.2315,
-        "close": 57.2315
+        "open": 57.7285
       },
       {
+        "close": 56.4991,
         "date": "2026-05-11",
-        "open": 57.3623,
         "high": 57.371,
         "low": 56.1416,
-        "close": 56.4991
+        "open": 57.3623
       },
       {
+        "close": 56.3422,
         "date": "2026-05-12",
-        "open": 56.7956,
         "high": 56.8915,
         "low": 55.8365,
-        "close": 56.3422
+        "open": 56.7956
       },
       {
+        "close": 57.7547,
         "date": "2026-05-13",
-        "open": 56.5078,
         "high": 57.9552,
         "low": 56.1155,
-        "close": 57.7547
+        "open": 56.5078
       },
       {
+        "close": 58.2342,
         "date": "2026-05-14",
-        "open": 57.9814,
         "high": 58.365,
         "low": 57.4146,
-        "close": 58.2342
+        "open": 57.9814
       },
       {
+        "close": 57.5628,
         "date": "2026-05-15",
-        "open": 58.6353,
         "high": 58.8358,
         "low": 57.4233,
-        "close": 57.5628
+        "open": 58.6353
       },
       {
+        "close": 59.5682,
         "date": "2026-05-18",
-        "open": 57.6675,
         "high": 59.6118,
         "low": 57.3623,
-        "close": 59.5682
+        "open": 57.6675
       },
       {
+        "close": 61.5561,
         "date": "2026-05-19",
-        "open": 60.0303,
         "high": 62.524,
         "low": 60.0042,
-        "close": 61.5561
+        "open": 60.0303
       },
       {
+        "close": 59.8821,
         "date": "2026-05-20",
-        "open": 61.0592,
         "high": 61.0592,
         "low": 59.6903,
-        "close": 59.8821
+        "open": 61.0592
       },
       {
+        "close": 58.4783,
         "date": "2026-05-21",
-        "open": 56.9176,
         "high": 59.0538,
         "low": 56.8915,
-        "close": 58.4783
+        "open": 56.9176
       },
       {
+        "close": 58.6353,
         "date": "2026-05-22",
-        "open": 58.4173,
         "high": 58.7661,
         "low": 57.868,
-        "close": 58.6353
+        "open": 58.4173
       },
       {
+        "close": 56.2811,
         "date": "2026-05-26",
-        "open": 57.7198,
         "high": 57.9203,
         "low": 56.2114,
-        "close": 56.2811
+        "open": 57.7198
       },
       {
+        "close": 56.4032,
         "date": "2026-05-27",
-        "open": 56.4817,
         "high": 57.3623,
         "low": 56.3596,
-        "close": 56.4032
+        "open": 56.4817
       },
       {
+        "close": 55.5052,
         "date": "2026-05-28",
-        "open": 56.752,
         "high": 57.1182,
         "low": 55.1302,
-        "close": 55.5052
+        "open": 56.752
       },
       {
+        "close": 54.1886,
         "date": "2026-05-29",
-        "open": 55.3831,
         "high": 55.5662,
         "low": 53.8224,
-        "close": 54.1886
+        "open": 55.3831
       },
       {
+        "close": 53.6393,
         "date": "2026-06-01",
-        "open": 54.5809,
         "high": 54.9297,
         "low": 53.5259,
-        "close": 53.6393
+        "open": 54.5809
       },
       {
+        "close": 53.6742,
         "date": "2026-06-02",
-        "open": 54.0142,
         "high": 54.2758,
         "low": 53.4911,
-        "close": 53.6742
+        "open": 54.0142
       },
       {
+        "close": 53.3864,
         "date": "2026-06-03",
-        "open": 53.4998,
         "high": 53.9619,
         "low": 53.1859,
-        "close": 53.3864
+        "open": 53.4998
       },
       {
+        "close": 54.2671,
         "date": "2026-06-04",
-        "open": 54.1886,
         "high": 54.7902,
         "low": 53.8921,
-        "close": 54.2671
+        "open": 54.1886
       },
       {
+        "close": 55.4267,
         "date": "2026-06-05",
-        "open": 54.6594,
         "high": 55.976,
         "low": 54.6594,
-        "close": 55.4267
+        "open": 54.6594
       },
       {
+        "close": 54.8948,
         "date": "2026-06-08",
-        "open": 54.7117,
         "high": 55.4528,
         "low": 54.4763,
-        "close": 54.8948
+        "open": 54.7117
       },
       {
+        "close": 54.921,
         "date": "2026-06-09",
-        "open": 54.6769,
         "high": 56.0632,
         "low": 54.145,
-        "close": 54.921
+        "open": 54.6769
       },
       {
+        "close": 56.2027,
         "date": "2026-06-10",
-        "open": 55.6795,
         "high": 56.5514,
         "low": 54.8948,
-        "close": 56.2027
+        "open": 55.6795
       },
       {
+        "close": 55.9062,
         "date": "2026-06-11",
-        "open": 55.9934,
         "high": 56.7084,
         "low": 55.4441,
-        "close": 55.9062
+        "open": 55.9934
       },
       {
+        "close": 56.4207,
         "date": "2026-06-12",
-        "open": 55.8539,
         "high": 56.4642,
         "low": 55.819,
-        "close": 56.4207
+        "open": 55.8539
       },
       {
+        "close": 55.8539,
         "date": "2026-06-15",
-        "open": 55.6447,
         "high": 56.6561,
         "low": 55.6098,
-        "close": 55.8539
+        "open": 55.6447
       },
       {
+        "close": 55.915,
         "date": "2026-06-16",
-        "open": 55.8626,
         "high": 56.2201,
         "low": 54.8774,
-        "close": 55.915
+        "open": 55.8626
       },
       {
+        "close": 53.9009,
         "date": "2026-06-17",
-        "open": 55.8539,
         "high": 55.8539,
         "low": 53.4213,
-        "close": 53.9009
+        "open": 55.8539
       },
       {
+        "close": 49.3583,
         "date": "2026-06-18",
-        "open": 51.8083,
         "high": 51.9565,
         "low": 49.1054,
-        "close": 49.3583
+        "open": 51.8083
       },
       {
+        "close": 48.6171,
         "date": "2026-06-22",
-        "open": 49.3059,
         "high": 50.265,
         "low": 48.4689,
-        "close": 48.6171
+        "open": 49.3059
       },
       {
+        "close": 49.7419,
         "date": "2026-06-23",
-        "open": 49.2798,
         "high": 50.1778,
         "low": 49.0269,
-        "close": 49.7419
+        "open": 49.2798
       },
       {
+        "close": 50.9887,
         "date": "2026-06-24",
-        "open": 50.3609,
         "high": 51.3898,
         "low": 50.0296,
-        "close": 50.9887
+        "open": 50.3609
       },
       {
+        "close": 50.3697,
         "date": "2026-06-25",
-        "open": 51.1369,
         "high": 51.8345,
         "low": 50.2476,
-        "close": 50.3697
+        "open": 51.1369
       },
       {
+        "close": 50.3348,
         "date": "2026-06-26",
-        "open": 51.2154,
         "high": 51.4508,
         "low": 50.1866,
-        "close": 50.3348
+        "open": 51.2154
       },
       {
+        "close": 48.7479,
         "date": "2026-06-29",
-        "open": 50.0035,
         "high": 50.6312,
         "low": 48.7131,
-        "close": 48.7479
+        "open": 50.0035
       },
       {
+        "close": 48.4166,
         "date": "2026-06-30",
-        "open": 48.4602,
         "high": 48.8002,
         "low": 47.9283,
-        "close": 48.4166
+        "open": 48.4602
       },
       {
+        "close": 49.0357,
         "date": "2026-07-01",
-        "open": 47.5186,
         "high": 49.0444,
         "low": 47.2134,
-        "close": 49.0357
+        "open": 47.5186
       },
       {
+        "close": 50.762,
         "date": "2026-07-02",
-        "open": 49.4803,
         "high": 50.7882,
         "low": 49.3147,
-        "close": 50.762
+        "open": 49.4803
       },
       {
+        "close": 50.7882,
         "date": "2026-07-06",
-        "open": 50.6836,
         "high": 50.9887,
         "low": 49.8378,
-        "close": 50.7882
+        "open": 50.6836
       },
       {
+        "close": 51.041,
         "date": "2026-07-07",
-        "open": 51.3462,
         "high": 52.3663,
         "low": 50.8928,
-        "close": 51.041
+        "open": 51.3462
       },
       {
+        "close": 51.7211,
         "date": "2026-07-08",
-        "open": 50.7969,
         "high": 52.375,
         "low": 50.7446,
-        "close": 51.7211
+        "open": 50.7969
       },
       {
+        "close": 52.1919,
         "date": "2026-07-09",
-        "open": 51.6078,
         "high": 52.2704,
         "low": 51.2677,
-        "close": 52.1919
+        "open": 51.6078
       },
       {
+        "close": 52.7848,
         "date": "2026-07-10",
-        "open": 52.6889,
         "high": 53.43,
         "low": 52.532,
-        "close": 52.7848
+        "open": 52.6889
       },
       {
+        "close": 51.7124,
         "date": "2026-07-13",
-        "open": 53.2469,
         "high": 53.3428,
         "low": 51.5642,
-        "close": 51.7124
+        "open": 53.2469
       },
       {
+        "close": 51.2154,
         "date": "2026-07-14",
-        "open": 51.1457,
         "high": 51.7298,
         "low": 50.9451,
-        "close": 51.2154
+        "open": 51.1457
       },
       {
+        "close": 49.3147,
         "date": "2026-07-15",
-        "open": 50.701,
         "high": 51.2328,
         "low": 49.0618,
-        "close": 49.3147
+        "open": 50.701
       },
       {
+        "close": 51.1021,
         "date": "2026-07-16",
-        "open": 49.8814,
         "high": 51.2677,
         "low": 49.4106,
-        "close": 51.1021
+        "open": 49.8814
       },
       {
+        "close": 51.2852,
         "date": "2026-07-17",
-        "open": 52.0612,
         "high": 52.6104,
         "low": 50.9364,
-        "close": 51.2852
+        "open": 52.0612
       },
       {
+        "close": 50.8841,
         "date": "2026-07-20",
-        "open": 51.0497,
         "high": 51.1108,
         "low": 50.4569,
-        "close": 50.8841
+        "open": 51.0497
       },
       {
+        "close": 50.3784,
         "date": "2026-07-21",
-        "open": 50.64,
         "high": 50.6836,
         "low": 49.7681,
-        "close": 50.3784
+        "open": 50.64
       },
       {
+        "close": 50.1691,
         "date": "2026-07-22",
-        "open": 51.259,
         "high": 51.3636,
         "low": 49.8814,
-        "close": 50.1691
+        "open": 51.259
       },
       {
+        "close": 48.6171,
         "date": "2026-07-23",
-        "open": 48.4776,
         "high": 48.8962,
         "low": 47.8063,
-        "close": 48.6171
+        "open": 48.4776
       },
       {
+        "close": 49.585,
         "date": "2026-07-24",
-        "open": 48.4951,
         "high": 49.6721,
         "low": 48.4951,
-        "close": 49.585
+        "open": 48.4951
       },
       {
+        "close": 50.5528,
         "date": "2026-07-27",
-        "open": 49.5239,
         "high": 51.0672,
         "low": 49.5239,
-        "close": 50.5528
+        "open": 49.5239
       },
       {
+        "close": 51.6078,
         "date": "2026-07-28",
-        "open": 51.4421,
         "high": 52.9418,
         "low": 51.1805,
-        "close": 51.6078
+        "open": 51.4421
       },
       {
+        "close": 52.2007,
         "date": "2026-07-29",
-        "open": 52.0001,
         "high": 52.75,
         "low": 51.8432,
-        "close": 52.2007
+        "open": 52.0001
       },
       {
+        "close": 50.4481,
         "date": "2026-07-30",
-        "open": 51.3636,
         "high": 51.9478,
         "low": 49.986,
-        "close": 50.4481
+        "open": 51.3636
       },
       {
+        "close": 50.3435,
         "date": "2026-07-31",
-        "open": 50.0035,
         "high": 50.7446,
         "low": 49.6198,
-        "close": 50.3435
+        "open": 50.0035
       },
       {
+        "close": 50.762,
         "date": "2026-08-03",
-        "open": 50.6661,
         "high": 51.2677,
         "low": 50.4394,
-        "close": 50.762
+        "open": 50.6661
       },
       {
+        "close": 50.3871,
         "date": "2026-08-04",
-        "open": 50.0471,
         "high": 50.6836,
         "low": 49.6809,
-        "close": 50.3871
+        "open": 50.0471
       },
       {
+        "close": 49.4193,
         "date": "2026-08-05",
-        "open": 50.6748,
         "high": 50.8231,
         "low": 49.1664,
-        "close": 49.4193
+        "open": 50.6748
       },
       {
+        "close": 49.9773,
         "date": "2026-08-06",
-        "open": 50.1168,
         "high": 50.3086,
         "low": 48.9398,
-        "close": 49.9773
+        "open": 50.1168
       },
       {
+        "close": 49.4629,
         "date": "2026-08-07",
-        "open": 49.4367,
         "high": 49.6198,
         "low": 48.9921,
-        "close": 49.4629
+        "open": 49.4367
       },
       {
+        "close": 49.2449,
         "date": "2026-08-10",
-        "open": 49.7332,
         "high": 49.7332,
         "low": 49.0357,
-        "close": 49.2449
+        "open": 49.7332
       },
       {
+        "close": 49.0444,
         "date": "2026-08-11",
-        "open": 48.9485,
         "high": 49.6896,
         "low": 48.6607,
-        "close": 49.0444
+        "open": 48.9485
       },
       {
+        "close": 48.8787,
         "date": "2026-08-12",
-        "open": 48.1986,
         "high": 49.1577,
         "low": 48.0766,
-        "close": 48.8787
+        "open": 48.1986
       },
       {
+        "close": 49.8988,
         "date": "2026-08-13",
-        "open": 49.2798,
         "high": 50.1778,
         "low": 49.1926,
-        "close": 49.8988
+        "open": 49.2798
       },
       {
+        "close": 49.428,
         "date": "2026-08-14",
-        "open": 49.646,
         "high": 49.9599,
         "low": 49.367,
-        "close": 49.428
+        "open": 49.646
       },
       {
+        "close": 48.8874,
         "date": "2026-08-17",
-        "open": 49.0008,
         "high": 49.1054,
         "low": 48.53,
-        "close": 48.8874
+        "open": 49.0008
       },
       {
+        "close": 49.1228,
         "date": "2026-08-18",
-        "open": 50.0296,
         "high": 50.0296,
         "low": 49.0967,
-        "close": 49.1228
+        "open": 50.0296
       },
       {
+        "close": 49.0618,
         "date": "2026-08-19",
-        "open": 49.0008,
         "high": 50.2999,
         "low": 48.87,
-        "close": 49.0618
+        "open": 49.0008
       },
       {
+        "close": 49.1054,
         "date": "2026-08-20",
-        "open": 48.3033,
         "high": 49.4106,
         "low": 47.9981,
-        "close": 49.1054
+        "open": 48.3033
       },
       {
+        "close": 50.483,
         "date": "2026-08-21",
-        "open": 49.2536,
         "high": 50.5353,
         "low": 49.2449,
-        "close": 50.483
+        "open": 49.2536
       },
       {
+        "close": 51.5119,
         "date": "2026-08-24",
-        "open": 50.7795,
         "high": 51.6165,
         "low": 50.7097,
-        "close": 51.5119
+        "open": 50.7795
       },
       {
+        "close": 50.9626,
         "date": "2026-08-25",
-        "open": 50.762,
         "high": 51.1544,
         "low": 50.5092,
-        "close": 50.9626
+        "open": 50.762
       },
       {
+        "close": 51.0149,
         "date": "2026-08-26",
-        "open": 50.9626,
         "high": 51.32,
         "low": 50.762,
-        "close": 51.0149
+        "open": 50.9626
       },
       {
+        "close": 49.6373,
         "date": "2026-08-27",
-        "open": 50.3784,
         "high": 50.6923,
         "low": 49.5762,
-        "close": 49.6373
+        "open": 50.3784
       },
       {
+        "close": 50.3261,
         "date": "2026-08-28",
-        "open": 50.0296,
         "high": 50.544,
         "low": 49.9163,
-        "close": 50.3261
+        "open": 50.0296
       },
       {
+        "close": 50.1691,
         "date": "2026-08-31",
-        "open": 50.4394,
         "high": 50.762,
         "low": 49.9337,
-        "close": 50.1691
+        "open": 50.4394
       },
       {
+        "close": 50.5179,
         "date": "2026-09-01",
-        "open": 49.4978,
         "high": 51.4159,
         "low": 49.4455,
-        "close": 50.5179
+        "open": 49.4978
       },
       {
+        "close": 50.762,
         "date": "2026-09-02",
-        "open": 50.5702,
         "high": 51.0323,
         "low": 50.1343,
-        "close": 50.762
+        "open": 50.5702
       },
       {
+        "close": 51.0149,
         "date": "2026-09-03",
-        "open": 50.7882,
         "high": 51.5555,
         "low": 50.2999,
-        "close": 51.0149
+        "open": 50.7882
       },
       {
+        "close": 51.0846,
         "date": "2026-09-04",
-        "open": 50.8841,
         "high": 51.3462,
         "low": 50.5615,
-        "close": 51.0846
+        "open": 50.8841
       },
       {
+        "close": 49.8727,
         "date": "2026-09-08",
-        "open": 50.7533,
         "high": 51.2764,
         "low": 49.4455,
-        "close": 49.8727
+        "open": 50.7533
       },
       {
+        "close": 49.21,
         "date": "2026-09-09",
-        "open": 49.9424,
         "high": 50.0296,
         "low": 49.1403,
-        "close": 49.21
+        "open": 49.9424
       },
       {
+        "close": 49.6547,
         "date": "2026-09-10",
-        "open": 49.6286,
         "high": 50.0296,
         "low": 49.2885,
-        "close": 49.6547
+        "open": 49.6286
       },
       {
+        "close": 50.9974,
         "date": "2026-09-11",
-        "open": 48.8438,
         "high": 51.8693,
         "low": 48.5212,
-        "close": 50.9974
+        "open": 48.8438
       },
       {
+        "close": 53.1074,
         "date": "2026-09-14",
-        "open": 51.7124,
         "high": 53.2731,
         "low": 51.5816,
-        "close": 53.1074
+        "open": 51.7124
       },
       {
+        "close": 54.2758,
         "date": "2026-09-15",
-        "open": 52.9854,
         "high": 54.5373,
         "low": 52.6192,
-        "close": 54.2758
+        "open": 52.9854
       },
       {
+        "close": 53.308,
         "date": "2026-09-16",
-        "open": 53.9968,
         "high": 54.4327,
         "low": 53.2295,
-        "close": 53.308
+        "open": 53.9968
       }
     ],
+    "Check_Details": "\u2713 Trend (P 53.3 > SMA50 50.5) \u2713 RS (Trend: Up, Val: 4.64) \u2713 RSI (61.8) \u2713 ATR (Risk 5.5%)",
+    "Checks_Passed": 4,
+    "Company_Name": "KROGER CO",
+    "Consensus": "Buy",
+    "Contract_ID": 8908,
+    "Country": "US",
+    "Currency": "USD",
     "Daily_Change": -0.9678,
-    "RS_vs_SPX": 4.64,
-    "RS_Benchmark": "^GSPC",
-    "RS_Status": "Positive",
+    "Data_Broker": "IBKR",
+    "Date": "2026-09-17 08:05",
+    "Days_To_Earnings": 77,
     "Decision": "BUY",
     "Decision_Color": "#4caf50",
-    "Checks_Passed": 4,
-    "Smart_Entry": 55.05,
-    "Smart_Entry_EUR": 48.0,
-    "Smart_Type": "LIMIT",
-    "Smart_Reason": "Local Support Test",
-    "Strategy": "Range / Consolidation",
-    "RR_Ratio": 2.06,
-    "Volume": 3991559,
-    "Avg_Volume": 7551806,
-    "Earnings_Msg": "Report in 77 days (2026-12-03)",
-    "Earnings_Danger": false,
-    "Earnings_Status": "CLEAR",
+    "Dividend_Yield_IBKR": 2.36,
     "Earnings_Available": true,
-    "Next_Earnings_Date": "2026-12-03",
-    "Days_To_Earnings": 77,
-    "Earnings_Source": "Yahoo Finance calendar",
+    "Earnings_Danger": false,
     "Earnings_Fetched_At": "2026-09-17T05:05:03+00:00",
-    "Check_Details": "\u2713 Trend (P 53.3 > SMA50 50.5) \u2713 RS (Trend: Up, Val: 4.64) \u2713 RSI (61.8) \u2713 ATR (Risk 5.5%)",
-    "Date": "2026-09-17 08:05",
-    "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-17T04:57:49.110823+00:00",
-    "Market_Data_Observed_At": "2026-09-16T13:30:00+00:00",
-    "Market_Data_Timing": "realtime_or_snapshot",
-    "Data_Broker": "IBKR",
+    "Earnings_Msg": "Report in 77 days (2026-12-03)",
+    "Earnings_Source": "Yahoo Finance calendar",
+    "Earnings_Status": "CLEAR",
+    "Exchange": "NYSE",
     "Execution_Brokers": [
       "IBKR"
     ],
-    "IBKR_Data_Only": false,
-    "Bid": 59.59,
-    "Ask": 62.7,
-    "Spread_Pct": 5.086270340992721,
-    "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 442539814.0,
+    "Finviz_ATR": 1.63,
     "Historical_Vol": 0.2807279720107706,
-    "Implied_Volatility": 0.2588662099811917,
-    "IV_Percentile": 0.31075698137283325,
-    "YTD_Change_IBKR": -0.2840989685058588,
-    "Dividend_Yield_IBKR": 2.36,
+    "History_Ticker": "KR",
+    "IBKR_Data_Only": false,
     "IBKR_Misc_Statistics": {
       "high_13w": 62.529998779296875,
       "high_26w": 74.17240142822266,
@@ -7495,6 +7462,9 @@
       "open_52w": 66.3136978149414
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -7519,25 +7489,18 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
-    "Market": "SUA",
-    "Country": "US",
-    "Exchange": "NYSE",
-    "Security_Type": "STK",
-    "Contract_ID": 8908,
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Options_Supported": true,
+    "IV_Percentile": 0.31075698137283325,
+    "Implied_Volatility": 0.2588662099811917,
+    "Industry": "Grocery Stores",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8908,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -7546,44 +7509,82 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "technical_score": 100.0,
-    "momentum_score": 70.03,
-    "research_score": 90,
-    "volatility_score": 75.0,
-    "liquidity_score": 0.0,
-    "options_score": 50.0,
-    "relative_opportunity_score": 50.0,
-    "risk_reward_score": 51.5,
-    "portfolio_fit_available": false,
-    "portfolio_fit_score": null,
-    "portfolio_adjustment_applied": false,
-    "raw_stock_score": 67.15,
-    "raw_stock_score_availability_adjusted": 69.06,
-    "options_score_observed": null,
-    "portfolio_adjusted_score": 67.15,
-    "risk_score": 45.0,
-    "volatility_regime": "calm",
+    "Market": "SUA",
+    "Market_Data_Fetched_At": "2026-09-17T04:57:49.110823+00:00",
+    "Market_Data_Observed_At": "2026-09-16T13:30:00+00:00",
+    "Market_Data_Source": "IBKR MCP",
+    "Market_Data_Timing": "realtime_or_snapshot",
+    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
+    "Next_Earnings_Date": "2026-12-03",
+    "Options_Cohort": "OPTIONS_UNAVAILABLE",
+    "Options_Collection_Eligible": true,
+    "Options_Collection_Rank": 175,
+    "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
+    "Options_Data_Available": false,
+    "Options_Data_Partial": false,
+    "Options_Eligibility_Reason": "eligible",
+    "Options_Score": null,
+    "Options_Supported": true,
+    "Pct_To_Target": 11.22,
+    "Price": 53.31,
+    "Price_Native": 61.14,
+    "Quote_Status": "REALTIME",
+    "RR_Ratio": 2.06,
+    "RSI": 61.81,
+    "RSI_Status": "Neutral",
+    "RS_Benchmark": "^GSPC",
+    "RS_Status": "Positive",
+    "RS_vs_SPX": 4.64,
+    "SMA_200": 55.63,
+    "SMA_50": 50.53,
+    "Sector": "Consumer Defensive",
+    "Security_Type": "STK",
+    "Smart_Entry": 55.05,
+    "Smart_Entry_EUR": 48.0,
+    "Smart_Reason": "Local Support Test",
+    "Smart_Type": "LIMIT",
+    "Spread_Pct": 5.086270340992721,
+    "Stop_Loss": 50.4,
+    "Strategy": "Range / Consolidation",
+    "Target": 59.29,
+    "Technical_Events_Ref": "watchlist:KR",
+    "Ticker": "KR",
+    "Trend": "Bearish Rally",
+    "VIX_Tag": "Normal",
+    "Vol_M": 2.5,
+    "Vol_W": 3.52,
+    "Volume": 3991559,
+    "YTD_Change_IBKR": -0.2840989685058588,
+    "_cached_at": 1789621503.837248,
     "current_decision": "BUY",
     "enhanced_decision": "WAIT",
     "enhanced_decision_reason": "bid/ask spread is 5.09%; Liquidity Score is below 30",
     "enhanced_stop": 50.41,
     "enhanced_stop_distance_pct": 5.44,
+    "liquidity_score": 0.0,
+    "momentum_score": 70.03,
+    "options_score": 50.0,
+    "options_score_observed": null,
+    "portfolio_adjusted_score": 67.15,
+    "portfolio_adjustment_applied": false,
+    "portfolio_fit_available": false,
+    "portfolio_fit_score": null,
+    "raw_stock_score": 67.15,
+    "raw_stock_score_availability_adjusted": 69.06,
+    "relative_opportunity_score": 50.0,
+    "research_score": 90,
+    "risk_reward_score": 51.5,
+    "risk_score": 45.0,
     "score_version": "ibkr-enhanced-v1-shadow",
-    "_cached_at": 1789621503.837248,
-    "Options_Collection_Eligible": true,
-    "Options_Eligibility_Reason": "eligible",
-    "Options_Collection_Rank": 175,
-    "Options_Collection_Selected": false,
-    "Options_Data_Available": false,
-    "Options_Data_Partial": false,
-    "Options_Cohort": "OPTIONS_UNAVAILABLE",
-    "Options_Context": {
-      "score_available": false
-    },
-    "Options_Score": null
+    "technical_score": 100.0,
+    "volatility_regime": "calm",
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 2.94,
@@ -8434,19 +8435,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas E&P",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 375796350,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -8460,6 +8461,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 104,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -8515,10 +8519,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 67.31,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 67.31
   },
   {
     "ATR_14": 1.5,
@@ -9369,12 +9370,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas E&P",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 452226249,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -9382,7 +9383,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -9396,6 +9397,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 165,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -9451,10 +9455,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 74.21,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 74.21
   },
   {
     "ATR_14": 1.94,
@@ -10305,12 +10306,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Banks - Diversified",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 10375,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -10319,7 +10320,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -10333,6 +10334,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 109,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -10388,10 +10392,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.55,
@@ -11242,12 +11243,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Beverages - Non-A...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 324057162,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -11256,7 +11257,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -11270,6 +11271,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 56,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -11325,10 +11329,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 9.69,
@@ -12179,12 +12180,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Healthcare Plans",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 173962302,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -12193,7 +12194,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -12207,6 +12208,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 46,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -12262,10 +12266,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 6.33,
@@ -13116,12 +13117,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Steel",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 10557,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -13130,7 +13131,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -13144,6 +13145,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 75,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -13199,9 +13203,6 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   }
 ]
