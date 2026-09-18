@@ -848,12 +848,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Grocery Stores",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8908,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -862,7 +862,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -876,6 +876,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 168,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -931,10 +934,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 14.8,
@@ -1785,12 +1785,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Farm & Heavy Cons...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 6393,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -1799,7 +1799,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -1813,6 +1813,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 36,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -1868,10 +1871,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 4.29,
@@ -2695,306 +2695,6 @@
     ],
     "Check_Details": "\u2713 Trend (P 101.0 > SMA50 100.4) \u2713 RS (Trend: Up, Val: 0.92) \u2713 RSI (46.9) \u2713 ATR (Risk 8.5%)",
     "Checks_Passed": 4,
-    "Company_Name": "Bunge Global SA",
-    "Consensus": "Buy",
-    "Contract_ID": 663174498,
-    "Country": "US",
-    "Currency": "USD",
-    "Daily_Change": -2.9255,
-    "Data_Broker": null,
-    "Date": "2026-09-18 21:16",
-    "Days_To_Earnings": 47,
-    "Decision": "BUY",
-    "Decision_Color": "#4caf50",
-    "Earnings_Available": true,
-    "Earnings_Danger": false,
-    "Earnings_Fetched_At": "2026-09-18T18:16:20+00:00",
-    "Earnings_Msg": "Report in 47 days (2026-11-04)",
-    "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Status": "CLEAR",
-    "Exchange": "NYSE",
-    "Execution_Brokers": [
-      "IBKR"
-    ],
-    "Finviz_ATR": 4.44,
-    "History_Ticker": "BG",
-    "IBKR_Data_Only": false,
-    "IBKR_Snapshot_Groups": {},
-    "Industry": "Farm Products",
-    "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
-      "contract_id": 663174498,
-      "sections": [
-        "BAG",
-        "CFD",
-        "IOPT",
-        "OPT",
-        "STK",
-        "WAR"
-      ],
-      "options_supported": true,
-      "source": "IBKR_MCP_SEARCH_CONTRACTS"
-    },
-    "Market": "SUA",
-    "Market_Data_Fetched_At": "2026-09-18T18:16:19+00:00",
-    "Market_Data_Observed_At": "2026-09-18T00:00:00+00:00",
-    "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Timing": "delayed_or_end_of_day",
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Next_Earnings_Date": "2026-11-04",
-    "Options_Cohort": "OPTIONS_DATA_PARTIAL",
-    "Options_Collection_Eligible": true,
-    "Options_Collection_Rank": 1,
-    "Options_Collection_Selected": true,
-    "Options_Context": {
-      "available": true,
-      "fetched_at": "2026-09-18T20:11:21.040925+00:00",
-      "expiration": "20261016",
-      "expirations": [
-        "20260918",
-        "20261016",
-        "20261120",
-        "20270115",
-        "20270416",
-        "20280121"
-      ],
-      "exchange": "SMART",
-      "contracts_sampled": 10,
-      "chain_contracts_count": 7,
-      "chain_contracts_sampled": [
-        {
-          "strike": "115",
-          "call_contract_id_ex": "856008630@SMART",
-          "call_contract_id": 856008630,
-          "call_description": "BG OCT 16 '26 115 Call",
-          "put_contract_id_ex": "856010271@SMART",
-          "put_contract_id": 856010271,
-          "put_description": "BG OCT 16 '26 115 Put"
-        },
-        {
-          "strike": "120",
-          "call_contract_id_ex": "856008696@SMART",
-          "call_contract_id": 856008696,
-          "call_description": "BG OCT 16 '26 120 Call",
-          "put_contract_id_ex": "856010338@SMART",
-          "put_contract_id": 856010338,
-          "put_description": "BG OCT 16 '26 120 Put"
-        },
-        {
-          "strike": "110",
-          "call_contract_id_ex": "856008558@SMART",
-          "call_contract_id": 856008558,
-          "call_description": "BG OCT 16 '26 110 Call",
-          "put_contract_id_ex": "856010192@SMART",
-          "put_contract_id": 856010192,
-          "put_description": "BG OCT 16 '26 110 Put"
-        },
-        {
-          "strike": "125",
-          "call_contract_id_ex": "856008774@SMART",
-          "call_contract_id": 856008774,
-          "call_description": "BG OCT 16 '26 125 Call",
-          "put_contract_id_ex": "856010404@SMART",
-          "put_contract_id": 856010404,
-          "put_description": "BG OCT 16 '26 125 Put"
-        },
-        {
-          "strike": "105",
-          "call_contract_id_ex": "856008485@SMART",
-          "call_contract_id": 856008485,
-          "call_description": "BG OCT 16 '26 105 Call",
-          "put_contract_id_ex": "856010112@SMART",
-          "put_contract_id": 856010112,
-          "put_description": "BG OCT 16 '26 105 Put"
-        }
-      ],
-      "snapshot_error_count": 0,
-      "snapshot_errors": [],
-      "quoted_contract_ratio": 0.0,
-      "average_spread_pct": null,
-      "put_call_volume_ratio": 0.6494845360824743,
-      "put_call_open_interest_ratio": null,
-      "contracts": [
-        {
-          "side": "call",
-          "strike": 115.0,
-          "bid": null,
-          "ask": null,
-          "spread_pct": null,
-          "volume": 16.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 115.0,
-          "bid": null,
-          "ask": null,
-          "spread_pct": null,
-          "volume": 28.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 120.0,
-          "bid": null,
-          "ask": null,
-          "spread_pct": null,
-          "volume": 56.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 120.0,
-          "bid": null,
-          "ask": null,
-          "spread_pct": null,
-          "volume": 4.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 110.0,
-          "bid": null,
-          "ask": null,
-          "spread_pct": null,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 110.0,
-          "bid": null,
-          "ask": null,
-          "spread_pct": null,
-          "volume": 29.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 125.0,
-          "bid": null,
-          "ask": null,
-          "spread_pct": null,
-          "volume": 25.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 125.0,
-          "bid": null,
-          "ask": null,
-          "spread_pct": null,
-          "volume": 2.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 105.0,
-          "bid": null,
-          "ask": null,
-          "spread_pct": null,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 105.0,
-          "bid": null,
-          "ask": null,
-          "spread_pct": null,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        }
-      ],
-      "source": "IBKR MCP option chain snapshots",
-      "quote_coverage_ratio": 0.0,
-      "volume_coverage_ratio": 1.0,
-      "open_interest_coverage_ratio": 0.0,
-      "contract_iv_coverage_ratio": 0.0,
-      "data_quality": "partial",
-      "analytics_available": true,
-      "score_available": false
-    },
-    "Options_Data_Available": false,
-    "Options_Data_Partial": true,
-    "Options_Eligibility_Reason": "eligible",
-    "Options_Score": null,
-    "Options_Supported": true,
-    "Pct_To_Target": 22.27,
-    "Price": 100.96,
-    "Price_Native": 115.95,
-    "RR_Ratio": 2.62,
-    "RSI": 46.94,
-    "RSI_Status": "Neutral",
-    "RS_Benchmark": "^GSPC",
-    "RS_Status": "Positive",
-    "RS_vs_SPX": 0.92,
-    "SMA_200": 99.41,
-    "SMA_50": 100.41,
-    "Sector": "Consumer Defensive",
-    "Security_Type": "STK",
-    "Smart_Entry": 114.34,
-    "Smart_Entry_EUR": 99.55,
-    "Smart_Reason": "Fib 0.618 Golden Pocket",
-    "Smart_Type": "LIMIT",
-    "Stop_Loss": 92.37,
-    "Strategy": "Pullback",
-    "Target": 123.45,
-    "Technical_Events_Ref": "watchlist:BG",
-    "Ticker": "BG",
-    "Trend": "Strong Bullish",
-    "VIX_Tag": "Normal",
-    "Vol_M": 4.04,
-    "Vol_W": 4.05,
-    "Volume": 709598,
-    "_cached_at": 1789755380.988845,
-    "current_decision": "BUY",
-    "enhanced_decision": "BUY",
-    "enhanced_decision_reason": "",
-    "enhanced_stop": 92.38,
-    "enhanced_stop_distance_pct": 8.5,
-    "liquidity_score": 50,
-    "momentum_score": 65.2,
-    "options_score": 50.0,
-    "options_score_observed": null,
-    "portfolio_adjusted_score": 71.7,
-    "portfolio_adjustment_applied": false,
-    "portfolio_fit_available": false,
-    "portfolio_fit_score": null,
-    "raw_stock_score": 71.7,
-    "raw_stock_score_availability_adjusted": 74.12,
-    "relative_opportunity_score": 50.0,
-    "research_score": 85,
-    "risk_reward_score": 65.5,
-    "risk_score": 57.5,
-    "score_version": "ibkr-enhanced-v1-shadow",
-    "technical_score": 100.0,
-    "volatility_regime": "elevated",
-    "volatility_score": 68.75,
     "Company_Context": {
       "available": true,
       "connections": [
@@ -3766,7 +3466,307 @@
           "total_count": 75
         }
       ]
-    }
+    },
+    "Company_Name": "Bunge Global SA",
+    "Consensus": "Buy",
+    "Contract_ID": 663174498,
+    "Country": "US",
+    "Currency": "USD",
+    "Daily_Change": -2.9255,
+    "Data_Broker": null,
+    "Date": "2026-09-18 21:16",
+    "Days_To_Earnings": 47,
+    "Decision": "BUY",
+    "Decision_Color": "#4caf50",
+    "Earnings_Available": true,
+    "Earnings_Danger": false,
+    "Earnings_Fetched_At": "2026-09-18T18:16:20+00:00",
+    "Earnings_Msg": "Report in 47 days (2026-11-04)",
+    "Earnings_Source": "Yahoo Finance calendar",
+    "Earnings_Status": "CLEAR",
+    "Exchange": "NYSE",
+    "Execution_Brokers": [
+      "IBKR"
+    ],
+    "Finviz_ATR": 4.44,
+    "History_Ticker": "BG",
+    "IBKR_Data_Only": false,
+    "IBKR_Snapshot_Groups": {},
+    "Industry": "Farm Products",
+    "Instrument_Metadata": {
+      "contract_id": 663174498,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
+      "sections": [
+        "BAG",
+        "CFD",
+        "IOPT",
+        "OPT",
+        "STK",
+        "WAR"
+      ],
+      "security_type": "STK",
+      "source": "IBKR_MCP_SEARCH_CONTRACTS"
+    },
+    "Market": "SUA",
+    "Market_Data_Fetched_At": "2026-09-18T18:16:19+00:00",
+    "Market_Data_Observed_At": "2026-09-18T00:00:00+00:00",
+    "Market_Data_Source": "Yahoo Finance",
+    "Market_Data_Timing": "delayed_or_end_of_day",
+    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
+    "Next_Earnings_Date": "2026-11-04",
+    "Options_Cohort": "OPTIONS_DATA_PARTIAL",
+    "Options_Collection_Eligible": true,
+    "Options_Collection_Rank": 1,
+    "Options_Collection_Selected": true,
+    "Options_Context": {
+      "analytics_available": true,
+      "available": true,
+      "average_spread_pct": null,
+      "chain_contracts_count": 7,
+      "chain_contracts_sampled": [
+        {
+          "call_contract_id": 856008630,
+          "call_contract_id_ex": "856008630@SMART",
+          "call_description": "BG OCT 16 '26 115 Call",
+          "put_contract_id": 856010271,
+          "put_contract_id_ex": "856010271@SMART",
+          "put_description": "BG OCT 16 '26 115 Put",
+          "strike": "115"
+        },
+        {
+          "call_contract_id": 856008696,
+          "call_contract_id_ex": "856008696@SMART",
+          "call_description": "BG OCT 16 '26 120 Call",
+          "put_contract_id": 856010338,
+          "put_contract_id_ex": "856010338@SMART",
+          "put_description": "BG OCT 16 '26 120 Put",
+          "strike": "120"
+        },
+        {
+          "call_contract_id": 856008558,
+          "call_contract_id_ex": "856008558@SMART",
+          "call_description": "BG OCT 16 '26 110 Call",
+          "put_contract_id": 856010192,
+          "put_contract_id_ex": "856010192@SMART",
+          "put_description": "BG OCT 16 '26 110 Put",
+          "strike": "110"
+        },
+        {
+          "call_contract_id": 856008774,
+          "call_contract_id_ex": "856008774@SMART",
+          "call_description": "BG OCT 16 '26 125 Call",
+          "put_contract_id": 856010404,
+          "put_contract_id_ex": "856010404@SMART",
+          "put_description": "BG OCT 16 '26 125 Put",
+          "strike": "125"
+        },
+        {
+          "call_contract_id": 856008485,
+          "call_contract_id_ex": "856008485@SMART",
+          "call_description": "BG OCT 16 '26 105 Call",
+          "put_contract_id": 856010112,
+          "put_contract_id_ex": "856010112@SMART",
+          "put_description": "BG OCT 16 '26 105 Put",
+          "strike": "105"
+        }
+      ],
+      "contract_iv_coverage_ratio": 0.0,
+      "contracts": [
+        {
+          "ask": null,
+          "bid": null,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": null,
+          "strike": 115.0,
+          "volume": 16.0
+        },
+        {
+          "ask": null,
+          "bid": null,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": null,
+          "strike": 115.0,
+          "volume": 28.0
+        },
+        {
+          "ask": null,
+          "bid": null,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": null,
+          "strike": 120.0,
+          "volume": 56.0
+        },
+        {
+          "ask": null,
+          "bid": null,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": null,
+          "strike": 120.0,
+          "volume": 4.0
+        },
+        {
+          "ask": null,
+          "bid": null,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": null,
+          "strike": 110.0,
+          "volume": 0.0
+        },
+        {
+          "ask": null,
+          "bid": null,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": null,
+          "strike": 110.0,
+          "volume": 29.0
+        },
+        {
+          "ask": null,
+          "bid": null,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": null,
+          "strike": 125.0,
+          "volume": 25.0
+        },
+        {
+          "ask": null,
+          "bid": null,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": null,
+          "strike": 125.0,
+          "volume": 2.0
+        },
+        {
+          "ask": null,
+          "bid": null,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": null,
+          "strike": 105.0,
+          "volume": 0.0
+        },
+        {
+          "ask": null,
+          "bid": null,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": null,
+          "strike": 105.0,
+          "volume": 0.0
+        }
+      ],
+      "contracts_sampled": 10,
+      "data_quality": "partial",
+      "exchange": "SMART",
+      "expiration": "20261016",
+      "expirations": [
+        "20260918",
+        "20261016",
+        "20261120",
+        "20270115",
+        "20270416",
+        "20280121"
+      ],
+      "fetched_at": "2026-09-18T20:11:21.040925+00:00",
+      "open_interest_coverage_ratio": 0.0,
+      "put_call_open_interest_ratio": null,
+      "put_call_volume_ratio": 0.6494845360824743,
+      "quote_coverage_ratio": 0.0,
+      "quoted_contract_ratio": 0.0,
+      "score_available": false,
+      "snapshot_error_count": 0,
+      "snapshot_errors": [],
+      "source": "IBKR MCP option chain snapshots",
+      "volume_coverage_ratio": 1.0
+    },
+    "Options_Data_Available": false,
+    "Options_Data_Partial": true,
+    "Options_Eligibility_Reason": "eligible",
+    "Options_Score": null,
+    "Options_Supported": true,
+    "Pct_To_Target": 22.27,
+    "Price": 100.96,
+    "Price_Native": 115.95,
+    "RR_Ratio": 2.62,
+    "RSI": 46.94,
+    "RSI_Status": "Neutral",
+    "RS_Benchmark": "^GSPC",
+    "RS_Status": "Positive",
+    "RS_vs_SPX": 0.92,
+    "SMA_200": 99.41,
+    "SMA_50": 100.41,
+    "Sector": "Consumer Defensive",
+    "Security_Type": "STK",
+    "Smart_Entry": 114.34,
+    "Smart_Entry_EUR": 99.55,
+    "Smart_Reason": "Fib 0.618 Golden Pocket",
+    "Smart_Type": "LIMIT",
+    "Stop_Loss": 92.37,
+    "Strategy": "Pullback",
+    "Target": 123.45,
+    "Technical_Events_Ref": "watchlist:BG",
+    "Ticker": "BG",
+    "Trend": "Strong Bullish",
+    "VIX_Tag": "Normal",
+    "Vol_M": 4.04,
+    "Vol_W": 4.05,
+    "Volume": 709598,
+    "_cached_at": 1789755380.988845,
+    "current_decision": "BUY",
+    "enhanced_decision": "BUY",
+    "enhanced_decision_reason": "",
+    "enhanced_stop": 92.38,
+    "enhanced_stop_distance_pct": 8.5,
+    "liquidity_score": 50,
+    "momentum_score": 65.2,
+    "options_score": 50.0,
+    "options_score_observed": null,
+    "portfolio_adjusted_score": 71.7,
+    "portfolio_adjustment_applied": false,
+    "portfolio_fit_available": false,
+    "portfolio_fit_score": null,
+    "raw_stock_score": 71.7,
+    "raw_stock_score_availability_adjusted": 74.12,
+    "relative_opportunity_score": 50.0,
+    "research_score": 85,
+    "risk_reward_score": 65.5,
+    "risk_score": 57.5,
+    "score_version": "ibkr-enhanced-v1-shadow",
+    "technical_score": 100.0,
+    "volatility_regime": "elevated",
+    "volatility_score": 68.75
   },
   {
     "ATR_14": 18.49,
@@ -4617,12 +4617,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Internet Content ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 107113386,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -4631,7 +4631,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -4645,6 +4645,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 129,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -4700,10 +4703,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 74.17,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 74.17
   },
   {
     "ATR_14": 6.97,
@@ -5554,12 +5554,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Medical Instrumen...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 13909,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -5567,7 +5567,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -5581,6 +5581,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 103,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -5636,10 +5639,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 9.54,
@@ -6490,12 +6490,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Healthcare Plans",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 173962302,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -6504,7 +6504,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -6518,6 +6518,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 42,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -6573,9 +6576,6 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   }
 ]
