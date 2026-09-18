@@ -1,13 +1,9 @@
 {
   "schema": "market-scanner.tradeville.sync-status.v1",
-  "checked_at": "2026-09-17T14:05:04.170204+00:00",
-  "ok": true,
-  "fetched_at": "2026-09-17T14:05:04.077Z",
-  "source": "Tradeville WebSocket pf4",
-  "account_count": 2,
-  "position_count": 0,
-  "active_order_count": 0,
-  "history_start": "2025-09-17",
-  "history_point_count": 390,
-  "history_account_count": 2
+  "checked_at": "2026-09-18T16:11:05.444387+00:00",
+  "ok": false,
+  "stale": true,
+  "error": "TimeoutError",
+  "message": "extensia nu a răspuns; verifică dacă este instalată și portal.tradeville.ro este deschis și autentificat",
+  "last_good_snapshot_preserved": true
 }
