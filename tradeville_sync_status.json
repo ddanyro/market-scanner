@@ -1,9 +1,14 @@
 {
   "schema": "market-scanner.tradeville.sync-status.v1",
-  "checked_at": "2026-09-19T20:14:37.418150+00:00",
-  "ok": false,
-  "stale": true,
-  "error": "SnapshotError",
-  "message": "graf_pers_brut_timeout",
-  "last_good_snapshot_preserved": true
+  "checked_at": "2026-09-19T20:34:05.880675+00:00",
+  "ok": true,
+  "fetched_at": "2026-09-19T20:34:05.821Z",
+  "source": "Tradeville WebSocket pf4",
+  "account_count": 2,
+  "position_count": 0,
+  "active_order_count": 0,
+  "history_start": "2025-09-19",
+  "history_point_count": 391,
+  "history_account_count": 2,
+  "stale_history_account_count": 1
 }
