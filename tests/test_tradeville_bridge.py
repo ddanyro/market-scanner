@@ -77,7 +77,15 @@ class TestTradevilleBridge(unittest.TestCase):
             content,
         )
         self.assertIn("return;", content)
-        self.assertEqual(manifest["version"], "1.3.2")
+        self.assertEqual(manifest["version"], "1.3.3")
+        page_client = (
+            root / "tradeville_bridge" / "page_ws_client.js"
+        ).read_text(encoding="utf-8")
+        self.assertIn("const PAGE_CLIENT_VERSION = 3", page_client)
+        self.assertIn(
+            "__marketScannerTradevilleBridgeVersion === PAGE_CLIENT_VERSION",
+            page_client,
+        )
 
     def test_reconstructs_nav_cash_and_transfer_adjusted_profit(self):
         epoch = datetime(2000, 1, 1, tzinfo=timezone.utc)

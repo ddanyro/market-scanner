@@ -1,10 +1,11 @@
 "use strict";
 
 (() => {
+  const PAGE_CLIENT_VERSION = 3;
   const BRIDGE_VERSION = 2;
-  if (window.__marketScannerTradevilleBridgeVersion === BRIDGE_VERSION) return;
+  if (window.__marketScannerTradevilleBridgeVersion === PAGE_CLIENT_VERSION) return;
   window.__marketScannerTradevilleBridgeInstalled = true;
-  window.__marketScannerTradevilleBridgeVersion = BRIDGE_VERSION;
+  window.__marketScannerTradevilleBridgeVersion = PAGE_CLIENT_VERSION;
 
   const REQUEST_SOURCE = "market-scanner-tradeville-extension-v2";
   const RESULT_SOURCE = "market-scanner-tradeville-page-v2";
