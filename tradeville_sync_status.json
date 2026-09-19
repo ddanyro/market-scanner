@@ -1,9 +1,9 @@
 {
   "schema": "market-scanner.tradeville.sync-status.v1",
-  "checked_at": "2026-09-19T19:55:53.483074+00:00",
+  "checked_at": "2026-09-19T20:08:21.388370+00:00",
   "ok": false,
   "stale": true,
-  "error": "TimeoutError",
-  "message": "extensia nu a răspuns; verifică dacă este instalată și portal.tradeville.ro este deschis și autentificat",
+  "error": "SnapshotError",
+  "message": "graf_pers_brut_timeout",
   "last_good_snapshot_preserved": true
 }
