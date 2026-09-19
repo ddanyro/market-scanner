@@ -25,3 +25,6 @@ disponibilă în IBKR și păstrează separat NAV, cash, NAV ajustat cu transfer
 
 În caz de browser închis sau sesiune expirată, fișierele existente nu sunt
 șterse și `tradeville_sync_status.json` este marcat cu eroarea curentă.
+Dacă endpointul istoric `graf_pers_brut` nu răspunde, pozițiile și ordinele
+curente sunt sincronizate în continuare, iar bridge-ul reutilizează numai
+ultimul istoric grafic valid din snapshotul local criptat.

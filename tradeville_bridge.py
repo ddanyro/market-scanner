@@ -10,6 +10,7 @@ the last known-good portfolio or orders with empty files.
 from __future__ import annotations
 
 import argparse
+import copy
 import hmac
 import json
 import math
@@ -442,6 +443,8 @@ def _account_history(
     points, reconstructed = _tradeville_graph_points(
         account.get("portfolio_graph")
     )
+    graph_request = account.get("portfolio_graph_request") or {}
+    fallback_last_good = bool(graph_request.get("fallback_last_good"))
     eur_rate = _eur_rate(snapshot)
     if not points or not eur_rate:
         return {
@@ -451,6 +454,7 @@ def _account_history(
             "profit_history": [],
             "history_metadata": {
                 "available": False,
+                "stale": fallback_last_good,
                 "start_requested": start.isoformat(),
                 "source": "Tradeville WebSocket pf4 / graf_pers_brut",
                 "reason": "graph_or_eur_rate_missing",
@@ -520,6 +524,8 @@ def _account_history(
         "profit_history": profit_history,
         "history_metadata": {
             "available": bool(nav_history),
+            "stale": fallback_last_good,
+            "fallback_reason": graph_request.get("fallback_reason"),
             "start_requested": start.isoformat(),
             "first_date": nav_history[0]["date"] if nav_history else None,
             "last_date": nav_history[-1]["date"] if nav_history else None,
@@ -714,6 +720,7 @@ def persist_snapshot(
     snapshot: dict[str, Any], password: str | None = None,
     expected_accounts: int = 2,
 ) -> dict[str, Any]:
+    snapshot = _reuse_previous_graph(snapshot, password=password)
     validated = validate_snapshot(snapshot, expected_accounts=expected_accounts)
     positions = pd.DataFrame(_position_records(validated), columns=PORTFOLIO_COLUMNS)
     orders = pd.DataFrame(_order_records(validated), columns=ORDER_COLUMNS)
@@ -752,9 +759,51 @@ def persist_snapshot(
         history_account_count=sum(
             bool(item.get("nav_history")) for item in account["accounts"]
         ),
+        stale_history_account_count=sum(
+            bool(item.get("history_metadata", {}).get("stale"))
+            for item in account["accounts"]
+        ),
     )
     _atomic_json(STATUS_PATH, status)
     return status
+
+
+def _reuse_previous_graph(
+    snapshot: dict[str, Any], password: str | None,
+    path: Path | None = None,
+) -> dict[str, Any]:
+    """Reuse only historical graphs when the optional endpoint times out."""
+    if not password or not isinstance(snapshot, dict):
+        return snapshot
+    target = Path(path or RAW_ENCRYPTED_PATH)
+    try:
+        encrypted = json.loads(target.read_text(encoding="utf-8"))
+        previous = json.loads(market_security.decrypt_from_js(encrypted, password))
+    except (OSError, TypeError, ValueError, KeyError):
+        return snapshot
+    previous_accounts = {
+        _text((account.get("person") or {}).get("id")): account
+        for account in previous.get("accounts", [])
+        if isinstance(account, dict)
+    }
+    result = copy.deepcopy(snapshot)
+    for account in result.get("accounts", []):
+        if not isinstance(account, dict) or account.get("portfolio_graph"):
+            continue
+        person_id = _text((account.get("person") or {}).get("id"))
+        old_account = previous_accounts.get(person_id) or {}
+        old_graph = old_account.get("portfolio_graph")
+        if not isinstance(old_graph, list) or not old_graph:
+            continue
+        request = dict(account.get("portfolio_graph_request") or {})
+        request.update({
+            "fallback_last_good": True,
+            "fallback_reason": request.get("error") or "graph_unavailable",
+            "fallback_snapshot_at": previous.get("fetched_at"),
+        })
+        account["portfolio_graph"] = copy.deepcopy(old_graph)
+        account["portfolio_graph_request"] = request
+    return result
 
 
 class _BridgeState:
@@ -842,7 +891,7 @@ def _handler_factory(state: _BridgeState):
 
 
 def run_sync(
-    timeout: float = 35.0, host: str = DEFAULT_HOST, port: int = DEFAULT_PORT,
+    timeout: float = 50.0, host: str = DEFAULT_HOST, port: int = DEFAULT_PORT,
     expected_accounts: int = 2,
 ) -> dict[str, Any]:
     if host not in {"127.0.0.1", "::1", "localhost"}:
@@ -892,7 +941,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", nargs="?", default="sync", choices=("sync",))
     parser.add_argument("--timeout", type=float, default=float(os.environ.get(
-        "TRADEVILLE_BRIDGE_TIMEOUT", "35"
+        "TRADEVILLE_BRIDGE_TIMEOUT", "50"
     )))
     parser.add_argument("--port", type=int, default=int(os.environ.get(
         "TRADEVILLE_BRIDGE_PORT", str(DEFAULT_PORT)

@@ -165,14 +165,32 @@
         sims: ""
       }
     };
-    const portfolioGraph = usableResponse(await sendAndWait(
-      connection,
-      portfolioGraphRequest,
-      // The socket first emits an empty acknowledgement; the historical
-      // payload follows in a second message with the same command.
-      response => Array.isArray(response.data) && response.data.length > 0,
-      30000
-    ), "graf_pers_brut");
+    let portfolioGraphData = [];
+    let portfolioGraphError = null;
+    try {
+      const portfolioGraph = usableResponse(await sendAndWait(
+        connection,
+        portfolioGraphRequest,
+        // The socket first emits an empty acknowledgement; the historical
+        // payload follows in a second message with the same command. Accept
+        // both the former array and a non-empty object payload so a harmless
+        // server-side representation change does not look like a timeout.
+        response => (
+          (Array.isArray(response.data) && response.data.length > 0)
+          || (response.data && typeof response.data === "object"
+            && Object.keys(response.data).length > 0)
+        ),
+        12000
+      ), "graf_pers_brut");
+      portfolioGraphData = Array.isArray(portfolioGraph.data)
+        ? portfolioGraph.data
+        : [portfolioGraph.data];
+    } catch (error) {
+      // Current positions, orders and balances remain useful even when the
+      // optional historical graph endpoint is slow or unavailable. Python
+      // will graft only the last known-good encrypted graph for this account.
+      portfolioGraphError = safeError(error);
+    }
 
     return {
       person: {
@@ -187,11 +205,12 @@
       settlement: decodeRows(settlement.data),
       // Keep this payload lossless: it can be an already computed point
       // series or the four raw parallel-array tables used by the portal.
-      portfolio_graph: portfolioGraph.data,
+      portfolio_graph: portfolioGraphData,
       portfolio_graph_request: {
         iday: false,
         adjusted_available: true,
-        starts_at: historyStart || "2025-09-16"
+        starts_at: historyStart || "2025-09-16",
+        error: portfolioGraphError
       }
     };
   }

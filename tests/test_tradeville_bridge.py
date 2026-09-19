@@ -77,7 +77,7 @@ class TestTradevilleBridge(unittest.TestCase):
             content,
         )
         self.assertIn("return;", content)
-        self.assertEqual(manifest["version"], "1.3.1")
+        self.assertEqual(manifest["version"], "1.3.2")
 
     def test_reconstructs_nav_cash_and_transfer_adjusted_profit(self):
         epoch = datetime(2000, 1, 1, tzinfo=timezone.utc)
@@ -214,6 +214,47 @@ class TestTradevilleBridge(unittest.TestCase):
             self.assertEqual(portfolio.Symbol.tolist(), ["SNP.RO"])
             self.assertEqual(orders.Order_ID.astype(str).tolist(), ["10"])
             self.assertEqual(decoded["schema"], tradeville_bridge.SCHEMA)
+
+    def test_missing_graph_reuses_only_last_encrypted_history(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = {
+                "PORTFOLIO_PATH": root / "tradeville_portfolio.csv",
+                "ORDERS_PATH": root / "tradeville_orders.csv",
+                "ACCOUNT_ENCRYPTED_PATH": root / "tradeville_account.enc.json",
+                "RAW_ENCRYPTED_PATH": root / "tradeville_ws_snapshot.enc.json",
+                "STATUS_PATH": root / "tradeville_sync_status.json",
+            }
+            previous = sample_snapshot()
+            previous["accounts"][0]["portfolio_graph"] = [
+                {"data": "2026-09-18", "eval": 1000}
+            ]
+            paths["RAW_ENCRYPTED_PATH"].write_text(json.dumps(
+                json.loads(market_security.encrypt_for_js(
+                    json.dumps(previous), "secret"
+                ))
+            ), encoding="utf-8")
+            current = sample_snapshot()
+            current["accounts"][0]["portfolio_graph"] = []
+            current["accounts"][0]["portfolio_graph_request"]["error"] = (
+                "graf_pers_brut_timeout"
+            )
+
+            with patch.multiple(tradeville_bridge, **paths):
+                status = tradeville_bridge.persist_snapshot(
+                    current, password="secret"
+                )
+                encrypted = json.loads(paths["RAW_ENCRYPTED_PATH"].read_text())
+                decoded = json.loads(
+                    market_security.decrypt_from_js(encrypted, "secret")
+                )
+
+            account = decoded["accounts"][0]
+            self.assertEqual(account["portfolio_graph"], previous["accounts"][0]["portfolio_graph"])
+            self.assertTrue(
+                account["portfolio_graph_request"]["fallback_last_good"]
+            )
+            self.assertEqual(status["stale_history_account_count"], 1)
 
     def test_failure_status_preserves_last_good_files(self):
         with tempfile.TemporaryDirectory() as directory:
