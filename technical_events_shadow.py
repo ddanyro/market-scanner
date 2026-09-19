@@ -297,7 +297,7 @@ def append_snapshot(rows, enhanced_by_symbol=None, *, run_mode=None,
 
 def _iter_validated_local_ledger(
     path=LEDGER_PATH, *, archive_base=None, allow_external_root=False,
-    external_parent_ids=None,
+    external_parent_ids=None, progress_callback=None,
 ):
     target = Path(path)
     parts = [*archive_paths(archive_base or target), target]
@@ -306,7 +306,10 @@ def _iter_validated_local_ledger(
     known = set()
     row_count = 0
     external_parent_ids = set(external_parent_ids or ())
-    for part in parts:
+    total_parts = len(parts)
+    for part_index, part in enumerate(parts, start=1):
+        if progress_callback:
+            progress_callback("start", part_index, total_parts, part, row_count)
         for payload in _iter_payloads(part):
             parent = payload.get("previous_snapshot_hash")
             # A local WAL can be interleaved with snapshots written directly
@@ -323,17 +326,20 @@ def _iter_validated_local_ledger(
             known.add(payload["content_hash"])
             row_count += 1
             yield payload
+        if progress_callback:
+            progress_callback("done", part_index, total_parts, part, row_count)
 
 
 def load_local_ledger(
     path=LEDGER_PATH, *, archive_base=None, allow_external_root=False,
-    external_parent_ids=None,
+    external_parent_ids=None, progress_callback=None,
 ):
     return list(_iter_validated_local_ledger(
         path,
         archive_base=archive_base,
         allow_external_root=allow_external_root,
         external_parent_ids=external_parent_ids,
+        progress_callback=progress_callback,
     ))
 
 
@@ -352,7 +358,7 @@ def latest_local_snapshot(
     return latest
 
 
-def load_ledger(path=LEDGER_PATH, *, archive_base=None):
+def load_ledger(path=LEDGER_PATH, *, archive_base=None, progress_callback=None):
     target = Path(path)
     cloud = []
     external_parent_ids = set()
@@ -382,6 +388,7 @@ def load_ledger(path=LEDGER_PATH, *, archive_base=None):
         archive_base=archive_base,
         allow_external_root=target == LEDGER_PATH and archive_base is None,
         external_parent_ids=external_parent_ids,
+        progress_callback=progress_callback,
     )
     if target != LEDGER_PATH or archive_base is not None:
         return rows

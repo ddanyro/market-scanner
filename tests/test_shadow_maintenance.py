@@ -1,6 +1,6 @@
 import datetime as dt
 import json
-from types import SimpleNamespace
+import subprocess
 
 import run_shadow_maintenance as maintenance
 
@@ -62,11 +62,11 @@ def test_only_due_task_runs_and_success_timestamp_is_persisted(
     )
     calls = []
 
-    def fake_run(command, check=False):
-        calls.append((command, check))
-        return SimpleNamespace(returncode=0)
+    def fake_run(command, label):
+        calls.append((command, label))
+        return 0
 
-    monkeypatch.setattr(maintenance.subprocess, "run", fake_run)
+    monkeypatch.setattr(maintenance, "run_with_heartbeat", fake_run)
 
     assert maintenance.run_maintenance(now=now) == 0
     assert len(calls) == 1
@@ -88,8 +88,8 @@ def test_failed_task_is_retried_because_success_time_is_not_advanced(
         "2026-09-10T08:00:00+00:00",
     )
     monkeypatch.setattr(
-        maintenance.subprocess, "run",
-        lambda *_args, **_kwargs: SimpleNamespace(returncode=2),
+        maintenance, "run_with_heartbeat",
+        lambda *_args, **_kwargs: 2,
     )
 
     assert maintenance.run_maintenance(selected=["enhanced"], now=now) == 1
@@ -98,3 +98,32 @@ def test_failed_task_is_retried_because_success_time_is_not_advanced(
         "2026-09-10"
     )
     assert state["tasks"]["enhanced"]["last_failure_at"] == now.isoformat()
+
+
+def test_long_running_child_emits_heartbeat(monkeypatch, capsys):
+    class FakeProcess:
+        pid = 4321
+
+        def __init__(self):
+            self.waits = 0
+
+        def wait(self, timeout):
+            self.waits += 1
+            if self.waits == 1:
+                raise subprocess.TimeoutExpired("job", timeout)
+            return 0
+
+    process = FakeProcess()
+    monotonic_values = iter((10.0, 75.0))
+    monkeypatch.setattr(maintenance.subprocess, "Popen", lambda _command: process)
+    monkeypatch.setattr(
+        maintenance.time, "monotonic", lambda: next(monotonic_values)
+    )
+
+    assert maintenance.run_with_heartbeat(
+        ["python", "job.py"], "Job lung", heartbeat_seconds=1
+    ) == 0
+    output = capsys.readouterr().out
+    assert "încă rulează" in output
+    assert "1m 05s" in output
+    assert "PID 4321" in output

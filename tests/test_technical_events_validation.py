@@ -129,6 +129,26 @@ def test_forward_outcomes_use_only_sessions_strictly_after_signal():
     assert original == immutable
 
 
+def test_forward_outcomes_reports_history_and_labelling_progress():
+    class Progress:
+        def __init__(self):
+            self.messages = []
+
+        def emit(self, message, **_kwargs):
+            self.messages.append(message)
+
+    progress = Progress()
+    flat = validation.flatten_ledger([snapshot()])
+    validation.label_forward_outcomes(
+        flat,
+        now=dt.datetime(2027, 1, 1, tzinfo=dt.timezone.utc),
+        ticker_factory=FakeTicker,
+        progress=progress,
+    )
+    assert any("Istoric prețuri 1/1" in item for item in progress.messages)
+    assert any("Etichetare rezultate 1/1" in item for item in progress.messages)
+
+
 def test_pending_horizon_is_explicit_when_not_matured():
     flat = validation.flatten_ledger([snapshot()])
     labelled = validation.label_forward_outcomes(
@@ -189,7 +209,11 @@ def test_offline_empty_report_is_supported(tmp_path):
 
 
 def test_main_writes_labelled_dataset_as_gzip(monkeypatch, tmp_path):
-    monkeypatch.setattr(validation.technical_events_shadow, "load_ledger", lambda _path: [])
+    monkeypatch.setattr(
+        validation.technical_events_shadow,
+        "load_ledger",
+        lambda _path, **_kwargs: [],
+    )
     (tmp_path / "event_observations.csv").write_text("legacy,large\n")
     monkeypatch.setattr(
         "sys.argv", ["evaluate_technical_events_forward.py", "--offline", "--output", str(tmp_path)]

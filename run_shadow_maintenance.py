@@ -16,6 +16,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import time
 
 
 STATE_PATH = Path(
@@ -25,6 +26,9 @@ LOCK_PATH = Path(
     os.environ.get("SHADOW_MAINTENANCE_LOCK_FILE", ".shadow_maintenance.lock")
 )
 SCHEMA = "market-scanner.shadow-maintenance.v1"
+HEARTBEAT_SECONDS = float(
+    os.environ.get("SHADOW_MAINTENANCE_HEARTBEAT_SECONDS", "60")
+)
 
 TASKS = {
     "enhanced": {
@@ -117,6 +121,27 @@ def task_due(state, name, now, force=False):
     return elapsed >= TASKS[name]["interval_hours"]
 
 
+def run_with_heartbeat(command, label, heartbeat_seconds=None):
+    """Run a maintenance child while periodically proving it is still alive."""
+    interval = (
+        HEARTBEAT_SECONDS if heartbeat_seconds is None else heartbeat_seconds
+    )
+    interval = max(float(interval), 0.1)
+    started = time.monotonic()
+    process = subprocess.Popen(command)
+    while True:
+        try:
+            return process.wait(timeout=interval)
+        except subprocess.TimeoutExpired:
+            elapsed = int(time.monotonic() - started)
+            minutes, seconds = divmod(elapsed, 60)
+            print(
+                f"[Shadow maintenance] {label}: încă rulează; "
+                f"timp scurs {minutes}m {seconds:02d}s (PID {process.pid}).",
+                flush=True,
+            )
+
+
 def run_maintenance(*, selected=None, force=False, offline=False, now=None):
     now = now or dt.datetime.now(dt.timezone.utc)
     selected = list(selected or TASKS)
@@ -136,21 +161,24 @@ def run_maintenance(*, selected=None, force=False, offline=False, now=None):
                     f"ultima rulare reușită {last}."
                 )
                 continue
-            print(f"[Shadow maintenance] {spec['label']}: pornește.")
+            print(
+                f"[Shadow maintenance] {spec['label']}: pornește.",
+                flush=True,
+            )
             command = [sys.executable, "-u", spec["command"]]
             if offline:
                 command.append("--offline")
-            completed = subprocess.run(command, check=False)
-            if completed.returncode:
+            returncode = run_with_heartbeat(command, spec["label"])
+            if returncode:
                 failures.append(name)
                 state["tasks"].setdefault(name, {})["last_failure_at"] = (
                     now.isoformat()
                 )
-                state["tasks"][name]["last_returncode"] = completed.returncode
+                state["tasks"][name]["last_returncode"] = returncode
                 save_state(state)
                 print(
                     f"[Shadow maintenance] {spec['label']}: EȘEC "
-                    f"(cod {completed.returncode}); va fi reîncercată."
+                    f"(cod {returncode}); va fi reîncercată."
                 )
                 continue
             state["tasks"][name] = {

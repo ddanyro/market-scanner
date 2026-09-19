@@ -9,11 +9,13 @@ weights, thresholds, or decisions.
 from __future__ import annotations
 
 import argparse
-import copy
 import datetime as dt
+import hashlib
 import json
 import math
+import os
 from pathlib import Path
+import time
 
 import numpy as np
 import pandas as pd
@@ -38,6 +40,39 @@ EVENT_TYPES = (
 )
 OUTPUT_DIR = Path("analysis/technical_events_validation")
 TWS_INSTRUMENTS_FILE = Path("tws_instruments.json")
+PROGRESS_SECONDS = float(
+    os.environ.get("TECHNICAL_EVENTS_PROGRESS_SECONDS", "60")
+)
+
+
+class ProgressReporter:
+    def __init__(self, interval_seconds=PROGRESS_SECONDS):
+        self.interval_seconds = max(float(interval_seconds), 0.1)
+        self.started = time.monotonic()
+        self.last_report = self.started
+
+    def emit(self, message, *, force=False):
+        now = time.monotonic()
+        if not force and now - self.last_report < self.interval_seconds:
+            return
+        elapsed = int(now - self.started)
+        minutes, seconds = divmod(elapsed, 60)
+        print(
+            f"[Technical Events] {message}; timp scurs {minutes}m {seconds:02d}s.",
+            flush=True,
+        )
+        self.last_report = now
+
+
+def _ledger_fingerprint(snapshots):
+    """Detect accidental mutation without retaining a full deep copy."""
+    digest = hashlib.sha256()
+    for snapshot in snapshots:
+        digest.update(json.dumps(
+            snapshot, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+        ).encode("utf-8"))
+        digest.update(b"\n")
+    return digest.hexdigest()
 
 
 def _number(value, default=None):
@@ -277,7 +312,9 @@ def _adjusted_entry(stored_entry, signal_day, history):
     return stored_entry * prior.iloc[-1].adjusted / prior.iloc[-1].close
 
 
-def label_forward_outcomes(frame, now=None, ticker_factory=yf.Ticker):
+def label_forward_outcomes(
+    frame, now=None, ticker_factory=yf.Ticker, progress=None,
+):
     """Attach only sessions strictly after T; never mutate the signal ledger."""
     if frame.empty:
         return frame.copy()
@@ -292,16 +329,26 @@ def label_forward_outcomes(frame, now=None, ticker_factory=yf.Ticker):
         result.history_ticker
         if "history_ticker" in result else result.ticker
     )
-    for ticker in sorted(history_column.dropna().astype(str).unique()):
+    tickers = sorted(history_column.dropna().astype(str).unique())
+    history_ok = 0
+    for ticker_index, ticker in enumerate(tickers, start=1):
         try:
             histories[ticker] = _download_history(ticker, start, end, ticker_factory)
         except Exception:
             histories[ticker] = pd.DataFrame()
+        if not histories[ticker].empty:
+            history_ok += 1
+        if progress:
+            progress.emit(
+                f"Istoric prețuri {ticker_index}/{len(tickers)} simboluri "
+                f"({history_ok} disponibile, {ticker_index - history_ok} lipsă)"
+            )
     for horizon in HORIZONS:
         for column in ("return_pct", "mae_pct", "mfe_pct"):
             result[f"{column}_{horizon}d"] = np.nan
         result[f"outcome_status_{horizon}d"] = "pending"
-    for index, row in result.iterrows():
+    total_rows = len(result)
+    for processed, (index, row) in enumerate(result.iterrows(), start=1):
         history_ticker = str(
             row.history_ticker
             if "history_ticker" in result else row.ticker
@@ -335,6 +382,11 @@ def label_forward_outcomes(frame, now=None, ticker_factory=yf.Ticker):
                 window.high.max() / entry - 1
             ) * 100
             result.at[index, f"outcome_status_{horizon}d"] = "matured"
+        if progress:
+            progress.emit(
+                f"Etichetare rezultate {processed}/{total_rows} "
+                f"({processed / total_rows:.1%})"
+            )
     return result
 
 
@@ -804,17 +856,40 @@ def main():
     parser.add_argument("--output", default=str(OUTPUT_DIR))
     parser.add_argument("--offline", action="store_true")
     args = parser.parse_args()
-    snapshots = technical_events_shadow.load_ledger(args.ledger)
-    immutable_copy = copy.deepcopy(snapshots)
+    progress = ProgressReporter()
+
+    def ledger_progress(stage, index, total, path, row_count):
+        action = "Încarc" if stage == "start" else "Am încărcat"
+        progress.emit(
+            f"{action} segmentul ledger {index}/{total} "
+            f"({Path(path).name}); {row_count} snapshots citite",
+            force=True,
+        )
+
+    progress.emit("Pornesc încărcarea ledgerului", force=True)
+    snapshots = technical_events_shadow.load_ledger(
+        args.ledger, progress_callback=ledger_progress
+    )
+    immutable_fingerprint = _ledger_fingerprint(snapshots)
+    progress.emit(
+        f"Ledger încărcat: {len(snapshots)} snapshots; construiesc observațiile",
+        force=True,
+    )
     flat = flatten_ledger(snapshots)
+    progress.emit(
+        f"Observații construite: {len(flat)}; încep validarea forward",
+        force=True,
+    )
     labelled = (
         _add_pending_columns(flat)
         if args.offline or flat.empty
-        else label_forward_outcomes(flat)
+        else label_forward_outcomes(flat, progress=progress)
     )
-    if snapshots != immutable_copy:
+    progress.emit("Validarea forward este gata; verific integritatea", force=True)
+    if _ledger_fingerprint(snapshots) != immutable_fingerprint:
         raise RuntimeError("immutable Technical Events ledger was mutated")
     errors = integrity_errors(snapshots, labelled)
+    progress.emit("Generez tabelele statistice", force=True)
     tables = generate_analysis(labelled)
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
@@ -830,6 +905,7 @@ def main():
     # The point-in-time event payload is intentionally rich and grows with
     # every shadow run. Keep the complete dataset, but store it as gzip so it
     # remains practical to persist in Git without Git LFS.
+    progress.emit("Scriu setul complet de rezultate comprimat", force=True)
     serializable.to_csv(
         output / "labelled_predictions.csv.gz",
         index=False,
@@ -864,6 +940,11 @@ def main():
         "errors": errors,
         "status": "PASS" if not errors else "FAIL",
     }, indent=2, ensure_ascii=False), encoding="utf-8")
+    progress.emit(
+        f"Finalizat: {len(snapshots)} snapshots, {len(labelled)} observații, "
+        f"{len(errors)} erori de integritate",
+        force=True,
+    )
 
 
 if __name__ == "__main__":
