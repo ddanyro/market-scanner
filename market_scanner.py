@@ -8440,8 +8440,12 @@ def generate_html_dashboard(
                 const pending = addPortfolioChatMessage(
                     'assistant', 'Analizez datele portofoliului și contextul pieței…', []
                 );
+                const chatController = new AbortController();
+                const chatDeadline = setTimeout(function() { chatController.abort(); }, 135000);
+                let partialAnswer = '';
                 try {
                     const response = await fetch(portfolioChatConfig.endpoint, {
+                        signal: chatController.signal,
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -8488,7 +8492,10 @@ def generate_html_dashboard(
                                     return;
                                 }
                                 if (eventName === 'progress') {
-                                    if (pending && eventPayload.message) {
+                                    if (eventPayload.stage === 'answer_delta' && eventPayload.text) {
+                                        partialAnswer = eventPayload.text;
+                                        if (pending) pending.textContent = partialAnswer;
+                                    } else if (pending && eventPayload.message && !partialAnswer) {
                                         pending.textContent = eventPayload.message;
                                     }
                                 } else if (eventName === 'result') {
@@ -8546,7 +8553,14 @@ def generate_html_dashboard(
                     }
                 } catch (error) {
                     if (pending) pending.remove();
-                    const detail = error.message || 'eroare necunoscută';
+                    if (partialAnswer) {
+                        addPortfolioChatMessage('assistant', partialAnswer, []);
+                        portfolioChatHistory.push({role: 'assistant', content: partialAnswer});
+                        addPortfolioChatIncompleteNotice('Conexiune întreruptă; textul primit a fost păstrat.');
+                    }
+                    const detail = error.name === 'AbortError'
+                        ? 'Timpul de așteptare a expirat. Poți reîncerca.'
+                        : error.message || 'eroare necunoscută';
                     addPortfolioChatMessage(
                         'assistant',
                         detail.toLowerCase().startsWith('chatul ai este temporar indisponibil')
@@ -8555,6 +8569,7 @@ def generate_html_dashboard(
                         [], true
                     );
                 } finally {
+                    clearTimeout(chatDeadline);
                     button.disabled = false;
                     input.focus();
                 }
@@ -10194,6 +10209,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         evidence=new_portfolio_evidence or cached_portfolio_evidence,
         buy_candidates=buy_candidate_payload,
         dashboard_state=full_state,
+        watchlist_rows=watchlist_df.to_dict('records'),
     )
     portfolio_chat_endpoint = (
         os.environ.get('PORTFOLIO_CHAT_API_URL', '').strip()
@@ -10298,7 +10314,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
 
             <aside id="portfolio-chat-panel" class="portfolio-chat-panel" aria-hidden="true" aria-label="Asistent AI pentru portofoliu">
                 <div class="portfolio-chat-header">
-                    <div><div class="portfolio-chat-title">Asistent portofoliu</div><div class="portfolio-chat-subtitle">GPT-5.6 Terra + fallback Cloudflare · datele dashboardului + surse web când sunt disponibile</div></div>
+                    <div><div class="portfolio-chat-title">Asistent portofoliu</div><div class="portfolio-chat-subtitle">GPT-5.6 Terra · datele dashboardului + surse web când sunt disponibile</div></div>
                     <button type="button" class="portfolio-chat-close" onclick="togglePortfolioChat(false)" aria-label="Închide chatul">×</button>
                 </div>
                 <details id="portfolio-chat-suggestions" class="portfolio-chat-suggestions" open>

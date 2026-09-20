@@ -1,8 +1,5 @@
 import {
-  buildCloudflareAIRequest,
   buildOpenAIRequest,
-  CLOUDFLARE_FALLBACK_MODEL,
-  extractCloudflareAIAnswer,
   extractOpenAIAnswer,
   expectedAccessToken,
   safeTokenEqual,
@@ -156,6 +153,44 @@ function reportProgress(callback, stage, message, details = {}) {
   }
 }
 
+async function readOpenAIStream(response, onProgress) {
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let partial = "";
+  let final = null;
+  try {
+    while (true) {
+      const {value, done} = await reader.read();
+      buffer += decoder.decode(value || new Uint8Array(), {stream: !done});
+      const frames = buffer.split(/\r?\n\r?\n/);
+      buffer = frames.pop() || "";
+      for (const frame of frames) {
+        const data = frame.split(/\r?\n/).filter(line => line.startsWith("data:"))
+          .map(line => line.slice(5).trim()).join("\n");
+        if (!data || data === "[DONE]") continue;
+        const event = JSON.parse(data);
+        if (event.type === "response.output_text.delta") {
+          partial += event.delta || "";
+          reportProgress(onProgress, "answer_delta", "", {text: partial});
+        }
+        if (["response.completed", "response.incomplete"].includes(event.type)) final = event.response;
+        if (["error", "response.failed"].includes(event.type)) throw new Error("openai_stream_failed");
+      }
+      if (done || final) break;
+    }
+    if (final) return final;
+    throw new Error("openai_stream_interrupted");
+  } catch (error) {
+    if (!partial.trim()) throw error;
+    return {status: "incomplete", incomplete_details: {reason: "stream_interrupted"},
+      output: [{type: "message", content: [{type: "output_text", text: partial}]}]};
+  } finally {
+    await reader.cancel().catch(() => {});
+    reader.releaseLock();
+  }
+}
+
 async function requestOpenAI(env, validated, onProgress = null) {
   const startedAt = Date.now();
   const maxAttempts = Math.max(1, Number(env.OPENAI_MAX_ATTEMPTS) || OPENAI_MAX_ATTEMPTS);
@@ -202,12 +237,15 @@ async function requestOpenAI(env, validated, onProgress = null) {
         },
         body: JSON.stringify(buildOpenAIRequest({
           ...validated,
+          stream: typeof onProgress === "function",
           useWebSearch: webSearchEnabled,
           compatibilityMode,
         })),
         signal: controller.signal,
       });
-      payload = await response.json().catch(() => ({}));
+      payload = response.ok && response.headers.get("Content-Type")?.includes("text/event-stream")
+        ? await readOpenAIStream(response, onProgress)
+        : await response.json();
       const elapsedMs = Date.now() - startedAt;
       if (response.ok) {
         console.log(JSON.stringify({
@@ -293,34 +331,16 @@ async function requestOpenAI(env, validated, onProgress = null) {
   });
 }
 
-async function runCloudflareFallback(env, validated, reason) {
-  if (!env.AI || typeof env.AI.run !== "function") {
-    throw new Error("Bindingul Cloudflare Workers AI nu este configurat.");
-  }
-  const payload = await env.AI.run(
-    CLOUDFLARE_FALLBACK_MODEL,
-    buildCloudflareAIRequest(validated),
-  );
-  return extractCloudflareAIAnswer(payload, reason);
+async function openAIFailureResponse(env, validated, reason, origin) {
+  return jsonResponse({error: chatErrorMessage(reason), reason, retryable: true}, 503, origin);
 }
 
-async function cloudflareFallbackResponse(env, validated, reason, origin) {
-  try {
-    const fallbackAnswer = await runCloudflareFallback(env, validated, reason);
-    console.log(JSON.stringify({
-      event: "portfolio_chat_cloudflare_fallback_used",
-      reason,
-      model: CLOUDFLARE_FALLBACK_MODEL,
-    }));
-    return jsonResponse(fallbackAnswer, 200, origin);
-  } catch (fallbackError) {
-    console.error(JSON.stringify({
-      event: "portfolio_chat_cloudflare_fallback_failed",
-      reason,
-      message: String(fallbackError && fallbackError.message || fallbackError),
-    }));
-    return null;
-  }
+function chatErrorMessage(reason) {
+  if (reason === "openai_timeout") return "OpenAI a depășit timpul disponibil. Reîncearcă întrebarea.";
+  if (/quota|credit|spend|usage_limit/.test(reason)) return "Limita de utilizare OpenAI a fost atinsă. Verifică bugetul contului API.";
+  if (/rate_limit/.test(reason)) return "OpenAI limitează temporar cererile. Reîncearcă peste un minut.";
+  if (reason === "openai_invalid_response") return "OpenAI nu a returnat text utilizabil. Reîncearcă întrebarea.";
+  return "Conexiunea cu OpenAI a fost întreruptă. Reîncearcă întrebarea.";
 }
 
 function corsHeaders(origin) {
@@ -489,21 +509,7 @@ function streamChatResponse(env, validated, origin) {
             fail("GPT nu a putut continua acum. Reîncearcă folosind același buton.", reason);
             return;
           }
-          send("progress", {
-            stage: "cloudflare_fallback",
-            message: "OpenAI nu a finalizat cererea; pornesc serviciul AI de rezervă…",
-            reason,
-            at: new Date().toISOString(),
-          });
-          const fallbackResponse = await cloudflareFallbackResponse(
-            env, validated, reason, origin,
-          );
-          if (!fallbackResponse) {
-            fail("Nici OpenAI, nici serviciul AI de rezervă nu au putut răspunde.", "both_providers_unavailable");
-            return;
-          }
-          send("result", await fallbackResponse.json());
-          close();
+          fail(chatErrorMessage(reason), reason);
           return;
         }
 
@@ -539,21 +545,7 @@ function streamChatResponse(env, validated, origin) {
             fail("GPT nu a returnat o continuare utilizabilă. Reîncearcă folosind același buton.", "openai_invalid_response");
             return;
           }
-          send("progress", {
-            stage: "cloudflare_fallback",
-            message: "Răspunsul OpenAI nu este utilizabil; pornesc serviciul AI de rezervă…",
-            reason: "openai_invalid_response",
-            at: new Date().toISOString(),
-          });
-          const fallbackResponse = await cloudflareFallbackResponse(
-            env, validated, "openai_invalid_response", origin,
-          );
-          if (!fallbackResponse) {
-            fail("Nici OpenAI, nici serviciul AI de rezervă nu au putut răspunde.", "both_providers_unavailable");
-            return;
-          }
-          send("result", await fallbackResponse.json());
-          close();
+          fail(chatErrorMessage("openai_invalid_response"), "openai_invalid_response");
         }
       })().catch((error) => {
         console.error(JSON.stringify({
@@ -636,14 +628,9 @@ export default {
             retryable: true,
           }, 503, origin);
         }
-        const fallbackResponse = await cloudflareFallbackResponse(
+        return openAIFailureResponse(
           env, validated, reason, origin,
         );
-        if (fallbackResponse) return fallbackResponse;
-        return jsonResponse({
-          error: "Nici OpenAI, nici serviciul AI de rezervă nu au putut răspunde.",
-          reason: "both_providers_unavailable",
-        }, 503, origin);
       }
       const payload = openAIResult.payload;
       try {
@@ -675,14 +662,9 @@ export default {
             retryable: true,
           }, 503, origin);
         }
-        const fallbackResponse = await cloudflareFallbackResponse(
+        return openAIFailureResponse(
           env, validated, "openai_invalid_response", origin,
         );
-        if (fallbackResponse) return fallbackResponse;
-        return jsonResponse({
-          error: "Nici OpenAI, nici serviciul AI de rezervă nu au putut răspunde.",
-          reason: "both_providers_unavailable",
-        }, 503, origin);
       }
     } catch (error) {
       const status = Number(error.statusCode) || 500;

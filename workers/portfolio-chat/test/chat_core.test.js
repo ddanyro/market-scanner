@@ -220,6 +220,31 @@ test("rejects an invalid portfolio token", async () => {
   }, "secret"), /neautorizat/i);
 });
 
+test("routes watchlist opportunities, portfolio risks and followups separately", () => {
+  const context = {
+    positions: [{symbol: "HELD"}],
+    watchlist_opportunities: {buy: [{symbol: "NEW"}], wait: [{symbol: "WAIT"}]},
+    buy_candidates: [{symbol: "OLD"}],
+    current_ai_analysis: {buy_recommendations: [{symbol: "OLD"}]},
+    us_market_regime: {vix: 20},
+  };
+  const history = [{role: "user", content: "Ce oportunități există?"}];
+  for (const message of ["Ce oportunități există?", "Ce oportunitati exista?"]) {
+    const selected = selectContextForMessage(context, message);
+    assert.ok(selected.watchlist_opportunities);
+    assert.ok(selected.us_market_regime);
+    assert.equal(selected.buy_candidates, undefined);
+    assert.equal(selected.current_ai_analysis, undefined);
+  }
+  assert.ok(selectContextForMessage(context, "Care dintre ele?", false, history).watchlist_opportunities);
+  for (const message of ["Ce riscuri am?", "Ce acțiuni dețin?", "Ce ordine de cumpărare am?"]) {
+    const selected = selectContextForMessage(context, message, false, history);
+    assert.ok(selected.positions);
+    assert.equal(selected.watchlist_opportunities, undefined);
+  }
+  assert.equal(selectContextForMessage(context, "Salut").watchlist_opportunities, undefined);
+});
+
 test("selects only relevant context for focused questions", () => {
   const context = {
     schema: "v1",
@@ -341,6 +366,17 @@ test("extracts text and clickable citation coordinates", () => {
   assert.equal(answer.usage.uncached_input_tokens, 300);
   assert.ok(answer.usage.estimated_cost_usd > 0);
   assert.equal(answer.complete, true);
+});
+
+test("combines all OpenAI text blocks and offsets citations", () => {
+  const answer = extractOpenAIAnswer({status: "completed", output: [
+    {type: "message", content: [{type: "output_text", text: "Prima"}]},
+    {type: "message", content: [{type: "output_text", text: "A doua", annotations: [
+      {type: "url_citation", start_index: 0, end_index: 2, url: "https://example.com"},
+    ]}]},
+  ]});
+  assert.equal(answer.text, "Prima\n\nA doua");
+  assert.equal(answer.citations[0].start_index, 7);
 });
 
 test("preserves partial OpenAI text and exposes incomplete status", () => {

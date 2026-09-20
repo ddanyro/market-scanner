@@ -569,6 +569,33 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertNotIn('chart_ohlc_native', context['buy_candidates'][0])
         self.assertEqual(context['economic_cycle']['current'], 'Expansion')
 
+    def test_chat_watchlist_opportunities_filters_and_bvb_exception(self):
+        def row(symbol, **changes):
+            return dict({'Ticker': symbol, 'Market': 'SUA', 'Decision': 'BUY',
+                         'Consensus': 'Strong Buy', 'Currency': 'USD',
+                         'Price_Native': 120, 'Price': 100,
+                         'Technical_Events': {'available': True, 'timeframes': {
+                             'SHORT_TERM': {'direction': 'BULLISH', 'event_score': 70}}}},
+                        **changes)
+        rows = [row('NEW'), row('WAITING', Decision='WAIT'), row('HELD'),
+                row('AVOID', Decision='AVOID'), row('HOLD', Consensus='Hold'),
+                row('MISSING', Technical_Events=None),
+                row('BEAR', Technical_Events={'available': True, 'timeframes': {
+                    'SHORT_TERM': {'direction': 'BEARISH'}}}),
+                row('BVB.RO', Market='România / BVB', Consensus='None')]
+        context = market_scanner_analysis.build_portfolio_chat_context(
+            {'positions': [{'symbol': 'HELD'}]}, watchlist_rows=rows)
+        result = context['watchlist_opportunities']
+        self.assertEqual([r['symbol'] for r in result['buy']], ['NEW', 'BVB.RO'])
+        self.assertEqual([r['symbol'] for r in result['wait']], ['WAITING'])
+        self.assertEqual(result['buy_count'], 2)
+        self.assertEqual(result['buy'][0]['price_native'], 120)
+        self.assertNotIn('Price', result['buy'][0])
+        self.assertIsNone(result['buy'][1]['consensus'])
+        self.assertFalse(result['buy'][1]['consensus_required'])
+        self.assertEqual(result['coverage']['SUA']['watchlist'], 7)
+        self.assertEqual(result['coverage']['SUA']['missing_technical_events'], 1)
+
     def test_tvbetetf_market_reaches_chat_when_etf_is_not_held(self):
         portfolio = pd.DataFrame([{
             'Symbol': 'NVDA', 'Current_Price': 100, 'Shares': 1,

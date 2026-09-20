@@ -13,7 +13,7 @@ const WEB_SEARCH_PATTERNS = [
   /(caută|cauta|verifică|verifica|actualizează|actualizeaza)/i,
   /\b(earnings|rezultate|raportări|raportari|calendar|dividend|cpi|fomc|fed|ecb|bce)\b/i,
 ];
-const PORTFOLIO_CONTEXT_PATTERN = /(risc|expunere|concentr|stop|portofoliu|poziți|poziti|position|cash|lichiditate)/i;
+const PORTFOLIO_CONTEXT_PATTERN = /(risc|expunere|concentr|stop|portofoliu|poziți|poziti|position|cash|lichiditate|detin|dețin)/i;
 const BUY_CONTEXT_PATTERN = /(cumpăr|cumpar|cumpărare|cumparare|buy|oportunit|candidat|entry|intrare|instrument)/i;
 const ORDER_CONTEXT_PATTERN = /(ordin|comandă|comanda|placed order|open order)/i;
 const MARKET_CONTEXT_PATTERN = /(piață|piata|market|sector|regim|macro|economie|economic|dobând|doband|vix|spx|s&p|nasdaq|bvb|românia|romania)/i;
@@ -30,9 +30,18 @@ export function shouldUseWebSearch(message, explicitPreference) {
     || BUY_CONTEXT_PATTERN.test(text);
 }
 
-export function selectContextForMessage(context, message, useWebSearch = false) {
+export function selectContextForMessage(context, message, useWebSearch = false, history = []) {
   const source = context && typeof context === "object" ? context : {};
-  const text = String(message || "");
+  const normalize = (value) => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  let text = normalize(message);
+  const hasIntent = (value) => [PORTFOLIO_CONTEXT_PATTERN, BUY_CONTEXT_PATTERN,
+    ORDER_CONTEXT_PATTERN, MARKET_CONTEXT_PATTERN, EVIDENCE_CONTEXT_PATTERN]
+    .some((pattern) => pattern.test(value));
+  if (!hasIntent(text)) {
+    const previous = [...history].reverse().find((item) =>
+      item.role === "user" && hasIntent(normalize(item.content)));
+    if (previous) text += ` ${normalize(previous.content)}`;
+  }
   const wantsPortfolio = PORTFOLIO_CONTEXT_PATTERN.test(text);
   const wantsOrders = ORDER_CONTEXT_PATTERN.test(text);
   // „ordine de cumpărare” descrie ordine deja plasate, nu căutarea unor
@@ -43,7 +52,8 @@ export function selectContextForMessage(context, message, useWebSearch = false) 
   // Web search does not require injecting the dashboard's potentially large
   // cached evidence section. Include it only when the question asks for it.
   const wantsEvidence = EVIDENCE_CONTEXT_PATTERN.test(text);
-  if (!wantsPortfolio && !wantsBuy && !wantsOrders && !wantsMarket && !wantsEvidence) return source;
+  if (!wantsPortfolio && !wantsBuy && !wantsOrders && !wantsMarket && !wantsEvidence
+      && !source.watchlist_opportunities) return source;
 
   const keys = new Set([
     "schema", "as_of", "portfolio", "positions", "broker_liquidity",
@@ -52,7 +62,9 @@ export function selectContextForMessage(context, message, useWebSearch = false) 
     "active_sell_orders", "order_summary", "data_rules",
   ]);
   if (wantsBuy) {
-    ["buy_candidates", "current_ai_analysis", "universe_stats"].forEach((key) => keys.add(key));
+    // Older dashboards retain their legacy candidates until regenerated.
+    const candidateKey = source.watchlist_opportunities ? "watchlist_opportunities" : "buy_candidates";
+    [candidateKey, "universe_stats"].forEach((key) => keys.add(key));
   }
   if (wantsMarket) {
     [
@@ -112,6 +124,7 @@ function compactContextValue(value, path, stats, limits) {
     if (/positions$/.test(joined)) maxItems = 250;
     else if (/active_(buy|sell)_orders$/.test(joined)) maxItems = 250;
     else if (/buy_candidates$/.test(joined)) maxItems = 40;
+    else if (/watchlist_opportunities\.(buy|wait)$/.test(joined)) maxItems = 250;
     else if (/evidence\.items$/.test(joined)) maxItems = 40;
     const selected = value.slice(0, maxItems).map((item, index) =>
       compactContextValue(item, [...path, String(index)], stats, limits));
@@ -321,7 +334,7 @@ export async function validateChatRequest(body, password) {
     ? undefined
     : body.webSearch;
   const useWebSearch = shouldUseWebSearch(message, webSearchPreference);
-  const selectedContext = selectContextForMessage(context, message, useWebSearch);
+  const selectedContext = selectContextForMessage(context, message, useWebSearch, cleanHistory);
   const preparedContext = compactContextForModel(selectedContext);
   const selectedContextJson = preparedContext.contextJson;
   if (selectedContextJson.length > MAX_CONTEXT_LENGTH) {
@@ -352,6 +365,7 @@ export function buildOpenAIRequest(validated) {
         prompt_cache_breakpoint: {mode: "explicit"},
       };
   const request = {
+    ...(validated.stream ? {stream: true} : {}),
     model: "gpt-5.6-terra",
     store: false,
     input: [
@@ -393,10 +407,12 @@ function buildAssistantInstructions() {
   return [
     "Ești asistentul AI al unui dashboard personal de swing trading.",
     "Răspunde în română, clar și practic, fără jargon inutil.",
-    "Obiectivul persistent al utilizatorului este un profit lunar de 3.000 EUR. Calibrează propunerile raportând contribuția estimată la această țintă, cashul necesar, riscul și pierderea maximă, fără să tratezi ținta drept randament garantat și fără să recomanzi risc excesiv doar pentru atingerea ei.",
+    "Implicit răspunde scurt și la obiect: concluzia prima, apoi cel mult 3 puncte utile; țintește maximum 120 de cuvinte. Oferă detalii suplimentare numai dacă utilizatorul le cere sau sunt necesare pentru a evita o concluzie înșelătoare.",
+    "Dacă utilizatorul cere doar o cifră, un simbol sau un răspuns da/nu, oferă numai răspunsul cerut, cu o precizare scurtă doar dacă există ambiguitate ori date insuficiente. Nu repeta întrebarea, contextul portofoliului sau avertismente generale.",
+    "Obiectivul persistent al utilizatorului este un profit lunar de 3.000 EUR. Ține cont de el pentru propuneri de alocare sau strategii, fără să îl repeți la fiecare întrebare. Nu trata ținta drept randament garantat și nu recomanda risc excesiv pentru atingerea ei.",
     "Folosește mai întâi datele structurate ale dashboardului de mai jos.",
     "Separă explicit faptele din dashboard, informațiile web recente și inferențele tale.",
-    "Începe cu o secțiune scurtă despre prospețimea și limitele datelor când există surse stale, timestampuri lipsă sau calendar UNKNOWN.",
+    "Menționează într-o propoziție limitele datelor doar când afectează răspunsul cerut: surse stale, timestampuri lipsă sau calendar UNKNOWN. Nu adăuga o secțiune standard la fiecare mesaj.",
     "Nu interpreta earnings_status UNKNOWN drept lipsa riscului; numai CLEAR confirmă că data a fost verificată și nu este apropiată.",
     "Nu include conturile stale în cashul, NAV-ul sau riscul curent. Menționează-le separat numai ca ultima situație cunoscută.",
     "Când citezi un preț, precizează sursa și momentul observed_at/fetched_at disponibile în context.",
@@ -404,6 +420,8 @@ function buildAssistantInstructions() {
     "Pentru companii preferă raportări oficiale, relația cu investitorii, SEC/BVB și comunicate oficiale.",
     "Ține cont de broker, moneda instrumentului, cashul brokerului, stopuri, concentrare, lichiditate, calendar economic, regimul pieței și rotația sectoarelor.",
     "Ordinele deja plasate sunt în active_buy_orders/active_sell_orders. Nu le confunda cu buy_candidates, care sunt numai oportunități analizate.",
+    "Pentru oportunități folosește watchlist_opportunities împreună cu contextul pieței, nu pozițiile deținute și nici recomandările vechi. Listele buy și wait sunt distincte: WAIT înseamnă de urmărit, nu cumpărare imediată. Filtrul nu garantează o investiție potrivită.",
+    "Pentru riscuri și dețineri folosește positions și portofoliul. Nu confunda numărul de poziții cu dimensiunea watchlist-ului. coverage arată universul analizat și lipsurile; buy_count/wait_count sunt totalurile filtrate, nu numărul de instrumente din piață. Dacă există trunchiere, nu pretinde că vezi lista completă. La BVB consensus nu este obligatoriu; semnalează lipsa lui când este relevant. Nu inventa candidați dacă lista este goală.",
     "Când utilizatorul menționează un ticker, verifică mai întâi requested_instruments: include poziția deținută și ordinele active asociate acelui ticker. Listele complete rămân în positions și active_buy_orders/active_sell_orders.",
     "Pentru TVBETETF sau direcția BVB verifică tvbetetf_market chiar dacă ETF-ul nu mai este deținut; acesta conține prețul curent din dashboard, SMA10/50/200, RSI14, scorul swing local, verdictul și proveniența.",
     "Pentru LQQ verifică lqq_market chiar dacă instrumentul nu este deținut și nu are semnal BUY; folosește SMA10/50/200 și Technical Events de acolo. Dacă target_available este false, spune că targetul lipsește și nu transforma nearest_resistance din Technical Events într-un target oficial.",
@@ -474,9 +492,18 @@ export function extractCloudflareAIAnswer(payload, fallbackReason) {
 }
 
 export function extractOpenAIAnswer(payload) {
-  const message = (payload && Array.isArray(payload.output) ? payload.output : [])
-    .find((item) => item && item.type === "message" && Array.isArray(item.content));
-  const outputText = message && message.content.find((item) => item && item.type === "output_text");
+  const blocks = (Array.isArray(payload?.output) ? payload.output : [])
+    .filter(item => item?.type === "message" && Array.isArray(item.content))
+    .flatMap(item => item.content).filter(item => item?.type === "output_text");
+  const outputText = {text: "", annotations: []};
+  for (const block of blocks) {
+    if (outputText.text) outputText.text += "\n\n";
+    const offset = outputText.text.length;
+    outputText.annotations.push(...(block.annotations || []).map(item => ({
+      ...item, start_index: item.start_index + offset, end_index: item.end_index + offset,
+    })));
+    outputText.text += block.text || "";
+  }
   const text = String(outputText && outputText.text || "").trim();
   if (!text) throw new Error("OpenAI nu a returnat text utilizabil.");
   const citations = (Array.isArray(outputText.annotations) ? outputText.annotations : [])

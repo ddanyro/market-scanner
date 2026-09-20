@@ -272,7 +272,32 @@ test("streams real progress stages before the final chat result", async (context
   assert.match(body, /Răspuns final/);
 });
 
-test("falls back to Workers AI when OpenAI credit is exhausted", async (context) => {
+test("preserves streamed partial text when OpenAI disconnects", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  let calls = 0;
+  globalThis.fetch = async (_url, options) => {
+    calls += 1;
+    assert.equal(JSON.parse(options.body).stream, true);
+    return new Response('data: {"type":"response.output_text.delta","delta":"Text parțial."}\n\n', {
+      headers: {"Content-Type": "text/event-stream"},
+    });
+  };
+  const password = "portfolio-test";
+  const response = await worker.fetch(new Request("https://worker.example", {
+    method: "POST", headers: {Origin: SITE_ORIGIN, "Content-Type": "application/json"},
+    body: JSON.stringify({message: "Salut", context: {}, history: [], streamProgress: true,
+      accessToken: await expectedAccessToken(password)}),
+  }), workerEnv({PORTFOLIO_PASSWORD: password, AI: {run: () => {throw new Error("Backup forbidden");}}}));
+  const stream = await response.text();
+  assert.match(stream, /answer_delta/);
+  assert.match(stream, /Text parțial/);
+  assert.match(stream, /"complete":false/);
+  assert.match(stream, /stream_interrupted/);
+  assert.equal(calls, 1);
+});
+
+test("reports exhausted credit without calling backup AI", async (context) => {
   const originalFetch = globalThis.fetch;
   context.after(() => { globalThis.fetch = originalFetch; });
   let openAICalls = 0;
@@ -301,13 +326,10 @@ test("falls back to Workers AI when OpenAI credit is exhausted", async (context)
     }},
   }));
   const payload = await response.json();
-  assert.equal(response.status, 200);
+  assert.equal(response.status, 503);
   assert.equal(openAICalls, 1);
-  assert.equal(fallbackCalls, 1);
-  assert.equal(payload.provider, "cloudflare-workers-ai");
-  assert.equal(payload.degraded, true);
-  assert.match(payload.notice, /fără verificare web live/);
-  assert.match(payload.notice, /creditul OpenAI este epuizat/);
+  assert.equal(fallbackCalls, 0);
+  assert.equal(payload.reason, "credit_balance_exhausted");
 });
 
 test("keeps a continuation on GPT instead of switching to Workers AI", async (context) => {
@@ -460,7 +482,7 @@ test("retries invalid_value without web search before using fallback", async (co
   assert.match(payload.notice, /modelul și datele dashboardului au rămas/);
 });
 
-test("falls back to Workers AI for a non-429 OpenAI error", async (context) => {
+test("reports a non-429 OpenAI error without switching providers", async (context) => {
   const originalFetch = globalThis.fetch;
   context.after(() => { globalThis.fetch = originalFetch; });
   globalThis.fetch = async () => new Response(JSON.stringify({
@@ -476,12 +498,12 @@ test("falls back to Workers AI for a non-429 OpenAI error", async (context) => {
     }),
   }), workerEnv({PORTFOLIO_PASSWORD: password}));
   const payload = await response.json();
-  assert.equal(response.status, 200);
-  assert.equal(payload.provider, "cloudflare-workers-ai");
+  assert.equal(response.status, 503);
+  assert.equal(payload.provider, undefined);
   assert.equal(payload.reason, "model_not_found");
 });
 
-test("falls back when OpenAI returns a successful but unusable payload", async (context) => {
+test("reports an unusable OpenAI payload", async (context) => {
   const originalFetch = globalThis.fetch;
   context.after(() => { globalThis.fetch = originalFetch; });
   globalThis.fetch = async () => new Response(JSON.stringify({
@@ -497,12 +519,12 @@ test("falls back when OpenAI returns a successful but unusable payload", async (
     }),
   }), workerEnv({PORTFOLIO_PASSWORD: password}));
   const payload = await response.json();
-  assert.equal(response.status, 200);
-  assert.equal(payload.provider, "cloudflare-workers-ai");
+  assert.equal(response.status, 503);
+  assert.equal(payload.provider, undefined);
   assert.equal(payload.reason, "openai_invalid_response");
 });
 
-test("falls back when the OpenAI request has a transport failure", async (context) => {
+test("reports an OpenAI transport failure", async (context) => {
   const originalFetch = globalThis.fetch;
   context.after(() => { globalThis.fetch = originalFetch; });
   globalThis.fetch = async () => { throw new Error("connection reset"); };
@@ -516,12 +538,12 @@ test("falls back when the OpenAI request has a transport failure", async (contex
     }),
   }), workerEnv({PORTFOLIO_PASSWORD: password}));
   const payload = await response.json();
-  assert.equal(response.status, 200);
-  assert.equal(payload.provider, "cloudflare-workers-ai");
+  assert.equal(response.status, 503);
+  assert.equal(payload.provider, undefined);
   assert.equal(payload.reason, "openai_transport_error");
 });
 
-test("labels an OpenAI timeout before falling back", async (context) => {
+test("labels an OpenAI timeout", async (context) => {
   const originalFetch = globalThis.fetch;
   context.after(() => { globalThis.fetch = originalFetch; });
   globalThis.fetch = async (_url, options) => new Promise((_resolve, reject) => {
@@ -546,9 +568,9 @@ test("labels an OpenAI timeout before falling back", async (context) => {
     OPENAI_TOTAL_BUDGET_MS: 10,
   }));
   const payload = await response.json();
-  assert.equal(response.status, 200);
+  assert.equal(response.status, 503);
   assert.equal(payload.reason, "openai_timeout");
-  assert.match(payload.notice, /timpul alocat/);
+  assert.match(payload.error, /timpul disponibil/);
 });
 
 test("returns 429 when the Cloudflare limiter rejects the request", async () => {

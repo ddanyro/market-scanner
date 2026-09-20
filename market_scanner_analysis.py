@@ -2333,8 +2333,67 @@ def build_portfolio_risk_snapshot(portfolio_df, orders_df=None, account_data=Non
     return snapshot
 
 
+def _chat_watchlist_opportunities(rows, positions):
+    """Filter hydrated dashboard rows, not the stricter AI purchase pipeline."""
+    held = {str(p.get('symbol') or p.get('Symbol') or '').upper()
+            for p in positions if isinstance(p, dict)}
+    groups = {'buy': [], 'wait': []}
+    coverage = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        market = str(row.get('Market') or 'Unknown')
+        counts = coverage.setdefault(market, {'watchlist': 0, 'matched': 0,
+                                              'missing_consensus': 0,
+                                              'missing_technical_events': 0})
+        counts['watchlist'] += 1
+        consensus = str(row.get('Consensus') or '').strip().upper()
+        missing_consensus = consensus in ('', '-', 'NONE', 'N/A', 'UNKNOWN')
+        counts['missing_consensus'] += int(missing_consensus)
+        events = row.get('Technical_Events')
+        events = events if isinstance(events, dict) else {}
+        short = (events.get('timeframes') or {}).get('SHORT_TERM') or {}
+        if not events.get('available') or not short.get('direction'):
+            counts['missing_technical_events'] += 1
+            continue
+        bvb = 'BVB' in market.upper()
+        decision = str(row.get('Decision') or '').upper()
+        symbol = str(row.get('Ticker') or '').upper()
+        if (not symbol or symbol in held or decision not in ('BUY', 'WAIT')
+                or short.get('direction') != 'BULLISH'
+                or (not bvb and consensus not in ('BUY', 'STRONG BUY'))):
+            continue
+        counts['matched'] += 1
+        candidate = {
+            'symbol': symbol, 'market': market, 'decision': decision,
+            'consensus': None if missing_consensus else consensus,
+            'consensus_required': not bvb,
+            'short_direction': short['direction'],
+            'short_score': short.get('event_score'),
+            'technical_data_as_of': events.get('data_as_of'),
+        }
+        for target, source in (
+            ('company_name', 'Company_Name'), ('sector', 'Sector'),
+            ('analysts', 'Analysts'), ('currency', 'Currency'),
+            ('price_native', 'Price_Native'), ('rsi', 'RSI'),
+            ('rr_ratio', 'RR_Ratio'), ('days_to_earnings', 'Days_To_Earnings'),
+            ('earnings_status', 'Earnings_Status'),
+            ('market_data_source', 'Market_Data_Source'),
+            ('market_data_observed_at', 'Market_Data_Observed_At'),
+            ('market_data_fetched_at', 'Market_Data_Fetched_At'),
+        ):
+            candidate[target] = row.get(source)
+        groups[decision.lower()].append(candidate)
+    return {**groups, 'coverage': coverage,
+            'buy_count': len(groups['buy']), 'wait_count': len(groups['wait']),
+            'rule': 'Exclude holdings. SHORT BULLISH and decision BUY/WAIT; '
+                    'consensus BUY/STRONG BUY required outside BVB. '
+                    'BVB consensus is informational. WAIT is not an immediate BUY.'}
+
+
 def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
-                                 buy_candidates=None, dashboard_state=None):
+                                 buy_candidates=None, dashboard_state=None,
+                                 watchlist_rows=None):
     """Construiește contextul compact și verificabil pentru chatul portofoliului.
 
     Seriile OHLC și câmpurile interne voluminoase sunt excluse intenționat. Chatul
@@ -2416,8 +2475,12 @@ def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
         }
         for item in positions if isinstance(item, dict)
     ]
+    opportunities = _chat_watchlist_opportunities(
+        watchlist_rows if watchlist_rows is not None else dashboard_state.get('watchlist', []),
+        positions,
+    )
     return {
-        'schema': 'market-scanner.portfolio-chat.v3',
+        'schema': 'market-scanner.portfolio-chat.v4',
         'as_of': snapshot.get('as_of'),
         'portfolio': snapshot.get('portfolio') or {},
         'positions': positions,
@@ -2468,6 +2531,7 @@ def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
             ) if ai_result.get(key) not in (None, '', [], {})
         },
         'buy_candidates': compact_candidates,
+        'watchlist_opportunities': opportunities,
         'evidence': {
             'fetched_at': evidence.get('fetched_at'),
             'status': evidence.get('status'),
