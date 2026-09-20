@@ -220,6 +220,42 @@ test("rejects an invalid portfolio token", async () => {
   }, "secret"), /neautorizat/i);
 });
 
+test("opportunity requests retain candidates despite oversized holding ledgers", async () => {
+  const candidates = {
+    buy: [{symbol: "NEW", strategy_levels: {currency: "EUR", entry: 100, stop: 90}}],
+    wait: [{symbol: "WAIT"}], buy_count: 1, wait_count: 1,
+  };
+  const context = {
+    positions: [{symbol: "HELD", portfolio_weight_pct: 80, primary_stop_eur: 90,
+      technical_events: {events: Array.from({length: 800}, (_, i) => ({id: i, details: "x".repeat(400)}))}}],
+    us_market_regime: {vix: 20},
+    watchlist_opportunities: candidates,
+  };
+  const result = await validateChatRequest({
+    message: "Ce oportunități am comparativ cu HELD?",
+    context, accessToken: await expectedAccessToken("secret"),
+  }, "secret");
+  assert.deepEqual(result.context.watchlist_opportunities, candidates);
+  assert.equal(result.context.positions[0].portfolio_weight_pct, 80);
+  assert.equal(result.context.positions[0].primary_stop_eur, 90);
+  assert.equal(result.context.positions[0].technical_events, undefined);
+  assert.equal(result.context.requested_instruments.held_positions[0].technical_events, undefined);
+  assert.ok(result.contextJson.length < 10000);
+  assert.equal(result.contextCompacted, false);
+  assert.ok(selectContextForMessage(context, "Ce riscuri are HELD?").positions[0].technical_events);
+});
+
+test("forced budget prioritizes opportunity rows over auxiliary market data", () => {
+  const candidates = {buy: [{symbol: "NEW"}], wait: [{symbol: "WAIT"}]};
+  const result = compactContextForModel({
+    market_overviews: Object.fromEntries(Array.from({length: 500}, (_, i) => [`key${i}`, "x".repeat(600)])),
+    watchlist_opportunities: candidates,
+  }, 10000);
+  assert.deepEqual(result.context.watchlist_opportunities, candidates);
+  assert.ok(result.contextJson.length <= 10000);
+  assert.ok(result.context.context_compaction.summarized_sections.includes("market_overviews"));
+});
+
 test("routes watchlist opportunities, portfolio risks and followups separately", () => {
   const context = {
     positions: [{symbol: "HELD"}],

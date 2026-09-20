@@ -573,7 +573,8 @@ class TestMarketAnalysis(unittest.TestCase):
         def row(symbol, **changes):
             return dict({'Ticker': symbol, 'Market': 'SUA', 'Decision': 'BUY',
                          'Consensus': 'Strong Buy', 'Currency': 'USD',
-                         'Price_Native': 120, 'Price': 100,
+                         'Price_Native': 120, 'Price': 100, 'Stop_Loss': 90,
+                         'Target': 130,
                          'Technical_Events': {'available': True, 'timeframes': {
                              'SHORT_TERM': {'direction': 'BULLISH', 'event_score': 70}}}},
                         **changes)
@@ -590,11 +591,20 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertEqual([r['symbol'] for r in result['wait']], ['WAITING'])
         self.assertEqual(result['buy_count'], 2)
         self.assertEqual(result['buy'][0]['price_native'], 120)
+        self.assertEqual(result['buy'][0]['strategy_levels']['currency'], 'EUR')
+        self.assertEqual(result['buy'][0]['strategy_levels']['entry'], 100)
+        self.assertEqual(result['buy'][0]['strategy_levels']['stop'], 90)
+        self.assertEqual(result['buy'][0]['strategy_levels']['validation'], 'CONSISTENT')
+        self.assertIsNone(result['wait'][0]['strategy_levels']['entry'])
+        self.assertEqual(result['wait'][0]['strategy_levels']['validation'], 'MISSING_LEVELS')
         self.assertNotIn('Price', result['buy'][0])
         self.assertIsNone(result['buy'][1]['consensus'])
         self.assertFalse(result['buy'][1]['consensus_required'])
         self.assertEqual(result['coverage']['SUA']['watchlist'], 7)
         self.assertEqual(result['coverage']['SUA']['missing_technical_events'], 1)
+        invalid = market_scanner_analysis._chat_watchlist_opportunities(
+            [row('INVALID', Smart_Entry_EUR=80)], [])
+        self.assertEqual(invalid['buy'][0]['strategy_levels']['validation'], 'INCONSISTENT_LEVELS')
 
     def test_tvbetetf_market_reaches_chat_when_etf_is_not_held(self):
         portfolio = pd.DataFrame([{

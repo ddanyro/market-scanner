@@ -2383,6 +2383,31 @@ def _chat_watchlist_opportunities(rows, positions):
             ('market_data_fetched_at', 'Market_Data_Fetched_At'),
         ):
             candidate[target] = row.get(source)
+        # Scanner strategy levels are EUR, unlike Price_Native/Currency.
+        # Never label these as broker-native prices or invent a WAIT entry.
+        def positive_level(key):
+            value = _safe_number(row.get(key), None)
+            return value if value is not None and value > 0 else None
+
+        entry = positive_level('Smart_Entry_EUR')
+        entry_source = 'Smart_Entry_EUR' if entry is not None else None
+        if entry is None and decision == 'BUY':
+            entry = positive_level('Price')
+            entry_source = 'Price' if entry is not None else None
+        candidate['strategy_levels'] = {
+            'currency': 'EUR', 'entry': entry,
+            'entry_source': entry_source,
+            'stop': positive_level('Stop_Loss'),
+            'target': positive_level('Target'),
+            'source': 'dashboard scanner; indicative, not live execution quotes',
+        }
+        levels = candidate['strategy_levels']
+        complete = all(levels[key] is not None for key in ('entry', 'stop', 'target'))
+        levels['validation'] = (
+            'MISSING_LEVELS' if not complete else
+            'CONSISTENT' if levels['stop'] < levels['entry'] < levels['target'] else
+            'INCONSISTENT_LEVELS'
+        )
         groups[decision.lower()].append(candidate)
     return {**groups, 'coverage': coverage,
             'buy_count': len(groups['buy']), 'wait_count': len(groups['wait']),

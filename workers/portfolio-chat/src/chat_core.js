@@ -76,6 +76,14 @@ export function selectContextForMessage(context, message, useWebSearch = false, 
   const selected = Object.fromEntries(
     Object.entries(source).filter(([key]) => keys.has(key)),
   );
+  if (wantsBuy && Array.isArray(selected.positions)) {
+    // Opportunity queries need exposure and risk constraints, not the complete
+    // Technical Events ledger for every holding (often >160 KB).
+    selected.positions = selected.positions.map((position) => Object.fromEntries(
+      Object.entries(position).filter(([key, value]) =>
+        value === null || typeof value !== "object" || key === "active_stops"),
+    ));
+  }
 
   // Make every explicitly mentioned instrument easy for the model to find.
   // The complete positions/orders arrays remain present; this is only a small,
@@ -101,7 +109,7 @@ export function selectContextForMessage(context, message, useWebSearch = false, 
       .map(normalise).some((symbol) => mentionedSymbols.includes(symbol));
     selected.requested_instruments = {
       symbols: mentionedSymbols,
-      held_positions: (source.positions || []).filter(matches),
+      held_positions: (selected.positions || []).filter(matches),
       active_buy_orders: (source.active_buy_orders || []).filter(matches),
       active_sell_orders: (source.active_sell_orders || []).filter(matches),
       note: "Vizualizare prioritară extrasă din listele complete; folosește aceste valori pentru instrumentele cerute explicit.",
@@ -180,7 +188,11 @@ function forceContextWithinBudget(context, maxLength, originalChars) {
   const reserve = 1200;
   const result = {};
   const omittedSections = [];
-  for (const [key, value] of Object.entries(context)) {
+  // Keep the question's candidate data before auxiliary sections regardless
+  // of the order in which the dashboard serialized its keys.
+  const sections = Object.entries(context).sort(([a], [b]) =>
+    Number(b === "watchlist_opportunities") - Number(a === "watchlist_opportunities"));
+  for (const [key, value] of sections) {
     if (key === "context_compaction") continue;
     result[key] = value;
     if (JSON.stringify(result).length > maxLength - reserve) {
@@ -421,6 +433,7 @@ function buildAssistantInstructions() {
     "Ține cont de broker, moneda instrumentului, cashul brokerului, stopuri, concentrare, lichiditate, calendar economic, regimul pieței și rotația sectoarelor.",
     "Ordinele deja plasate sunt în active_buy_orders/active_sell_orders. Nu le confunda cu buy_candidates, care sunt numai oportunități analizate.",
     "Pentru oportunități folosește watchlist_opportunities împreună cu contextul pieței, nu pozițiile deținute și nici recomandările vechi. Listele buy și wait sunt distincte: WAIT înseamnă de urmărit, nu cumpărare imediată. Filtrul nu garantează o investiție potrivită.",
+    "strategy_levels are moneda proprie, distinctă de currency/price_native. MISSING_LEVELS sau INCONSISTENT_LEVELS interzic prezentarea nivelurilor drept setup executabil; explică lipsa/inconsistența fără să inventezi corecții. CONSISTENT verifică doar ordinea stop < entry < target, nu confirmă o cotație live sau oportunitatea executării.",
     "Pentru riscuri și dețineri folosește positions și portofoliul. Nu confunda numărul de poziții cu dimensiunea watchlist-ului. coverage arată universul analizat și lipsurile; buy_count/wait_count sunt totalurile filtrate, nu numărul de instrumente din piață. Dacă există trunchiere, nu pretinde că vezi lista completă. La BVB consensus nu este obligatoriu; semnalează lipsa lui când este relevant. Nu inventa candidați dacă lista este goală.",
     "Când utilizatorul menționează un ticker, verifică mai întâi requested_instruments: include poziția deținută și ordinele active asociate acelui ticker. Listele complete rămân în positions și active_buy_orders/active_sell_orders.",
     "Pentru TVBETETF sau direcția BVB verifică tvbetetf_market chiar dacă ETF-ul nu mai este deținut; acesta conține prețul curent din dashboard, SMA10/50/200, RSI14, scorul swing local, verdictul și proveniența.",
