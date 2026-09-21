@@ -15,6 +15,11 @@ Nu conține comenzi de creare, modificare sau anulare a ordinelor.
 
 După instalare sau după modificarea extensiei, apasă **Reload** pe cardul ei.
 Insigna extensiei devine `ON` când bridge-ul este activ în fila Tradeville.
+După trecerea la versiunea 1.3.4, reîncarcă și fila Tradeville pentru a elimina
+bucla veche a extensiei. Joburile expirate sunt acum eliberate automat; un
+răspuns întârziat al unui job vechi nu poate bloca sau înlocui jobul nou.
+Mesajul „extensia a preluat jobul” confirmă numai legătura locală, nu loginul
+Tradeville. Timeoutul precizează dacă jobul a fost preluat sau nu.
 
 La fiecare rulare, `tradeville_bridge.py` ascultă temporar numai pe
 `127.0.0.1:43129`. Extensia preia jobul, citește prin WebSocket ambele persoane

@@ -77,7 +77,7 @@ class TestTradevilleBridge(unittest.TestCase):
             content,
         )
         self.assertIn("return;", content)
-        self.assertEqual(manifest["version"], "1.3.3")
+        self.assertEqual(manifest["version"], "1.3.4")
         page_client = (
             root / "tradeville_bridge" / "page_ws_client.js"
         ).read_text(encoding="utf-8")
@@ -278,6 +278,23 @@ class TestTradevilleBridge(unittest.TestCase):
     def test_bridge_binds_only_to_loopback(self):
         with self.assertRaises(tradeville_bridge.SnapshotError):
             tradeville_bridge.run_sync(host="0.0.0.0", timeout=0.01)
+
+    def test_timeout_distinguishes_unclaimed_from_claimed_job(self):
+        for claimed, message in ((False, 'nu s-a conectat'), (True, 'a preluat jobul')):
+            state = tradeville_bridge._BridgeState()
+            state.claimed = claimed
+            with patch.object(tradeville_bridge, '_BridgeState', return_value=state), \
+                    patch.object(tradeville_bridge, 'ThreadingHTTPServer'), \
+                    patch.object(tradeville_bridge, 'persist_snapshot') as persist:
+                with self.assertRaisesRegex(TimeoutError, message):
+                    tradeville_bridge.run_sync(timeout=0.001)
+                persist.assert_not_called()
+
+    def test_job_expiry_matches_bridge_timeout(self):
+        before = datetime.now(timezone.utc).timestamp() * 1000
+        state = tradeville_bridge._BridgeState(timeout=7)
+        self.assertGreaterEqual(state.expires_at, int(before + 7000))
+        self.assertLess(state.expires_at, before + 8000)
 
 
 if __name__ == "__main__":

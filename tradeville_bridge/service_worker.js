@@ -39,7 +39,8 @@ async function bridgeFetch(path, options = {}) {
   return fetch(`${BRIDGE_URL}${path}`, {
     ...options,
     headers,
-    cache: "no-store"
+    cache: "no-store",
+    signal: AbortSignal.timeout(4000)
   });
 }
 

@@ -807,11 +807,12 @@ def _reuse_previous_graph(
 
 
 class _BridgeState:
-    def __init__(self) -> None:
+    def __init__(self, timeout: float = 50.0) -> None:
         self.job_id = secrets.token_urlsafe(12)
         self.token = secrets.token_urlsafe(32)
         self.history_start = _history_start().isoformat()
         self.claimed = False
+        self.expires_at = int(datetime.now(timezone.utc).timestamp() * 1000 + timeout * 1000)
         self.result: dict[str, Any] | None = None
         self.event = threading.Event()
         self.lock = threading.Lock()
@@ -852,10 +853,12 @@ def _handler_factory(state: _BridgeState):
                     self.end_headers()
                     return
                 state.claimed = True
+                print("Tradeville bridge: extensia a preluat jobul; aștept rezultatul paginii Tradeville.", flush=True)
                 payload = {
                     "id": state.job_id,
                     "token": state.token,
                     "historyStart": state.history_start,
+                    "expiresAt": state.expires_at,
                 }
             self._json(200, payload)
 
@@ -896,7 +899,7 @@ def run_sync(
 ) -> dict[str, Any]:
     if host not in {"127.0.0.1", "::1", "localhost"}:
         raise SnapshotError("bridge-ul poate asculta numai pe loopback")
-    state = _BridgeState()
+    state = _BridgeState(timeout)
     server = ThreadingHTTPServer((host, port), _handler_factory(state))
     worker = threading.Thread(target=server.serve_forever, daemon=True)
     worker.start()
@@ -906,9 +909,14 @@ def run_sync(
             f"http://{host}:{port} ({int(timeout)}s)..."
         )
         if not state.event.wait(timeout):
+            if state.claimed:
+                raise TimeoutError(
+                    "extensia a preluat jobul, dar pagina Tradeville nu a livrat "
+                    "rezultatul la timp; reîncarcă fila portal.tradeville.ro și reîncearcă"
+                )
             raise TimeoutError(
-                "extensia nu a răspuns; verifică dacă este instalată și "
-                "portal.tradeville.ro este deschis și autentificat"
+                "extensia nu s-a conectat la bridge; apasă Reload în chrome://extensions "
+                "și reîncarcă fila portal.tradeville.ro; autentificarea nu a putut fi verificată"
             )
         result = state.result or {}
         if result.get("ok") is not True:
