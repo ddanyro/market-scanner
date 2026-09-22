@@ -2471,9 +2471,19 @@ def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
     positions = snapshot.get('positions') or []
     broker_liquidity = dict(snapshot.get('account_liquidity') or {})
     accounts = [
-        item for item in broker_liquidity.get('accounts', [])
+        dict(item) for item in broker_liquidity.get('accounts', [])
         if isinstance(item, dict)
     ]
+    for account in accounts:
+        summary = account.get('summary') or {}
+        cash_values = list((account.get('cash_by_currency') or {}).values())
+        cash_values += [summary.get(key) for key in ('TotalCashValue', 'SettledCash')]
+        has_exact_cash = any(_safe_number(value, None) is not None for value in cash_values)
+        account['cash_data_status'] = (
+            'EXACT' if has_exact_cash else
+            'BANDS_ONLY' if broker_liquidity.get('privacy_mode') == 'bands_only'
+            or 'cash_pct_band' in account else 'MISSING'
+        )
     broker_liquidity['current_accounts'] = [
         item for item in accounts if not item.get('stale', True)
     ]

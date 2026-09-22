@@ -256,6 +256,27 @@ test("forced budget prioritizes opportunity rows over auxiliary market data", ()
   assert.ok(result.context.context_compaction.summarized_sections.includes("market_overviews"));
 });
 
+test("explicit opportunity ticker survives cash and quantity routing", async () => {
+  const etn = {symbol: "ETN", strategy_levels: {currency: "EUR", entry: 100, stop: 90, validation: "CONSISTENT"}};
+  const context = {
+    positions: [{symbol: "HELD", technical_events: {ledger: "x".repeat(190000)}}],
+    broker_liquidity: {current_accounts: [{stale: false, cash_data_status: "EXACT", cash_by_currency: {USD: 0}}]},
+    watchlist_opportunities: {buy: [etn], wait: [{symbol: "ETN2"}]},
+    us_market_regime: {vix: 20},
+  };
+  for (const message of ["Ce sumă și cantitate pentru ETN din cash?", "Ce risc are ETN?", "ETN"]) {
+    const r = await validateChatRequest({message, context, history: [], accessToken: await expectedAccessToken("secret")}, "secret");
+    assert.deepEqual(r.context.requested_instruments.opportunities, [etn]);
+    assert.deepEqual(r.context.broker_liquidity, context.broker_liquidity);
+    assert.ok(r.context.us_market_regime);
+    assert.ok(r.contextJson.length < 10000);
+    assert.equal(r.contextCompacted, false);
+  }
+  assert.equal(selectContextForMessage(context, "Cash pentru ETNX?").requested_instruments, undefined);
+  const legacy = selectContextForMessage({buy_candidates: [etn]}, "Cash pentru ETN?");
+  assert.deepEqual(legacy.requested_instruments.opportunities, [etn]);
+});
+
 test("routes watchlist opportunities, portfolio risks and followups separately", () => {
   const context = {
     positions: [{symbol: "HELD"}],

@@ -569,6 +569,21 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertNotIn('chart_ohlc_native', context['buy_candidates'][0])
         self.assertEqual(context['economic_cycle']['current'], 'Expansion')
 
+    def test_chat_cash_availability_is_separate_from_freshness(self):
+        accounts = [
+            {'label': 'zero', 'stale': False, 'cash_by_currency': {'USD': 0}},
+            {'label': 'old', 'stale': True, 'summary': {'TotalCashValue': 120}},
+            {'label': 'bands', 'stale': False, 'cash_pct_band': 'sub 5%'},
+            {'label': 'missing', 'stale': False, 'summary': {'BuyingPower': 1000}},
+        ]
+        context = market_scanner_analysis.build_portfolio_chat_context(
+            {'account_liquidity': {'accounts': accounts}})
+        liquidity = context['broker_liquidity']
+        self.assertEqual([a['cash_data_status'] for a in liquidity['current_accounts']],
+                         ['EXACT', 'BANDS_ONLY', 'MISSING'])
+        self.assertEqual(liquidity['last_known_stale_accounts'][0]['cash_data_status'], 'EXACT')
+        self.assertNotIn('cash_data_status', accounts[0])
+
     def test_chat_watchlist_opportunities_filters_and_bvb_exception(self):
         def row(symbol, **changes):
             return dict({'Ticker': symbol, 'Market': 'SUA', 'Decision': 'BUY',

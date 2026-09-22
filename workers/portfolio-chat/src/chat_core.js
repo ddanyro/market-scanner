@@ -34,6 +34,14 @@ export function selectContextForMessage(context, message, useWebSearch = false, 
   const source = context && typeof context === "object" ? context : {};
   const normalize = (value) => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   let text = normalize(message);
+  const opportunityRows = source.watchlist_opportunities
+    ? [...(source.watchlist_opportunities.buy || []), ...(source.watchlist_opportunities.wait || [])]
+    : (source.buy_candidates || []);
+  const symbolInText = (symbol, value) => {
+    const escaped = String(symbol || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return escaped && new RegExp(`(^|[^A-Z0-9])${escaped}([^A-Z0-9]|$)`, "i").test(value);
+  };
+  const namedOpportunities = opportunityRows.filter((row) => symbolInText(row.symbol, text));
   const hasIntent = (value) => [PORTFOLIO_CONTEXT_PATTERN, BUY_CONTEXT_PATTERN,
     ORDER_CONTEXT_PATTERN, MARKET_CONTEXT_PATTERN, EVIDENCE_CONTEXT_PATTERN]
     .some((pattern) => pattern.test(value));
@@ -48,7 +56,7 @@ export function selectContextForMessage(context, message, useWebSearch = false, 
   // oportunități BUY. Prioritatea explicită evită încărcarea inutilă a
   // universului de candidați și a contextului complet de piață.
   const wantsBuy = !wantsOrders && BUY_CONTEXT_PATTERN.test(text);
-  const wantsMarket = wantsBuy || MARKET_CONTEXT_PATTERN.test(text);
+  const wantsMarket = wantsBuy || namedOpportunities.length > 0 || MARKET_CONTEXT_PATTERN.test(text);
   // Web search does not require injecting the dashboard's potentially large
   // cached evidence section. Include it only when the question asks for it.
   const wantsEvidence = EVIDENCE_CONTEXT_PATTERN.test(text);
@@ -76,7 +84,7 @@ export function selectContextForMessage(context, message, useWebSearch = false, 
   const selected = Object.fromEntries(
     Object.entries(source).filter(([key]) => keys.has(key)),
   );
-  if (wantsBuy && Array.isArray(selected.positions)) {
+  if ((wantsBuy || namedOpportunities.length) && Array.isArray(selected.positions)) {
     // Opportunity queries need exposure and risk constraints, not the complete
     // Technical Events ledger for every holding (often >160 KB).
     selected.positions = selected.positions.map((position) => Object.fromEntries(
@@ -93,6 +101,7 @@ export function selectContextForMessage(context, message, useWebSearch = false, 
     ...(Array.isArray(source.positions) ? source.positions : []),
     ...(Array.isArray(source.active_buy_orders) ? source.active_buy_orders : []),
     ...(Array.isArray(source.active_sell_orders) ? source.active_sell_orders : []),
+    ...opportunityRows,
   ].filter((item) => item && typeof item === "object" && !Array.isArray(item));
   const normalise = (value) => String(value || "").trim().toUpperCase();
   const messageUpper = text.toUpperCase();
@@ -112,6 +121,7 @@ export function selectContextForMessage(context, message, useWebSearch = false, 
       held_positions: (selected.positions || []).filter(matches),
       active_buy_orders: (source.active_buy_orders || []).filter(matches),
       active_sell_orders: (source.active_sell_orders || []).filter(matches),
+      opportunities: opportunityRows.filter(matches),
       note: "Vizualizare prioritară extrasă din listele complete; folosește aceste valori pentru instrumentele cerute explicit.",
     };
   }
@@ -190,8 +200,9 @@ function forceContextWithinBudget(context, maxLength, originalChars) {
   const omittedSections = [];
   // Keep the question's candidate data before auxiliary sections regardless
   // of the order in which the dashboard serialized its keys.
-  const sections = Object.entries(context).sort(([a], [b]) =>
-    Number(b === "watchlist_opportunities") - Number(a === "watchlist_opportunities"));
+  const priority = (key) => ({requested_instruments: 3, watchlist_opportunities: 2,
+    broker_liquidity: 1})[key] || 0;
+  const sections = Object.entries(context).sort(([a], [b]) => priority(b) - priority(a));
   for (const [key, value] of sections) {
     if (key === "context_compaction") continue;
     result[key] = value;
@@ -435,7 +446,8 @@ function buildAssistantInstructions() {
     "Pentru oportunități folosește watchlist_opportunities împreună cu contextul pieței, nu pozițiile deținute și nici recomandările vechi. Listele buy și wait sunt distincte: WAIT înseamnă de urmărit, nu cumpărare imediată. Filtrul nu garantează o investiție potrivită.",
     "strategy_levels are moneda proprie, distinctă de currency/price_native. MISSING_LEVELS sau INCONSISTENT_LEVELS interzic prezentarea nivelurilor drept setup executabil; explică lipsa/inconsistența fără să inventezi corecții. CONSISTENT verifică doar ordinea stop < entry < target, nu confirmă o cotație live sau oportunitatea executării.",
     "Pentru riscuri și dețineri folosește positions și portofoliul. Nu confunda numărul de poziții cu dimensiunea watchlist-ului. coverage arată universul analizat și lipsurile; buy_count/wait_count sunt totalurile filtrate, nu numărul de instrumente din piață. Dacă există trunchiere, nu pretinde că vezi lista completă. La BVB consensus nu este obligatoriu; semnalează lipsa lui când este relevant. Nu inventa candidați dacă lista este goală.",
-    "Când utilizatorul menționează un ticker, verifică mai întâi requested_instruments: include poziția deținută și ordinele active asociate acelui ticker. Listele complete rămân în positions și active_buy_orders/active_sell_orders.",
+    "Când utilizatorul menționează un ticker, verifică mai întâi requested_instruments: include poziția deținută, ordinele active și opportunities asociate acelui ticker, inclusiv la întrebări despre cash sau cantitate. Nivelurile din opportunities rămân utilizabile ca date chiar dacă lista completă watchlist_opportunities nu a fost selectată.",
+    "Pentru cash verifică broker_liquidity.current_accounts (sau accounts în contextul vechi), summary și cash_by_currency, separat pe broker și monedă. cash_data_status distinge sume exacte, intervale fără sume și valori lipsă; stale/freshness_status indică separat vechimea. Nu echivala cash zero cu date lipsă, BuyingPower cu cash disponibil sau date stale cu valori inexistente. Dacă lipsesc doar sumele cash, nu afirma că lipsesc și nivelurile instrumentului. Nu deduce o sumă exactă din cash_pct_band sau available_funds_status.",
     "Pentru TVBETETF sau direcția BVB verifică tvbetetf_market chiar dacă ETF-ul nu mai este deținut; acesta conține prețul curent din dashboard, SMA10/50/200, RSI14, scorul swing local, verdictul și proveniența.",
     "Pentru LQQ verifică lqq_market chiar dacă instrumentul nu este deținut și nu are semnal BUY; folosește SMA10/50/200 și Technical Events de acolo. Dacă target_available este false, spune că targetul lipsește și nu transforma nearest_resistance din Technical Events într-un target oficial.",
     "Nu afirma că prețul, valoarea, costul, ponderea sau stopul unei poziții lipsesc înainte să verifici toate câmpurile poziției din requested_instruments și positions.",
