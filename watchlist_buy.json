@@ -821,6 +821,16 @@
     ],
     "Check_Details": "\u2713 Trend (P 42.3 > SMA50 38.8) \u2713 RS (Trend: Up, Val: 14.65) \u2713 RSI (62.7) \u2713 ATR (Risk 8.6%)",
     "Checks_Passed": 4,
+    "Company_Context": {
+      "available": true,
+      "connections": [],
+      "fetched_at": "2026-09-17T05:24:54.419590+00:00",
+      "peer_count": 0,
+      "peer_rank": null,
+      "source": "IBKR MCP company research",
+      "theme_count": 0,
+      "themes": []
+    },
     "Company_Name": "Varonis Systems, Inc.",
     "Consensus": "Buy",
     "Contract_ID": 145409766,
@@ -848,12 +858,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Infras...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 145409766,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -861,7 +871,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -876,8 +886,111 @@
     "Options_Collection_Rank": 1,
     "Options_Collection_Selected": true,
     "Options_Context": {
+      "analytics_available": true,
       "available": true,
-      "fetched_at": "2026-09-22T10:43:01.587335+00:00",
+      "average_spread_pct": 56.532531427519125,
+      "chain_contracts_count": 3,
+      "chain_contracts_sampled": [
+        {
+          "call_contract_id": 925553268,
+          "call_contract_id_ex": "925553268@SMART",
+          "call_description": "VRNS NOV 20 '26 50 Call",
+          "put_contract_id": 925553961,
+          "put_contract_id_ex": "925553961@SMART",
+          "put_description": "VRNS NOV 20 '26 50 Put",
+          "strike": "50"
+        },
+        {
+          "call_contract_id": 925553195,
+          "call_contract_id_ex": "925553195@SMART",
+          "call_description": "VRNS NOV 20 '26 45 Call",
+          "put_contract_id": 925553892,
+          "put_contract_id_ex": "925553892@SMART",
+          "put_description": "VRNS NOV 20 '26 45 Put",
+          "strike": "45"
+        },
+        {
+          "call_contract_id": 925553330,
+          "call_contract_id_ex": "925553330@SMART",
+          "call_description": "VRNS NOV 20 '26 55 Call",
+          "put_contract_id": 925554035,
+          "put_contract_id_ex": "925554035@SMART",
+          "put_description": "VRNS NOV 20 '26 55 Put",
+          "strike": "55"
+        }
+      ],
+      "contract_iv_coverage_ratio": 0.0,
+      "contracts": [
+        {
+          "ask": 4.5,
+          "bid": 1.85,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 83.46456692913387,
+          "strike": 50.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 5.7,
+          "bid": 2.9,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 65.11627906976744,
+          "strike": 50.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 8.1,
+          "bid": 4.4,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 59.19999999999999,
+          "strike": 45.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 2.8000000000000003,
+          "bid": 1.55,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 57.4712643678161,
+          "strike": 45.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 1.35,
+          "bid": 1.0,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 29.787234042553195,
+          "strike": 55.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 9.4,
+          "bid": 6.0,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 44.15584415584416,
+          "strike": 55.0,
+          "volume": 0.0
+        }
+      ],
+      "contracts_sampled": 6,
+      "data_quality": "partial",
+      "exchange": "SMART",
       "expiration": "20261120",
       "expirations": [
         "20261016",
@@ -889,120 +1002,17 @@
         "20280121",
         "20290119"
       ],
-      "exchange": "SMART",
-      "contracts_sampled": 6,
-      "chain_contracts_count": 3,
-      "chain_contracts_sampled": [
-        {
-          "strike": "50",
-          "call_contract_id_ex": "925553268@SMART",
-          "call_contract_id": 925553268,
-          "call_description": "VRNS NOV 20 '26 50 Call",
-          "put_contract_id_ex": "925553961@SMART",
-          "put_contract_id": 925553961,
-          "put_description": "VRNS NOV 20 '26 50 Put"
-        },
-        {
-          "strike": "45",
-          "call_contract_id_ex": "925553195@SMART",
-          "call_contract_id": 925553195,
-          "call_description": "VRNS NOV 20 '26 45 Call",
-          "put_contract_id_ex": "925553892@SMART",
-          "put_contract_id": 925553892,
-          "put_description": "VRNS NOV 20 '26 45 Put"
-        },
-        {
-          "strike": "55",
-          "call_contract_id_ex": "925553330@SMART",
-          "call_contract_id": 925553330,
-          "call_description": "VRNS NOV 20 '26 55 Call",
-          "put_contract_id_ex": "925554035@SMART",
-          "put_contract_id": 925554035,
-          "put_description": "VRNS NOV 20 '26 55 Put"
-        }
-      ],
+      "fetched_at": "2026-09-22T10:43:01.587335+00:00",
+      "open_interest_coverage_ratio": 0.0,
+      "put_call_open_interest_ratio": null,
+      "put_call_volume_ratio": null,
+      "quote_coverage_ratio": 1.0,
+      "quoted_contract_ratio": 1.0,
+      "score_available": false,
       "snapshot_error_count": 0,
       "snapshot_errors": [],
-      "quoted_contract_ratio": 1.0,
-      "average_spread_pct": 56.532531427519125,
-      "put_call_volume_ratio": null,
-      "put_call_open_interest_ratio": null,
-      "contracts": [
-        {
-          "side": "call",
-          "strike": 50.0,
-          "bid": 1.85,
-          "ask": 4.5,
-          "spread_pct": 83.46456692913387,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 50.0,
-          "bid": 2.9,
-          "ask": 5.7,
-          "spread_pct": 65.11627906976744,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 45.0,
-          "bid": 4.4,
-          "ask": 8.1,
-          "spread_pct": 59.19999999999999,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 45.0,
-          "bid": 1.55,
-          "ask": 2.8000000000000003,
-          "spread_pct": 57.4712643678161,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 55.0,
-          "bid": 1.0,
-          "ask": 1.35,
-          "spread_pct": 29.787234042553195,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 55.0,
-          "bid": 6.0,
-          "ask": 9.4,
-          "spread_pct": 44.15584415584416,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        }
-      ],
       "source": "IBKR MCP option chain snapshots",
-      "quote_coverage_ratio": 1.0,
-      "volume_coverage_ratio": 1.0,
-      "open_interest_coverage_ratio": 0.0,
-      "contract_iv_coverage_ratio": 0.0,
-      "data_quality": "partial",
-      "analytics_available": true,
-      "score_available": false
+      "volume_coverage_ratio": 1.0
     },
     "Options_Data_Available": false,
     "Options_Data_Partial": true,
@@ -1059,17 +1069,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 68.47,
-    "Company_Context": {
-      "available": true,
-      "connections": [],
-      "fetched_at": "2026-09-17T05:24:54.419590+00:00",
-      "peer_count": 0,
-      "peer_rank": null,
-      "source": "IBKR MCP company research",
-      "theme_count": 0,
-      "themes": []
-    }
+    "volatility_score": 68.47
   },
   {
     "ATR_14": 0.45,
@@ -1920,19 +1920,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Farm Products",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 437449296,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -1946,6 +1946,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 172,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -2001,10 +2004,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 68.91,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 68.91
   },
   {
     "ATR_14": 2.08,
@@ -2855,12 +2855,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Electronic Gaming...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 476026060,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -2869,7 +2869,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -2883,6 +2883,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 285,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -2938,10 +2941,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 66.74,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 66.74
   },
   {
     "ATR_14": 13.56,
@@ -3792,12 +3792,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Industr...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 118017869,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -3806,7 +3806,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -3820,6 +3820,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 39,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -3875,10 +3878,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 72.15,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 72.15
   },
   {
     "ATR_14": 1.64,
@@ -4729,12 +4729,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Industr...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 566188877,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -4742,7 +4742,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -4756,6 +4756,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 168,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -4811,10 +4814,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 68.62,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 68.62
   },
   {
     "ATR_14": 2.25,
@@ -5638,6 +5638,16 @@
     ],
     "Check_Details": "\u2713 Trend (P 50.9 > SMA50 46.3) \u2713 RS (Trend: Up, Val: 0.62) \u2713 RSI (59.4) \u2713 ATR (Risk 8.8%)",
     "Checks_Passed": 4,
+    "Company_Context": {
+      "available": true,
+      "connections": [],
+      "fetched_at": "2026-09-21T19:36:20.544269+00:00",
+      "peer_count": 0,
+      "peer_rank": null,
+      "source": "IBKR MCP company research",
+      "theme_count": 0,
+      "themes": []
+    },
     "Company_Name": "CRISPR Therapeutics AG",
     "Consensus": "Buy",
     "Contract_ID": 252260612,
@@ -5665,12 +5675,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Biotechnology",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 252260612,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -5678,7 +5688,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -5693,8 +5703,173 @@
     "Options_Collection_Rank": 2,
     "Options_Collection_Selected": true,
     "Options_Context": {
+      "analytics_available": true,
       "available": true,
-      "fetched_at": "2026-09-22T10:43:03.145147+00:00",
+      "average_spread_pct": 44.63880616822304,
+      "chain_contracts_count": 6,
+      "chain_contracts_sampled": [
+        {
+          "call_contract_id": 925033133,
+          "call_contract_id_ex": "925033133@SMART",
+          "call_description": "CRSP NOV 20 '26 57.5 Call",
+          "put_contract_id": 925034262,
+          "put_contract_id_ex": "925034262@SMART",
+          "put_description": "CRSP NOV 20 '26 57.5 Put",
+          "strike": "57.5"
+        },
+        {
+          "call_contract_id": 925033202,
+          "call_contract_id_ex": "925033202@SMART",
+          "call_description": "CRSP NOV 20 '26 60 Call",
+          "put_contract_id": 925034327,
+          "put_contract_id_ex": "925034327@SMART",
+          "put_description": "CRSP NOV 20 '26 60 Put",
+          "strike": "60"
+        },
+        {
+          "call_contract_id": 925033048,
+          "call_contract_id_ex": "925033048@SMART",
+          "call_description": "CRSP NOV 20 '26 55 Call",
+          "put_contract_id": 925034193,
+          "put_contract_id_ex": "925034193@SMART",
+          "put_description": "CRSP NOV 20 '26 55 Put",
+          "strike": "55"
+        },
+        {
+          "call_contract_id": 925032973,
+          "call_contract_id_ex": "925032973@SMART",
+          "call_description": "CRSP NOV 20 '26 52.5 Call",
+          "put_contract_id": 925034123,
+          "put_contract_id_ex": "925034123@SMART",
+          "put_description": "CRSP NOV 20 '26 52.5 Put",
+          "strike": "52.5"
+        },
+        {
+          "call_contract_id": 925033274,
+          "call_contract_id_ex": "925033274@SMART",
+          "call_description": "CRSP NOV 20 '26 65 Call",
+          "put_contract_id": 925034378,
+          "put_contract_id_ex": "925034378@SMART",
+          "put_description": "CRSP NOV 20 '26 65 Put",
+          "strike": "65"
+        }
+      ],
+      "contract_iv_coverage_ratio": 0.0,
+      "contracts": [
+        {
+          "ask": 7.9,
+          "bid": 4.4,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 56.91056910569105,
+          "strike": 57.5,
+          "volume": 0.0
+        },
+        {
+          "ask": 6.2,
+          "bid": 2.95,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 71.03825136612022,
+          "strike": 57.5,
+          "volume": 0.0
+        },
+        {
+          "ask": 5.6000000000000005,
+          "bid": 4.4,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 24.000000000000004,
+          "strike": 60.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 7.7,
+          "bid": 5.7,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 29.850746268656714,
+          "strike": 60.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 9.4,
+          "bid": 5.7,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 49.00662251655629,
+          "strike": 55.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 4.9,
+          "bid": 2.9,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 51.28205128205129,
+          "strike": 55.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 11.0,
+          "bid": 7.3,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 40.43715846994536,
+          "strike": 52.5,
+          "volume": 0.0
+        },
+        {
+          "ask": 3.5,
+          "bid": 1.95,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 56.88073394495413,
+          "strike": 52.5,
+          "volume": 0.0
+        },
+        {
+          "ask": 3.7,
+          "bid": 2.5,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 38.70967741935484,
+          "strike": 65.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 10.9,
+          "bid": 8.2,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 28.272251308900533,
+          "strike": 65.0,
+          "volume": 0.0
+        }
+      ],
+      "contracts_sampled": 10,
+      "data_quality": "partial",
+      "exchange": "SMART",
       "expiration": "20261120",
       "expirations": [
         "20260925",
@@ -5709,182 +5884,17 @@
         "20280121",
         "20290119"
       ],
-      "exchange": "SMART",
-      "contracts_sampled": 10,
-      "chain_contracts_count": 6,
-      "chain_contracts_sampled": [
-        {
-          "strike": "57.5",
-          "call_contract_id_ex": "925033133@SMART",
-          "call_contract_id": 925033133,
-          "call_description": "CRSP NOV 20 '26 57.5 Call",
-          "put_contract_id_ex": "925034262@SMART",
-          "put_contract_id": 925034262,
-          "put_description": "CRSP NOV 20 '26 57.5 Put"
-        },
-        {
-          "strike": "60",
-          "call_contract_id_ex": "925033202@SMART",
-          "call_contract_id": 925033202,
-          "call_description": "CRSP NOV 20 '26 60 Call",
-          "put_contract_id_ex": "925034327@SMART",
-          "put_contract_id": 925034327,
-          "put_description": "CRSP NOV 20 '26 60 Put"
-        },
-        {
-          "strike": "55",
-          "call_contract_id_ex": "925033048@SMART",
-          "call_contract_id": 925033048,
-          "call_description": "CRSP NOV 20 '26 55 Call",
-          "put_contract_id_ex": "925034193@SMART",
-          "put_contract_id": 925034193,
-          "put_description": "CRSP NOV 20 '26 55 Put"
-        },
-        {
-          "strike": "52.5",
-          "call_contract_id_ex": "925032973@SMART",
-          "call_contract_id": 925032973,
-          "call_description": "CRSP NOV 20 '26 52.5 Call",
-          "put_contract_id_ex": "925034123@SMART",
-          "put_contract_id": 925034123,
-          "put_description": "CRSP NOV 20 '26 52.5 Put"
-        },
-        {
-          "strike": "65",
-          "call_contract_id_ex": "925033274@SMART",
-          "call_contract_id": 925033274,
-          "call_description": "CRSP NOV 20 '26 65 Call",
-          "put_contract_id_ex": "925034378@SMART",
-          "put_contract_id": 925034378,
-          "put_description": "CRSP NOV 20 '26 65 Put"
-        }
-      ],
+      "fetched_at": "2026-09-22T10:43:03.145147+00:00",
+      "open_interest_coverage_ratio": 0.0,
+      "put_call_open_interest_ratio": null,
+      "put_call_volume_ratio": null,
+      "quote_coverage_ratio": 1.0,
+      "quoted_contract_ratio": 1.0,
+      "score_available": false,
       "snapshot_error_count": 0,
       "snapshot_errors": [],
-      "quoted_contract_ratio": 1.0,
-      "average_spread_pct": 44.63880616822304,
-      "put_call_volume_ratio": null,
-      "put_call_open_interest_ratio": null,
-      "contracts": [
-        {
-          "side": "call",
-          "strike": 57.5,
-          "bid": 4.4,
-          "ask": 7.9,
-          "spread_pct": 56.91056910569105,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 57.5,
-          "bid": 2.95,
-          "ask": 6.2,
-          "spread_pct": 71.03825136612022,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 60.0,
-          "bid": 4.4,
-          "ask": 5.6000000000000005,
-          "spread_pct": 24.000000000000004,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 60.0,
-          "bid": 5.7,
-          "ask": 7.7,
-          "spread_pct": 29.850746268656714,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 55.0,
-          "bid": 5.7,
-          "ask": 9.4,
-          "spread_pct": 49.00662251655629,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 55.0,
-          "bid": 2.9,
-          "ask": 4.9,
-          "spread_pct": 51.28205128205129,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 52.5,
-          "bid": 7.3,
-          "ask": 11.0,
-          "spread_pct": 40.43715846994536,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 52.5,
-          "bid": 1.95,
-          "ask": 3.5,
-          "spread_pct": 56.88073394495413,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 65.0,
-          "bid": 2.5,
-          "ask": 3.7,
-          "spread_pct": 38.70967741935484,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 65.0,
-          "bid": 8.2,
-          "ask": 10.9,
-          "spread_pct": 28.272251308900533,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        }
-      ],
       "source": "IBKR MCP option chain snapshots",
-      "quote_coverage_ratio": 1.0,
-      "volume_coverage_ratio": 1.0,
-      "open_interest_coverage_ratio": 0.0,
-      "contract_iv_coverage_ratio": 0.0,
-      "data_quality": "partial",
-      "analytics_available": true,
-      "score_available": false
+      "volume_coverage_ratio": 1.0
     },
     "Options_Data_Available": false,
     "Options_Data_Partial": true,
@@ -5941,16 +5951,6 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 67.89,
-    "Company_Context": {
-      "available": true,
-      "connections": [],
-      "fetched_at": "2026-09-21T19:36:20.544269+00:00",
-      "peer_count": 0,
-      "peer_rank": null,
-      "source": "IBKR MCP company research",
-      "theme_count": 0,
-      "themes": []
-    }
+    "volatility_score": 67.89
   }
 ]
