@@ -848,12 +848,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Industr...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 566188877,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -861,7 +861,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -875,6 +875,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 171,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -930,10 +933,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 68.55,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 68.55
   },
   {
     "ATR_14": 13.59,
@@ -1784,12 +1784,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Industr...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 118017869,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -1798,7 +1798,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -1812,6 +1812,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 42,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -1867,10 +1870,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 72.16,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 72.16
   },
   {
     "ATR_14": 6.81,
@@ -2694,6 +2694,928 @@
     ],
     "Check_Details": "\u2713 Trend (P 306.9 > SMA50 300.2) \u2713 RS (Trend: Up, Val: 0.54) \u2713 RSI (58.6) \u2713 ATR (Risk 4.4%)",
     "Checks_Passed": 4,
+    "Company_Context": {
+      "available": true,
+      "connections": [
+        {
+          "links": [
+            {
+              "key": "b6ec28fd-88a2-4e06-865c-5de442dfbda9",
+              "link_type": "company_theme",
+              "name": "Advertising",
+              "rank": 1,
+              "type": "theme"
+            },
+            {
+              "key": "7d844d91-c9c0-457f-9b7e-04c81c14aeed",
+              "link_type": "company_theme",
+              "name": "Search Engine Services",
+              "rank": 2,
+              "type": "theme"
+            },
+            {
+              "key": "512f0de4-da00-4846-9c2a-be4847d182a4",
+              "link_type": "company_theme",
+              "name": "Cloud Computing",
+              "rank": 3,
+              "type": "theme"
+            },
+            {
+              "key": "2528ab02-e799-4af7-8419-a5161896cdcd",
+              "link_type": "company_theme",
+              "name": "Digital Marketing Technology",
+              "rank": 4,
+              "type": "theme"
+            },
+            {
+              "key": "4c49d4f4-b18c-41cd-be02-1cfadfc72400",
+              "link_type": "company_theme",
+              "name": "Streaming Platforms & Services",
+              "rank": 5,
+              "type": "theme"
+            },
+            {
+              "key": "b2872dbe-6e61-4a7c-94b6-73cd44df9bca",
+              "link_type": "company_theme",
+              "name": "Generative AI & LLMs",
+              "rank": 6,
+              "type": "theme"
+            },
+            {
+              "key": "cc0bb4ab-ed23-4098-8feb-6e28e770db45",
+              "link_type": "company_theme",
+              "name": "Artificial Intelligence",
+              "rank": 7,
+              "type": "theme"
+            },
+            {
+              "key": "6d952a1a-e964-44d3-b05b-e4b2e0b1c8bf",
+              "link_type": "company_theme",
+              "name": "Data Centers",
+              "rank": 8,
+              "type": "theme"
+            },
+            {
+              "key": "2909994c-f29d-43cb-b385-e55bd033e3aa",
+              "link_type": "company_theme",
+              "name": "AI Chips",
+              "rank": 9,
+              "type": "theme"
+            },
+            {
+              "key": "694fc578-da65-4b0e-bd7d-1d92db9f7299",
+              "link_type": "company_theme",
+              "name": "Autonomous Vehicles",
+              "rank": 10,
+              "type": "theme"
+            },
+            {
+              "key": "42e2758a-31c2-413a-aa4e-de9b0ab19132",
+              "link_type": "company_theme",
+              "name": "Cybersecurity",
+              "rank": 11,
+              "type": "theme"
+            },
+            {
+              "key": "00d0d758-0aa9-4aa6-9891-ddf03f7dbaac",
+              "link_type": "company_theme",
+              "name": "AI Infrastructure",
+              "rank": 12,
+              "type": "theme"
+            },
+            {
+              "key": "f3fcc84e-531b-4ea9-8537-97824fd85979",
+              "link_type": "company_theme",
+              "name": "AI Enterprise Integration",
+              "rank": 13,
+              "type": "theme"
+            },
+            {
+              "key": "f30755bb-3450-4941-8468-ceca4c4a27cc",
+              "link_type": "company_theme",
+              "name": "Digital Entertainment",
+              "rank": 14,
+              "type": "theme"
+            },
+            {
+              "key": "f14b97b4-fbbf-4411-bfc2-6d9af20944d1",
+              "link_type": "company_theme",
+              "name": "Agentic AI",
+              "rank": 15,
+              "type": "theme"
+            },
+            {
+              "key": "8bff3578-9b42-4a74-85c1-d66b1f55bc8f",
+              "link_type": "company_theme",
+              "name": "Data Analytics",
+              "rank": 16,
+              "type": "theme"
+            },
+            {
+              "key": "ef734422-7132-45e1-a084-79b55ac53bb8",
+              "link_type": "company_theme",
+              "name": "Smartphones",
+              "rank": 17,
+              "type": "theme"
+            },
+            {
+              "key": "b6d75788-a9dc-4129-a30a-9d92c4ae8ccf",
+              "link_type": "company_theme",
+              "name": "Servers",
+              "rank": 18,
+              "type": "theme"
+            },
+            {
+              "key": "76f7ba48-3060-411d-851f-3fe05e9c275c",
+              "link_type": "company_theme",
+              "name": "Social Media Platforms",
+              "rank": 19,
+              "type": "theme"
+            },
+            {
+              "key": "3472da56-487c-4eda-9c7f-83afa184d8d8",
+              "link_type": "company_theme",
+              "name": "E-Commerce",
+              "rank": 20,
+              "type": "theme"
+            }
+          ],
+          "title": "Investment Theme Exposure",
+          "type": "company_theme"
+        },
+        {
+          "links": [
+            {
+              "key": "Google Search",
+              "link_type": "company_product",
+              "name": "Google Search",
+              "rank": 1,
+              "type": "product"
+            },
+            {
+              "key": "YouTube",
+              "link_type": "company_product",
+              "name": "YouTube",
+              "rank": 2,
+              "type": "product"
+            },
+            {
+              "key": "Google Cloud",
+              "link_type": "company_product",
+              "name": "Google Cloud",
+              "rank": 3,
+              "type": "product"
+            },
+            {
+              "key": "Gemini",
+              "link_type": "company_product",
+              "name": "Gemini",
+              "rank": 4,
+              "type": "product"
+            },
+            {
+              "key": "Google Workspace",
+              "link_type": "company_product",
+              "name": "Google Workspace",
+              "rank": 5,
+              "type": "product"
+            },
+            {
+              "key": "Google Ads",
+              "link_type": "company_product",
+              "name": "Google Ads",
+              "rank": 6,
+              "type": "product"
+            },
+            {
+              "key": "Waymo",
+              "link_type": "company_product",
+              "name": "Waymo",
+              "rank": 7,
+              "type": "product"
+            },
+            {
+              "key": "Google One",
+              "link_type": "company_product",
+              "name": "Google One",
+              "rank": 8,
+              "type": "product"
+            },
+            {
+              "key": "Pixel",
+              "link_type": "company_product",
+              "name": "Pixel",
+              "rank": 9,
+              "type": "product"
+            },
+            {
+              "key": "Google Maps",
+              "link_type": "company_product",
+              "name": "Google Maps",
+              "rank": 10,
+              "type": "product"
+            },
+            {
+              "key": "Google Network",
+              "link_type": "company_product",
+              "name": "Google Network",
+              "rank": 11,
+              "type": "product"
+            },
+            {
+              "key": "Google Play",
+              "link_type": "company_product",
+              "name": "Google Play",
+              "rank": 12,
+              "type": "product"
+            },
+            {
+              "key": "Google DeepMind",
+              "link_type": "company_product",
+              "name": "Google DeepMind",
+              "rank": 13,
+              "type": "product"
+            }
+          ],
+          "title": "Brand & Product",
+          "type": "company_product"
+        },
+        {
+          "links": [
+            {
+              "contract_id": 107113386,
+              "exchange": "SMART",
+              "key": "US30303M1027",
+              "link_type": "company_competitor",
+              "name": "META PLATFORMS INC-CLASS A",
+              "symbol": "META",
+              "type": "company"
+            },
+            {
+              "contract_id": 272093,
+              "exchange": "SMART",
+              "key": "US5949181045",
+              "link_type": "company_competitor",
+              "name": "MICROSOFT CORP",
+              "symbol": "MSFT",
+              "type": "company"
+            },
+            {
+              "contract_id": 3691937,
+              "exchange": "SMART",
+              "key": "US0231351067",
+              "link_type": "company_competitor",
+              "name": "AMAZON.COM INC",
+              "symbol": "AMZN",
+              "type": "company"
+            },
+            {
+              "contract_id": 265598,
+              "exchange": "SMART",
+              "key": "US0378331005",
+              "link_type": "company_competitor",
+              "name": "APPLE INC",
+              "symbol": "AAPL",
+              "type": "company"
+            },
+            {
+              "contract_id": 268060148,
+              "exchange": "SMART",
+              "key": "US83304A1060",
+              "link_type": "company_competitor",
+              "name": "SNAP INC - A",
+              "symbol": "SNAP",
+              "type": "company"
+            },
+            {
+              "contract_id": 248755440,
+              "exchange": "SMART",
+              "key": "US88339J1051",
+              "link_type": "company_competitor",
+              "name": "TRADE DESK INC/THE -CLASS A",
+              "symbol": "TTD",
+              "type": "company"
+            },
+            {
+              "contract_id": 103518430,
+              "exchange": "SMART",
+              "key": "US9858171054",
+              "link_type": "company_competitor",
+              "name": "YELP INC",
+              "symbol": "YELP",
+              "type": "company"
+            },
+            {
+              "contract_id": 272800,
+              "exchange": "SMART",
+              "key": "US68389X1054",
+              "link_type": "company_competitor",
+              "name": "ORACLE CORP",
+              "symbol": "ORCL",
+              "type": "company"
+            },
+            {
+              "contract_id": 98542026,
+              "exchange": "SMART",
+              "key": "US8969452015",
+              "link_type": "company_competitor",
+              "name": "TRIPADVISOR INC",
+              "symbol": "TRIP",
+              "type": "company"
+            },
+            {
+              "contract_id": 692025016,
+              "exchange": "SMART",
+              "key": "US75734B1008",
+              "link_type": "company_competitor",
+              "name": "REDDIT INC-CL A",
+              "symbol": "RDDT",
+              "type": "company"
+            },
+            {
+              "contract_id": 290651477,
+              "exchange": "SMART",
+              "key": "US77543R1023",
+              "link_type": "company_competitor",
+              "name": "ROKU INC",
+              "symbol": "ROKU",
+              "type": "company"
+            },
+            {
+              "contract_id": 444884769,
+              "exchange": "SMART",
+              "key": "US8334451098",
+              "link_type": "company_competitor",
+              "name": "SNOWFLAKE INC",
+              "symbol": "SNOW",
+              "type": "company"
+            },
+            {
+              "contract_id": 15124833,
+              "exchange": "SMART",
+              "key": "US64110L1061",
+              "link_type": "company_competitor",
+              "name": "NETFLIX INC",
+              "symbol": "NFLX",
+              "type": "company"
+            },
+            {
+              "contract_id": 360975915,
+              "exchange": "SMART",
+              "key": "US72352L1061",
+              "link_type": "company_competitor",
+              "name": "PINTEREST INC- CLASS A",
+              "symbol": "PINS",
+              "type": "company"
+            },
+            {
+              "contract_id": 481863646,
+              "exchange": "SMART",
+              "key": "US03831W1080",
+              "link_type": "company_competitor",
+              "name": "APPLOVIN CORP-CLASS A",
+              "symbol": "APP",
+              "type": "company"
+            },
+            {
+              "contract_id": 312496724,
+              "exchange": "SMART",
+              "key": "LU1778762911",
+              "link_type": "company_competitor",
+              "name": "SPOTIFY TECHNOLOGY SA",
+              "symbol": "SPOT",
+              "type": "company"
+            },
+            {
+              "contract_id": 110619459,
+              "exchange": "SMART",
+              "key": "US6974351057",
+              "link_type": "company_competitor",
+              "name": "PALO ALTO NETWORKS INC",
+              "symbol": "PANW",
+              "type": "company"
+            },
+            {
+              "contract_id": 430755197,
+              "exchange": "SMART",
+              "key": "US55955D1000",
+              "link_type": "company_competitor",
+              "name": "MAGNITE INC",
+              "symbol": "MGNI",
+              "type": "company"
+            },
+            {
+              "contract_id": 459468268,
+              "exchange": "SMART",
+              "key": "US74467Q1031",
+              "link_type": "company_competitor",
+              "name": "PUBMATIC INC-CLASS A",
+              "symbol": "PUBM",
+              "type": "company"
+            },
+            {
+              "contract_id": 98542021,
+              "exchange": "SMART",
+              "key": "US30212P3038",
+              "link_type": "company_competitor",
+              "name": "EXPEDIA GROUP INC",
+              "symbol": "EXPE",
+              "type": "company"
+            }
+          ],
+          "title": "Competitors",
+          "type": "company_competitor"
+        },
+        {
+          "links": [
+            {
+              "key": "US",
+              "link_type": "company_country",
+              "name": "US",
+              "rank": 1,
+              "symbol": "US",
+              "type": "country"
+            },
+            {
+              "key": "IE",
+              "link_type": "company_country",
+              "name": "IE",
+              "rank": 2,
+              "symbol": "IE",
+              "type": "country"
+            },
+            {
+              "key": "GB",
+              "link_type": "company_country",
+              "name": "GB",
+              "rank": 3,
+              "symbol": "GB",
+              "type": "country"
+            },
+            {
+              "key": "IN",
+              "link_type": "company_country",
+              "name": "IN",
+              "rank": 4,
+              "symbol": "IN",
+              "type": "country"
+            },
+            {
+              "key": "TW",
+              "link_type": "company_country",
+              "name": "TW",
+              "rank": 5,
+              "symbol": "TW",
+              "type": "country"
+            },
+            {
+              "key": "JP",
+              "link_type": "company_country",
+              "name": "JP",
+              "rank": 6,
+              "symbol": "JP",
+              "type": "country"
+            },
+            {
+              "key": "SG",
+              "link_type": "company_country",
+              "name": "SG",
+              "rank": 7,
+              "symbol": "SG",
+              "type": "country"
+            },
+            {
+              "key": "DE",
+              "link_type": "company_country",
+              "name": "DE",
+              "rank": 8,
+              "symbol": "DE",
+              "type": "country"
+            },
+            {
+              "key": "FR",
+              "link_type": "company_country",
+              "name": "FR",
+              "rank": 9,
+              "symbol": "FR",
+              "type": "country"
+            },
+            {
+              "key": "CH",
+              "link_type": "company_country",
+              "name": "CH",
+              "rank": 10,
+              "symbol": "CH",
+              "type": "country"
+            },
+            {
+              "key": "CA",
+              "link_type": "company_country",
+              "name": "CA",
+              "rank": 11,
+              "symbol": "CA",
+              "type": "country"
+            },
+            {
+              "key": "BR",
+              "link_type": "company_country",
+              "name": "BR",
+              "rank": 12,
+              "symbol": "BR",
+              "type": "country"
+            },
+            {
+              "key": "CN",
+              "link_type": "company_country",
+              "name": "CN",
+              "rank": 13,
+              "symbol": "CN",
+              "type": "country"
+            },
+            {
+              "key": "NL",
+              "link_type": "company_country",
+              "name": "NL",
+              "rank": 14,
+              "symbol": "NL",
+              "type": "country"
+            }
+          ],
+          "title": "Country Exposure",
+          "type": "company_country"
+        },
+        {
+          "links": [
+            {
+              "key": "North_America",
+              "link_type": "company_region",
+              "name": "North America",
+              "rank": 1,
+              "type": "region"
+            },
+            {
+              "key": "Europe",
+              "link_type": "company_region",
+              "name": "Europe",
+              "rank": 2,
+              "type": "region"
+            },
+            {
+              "key": "Asia",
+              "link_type": "company_region",
+              "name": "Asia",
+              "rank": 3,
+              "type": "region"
+            },
+            {
+              "key": "South_America",
+              "link_type": "company_region",
+              "name": "South America",
+              "rank": 4,
+              "type": "region"
+            },
+            {
+              "key": "Middle_East",
+              "link_type": "company_region",
+              "name": "Middle East",
+              "rank": 5,
+              "type": "region"
+            },
+            {
+              "key": "Africa",
+              "link_type": "company_region",
+              "name": "Africa",
+              "rank": 6,
+              "type": "region"
+            }
+          ],
+          "title": "Region Exposure",
+          "type": "company_region"
+        }
+      ],
+      "fetched_at": "2026-09-23T08:06:29.832937+00:00",
+      "peer_count": 25,
+      "peer_rank": 1,
+      "source": "IBKR MCP company research",
+      "theme_count": 5,
+      "themes": [
+        {
+          "description": "Businesses specializing in creating and managing marketing campaigns and media placements for brand promotion across various platforms.",
+          "key": "b6ec28fd-88a2-4e06-865c-5de442dfbda9",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 248755440,
+              "description": "Operates a cloud-based programmatic platform that empowers ad buyers to create, manage, and optimize data-driven digital advertising campaigns across diverse channels such as connected TV, audio, and display.",
+              "evidence": "The Trade Desk functions fundamentally as an independent demand-side platform for programmatic media buying, targeting an expanding $1 trillion global advertising market. The company generates 100% of its revenue by facilitating digital ad campaigns across connected TV, mobile, display, and audio, dedicating over 3,500 employees to support agencies and brands. This engagement is anchored by the company's structural objectivity\u2014choosing not to own media inventory to prevent conflicts of interest\u2014which recently fueled a 55% year-over-year increase in joint business partnerships and secured direct wins over mega-cap competitors.",
+              "exchange": "SMART",
+              "key": "US88339J1051",
+              "name": "TRADE DESK INC/THE -CLASS A",
+              "rank": 1,
+              "symbol": "TTD"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 208813719,
+              "description": "Provides a comprehensive suite of digital advertising solutions across its search engine, video platform, and extensive publisher network, enabling businesses to deliver targeted marketing campaigns to a global audience.",
+              "evidence": "Alphabet's economic structure relies directly on its digital advertising ecosystem, which generated $77.3 billion\u2014representing over 70% of total revenues\u2014across Google Search, YouTube, and the Google Network in the most recent quarter. To optimize this primary revenue engine, the company is aggressively integrating generative AI throughout its ad network, with over 30% of search ad spend currently utilizing automated tools like Performance Max. Alphabet continuously updates its advertiser offerings by testing new ad formats directly within 'AI Mode' results and implementing dozens of improvements to its smart bidding and shopping strategies. Backed by massive organizational investments in marketing and dedicated sales teams, the company also develops creator partnership hubs and retail-focused shoppable mastheads to maximize advertiser conversions across its platforms.",
+              "exchange": "SMART",
+              "key": "US02079K3059",
+              "name": "ALPHABET INC-CL A",
+              "rank": 2,
+              "symbol": "GOOGL"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 10811,
+              "description": "Delivers comprehensive advertising, strategic media planning, and digital marketing services through a global network of agencies to drive brand strategy, public relations, and consumer engagement across diverse markets.",
+              "evidence": "Omnicom's foundation in the Advertising industry is driven by its $9 billion acquisition of Interpublic Group (IPG), establishing the combined entity as a global market leader. Following this integration, management restructured operations by merging over 20 agency brands into a dedicated Advertising operating discipline, which explicitly accounts for 17% of the firm's core revenue. This global network houses specialized creative subsidiaries like BBDO, TBWA, and McCann, leveraging combined operational scale to win pitches and secure global clients such as IBM, GSK, and John Deere.",
+              "exchange": "SMART",
+              "key": "US6819191064",
+              "name": "OMNICOM GROUP",
+              "rank": 3,
+              "symbol": "OMC"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 174076715,
+              "description": "Provides out-of-home advertising services through an extensive network of billboards, transit displays, and highway logo signs, enabling brands to execute targeted marketing and promotional campaigns.",
+              "evidence": "Lamar Advertising Company operates strictly as an out-of-home advertising enterprise, generating its entire revenue from media placements across billboards, airports, transit networks, and logos. To advance this core operational focus, the company's dedicated executive leadership allocated a $186 million capital expenditure budget for 2026, alongside an $80 million cash investment for recent billboard acquisitions. This capital allocation directly expands a monetized portfolio of over 5,600 digital spaces and physical structures, which is primarily driven by local and regional brand promotion campaigns that account for 82% of billboard revenues.",
+              "exchange": "SMART",
+              "key": "US5128161099",
+              "name": "LAMAR ADVERTISING CO-A",
+              "rank": 4,
+              "symbol": "LAMR"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 753278762,
+              "description": "Operates an extensive out-of-home advertising network of billboard and transit displays, delivering marketing solutions that connect brands with audiences in high-traffic environments.",
+              "evidence": "OUTFRONT Media operates strictly as a pure-play out-of-home advertising business, deriving its entire consolidated revenue from its Billboard and Transit media placements. The company's competitive positioning as a leader in \"in real-life\" (IRL) media is anchored by exclusive structural assets, such as its New York MTA transit advertising contract, alongside newly appointed executive leadership driving programmatic ad sales. Reinforcing its transition into a modernized marketing powerhouse, OUTFRONT dedicates its entire projected $90 million 2026 capital expenditure budget exclusively toward maintaining and expanding its physical and digital advertising infrastructure. Furthermore, a comprehensive reorganization of its sales force into specialized commercial teams and strategic technology partnerships, including an exclusive arrangement with the AI-powered planning platform AdQuick, directly align its corporate operations with advancing omnichannel advertising capabilities.",
+              "exchange": "SMART",
+              "key": "US69007J3041",
+              "name": "OUTFRONT MEDIA INC",
+              "rank": 5,
+              "symbol": "OUT"
+            }
+          ],
+          "name": "Advertising",
+          "total_count": 75
+        },
+        {
+          "description": "Technology infrastructure and platforms that facilitate internet search, enabling users to find information online through algorithms and indexing, central to digital advertising and information retrieval.",
+          "key": "7d844d91-c9c0-457f-9b7e-04c81c14aeed",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 208813719,
+              "description": "Provides extensive search engine services that organize global information and deliver relevant web results, serving as the primary foundation for a massive digital advertising network.",
+              "evidence": "Alphabet's business fundamentally relies on its Search Engine Services, which generated $60.4 billion and accounted for nearly 55% of the company's total consolidated revenue in the second quarter of 2026. The recent integration of foundational models like Gemini 3 into features such as AI Overviews and AI Mode has pushed overall search queries to an all-time high, accommodating user searches that are increasingly longer and more complex. To support this core platform, the company continuously updates its infrastructure, reducing the cost of core AI responses by more than 30% and decreasing search latency by 35% over the past five years. This infrastructural efficiency is paired with a rapid product development cycle, evidenced by hundreds of adjustments to the search page each quarter and the deployment of over 250 AI-related product launches earlier in the year.",
+              "exchange": "SMART",
+              "key": "US02079K3059",
+              "name": "ALPHABET INC-CL A",
+              "rank": 1,
+              "symbol": "GOOGL"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 335844146,
+              "description": "Provides a distributed search and analytics engine that enables organizations to integrate real-time search capabilities, data exploration, and information retrieval across enterprise applications and websites.",
+              "evidence": "Elastic's platform operates on the Elasticsearch engine, serving as a scalable document store and core information retrieval system for its enterprise offerings. During Q2 2026, the company expanded these capabilities by launching Cross Project Search, introducing third-party data connectors, acquiring Jina AI for search relevancy, and securing a seven-figure deal to execute hybrid searches across over two billion documents. This momentum is supported by proprietary Q1 2026 innovations, including better binary quantization (BBQ) and Acorn filtering, which optimize indexing algorithms and deliver vector search speeds up to eight times faster than competing solutions. The deployment of these sophisticated retrieval algorithms directly impacts the company's financials, driving $375 million in sales-led subscriptions and representing a major focus of its $331.6 million nine-month R&D expenditure.",
+              "exchange": "SMART",
+              "key": "NL0013056914",
+              "name": "ELASTIC NV",
+              "rank": 2,
+              "symbol": "ESTC"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 35359385,
+              "description": "Provides comprehensive internet search services and online marketing solutions, connecting users with digital content while enabling advertisers to reach targeted audiences through its core search platform.",
+              "evidence": "Baidu's integration with Search Engine Services centers on its flagship AI Search offering, which operates as its largest consumer-facing product and historical revenue anchor. The company manages this core capability through its Mobile Ecosystem Group and focuses on incorporating the ERNIE Assistant alongside its ERNIE 5.1 model, which recently topped the LMArena search leaderboard among Chinese models. Baidu is further enhancing the platform with AI-generated infographics and direct-action tasks via multi-modal capabilities, driving over 110% quarter-over-quarter growth in its AI Search API call volume. These search and traditional online marketing operations remain fundamental to the company, generating a large portion of its RMB 26.0 billion in General Business revenue.",
+              "exchange": "SMART",
+              "key": "US0567521085",
+              "name": "BAIDU INC - SPON ADR",
+              "rank": 3,
+              "symbol": "BIDU"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 272093,
+              "description": "Operates a comprehensive search engine platform that delivers algorithmic information retrieval, AI-powered conversational search capabilities, and targeted digital advertising solutions to global consumers and enterprises.",
+              "evidence": "Microsoft's operation of Search Engine Services is anchored by Bing, which surpassed 1 billion monthly active users in Q2 2026 alongside 20 consecutive quarters of market share gains for the Edge browser. This expanding user volume directly fueled a 12% increase in search advertising revenue excluding traffic acquisition costs, establishing the search business as a continuous, multi-billion-dollar driver within the More Personal Computing segment. The company continually upgrades its search infrastructure to sustain volume growth and market capture, integrating tools like Copilot and advanced image generation models directly into the search bar to optimize query relevance.",
+              "exchange": "SMART",
+              "key": "US5949181045",
+              "name": "MICROSOFT CORP",
+              "rank": 4,
+              "symbol": "MSFT"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 36834734,
+              "description": "Operates a comprehensive web search portal that leverages advanced localized algorithms and artificial intelligence to deliver targeted search engine services and integrate diverse digital content ecosystems.",
+              "evidence": "Naver operates as South Korea's primary internet search portal, utilizing its foundational search engine ecosystem to structure its core business operations. The company's dedicated Search Platform division, reporting directly to the CEO, anchors the broader 'Naver Platform' segment that recently accounted for 56.8% of total consolidated revenue through integrated search and display advertising. To sustain this market position, Naver is modernizing user discovery by deploying generative AI functionalities such as 'AI Briefing' and a conversational 'AI Tab', which have driven a 2.5-fold year-over-year increase in long-tail queries. These ongoing algorithmic investments ensure that internet search remains the core pipeline fueling the data loops and expansive advertising infrastructure that dictate Naver's overall monetization strategy.",
+              "exchange": "SMART",
+              "key": "KR7035420009",
+              "name": "NAVER CORP",
+              "rank": 5,
+              "symbol": "035420"
+            }
+          ],
+          "name": "Search Engine Services",
+          "total_count": 25
+        },
+        {
+          "description": "Delivery of computing resources like servers, storage, and applications over the internet, providing scalable and flexible IT solutions without traditional infrastructure costs.",
+          "key": "512f0de4-da00-4846-9c2a-be4847d182a4",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 272093,
+              "description": "Provides a comprehensive suite of cloud infrastructure, platform, and software services that enable global enterprises to scale operations, manage data, and deploy advanced digital workloads.",
+              "evidence": "Cloud computing serves as the primary financial and operational engine for Microsoft, with the Microsoft Cloud ecosystem generating over $54.5 billion in recent quarterly revenue to comprise nearly 66% of the company's total business. To sustain this scale and the 40% year-over-year growth in Azure services, the company structurally dedicates its capital investments to cloud infrastructure, projecting roughly $190 billion in calendar year 2026 expenditures to expand global data centers and server capacity. This infrastructure supports a vertically integrated footprint where millions of servers run on custom-built silicon, including Azure Boost, for optimized network and virtualization workloads. Additionally, continuous enterprise adoption of remotely hosted applications, highlighted by 19% organic growth in Microsoft 365 Commercial Cloud revenue, systemically drives the company's core commercial software delivery mechanisms.",
+              "exchange": "SMART",
+              "key": "US5949181045",
+              "name": "MICROSOFT CORP",
+              "rank": 1,
+              "symbol": "MSFT"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 4815747,
+              "description": "Provides high-performance graphics processing units and networking infrastructure that power the data centers of major cloud service providers, enabling scalable artificial intelligence, machine learning, and complex computing workloads across the cloud ecosystem.",
+              "evidence": "NVIDIA serves as the foundational infrastructure for global cloud computing through its newly established Hyperscale reporting segment, supplying compute platforms and networking solutions like InfiniBand, NVLink, and Spectrum-X Ethernet to public cloud providers. The company's Blackwell architecture is adopted universally by top hyperscalers, generating $38 billion in recent quarterly segment revenue and driving co-engineered setups such as Google's A5X bare-metal instances supporting hundreds of thousands of Rubin GPUs. To actively facilitate broader cloud infrastructure build-outs, the company allocates billions of dollars into dedicated infrastructure funds and direct land, power, and shell guarantees. Additionally, NVIDIA optimizes these cloud ecosystems with proprietary software tools including Guardrails and Dynamo, embedding its computing and networking technologies at the core of hyperscaler operations.",
+              "exchange": "SMART",
+              "key": "US67066G1040",
+              "name": "NVIDIA CORP",
+              "rank": 2,
+              "symbol": "NVDA"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 3691937,
+              "description": "Provides a comprehensive suite of on-demand cloud computing platforms and infrastructure services, delivering scalable compute power, database storage, and enterprise solutions to organizations globally.",
+              "evidence": "Amazon's engagement with cloud computing is driven by its dedicated Amazon Web Services (AWS) segment, which functions as the company's primary profit engine and recently reached a $150 billion annualized revenue run rate with 28% year-over-year growth. To support accelerating global cloud migrations and scaling artificial intelligence workloads, the company directed the vast majority of its recent $43.2 billion quarterly cash capital expenditures toward expanding AWS data centers, networking gear, and physical computing capacity. Operating as an independent organizational pillar generating $37.6 billion in quarterly revenue, AWS delivers a massive breadth of compute, storage, and database features, cementing Amazon's role as the foundational infrastructure layer for millions of global startups and enterprises.",
+              "exchange": "SMART",
+              "key": "US0231351067",
+              "name": "AMAZON.COM INC",
+              "rank": 3,
+              "symbol": "AMZN"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 383858515,
+              "description": "Delivers an observability and security platform tailored for cloud applications, enabling organizations to monitor infrastructure, optimize performance, and manage data across diverse cloud computing environments.",
+              "evidence": "Datadog strictly operates as a cloud software provider, deriving the entirety of its recent $1.01 billion quarterly revenue from its SaaS observability and security platform. To support complex cloud topologies, the company dedicates its projected capital expenditures\u2014totaling 4% to 5% of its estimated $4.34 billion fiscal 2026 revenue\u2014toward infrastructure expansion, including a new U.K. data center and native \"bring your own cloud\" deployments. Broader enterprise cloud migration serves as the company's primary long-term secular growth driver, anchored by its infrastructure monitoring solutions that generate over $1.6 billion in annual recurring revenue by tracking virtualized and serverless environments. Furthermore, continuous feature deployments like cloud storage management directly optimize and secure customer workloads across hybrid and multi-cloud ecosystems.",
+              "exchange": "SMART",
+              "key": "US23804L1035",
+              "name": "DATADOG INC - CLASS A",
+              "rank": 4,
+              "symbol": "DDOG"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 208813719,
+              "description": "Delivers a comprehensive suite of enterprise cloud infrastructure and platform services, providing scalable computing power, data analytics, and advanced artificial intelligence solutions to organizations globally.",
+              "evidence": "Alphabet\u2019s engagement in cloud computing is anchored by Google Cloud infrastructure and enterprise AI services, pushing the segment's most recent quarterly revenue to $20 billion, representing a 63% year-over-year increase. To fulfill a $462 billion backlog and increasing compute capacity requirements, the company allocates approximately 40% of its $35.7 billion quarterly technical infrastructure capital expenditure toward data centers and networking equipment, while concurrently onboarding the acquired Wiz security organization. Beyond physical infrastructure, Alphabet advances its cloud software portfolio through Google Workspace, which delivers double-digit revenue growth driven by increasing user seats, higher average revenue per user, and the integration of Gemini Enterprise AI applications.",
+              "exchange": "SMART",
+              "key": "US02079K3059",
+              "name": "ALPHABET INC-CL A",
+              "rank": 5,
+              "symbol": "GOOGL"
+            }
+          ],
+          "name": "Cloud Computing",
+          "total_count": 75
+        },
+        {
+          "description": "Platforms enabling targeted online advertising and digital customer engagement through data analytics and AI-driven personalization.",
+          "key": "2528ab02-e799-4af7-8419-a5161896cdcd",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 248755440,
+              "description": "Operates a cloud-based demand-side platform that enables advertising buyers to programmatically create, manage, and optimize data-driven digital marketing campaigns across diverse media channels and formats.",
+              "evidence": "The Trade Desk operates as a pure-play provider of digital marketing technology, generating the entirety of its revenue through an objective media buying platform that enables clients to execute targeted online advertising. Recent product development centers on AI-fueled decisioning tools, highlighted by the Q2 2026 rollout of \"Audience Unlimited,\" which utilizes a data marketplace capturing over 80% of U.S. retail sales to automate audience selection, reduce media costs, and drive higher campaign conversion rates. To maintain this core advertising architecture, the company directs its operating expenses and capital investments toward expanding platform hosting capabilities, advancing its agentic AI software, Kokai, and aligning its workforce to support data-driven digital spend activation.",
+              "exchange": "SMART",
+              "key": "US88339J1051",
+              "name": "TRADE DESK INC/THE -CLASS A",
+              "rank": 1,
+              "symbol": "TTD"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 208813719,
+              "description": "Operates a comprehensive suite of digital advertising and marketing platforms, providing search, programmatic, and analytics solutions that enable businesses to target audiences, manage campaigns, and measure performance across the internet.",
+              "evidence": "Alphabet's engagement with Digital Marketing Technology relies on its foundational ad platforms, which generate roughly 70% of the company's total revenue, recently totaling $77.3 billion. During the second quarter of 2026, the company accelerated the deployment of its proprietary Gemini AI models across its entire ads infrastructure, resulting in a nearly 10% improvement in ad relevance. This integration directly powers core advertiser tools like Smart Bidding, Performance Max\u2014which now captures over 30% of customer search spend\u2014and the newly upgraded AI Max tool. By leveraging these AI-enabled platforms to deliver targeted, high-return campaigns for marketers, Alphabet solidifies advertising technology as its primary economic engine.",
+              "exchange": "SMART",
+              "key": "US02079K3059",
+              "name": "ALPHABET INC-CL A",
+              "rank": 2,
+              "symbol": "GOOGL"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 481863646,
+              "description": "Provides an end-to-end software platform utilizing advanced machine learning algorithms to enable developers to automate, optimize, and measure their digital marketing and monetization campaigns.",
+              "evidence": "AppLovin operates as a pure-play digital marketing technology provider, leveraging its AI-powered Axon platform to optimize return on ad spend and automate targeted customer acquisition campaigns. The company's rollout of Axon 2.0 and continuous model upgrades have increased advertiser scale and campaign performance, directly driving 1.84 billion dollars in recent quarterly revenue and facilitating expansion into global consumer verticals. Backed by dedicated engineering teams, AppLovin continues to broaden its ecosystem by introducing global self-serve advertising capabilities and integrating its MAX mediation auction with the Adjust analytics platform to deliver an end-to-end suite for marketing attribution and campaign management.",
+              "exchange": "SMART",
+              "key": "US03831W1080",
+              "name": "APPLOVIN CORP-CLASS A",
+              "rank": 3,
+              "symbol": "APP"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 483311209,
+              "description": "Provides a software platform for digital media measurement and analytics, equipping advertisers with brand safety, fraud prevention, and viewability tools to optimize the performance and quality of their digital marketing campaigns.",
+              "evidence": "DoubleVerify operates as a digital marketing technology provider, generating its $180.8 million first-quarter 2026 revenue entirely through an AI-driven media effectiveness platform that validates ad inventory and measures advertising outcomes. The company's proprietary Media AdVantage Platform (MAP) integrates independent verification with real-time optimization, utilizing tools like Rockerbox Relay to send attribution results directly to ecosystems such as Meta as targeted optimization signals. To scale these advertising analytics capabilities, the company dedicates its 1,231-employee workforce and directs its capital investments toward product innovation, including $45.4 million in quarterly research and development. By processing hundreds of terabytes of proprietary advertising data across trillions of transactions, these technologies allow global brands to dynamically evaluate and improve campaign suitability and viewability across programmatic, social media, and connected TV channels.",
+              "exchange": "SMART",
+              "key": "US25862V1052",
+              "name": "DOUBLEVERIFY HOLDINGS INC",
+              "rank": 4,
+              "symbol": "DV"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 654750909,
+              "description": "Powers digital marketing strategies through a cloud-based automation platform that unifies first-party customer data to deliver targeted email, SMS, and push notifications for e-commerce brands.",
+              "evidence": "Klaviyo operates fundamentally as an AI-native B2C CRM and centralized digital marketing technology stack, generating nearly all of its revenue\u2014including $358 million in its most recently reported quarter\u2014through automated campaign creation and customer data consolidation. The company continuously expands its marketing ecosystem, recently deploying over 75 new features in a single quarter, launching beta integrations for Google Search and Ads, and utilizing its 'Composer' agent to drive one-to-one personalization. The platform's efficacy is validated by top-tier industry recognition, securing the highest customer satisfaction score in a recent Forrester Wave while delivering a 10x revenue-per-message ROI for automated workflows compared to static campaigns. To support this pure-play digital engagement focus across a global base of over 196,000 businesses, Klaviyo dedicates its engineering workforce and major R&D investments toward optimizing autonomous, omnichannel marketing across email, text, and WhatsApp.",
+              "exchange": "SMART",
+              "key": "US49845K1016",
+              "name": "KLAVIYO INC-A",
+              "rank": 5,
+              "symbol": "KVYO"
+            }
+          ],
+          "name": "Digital Marketing Technology",
+          "total_count": 75
+        },
+        {
+          "description": "Platforms offering media content directly to consumers over the internet, enabling on-demand access and convenient delivery of films, series, music, and other entertainment.",
+          "key": "4c49d4f4-b18c-41cd-be02-1cfadfc72400",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 15124833,
+              "description": "Operates a global subscription-based entertainment platform that delivers a diverse library of original and licensed films, television series, and games directly to consumers across internet-connected devices.",
+              "evidence": "Netflix operates as a pure-play streaming platform, generating its revenue almost entirely from subscriptions and advertising across a global user base of 325 million paid members. Directed by its executive leadership team, the company centers its strategic and capital allocation framework on enhancing its media delivery infrastructure, allocating nearly a billion dollars in quarterly technology and development spending. To maximize engagement across an addressable market of 800 million smart TV households, the platform is expanding its core offerings into multi-format entertainment, recently drawing 31.4 million viewers for live programming such as the World Baseball Classic. The company's fundamental reliance on the streaming sector is further evidenced by major strategic maneuvers, including its recent multi-billion dollar pursuit of Warner Bros. Discovery's direct-to-consumer assets to expand its studio and content portfolio.",
+              "exchange": "SMART",
+              "key": "US64110L1061",
+              "name": "NETFLIX INC",
+              "rank": 1,
+              "symbol": "NFLX"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 290651477,
+              "description": "Operates a comprehensive television streaming platform that connects users to digital content through proprietary operating systems, streaming players, and smart TVs, while driving monetization through advertising, premium subscriptions, and content distribution.",
+              "evidence": "Roku functions as a central distribution ecosystem in the Streaming Platforms & Services industry, recently surpassing 100 million streaming households globally and facilitating nearly half of all streaming time in U.S. broadband households. The company monetizes this vast scale through its Platform segment\u2014which generated 91% of total net revenue in recent quarters\u2014by distributing third-party apps and expanding owned-and-operated services such as The Roku Channel, the ad-free subscription service Howdy, and the recently acquired Frndly TV. To maintain this infrastructure, the company utilizes a dedicated Roku Media division led by a President-level executive and directs its engineering headcount and R&D efforts toward enhancing its proprietary Roku TV OS and deploying major home screen updates.",
+              "exchange": "SMART",
+              "key": "US77543R1023",
+              "name": "ROKU INC",
+              "rank": 2,
+              "symbol": "ROKU"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 312496724,
+              "description": "Provides a global digital audio streaming platform that delivers music, podcasts, and audiobooks to users through ad-supported and premium subscription models, driving engagement via personalized content discovery.",
+              "evidence": "Spotify operates as a direct-to-consumer internet media streaming platform, generating its EUR 4.5 billion in recent quarterly revenue entirely from premium subscriptions and ad-supported tiers. The system delivers on-demand digital content, including music, podcasts, audiobooks, and newly added fitness videos, to 761 million monthly active users and 293 million subscribers. The company's organizational structure and capital strategy are dedicated to maintaining and expanding this ecosystem, demonstrated by continuous technological reinvestments and an $11 billion payout to content rights holders.",
+              "exchange": "SMART",
+              "key": "LU1778762911",
+              "name": "SPOTIFY TECHNOLOGY SA",
+              "rank": 3,
+              "symbol": "SPOT"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 6459,
+              "description": "Operates direct-to-consumer streaming platforms that distribute a comprehensive library of original programming, legacy media franchises, and live sports broadcasts to a global subscriber base.",
+              "evidence": "Disney positions streaming platforms at the core of its operational strategy, explicitly targeting the evolution of Disney+ into the interactive digital centerpiece of the enterprise. Supported by the dedicated Disney Entertainment DTC unit, specialized technology teams are aggressively iterating product enhancements, including a fully integrated Hulu experience designed to reduce subscriber churn. These ecosystem improvements, combined with global content scaling and targeted bundling strategies, have accelerated sequential SVOD revenue growth to 13% and propelled streaming revenues to more than double those of traditional linear networks. Furthermore, following a corporate restructuring to ensure executive bottom-line accountability, these multi-billion dollar capital investments have successfully transitioned the streaming segment into a highly profitable division characterized by double-digit financial margins.",
+              "exchange": "SMART",
+              "key": "US2546871060",
+              "name": "WALT DISNEY CO/THE",
+              "rank": 4,
+              "symbol": "DIS"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 864281476,
+              "description": "Operates a sports-first live TV streaming platform that delivers a comprehensive mix of premium sports, news, and entertainment content to subscribers across various digital devices.",
+              "evidence": "Fubo operates exclusively as a pure-play direct-to-consumer live TV streaming provider, maintaining its Fubo and Hulu Live brands as its sole operating segment. Following a business combination with Hulu + Live TV, the company established itself as the second-largest virtual multichannel video programming distributor (vMVPD) in the United States with 6.2 million North American subscribers. These platforms define the entirety of the company's business model, accounting for 100% of its $1.68 billion pro forma quarterly revenue in early 2026 and guiding ongoing technology investments to unify its global streaming architecture.",
+              "exchange": "SMART",
+              "key": "US35953D4016",
+              "name": "FUBOTV INC -CLASS A",
+              "rank": 5,
+              "symbol": "FUBO"
+            }
+          ],
+          "name": "Streaming Platforms & Services",
+          "total_count": 55
+        }
+      ]
+    },
     "Company_Name": "Alphabet Inc.",
     "Consensus": "Strong Buy",
     "Contract_ID": 208813720,
@@ -2721,12 +3643,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Internet Content ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 208813720,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -2735,7 +3657,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -2749,6 +3671,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 5,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -2804,932 +3729,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Company_Context": {
-      "available": true,
-      "fetched_at": "2026-09-23T08:06:29.832937+00:00",
-      "theme_count": 5,
-      "peer_count": 25,
-      "peer_rank": 1,
-      "themes": [
-        {
-          "name": "Advertising",
-          "key": "b6ec28fd-88a2-4e06-865c-5de442dfbda9",
-          "description": "Businesses specializing in creating and managing marketing campaigns and media placements for brand promotion across various platforms.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "TRADE DESK INC/THE -CLASS A",
-              "key": "US88339J1051",
-              "contract_id": 248755440,
-              "symbol": "TTD",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates a cloud-based programmatic platform that empowers ad buyers to create, manage, and optimize data-driven digital advertising campaigns across diverse channels such as connected TV, audio, and display.",
-              "evidence": "The Trade Desk functions fundamentally as an independent demand-side platform for programmatic media buying, targeting an expanding $1 trillion global advertising market. The company generates 100% of its revenue by facilitating digital ad campaigns across connected TV, mobile, display, and audio, dedicating over 3,500 employees to support agencies and brands. This engagement is anchored by the company's structural objectivity\u2014choosing not to own media inventory to prevent conflicts of interest\u2014which recently fueled a 55% year-over-year increase in joint business partnerships and secured direct wins over mega-cap competitors."
-            },
-            {
-              "rank": 2,
-              "name": "ALPHABET INC-CL A",
-              "key": "US02079K3059",
-              "contract_id": 208813719,
-              "symbol": "GOOGL",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides a comprehensive suite of digital advertising solutions across its search engine, video platform, and extensive publisher network, enabling businesses to deliver targeted marketing campaigns to a global audience.",
-              "evidence": "Alphabet's economic structure relies directly on its digital advertising ecosystem, which generated $77.3 billion\u2014representing over 70% of total revenues\u2014across Google Search, YouTube, and the Google Network in the most recent quarter. To optimize this primary revenue engine, the company is aggressively integrating generative AI throughout its ad network, with over 30% of search ad spend currently utilizing automated tools like Performance Max. Alphabet continuously updates its advertiser offerings by testing new ad formats directly within 'AI Mode' results and implementing dozens of improvements to its smart bidding and shopping strategies. Backed by massive organizational investments in marketing and dedicated sales teams, the company also develops creator partnership hubs and retail-focused shoppable mastheads to maximize advertiser conversions across its platforms."
-            },
-            {
-              "rank": 3,
-              "name": "OMNICOM GROUP",
-              "key": "US6819191064",
-              "contract_id": 10811,
-              "symbol": "OMC",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers comprehensive advertising, strategic media planning, and digital marketing services through a global network of agencies to drive brand strategy, public relations, and consumer engagement across diverse markets.",
-              "evidence": "Omnicom's foundation in the Advertising industry is driven by its $9 billion acquisition of Interpublic Group (IPG), establishing the combined entity as a global market leader. Following this integration, management restructured operations by merging over 20 agency brands into a dedicated Advertising operating discipline, which explicitly accounts for 17% of the firm's core revenue. This global network houses specialized creative subsidiaries like BBDO, TBWA, and McCann, leveraging combined operational scale to win pitches and secure global clients such as IBM, GSK, and John Deere."
-            },
-            {
-              "rank": 4,
-              "name": "LAMAR ADVERTISING CO-A",
-              "key": "US5128161099",
-              "contract_id": 174076715,
-              "symbol": "LAMR",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides out-of-home advertising services through an extensive network of billboards, transit displays, and highway logo signs, enabling brands to execute targeted marketing and promotional campaigns.",
-              "evidence": "Lamar Advertising Company operates strictly as an out-of-home advertising enterprise, generating its entire revenue from media placements across billboards, airports, transit networks, and logos. To advance this core operational focus, the company's dedicated executive leadership allocated a $186 million capital expenditure budget for 2026, alongside an $80 million cash investment for recent billboard acquisitions. This capital allocation directly expands a monetized portfolio of over 5,600 digital spaces and physical structures, which is primarily driven by local and regional brand promotion campaigns that account for 82% of billboard revenues."
-            },
-            {
-              "rank": 5,
-              "name": "OUTFRONT MEDIA INC",
-              "key": "US69007J3041",
-              "contract_id": 753278762,
-              "symbol": "OUT",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates an extensive out-of-home advertising network of billboard and transit displays, delivering marketing solutions that connect brands with audiences in high-traffic environments.",
-              "evidence": "OUTFRONT Media operates strictly as a pure-play out-of-home advertising business, deriving its entire consolidated revenue from its Billboard and Transit media placements. The company's competitive positioning as a leader in \"in real-life\" (IRL) media is anchored by exclusive structural assets, such as its New York MTA transit advertising contract, alongside newly appointed executive leadership driving programmatic ad sales. Reinforcing its transition into a modernized marketing powerhouse, OUTFRONT dedicates its entire projected $90 million 2026 capital expenditure budget exclusively toward maintaining and expanding its physical and digital advertising infrastructure. Furthermore, a comprehensive reorganization of its sales force into specialized commercial teams and strategic technology partnerships, including an exclusive arrangement with the AI-powered planning platform AdQuick, directly align its corporate operations with advancing omnichannel advertising capabilities."
-            }
-          ],
-          "total_count": 75
-        },
-        {
-          "name": "Search Engine Services",
-          "key": "7d844d91-c9c0-457f-9b7e-04c81c14aeed",
-          "description": "Technology infrastructure and platforms that facilitate internet search, enabling users to find information online through algorithms and indexing, central to digital advertising and information retrieval.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "ALPHABET INC-CL A",
-              "key": "US02079K3059",
-              "contract_id": 208813719,
-              "symbol": "GOOGL",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides extensive search engine services that organize global information and deliver relevant web results, serving as the primary foundation for a massive digital advertising network.",
-              "evidence": "Alphabet's business fundamentally relies on its Search Engine Services, which generated $60.4 billion and accounted for nearly 55% of the company's total consolidated revenue in the second quarter of 2026. The recent integration of foundational models like Gemini 3 into features such as AI Overviews and AI Mode has pushed overall search queries to an all-time high, accommodating user searches that are increasingly longer and more complex. To support this core platform, the company continuously updates its infrastructure, reducing the cost of core AI responses by more than 30% and decreasing search latency by 35% over the past five years. This infrastructural efficiency is paired with a rapid product development cycle, evidenced by hundreds of adjustments to the search page each quarter and the deployment of over 250 AI-related product launches earlier in the year."
-            },
-            {
-              "rank": 2,
-              "name": "ELASTIC NV",
-              "key": "NL0013056914",
-              "contract_id": 335844146,
-              "symbol": "ESTC",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides a distributed search and analytics engine that enables organizations to integrate real-time search capabilities, data exploration, and information retrieval across enterprise applications and websites.",
-              "evidence": "Elastic's platform operates on the Elasticsearch engine, serving as a scalable document store and core information retrieval system for its enterprise offerings. During Q2 2026, the company expanded these capabilities by launching Cross Project Search, introducing third-party data connectors, acquiring Jina AI for search relevancy, and securing a seven-figure deal to execute hybrid searches across over two billion documents. This momentum is supported by proprietary Q1 2026 innovations, including better binary quantization (BBQ) and Acorn filtering, which optimize indexing algorithms and deliver vector search speeds up to eight times faster than competing solutions. The deployment of these sophisticated retrieval algorithms directly impacts the company's financials, driving $375 million in sales-led subscriptions and representing a major focus of its $331.6 million nine-month R&D expenditure."
-            },
-            {
-              "rank": 3,
-              "name": "BAIDU INC - SPON ADR",
-              "key": "US0567521085",
-              "contract_id": 35359385,
-              "symbol": "BIDU",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides comprehensive internet search services and online marketing solutions, connecting users with digital content while enabling advertisers to reach targeted audiences through its core search platform.",
-              "evidence": "Baidu's integration with Search Engine Services centers on its flagship AI Search offering, which operates as its largest consumer-facing product and historical revenue anchor. The company manages this core capability through its Mobile Ecosystem Group and focuses on incorporating the ERNIE Assistant alongside its ERNIE 5.1 model, which recently topped the LMArena search leaderboard among Chinese models. Baidu is further enhancing the platform with AI-generated infographics and direct-action tasks via multi-modal capabilities, driving over 110% quarter-over-quarter growth in its AI Search API call volume. These search and traditional online marketing operations remain fundamental to the company, generating a large portion of its RMB 26.0 billion in General Business revenue."
-            },
-            {
-              "rank": 4,
-              "name": "MICROSOFT CORP",
-              "key": "US5949181045",
-              "contract_id": 272093,
-              "symbol": "MSFT",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates a comprehensive search engine platform that delivers algorithmic information retrieval, AI-powered conversational search capabilities, and targeted digital advertising solutions to global consumers and enterprises.",
-              "evidence": "Microsoft's operation of Search Engine Services is anchored by Bing, which surpassed 1 billion monthly active users in Q2 2026 alongside 20 consecutive quarters of market share gains for the Edge browser. This expanding user volume directly fueled a 12% increase in search advertising revenue excluding traffic acquisition costs, establishing the search business as a continuous, multi-billion-dollar driver within the More Personal Computing segment. The company continually upgrades its search infrastructure to sustain volume growth and market capture, integrating tools like Copilot and advanced image generation models directly into the search bar to optimize query relevance."
-            },
-            {
-              "rank": 5,
-              "name": "NAVER CORP",
-              "key": "KR7035420009",
-              "contract_id": 36834734,
-              "symbol": "035420",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates a comprehensive web search portal that leverages advanced localized algorithms and artificial intelligence to deliver targeted search engine services and integrate diverse digital content ecosystems.",
-              "evidence": "Naver operates as South Korea's primary internet search portal, utilizing its foundational search engine ecosystem to structure its core business operations. The company's dedicated Search Platform division, reporting directly to the CEO, anchors the broader 'Naver Platform' segment that recently accounted for 56.8% of total consolidated revenue through integrated search and display advertising. To sustain this market position, Naver is modernizing user discovery by deploying generative AI functionalities such as 'AI Briefing' and a conversational 'AI Tab', which have driven a 2.5-fold year-over-year increase in long-tail queries. These ongoing algorithmic investments ensure that internet search remains the core pipeline fueling the data loops and expansive advertising infrastructure that dictate Naver's overall monetization strategy."
-            }
-          ],
-          "total_count": 25
-        },
-        {
-          "name": "Cloud Computing",
-          "key": "512f0de4-da00-4846-9c2a-be4847d182a4",
-          "description": "Delivery of computing resources like servers, storage, and applications over the internet, providing scalable and flexible IT solutions without traditional infrastructure costs.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "MICROSOFT CORP",
-              "key": "US5949181045",
-              "contract_id": 272093,
-              "symbol": "MSFT",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides a comprehensive suite of cloud infrastructure, platform, and software services that enable global enterprises to scale operations, manage data, and deploy advanced digital workloads.",
-              "evidence": "Cloud computing serves as the primary financial and operational engine for Microsoft, with the Microsoft Cloud ecosystem generating over $54.5 billion in recent quarterly revenue to comprise nearly 66% of the company's total business. To sustain this scale and the 40% year-over-year growth in Azure services, the company structurally dedicates its capital investments to cloud infrastructure, projecting roughly $190 billion in calendar year 2026 expenditures to expand global data centers and server capacity. This infrastructure supports a vertically integrated footprint where millions of servers run on custom-built silicon, including Azure Boost, for optimized network and virtualization workloads. Additionally, continuous enterprise adoption of remotely hosted applications, highlighted by 19% organic growth in Microsoft 365 Commercial Cloud revenue, systemically drives the company's core commercial software delivery mechanisms."
-            },
-            {
-              "rank": 2,
-              "name": "NVIDIA CORP",
-              "key": "US67066G1040",
-              "contract_id": 4815747,
-              "symbol": "NVDA",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides high-performance graphics processing units and networking infrastructure that power the data centers of major cloud service providers, enabling scalable artificial intelligence, machine learning, and complex computing workloads across the cloud ecosystem.",
-              "evidence": "NVIDIA serves as the foundational infrastructure for global cloud computing through its newly established Hyperscale reporting segment, supplying compute platforms and networking solutions like InfiniBand, NVLink, and Spectrum-X Ethernet to public cloud providers. The company's Blackwell architecture is adopted universally by top hyperscalers, generating $38 billion in recent quarterly segment revenue and driving co-engineered setups such as Google's A5X bare-metal instances supporting hundreds of thousands of Rubin GPUs. To actively facilitate broader cloud infrastructure build-outs, the company allocates billions of dollars into dedicated infrastructure funds and direct land, power, and shell guarantees. Additionally, NVIDIA optimizes these cloud ecosystems with proprietary software tools including Guardrails and Dynamo, embedding its computing and networking technologies at the core of hyperscaler operations."
-            },
-            {
-              "rank": 3,
-              "name": "AMAZON.COM INC",
-              "key": "US0231351067",
-              "contract_id": 3691937,
-              "symbol": "AMZN",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides a comprehensive suite of on-demand cloud computing platforms and infrastructure services, delivering scalable compute power, database storage, and enterprise solutions to organizations globally.",
-              "evidence": "Amazon's engagement with cloud computing is driven by its dedicated Amazon Web Services (AWS) segment, which functions as the company's primary profit engine and recently reached a $150 billion annualized revenue run rate with 28% year-over-year growth. To support accelerating global cloud migrations and scaling artificial intelligence workloads, the company directed the vast majority of its recent $43.2 billion quarterly cash capital expenditures toward expanding AWS data centers, networking gear, and physical computing capacity. Operating as an independent organizational pillar generating $37.6 billion in quarterly revenue, AWS delivers a massive breadth of compute, storage, and database features, cementing Amazon's role as the foundational infrastructure layer for millions of global startups and enterprises."
-            },
-            {
-              "rank": 4,
-              "name": "DATADOG INC - CLASS A",
-              "key": "US23804L1035",
-              "contract_id": 383858515,
-              "symbol": "DDOG",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers an observability and security platform tailored for cloud applications, enabling organizations to monitor infrastructure, optimize performance, and manage data across diverse cloud computing environments.",
-              "evidence": "Datadog strictly operates as a cloud software provider, deriving the entirety of its recent $1.01 billion quarterly revenue from its SaaS observability and security platform. To support complex cloud topologies, the company dedicates its projected capital expenditures\u2014totaling 4% to 5% of its estimated $4.34 billion fiscal 2026 revenue\u2014toward infrastructure expansion, including a new U.K. data center and native \"bring your own cloud\" deployments. Broader enterprise cloud migration serves as the company's primary long-term secular growth driver, anchored by its infrastructure monitoring solutions that generate over $1.6 billion in annual recurring revenue by tracking virtualized and serverless environments. Furthermore, continuous feature deployments like cloud storage management directly optimize and secure customer workloads across hybrid and multi-cloud ecosystems."
-            },
-            {
-              "rank": 5,
-              "name": "ALPHABET INC-CL A",
-              "key": "US02079K3059",
-              "contract_id": 208813719,
-              "symbol": "GOOGL",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers a comprehensive suite of enterprise cloud infrastructure and platform services, providing scalable computing power, data analytics, and advanced artificial intelligence solutions to organizations globally.",
-              "evidence": "Alphabet\u2019s engagement in cloud computing is anchored by Google Cloud infrastructure and enterprise AI services, pushing the segment's most recent quarterly revenue to $20 billion, representing a 63% year-over-year increase. To fulfill a $462 billion backlog and increasing compute capacity requirements, the company allocates approximately 40% of its $35.7 billion quarterly technical infrastructure capital expenditure toward data centers and networking equipment, while concurrently onboarding the acquired Wiz security organization. Beyond physical infrastructure, Alphabet advances its cloud software portfolio through Google Workspace, which delivers double-digit revenue growth driven by increasing user seats, higher average revenue per user, and the integration of Gemini Enterprise AI applications."
-            }
-          ],
-          "total_count": 75
-        },
-        {
-          "name": "Digital Marketing Technology",
-          "key": "2528ab02-e799-4af7-8419-a5161896cdcd",
-          "description": "Platforms enabling targeted online advertising and digital customer engagement through data analytics and AI-driven personalization.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "TRADE DESK INC/THE -CLASS A",
-              "key": "US88339J1051",
-              "contract_id": 248755440,
-              "symbol": "TTD",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates a cloud-based demand-side platform that enables advertising buyers to programmatically create, manage, and optimize data-driven digital marketing campaigns across diverse media channels and formats.",
-              "evidence": "The Trade Desk operates as a pure-play provider of digital marketing technology, generating the entirety of its revenue through an objective media buying platform that enables clients to execute targeted online advertising. Recent product development centers on AI-fueled decisioning tools, highlighted by the Q2 2026 rollout of \"Audience Unlimited,\" which utilizes a data marketplace capturing over 80% of U.S. retail sales to automate audience selection, reduce media costs, and drive higher campaign conversion rates. To maintain this core advertising architecture, the company directs its operating expenses and capital investments toward expanding platform hosting capabilities, advancing its agentic AI software, Kokai, and aligning its workforce to support data-driven digital spend activation."
-            },
-            {
-              "rank": 2,
-              "name": "ALPHABET INC-CL A",
-              "key": "US02079K3059",
-              "contract_id": 208813719,
-              "symbol": "GOOGL",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates a comprehensive suite of digital advertising and marketing platforms, providing search, programmatic, and analytics solutions that enable businesses to target audiences, manage campaigns, and measure performance across the internet.",
-              "evidence": "Alphabet's engagement with Digital Marketing Technology relies on its foundational ad platforms, which generate roughly 70% of the company's total revenue, recently totaling $77.3 billion. During the second quarter of 2026, the company accelerated the deployment of its proprietary Gemini AI models across its entire ads infrastructure, resulting in a nearly 10% improvement in ad relevance. This integration directly powers core advertiser tools like Smart Bidding, Performance Max\u2014which now captures over 30% of customer search spend\u2014and the newly upgraded AI Max tool. By leveraging these AI-enabled platforms to deliver targeted, high-return campaigns for marketers, Alphabet solidifies advertising technology as its primary economic engine."
-            },
-            {
-              "rank": 3,
-              "name": "APPLOVIN CORP-CLASS A",
-              "key": "US03831W1080",
-              "contract_id": 481863646,
-              "symbol": "APP",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides an end-to-end software platform utilizing advanced machine learning algorithms to enable developers to automate, optimize, and measure their digital marketing and monetization campaigns.",
-              "evidence": "AppLovin operates as a pure-play digital marketing technology provider, leveraging its AI-powered Axon platform to optimize return on ad spend and automate targeted customer acquisition campaigns. The company's rollout of Axon 2.0 and continuous model upgrades have increased advertiser scale and campaign performance, directly driving 1.84 billion dollars in recent quarterly revenue and facilitating expansion into global consumer verticals. Backed by dedicated engineering teams, AppLovin continues to broaden its ecosystem by introducing global self-serve advertising capabilities and integrating its MAX mediation auction with the Adjust analytics platform to deliver an end-to-end suite for marketing attribution and campaign management."
-            },
-            {
-              "rank": 4,
-              "name": "DOUBLEVERIFY HOLDINGS INC",
-              "key": "US25862V1052",
-              "contract_id": 483311209,
-              "symbol": "DV",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides a software platform for digital media measurement and analytics, equipping advertisers with brand safety, fraud prevention, and viewability tools to optimize the performance and quality of their digital marketing campaigns.",
-              "evidence": "DoubleVerify operates as a digital marketing technology provider, generating its $180.8 million first-quarter 2026 revenue entirely through an AI-driven media effectiveness platform that validates ad inventory and measures advertising outcomes. The company's proprietary Media AdVantage Platform (MAP) integrates independent verification with real-time optimization, utilizing tools like Rockerbox Relay to send attribution results directly to ecosystems such as Meta as targeted optimization signals. To scale these advertising analytics capabilities, the company dedicates its 1,231-employee workforce and directs its capital investments toward product innovation, including $45.4 million in quarterly research and development. By processing hundreds of terabytes of proprietary advertising data across trillions of transactions, these technologies allow global brands to dynamically evaluate and improve campaign suitability and viewability across programmatic, social media, and connected TV channels."
-            },
-            {
-              "rank": 5,
-              "name": "KLAVIYO INC-A",
-              "key": "US49845K1016",
-              "contract_id": 654750909,
-              "symbol": "KVYO",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Powers digital marketing strategies through a cloud-based automation platform that unifies first-party customer data to deliver targeted email, SMS, and push notifications for e-commerce brands.",
-              "evidence": "Klaviyo operates fundamentally as an AI-native B2C CRM and centralized digital marketing technology stack, generating nearly all of its revenue\u2014including $358 million in its most recently reported quarter\u2014through automated campaign creation and customer data consolidation. The company continuously expands its marketing ecosystem, recently deploying over 75 new features in a single quarter, launching beta integrations for Google Search and Ads, and utilizing its 'Composer' agent to drive one-to-one personalization. The platform's efficacy is validated by top-tier industry recognition, securing the highest customer satisfaction score in a recent Forrester Wave while delivering a 10x revenue-per-message ROI for automated workflows compared to static campaigns. To support this pure-play digital engagement focus across a global base of over 196,000 businesses, Klaviyo dedicates its engineering workforce and major R&D investments toward optimizing autonomous, omnichannel marketing across email, text, and WhatsApp."
-            }
-          ],
-          "total_count": 75
-        },
-        {
-          "name": "Streaming Platforms & Services",
-          "key": "4c49d4f4-b18c-41cd-be02-1cfadfc72400",
-          "description": "Platforms offering media content directly to consumers over the internet, enabling on-demand access and convenient delivery of films, series, music, and other entertainment.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "NETFLIX INC",
-              "key": "US64110L1061",
-              "contract_id": 15124833,
-              "symbol": "NFLX",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates a global subscription-based entertainment platform that delivers a diverse library of original and licensed films, television series, and games directly to consumers across internet-connected devices.",
-              "evidence": "Netflix operates as a pure-play streaming platform, generating its revenue almost entirely from subscriptions and advertising across a global user base of 325 million paid members. Directed by its executive leadership team, the company centers its strategic and capital allocation framework on enhancing its media delivery infrastructure, allocating nearly a billion dollars in quarterly technology and development spending. To maximize engagement across an addressable market of 800 million smart TV households, the platform is expanding its core offerings into multi-format entertainment, recently drawing 31.4 million viewers for live programming such as the World Baseball Classic. The company's fundamental reliance on the streaming sector is further evidenced by major strategic maneuvers, including its recent multi-billion dollar pursuit of Warner Bros. Discovery's direct-to-consumer assets to expand its studio and content portfolio."
-            },
-            {
-              "rank": 2,
-              "name": "ROKU INC",
-              "key": "US77543R1023",
-              "contract_id": 290651477,
-              "symbol": "ROKU",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates a comprehensive television streaming platform that connects users to digital content through proprietary operating systems, streaming players, and smart TVs, while driving monetization through advertising, premium subscriptions, and content distribution.",
-              "evidence": "Roku functions as a central distribution ecosystem in the Streaming Platforms & Services industry, recently surpassing 100 million streaming households globally and facilitating nearly half of all streaming time in U.S. broadband households. The company monetizes this vast scale through its Platform segment\u2014which generated 91% of total net revenue in recent quarters\u2014by distributing third-party apps and expanding owned-and-operated services such as The Roku Channel, the ad-free subscription service Howdy, and the recently acquired Frndly TV. To maintain this infrastructure, the company utilizes a dedicated Roku Media division led by a President-level executive and directs its engineering headcount and R&D efforts toward enhancing its proprietary Roku TV OS and deploying major home screen updates."
-            },
-            {
-              "rank": 3,
-              "name": "SPOTIFY TECHNOLOGY SA",
-              "key": "LU1778762911",
-              "contract_id": 312496724,
-              "symbol": "SPOT",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides a global digital audio streaming platform that delivers music, podcasts, and audiobooks to users through ad-supported and premium subscription models, driving engagement via personalized content discovery.",
-              "evidence": "Spotify operates as a direct-to-consumer internet media streaming platform, generating its EUR 4.5 billion in recent quarterly revenue entirely from premium subscriptions and ad-supported tiers. The system delivers on-demand digital content, including music, podcasts, audiobooks, and newly added fitness videos, to 761 million monthly active users and 293 million subscribers. The company's organizational structure and capital strategy are dedicated to maintaining and expanding this ecosystem, demonstrated by continuous technological reinvestments and an $11 billion payout to content rights holders."
-            },
-            {
-              "rank": 4,
-              "name": "WALT DISNEY CO/THE",
-              "key": "US2546871060",
-              "contract_id": 6459,
-              "symbol": "DIS",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates direct-to-consumer streaming platforms that distribute a comprehensive library of original programming, legacy media franchises, and live sports broadcasts to a global subscriber base.",
-              "evidence": "Disney positions streaming platforms at the core of its operational strategy, explicitly targeting the evolution of Disney+ into the interactive digital centerpiece of the enterprise. Supported by the dedicated Disney Entertainment DTC unit, specialized technology teams are aggressively iterating product enhancements, including a fully integrated Hulu experience designed to reduce subscriber churn. These ecosystem improvements, combined with global content scaling and targeted bundling strategies, have accelerated sequential SVOD revenue growth to 13% and propelled streaming revenues to more than double those of traditional linear networks. Furthermore, following a corporate restructuring to ensure executive bottom-line accountability, these multi-billion dollar capital investments have successfully transitioned the streaming segment into a highly profitable division characterized by double-digit financial margins."
-            },
-            {
-              "rank": 5,
-              "name": "FUBOTV INC -CLASS A",
-              "key": "US35953D4016",
-              "contract_id": 864281476,
-              "symbol": "FUBO",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates a sports-first live TV streaming platform that delivers a comprehensive mix of premium sports, news, and entertainment content to subscribers across various digital devices.",
-              "evidence": "Fubo operates exclusively as a pure-play direct-to-consumer live TV streaming provider, maintaining its Fubo and Hulu Live brands as its sole operating segment. Following a business combination with Hulu + Live TV, the company established itself as the second-largest virtual multichannel video programming distributor (vMVPD) in the United States with 6.2 million North American subscribers. These platforms define the entirety of the company's business model, accounting for 100% of its $1.68 billion pro forma quarterly revenue in early 2026 and guiding ongoing technology investments to unify its global streaming architecture."
-            }
-          ],
-          "total_count": 55
-        }
-      ],
-      "connections": [
-        {
-          "title": "Investment Theme Exposure",
-          "type": "company_theme",
-          "links": [
-            {
-              "key": "b6ec28fd-88a2-4e06-865c-5de442dfbda9",
-              "type": "theme",
-              "name": "Advertising",
-              "link_type": "company_theme",
-              "rank": 1
-            },
-            {
-              "key": "7d844d91-c9c0-457f-9b7e-04c81c14aeed",
-              "type": "theme",
-              "name": "Search Engine Services",
-              "link_type": "company_theme",
-              "rank": 2
-            },
-            {
-              "key": "512f0de4-da00-4846-9c2a-be4847d182a4",
-              "type": "theme",
-              "name": "Cloud Computing",
-              "link_type": "company_theme",
-              "rank": 3
-            },
-            {
-              "key": "2528ab02-e799-4af7-8419-a5161896cdcd",
-              "type": "theme",
-              "name": "Digital Marketing Technology",
-              "link_type": "company_theme",
-              "rank": 4
-            },
-            {
-              "key": "4c49d4f4-b18c-41cd-be02-1cfadfc72400",
-              "type": "theme",
-              "name": "Streaming Platforms & Services",
-              "link_type": "company_theme",
-              "rank": 5
-            },
-            {
-              "key": "b2872dbe-6e61-4a7c-94b6-73cd44df9bca",
-              "type": "theme",
-              "name": "Generative AI & LLMs",
-              "link_type": "company_theme",
-              "rank": 6
-            },
-            {
-              "key": "cc0bb4ab-ed23-4098-8feb-6e28e770db45",
-              "type": "theme",
-              "name": "Artificial Intelligence",
-              "link_type": "company_theme",
-              "rank": 7
-            },
-            {
-              "key": "6d952a1a-e964-44d3-b05b-e4b2e0b1c8bf",
-              "type": "theme",
-              "name": "Data Centers",
-              "link_type": "company_theme",
-              "rank": 8
-            },
-            {
-              "key": "2909994c-f29d-43cb-b385-e55bd033e3aa",
-              "type": "theme",
-              "name": "AI Chips",
-              "link_type": "company_theme",
-              "rank": 9
-            },
-            {
-              "key": "694fc578-da65-4b0e-bd7d-1d92db9f7299",
-              "type": "theme",
-              "name": "Autonomous Vehicles",
-              "link_type": "company_theme",
-              "rank": 10
-            },
-            {
-              "key": "42e2758a-31c2-413a-aa4e-de9b0ab19132",
-              "type": "theme",
-              "name": "Cybersecurity",
-              "link_type": "company_theme",
-              "rank": 11
-            },
-            {
-              "key": "00d0d758-0aa9-4aa6-9891-ddf03f7dbaac",
-              "type": "theme",
-              "name": "AI Infrastructure",
-              "link_type": "company_theme",
-              "rank": 12
-            },
-            {
-              "key": "f3fcc84e-531b-4ea9-8537-97824fd85979",
-              "type": "theme",
-              "name": "AI Enterprise Integration",
-              "link_type": "company_theme",
-              "rank": 13
-            },
-            {
-              "key": "f30755bb-3450-4941-8468-ceca4c4a27cc",
-              "type": "theme",
-              "name": "Digital Entertainment",
-              "link_type": "company_theme",
-              "rank": 14
-            },
-            {
-              "key": "f14b97b4-fbbf-4411-bfc2-6d9af20944d1",
-              "type": "theme",
-              "name": "Agentic AI",
-              "link_type": "company_theme",
-              "rank": 15
-            },
-            {
-              "key": "8bff3578-9b42-4a74-85c1-d66b1f55bc8f",
-              "type": "theme",
-              "name": "Data Analytics",
-              "link_type": "company_theme",
-              "rank": 16
-            },
-            {
-              "key": "ef734422-7132-45e1-a084-79b55ac53bb8",
-              "type": "theme",
-              "name": "Smartphones",
-              "link_type": "company_theme",
-              "rank": 17
-            },
-            {
-              "key": "b6d75788-a9dc-4129-a30a-9d92c4ae8ccf",
-              "type": "theme",
-              "name": "Servers",
-              "link_type": "company_theme",
-              "rank": 18
-            },
-            {
-              "key": "76f7ba48-3060-411d-851f-3fe05e9c275c",
-              "type": "theme",
-              "name": "Social Media Platforms",
-              "link_type": "company_theme",
-              "rank": 19
-            },
-            {
-              "key": "3472da56-487c-4eda-9c7f-83afa184d8d8",
-              "type": "theme",
-              "name": "E-Commerce",
-              "link_type": "company_theme",
-              "rank": 20
-            }
-          ]
-        },
-        {
-          "title": "Brand & Product",
-          "type": "company_product",
-          "links": [
-            {
-              "key": "Google Search",
-              "type": "product",
-              "name": "Google Search",
-              "link_type": "company_product",
-              "rank": 1
-            },
-            {
-              "key": "YouTube",
-              "type": "product",
-              "name": "YouTube",
-              "link_type": "company_product",
-              "rank": 2
-            },
-            {
-              "key": "Google Cloud",
-              "type": "product",
-              "name": "Google Cloud",
-              "link_type": "company_product",
-              "rank": 3
-            },
-            {
-              "key": "Gemini",
-              "type": "product",
-              "name": "Gemini",
-              "link_type": "company_product",
-              "rank": 4
-            },
-            {
-              "key": "Google Workspace",
-              "type": "product",
-              "name": "Google Workspace",
-              "link_type": "company_product",
-              "rank": 5
-            },
-            {
-              "key": "Google Ads",
-              "type": "product",
-              "name": "Google Ads",
-              "link_type": "company_product",
-              "rank": 6
-            },
-            {
-              "key": "Waymo",
-              "type": "product",
-              "name": "Waymo",
-              "link_type": "company_product",
-              "rank": 7
-            },
-            {
-              "key": "Google One",
-              "type": "product",
-              "name": "Google One",
-              "link_type": "company_product",
-              "rank": 8
-            },
-            {
-              "key": "Pixel",
-              "type": "product",
-              "name": "Pixel",
-              "link_type": "company_product",
-              "rank": 9
-            },
-            {
-              "key": "Google Maps",
-              "type": "product",
-              "name": "Google Maps",
-              "link_type": "company_product",
-              "rank": 10
-            },
-            {
-              "key": "Google Network",
-              "type": "product",
-              "name": "Google Network",
-              "link_type": "company_product",
-              "rank": 11
-            },
-            {
-              "key": "Google Play",
-              "type": "product",
-              "name": "Google Play",
-              "link_type": "company_product",
-              "rank": 12
-            },
-            {
-              "key": "Google DeepMind",
-              "type": "product",
-              "name": "Google DeepMind",
-              "link_type": "company_product",
-              "rank": 13
-            }
-          ]
-        },
-        {
-          "title": "Competitors",
-          "type": "company_competitor",
-          "links": [
-            {
-              "key": "US30303M1027",
-              "type": "company",
-              "name": "META PLATFORMS INC-CLASS A",
-              "link_type": "company_competitor",
-              "contract_id": 107113386,
-              "symbol": "META",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US5949181045",
-              "type": "company",
-              "name": "MICROSOFT CORP",
-              "link_type": "company_competitor",
-              "contract_id": 272093,
-              "symbol": "MSFT",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US0231351067",
-              "type": "company",
-              "name": "AMAZON.COM INC",
-              "link_type": "company_competitor",
-              "contract_id": 3691937,
-              "symbol": "AMZN",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US0378331005",
-              "type": "company",
-              "name": "APPLE INC",
-              "link_type": "company_competitor",
-              "contract_id": 265598,
-              "symbol": "AAPL",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US83304A1060",
-              "type": "company",
-              "name": "SNAP INC - A",
-              "link_type": "company_competitor",
-              "contract_id": 268060148,
-              "symbol": "SNAP",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US88339J1051",
-              "type": "company",
-              "name": "TRADE DESK INC/THE -CLASS A",
-              "link_type": "company_competitor",
-              "contract_id": 248755440,
-              "symbol": "TTD",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US9858171054",
-              "type": "company",
-              "name": "YELP INC",
-              "link_type": "company_competitor",
-              "contract_id": 103518430,
-              "symbol": "YELP",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US68389X1054",
-              "type": "company",
-              "name": "ORACLE CORP",
-              "link_type": "company_competitor",
-              "contract_id": 272800,
-              "symbol": "ORCL",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US8969452015",
-              "type": "company",
-              "name": "TRIPADVISOR INC",
-              "link_type": "company_competitor",
-              "contract_id": 98542026,
-              "symbol": "TRIP",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US75734B1008",
-              "type": "company",
-              "name": "REDDIT INC-CL A",
-              "link_type": "company_competitor",
-              "contract_id": 692025016,
-              "symbol": "RDDT",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US77543R1023",
-              "type": "company",
-              "name": "ROKU INC",
-              "link_type": "company_competitor",
-              "contract_id": 290651477,
-              "symbol": "ROKU",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US8334451098",
-              "type": "company",
-              "name": "SNOWFLAKE INC",
-              "link_type": "company_competitor",
-              "contract_id": 444884769,
-              "symbol": "SNOW",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US64110L1061",
-              "type": "company",
-              "name": "NETFLIX INC",
-              "link_type": "company_competitor",
-              "contract_id": 15124833,
-              "symbol": "NFLX",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US72352L1061",
-              "type": "company",
-              "name": "PINTEREST INC- CLASS A",
-              "link_type": "company_competitor",
-              "contract_id": 360975915,
-              "symbol": "PINS",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US03831W1080",
-              "type": "company",
-              "name": "APPLOVIN CORP-CLASS A",
-              "link_type": "company_competitor",
-              "contract_id": 481863646,
-              "symbol": "APP",
-              "exchange": "SMART"
-            },
-            {
-              "key": "LU1778762911",
-              "type": "company",
-              "name": "SPOTIFY TECHNOLOGY SA",
-              "link_type": "company_competitor",
-              "contract_id": 312496724,
-              "symbol": "SPOT",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US6974351057",
-              "type": "company",
-              "name": "PALO ALTO NETWORKS INC",
-              "link_type": "company_competitor",
-              "contract_id": 110619459,
-              "symbol": "PANW",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US55955D1000",
-              "type": "company",
-              "name": "MAGNITE INC",
-              "link_type": "company_competitor",
-              "contract_id": 430755197,
-              "symbol": "MGNI",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US74467Q1031",
-              "type": "company",
-              "name": "PUBMATIC INC-CLASS A",
-              "link_type": "company_competitor",
-              "contract_id": 459468268,
-              "symbol": "PUBM",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US30212P3038",
-              "type": "company",
-              "name": "EXPEDIA GROUP INC",
-              "link_type": "company_competitor",
-              "contract_id": 98542021,
-              "symbol": "EXPE",
-              "exchange": "SMART"
-            }
-          ]
-        },
-        {
-          "title": "Country Exposure",
-          "type": "company_country",
-          "links": [
-            {
-              "key": "US",
-              "type": "country",
-              "name": "US",
-              "link_type": "company_country",
-              "rank": 1,
-              "symbol": "US"
-            },
-            {
-              "key": "IE",
-              "type": "country",
-              "name": "IE",
-              "link_type": "company_country",
-              "rank": 2,
-              "symbol": "IE"
-            },
-            {
-              "key": "GB",
-              "type": "country",
-              "name": "GB",
-              "link_type": "company_country",
-              "rank": 3,
-              "symbol": "GB"
-            },
-            {
-              "key": "IN",
-              "type": "country",
-              "name": "IN",
-              "link_type": "company_country",
-              "rank": 4,
-              "symbol": "IN"
-            },
-            {
-              "key": "TW",
-              "type": "country",
-              "name": "TW",
-              "link_type": "company_country",
-              "rank": 5,
-              "symbol": "TW"
-            },
-            {
-              "key": "JP",
-              "type": "country",
-              "name": "JP",
-              "link_type": "company_country",
-              "rank": 6,
-              "symbol": "JP"
-            },
-            {
-              "key": "SG",
-              "type": "country",
-              "name": "SG",
-              "link_type": "company_country",
-              "rank": 7,
-              "symbol": "SG"
-            },
-            {
-              "key": "DE",
-              "type": "country",
-              "name": "DE",
-              "link_type": "company_country",
-              "rank": 8,
-              "symbol": "DE"
-            },
-            {
-              "key": "FR",
-              "type": "country",
-              "name": "FR",
-              "link_type": "company_country",
-              "rank": 9,
-              "symbol": "FR"
-            },
-            {
-              "key": "CH",
-              "type": "country",
-              "name": "CH",
-              "link_type": "company_country",
-              "rank": 10,
-              "symbol": "CH"
-            },
-            {
-              "key": "CA",
-              "type": "country",
-              "name": "CA",
-              "link_type": "company_country",
-              "rank": 11,
-              "symbol": "CA"
-            },
-            {
-              "key": "BR",
-              "type": "country",
-              "name": "BR",
-              "link_type": "company_country",
-              "rank": 12,
-              "symbol": "BR"
-            },
-            {
-              "key": "CN",
-              "type": "country",
-              "name": "CN",
-              "link_type": "company_country",
-              "rank": 13,
-              "symbol": "CN"
-            },
-            {
-              "key": "NL",
-              "type": "country",
-              "name": "NL",
-              "link_type": "company_country",
-              "rank": 14,
-              "symbol": "NL"
-            }
-          ]
-        },
-        {
-          "title": "Region Exposure",
-          "type": "company_region",
-          "links": [
-            {
-              "key": "North_America",
-              "type": "region",
-              "name": "North America",
-              "link_type": "company_region",
-              "rank": 1
-            },
-            {
-              "key": "Europe",
-              "type": "region",
-              "name": "Europe",
-              "link_type": "company_region",
-              "rank": 2
-            },
-            {
-              "key": "Asia",
-              "type": "region",
-              "name": "Asia",
-              "link_type": "company_region",
-              "rank": 3
-            },
-            {
-              "key": "South_America",
-              "type": "region",
-              "name": "South America",
-              "link_type": "company_region",
-              "rank": 4
-            },
-            {
-              "key": "Middle_East",
-              "type": "region",
-              "name": "Middle East",
-              "link_type": "company_region",
-              "rank": 5
-            },
-            {
-              "key": "Africa",
-              "type": "region",
-              "name": "Africa",
-              "link_type": "company_region",
-              "rank": 6
-            }
-          ]
-        }
-      ],
-      "source": "IBKR MCP company research"
-    },
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 2.08,
@@ -4580,12 +4580,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Electronic Gaming...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 476026060,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -4594,7 +4594,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -4608,6 +4608,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 288,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -4663,10 +4666,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 66.8,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 66.8
   },
   {
     "ATR_14": 1.83,
@@ -5490,6 +5490,16 @@
     ],
     "Check_Details": "\u2713 Trend (P 42.4 > SMA50 38.9) \u2713 RS (Trend: Up, Val: 15.88) \u2713 RSI (62.7) \u2713 ATR (Risk 8.6%)",
     "Checks_Passed": 4,
+    "Company_Context": {
+      "available": true,
+      "connections": [],
+      "fetched_at": "2026-09-17T05:24:54.419590+00:00",
+      "peer_count": 0,
+      "peer_rank": null,
+      "source": "IBKR MCP company research",
+      "theme_count": 0,
+      "themes": []
+    },
     "Company_Name": "Varonis Systems, Inc.",
     "Consensus": "Buy",
     "Contract_ID": 145409766,
@@ -5517,12 +5527,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Infras...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 145409766,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -5530,7 +5540,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -5545,8 +5555,111 @@
     "Options_Collection_Rank": 1,
     "Options_Collection_Selected": true,
     "Options_Context": {
+      "analytics_available": true,
       "available": true,
-      "fetched_at": "2026-09-23T08:06:23.335568+00:00",
+      "average_spread_pct": 72.58233049230331,
+      "chain_contracts_count": 3,
+      "chain_contracts_sampled": [
+        {
+          "call_contract_id": 925553268,
+          "call_contract_id_ex": "925553268@SMART",
+          "call_description": "VRNS NOV 20 '26 50 Call",
+          "put_contract_id": 925553961,
+          "put_contract_id_ex": "925553961@SMART",
+          "put_description": "VRNS NOV 20 '26 50 Put",
+          "strike": "50"
+        },
+        {
+          "call_contract_id": 925553195,
+          "call_contract_id_ex": "925553195@SMART",
+          "call_description": "VRNS NOV 20 '26 45 Call",
+          "put_contract_id": 925553892,
+          "put_contract_id_ex": "925553892@SMART",
+          "put_description": "VRNS NOV 20 '26 45 Put",
+          "strike": "45"
+        },
+        {
+          "call_contract_id": 925553330,
+          "call_contract_id_ex": "925553330@SMART",
+          "call_description": "VRNS NOV 20 '26 55 Call",
+          "put_contract_id": 925554035,
+          "put_contract_id_ex": "925554035@SMART",
+          "put_description": "VRNS NOV 20 '26 55 Put",
+          "strike": "55"
+        }
+      ],
+      "contract_iv_coverage_ratio": 0.0,
+      "contracts": [
+        {
+          "ask": 3.0,
+          "bid": 0.65,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 128.76712328767124,
+          "strike": 50.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 5.6000000000000005,
+          "bid": 3.3000000000000003,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 51.68539325842697,
+          "strike": 50.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 7.4,
+          "bid": 3.8000000000000003,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 64.28571428571428,
+          "strike": 45.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 3.1,
+          "bid": 1.25,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 85.05747126436782,
+          "strike": 45.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 2.1,
+          "bid": 1.0,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 70.96774193548387,
+          "strike": 55.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 9.8,
+          "bid": 6.9,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 34.73053892215569,
+          "strike": 55.0,
+          "volume": 0.0
+        }
+      ],
+      "contracts_sampled": 6,
+      "data_quality": "partial",
+      "exchange": "SMART",
       "expiration": "20261120",
       "expirations": [
         "20261016",
@@ -5558,120 +5671,17 @@
         "20280121",
         "20290119"
       ],
-      "exchange": "SMART",
-      "contracts_sampled": 6,
-      "chain_contracts_count": 3,
-      "chain_contracts_sampled": [
-        {
-          "strike": "50",
-          "call_contract_id_ex": "925553268@SMART",
-          "call_contract_id": 925553268,
-          "call_description": "VRNS NOV 20 '26 50 Call",
-          "put_contract_id_ex": "925553961@SMART",
-          "put_contract_id": 925553961,
-          "put_description": "VRNS NOV 20 '26 50 Put"
-        },
-        {
-          "strike": "45",
-          "call_contract_id_ex": "925553195@SMART",
-          "call_contract_id": 925553195,
-          "call_description": "VRNS NOV 20 '26 45 Call",
-          "put_contract_id_ex": "925553892@SMART",
-          "put_contract_id": 925553892,
-          "put_description": "VRNS NOV 20 '26 45 Put"
-        },
-        {
-          "strike": "55",
-          "call_contract_id_ex": "925553330@SMART",
-          "call_contract_id": 925553330,
-          "call_description": "VRNS NOV 20 '26 55 Call",
-          "put_contract_id_ex": "925554035@SMART",
-          "put_contract_id": 925554035,
-          "put_description": "VRNS NOV 20 '26 55 Put"
-        }
-      ],
+      "fetched_at": "2026-09-23T08:06:23.335568+00:00",
+      "open_interest_coverage_ratio": 0.0,
+      "put_call_open_interest_ratio": null,
+      "put_call_volume_ratio": null,
+      "quote_coverage_ratio": 1.0,
+      "quoted_contract_ratio": 1.0,
+      "score_available": false,
       "snapshot_error_count": 0,
       "snapshot_errors": [],
-      "quoted_contract_ratio": 1.0,
-      "average_spread_pct": 72.58233049230331,
-      "put_call_volume_ratio": null,
-      "put_call_open_interest_ratio": null,
-      "contracts": [
-        {
-          "side": "call",
-          "strike": 50.0,
-          "bid": 0.65,
-          "ask": 3.0,
-          "spread_pct": 128.76712328767124,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 50.0,
-          "bid": 3.3000000000000003,
-          "ask": 5.6000000000000005,
-          "spread_pct": 51.68539325842697,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 45.0,
-          "bid": 3.8000000000000003,
-          "ask": 7.4,
-          "spread_pct": 64.28571428571428,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 45.0,
-          "bid": 1.25,
-          "ask": 3.1,
-          "spread_pct": 85.05747126436782,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 55.0,
-          "bid": 1.0,
-          "ask": 2.1,
-          "spread_pct": 70.96774193548387,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 55.0,
-          "bid": 6.9,
-          "ask": 9.8,
-          "spread_pct": 34.73053892215569,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        }
-      ],
       "source": "IBKR MCP option chain snapshots",
-      "quote_coverage_ratio": 1.0,
-      "volume_coverage_ratio": 1.0,
-      "open_interest_coverage_ratio": 0.0,
-      "contract_iv_coverage_ratio": 0.0,
-      "data_quality": "partial",
-      "analytics_available": true,
-      "score_available": false
+      "volume_coverage_ratio": 1.0
     },
     "Options_Data_Available": false,
     "Options_Data_Partial": true,
@@ -5728,17 +5738,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 68.41,
-    "Company_Context": {
-      "available": true,
-      "connections": [],
-      "fetched_at": "2026-09-17T05:24:54.419590+00:00",
-      "peer_count": 0,
-      "peer_rank": null,
-      "source": "IBKR MCP company research",
-      "theme_count": 0,
-      "themes": []
-    }
+    "volatility_score": 68.41
   },
   {
     "ATR_14": 0.45,
@@ -6589,19 +6589,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Farm Products",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 437449296,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -6615,6 +6615,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 176,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -6670,9 +6673,6 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 68.97,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 68.97
   }
 ]
