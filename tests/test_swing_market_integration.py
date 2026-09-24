@@ -7,6 +7,64 @@ import pandas as pd
 
 import market_scanner
 import market_scanner_analysis
+import pytest
+
+
+def _migration_snapshot(dated=False):
+    result = {'VIX_Current': 18, 'Breadth_Pct': 55}
+    for prefix in ('SPX', 'NDX'):
+        result.update({f'{prefix}_{key}': value for key, value in
+                       [('Price', 120), ('SMA10', 115), ('SMA50', 110), ('SMA200', 100)]})
+    if dated:
+        timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        for key in ('SPX_Observed_At', 'NDX_Observed_At', 'VIX_Observed_At', 'Breadth_Fetched_At'):
+            result[key] = timestamp
+    return result
+
+
+@pytest.mark.parametrize('mode', ['portfolio', 'ro'])
+def test_legacy_swing_cache_refreshes_once_and_persists(mode):
+    old, fresh = _migration_snapshot(), _migration_snapshot(dated=True)
+    state = {'market_overviews': {'SUA': {'data': old}}}
+    with patch('market_scanner.get_swing_trading_data', return_value=fresh) as fetch, \
+            patch('market_scanner.market_utils.save_state') as save:
+        result = market_scanner._refresh_legacy_swing_cache(state, old, mode)
+        assert result == fresh
+        assert state['market_overviews']['SUA']['data'] == fresh
+        assert market_scanner._refresh_legacy_swing_cache(state, result, mode) == fresh
+        fetch.assert_called_once()
+        save.assert_called_once_with(state)
+    assert 'SPX_Observed_At' not in old
+
+
+@pytest.mark.parametrize('mode,data', [('html-only', _migration_snapshot()),
+                                     ('portfolio', None), ('portfolio', {}),
+                                     ('portfolio', _migration_snapshot(dated=True))])
+def test_swing_cache_migration_does_not_fetch_unnecessarily(mode, data):
+    with patch('market_scanner.get_swing_trading_data') as fetch:
+        assert market_scanner._refresh_legacy_swing_cache({}, data, mode) == data
+        fetch.assert_not_called()
+
+
+@pytest.mark.parametrize('failure', [None, RuntimeError('offline')])
+def test_failed_cache_migration_preserves_old_snapshot(failure):
+    old = _migration_snapshot()
+    state = {'market_overviews': {'SUA': {'data': old}}}
+    with patch('market_scanner.get_swing_trading_data', return_value={}, side_effect=failure), \
+            patch('market_scanner.market_utils.save_state') as save:
+        assert market_scanner._refresh_legacy_swing_cache(state, old, 'portfolio') == old
+        assert state['market_overviews']['SUA']['data'] == old
+        save.assert_not_called()
+
+
+def test_missing_observation_dates_are_explained_in_primary_signal():
+    from swing_model import evaluate_international
+    signal = evaluate_international(_migration_snapshot())
+    assert signal['regime'] == 'UNKNOWN'
+    for key in ('SPX_Observed_At', 'NDX_Observed_At', 'VIX_Observed_At', 'Breadth_Fetched_At'):
+        assert key in signal['reason']
+        assert key in signal['pullback']['reason']
+    assert 'valoare lipsă' not in signal['reason']
 
 
 def _proxy(length=220, rsi=60, age_days=0, price=60):

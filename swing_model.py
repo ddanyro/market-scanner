@@ -113,17 +113,28 @@ def evaluate_international(data, now=None):
         indices.append(values)
         if any(v is None for v in values):
             issues.append(f'{prefix}: preț sau medii lipsă/invalide.')
-        if not _fresh(data.get(f'{prefix}_Observed_At'), now):
-            issues.append(f'{prefix}: data cotației lipsește sau este veche.')
+        if not data.get(f'{prefix}_Observed_At'):
+            issues.append(f'{prefix}: lipsește data observației ({prefix}_Observed_At).')
+        elif not _fresh(data.get(f'{prefix}_Observed_At'), now):
+            issues.append(f'{prefix}: data observației este veche sau invalidă.')
     vix = _number(data.get('VIX_Current'), positive=True)
     breadth = _number(data.get('Breadth_Pct'), maximum=100)
-    if vix is None or not _fresh(data.get('VIX_Observed_At'), now):
-        issues.append('VIX lipsește sau este vechi.')
+    if vix is None:
+        issues.append('VIX: valoare lipsă sau invalidă.')
+    if not data.get('VIX_Observed_At'):
+        issues.append('VIX: lipsește data observației (VIX_Observed_At).')
+    elif not _fresh(data.get('VIX_Observed_At'), now):
+        issues.append('VIX: data observației este veche sau invalidă.')
     breadth_observed = data.get('Breadth_Observed_At')
-    if breadth is None or not _fresh(breadth_observed or data.get('Breadth_Fetched_At'), now):
-        issues.append('Breadth lipsește sau datele disponibile sunt vechi.')
+    if breadth is None:
+        issues.append('Breadth: valoare lipsă sau invalidă.')
+    breadth_date = breadth_observed or data.get('Breadth_Fetched_At')
+    if not breadth_date:
+        issues.append('Breadth: lipsește data observației/preluării (Breadth_Observed_At/Breadth_Fetched_At).')
+    elif not _fresh(breadth_date, now):
+        issues.append('Breadth: data observației/preluării este veche sau invalidă.')
     if issues:
-        unknown = _setup('UNKNOWN', 'Date insuficiente pentru filtrul de piață.')
+        unknown = _setup('UNKNOWN', ' '.join(issues))
         return _result('UNKNOWN', unknown, unknown, 'DATE INSUFICIENTE', issues,
                        unknown['reason'], incomplete=True)
 

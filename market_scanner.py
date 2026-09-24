@@ -5711,6 +5711,35 @@ def _valid_us_market_overview(data):
     return all((_safe_float_text(data.get(key)) or 0) > 0 for key in required)
 
 
+def _refresh_legacy_swing_cache(state, cached_data, run_mode):
+    """Migrează cache-ul fără timestampuri, fără scanarea watchlistului.
+
+    html-only rămâne offline. Nu atribuim ora migrării cotațiilor vechi.
+    La eșec păstrăm snapshotul și diagnosticul său, pentru o nouă încercare
+    la următoarea actualizare normală.
+    """
+    if run_mode not in {'portfolio', 'ro'} or not cached_data:
+        return cached_data
+    dated = all(cached_data.get(key) for key in (
+        'SPX_Observed_At', 'NDX_Observed_At', 'VIX_Observed_At',
+    )) and (cached_data.get('Breadth_Observed_At') or cached_data.get('Breadth_Fetched_At'))
+    if dated:
+        return cached_data
+    print('  -> Cache SUA vechi, fără datele observațiilor; reîmprospătăm doar indicatorii globali.')
+    try:
+        from swing_model import evaluate_international
+        fresh = get_swing_trading_data()
+        assessment = evaluate_international(fresh)
+        if assessment['regime'] != 'UNKNOWN' and _store_us_market_overview_snapshot(state, fresh):
+            market_utils.save_state(state)
+            return fresh
+        print('  -> Reîmprospătare SUA incompletă: ' + '; '.join(assessment['data_quality']['issues']))
+    except Exception as exc:
+        print(f'  -> Reîmprospătare SUA indisponibilă: {exc}')
+    print('  -> Păstrăm snapshotul anterior; datele lipsă rămân explicit neconfirmate.')
+    return cached_data
+
+
 def _store_us_market_overview_snapshot(state, swing_data):
     """Salvează separat analiza SUA validă pentru rulările BVB ulterioare."""
     if not isinstance(state, dict) or not _valid_us_market_overview(swing_data):
@@ -13364,6 +13393,7 @@ def main():
         _cached_swing_data_for_ro(state)
         if args.mode in {'ro', 'portfolio', 'html-only'} else None
     )
+    cached_swing_data = _refresh_legacy_swing_cache(state, cached_swing_data, args.mode)
     if args.mode == 'portfolio' and cached_swing_data is None:
         # Un dict gol oprește explicit fallback-ul din renderer către o
         # interogare globală. Modul portfolio rămâne astfel strict limitat la
