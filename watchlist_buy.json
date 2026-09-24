@@ -848,12 +848,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Drug Manufacturer...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 26734397,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -862,7 +862,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -876,6 +876,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 31,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -931,10 +934,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 4.54,
@@ -1785,12 +1785,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Industr...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 4392,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -1798,7 +1798,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -1812,6 +1812,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 22,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -1867,10 +1870,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.64,
@@ -2721,12 +2721,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Industr...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 566188877,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -2734,7 +2734,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -2748,6 +2748,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 150,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -2803,10 +2806,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 68.64,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 68.64
   },
   {
     "ATR_14": 1.72,
@@ -3657,19 +3657,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Lumber & Wood Pro...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 75218890,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -3683,6 +3683,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 16,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -3738,10 +3741,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.86,
@@ -4592,12 +4592,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Chemicals",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 32943358,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -4606,7 +4606,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -4620,6 +4620,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 127,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -4675,10 +4678,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 68.17,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 68.17
   },
   {
     "ATR_14": 3.06,
@@ -5529,12 +5529,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Building Products...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 244164913,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -5542,7 +5542,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -5556,6 +5556,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 90,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -5611,10 +5614,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 4.47,
@@ -6465,12 +6465,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Infras...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 4172987,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -6479,7 +6479,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -6493,6 +6493,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 129,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -6548,10 +6551,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 71.98,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 71.98
   },
   {
     "ATR_14": 11.53,
@@ -7402,12 +7402,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Infras...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 370757467,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -7416,7 +7416,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -7430,6 +7430,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 104,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -7485,10 +7488,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 65.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 65.0
   },
   {
     "ATR_14": 17.01,
@@ -8312,6 +8312,824 @@
     ],
     "Check_Details": "\u2713 Trend (P 345.6 > SMA50 311.9) \u2713 RS (Trend: Up, Val: 14.89) \u2713 RSI (62.3) \u2713 ATR (Risk 9.8%)",
     "Checks_Passed": 4,
+    "Company_Context": {
+      "available": true,
+      "connections": [
+        {
+          "links": [
+            {
+              "key": "42e2758a-31c2-413a-aa4e-de9b0ab19132",
+              "link_type": "company_theme",
+              "name": "Cybersecurity",
+              "rank": 1,
+              "type": "theme"
+            },
+            {
+              "key": "ae6e2c29-bd04-4251-8803-98b915fcd6ca",
+              "link_type": "company_theme",
+              "name": "Network Security",
+              "rank": 2,
+              "type": "theme"
+            },
+            {
+              "key": "512f0de4-da00-4846-9c2a-be4847d182a4",
+              "link_type": "company_theme",
+              "name": "Cloud Computing",
+              "rank": 3,
+              "type": "theme"
+            },
+            {
+              "key": "f3fcc84e-531b-4ea9-8537-97824fd85979",
+              "link_type": "company_theme",
+              "name": "AI Enterprise Integration",
+              "rank": 4,
+              "type": "theme"
+            },
+            {
+              "key": "b6db4986-bb84-4b06-84f5-7e85fdf53362",
+              "link_type": "company_theme",
+              "name": "Enterprise Networking",
+              "rank": 5,
+              "type": "theme"
+            },
+            {
+              "key": "9723f07d-74ac-4750-9fce-73602ba4ad58",
+              "link_type": "company_theme",
+              "name": "Threat Intelligence",
+              "rank": 6,
+              "type": "theme"
+            },
+            {
+              "key": "f14b97b4-fbbf-4411-bfc2-6d9af20944d1",
+              "link_type": "company_theme",
+              "name": "Agentic AI",
+              "rank": 7,
+              "type": "theme"
+            },
+            {
+              "key": "cc0bb4ab-ed23-4098-8feb-6e28e770db45",
+              "link_type": "company_theme",
+              "name": "Artificial Intelligence",
+              "rank": 8,
+              "type": "theme"
+            },
+            {
+              "key": "3727b8c9-7b24-4cd1-99bf-7c4586ea099f",
+              "link_type": "company_theme",
+              "name": "Data Security",
+              "rank": 9,
+              "type": "theme"
+            },
+            {
+              "key": "b2872dbe-6e61-4a7c-94b6-73cd44df9bca",
+              "link_type": "company_theme",
+              "name": "Generative AI & LLMs",
+              "rank": 10,
+              "type": "theme"
+            },
+            {
+              "key": "8bff3578-9b42-4a74-85c1-d66b1f55bc8f",
+              "link_type": "company_theme",
+              "name": "Data Analytics",
+              "rank": 11,
+              "type": "theme"
+            },
+            {
+              "key": "1a7c1f0d-038f-43e9-ab3f-a2e239200e5a",
+              "link_type": "company_theme",
+              "name": "SaaS",
+              "rank": 12,
+              "type": "theme"
+            },
+            {
+              "key": "6d952a1a-e964-44d3-b05b-e4b2e0b1c8bf",
+              "link_type": "company_theme",
+              "name": "Data Centers",
+              "rank": 13,
+              "type": "theme"
+            },
+            {
+              "key": "21821ee1-43ca-4247-904c-843737eb8009",
+              "link_type": "company_theme",
+              "name": "Digital Identity Verification",
+              "rank": 14,
+              "type": "theme"
+            },
+            {
+              "key": "966bf12f-7302-42e6-8708-043b4d2e0b4f",
+              "link_type": "company_theme",
+              "name": "IT Consulting",
+              "rank": 15,
+              "type": "theme"
+            },
+            {
+              "key": "00d0d758-0aa9-4aa6-9891-ddf03f7dbaac",
+              "link_type": "company_theme",
+              "name": "AI Infrastructure",
+              "rank": 16,
+              "type": "theme"
+            },
+            {
+              "key": "4209a810-d833-42a7-950b-27a18ae3b9e5",
+              "link_type": "company_theme",
+              "name": "Quantum Computing",
+              "rank": 17,
+              "type": "theme"
+            },
+            {
+              "key": "42cb6b91-fa6f-45a4-a05a-42db18654ed8",
+              "link_type": "company_theme",
+              "name": "Enterprise Software",
+              "rank": 18,
+              "type": "theme"
+            },
+            {
+              "key": "0ecbf7dc-3c50-4222-a3cc-32dacdbb5717",
+              "link_type": "company_theme",
+              "name": "Digital Solutions",
+              "rank": 19,
+              "type": "theme"
+            },
+            {
+              "key": "5cce0040-d2cb-4176-b5a0-3251111964f9",
+              "link_type": "company_theme",
+              "name": "Machine Learning",
+              "rank": 20,
+              "type": "theme"
+            }
+          ],
+          "title": "Investment Theme Exposure",
+          "type": "company_theme"
+        },
+        {
+          "links": [
+            {
+              "key": "Cortex",
+              "link_type": "company_product",
+              "name": "Cortex",
+              "rank": 1,
+              "type": "product"
+            },
+            {
+              "key": "Prisma",
+              "link_type": "company_product",
+              "name": "Prisma",
+              "rank": 2,
+              "type": "product"
+            },
+            {
+              "key": "Next-Generation Firewalls (NGFW)",
+              "link_type": "company_product",
+              "name": "Next-Generation Firewalls (NGFW)",
+              "rank": 3,
+              "type": "product"
+            },
+            {
+              "key": "Unit 42",
+              "link_type": "company_product",
+              "name": "Unit 42",
+              "rank": 4,
+              "type": "product"
+            },
+            {
+              "key": "Cloud-Delivered Security Services (CDSS)",
+              "link_type": "company_product",
+              "name": "Cloud-Delivered Security Services (CDSS)",
+              "rank": 5,
+              "type": "product"
+            },
+            {
+              "key": "Strata",
+              "link_type": "company_product",
+              "name": "Strata",
+              "rank": 6,
+              "type": "product"
+            },
+            {
+              "key": "AI Security",
+              "link_type": "company_product",
+              "name": "AI Security",
+              "rank": 7,
+              "type": "product"
+            }
+          ],
+          "title": "Brand & Product",
+          "type": "company_product"
+        },
+        {
+          "links": [
+            {
+              "contract_id": 70236214,
+              "exchange": "SMART",
+              "key": "US34959E1091",
+              "link_type": "company_competitor",
+              "name": "FORTINET INC",
+              "symbol": "FTNT",
+              "type": "company"
+            },
+            {
+              "contract_id": 4172987,
+              "exchange": "SMART",
+              "key": "IL0010824113",
+              "link_type": "company_competitor",
+              "name": "CHECK POINT SOFTWARE TECH",
+              "symbol": "CHKP",
+              "type": "company"
+            },
+            {
+              "contract_id": 310621426,
+              "exchange": "SMART",
+              "key": "US98980G1022",
+              "link_type": "company_competitor",
+              "name": "ZSCALER INC",
+              "symbol": "ZS",
+              "type": "company"
+            },
+            {
+              "contract_id": 272093,
+              "exchange": "SMART",
+              "key": "US5949181045",
+              "link_type": "company_competitor",
+              "name": "MICROSOFT CORP",
+              "symbol": "MSFT",
+              "type": "company"
+            },
+            {
+              "contract_id": 370757467,
+              "exchange": "SMART",
+              "key": "US22788C1053",
+              "link_type": "company_competitor",
+              "name": "CROWDSTRIKE HOLDINGS INC - A",
+              "symbol": "CRWD",
+              "type": "company"
+            },
+            {
+              "contract_id": 268084,
+              "exchange": "SMART",
+              "key": "US17275R1023",
+              "link_type": "company_competitor",
+              "name": "CISCO SYSTEMS INC",
+              "symbol": "CSCO",
+              "type": "company"
+            },
+            {
+              "contract_id": 499640681,
+              "exchange": "SMART",
+              "key": "US81730H1095",
+              "link_type": "company_competitor",
+              "name": "SENTINELONE INC -CLASS A",
+              "symbol": "S",
+              "type": "company"
+            },
+            {
+              "contract_id": 382633646,
+              "exchange": "SMART",
+              "key": "US18915M1071",
+              "link_type": "company_competitor",
+              "name": "CLOUDFLARE INC - CLASS A",
+              "symbol": "NET",
+              "type": "company"
+            },
+            {
+              "contract_id": 313130367,
+              "exchange": "SMART",
+              "key": "US11135F1012",
+              "link_type": "company_competitor",
+              "name": "BROADCOM INC",
+              "symbol": "AVGO",
+              "type": "company"
+            },
+            {
+              "contract_id": 200154100,
+              "exchange": "SMART",
+              "key": "US7534221046",
+              "link_type": "company_competitor",
+              "name": "RAPID7 INC",
+              "symbol": "RPD",
+              "type": "company"
+            },
+            {
+              "contract_id": 6248713,
+              "exchange": "SMART",
+              "key": "US3156161024",
+              "link_type": "company_competitor",
+              "name": "F5 INC",
+              "symbol": "FFIV",
+              "type": "company"
+            },
+            {
+              "contract_id": 6220356,
+              "exchange": "SMART",
+              "key": "US00971T1016",
+              "link_type": "company_competitor",
+              "name": "AKAMAI TECHNOLOGIES INC",
+              "symbol": "AKAM",
+              "type": "company"
+            },
+            {
+              "contract_id": 114814349,
+              "exchange": "SMART",
+              "key": "US74758T3032",
+              "link_type": "company_competitor",
+              "name": "QUALYS INC",
+              "symbol": "QLYS",
+              "type": "company"
+            },
+            {
+              "contract_id": 327422072,
+              "exchange": "SMART",
+              "key": "US88025T1025",
+              "link_type": "company_competitor",
+              "name": "TENABLE HOLDINGS INC",
+              "symbol": "TENB",
+              "type": "company"
+            },
+            {
+              "contract_id": 208813719,
+              "exchange": "SMART",
+              "key": "US02079K3059",
+              "link_type": "company_competitor",
+              "name": "ALPHABET INC-CL A",
+              "symbol": "GOOGL",
+              "type": "company"
+            },
+            {
+              "contract_id": 209411798,
+              "exchange": "SMART",
+              "key": "US42824C1099",
+              "link_type": "company_competitor",
+              "name": "HEWLETT PACKARD ENTERPRISE",
+              "symbol": "HPE",
+              "type": "company"
+            },
+            {
+              "contract_id": 383858515,
+              "exchange": "SMART",
+              "key": "US23804L1035",
+              "link_type": "company_competitor",
+              "name": "DATADOG INC - CLASS A",
+              "symbol": "DDOG",
+              "type": "company"
+            },
+            {
+              "contract_id": 335844146,
+              "exchange": "SMART",
+              "key": "NL0013056914",
+              "link_type": "company_competitor",
+              "name": "ELASTIC NV",
+              "symbol": "ESTC",
+              "type": "company"
+            },
+            {
+              "contract_id": 3691937,
+              "exchange": "SMART",
+              "key": "US0231351067",
+              "link_type": "company_competitor",
+              "name": "AMAZON.COM INC",
+              "symbol": "AMZN",
+              "type": "company"
+            },
+            {
+              "contract_id": 146405187,
+              "exchange": "SMART",
+              "key": "US0021211018",
+              "link_type": "company_competitor",
+              "name": "A10 NETWORKS INC",
+              "symbol": "ATEN",
+              "type": "company"
+            }
+          ],
+          "title": "Competitors",
+          "type": "company_competitor"
+        },
+        {
+          "links": [
+            {
+              "key": "US",
+              "link_type": "company_country",
+              "name": "US",
+              "rank": 1,
+              "symbol": "US",
+              "type": "country"
+            },
+            {
+              "key": "IL",
+              "link_type": "company_country",
+              "name": "IL",
+              "rank": 2,
+              "symbol": "IL",
+              "type": "country"
+            },
+            {
+              "key": "IN",
+              "link_type": "company_country",
+              "name": "IN",
+              "rank": 3,
+              "symbol": "IN",
+              "type": "country"
+            },
+            {
+              "key": "JP",
+              "link_type": "company_country",
+              "name": "JP",
+              "rank": 4,
+              "symbol": "JP",
+              "type": "country"
+            },
+            {
+              "key": "NL",
+              "link_type": "company_country",
+              "name": "NL",
+              "rank": 5,
+              "symbol": "NL",
+              "type": "country"
+            },
+            {
+              "key": "SG",
+              "link_type": "company_country",
+              "name": "SG",
+              "rank": 6,
+              "symbol": "SG",
+              "type": "country"
+            },
+            {
+              "key": "GB",
+              "link_type": "company_country",
+              "name": "GB",
+              "rank": 7,
+              "symbol": "GB",
+              "type": "country"
+            },
+            {
+              "key": "MX",
+              "link_type": "company_country",
+              "name": "MX",
+              "rank": 8,
+              "symbol": "MX",
+              "type": "country"
+            }
+          ],
+          "title": "Country Exposure",
+          "type": "company_country"
+        },
+        {
+          "links": [
+            {
+              "key": "North_America",
+              "link_type": "company_region",
+              "name": "North America",
+              "rank": 1,
+              "type": "region"
+            },
+            {
+              "key": "Middle_East",
+              "link_type": "company_region",
+              "name": "Middle East",
+              "rank": 2,
+              "type": "region"
+            },
+            {
+              "key": "Europe",
+              "link_type": "company_region",
+              "name": "Europe",
+              "rank": 3,
+              "type": "region"
+            },
+            {
+              "key": "Asia",
+              "link_type": "company_region",
+              "name": "Asia",
+              "rank": 4,
+              "type": "region"
+            }
+          ],
+          "title": "Region Exposure",
+          "type": "company_region"
+        }
+      ],
+      "fetched_at": "2026-09-24T07:55:18.248348+00:00",
+      "peer_count": 25,
+      "peer_rank": 1,
+      "source": "IBKR MCP company research",
+      "theme_count": 5,
+      "themes": [
+        {
+          "description": "Measures and protocols protecting information systems from unauthorized access, theft, and disruption to ensure data integrity and confidentiality.",
+          "key": "42e2758a-31c2-413a-aa4e-de9b0ab19132",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 370757467,
+              "description": "Delivers a cloud-native cybersecurity platform specialized in endpoint protection, threat intelligence, and incident response to secure enterprise workloads and prevent data breaches.",
+              "evidence": "CrowdStrike operates exclusively as a pure-play cybersecurity software provider, generating 100% of its $1.39 billion in quarterly revenue from its flagship, AI-native Falcon platform. The firm's entire organizational infrastructure, encompassing over 11,000 employees and its executive leadership, is dedicated to preventing breaches across endpoints, identities, and cloud environments. The company directs its capital entirely toward expanding its security capabilities, committing $408.3 million to quarterly research and development and deploying over $1.1 billion on recent acquisitions like SGNL.AI, Seraphic, and Pangea Cyber to advance zero-trust architectures. After reaching an ending ARR of $5.51 billion, the company is actively positioning its security framework as critical AI infrastructure, serving as the exclusive cybersecurity vendor selected by Anthropic and OpenAI to secure their foundational models.",
+              "exchange": "SMART",
+              "key": "US22788C1053",
+              "name": "CROWDSTRIKE HOLDINGS INC - A",
+              "rank": 2,
+              "symbol": "CRWD"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 70236214,
+              "description": "Develops integrated cybersecurity solutions, including next-generation firewalls, secure networking, and threat intelligence, to protect enterprise networks, users, and data from evolving digital threats.",
+              "evidence": "Fortinet operates as a pure-play vendor entirely dedicated to the cybersecurity theme, generating 100% of its recent $1.85 billion quarterly revenue through next-generation firewalls, secure networking, and AI-driven security operations. The company supports this focus with an exclusively dedicated 15,000-person workforce and proprietary innovations\u2014such as custom ASIC chips and the unified FortiOS platform\u2014which capture a 55% firewall unit market share. Customer adoption is driven by its Unified SASE solutions that seamlessly integrate Zero Trust Network Access (ZTNA) architectures, a segment currently accounting for 25% of total billings. To sustain its defense against sophisticated attacks, Fortinet directs its entire $350 million to $550 million annual capital expenditure budget toward scaling its threat intelligence clouds and backend infrastructure.",
+              "exchange": "SMART",
+              "key": "US34959E1091",
+              "name": "FORTINET INC",
+              "rank": 3,
+              "symbol": "FTNT"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 310621426,
+              "description": "Operates a cloud-native zero trust security platform that protects enterprise users, workloads, and devices from advanced cyber threats while securely connecting them to applications.",
+              "evidence": "Zscaler operates as a pure-play cloud security vendor, positioning its proprietary Zero Trust Exchange architecture as the foundational cybersecurity platform for the AI era. The company's business model is explicitly anchored to enterprise threat protection, with subscriptions and support for its security solutions generating $3.5 billion in annual recurring revenue and accounting for 98% of total sales. Furthermore, Zscaler dedicates the vast majority of its capital to expanding its cyber defense capabilities, evidenced by deploying over $1.6 billion combined into recent research and development and acquisitions of specialized security firms like Red Canary and Symmetry Systems. Consequently, providing superior protection against vulnerabilities and malicious actors dictates the entirety of Zscaler's product portfolio, organizational structure, and overarching corporate mission.",
+              "exchange": "SMART",
+              "key": "US98980G1022",
+              "name": "ZSCALER INC",
+              "rank": 4,
+              "symbol": "ZS"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 272356196,
+              "description": "Provides cloud-native identity and access management solutions, including single sign-on and multi-factor authentication, that establish zero-trust security frameworks to protect enterprise networks and applications from unauthorized access.",
+              "evidence": "Okta operates as a pure-play identity security provider, with its secure access subscription platforms generating $750 million, representing 98% of the company's total revenue in Q2 2026. The platform serves as a foundational zero-trust verification layer for over 20,000 enterprise customers, governing access for human and non-human identities to address the reality that 80% of data breaches originate through compromised identities. To continuously expand these defensive capabilities, Okta integrates specialized security-focused go-to-market teams and executes targeted investments, such as the acquisition of Axiom to augment its privileged access management offerings.",
+              "exchange": "SMART",
+              "key": "US6792951054",
+              "name": "OKTA INC",
+              "rank": 5,
+              "symbol": "OKTA"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 499640681,
+              "description": "Develops an AI-powered extended detection and response platform that autonomously prevents, identifies, and mitigates cyber threats across enterprise endpoints, cloud workloads, and identity systems.",
+              "evidence": "SentinelOne operates exclusively as a pure-play cybersecurity provider, generating the entirety of its revenue by delivering autonomous, AI-driven defense through its core Singularity Platform. The company's strategic alignment with this theme is evidenced by its recent capital allocation, including over $345 million for security-focused acquisitions such as Prompt Security and Observo, alongside nearly $96 million in quarterly research and development during Q2 2026. Furthermore, SentinelOne dedicates its entire workforce of over 3,000 employees to cybersecurity innovation, leveraging patented machine learning algorithms and reinvesting $45 million in annualized restructuring savings directly into product enhancements across endpoint, cloud, and data security domains.",
+              "exchange": "SMART",
+              "key": "US81730H1095",
+              "name": "SENTINELONE INC -CLASS A",
+              "rank": 6,
+              "symbol": "S"
+            }
+          ],
+          "name": "Cybersecurity",
+          "total_count": 58
+        },
+        {
+          "description": "Protocols ensuring safe and secure network operations, safeguarding data integrity from unauthorized access and cyber threats.",
+          "key": "ae6e2c29-bd04-4251-8803-98b915fcd6ca",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 70236214,
+              "description": "Provides comprehensive network security solutions, including next-generation firewalls and an integrated security fabric platform, designed to protect enterprise infrastructure, data centers, and distributed environments against evolving cyber threats.",
+              "evidence": "Fortinet operates fundamentally as a network security company, driven by its flagship FortiGate firewalls and FortiOS platform which integrate networking and security architectures. The firm captures approximately 60% of the network security system unit market share, launching high-performance appliances like the FortiGate 3500G and 400G to generate a 32% year-over-year growth in secure networking billings. To support this core segment, Fortinet directs its entire $350 million to $550 million annual infrastructure budget toward network security capacity, relying on proprietary ASIC technology and continuous in-house engineering rather than external acquisitions.",
+              "exchange": "SMART",
+              "key": "US34959E1091",
+              "name": "FORTINET INC",
+              "rank": 1,
+              "symbol": "FTNT"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 310621426,
+              "description": "Develops and operates a cloud-native zero trust security platform that protects enterprise networks by securely connecting users, devices, and applications across distributed environments.",
+              "evidence": "Zscaler's engagement with network security is centered on its cloud-native Zero Trust Exchange, which explicitly displaces legacy architectures such as traditional firewalls, VPNs, and SD-WANs. By abolishing the standard perimeter-based trusted network model, the platform secures lateral movement and enforces inline policy based purely on identity across over 500 billion daily telemetry checkpoints. This direct disruption of the incumbent network security market serves as the company's primary business driver, with platform subscriptions representing 98% of total revenue and supporting billions in annual recurring revenue. Ongoing strategic hardware capital expenditures and substantial R&D allocations continually reinforce the global data center infrastructure required to maintain this advanced network defense paradigm.",
+              "exchange": "SMART",
+              "key": "US98980G1022",
+              "name": "ZSCALER INC",
+              "rank": 3,
+              "symbol": "ZS"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 4172987,
+              "description": "Delivers comprehensive network security solutions, including advanced firewalls and threat prevention architectures, designed to protect enterprise networks and IT infrastructure from cyber threats.",
+              "evidence": "Check Point's engagement with network security is rooted in its flagship hybrid mesh platform and firewall appliances, which generate the vast majority of the company's revenue. Leadership identifies this infrastructure protection as a direct business tailwind, emphasizing that comprehensive network security is essential for preparing organizations for AI adoption. To accelerate market penetration, the company recently merged its cloud network security and SASE sales forces and directed dedicated R&D personnel to expand hybrid mesh feature sets. These operational integrations build upon ongoing organic investments designed to scale proactive threat prevention across data centers, hybrid clouds, and branch locations.",
+              "exchange": "SMART",
+              "key": "IL0010824113",
+              "name": "CHECK POINT SOFTWARE TECH",
+              "rank": 4,
+              "symbol": "CHKP"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 815043077,
+              "description": "Delivers cloud-native network security solutions, specializing in Secure Access Service Edge (SASE) and Zero Trust Network Access (ZTNA) to protect data and defend against cyber threats across web, cloud, and private applications.",
+              "evidence": "Netskope's engagement with network security is driven by its flagship Netskope One platform, which unifies Security Service Edge (SSE) and Secure Access Service Edge (SASE) controls on a single, AI-native codebase to replace legacy enterprise network infrastructure. Operating on the company's NewEdge private cloud, the system utilizes over 25 capabilities\u2014including Next-Gen Secure Web Gateways, cloud firewalls, and patented real-time API interpretation\u2014to enforce dynamic network policies without degrading performance. This infrastructure modernization strategy underpins the company's core business model, with over 85% of its $845 million annual recurring revenue generated by large enterprise deployments securing networks, data, and access. To expand these network and security modernization efforts, Netskope is increasing its quota-carrying sales teams and operating dedicated Threat Labs to evaluate network flow risks in real-time.",
+              "exchange": "SMART",
+              "key": "US64119N6085",
+              "name": "NETSKOPE INC-CL A",
+              "rank": 5,
+              "symbol": "NTSK"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 382633646,
+              "description": "Delivers cloud-native network security solutions, including DDoS mitigation, web application firewalls, and Zero Trust architecture, to safeguard enterprise infrastructure and internet properties from evolving cyber threats.",
+              "evidence": "Cloudflare provides a battle-tested network that secures massive enterprise infrastructure, including scaling AI operations, against large-scale global cyberattacks through seamless, low-latency protection. By aggressively deploying its full SASE portfolio, the company is systematically displacing legacy on-premise hardware vendors across traditional firewall and VPN deployments. This core network security capability functions as Cloudflare's unified control plane, generating the vast majority of its subscription revenue and continuously evolving through substantial R&D investments that recently thwarted record-breaking DDoS attacks.",
+              "exchange": "SMART",
+              "key": "US18915M1071",
+              "name": "CLOUDFLARE INC - CLASS A",
+              "rank": 6,
+              "symbol": "NET"
+            }
+          ],
+          "name": "Network Security",
+          "total_count": 41
+        },
+        {
+          "description": "Delivery of computing resources like servers, storage, and applications over the internet, providing scalable and flexible IT solutions without traditional infrastructure costs.",
+          "key": "512f0de4-da00-4846-9c2a-be4847d182a4",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 272093,
+              "description": "Provides a comprehensive suite of cloud infrastructure, platform, and software services that enable global enterprises to scale operations, manage data, and deploy advanced digital workloads.",
+              "evidence": "Cloud computing serves as the primary financial and operational engine for Microsoft, with the Microsoft Cloud ecosystem generating over $54.5 billion in recent quarterly revenue to comprise nearly 66% of the company's total business. To sustain this scale and the 40% year-over-year growth in Azure services, the company structurally dedicates its capital investments to cloud infrastructure, projecting roughly $190 billion in calendar year 2026 expenditures to expand global data centers and server capacity. This infrastructure supports a vertically integrated footprint where millions of servers run on custom-built silicon, including Azure Boost, for optimized network and virtualization workloads. Additionally, continuous enterprise adoption of remotely hosted applications, highlighted by 19% organic growth in Microsoft 365 Commercial Cloud revenue, systemically drives the company's core commercial software delivery mechanisms.",
+              "exchange": "SMART",
+              "key": "US5949181045",
+              "name": "MICROSOFT CORP",
+              "rank": 1,
+              "symbol": "MSFT"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 4815747,
+              "description": "Provides high-performance graphics processing units and networking infrastructure that power the data centers of major cloud service providers, enabling scalable artificial intelligence, machine learning, and complex computing workloads across the cloud ecosystem.",
+              "evidence": "NVIDIA serves as the foundational infrastructure for global cloud computing through its newly established Hyperscale reporting segment, supplying compute platforms and networking solutions like InfiniBand, NVLink, and Spectrum-X Ethernet to public cloud providers. The company's Blackwell architecture is adopted universally by top hyperscalers, generating $38 billion in recent quarterly segment revenue and driving co-engineered setups such as Google's A5X bare-metal instances supporting hundreds of thousands of Rubin GPUs. To actively facilitate broader cloud infrastructure build-outs, the company allocates billions of dollars into dedicated infrastructure funds and direct land, power, and shell guarantees. Additionally, NVIDIA optimizes these cloud ecosystems with proprietary software tools including Guardrails and Dynamo, embedding its computing and networking technologies at the core of hyperscaler operations.",
+              "exchange": "SMART",
+              "key": "US67066G1040",
+              "name": "NVIDIA CORP",
+              "rank": 2,
+              "symbol": "NVDA"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 3691937,
+              "description": "Provides a comprehensive suite of on-demand cloud computing platforms and infrastructure services, delivering scalable compute power, database storage, and enterprise solutions to organizations globally.",
+              "evidence": "Amazon's engagement with cloud computing is driven by its dedicated Amazon Web Services (AWS) segment, which functions as the company's primary profit engine and recently reached a $150 billion annualized revenue run rate with 28% year-over-year growth. To support accelerating global cloud migrations and scaling artificial intelligence workloads, the company directed the vast majority of its recent $43.2 billion quarterly cash capital expenditures toward expanding AWS data centers, networking gear, and physical computing capacity. Operating as an independent organizational pillar generating $37.6 billion in quarterly revenue, AWS delivers a massive breadth of compute, storage, and database features, cementing Amazon's role as the foundational infrastructure layer for millions of global startups and enterprises.",
+              "exchange": "SMART",
+              "key": "US0231351067",
+              "name": "AMAZON.COM INC",
+              "rank": 3,
+              "symbol": "AMZN"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 383858515,
+              "description": "Delivers an observability and security platform tailored for cloud applications, enabling organizations to monitor infrastructure, optimize performance, and manage data across diverse cloud computing environments.",
+              "evidence": "Datadog strictly operates as a cloud software provider, deriving the entirety of its recent $1.01 billion quarterly revenue from its SaaS observability and security platform. To support complex cloud topologies, the company dedicates its projected capital expenditures\u2014totaling 4% to 5% of its estimated $4.34 billion fiscal 2026 revenue\u2014toward infrastructure expansion, including a new U.K. data center and native \"bring your own cloud\" deployments. Broader enterprise cloud migration serves as the company's primary long-term secular growth driver, anchored by its infrastructure monitoring solutions that generate over $1.6 billion in annual recurring revenue by tracking virtualized and serverless environments. Furthermore, continuous feature deployments like cloud storage management directly optimize and secure customer workloads across hybrid and multi-cloud ecosystems.",
+              "exchange": "SMART",
+              "key": "US23804L1035",
+              "name": "DATADOG INC - CLASS A",
+              "rank": 4,
+              "symbol": "DDOG"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 208813719,
+              "description": "Delivers a comprehensive suite of enterprise cloud infrastructure and platform services, providing scalable computing power, data analytics, and advanced artificial intelligence solutions to organizations globally.",
+              "evidence": "Alphabet\u2019s engagement in cloud computing is anchored by Google Cloud infrastructure and enterprise AI services, pushing the segment's most recent quarterly revenue to $20 billion, representing a 63% year-over-year increase. To fulfill a $462 billion backlog and increasing compute capacity requirements, the company allocates approximately 40% of its $35.7 billion quarterly technical infrastructure capital expenditure toward data centers and networking equipment, while concurrently onboarding the acquired Wiz security organization. Beyond physical infrastructure, Alphabet advances its cloud software portfolio through Google Workspace, which delivers double-digit revenue growth driven by increasing user seats, higher average revenue per user, and the integration of Gemini Enterprise AI applications.",
+              "exchange": "SMART",
+              "key": "US02079K3059",
+              "name": "ALPHABET INC-CL A",
+              "rank": 5,
+              "symbol": "GOOGL"
+            }
+          ],
+          "name": "Cloud Computing",
+          "total_count": 75
+        },
+        {
+          "description": "Incorporation of artificial intelligence solutions across business functions, improving decision-making, automation, and customer interactions.",
+          "key": "f3fcc84e-531b-4ea9-8537-97824fd85979",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 109911821,
+              "description": "Embeds artificial intelligence and generative AI capabilities directly into its cloud-based workflow platform to automate enterprise processes, connect disparate systems, and optimize digital operations across IT, human resources, and customer service.",
+              "evidence": "ServiceNow has restructured its platform to function as an \"AI control tower,\" natively embedding artificial intelligence across its IT, HR, CRM, and Security workflows without relying on isolated sidecar applications. The company specifically re-engineered its architecture to be fully AI-native, utilizing a unified data fabric that acts as a semantic layer to securely operationalize and automate cross-functional enterprise processes. This integration strategy is reinforced by the acquisition of Moveworks to launch EmployeeWorks, which creates a centralized conversational AI portal for corporate tasks, and by the expectation that the Now Assist AI suite will reach a $1.5 billion revenue run-rate. By systematically deploying these integrated AI agents, the company enables clients to achieve operational efficiencies, including the resolution of 90% of employee IT requests 99% faster than manual interventions.",
+              "exchange": "SMART",
+              "key": "US81762P1021",
+              "name": "SERVICENOW INC",
+              "rank": 1,
+              "symbol": "NOW"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 459113767,
+              "description": "Delivers a comprehensive enterprise AI software platform and turnkey applications that enable organizations to seamlessly build, deploy, and integrate scalable artificial intelligence and machine learning capabilities into their core business operations.",
+              "evidence": "C3 AI operates exclusively as an Enterprise AI application software company, generating its entire revenue from AI subscriptions and associated professional integration services. To facilitate large-scale, enterprise-wide transformations, the company leverages its C3 Agentic AI Platform and custom Omni-Modal Parsing technology to integrate structured and unstructured data across disparate corporate systems. Execution relies on specialized engineering teams within its Center of Excellence and a January 2025 strategic alliance with McKinsey & Company aimed at scaling enterprise AI implementations. This integration capability is supported by targeted research and development spending directed at the company's patented model-driven architecture, which simplifies end-to-end AI application development and deployment complexities.",
+              "exchange": "SMART",
+              "key": "US12468P1049",
+              "name": "C3.AI INC-A",
+              "rank": 2,
+              "symbol": "AI"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 272093,
+              "description": "Integrates advanced artificial intelligence models across its cloud infrastructure and enterprise productivity suites, enabling organizations to seamlessly embed generative AI and automation into their core business workflows.",
+              "evidence": "Microsoft integrates AI directly into global organizational frameworks by embedding Copilot and autonomous agents across cross-functional enterprise lines such as HR, IT, and analytics. Grounded within Work IQ across 17 exabytes of enterprise communications data, these tools have scaled to 20 million paid seats, automating workflows and reducing issue resolution times in Dynamics 365 by over 30%. This continuous integration across the Microsoft 365 suite, Fabric, and security platforms accounts for an estimated $37 billion annual AI revenue run rate, reinforced by Azure AI Foundry, which enables over 90% of the Fortune 500 to build and deploy custom agents into mission-critical business processes.",
+              "exchange": "SMART",
+              "key": "US5949181045",
+              "name": "MICROSOFT CORP",
+              "rank": 3,
+              "symbol": "MSFT"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 444857009,
+              "description": "Facilitates the secure integration of artificial intelligence and large language models into complex enterprise environments through specialized software platforms, enabling organizations to connect disparate data sources and deploy AI-driven operational workflows.",
+              "evidence": "Palantir\u2019s primary growth engine is the deployment of its Artificial Intelligence Platform (AIP) to embed AI directly into complex business functions across enterprise operations. By utilizing its proprietary Ontology to ensure safe and effective AI interaction with real-world environments, the company has transformed core workflows for clients, such as increasing GE Aerospace engine production by 26% and automating millions of customer engagements for a major telecommunications provider. The operational integration of these multi-agentic AI solutions is executed by specialized Forward Deployed Engineers and has driven a 133% year-over-year expansion in Palantir's U.S. commercial business. Management characterizes this market posture as absolute AIP dominance, emphasizing internal capital allocations that prioritize enterprise autonomy and the replacement of legacy workflows over superficial technology demonstrations.",
+              "exchange": "SMART",
+              "key": "US69608A1088",
+              "name": "PALANTIR TECHNOLOGIES INC-A",
+              "rank": 4,
+              "symbol": "PLTR"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 4815747,
+              "description": "Delivers end-to-end computing infrastructure and comprehensive software frameworks that empower organizations to seamlessly integrate, manage, and scale artificial intelligence workloads across their enterprise environments.",
+              "evidence": "NVIDIA drives AI enterprise integration through its dedicated 'ACIE' (AI Clouds, Industrial, and Enterprise) segment, which provides fully integrated, full-stack AI data center architectures directly to corporate customers. Generating $37 billion in Q2 2026, this division targets 250,000 global enterprises to convert diverse corporate infrastructures into purpose-built AI factories and on-premise environments. To support this rollout, the company is expanding its operational and go-to-market footprint to guide non-hyperscaler enterprise deployments. This structural focus is reinforced by NVIDIA's earlier $10 billion strategic investment in Anthropic, designed to accelerate the widespread corporate adoption of AI agent platforms and business software integrations.",
+              "exchange": "SMART",
+              "key": "US67066G1040",
+              "name": "NVIDIA CORP",
+              "rank": 5,
+              "symbol": "NVDA"
+            }
+          ],
+          "name": "AI Enterprise Integration",
+          "total_count": 75
+        },
+        {
+          "description": "Network solutions and architectures designed to address complex connectivity needs within large organizations.",
+          "key": "b6db4986-bb84-4b06-84f5-7e85fdf53362",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 268084,
+              "description": "Provides foundational networking infrastructure, encompassing routers, switches, and software-defined solutions, enabling secure and scalable connectivity across corporate data centers, campuses, and branch networks.",
+              "evidence": "Cisco's engagement with Enterprise Networking is defined by the segment's position as the company's primary business driver, generating over $8.8 billion and comprising more than 55% of total revenue in Q2 2026. This core category recently experienced an 18% increase in enterprise product orders, directly propelled by 40% growth in enterprise data center switching, record campus networking orders, and the high-volume adoption of WiFi 7 technologies. Furthermore, Cisco is embedding AI-native capabilities across its product portfolio to modernize campus networks and capitalize on a multi-billion-dollar enterprise infrastructure refresh cycle.",
+              "exchange": "SMART",
+              "key": "US17275R1023",
+              "name": "CISCO SYSTEMS INC",
+              "rank": 1,
+              "symbol": "CSCO"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 740948854,
+              "description": "Provides software-driven cloud networking solutions, high-performance Ethernet switches, and routing products that power large-scale enterprise data centers and campus network environments.",
+              "evidence": "Arista Networks addresses the Enterprise Networking theme through a confirmed number-one market share in high-speed switching and a dedicated 2026 campus revenue target of $1.25 billion. To manage complex organizational connectivity, the company deploys a single EOS binary and integrates its VeloCloud acquisition to functionally unify data center, campus, and branch operations. This focus on enterprise architecture is supported by targeted R&D investments and global sales headcount expansion, translating into the enterprise and financials sector directly contributing 32% of Arista's total annual revenue.",
+              "exchange": "SMART",
+              "key": "US0404132054",
+              "name": "ARISTA NETWORKS INC",
+              "rank": 2,
+              "symbol": "ANET"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 269087,
+              "description": "Provides cloud-driven wired and wireless infrastructure, along with network management software, to optimize connectivity and streamline operations within enterprise environments.",
+              "evidence": "Extreme Networks operates entirely as a pure-play enterprise networking provider, driving its core business model through the delivery of mission-critical secure campus fabrics and AI-powered platforms. The company establishes its market position by offering a proprietary layer-2 campus fabric that reduces network deployment times from hours to minutes and yields validated total cost of ownership savings over competitors like Cisco. Guided directly by C-level leadership, this singular operational focus accounts for the entirety of the company's $317 million in recent quarterly revenue and dictates structural investments, including a reorganization into targeted sales pods and the strategic hiring of rival executive talent.",
+              "exchange": "SMART",
+              "key": "US30226D1063",
+              "name": "EXTREME NETWORKS INC",
+              "rank": 3,
+              "symbol": "EXTR"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 70236214,
+              "description": "Delivers converged networking and cybersecurity solutions, including secure SD-WAN and next-generation firewalls, to facilitate secure connectivity and infrastructure management across corporate environments.",
+              "evidence": "Fortinet drives the convergence of networking and security through its Secure Networking portfolio, which provides the connectivity architecture for large-scale organizations via SD-WAN, SD-Branch, and Unified SASE products. Representing the vast majority of its recent $2.09 billion in quarterly billings, this strategy supports highly distributed enterprise infrastructures, demonstrated by a recent deployment connecting more than 3,000 branch locations for a multinational energy company. To deliver these capabilities, Fortinet relies on an integrated hardware and software ecosystem\u2014utilizing FortiOS to natively link FortiSwitches, wireless access points, and firewalls\u2014that simplifies connectivity and internal policy management across complex corporate environments.",
+              "exchange": "SMART",
+              "key": "US34959E1091",
+              "name": "FORTINET INC",
+              "rank": 4,
+              "symbol": "FTNT"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 209411798,
+              "description": "Delivers secure edge-to-cloud networking infrastructure, encompassing wired and wireless local area networks, campus switching, and SD-WAN solutions that enable robust connectivity across modern enterprise environments.",
+              "evidence": "Hewlett Packard Enterprise's expansion in enterprise networking is driven by the $13.4 billion acquisition and ongoing integration of Juniper Networks, forming a dedicated operational segment supported by unified R&D and sales teams. This Networking division generated $2.7 billion in Q2 2026 revenue, representing a quarter of the company's total sales and reinforcing its position as a primary driver of overall corporate profitability. Product synergies combining hardware capabilities, such as QFX switches and edge routers, with the proprietary Mist AI platform have fueled record order levels in Campus & Branch solutions and secured multi-million dollar contracts with major enterprise clients.",
+              "exchange": "SMART",
+              "key": "US42824C1099",
+              "name": "HEWLETT PACKARD ENTERPRISE",
+              "rank": 5,
+              "symbol": "HPE"
+            }
+          ],
+          "name": "Enterprise Networking",
+          "total_count": 75
+        }
+      ]
+    },
     "Company_Name": "Palo Alto Networks, Inc.",
     "Consensus": "Buy",
     "Contract_ID": 110619459,
@@ -8339,12 +9157,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Infras...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 110619459,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -8353,7 +9171,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -8368,8 +9186,173 @@
     "Options_Collection_Rank": 1,
     "Options_Collection_Selected": true,
     "Options_Context": {
+      "analytics_available": true,
       "available": true,
-      "fetched_at": "2026-09-24T07:55:20.121408+00:00",
+      "average_spread_pct": 8.694895572558787,
+      "chain_contracts_count": 12,
+      "chain_contracts_sampled": [
+        {
+          "call_contract_id": 889063734,
+          "call_contract_id_ex": "889063734@SMART",
+          "call_description": "PANW NOV 20 '26 390 Call",
+          "put_contract_id": 889063972,
+          "put_contract_id_ex": "889063972@SMART",
+          "put_description": "PANW NOV 20 '26 390 Put",
+          "strike": "390"
+        },
+        {
+          "call_contract_id": 889063794,
+          "call_contract_id_ex": "889063794@SMART",
+          "call_description": "PANW NOV 20 '26 400 Call",
+          "put_contract_id": 889064022,
+          "put_contract_id_ex": "889064022@SMART",
+          "put_description": "PANW NOV 20 '26 400 Put",
+          "strike": "400"
+        },
+        {
+          "call_contract_id": 887821971,
+          "call_contract_id_ex": "887821971@SMART",
+          "call_description": "PANW NOV 20 '26 380 Call",
+          "put_contract_id": 887822028,
+          "put_contract_id_ex": "887822028@SMART",
+          "put_description": "PANW NOV 20 '26 380 Put",
+          "strike": "380"
+        },
+        {
+          "call_contract_id": 889063840,
+          "call_contract_id_ex": "889063840@SMART",
+          "call_description": "PANW NOV 20 '26 410 Call",
+          "put_contract_id": 889064068,
+          "put_contract_id_ex": "889064068@SMART",
+          "put_description": "PANW NOV 20 '26 410 Put",
+          "strike": "410"
+        },
+        {
+          "call_contract_id": 884826537,
+          "call_contract_id_ex": "884826537@SMART",
+          "call_description": "PANW NOV 20 '26 370 Call",
+          "put_contract_id": 884826594,
+          "put_contract_id_ex": "884826594@SMART",
+          "put_description": "PANW NOV 20 '26 370 Put",
+          "strike": "370"
+        }
+      ],
+      "contract_iv_coverage_ratio": 0.0,
+      "contracts": [
+        {
+          "ask": 40.050000000000004,
+          "bid": 36.15,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 10.23622047244096,
+          "strike": 390.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 32.5,
+          "bid": 31.5,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 3.125,
+          "strike": 390.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 35.300000000000004,
+          "bid": 31.55,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 11.219147344801804,
+          "strike": 400.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 39.45,
+          "bid": 36.45,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 7.905138339920947,
+          "strike": 400.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 44.45,
+          "bid": 40.800000000000004,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 8.56304985337243,
+          "strike": 380.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 27.85,
+          "bid": 26.8,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 3.8426349496797823,
+          "strike": 380.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 31.35,
+          "bid": 27.5,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 13.084112149532714,
+          "strike": 410.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 45.800000000000004,
+          "bid": 41.15,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 10.695802185163899,
+          "strike": 410.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 50.45,
+          "bid": 46.050000000000004,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 9.119170984455955,
+          "strike": 370.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 24.55,
+          "bid": 22.400000000000002,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 9.158679446219375,
+          "strike": 370.0,
+          "volume": 0.0
+        }
+      ],
+      "contracts_sampled": 10,
+      "data_quality": "partial",
+      "exchange": "SMART",
       "expiration": "20261120",
       "expirations": [
         "20260925",
@@ -8391,182 +9374,17 @@
         "20281215",
         "20290119"
       ],
-      "exchange": "SMART",
-      "contracts_sampled": 10,
-      "chain_contracts_count": 12,
-      "chain_contracts_sampled": [
-        {
-          "strike": "390",
-          "call_contract_id_ex": "889063734@SMART",
-          "call_contract_id": 889063734,
-          "call_description": "PANW NOV 20 '26 390 Call",
-          "put_contract_id_ex": "889063972@SMART",
-          "put_contract_id": 889063972,
-          "put_description": "PANW NOV 20 '26 390 Put"
-        },
-        {
-          "strike": "400",
-          "call_contract_id_ex": "889063794@SMART",
-          "call_contract_id": 889063794,
-          "call_description": "PANW NOV 20 '26 400 Call",
-          "put_contract_id_ex": "889064022@SMART",
-          "put_contract_id": 889064022,
-          "put_description": "PANW NOV 20 '26 400 Put"
-        },
-        {
-          "strike": "380",
-          "call_contract_id_ex": "887821971@SMART",
-          "call_contract_id": 887821971,
-          "call_description": "PANW NOV 20 '26 380 Call",
-          "put_contract_id_ex": "887822028@SMART",
-          "put_contract_id": 887822028,
-          "put_description": "PANW NOV 20 '26 380 Put"
-        },
-        {
-          "strike": "410",
-          "call_contract_id_ex": "889063840@SMART",
-          "call_contract_id": 889063840,
-          "call_description": "PANW NOV 20 '26 410 Call",
-          "put_contract_id_ex": "889064068@SMART",
-          "put_contract_id": 889064068,
-          "put_description": "PANW NOV 20 '26 410 Put"
-        },
-        {
-          "strike": "370",
-          "call_contract_id_ex": "884826537@SMART",
-          "call_contract_id": 884826537,
-          "call_description": "PANW NOV 20 '26 370 Call",
-          "put_contract_id_ex": "884826594@SMART",
-          "put_contract_id": 884826594,
-          "put_description": "PANW NOV 20 '26 370 Put"
-        }
-      ],
+      "fetched_at": "2026-09-24T07:55:20.121408+00:00",
+      "open_interest_coverage_ratio": 0.0,
+      "put_call_open_interest_ratio": null,
+      "put_call_volume_ratio": null,
+      "quote_coverage_ratio": 1.0,
+      "quoted_contract_ratio": 1.0,
+      "score_available": false,
       "snapshot_error_count": 0,
       "snapshot_errors": [],
-      "quoted_contract_ratio": 1.0,
-      "average_spread_pct": 8.694895572558787,
-      "put_call_volume_ratio": null,
-      "put_call_open_interest_ratio": null,
-      "contracts": [
-        {
-          "side": "call",
-          "strike": 390.0,
-          "bid": 36.15,
-          "ask": 40.050000000000004,
-          "spread_pct": 10.23622047244096,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 390.0,
-          "bid": 31.5,
-          "ask": 32.5,
-          "spread_pct": 3.125,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 400.0,
-          "bid": 31.55,
-          "ask": 35.300000000000004,
-          "spread_pct": 11.219147344801804,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 400.0,
-          "bid": 36.45,
-          "ask": 39.45,
-          "spread_pct": 7.905138339920947,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 380.0,
-          "bid": 40.800000000000004,
-          "ask": 44.45,
-          "spread_pct": 8.56304985337243,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 380.0,
-          "bid": 26.8,
-          "ask": 27.85,
-          "spread_pct": 3.8426349496797823,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 410.0,
-          "bid": 27.5,
-          "ask": 31.35,
-          "spread_pct": 13.084112149532714,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 410.0,
-          "bid": 41.15,
-          "ask": 45.800000000000004,
-          "spread_pct": 10.695802185163899,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 370.0,
-          "bid": 46.050000000000004,
-          "ask": 50.45,
-          "spread_pct": 9.119170984455955,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 370.0,
-          "bid": 22.400000000000002,
-          "ask": 24.55,
-          "spread_pct": 9.158679446219375,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        }
-      ],
       "source": "IBKR MCP option chain snapshots",
-      "quote_coverage_ratio": 1.0,
-      "volume_coverage_ratio": 1.0,
-      "open_interest_coverage_ratio": 0.0,
-      "contract_iv_coverage_ratio": 0.0,
-      "data_quality": "partial",
-      "analytics_available": true,
-      "score_available": false
+      "volume_coverage_ratio": 1.0
     },
     "Options_Data_Available": false,
     "Options_Data_Partial": true,
@@ -8623,825 +9441,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 65.39,
-    "Company_Context": {
-      "available": true,
-      "fetched_at": "2026-09-24T07:55:18.248348+00:00",
-      "theme_count": 5,
-      "peer_count": 25,
-      "peer_rank": 1,
-      "themes": [
-        {
-          "name": "Cybersecurity",
-          "key": "42e2758a-31c2-413a-aa4e-de9b0ab19132",
-          "description": "Measures and protocols protecting information systems from unauthorized access, theft, and disruption to ensure data integrity and confidentiality.",
-          "linked_companies": [
-            {
-              "rank": 2,
-              "name": "CROWDSTRIKE HOLDINGS INC - A",
-              "key": "US22788C1053",
-              "contract_id": 370757467,
-              "symbol": "CRWD",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers a cloud-native cybersecurity platform specialized in endpoint protection, threat intelligence, and incident response to secure enterprise workloads and prevent data breaches.",
-              "evidence": "CrowdStrike operates exclusively as a pure-play cybersecurity software provider, generating 100% of its $1.39 billion in quarterly revenue from its flagship, AI-native Falcon platform. The firm's entire organizational infrastructure, encompassing over 11,000 employees and its executive leadership, is dedicated to preventing breaches across endpoints, identities, and cloud environments. The company directs its capital entirely toward expanding its security capabilities, committing $408.3 million to quarterly research and development and deploying over $1.1 billion on recent acquisitions like SGNL.AI, Seraphic, and Pangea Cyber to advance zero-trust architectures. After reaching an ending ARR of $5.51 billion, the company is actively positioning its security framework as critical AI infrastructure, serving as the exclusive cybersecurity vendor selected by Anthropic and OpenAI to secure their foundational models."
-            },
-            {
-              "rank": 3,
-              "name": "FORTINET INC",
-              "key": "US34959E1091",
-              "contract_id": 70236214,
-              "symbol": "FTNT",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Develops integrated cybersecurity solutions, including next-generation firewalls, secure networking, and threat intelligence, to protect enterprise networks, users, and data from evolving digital threats.",
-              "evidence": "Fortinet operates as a pure-play vendor entirely dedicated to the cybersecurity theme, generating 100% of its recent $1.85 billion quarterly revenue through next-generation firewalls, secure networking, and AI-driven security operations. The company supports this focus with an exclusively dedicated 15,000-person workforce and proprietary innovations\u2014such as custom ASIC chips and the unified FortiOS platform\u2014which capture a 55% firewall unit market share. Customer adoption is driven by its Unified SASE solutions that seamlessly integrate Zero Trust Network Access (ZTNA) architectures, a segment currently accounting for 25% of total billings. To sustain its defense against sophisticated attacks, Fortinet directs its entire $350 million to $550 million annual capital expenditure budget toward scaling its threat intelligence clouds and backend infrastructure."
-            },
-            {
-              "rank": 4,
-              "name": "ZSCALER INC",
-              "key": "US98980G1022",
-              "contract_id": 310621426,
-              "symbol": "ZS",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates a cloud-native zero trust security platform that protects enterprise users, workloads, and devices from advanced cyber threats while securely connecting them to applications.",
-              "evidence": "Zscaler operates as a pure-play cloud security vendor, positioning its proprietary Zero Trust Exchange architecture as the foundational cybersecurity platform for the AI era. The company's business model is explicitly anchored to enterprise threat protection, with subscriptions and support for its security solutions generating $3.5 billion in annual recurring revenue and accounting for 98% of total sales. Furthermore, Zscaler dedicates the vast majority of its capital to expanding its cyber defense capabilities, evidenced by deploying over $1.6 billion combined into recent research and development and acquisitions of specialized security firms like Red Canary and Symmetry Systems. Consequently, providing superior protection against vulnerabilities and malicious actors dictates the entirety of Zscaler's product portfolio, organizational structure, and overarching corporate mission."
-            },
-            {
-              "rank": 5,
-              "name": "OKTA INC",
-              "key": "US6792951054",
-              "contract_id": 272356196,
-              "symbol": "OKTA",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides cloud-native identity and access management solutions, including single sign-on and multi-factor authentication, that establish zero-trust security frameworks to protect enterprise networks and applications from unauthorized access.",
-              "evidence": "Okta operates as a pure-play identity security provider, with its secure access subscription platforms generating $750 million, representing 98% of the company's total revenue in Q2 2026. The platform serves as a foundational zero-trust verification layer for over 20,000 enterprise customers, governing access for human and non-human identities to address the reality that 80% of data breaches originate through compromised identities. To continuously expand these defensive capabilities, Okta integrates specialized security-focused go-to-market teams and executes targeted investments, such as the acquisition of Axiom to augment its privileged access management offerings."
-            },
-            {
-              "rank": 6,
-              "name": "SENTINELONE INC -CLASS A",
-              "key": "US81730H1095",
-              "contract_id": 499640681,
-              "symbol": "S",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Develops an AI-powered extended detection and response platform that autonomously prevents, identifies, and mitigates cyber threats across enterprise endpoints, cloud workloads, and identity systems.",
-              "evidence": "SentinelOne operates exclusively as a pure-play cybersecurity provider, generating the entirety of its revenue by delivering autonomous, AI-driven defense through its core Singularity Platform. The company's strategic alignment with this theme is evidenced by its recent capital allocation, including over $345 million for security-focused acquisitions such as Prompt Security and Observo, alongside nearly $96 million in quarterly research and development during Q2 2026. Furthermore, SentinelOne dedicates its entire workforce of over 3,000 employees to cybersecurity innovation, leveraging patented machine learning algorithms and reinvesting $45 million in annualized restructuring savings directly into product enhancements across endpoint, cloud, and data security domains."
-            }
-          ],
-          "total_count": 58
-        },
-        {
-          "name": "Network Security",
-          "key": "ae6e2c29-bd04-4251-8803-98b915fcd6ca",
-          "description": "Protocols ensuring safe and secure network operations, safeguarding data integrity from unauthorized access and cyber threats.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "FORTINET INC",
-              "key": "US34959E1091",
-              "contract_id": 70236214,
-              "symbol": "FTNT",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides comprehensive network security solutions, including next-generation firewalls and an integrated security fabric platform, designed to protect enterprise infrastructure, data centers, and distributed environments against evolving cyber threats.",
-              "evidence": "Fortinet operates fundamentally as a network security company, driven by its flagship FortiGate firewalls and FortiOS platform which integrate networking and security architectures. The firm captures approximately 60% of the network security system unit market share, launching high-performance appliances like the FortiGate 3500G and 400G to generate a 32% year-over-year growth in secure networking billings. To support this core segment, Fortinet directs its entire $350 million to $550 million annual infrastructure budget toward network security capacity, relying on proprietary ASIC technology and continuous in-house engineering rather than external acquisitions."
-            },
-            {
-              "rank": 3,
-              "name": "ZSCALER INC",
-              "key": "US98980G1022",
-              "contract_id": 310621426,
-              "symbol": "ZS",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Develops and operates a cloud-native zero trust security platform that protects enterprise networks by securely connecting users, devices, and applications across distributed environments.",
-              "evidence": "Zscaler's engagement with network security is centered on its cloud-native Zero Trust Exchange, which explicitly displaces legacy architectures such as traditional firewalls, VPNs, and SD-WANs. By abolishing the standard perimeter-based trusted network model, the platform secures lateral movement and enforces inline policy based purely on identity across over 500 billion daily telemetry checkpoints. This direct disruption of the incumbent network security market serves as the company's primary business driver, with platform subscriptions representing 98% of total revenue and supporting billions in annual recurring revenue. Ongoing strategic hardware capital expenditures and substantial R&D allocations continually reinforce the global data center infrastructure required to maintain this advanced network defense paradigm."
-            },
-            {
-              "rank": 4,
-              "name": "CHECK POINT SOFTWARE TECH",
-              "key": "IL0010824113",
-              "contract_id": 4172987,
-              "symbol": "CHKP",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers comprehensive network security solutions, including advanced firewalls and threat prevention architectures, designed to protect enterprise networks and IT infrastructure from cyber threats.",
-              "evidence": "Check Point's engagement with network security is rooted in its flagship hybrid mesh platform and firewall appliances, which generate the vast majority of the company's revenue. Leadership identifies this infrastructure protection as a direct business tailwind, emphasizing that comprehensive network security is essential for preparing organizations for AI adoption. To accelerate market penetration, the company recently merged its cloud network security and SASE sales forces and directed dedicated R&D personnel to expand hybrid mesh feature sets. These operational integrations build upon ongoing organic investments designed to scale proactive threat prevention across data centers, hybrid clouds, and branch locations."
-            },
-            {
-              "rank": 5,
-              "name": "NETSKOPE INC-CL A",
-              "key": "US64119N6085",
-              "contract_id": 815043077,
-              "symbol": "NTSK",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers cloud-native network security solutions, specializing in Secure Access Service Edge (SASE) and Zero Trust Network Access (ZTNA) to protect data and defend against cyber threats across web, cloud, and private applications.",
-              "evidence": "Netskope's engagement with network security is driven by its flagship Netskope One platform, which unifies Security Service Edge (SSE) and Secure Access Service Edge (SASE) controls on a single, AI-native codebase to replace legacy enterprise network infrastructure. Operating on the company's NewEdge private cloud, the system utilizes over 25 capabilities\u2014including Next-Gen Secure Web Gateways, cloud firewalls, and patented real-time API interpretation\u2014to enforce dynamic network policies without degrading performance. This infrastructure modernization strategy underpins the company's core business model, with over 85% of its $845 million annual recurring revenue generated by large enterprise deployments securing networks, data, and access. To expand these network and security modernization efforts, Netskope is increasing its quota-carrying sales teams and operating dedicated Threat Labs to evaluate network flow risks in real-time."
-            },
-            {
-              "rank": 6,
-              "name": "CLOUDFLARE INC - CLASS A",
-              "key": "US18915M1071",
-              "contract_id": 382633646,
-              "symbol": "NET",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers cloud-native network security solutions, including DDoS mitigation, web application firewalls, and Zero Trust architecture, to safeguard enterprise infrastructure and internet properties from evolving cyber threats.",
-              "evidence": "Cloudflare provides a battle-tested network that secures massive enterprise infrastructure, including scaling AI operations, against large-scale global cyberattacks through seamless, low-latency protection. By aggressively deploying its full SASE portfolio, the company is systematically displacing legacy on-premise hardware vendors across traditional firewall and VPN deployments. This core network security capability functions as Cloudflare's unified control plane, generating the vast majority of its subscription revenue and continuously evolving through substantial R&D investments that recently thwarted record-breaking DDoS attacks."
-            }
-          ],
-          "total_count": 41
-        },
-        {
-          "name": "Cloud Computing",
-          "key": "512f0de4-da00-4846-9c2a-be4847d182a4",
-          "description": "Delivery of computing resources like servers, storage, and applications over the internet, providing scalable and flexible IT solutions without traditional infrastructure costs.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "MICROSOFT CORP",
-              "key": "US5949181045",
-              "contract_id": 272093,
-              "symbol": "MSFT",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides a comprehensive suite of cloud infrastructure, platform, and software services that enable global enterprises to scale operations, manage data, and deploy advanced digital workloads.",
-              "evidence": "Cloud computing serves as the primary financial and operational engine for Microsoft, with the Microsoft Cloud ecosystem generating over $54.5 billion in recent quarterly revenue to comprise nearly 66% of the company's total business. To sustain this scale and the 40% year-over-year growth in Azure services, the company structurally dedicates its capital investments to cloud infrastructure, projecting roughly $190 billion in calendar year 2026 expenditures to expand global data centers and server capacity. This infrastructure supports a vertically integrated footprint where millions of servers run on custom-built silicon, including Azure Boost, for optimized network and virtualization workloads. Additionally, continuous enterprise adoption of remotely hosted applications, highlighted by 19% organic growth in Microsoft 365 Commercial Cloud revenue, systemically drives the company's core commercial software delivery mechanisms."
-            },
-            {
-              "rank": 2,
-              "name": "NVIDIA CORP",
-              "key": "US67066G1040",
-              "contract_id": 4815747,
-              "symbol": "NVDA",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides high-performance graphics processing units and networking infrastructure that power the data centers of major cloud service providers, enabling scalable artificial intelligence, machine learning, and complex computing workloads across the cloud ecosystem.",
-              "evidence": "NVIDIA serves as the foundational infrastructure for global cloud computing through its newly established Hyperscale reporting segment, supplying compute platforms and networking solutions like InfiniBand, NVLink, and Spectrum-X Ethernet to public cloud providers. The company's Blackwell architecture is adopted universally by top hyperscalers, generating $38 billion in recent quarterly segment revenue and driving co-engineered setups such as Google's A5X bare-metal instances supporting hundreds of thousands of Rubin GPUs. To actively facilitate broader cloud infrastructure build-outs, the company allocates billions of dollars into dedicated infrastructure funds and direct land, power, and shell guarantees. Additionally, NVIDIA optimizes these cloud ecosystems with proprietary software tools including Guardrails and Dynamo, embedding its computing and networking technologies at the core of hyperscaler operations."
-            },
-            {
-              "rank": 3,
-              "name": "AMAZON.COM INC",
-              "key": "US0231351067",
-              "contract_id": 3691937,
-              "symbol": "AMZN",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides a comprehensive suite of on-demand cloud computing platforms and infrastructure services, delivering scalable compute power, database storage, and enterprise solutions to organizations globally.",
-              "evidence": "Amazon's engagement with cloud computing is driven by its dedicated Amazon Web Services (AWS) segment, which functions as the company's primary profit engine and recently reached a $150 billion annualized revenue run rate with 28% year-over-year growth. To support accelerating global cloud migrations and scaling artificial intelligence workloads, the company directed the vast majority of its recent $43.2 billion quarterly cash capital expenditures toward expanding AWS data centers, networking gear, and physical computing capacity. Operating as an independent organizational pillar generating $37.6 billion in quarterly revenue, AWS delivers a massive breadth of compute, storage, and database features, cementing Amazon's role as the foundational infrastructure layer for millions of global startups and enterprises."
-            },
-            {
-              "rank": 4,
-              "name": "DATADOG INC - CLASS A",
-              "key": "US23804L1035",
-              "contract_id": 383858515,
-              "symbol": "DDOG",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers an observability and security platform tailored for cloud applications, enabling organizations to monitor infrastructure, optimize performance, and manage data across diverse cloud computing environments.",
-              "evidence": "Datadog strictly operates as a cloud software provider, deriving the entirety of its recent $1.01 billion quarterly revenue from its SaaS observability and security platform. To support complex cloud topologies, the company dedicates its projected capital expenditures\u2014totaling 4% to 5% of its estimated $4.34 billion fiscal 2026 revenue\u2014toward infrastructure expansion, including a new U.K. data center and native \"bring your own cloud\" deployments. Broader enterprise cloud migration serves as the company's primary long-term secular growth driver, anchored by its infrastructure monitoring solutions that generate over $1.6 billion in annual recurring revenue by tracking virtualized and serverless environments. Furthermore, continuous feature deployments like cloud storage management directly optimize and secure customer workloads across hybrid and multi-cloud ecosystems."
-            },
-            {
-              "rank": 5,
-              "name": "ALPHABET INC-CL A",
-              "key": "US02079K3059",
-              "contract_id": 208813719,
-              "symbol": "GOOGL",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers a comprehensive suite of enterprise cloud infrastructure and platform services, providing scalable computing power, data analytics, and advanced artificial intelligence solutions to organizations globally.",
-              "evidence": "Alphabet\u2019s engagement in cloud computing is anchored by Google Cloud infrastructure and enterprise AI services, pushing the segment's most recent quarterly revenue to $20 billion, representing a 63% year-over-year increase. To fulfill a $462 billion backlog and increasing compute capacity requirements, the company allocates approximately 40% of its $35.7 billion quarterly technical infrastructure capital expenditure toward data centers and networking equipment, while concurrently onboarding the acquired Wiz security organization. Beyond physical infrastructure, Alphabet advances its cloud software portfolio through Google Workspace, which delivers double-digit revenue growth driven by increasing user seats, higher average revenue per user, and the integration of Gemini Enterprise AI applications."
-            }
-          ],
-          "total_count": 75
-        },
-        {
-          "name": "AI Enterprise Integration",
-          "key": "f3fcc84e-531b-4ea9-8537-97824fd85979",
-          "description": "Incorporation of artificial intelligence solutions across business functions, improving decision-making, automation, and customer interactions.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "SERVICENOW INC",
-              "key": "US81762P1021",
-              "contract_id": 109911821,
-              "symbol": "NOW",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Embeds artificial intelligence and generative AI capabilities directly into its cloud-based workflow platform to automate enterprise processes, connect disparate systems, and optimize digital operations across IT, human resources, and customer service.",
-              "evidence": "ServiceNow has restructured its platform to function as an \"AI control tower,\" natively embedding artificial intelligence across its IT, HR, CRM, and Security workflows without relying on isolated sidecar applications. The company specifically re-engineered its architecture to be fully AI-native, utilizing a unified data fabric that acts as a semantic layer to securely operationalize and automate cross-functional enterprise processes. This integration strategy is reinforced by the acquisition of Moveworks to launch EmployeeWorks, which creates a centralized conversational AI portal for corporate tasks, and by the expectation that the Now Assist AI suite will reach a $1.5 billion revenue run-rate. By systematically deploying these integrated AI agents, the company enables clients to achieve operational efficiencies, including the resolution of 90% of employee IT requests 99% faster than manual interventions."
-            },
-            {
-              "rank": 2,
-              "name": "C3.AI INC-A",
-              "key": "US12468P1049",
-              "contract_id": 459113767,
-              "symbol": "AI",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers a comprehensive enterprise AI software platform and turnkey applications that enable organizations to seamlessly build, deploy, and integrate scalable artificial intelligence and machine learning capabilities into their core business operations.",
-              "evidence": "C3 AI operates exclusively as an Enterprise AI application software company, generating its entire revenue from AI subscriptions and associated professional integration services. To facilitate large-scale, enterprise-wide transformations, the company leverages its C3 Agentic AI Platform and custom Omni-Modal Parsing technology to integrate structured and unstructured data across disparate corporate systems. Execution relies on specialized engineering teams within its Center of Excellence and a January 2025 strategic alliance with McKinsey & Company aimed at scaling enterprise AI implementations. This integration capability is supported by targeted research and development spending directed at the company's patented model-driven architecture, which simplifies end-to-end AI application development and deployment complexities."
-            },
-            {
-              "rank": 3,
-              "name": "MICROSOFT CORP",
-              "key": "US5949181045",
-              "contract_id": 272093,
-              "symbol": "MSFT",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Integrates advanced artificial intelligence models across its cloud infrastructure and enterprise productivity suites, enabling organizations to seamlessly embed generative AI and automation into their core business workflows.",
-              "evidence": "Microsoft integrates AI directly into global organizational frameworks by embedding Copilot and autonomous agents across cross-functional enterprise lines such as HR, IT, and analytics. Grounded within Work IQ across 17 exabytes of enterprise communications data, these tools have scaled to 20 million paid seats, automating workflows and reducing issue resolution times in Dynamics 365 by over 30%. This continuous integration across the Microsoft 365 suite, Fabric, and security platforms accounts for an estimated $37 billion annual AI revenue run rate, reinforced by Azure AI Foundry, which enables over 90% of the Fortune 500 to build and deploy custom agents into mission-critical business processes."
-            },
-            {
-              "rank": 4,
-              "name": "PALANTIR TECHNOLOGIES INC-A",
-              "key": "US69608A1088",
-              "contract_id": 444857009,
-              "symbol": "PLTR",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Facilitates the secure integration of artificial intelligence and large language models into complex enterprise environments through specialized software platforms, enabling organizations to connect disparate data sources and deploy AI-driven operational workflows.",
-              "evidence": "Palantir\u2019s primary growth engine is the deployment of its Artificial Intelligence Platform (AIP) to embed AI directly into complex business functions across enterprise operations. By utilizing its proprietary Ontology to ensure safe and effective AI interaction with real-world environments, the company has transformed core workflows for clients, such as increasing GE Aerospace engine production by 26% and automating millions of customer engagements for a major telecommunications provider. The operational integration of these multi-agentic AI solutions is executed by specialized Forward Deployed Engineers and has driven a 133% year-over-year expansion in Palantir's U.S. commercial business. Management characterizes this market posture as absolute AIP dominance, emphasizing internal capital allocations that prioritize enterprise autonomy and the replacement of legacy workflows over superficial technology demonstrations."
-            },
-            {
-              "rank": 5,
-              "name": "NVIDIA CORP",
-              "key": "US67066G1040",
-              "contract_id": 4815747,
-              "symbol": "NVDA",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers end-to-end computing infrastructure and comprehensive software frameworks that empower organizations to seamlessly integrate, manage, and scale artificial intelligence workloads across their enterprise environments.",
-              "evidence": "NVIDIA drives AI enterprise integration through its dedicated 'ACIE' (AI Clouds, Industrial, and Enterprise) segment, which provides fully integrated, full-stack AI data center architectures directly to corporate customers. Generating $37 billion in Q2 2026, this division targets 250,000 global enterprises to convert diverse corporate infrastructures into purpose-built AI factories and on-premise environments. To support this rollout, the company is expanding its operational and go-to-market footprint to guide non-hyperscaler enterprise deployments. This structural focus is reinforced by NVIDIA's earlier $10 billion strategic investment in Anthropic, designed to accelerate the widespread corporate adoption of AI agent platforms and business software integrations."
-            }
-          ],
-          "total_count": 75
-        },
-        {
-          "name": "Enterprise Networking",
-          "key": "b6db4986-bb84-4b06-84f5-7e85fdf53362",
-          "description": "Network solutions and architectures designed to address complex connectivity needs within large organizations.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "CISCO SYSTEMS INC",
-              "key": "US17275R1023",
-              "contract_id": 268084,
-              "symbol": "CSCO",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides foundational networking infrastructure, encompassing routers, switches, and software-defined solutions, enabling secure and scalable connectivity across corporate data centers, campuses, and branch networks.",
-              "evidence": "Cisco's engagement with Enterprise Networking is defined by the segment's position as the company's primary business driver, generating over $8.8 billion and comprising more than 55% of total revenue in Q2 2026. This core category recently experienced an 18% increase in enterprise product orders, directly propelled by 40% growth in enterprise data center switching, record campus networking orders, and the high-volume adoption of WiFi 7 technologies. Furthermore, Cisco is embedding AI-native capabilities across its product portfolio to modernize campus networks and capitalize on a multi-billion-dollar enterprise infrastructure refresh cycle."
-            },
-            {
-              "rank": 2,
-              "name": "ARISTA NETWORKS INC",
-              "key": "US0404132054",
-              "contract_id": 740948854,
-              "symbol": "ANET",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides software-driven cloud networking solutions, high-performance Ethernet switches, and routing products that power large-scale enterprise data centers and campus network environments.",
-              "evidence": "Arista Networks addresses the Enterprise Networking theme through a confirmed number-one market share in high-speed switching and a dedicated 2026 campus revenue target of $1.25 billion. To manage complex organizational connectivity, the company deploys a single EOS binary and integrates its VeloCloud acquisition to functionally unify data center, campus, and branch operations. This focus on enterprise architecture is supported by targeted R&D investments and global sales headcount expansion, translating into the enterprise and financials sector directly contributing 32% of Arista's total annual revenue."
-            },
-            {
-              "rank": 3,
-              "name": "EXTREME NETWORKS INC",
-              "key": "US30226D1063",
-              "contract_id": 269087,
-              "symbol": "EXTR",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides cloud-driven wired and wireless infrastructure, along with network management software, to optimize connectivity and streamline operations within enterprise environments.",
-              "evidence": "Extreme Networks operates entirely as a pure-play enterprise networking provider, driving its core business model through the delivery of mission-critical secure campus fabrics and AI-powered platforms. The company establishes its market position by offering a proprietary layer-2 campus fabric that reduces network deployment times from hours to minutes and yields validated total cost of ownership savings over competitors like Cisco. Guided directly by C-level leadership, this singular operational focus accounts for the entirety of the company's $317 million in recent quarterly revenue and dictates structural investments, including a reorganization into targeted sales pods and the strategic hiring of rival executive talent."
-            },
-            {
-              "rank": 4,
-              "name": "FORTINET INC",
-              "key": "US34959E1091",
-              "contract_id": 70236214,
-              "symbol": "FTNT",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers converged networking and cybersecurity solutions, including secure SD-WAN and next-generation firewalls, to facilitate secure connectivity and infrastructure management across corporate environments.",
-              "evidence": "Fortinet drives the convergence of networking and security through its Secure Networking portfolio, which provides the connectivity architecture for large-scale organizations via SD-WAN, SD-Branch, and Unified SASE products. Representing the vast majority of its recent $2.09 billion in quarterly billings, this strategy supports highly distributed enterprise infrastructures, demonstrated by a recent deployment connecting more than 3,000 branch locations for a multinational energy company. To deliver these capabilities, Fortinet relies on an integrated hardware and software ecosystem\u2014utilizing FortiOS to natively link FortiSwitches, wireless access points, and firewalls\u2014that simplifies connectivity and internal policy management across complex corporate environments."
-            },
-            {
-              "rank": 5,
-              "name": "HEWLETT PACKARD ENTERPRISE",
-              "key": "US42824C1099",
-              "contract_id": 209411798,
-              "symbol": "HPE",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers secure edge-to-cloud networking infrastructure, encompassing wired and wireless local area networks, campus switching, and SD-WAN solutions that enable robust connectivity across modern enterprise environments.",
-              "evidence": "Hewlett Packard Enterprise's expansion in enterprise networking is driven by the $13.4 billion acquisition and ongoing integration of Juniper Networks, forming a dedicated operational segment supported by unified R&D and sales teams. This Networking division generated $2.7 billion in Q2 2026 revenue, representing a quarter of the company's total sales and reinforcing its position as a primary driver of overall corporate profitability. Product synergies combining hardware capabilities, such as QFX switches and edge routers, with the proprietary Mist AI platform have fueled record order levels in Campus & Branch solutions and secured multi-million dollar contracts with major enterprise clients."
-            }
-          ],
-          "total_count": 75
-        }
-      ],
-      "connections": [
-        {
-          "title": "Investment Theme Exposure",
-          "type": "company_theme",
-          "links": [
-            {
-              "key": "42e2758a-31c2-413a-aa4e-de9b0ab19132",
-              "type": "theme",
-              "name": "Cybersecurity",
-              "link_type": "company_theme",
-              "rank": 1
-            },
-            {
-              "key": "ae6e2c29-bd04-4251-8803-98b915fcd6ca",
-              "type": "theme",
-              "name": "Network Security",
-              "link_type": "company_theme",
-              "rank": 2
-            },
-            {
-              "key": "512f0de4-da00-4846-9c2a-be4847d182a4",
-              "type": "theme",
-              "name": "Cloud Computing",
-              "link_type": "company_theme",
-              "rank": 3
-            },
-            {
-              "key": "f3fcc84e-531b-4ea9-8537-97824fd85979",
-              "type": "theme",
-              "name": "AI Enterprise Integration",
-              "link_type": "company_theme",
-              "rank": 4
-            },
-            {
-              "key": "b6db4986-bb84-4b06-84f5-7e85fdf53362",
-              "type": "theme",
-              "name": "Enterprise Networking",
-              "link_type": "company_theme",
-              "rank": 5
-            },
-            {
-              "key": "9723f07d-74ac-4750-9fce-73602ba4ad58",
-              "type": "theme",
-              "name": "Threat Intelligence",
-              "link_type": "company_theme",
-              "rank": 6
-            },
-            {
-              "key": "f14b97b4-fbbf-4411-bfc2-6d9af20944d1",
-              "type": "theme",
-              "name": "Agentic AI",
-              "link_type": "company_theme",
-              "rank": 7
-            },
-            {
-              "key": "cc0bb4ab-ed23-4098-8feb-6e28e770db45",
-              "type": "theme",
-              "name": "Artificial Intelligence",
-              "link_type": "company_theme",
-              "rank": 8
-            },
-            {
-              "key": "3727b8c9-7b24-4cd1-99bf-7c4586ea099f",
-              "type": "theme",
-              "name": "Data Security",
-              "link_type": "company_theme",
-              "rank": 9
-            },
-            {
-              "key": "b2872dbe-6e61-4a7c-94b6-73cd44df9bca",
-              "type": "theme",
-              "name": "Generative AI & LLMs",
-              "link_type": "company_theme",
-              "rank": 10
-            },
-            {
-              "key": "8bff3578-9b42-4a74-85c1-d66b1f55bc8f",
-              "type": "theme",
-              "name": "Data Analytics",
-              "link_type": "company_theme",
-              "rank": 11
-            },
-            {
-              "key": "1a7c1f0d-038f-43e9-ab3f-a2e239200e5a",
-              "type": "theme",
-              "name": "SaaS",
-              "link_type": "company_theme",
-              "rank": 12
-            },
-            {
-              "key": "6d952a1a-e964-44d3-b05b-e4b2e0b1c8bf",
-              "type": "theme",
-              "name": "Data Centers",
-              "link_type": "company_theme",
-              "rank": 13
-            },
-            {
-              "key": "21821ee1-43ca-4247-904c-843737eb8009",
-              "type": "theme",
-              "name": "Digital Identity Verification",
-              "link_type": "company_theme",
-              "rank": 14
-            },
-            {
-              "key": "966bf12f-7302-42e6-8708-043b4d2e0b4f",
-              "type": "theme",
-              "name": "IT Consulting",
-              "link_type": "company_theme",
-              "rank": 15
-            },
-            {
-              "key": "00d0d758-0aa9-4aa6-9891-ddf03f7dbaac",
-              "type": "theme",
-              "name": "AI Infrastructure",
-              "link_type": "company_theme",
-              "rank": 16
-            },
-            {
-              "key": "4209a810-d833-42a7-950b-27a18ae3b9e5",
-              "type": "theme",
-              "name": "Quantum Computing",
-              "link_type": "company_theme",
-              "rank": 17
-            },
-            {
-              "key": "42cb6b91-fa6f-45a4-a05a-42db18654ed8",
-              "type": "theme",
-              "name": "Enterprise Software",
-              "link_type": "company_theme",
-              "rank": 18
-            },
-            {
-              "key": "0ecbf7dc-3c50-4222-a3cc-32dacdbb5717",
-              "type": "theme",
-              "name": "Digital Solutions",
-              "link_type": "company_theme",
-              "rank": 19
-            },
-            {
-              "key": "5cce0040-d2cb-4176-b5a0-3251111964f9",
-              "type": "theme",
-              "name": "Machine Learning",
-              "link_type": "company_theme",
-              "rank": 20
-            }
-          ]
-        },
-        {
-          "title": "Brand & Product",
-          "type": "company_product",
-          "links": [
-            {
-              "key": "Cortex",
-              "type": "product",
-              "name": "Cortex",
-              "link_type": "company_product",
-              "rank": 1
-            },
-            {
-              "key": "Prisma",
-              "type": "product",
-              "name": "Prisma",
-              "link_type": "company_product",
-              "rank": 2
-            },
-            {
-              "key": "Next-Generation Firewalls (NGFW)",
-              "type": "product",
-              "name": "Next-Generation Firewalls (NGFW)",
-              "link_type": "company_product",
-              "rank": 3
-            },
-            {
-              "key": "Unit 42",
-              "type": "product",
-              "name": "Unit 42",
-              "link_type": "company_product",
-              "rank": 4
-            },
-            {
-              "key": "Cloud-Delivered Security Services (CDSS)",
-              "type": "product",
-              "name": "Cloud-Delivered Security Services (CDSS)",
-              "link_type": "company_product",
-              "rank": 5
-            },
-            {
-              "key": "Strata",
-              "type": "product",
-              "name": "Strata",
-              "link_type": "company_product",
-              "rank": 6
-            },
-            {
-              "key": "AI Security",
-              "type": "product",
-              "name": "AI Security",
-              "link_type": "company_product",
-              "rank": 7
-            }
-          ]
-        },
-        {
-          "title": "Competitors",
-          "type": "company_competitor",
-          "links": [
-            {
-              "key": "US34959E1091",
-              "type": "company",
-              "name": "FORTINET INC",
-              "link_type": "company_competitor",
-              "contract_id": 70236214,
-              "symbol": "FTNT",
-              "exchange": "SMART"
-            },
-            {
-              "key": "IL0010824113",
-              "type": "company",
-              "name": "CHECK POINT SOFTWARE TECH",
-              "link_type": "company_competitor",
-              "contract_id": 4172987,
-              "symbol": "CHKP",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US98980G1022",
-              "type": "company",
-              "name": "ZSCALER INC",
-              "link_type": "company_competitor",
-              "contract_id": 310621426,
-              "symbol": "ZS",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US5949181045",
-              "type": "company",
-              "name": "MICROSOFT CORP",
-              "link_type": "company_competitor",
-              "contract_id": 272093,
-              "symbol": "MSFT",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US22788C1053",
-              "type": "company",
-              "name": "CROWDSTRIKE HOLDINGS INC - A",
-              "link_type": "company_competitor",
-              "contract_id": 370757467,
-              "symbol": "CRWD",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US17275R1023",
-              "type": "company",
-              "name": "CISCO SYSTEMS INC",
-              "link_type": "company_competitor",
-              "contract_id": 268084,
-              "symbol": "CSCO",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US81730H1095",
-              "type": "company",
-              "name": "SENTINELONE INC -CLASS A",
-              "link_type": "company_competitor",
-              "contract_id": 499640681,
-              "symbol": "S",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US18915M1071",
-              "type": "company",
-              "name": "CLOUDFLARE INC - CLASS A",
-              "link_type": "company_competitor",
-              "contract_id": 382633646,
-              "symbol": "NET",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US11135F1012",
-              "type": "company",
-              "name": "BROADCOM INC",
-              "link_type": "company_competitor",
-              "contract_id": 313130367,
-              "symbol": "AVGO",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US7534221046",
-              "type": "company",
-              "name": "RAPID7 INC",
-              "link_type": "company_competitor",
-              "contract_id": 200154100,
-              "symbol": "RPD",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US3156161024",
-              "type": "company",
-              "name": "F5 INC",
-              "link_type": "company_competitor",
-              "contract_id": 6248713,
-              "symbol": "FFIV",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US00971T1016",
-              "type": "company",
-              "name": "AKAMAI TECHNOLOGIES INC",
-              "link_type": "company_competitor",
-              "contract_id": 6220356,
-              "symbol": "AKAM",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US74758T3032",
-              "type": "company",
-              "name": "QUALYS INC",
-              "link_type": "company_competitor",
-              "contract_id": 114814349,
-              "symbol": "QLYS",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US88025T1025",
-              "type": "company",
-              "name": "TENABLE HOLDINGS INC",
-              "link_type": "company_competitor",
-              "contract_id": 327422072,
-              "symbol": "TENB",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US02079K3059",
-              "type": "company",
-              "name": "ALPHABET INC-CL A",
-              "link_type": "company_competitor",
-              "contract_id": 208813719,
-              "symbol": "GOOGL",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US42824C1099",
-              "type": "company",
-              "name": "HEWLETT PACKARD ENTERPRISE",
-              "link_type": "company_competitor",
-              "contract_id": 209411798,
-              "symbol": "HPE",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US23804L1035",
-              "type": "company",
-              "name": "DATADOG INC - CLASS A",
-              "link_type": "company_competitor",
-              "contract_id": 383858515,
-              "symbol": "DDOG",
-              "exchange": "SMART"
-            },
-            {
-              "key": "NL0013056914",
-              "type": "company",
-              "name": "ELASTIC NV",
-              "link_type": "company_competitor",
-              "contract_id": 335844146,
-              "symbol": "ESTC",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US0231351067",
-              "type": "company",
-              "name": "AMAZON.COM INC",
-              "link_type": "company_competitor",
-              "contract_id": 3691937,
-              "symbol": "AMZN",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US0021211018",
-              "type": "company",
-              "name": "A10 NETWORKS INC",
-              "link_type": "company_competitor",
-              "contract_id": 146405187,
-              "symbol": "ATEN",
-              "exchange": "SMART"
-            }
-          ]
-        },
-        {
-          "title": "Country Exposure",
-          "type": "company_country",
-          "links": [
-            {
-              "key": "US",
-              "type": "country",
-              "name": "US",
-              "link_type": "company_country",
-              "rank": 1,
-              "symbol": "US"
-            },
-            {
-              "key": "IL",
-              "type": "country",
-              "name": "IL",
-              "link_type": "company_country",
-              "rank": 2,
-              "symbol": "IL"
-            },
-            {
-              "key": "IN",
-              "type": "country",
-              "name": "IN",
-              "link_type": "company_country",
-              "rank": 3,
-              "symbol": "IN"
-            },
-            {
-              "key": "JP",
-              "type": "country",
-              "name": "JP",
-              "link_type": "company_country",
-              "rank": 4,
-              "symbol": "JP"
-            },
-            {
-              "key": "NL",
-              "type": "country",
-              "name": "NL",
-              "link_type": "company_country",
-              "rank": 5,
-              "symbol": "NL"
-            },
-            {
-              "key": "SG",
-              "type": "country",
-              "name": "SG",
-              "link_type": "company_country",
-              "rank": 6,
-              "symbol": "SG"
-            },
-            {
-              "key": "GB",
-              "type": "country",
-              "name": "GB",
-              "link_type": "company_country",
-              "rank": 7,
-              "symbol": "GB"
-            },
-            {
-              "key": "MX",
-              "type": "country",
-              "name": "MX",
-              "link_type": "company_country",
-              "rank": 8,
-              "symbol": "MX"
-            }
-          ]
-        },
-        {
-          "title": "Region Exposure",
-          "type": "company_region",
-          "links": [
-            {
-              "key": "North_America",
-              "type": "region",
-              "name": "North America",
-              "link_type": "company_region",
-              "rank": 1
-            },
-            {
-              "key": "Middle_East",
-              "type": "region",
-              "name": "Middle East",
-              "link_type": "company_region",
-              "rank": 2
-            },
-            {
-              "key": "Europe",
-              "type": "region",
-              "name": "Europe",
-              "link_type": "company_region",
-              "rank": 3
-            },
-            {
-              "key": "Asia",
-              "type": "region",
-              "name": "Asia",
-              "link_type": "company_region",
-              "rank": 4
-            }
-          ]
-        }
-      ],
-      "source": "IBKR MCP company research"
-    }
+    "volatility_score": 65.39
   },
   {
     "ATR_14": 7.56,
@@ -10292,12 +10292,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Medical Instrumen...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 13909,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -10305,7 +10305,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -10319,6 +10319,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 197,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -10374,10 +10377,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 11.08,
@@ -11228,12 +11228,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Industrial Distri...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 6608665,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -11241,7 +11241,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -11255,6 +11255,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 85,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -11310,10 +11313,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 72.77,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 72.77
   },
   {
     "ATR_14": 14.83,
@@ -12164,12 +12164,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Farm & Heavy Cons...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 6393,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -12178,7 +12178,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -12192,6 +12192,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 35,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -12247,10 +12250,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.82,
@@ -13074,6 +13074,16 @@
     ],
     "Check_Details": "\u2713 Trend (P 42.5 > SMA50 39.1) \u2713 RS (Trend: Up, Val: 16.67) \u2713 RSI (62.2) \u2713 ATR (Risk 8.6%)",
     "Checks_Passed": 4,
+    "Company_Context": {
+      "available": true,
+      "connections": [],
+      "fetched_at": "2026-09-24T07:55:20.644787+00:00",
+      "peer_count": 0,
+      "peer_rank": null,
+      "source": "IBKR MCP company research",
+      "theme_count": 0,
+      "themes": []
+    },
     "Company_Name": "Varonis Systems, Inc.",
     "Consensus": "Buy",
     "Contract_ID": 145409766,
@@ -13101,12 +13111,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Infras...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 145409766,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -13114,7 +13124,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -13129,8 +13139,111 @@
     "Options_Collection_Rank": 2,
     "Options_Collection_Selected": true,
     "Options_Context": {
+      "analytics_available": true,
       "available": true,
-      "fetched_at": "2026-09-24T07:55:22.117360+00:00",
+      "average_spread_pct": 73.50784693613686,
+      "chain_contracts_count": 3,
+      "chain_contracts_sampled": [
+        {
+          "call_contract_id": 925553268,
+          "call_contract_id_ex": "925553268@SMART",
+          "call_description": "VRNS NOV 20 '26 50 Call",
+          "put_contract_id": 925553961,
+          "put_contract_id_ex": "925553961@SMART",
+          "put_description": "VRNS NOV 20 '26 50 Put",
+          "strike": "50"
+        },
+        {
+          "call_contract_id": 925553195,
+          "call_contract_id_ex": "925553195@SMART",
+          "call_description": "VRNS NOV 20 '26 45 Call",
+          "put_contract_id": 925553892,
+          "put_contract_id_ex": "925553892@SMART",
+          "put_description": "VRNS NOV 20 '26 45 Put",
+          "strike": "45"
+        },
+        {
+          "call_contract_id": 925553330,
+          "call_contract_id_ex": "925553330@SMART",
+          "call_description": "VRNS NOV 20 '26 55 Call",
+          "put_contract_id": 925554035,
+          "put_contract_id_ex": "925554035@SMART",
+          "put_description": "VRNS NOV 20 '26 55 Put",
+          "strike": "55"
+        }
+      ],
+      "contract_iv_coverage_ratio": 0.0,
+      "contracts": [
+        {
+          "ask": 4.8,
+          "bid": 1.6,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 99.99999999999999,
+          "strike": 50.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 6.9,
+          "bid": 3.0,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 78.7878787878788,
+          "strike": 50.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 8.1,
+          "bid": 4.5,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 57.14285714285714,
+          "strike": 45.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 4.8,
+          "bid": 1.1500000000000001,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 122.68907563025209,
+          "strike": 45.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 2.5,
+          "bid": 1.6500000000000001,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "call",
+          "spread_pct": 40.96385542168674,
+          "strike": 55.0,
+          "volume": 0.0
+        },
+        {
+          "ask": 9.9,
+          "bid": 6.5,
+          "iv": null,
+          "open_interest": null,
+          "quote_status": "FROZEN_DELAYED",
+          "side": "put",
+          "spread_pct": 41.46341463414635,
+          "strike": 55.0,
+          "volume": 0.0
+        }
+      ],
+      "contracts_sampled": 6,
+      "data_quality": "partial",
+      "exchange": "SMART",
       "expiration": "20261120",
       "expirations": [
         "20261016",
@@ -13142,120 +13255,17 @@
         "20280121",
         "20290119"
       ],
-      "exchange": "SMART",
-      "contracts_sampled": 6,
-      "chain_contracts_count": 3,
-      "chain_contracts_sampled": [
-        {
-          "strike": "50",
-          "call_contract_id_ex": "925553268@SMART",
-          "call_contract_id": 925553268,
-          "call_description": "VRNS NOV 20 '26 50 Call",
-          "put_contract_id_ex": "925553961@SMART",
-          "put_contract_id": 925553961,
-          "put_description": "VRNS NOV 20 '26 50 Put"
-        },
-        {
-          "strike": "45",
-          "call_contract_id_ex": "925553195@SMART",
-          "call_contract_id": 925553195,
-          "call_description": "VRNS NOV 20 '26 45 Call",
-          "put_contract_id_ex": "925553892@SMART",
-          "put_contract_id": 925553892,
-          "put_description": "VRNS NOV 20 '26 45 Put"
-        },
-        {
-          "strike": "55",
-          "call_contract_id_ex": "925553330@SMART",
-          "call_contract_id": 925553330,
-          "call_description": "VRNS NOV 20 '26 55 Call",
-          "put_contract_id_ex": "925554035@SMART",
-          "put_contract_id": 925554035,
-          "put_description": "VRNS NOV 20 '26 55 Put"
-        }
-      ],
+      "fetched_at": "2026-09-24T07:55:22.117360+00:00",
+      "open_interest_coverage_ratio": 0.0,
+      "put_call_open_interest_ratio": null,
+      "put_call_volume_ratio": null,
+      "quote_coverage_ratio": 1.0,
+      "quoted_contract_ratio": 1.0,
+      "score_available": false,
       "snapshot_error_count": 0,
       "snapshot_errors": [],
-      "quoted_contract_ratio": 1.0,
-      "average_spread_pct": 73.50784693613686,
-      "put_call_volume_ratio": null,
-      "put_call_open_interest_ratio": null,
-      "contracts": [
-        {
-          "side": "call",
-          "strike": 50.0,
-          "bid": 1.6,
-          "ask": 4.8,
-          "spread_pct": 99.99999999999999,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 50.0,
-          "bid": 3.0,
-          "ask": 6.9,
-          "spread_pct": 78.7878787878788,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 45.0,
-          "bid": 4.5,
-          "ask": 8.1,
-          "spread_pct": 57.14285714285714,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 45.0,
-          "bid": 1.1500000000000001,
-          "ask": 4.8,
-          "spread_pct": 122.68907563025209,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "call",
-          "strike": 55.0,
-          "bid": 1.6500000000000001,
-          "ask": 2.5,
-          "spread_pct": 40.96385542168674,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        },
-        {
-          "side": "put",
-          "strike": 55.0,
-          "bid": 6.5,
-          "ask": 9.9,
-          "spread_pct": 41.46341463414635,
-          "volume": 0.0,
-          "open_interest": null,
-          "iv": null,
-          "quote_status": "FROZEN_DELAYED"
-        }
-      ],
       "source": "IBKR MCP option chain snapshots",
-      "quote_coverage_ratio": 1.0,
-      "volume_coverage_ratio": 1.0,
-      "open_interest_coverage_ratio": 0.0,
-      "contract_iv_coverage_ratio": 0.0,
-      "data_quality": "partial",
-      "analytics_available": true,
-      "score_available": false
+      "volume_coverage_ratio": 1.0
     },
     "Options_Data_Available": false,
     "Options_Data_Partial": true,
@@ -13312,17 +13322,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 68.58,
-    "Company_Context": {
-      "available": true,
-      "fetched_at": "2026-09-24T07:55:20.644787+00:00",
-      "theme_count": 0,
-      "peer_count": 0,
-      "peer_rank": null,
-      "themes": [],
-      "connections": [],
-      "source": "IBKR MCP company research"
-    }
+    "volatility_score": 68.58
   },
   {
     "ATR_14": 13.23,
@@ -14173,12 +14173,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Industr...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 118017869,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -14187,7 +14187,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -14201,6 +14201,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 42,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -14256,9 +14259,6 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 72.84,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 72.84
   }
 ]
