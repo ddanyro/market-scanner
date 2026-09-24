@@ -4,8 +4,8 @@
     "History_Ticker": "CLS",
     "Company_Name": "CELESTICA INC",
     "Shares": 1,
-    "Current_Price": 309.84,
-    "Price_Native": 353.25,
+    "Current_Price": 307.86,
+    "Price_Native": 351.0,
     "Currency": "USD",
     "Contract_ID": 695996615,
     "Asset_Class": null,
@@ -15,16 +15,16 @@
     "Buy_Price": 248.22,
     "Target": 406.82,
     "Trail_Stop": 295.39,
-    "Suggested_Stop": 275.29,
+    "Suggested_Stop": 273.32,
     "Finviz_ATR": 18.46,
     "Vol_W": 4.84,
     "Vol_M": 4.87,
     "Trail_Pct": 8.4,
     "Investment": 248.22,
     "Entry_Date": "2026-09-11",
-    "Current_Value": 309.84,
-    "Profit": 61.62,
-    "Profit_Pct": 24.82,
+    "Current_Value": 307.86,
+    "Profit": 59.64,
+    "Profit_Pct": 24.03,
     "Max_Profit": 158.6,
     "Consensus": "Strong Buy",
     "Analysts": 17,
@@ -988,32 +988,32 @@
       }
     ],
     "Daily_Change": 5.0434,
-    "Date": "2026-09-24 12:32",
+    "Date": "2026-09-24 13:03",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-10-26",
     "Days_To_Earnings": 32,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-24T09:32:52+00:00",
+    "Earnings_Fetched_At": "2026-09-24T10:02:50+00:00",
     "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-24T09:27:40.018967+00:00",
-    "Market_Data_Observed_At": "2026-09-24T08:35:05+00:00",
+    "Market_Data_Fetched_At": "2026-09-24T10:02:54.137705+00:00",
+    "Market_Data_Observed_At": "2026-09-24T09:43:23+00:00",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Data_Broker": "IBKR",
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "Bid": 351.01,
-    "Ask": 352.7,
-    "Spread_Pct": 0.48031149194980816,
+    "Bid": 351.2,
+    "Ask": 352.5,
+    "Spread_Pct": 0.3694756288191023,
     "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 864074650.0,
+    "Avg_90D_USD_Volume": 862971578.0,
     "Historical_Vol": 0.6189613487675302,
     "Implied_Volatility": 0.6369034240608531,
     "IV_Percentile": 0.12749004364013672,
-    "YTD_Change_IBKR": 57.6400146484375,
+    "YTD_Change_IBKR": 55.3900146484375,
     "Dividend_Yield_IBKR": 0.0,
     "IBKR_Misc_Statistics": {
       "high_13w": 378.3500061035156,
@@ -1025,9 +1025,6 @@
       "open_52w": 255.89999389648438
     },
     "IBKR_Snapshot_Groups": {
-      "display": [
-        "dividend_yield"
-      ],
       "quote": [
         "last",
         "bid_ask",
@@ -1052,6 +1049,9 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -1078,9 +1078,9 @@
       "options_supported": true,
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "volatility_score": 42.6,
-    "liquidity_score": 88.29,
-    "risk_score": 58.53,
+    "volatility_score": 42.44,
+    "liquidity_score": 91.05,
+    "risk_score": 59.29,
     "volatility_regime": "extreme",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
@@ -1089,8 +1089,8 @@
     "History_Ticker": "CRWD",
     "Company_Name": "CROWDSTRIKE HOLDINGS INC - A",
     "Shares": 4,
-    "Current_Price": 227.61,
-    "Price_Native": 259.5,
+    "Current_Price": 228.34,
+    "Price_Native": 260.34,
     "Currency": "USD",
     "Contract_ID": 370757467,
     "Asset_Class": null,
@@ -1100,16 +1100,16 @@
     "Buy_Price": 184.41,
     "Target": 210.03,
     "Trail_Stop": 212.84,
-    "Suggested_Stop": 205.64,
+    "Suggested_Stop": 206.38,
     "Finviz_ATR": 12.3,
     "Vol_W": 5.91,
     "Vol_M": 6.06,
     "Trail_Pct": 7.8,
     "Investment": 737.64,
     "Entry_Date": "2026-09-11",
-    "Current_Value": 910.43,
-    "Profit": 172.79,
-    "Profit_Pct": 23.42,
+    "Current_Value": 913.38,
+    "Profit": 175.74,
+    "Profit_Pct": 23.82,
     "Max_Profit": 102.48,
     "Consensus": "Buy",
     "Analysts": 50,
@@ -2064,32 +2064,32 @@
       }
     ],
     "Daily_Change": 10.9024,
-    "Date": "2026-09-24 12:32",
+    "Date": "2026-09-24 13:03",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-12-01",
     "Days_To_Earnings": 68,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-24T09:32:53+00:00",
+    "Earnings_Fetched_At": "2026-09-24T10:02:52+00:00",
     "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-24T09:27:40.019148+00:00",
-    "Market_Data_Observed_At": "2026-09-24T09:18:06+00:00",
+    "Market_Data_Fetched_At": "2026-09-24T10:02:54.137880+00:00",
+    "Market_Data_Observed_At": "2026-09-24T09:49:43+00:00",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Data_Broker": "IBKR",
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "Bid": 259.44,
-    "Ask": 260.8,
-    "Spread_Pct": 0.5228356143318521,
+    "Bid": 260.23,
+    "Ask": 260.64,
+    "Spread_Pct": 0.15742891700423067,
     "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 2473256798.0,
+    "Avg_90D_USD_Volume": 2476678536.0,
     "Historical_Vol": 0.6480275726708857,
     "Implied_Volatility": 0.5517728063746022,
     "IV_Percentile": 0.6932271122932434,
-    "YTD_Change_IBKR": 142.30999755859375,
+    "YTD_Change_IBKR": 143.14999755859378,
     "Dividend_Yield_IBKR": 0.0,
     "IBKR_Misc_Statistics": {
       "high_13w": 263.19000244140625,
@@ -2101,9 +2101,6 @@
       "open_52w": 120.5979995727539
     },
     "IBKR_Snapshot_Groups": {
-      "display": [
-        "dividend_yield"
-      ],
       "quote": [
         "last",
         "bid_ask",
@@ -2128,6 +2125,9 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -2154,10 +2154,10 @@
       "options_supported": true,
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "volatility_score": 44.99,
-    "liquidity_score": 94.08,
-    "risk_score": 61.22,
-    "volatility_regime": "extreme",
+    "volatility_score": 45.06,
+    "liquidity_score": 100.0,
+    "risk_score": 63.02,
+    "volatility_regime": "elevated",
     "score_version": "ibkr-enhanced-v1-shadow"
   }
 ]
