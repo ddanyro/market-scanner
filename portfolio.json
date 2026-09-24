@@ -988,14 +988,14 @@
       }
     ],
     "Daily_Change": 5.0434,
-    "Date": "2026-09-24 12:27",
+    "Date": "2026-09-24 12:32",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-10-26",
     "Days_To_Earnings": 32,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-24T09:27:36+00:00",
+    "Earnings_Fetched_At": "2026-09-24T09:32:52+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-09-24T09:27:40.018967+00:00",
     "Market_Data_Observed_At": "2026-09-24T08:35:05+00:00",
@@ -1025,6 +1025,9 @@
       "open_52w": 255.89999389648438
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -1049,9 +1052,6 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -2064,14 +2064,14 @@
       }
     ],
     "Daily_Change": 10.9024,
-    "Date": "2026-09-24 12:27",
+    "Date": "2026-09-24 12:32",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-12-01",
     "Days_To_Earnings": 68,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-24T09:27:38+00:00",
+    "Earnings_Fetched_At": "2026-09-24T09:32:53+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-09-24T09:27:40.019148+00:00",
     "Market_Data_Observed_At": "2026-09-24T09:18:06+00:00",
@@ -2101,6 +2101,9 @@
       "open_52w": 120.5979995727539
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -2125,9 +2128,6 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -2155,8 +2155,8 @@
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "volatility_score": 44.99,
-    "liquidity_score": 96.39,
-    "risk_score": 61.91,
+    "liquidity_score": 94.08,
+    "risk_score": 61.22,
     "volatility_regime": "extreme",
     "score_version": "ibkr-enhanced-v1-shadow"
   }
