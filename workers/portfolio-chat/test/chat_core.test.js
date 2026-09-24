@@ -279,6 +279,7 @@ test("explicit opportunity ticker survives cash and quantity routing", async () 
 
 test("routes watchlist opportunities, portfolio risks and followups separately", () => {
   const context = {
+    swing_assessments: {international: {regime: "SELECTIVE", execution_permission: false}},
     positions: [{symbol: "HELD"}],
     watchlist_opportunities: {buy: [{symbol: "NEW"}], wait: [{symbol: "WAIT"}]},
     buy_candidates: [{symbol: "OLD"}],
@@ -289,6 +290,7 @@ test("routes watchlist opportunities, portfolio risks and followups separately",
   for (const message of ["Ce oportunități există?", "Ce oportunitati exista?"]) {
     const selected = selectContextForMessage(context, message);
     assert.ok(selected.watchlist_opportunities);
+    assert.equal(selected.swing_assessments.international.regime, "SELECTIVE");
     assert.ok(selected.us_market_regime);
     assert.equal(selected.buy_candidates, undefined);
     assert.equal(selected.current_ai_analysis, undefined);

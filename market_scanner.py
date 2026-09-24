@@ -5861,12 +5861,23 @@ def _bvb_market_indicator_from_proxy(proxy):
     }
 
 
-def _select_best_bvb_proxy_row(portfolio_df, watchlist_df, full_state=None):
-    """Alege TVBETETF cu cel mai complet istoric disponibil.
+def _bvb_proxy_observed_at(item):
+    """Vechimea observației, nu momentul recitirii fișierului cache."""
+    values = [item.get('Market_Data_Observed_At')]
+    dates = list(item.get('Chart_Dates', []) or [])
+    if dates:
+        values.append(dates[-1])
+    parsed = [pd.to_datetime(value, utc=True, errors='coerce') for value in values]
+    parsed = [value for value in parsed if pd.notna(value)]
+    return max(parsed).isoformat() if parsed else None
 
-    Rulările BVB pot produce temporar un snapshot scurt, în timp ce portofoliul
-    sau watchlistul încă păstrează seria completă. Alegerea primei apariții
-    făcea ca 200+ ședințe să fie înlocuite în interfață de numai câteva zile.
+
+def _select_best_bvb_proxy_row(portfolio_df, watchlist_df, full_state=None):
+    """Preferă istoric suficient și proaspăt, păstrând ultima cotație.
+
+    O serie mai lungă nu poate înlocui o observație mai nouă. Seriile datate
+    compatibile sunt reunite în RON; altfel păstrăm snapshotul proaspăt chiar
+    dacă acesta are o acoperire mai mică și va primi încredere redusă.
     """
     candidates = []
     frames = [portfolio_df, watchlist_df]
@@ -5885,12 +5896,7 @@ def _select_best_bvb_proxy_row(portfolio_df, watchlist_df, full_state=None):
             symbol = str(row.get('Symbol') or row.get('Ticker') or '').upper()
             if symbol not in {'TVBETETF', 'TVBETETF.RO'}:
                 continue
-            history = pd.to_numeric(
-                pd.Series(row.get('Chart_History', []) or []), errors='coerce'
-            )
-            valid_history = history[
-                history.notna() & np.isfinite(history) & (history > 0)
-            ]
+            valid_history, _ = _aligned_bvb_chart_history(row)
             candidates.append((len(valid_history), row))
 
     if not candidates:
@@ -5926,7 +5932,54 @@ def _select_best_bvb_proxy_row(portfolio_df, watchlist_df, full_state=None):
 
     if not candidates:
         return None
-    best = max(candidates, key=lambda candidate: candidate[0])[1]
+    def freshness(candidate):
+        observed_at = _bvb_proxy_observed_at(candidate[1])
+        return pd.Timestamp(observed_at).value if observed_at else -1
+
+    adequate = [candidate for candidate in candidates if candidate[0] >= 200]
+    if not adequate:
+        adequate = [candidate for candidate in candidates if candidate[0] >= 50]
+    best_candidate = max(
+        adequate or candidates,
+        key=lambda candidate: (freshness(candidate), candidate[0]),
+    )
+    freshest = max(candidates, key=lambda candidate: (freshness(candidate), candidate[0]))
+    best = best_candidate[1].copy()
+    if freshness(freshest) > freshness(best_candidate):
+        old_history, old_dates = _aligned_bvb_chart_history(best)
+        fresh_history, fresh_dates = _aligned_bvb_chart_history(freshest[1])
+        if (
+            len(old_history) and len(fresh_history)
+            and len(old_dates) == len(old_history)
+            and len(fresh_dates) == len(fresh_history)
+            and all(pd.notna(pd.to_datetime(date, errors='coerce'))
+                    for date in old_dates + fresh_dates)
+        ):
+            normalized_rows = []
+            for row, history, dates in (
+                (best, old_history, old_dates),
+                (freshest[1], fresh_history, fresh_dates),
+            ):
+                normalized = row.to_dict()
+                native_price = _safe_float_text(row.get('Price_Native'))
+                scale = native_price / float(history.iloc[-1]) if native_price else 1.0
+                normalized['Symbol'] = 'TVBETETF.RO'
+                normalized['Chart_History'] = (history * scale).tolist()
+                normalized['Chart_Dates'] = [
+                    pd.Timestamp(date).strftime('%Y-%m-%d') for date in dates
+                ]
+                # OHLC poate fi în altă monedă; nu îl reutilizăm nescalat.
+                normalized.pop('Chart_OHLC', None)
+                normalized_rows.append(normalized)
+            merged = _preserve_portfolio_chart_history(
+                [normalized_rows[0]], [normalized_rows[1]],
+            )[0]
+            pairs = sorted(zip(merged['Chart_Dates'], merged['Chart_History']))
+            merged['Chart_Dates'] = [date for date, _ in pairs]
+            merged['Chart_History'] = [value for _, value in pairs]
+            best = pd.Series(merged)
+        else:
+            best = freshest[1].copy()
     if isinstance(full_state, dict):
         try:
             if hasattr(best, 'to_dict'):
@@ -6044,6 +6097,8 @@ def _generate_bvb_market_overview_html(
     portfolio_df, watchlist_df, return_signal=False, full_state=None,
 ):
     """Context BVB compact, separat complet de scorul SPX/NDX."""
+    from swing_model import evaluate_bvb
+
     item = _select_best_bvb_proxy_row(
         portfolio_df, watchlist_df, full_state=full_state
     )
@@ -6059,6 +6114,7 @@ def _generate_bvb_market_overview_html(
             'key': 'romania_bvb',
             'label': 'Piața românească BVB',
             'verdict': 'DATE INSUFICIENTE',
+            **evaluate_bvb(None, None, None, None, None),
         }
         return (
             (unavailable_html, unavailable_signal)
@@ -6098,9 +6154,9 @@ def _generate_bvb_market_overview_html(
         rsi = float(rsi_series.iloc[-1])
     if rsi is not None and not rsi_series.empty:
         rsi_series.iloc[-1] = rsi
-    if price and sma50:
-        trend = 'Peste SMA50' if price >= sma50 else 'Sub SMA50'
-        trend_color = '#4caf50' if price >= sma50 else '#f44336'
+    if price and sma200:
+        trend = 'Peste SMA200' if price >= sma200 else 'Sub SMA200'
+        trend_color = '#4caf50' if price >= sma200 else '#f44336'
     else:
         trend, trend_color = 'Date insuficiente', '#888'
 
@@ -6126,8 +6182,8 @@ def _generate_bvb_market_overview_html(
         else f'SMA200 indisponibilă · {len(prices)}/200 ședințe'
     )
 
-    # Scor swing local. SMA200 lipsă reduce încrederea, dar nu devine automat
-    # un semnal bearish. TVBETETF este proxy pentru BET, nu breadth-ul complet.
+    # Scor descriptiv local, afișat numai când intrările sunt evaluabile.
+    # TVBETETF este proxy pentru BET, nu breadth-ul complet al pieței BVB.
     trend_points = (
         40 if sma200 is not None and price >= sma200
         else 0 if sma200 is not None
@@ -6137,7 +6193,7 @@ def _generate_bvb_market_overview_html(
     momentum_points = 25 if sma50 is not None and price >= sma50 else 0
     timing_points = 15 if sma10 is not None and price >= sma10 else 0
     if rsi is None:
-        rsi_points = 10
+        rsi_points = 0
     elif 45 <= rsi < 70:
         rsi_points = 20
     elif 35 <= rsi < 75:
@@ -6192,20 +6248,35 @@ def _generate_bvb_market_overview_html(
     above_sma50 = bool(sma50 is not None and price >= sma50)
     above_sma10 = bool(sma10 is not None and price >= sma10)
     above_sma200 = bool(sma200 is not None and price >= sma200)
-    major_trend_ok = above_sma200 if sma200 is not None else above_sma50
-    healthy_rsi = rsi is None or 45 <= rsi < 70
-    if major_trend_ok and above_sma10 and healthy_rsi:
-        bvb_verdict = 'CUMPĂRĂ'
-        verdict_color = '#4caf50'
-    elif major_trend_ok and (not above_sma10 or not healthy_rsi):
-        bvb_verdict = 'AȘTEAPTĂ CONFIRMAREA'
-        verdict_color = '#ff9800'
-    elif not above_sma50:
-        bvb_verdict = 'PRUDENȚĂ'
-        verdict_color = '#f44336'
-    else:
-        bvb_verdict = 'NEUTRU'
-        verdict_color = '#ff9800'
+    swing_signal = evaluate_bvb(
+        price, sma10, sma50, sma200, rsi,
+        observed_at=_bvb_proxy_observed_at(item),
+    )
+    bvb_verdict = swing_signal['legacy_verdict']
+    verdict_color = {
+        'READY': '#4caf50', 'WAIT': '#ff9800', 'UNKNOWN': '#64748b',
+    }[swing_signal['entry_status']]
+    regime_label = html.escape(swing_signal['regime_label'])
+    regime_color = {
+        'FAVORABLE': '#4caf50', 'SELECTIVE': '#ff9800',
+        'DEFENSIVE': '#f44336', 'UNKNOWN': '#64748b',
+    }[swing_signal['regime']]
+    score_display = f'{bvb_score}/100'
+    quality_reason = ' '.join(swing_signal['data_quality'].get('issues') or [])
+    if swing_signal['regime'] == 'UNKNOWN' or swing_signal['entry_status'] == 'UNKNOWN':
+        score_display = 'N/D'
+        score_band = 'Date insuficiente sau neactualizate'
+        score_band_color = '#64748b'
+        score_interpretation = quality_reason or swing_signal['reason']
+        confidence = 'Redusă'
+        confidence_explanation = quality_reason or swing_signal['reason']
+    pullback_reason = html.escape(swing_signal['pullback']['reason'])
+    continuation_reason = html.escape(swing_signal['continuation']['reason'])
+    continuation_label = {
+        'READY': 'CANDIDAT DE CERCETARE', 'WAIT': 'NECONFIRMATĂ',
+        'UNKNOWN': 'DATE INSUFICIENTE',
+    }[swing_signal['continuation']['status']]
+    entry_label = html.escape(swing_signal['entry_label'])
 
     explanation_parts = []
     if above_sma50:
@@ -6230,7 +6301,9 @@ def _generate_bvb_market_overview_html(
         )
     if rsi is not None and rsi >= 70:
         explanation_parts.append(
-            f'RSI14 este {rsi:.1f}, în zona supraîncălzită; evită urmărirea prețului.'
+            f'RSI14 este {rsi:.1f}: filtrul intrării după retragere nu este '
+            'confirmat. Un RSI ridicat nu invalidează singur trendul; '
+            'continuarea impulsului rămâne o ipoteză de cercetat.'
         )
     elif rsi is not None and rsi >= 60:
         explanation_parts.append(
@@ -6243,8 +6316,8 @@ def _generate_bvb_market_overview_html(
         )
     if sma200 is None:
         explanation_parts.append(
-            'SMA200 nu poate fi validată încă, de aceea concluzia are încredere '
-            'medie și nu confirmă singură trendul major.'
+            'SMA200 nu poate fi validată încă; regimul major rămâne necunoscut, '
+            'iar SMA50 nu o înlocuiește pentru autorizarea cercetării long.'
         )
     else:
         explanation_parts.append(
@@ -6261,19 +6334,24 @@ def _generate_bvb_market_overview_html(
 
     overview_html = f"""
     <section style="margin:32px 0;border:1px solid var(--border-light);border-radius:14px;background:#fff;overflow:hidden;box-shadow:var(--shadow-sm);">
-      <div style="padding:20px 24px;background:{verdict_color};color:#fff;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;">
+      <div style="padding:20px 24px;background:{regime_color};color:#fff;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;">
         <div>
           <h3 style="margin:0;font-size:22px;color:#fff;">🇷🇴 România / BVB — Swing Trading Signal (Long-only)</h3>
-          <p style="margin:6px 0 0;opacity:.92;">Context TVBETETF · strategie trend following · niveluri în RON</p>
+          <p style="margin:6px 0 0;opacity:.92;">Context TVBETETF · regim separat de timingul intrării · niveluri în RON</p>
         </div>
-        <div style="padding:8px 16px;border:1px solid rgba(255,255,255,.55);border-radius:999px;background:rgba(255,255,255,.18);font-size:17px;font-weight:800;">{bvb_verdict}</div>
+        <div style="padding:8px 16px;border:1px solid rgba(255,255,255,.55);border-radius:999px;background:rgba(255,255,255,.18);font-size:17px;font-weight:800;">REGIM: {regime_label}</div>
       </div>
       <div style="padding:22px;">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;">
-        <div style="padding:14px;border-left:5px solid {verdict_color};border-radius:8px;background:{verdict_color}12;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Market Bias BVB</div><div style="font-size:24px;font-weight:800;color:{verdict_color};">{bvb_verdict}</div></div>
-        <div style="padding:14px;border:1px solid var(--border-light);border-radius:8px;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Scor swing local</div><div style="font-size:24px;font-weight:800;">{bvb_score}/100</div><div style="font-size:12px;font-weight:700;color:{score_band_color};margin-top:3px;">{score_band}</div></div>
+        <div style="padding:14px;border-left:5px solid {regime_color};border-radius:8px;background:{regime_color}12;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Regim piață BVB</div><div style="font-size:24px;font-weight:800;color:{regime_color};">{regime_label}</div></div>
+        <div style="padding:14px;border:1px solid var(--border-light);border-radius:8px;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Scor swing local</div><div style="font-size:24px;font-weight:800;">{score_display}</div><div style="font-size:12px;font-weight:700;color:{score_band_color};margin-top:3px;">{score_band}</div></div>
         <div style="padding:14px;border:1px solid var(--border-light);border-radius:8px;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Încredere</div><div style="font-size:24px;font-weight:800;">{confidence}</div><div style="font-size:11px;color:var(--text-secondary);margin-top:3px;">Calitatea istoricului, nu probabilitatea de câștig</div></div>
         <div style="padding:14px;border:1px solid var(--border-light);border-radius:8px;"><div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;">Proxy local</div><div style="font-size:24px;font-weight:800;">TVBETETF</div></div>
+      </div>
+      <div style="padding:14px 16px;border:1px solid var(--border-light);border-radius:8px;margin-bottom:14px;line-height:1.6;">
+        <div><b>Intrare pe proxy — revenire după retragere:</b> <span style="color:{verdict_color};font-weight:700;">{entry_label}</span> · {pullback_reason}</div>
+        <div><b>Continuarea trendului — cercetare, nevalidată:</b> {continuation_label} · {continuation_reason}</div>
+        <div><b>Acțiunea concretă:</b> necesită setup propriu, lichiditate, nivel de intrare, stop și risc/recompensă validate; regimul favorabil nu este un ordin de cumpărare.</div>
       </div>
       <div style="padding:14px 16px;border-left:5px solid {score_band_color};border-radius:8px;background:{score_band_color}0d;margin-bottom:12px;line-height:1.55;">
         <b style="color:{score_band_color};">Interpretarea scorului BVB:</b> {score_interpretation}
@@ -6291,8 +6369,8 @@ def _generate_bvb_market_overview_html(
           </div>
           <p style="margin:12px 0 0;"><b>100/100</b> înseamnă că TVBETETF este peste SMA200, SMA50 și SMA10, iar RSI14 se află în zona sănătoasă 45–69. Nu garantează creșterea întregii piețe și nu validează automat fiecare acțiune BVB sau AeRO: lichiditatea, știrile, calendarul local, concentrarea sectorială și riscul specific emitentului rămân decisive.</p>
           <p style="margin:10px 0 0;"><b>Ce înseamnă încrederea {confidence.lower()}:</b> {confidence_explanation} Încrederea descrie robustețea analizei proxy-ului TVBETETF, nu probabilitatea de creștere a BVB și nici șansa de succes a unei acțiuni individuale.</p>
-          <p style="margin:8px 0 0;"><b>Ridicată:</b> există minimum 200 de ședințe și pot fi evaluate SMA200, SMA50, SMA10 și RSI14. <b>Medie:</b> istoricul este mai scurt de 200 de ședințe, astfel încât trendul major nu este încă validat.</p>
-          <p style="margin:8px 0 0;">Dacă SMA200 nu poate fi calculată, încrederea rămâne medie, iar scorul maxim posibil este 85/100.</p>
+          <p style="margin:8px 0 0;"><b>Ridicată:</b> există minimum 200 de ședințe și pot fi evaluate SMA200, SMA50, SMA10 și RSI14 pe date proaspete. <b>Redusă:</b> lipsesc niveluri esențiale sau observațiile nu sunt actualizate; nu confirmăm un semnal long.</p>
+          <p style="margin:8px 0 0;">Dacă SMA200 sau datele curente lipsesc, scorul este N/D și regimul major nu este confirmat. Scorul descriptiv nu reprezintă o probabilitate de câștig și nu autorizează execuția.</p>
         </div>
       </details>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
@@ -6319,7 +6397,8 @@ def _generate_bvb_market_overview_html(
       </div>
       <div style="margin-top:22px;padding:18px;border:2px solid {verdict_color}55;border-radius:10px;background:{verdict_color}0d;">
         <div style="font-size:13px;font-weight:800;color:{verdict_color};text-transform:uppercase;letter-spacing:.04em;">🎯 Concluzie generală BVB</div>
-        <div style="font-size:25px;font-weight:850;color:{verdict_color};margin:8px 0;">{bvb_verdict}</div>
+        <div style="font-size:25px;font-weight:850;color:{regime_color};margin:8px 0;">Regim: {regime_label}</div>
+        <p style="margin:0 0 8px;color:{verdict_color};font-weight:700;">Timing proxy: {bvb_verdict}</p>
         <p style="margin:0;color:var(--text-primary);line-height:1.65;">{conclusion_text}</p>
         <p style="margin:10px 0 0;color:var(--text-secondary);line-height:1.55;"><b>Ce ar invalida concluzia:</b> {invalidation_text}</p>
       </div>
@@ -6346,17 +6425,26 @@ def _generate_bvb_market_overview_html(
     }})();
     </script>"""
     signal = {
+        **swing_signal,
         'key': 'romania_bvb',
         'label': 'Piața românească BVB',
         'verdict': bvb_verdict,
-        'score': bvb_score,
+        'score': bvb_score if score_display != 'N/D' else None,
         'confidence': confidence,
     }
     return (overview_html, signal) if return_signal else overview_html
 
 
 def _market_signal_allows_ai_stock_analysis(signal):
-    """Permite AI pe candidați numai când verdictul pieței este BUY verde."""
+    """Permite cercetarea în regim favorabil/selectiv, nu autorizează ordine."""
+    signal = signal if isinstance(signal, dict) else {}
+    if 'research_allowed' in signal or 'regime' in signal:
+        return (
+            signal.get('research_allowed') is True
+            and signal.get('regime') in {'FAVORABLE', 'SELECTIVE'}
+        )
+    # Compatibilitate conservatoare cu snapshoturi generate înainte de
+    # separarea regimului și timingului. Lipsa noii scheme nu relaxează filtrul.
     verdict = str((signal or {}).get('verdict') or '').strip().upper()
     market_key = str((signal or {}).get('key') or '').strip().lower()
     if market_key == 'romania_bvb':
@@ -6407,30 +6495,34 @@ def _render_ai_stock_gate_notice(
     messages = []
     if blocked_markets & {'SUA', 'Europa / Nasdaq-100'}:
         verdict = str(
-            (international_signal or {}).get('verdict')
+            (international_signal or {}).get('regime_label')
+            or (international_signal or {}).get('verdict')
             or 'DATE INSUFICIENTE'
         )
         messages.append(
             f'SUA/LQQ: analiza AI a candidaților este în pauză '
-            f'(semnal piață: {verdict}).'
+            f'(regim/date piață: {verdict}).'
         )
     if 'România / BVB' in blocked_markets:
         verdict = str(
-            (bvb_signal or {}).get('verdict')
+            (bvb_signal or {}).get('regime_label')
+            or (bvb_signal or {}).get('verdict')
             or 'DATE INSUFICIENTE'
         )
         messages.append(
             f'BVB/AeRO: analiza AI a candidaților este în pauză '
-            f'(semnal piață: {verdict}).'
+            f'(regim/date piață: {verdict}).'
         )
     return (
         "<div style='margin:0 0 14px;padding:11px 13px;border-left:4px solid "
         "#f59e0b;border-radius:8px;background:#fff7ed;color:var(--text-secondary);"
         "font-size:13px;line-height:1.5;'>"
-        "<b>Filtru AI după semnalul pieței:</b> "
+        "<b>Filtru de cercetare AI după regimul pieței:</b> "
         + ' '.join(html.escape(message) for message in messages)
-        + " Datele tehnice și istoricul rămân păstrate; analiza AI pornește "
-        "automat când semnalul relevant devine verde.</div>"
+        + " Datele tehnice și istoricul rămân păstrate. Cercetarea este permisă "
+        "în regim favorabil sau selectiv, chiar dacă intrarea pe indice așteaptă. "
+        "Cercetarea nu autorizează execuția: fiecare instrument necesită "
+        "un setup și limite de risc proprii.</div>"
     )
 
 
@@ -7628,9 +7720,9 @@ def generate_html_dashboard(
             if swing_data is None:
                 swing_data = fresh_swing_data
 
-    # Semnalele sunt calculate înaintea apelului AI, astfel încât doar
-    # candidații din piața aflată efectiv pe BUY/CUMPĂRĂ să fie trimiși
-    # modelului. Aceleași rezultate sunt reutilizate mai jos la randare.
+    # Regimul permite cercetarea în piețe favorabile/selective, independent
+    # de timingul proxy-ului. Nu autorizează intrarea pe acțiunile analizate.
+    # Aceleași rezultate sunt reutilizate mai jos la randare.
     swing_html = ''
     bvb_market_html = ''
     international_market_signal = {
@@ -9911,6 +10003,18 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             bvb_market_signal,
         )
     )
+    # Research permission is not a market order or a blanket BUY instruction.
+    # Carry the exact regime/setup limitations into each stock assessment.
+    for candidate in ai_buy_candidate_payload:
+        market_signal = (bvb_market_signal if candidate.get('market') == 'România / BVB'
+                         else international_market_signal)
+        candidate['market_assessment'] = {
+            key: market_signal.get(key) for key in (
+                'regime', 'regime_label', 'research_allowed', 'entry_status',
+                'pullback', 'continuation', 'validation_status', 'execution_permission',
+                'instrument_rule', 'data_quality',
+            ) if key in market_signal
+        }
     if blocked_ai_buy_candidates:
         blocked_by_market = {}
         for candidate in blocked_ai_buy_candidates:
@@ -9928,10 +10032,14 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         'international': {
             'enabled': ai_market_gates['international'],
             'verdict': international_market_signal.get('verdict'),
+            'regime': international_market_signal.get('regime'),
+            'research_only': True,
         },
         'romania_bvb': {
             'enabled': ai_market_gates['romania_bvb'],
             'verdict': bvb_market_signal.get('verdict'),
+            'regime': bvb_market_signal.get('regime'),
+            'research_only': True,
         },
     }
     previous_buy_history = list(

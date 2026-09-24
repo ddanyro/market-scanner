@@ -14,6 +14,7 @@ import tempfile
 import urllib.parse
 from bs4 import BeautifulSoup
 import enhanced_scoring
+from swing_model import evaluate_bvb, evaluate_international
 
 
 def _utc_now_naive():
@@ -573,7 +574,7 @@ OPENAI_ANALYSIS_MODEL = 'gpt-5.6-terra'
 OPENAI_LIGHTWEIGHT_MODEL = 'gpt-5.6-luna'
 OPENAI_ANALYSIS_REASONING = {'effort': 'low'}
 OPENAI_PORTFOLIO_REASONING = {'effort': 'low'}
-PORTFOLIO_AI_CACHE_VERSION = 19
+PORTFOLIO_AI_CACHE_VERSION = 20
 PORTFOLIO_AI_MIN_REFRESH_HOURS = 4
 PORTFOLIO_EVIDENCE_CACHE_HOURS = 12
 NEWS_AI_CACHE_VERSION = 3
@@ -1639,10 +1640,15 @@ def _tvbetetf_market_summary(item):
     def average(window):
         if len(native_history) < window:
             return None
-        return round(sum(native_history[-window:]) / window, 4)
+        return sum(native_history[-window:]) / window
 
     sma10, sma50, sma200 = average(10), average(50), average(200)
     rsi = _safe_number(item.get('RSI'), None)
+    if rsi is None and len(native_history) >= 15:
+        delta = pd.Series(native_history).diff()
+        avg_gain = delta.where(delta > 0, 0).ewm(alpha=1 / 14, adjust=False).mean()
+        avg_loss = (-delta.where(delta < 0, 0)).ewm(alpha=1 / 14, adjust=False).mean()
+        rsi = _safe_number((100 - 100 / (1 + avg_gain / avg_loss)).iloc[-1], None)
     above_sma10 = price >= sma10 if sma10 is not None else None
     above_sma50 = price >= sma50 if sma50 is not None else None
     above_sma200 = price >= sma200 if sma200 is not None else None
@@ -1655,7 +1661,7 @@ def _tvbetetf_market_summary(item):
     momentum_points = 25 if above_sma50 is True else 0
     timing_points = 15 if above_sma10 is True else 0
     if rsi is None:
-        rsi_points = 10
+        rsi_points = 0
     elif 45 <= rsi < 70:
         rsi_points = 20
     elif 35 <= rsi < 75:
@@ -1663,17 +1669,11 @@ def _tvbetetf_market_summary(item):
     else:
         rsi_points = 0
     score = int(trend_points + momentum_points + timing_points + rsi_points)
-    major_trend_ok = above_sma200 if sma200 is not None else above_sma50
-    healthy_rsi = rsi is None or 45 <= rsi < 70
-    if major_trend_ok and above_sma10 and healthy_rsi:
-        verdict = 'CUMPĂRĂ'
-    elif major_trend_ok and (not above_sma10 or not healthy_rsi):
-        verdict = 'AȘTEAPTĂ CONFIRMAREA'
-    elif above_sma50 is False:
-        verdict = 'PRUDENȚĂ'
-    else:
-        verdict = 'NEUTRU'
     dates = list(item.get('Chart_Dates') or [])
+    assessment = evaluate_bvb(
+        price, sma10, sma50, sma200, rsi,
+        observed_at=item.get('Market_Data_Observed_At') or (dates[-1] if dates else None),
+    )
     return {
         'symbol': 'TVBETETF.RO',
         'role': 'proxy investibil pentru direcția pieței principale BVB; nu este indice oficial',
@@ -1681,15 +1681,16 @@ def _tvbetetf_market_summary(item):
         'current_price': round(price, 4),
         'last_session_date': dates[-1] if dates else None,
         'history_observations': len(native_history),
-        'sma10': sma10,
-        'sma50': sma50,
-        'sma200': sma200,
+        'sma10': round(sma10, 4) if sma10 is not None else None,
+        'sma50': round(sma50, 4) if sma50 is not None else None,
+        'sma200': round(sma200, 4) if sma200 is not None else None,
         'rsi14': round(rsi, 2) if rsi is not None else None,
         'above_sma10': above_sma10,
         'above_sma50': above_sma50,
         'above_sma200': above_sma200,
-        'local_swing_score': score,
-        'technical_verdict': verdict,
+        'local_swing_score': score if assessment['regime'] != 'UNKNOWN' and assessment['entry_status'] != 'UNKNOWN' else None,
+        'technical_verdict': assessment['legacy_verdict'],
+        'swing_assessment': assessment,
         'market_data_source': item.get('Market_Data_Source'),
         'market_data_observed_at': item.get('Market_Data_Observed_At'),
         'market_data_fetched_at': item.get('Market_Data_Fetched_At'),
@@ -2446,6 +2447,7 @@ def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
         'market_data_timing', 'data_age_hours',
         'liquidity_status', 'liquidity_reason', 'median_turnover_20d_ron',
         'relative_volume_20d', 'liquidity_position_cap_eur',
+        'market_assessment',
     )
     compact_candidates = []
     for raw in list(buy_candidates or [])[:30]:
@@ -2549,6 +2551,11 @@ def build_portfolio_chat_context(snapshot, ai_result=None, evidence=None,
         'lqq_market': lqq_market,
         'market_context': snapshot.get('market_context') or {},
         'us_market_regime': snapshot.get('us_market_regime') or {},
+        'swing_assessments': {
+            'international': evaluate_international((market_overviews.get('SUA') or {}).get('data', {})),
+            'romania_bvb': ((snapshot.get('market_context') or {}).get('România / BVB', {})
+                            .get('tvbetetf_technical_signal', {}).get('swing_assessment', {})),
+        },
         'us_sector_rotation': snapshot.get('us_sector_rotation') or {},
         'market_overviews': {
             key: market_overviews.get(key)
@@ -2813,6 +2820,7 @@ def _portfolio_critical_fingerprint(snapshot):
             'entry_native': item.get('entry_native'),
             'stop_native': item.get('stop_native'),
             'target_native': item.get('target_native'),
+            'market_assessment': item.get('market_assessment'),
         } for item in snapshot.get('buy_candidates', []) if isinstance(item, dict)],
         'liquidity_risk_flags': snapshot.get(
             'account_liquidity', {}
@@ -6287,7 +6295,47 @@ def check_market_structure_break(hist):
 
 # --- SWING TRADING COMPONENT ---
 
+
 TIDE_CACHE_FILE = "market_tide_cache.json"
+TIDE_CACHE_MAX_AGE_HOURS = 96
+
+
+def _swing_number(value, default=0.0):
+    """Finite numerical values only; missing indicators never receive credit."""
+    if isinstance(value, bool):
+        return default
+    try:
+        number = float(value)
+        return number if math.isfinite(number) else default
+    except (TypeError, ValueError):
+        return default
+
+
+def _usable_tide_cache(cached_data, cache_timestamp, now=None):
+    """Bound retrieval age without claiming that a scrape is a market bar."""
+    if not isinstance(cached_data, dict) or not cached_data:
+        return None
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    try:
+        stamp = cached_data.get('fetched_at') or cache_timestamp or cached_data.get('_cached_at')
+        fetched_at = datetime.datetime.fromisoformat(str(stamp).replace('Z', '+00:00'))
+        # Historical caches were written with datetime.now(): naive means local.
+        fetched_at = fetched_at.astimezone(datetime.timezone.utc)
+        now = now.astimezone(datetime.timezone.utc)
+        age_hours = (now - fetched_at).total_seconds() / 3600
+        if age_hours < -5 / 60 or age_hours > TIDE_CACHE_MAX_AGE_HOURS:
+            return None
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return {
+        **cached_data,
+        'source': 'Finviz Home Page',
+        'fetched_at': fetched_at.isoformat(),
+        'observed_at': cached_data.get('observed_at'),
+        'is_cached': True,
+        'cache_age_hours': round(max(0, age_hours), 2),
+        'observation_time_known': bool(cached_data.get('observed_at')),
+    }
 
 def get_finviz_market_tide():
     """
@@ -6296,7 +6344,9 @@ def get_finviz_market_tide():
     - New Highs vs New Lows
     - Above vs Below SMA50/SMA200
     
-    Caches data when valid (non-zero Adv/Dec) and falls back to cache when market is closed.
+    Caches valid data and only reuses cache retrieved within 96h (weekends).
+    Finviz does not provide an observation timestamp in the parsed blocks:
+    fetched_at is retrieval time, never a claimed market observation time.
     """
     url = "https://finviz.com"
     headers = {
@@ -6318,6 +6368,7 @@ def get_finviz_market_tide():
                 cache_timestamp = cache.get('timestamp')
         except:
             pass
+    cached_data = _usable_tide_cache(cached_data, cache_timestamp)
     
     tide_data = {}
     
@@ -6383,7 +6434,16 @@ def get_finviz_market_tide():
         
         if adv > 0 or dec > 0:
             # Valid data, save to cache
-            tide_data['_cached_at'] = datetime.datetime.now().isoformat()
+            fetched_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            tide_data.update({
+                '_cached_at': fetched_at,
+                'fetched_at': fetched_at,
+                'observed_at': None,
+                'source': 'Finviz Home Page',
+                'is_cached': False,
+                'cache_age_hours': 0.0,
+                'observation_time_known': False,
+            })
             try:
                 with open(TIDE_CACHE_FILE, 'w') as f:
                     json.dump({'data': tide_data, 'timestamp': tide_data['_cached_at']}, f)
@@ -6398,7 +6458,7 @@ def get_finviz_market_tide():
                 return cached_data
             else:
                 print(f"    ⚠️ Market closed and no cache available")
-                return tide_data
+                return None
                             
     except Exception as e:
         print(f"    ⚠️ Error scraping Finviz Home: {e}")
@@ -6499,7 +6559,8 @@ def get_fallback_breadth():
             'above_50': count_50,
             'above_200': count_200,
             'total': valid_count,
-            'source': f'Top {valid_count} US Stocks'
+            'source': f'Top {valid_count} US Stocks',
+            'observed_at': df.index[-1].isoformat(),
         }
     except Exception as e:
         print(f"Error fetching Fallback Breadth: {e}")
@@ -6522,6 +6583,7 @@ def get_swing_trading_data(data=None):
             hist['SMA200'] = hist['Close'].rolling(window=200).mean()
             
             data['SPX_Price'] = current_price
+            data['SPX_Observed_At'] = hist.index[-1].isoformat()
             data['SPX_SMA10'] = hist['SMA10'].iloc[-1]
             data['SPX_SMA50'] = hist['SMA50'].iloc[-1]
             data['SPX_SMA200'] = hist['SMA200'].iloc[-1]
@@ -6580,6 +6642,7 @@ def get_swing_trading_data(data=None):
             hist_ndx['SMA200'] = hist_ndx['Close'].rolling(window=200).mean()
             
             data['NDX_Price'] = ndx_price
+            data['NDX_Observed_At'] = hist_ndx.index[-1].isoformat()
             data['NDX_SMA10'] = hist_ndx['SMA10'].iloc[-1]
             data['NDX_SMA50'] = hist_ndx['SMA50'].iloc[-1]
             data['NDX_SMA200'] = hist_ndx['SMA200'].iloc[-1]
@@ -6628,6 +6691,7 @@ def get_swing_trading_data(data=None):
             hist_vix = hist_vix.dropna(subset=['Close'])
             vix_current = hist_vix['Close'].iloc[-1]
             data['VIX_Current'] = vix_current
+            data['VIX_Observed_At'] = hist_vix.index[-1].isoformat()
             data['VIX_SMA20'] = hist_vix['Close'].rolling(window=20).mean().iloc[-1]
             
             # Calculate percentile (how current VIX compares to last 6 months)
@@ -6682,6 +6746,7 @@ def get_swing_trading_data(data=None):
         above_50 = res_50[0] if res_50 else None
         
         breadth_source = "Finviz"
+        breadth_observed_at = None
         
         # Fallback if Finviz fails
         if above_50 is None:
@@ -6692,6 +6757,7 @@ def get_swing_trading_data(data=None):
                 above_200 = fallback_data['above_200']
                 sp500_total = fallback_data['total']
                 breadth_source = fallback_data['source']
+                breadth_observed_at = fallback_data.get('observed_at')
         
         if above_200 is not None:
             breadth_pct_200 = (above_200 / sp500_total) * 100
@@ -6704,6 +6770,8 @@ def get_swing_trading_data(data=None):
             data['Breadth_Above'] = above_50
             data['Breadth_Total'] = sp500_total
             data['Breadth_Source'] = breadth_source
+            data['Breadth_Fetched_At'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            data['Breadth_Observed_At'] = breadth_observed_at
             
             # --- BREADTH DIVERGENCE ANALYSIS ---
             # Classify rally quality based on SMA50 vs SMA200 participation gap
@@ -6747,11 +6815,21 @@ def get_swing_trading_data(data=None):
             j = r.json()
             
             # F&G Logic
-            data['FG_Score'] = j.get('fear_and_greed', {}).get('score', 50)
+            data['FG_Score'] = j.get('fear_and_greed', {}).get('score')
             data['FG_Rating'] = j.get('fear_and_greed', {}).get('rating', 'neutral')
+            data['FG_Fetched_At'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            data['FG_Observed_At'] = j.get('fear_and_greed', {}).get('timestamp')
             hist = j.get('fear_and_greed_historical', {}).get('data', [])
             if hist:
                 sorted_hist = sorted(hist, key=lambda x: x['x'])
+                if not data['FG_Observed_At']:
+                    try:
+                        epoch_ms = float(sorted_hist[-1]['x'])
+                        data['FG_Observed_At'] = datetime.datetime.fromtimestamp(
+                            epoch_ms / 1000, datetime.timezone.utc
+                        ).isoformat()
+                    except (TypeError, ValueError, OverflowError, OSError):
+                        pass
                 data['Chart_FG'] = [item['y'] for item in sorted_hist[-60:]]
                 
                 # F&G SMA5 Logic (Trend Detection)
@@ -6795,7 +6873,7 @@ def get_swing_trading_data(data=None):
     except Exception as e:
         print(f"Error Swing Data (CNN): {e}")
         if 'FG_Score' not in data:
-            data['FG_Score'] = 50; data['FG_Rating'] = 'neutral'; data['Chart_FG'] = []
+            data['FG_Score'] = None; data['FG_Rating'] = 'indisponibil'; data['Chart_FG'] = []
 
     # 3. PCR Fallback (Only if CNN failed)
     if not data.get('PCR_Value'):
@@ -6846,29 +6924,29 @@ def calculate_market_bias(data):
     breakdown = []
 
     # 1. Trend (40%) - SPX Price vs SMA200/SMA50
-    spx_price = data.get('SPX_Price', 0)
-    sma200 = data.get('SPX_SMA200', 0)
-    sma50 = data.get('SPX_SMA50', 0)
+    spx_price = _swing_number(data.get('SPX_Price'))
+    sma200 = _swing_number(data.get('SPX_SMA200'))
+    sma50 = _swing_number(data.get('SPX_SMA50'))
     
     trend_score = 0
-    if spx_price > sma200: trend_score += 50
-    if spx_price > sma50: trend_score += 50
+    if sma200 > 0 and spx_price > sma200: trend_score += 50
+    if sma50 > 0 and spx_price > sma50: trend_score += 50
     
     score += trend_score * 0.4
     breakdown.append(f"Trend: {trend_score}% (Weight 40%)")
 
     # 2. Volatility (20%) - VIX Level
-    vix = data.get('VIX_Current', 20)
+    vix = _swing_number(data.get('VIX_Current'))
     vol_score = 0
-    if vix < 20: vol_score = 100
-    elif vix < 25: vol_score = 50
+    if 0 < vix < 20: vol_score = 100
+    elif 20 <= vix < 25: vol_score = 50
     else: vol_score = 0 # Panic
     
     score += vol_score * 0.2
     breakdown.append(f"Volatility: {vol_score}% (Weight 20%)")
 
     # 3. Sentiment (20%) - F&G
-    fg = data.get('FG_Score', 50)
+    fg = _swing_number(data.get('FG_Score'))
     sent_score = 0
     if fg > 75: sent_score = 50 # Extreme Greed (Risk)
     elif fg > 55: sent_score = 100 # Greed (Good Trend)
@@ -6879,7 +6957,7 @@ def calculate_market_bias(data):
     breakdown.append(f"Sentiment: {sent_score}% (Weight 20%)")
 
     # 4. Breadth (20%) - % > SMA50
-    breadth = data.get('Breadth_Pct', 50)
+    breadth = _swing_number(data.get('Breadth_Pct'))
     breadth_score = 0
     if breadth > 50: breadth_score = 100
     else: breadth_score = 0
@@ -6916,10 +6994,7 @@ def calculate_international_swing_score(data):
     completitudinea datelor folosite de model.
     """
     def positive_number(key):
-        try:
-            return float(data.get(key)) > 0
-        except (TypeError, ValueError):
-            return False
+        return _swing_number(data.get(key)) > 0
 
     required_fields = (
         'SPX_Price', 'SPX_SMA200', 'SPX_SMA50', 'SPX_SMA10', 'SPX_RSI',
@@ -6957,21 +7032,24 @@ def calculate_international_swing_score(data):
     }
     # Trend major + intermediar: SPX și Nasdaq au aceeași importanță.
     for prefix in ('SPX', 'NDX'):
-        price = float(data.get(f'{prefix}_Price') or 0)
-        if price and price > float(data.get(f'{prefix}_SMA200') or 0):
+        price = _swing_number(data.get(f'{prefix}_Price'))
+        sma200 = _swing_number(data.get(f'{prefix}_SMA200'))
+        sma50 = _swing_number(data.get(f'{prefix}_SMA50'))
+        sma10 = _swing_number(data.get(f'{prefix}_SMA10'))
+        if sma200 > 0 and price > sma200:
             breakdown['trend'] += 10
-        if price and price > float(data.get(f'{prefix}_SMA50') or 0):
+        if sma50 > 0 and price > sma50:
             breakdown['trend'] += 10
-        if price and price > float(data.get(f'{prefix}_SMA10') or 0):
+        if sma10 > 0 and price > sma10:
             breakdown['timing'] += 7.5
 
-        rsi = float(data.get(f'{prefix}_RSI') or 0)
+        rsi = _swing_number(data.get(f'{prefix}_RSI'))
         if 40 <= rsi < 80:
             breakdown['rsi'] += 5
         elif 35 <= rsi < 85:
             breakdown['rsi'] += 2
 
-    breadth = float(data.get('Breadth_Pct') or 0)
+    breadth = _swing_number(data.get('Breadth_Pct'))
     if breadth >= 70:
         breakdown['breadth'] = 15
     elif breadth >= 50:
@@ -6979,13 +7057,13 @@ def calculate_international_swing_score(data):
     elif breadth >= 30:
         breakdown['breadth'] = 5
 
-    vix = float(data.get('VIX_Current') or 0)
+    vix = _swing_number(data.get('VIX_Current'))
     if 15 <= vix < 25:
         breakdown['volatility'] = 10
     elif 0 < vix < 30:
         breakdown['volatility'] = 6
 
-    fear_greed = float(data.get('FG_Score') or 0)
+    fear_greed = _swing_number(data.get('FG_Score'))
     if 25 <= fear_greed <= 55:
         breakdown['sentiment'] = 10
     elif 55 < fear_greed <= 75:
@@ -7045,25 +7123,45 @@ def generate_swing_trading_html(data=None, return_signal=False):
     """ Generates HTML Card for Swing Trading with Explicit Numerical Values. """
     if data is None:
         data = get_swing_trading_data()
+    # Evaluate the original observations before applying display fallbacks.
+    swing_state = evaluate_international(data)
+    original_data = data
+    data = dict(data)
+    display_numeric_fields = (
+        'SPX_Price', 'SPX_SMA200', 'SPX_SMA50', 'SPX_SMA10', 'SPX_RSI', 'SPX_RSI_Weekly',
+        'NDX_Price', 'NDX_SMA200', 'NDX_SMA50', 'NDX_SMA10', 'NDX_RSI', 'NDX_RSI_Weekly',
+        'VIX_Current', 'VIX_SMA20', 'VIX_Percentile', 'SKEW_Current',
+        'FG_Score', 'FG_SMA5', 'PCR_Value', 'PCR_MA10',
+        'Breadth_Above', 'Breadth_Total', 'Breadth_200_Above', 'Breadth_200_Pct',
+    )
+    for key in display_numeric_fields:
+        data[key] = _swing_number(data.get(key))
+    data['Breadth_Pct'] = _swing_number(data.get('Breadth_Pct'), default=None)
+    if isinstance(data.get('Market_Tide'), dict):
+        data['Market_Tide'] = dict(data['Market_Tide'])
+        for key in ('Advancing', 'Declining', 'NewHighs', 'NewLows'):
+            data['Market_Tide'][key] = _swing_number(data['Market_Tide'].get(key))
+    else:
+        data['Market_Tide'] = {}
     
     # Extract SPX Data
-    spx_price = data.get('SPX_Price', 0)
-    sma_200 = data.get('SPX_SMA200', 0)
-    sma_50 = data.get('SPX_SMA50', 0)
-    sma_10 = data.get('SPX_SMA10', 0)
+    spx_price = _swing_number(data.get('SPX_Price'))
+    sma_200 = _swing_number(data.get('SPX_SMA200'))
+    sma_50 = _swing_number(data.get('SPX_SMA50'))
+    sma_10 = _swing_number(data.get('SPX_SMA10'))
     
     # Extract NDX Data
-    ndx_price = data.get('NDX_Price', 0)
-    ndx_sma_200 = data.get('NDX_SMA200', 0)
-    ndx_sma_50 = data.get('NDX_SMA50', 0)
-    ndx_sma_10 = data.get('NDX_SMA10', 0)
+    ndx_price = _swing_number(data.get('NDX_Price'))
+    ndx_sma_200 = _swing_number(data.get('NDX_SMA200'))
+    ndx_sma_50 = _swing_number(data.get('NDX_SMA50'))
+    ndx_sma_10 = _swing_number(data.get('NDX_SMA10'))
     
     # Extract RSI Data
-    spx_rsi = data.get('SPX_RSI', 50)
-    ndx_rsi = data.get('NDX_RSI', 50)
+    spx_rsi = _swing_number(data.get('SPX_RSI'))
+    ndx_rsi = _swing_number(data.get('NDX_RSI'))
     
-    fg_score = data.get('FG_Score', 50)
-    fg_sma5 = data.get('FG_SMA5', fg_score) # Default to score if no history
+    fg_score = _swing_number(data.get('FG_Score'))
+    fg_sma5 = _swing_number(data.get('FG_SMA5'))
     fg_rating = str(data.get('FG_Rating', 'neutral')).capitalize()
     pcr_val = data.get('PCR_Value', 0.8) if data.get('PCR_Value') else 0.8
     pcr_ma10 = data.get('PCR_MA10', pcr_val) if data.get('PCR_MA10') else pcr_val
@@ -7077,14 +7175,16 @@ def generate_swing_trading_html(data=None, return_signal=False):
     chart_pcr_ma_json = json.dumps(data.get('Chart_PCR_MA10', []))
     
     # VIX Data
-    vix_current = data.get('VIX_Current', 20)
-    vix_sma20 = data.get('VIX_SMA20', 20)
-    vix_percentile = data.get('VIX_Percentile', 50)
+    vix_current = _swing_number(data.get('VIX_Current'))
+    vix_sma20 = _swing_number(data.get('VIX_SMA20'))
+    vix_percentile = _swing_number(data.get('VIX_Percentile'))
     default_vix = {'labels': [], 'values': []}
     chart_vix_json = json.dumps(data.get('Chart_VIX', default_vix))
     
     # VIX Interpretation (Volatility zones)
-    if vix_current < 15:
+    if vix_current <= 0:
+        vix_zone, vix_color, vix_hint = "N/A", "#9e9e9e", "Date VIX indisponibile"
+    elif vix_current < 15:
         vix_zone = "COMPLAZENȚĂ"
         vix_color = "#ff9800"  # Orange - warning (too calm)
         vix_hint = "⚠️ Piață prea calmă - potențial de corecție"
@@ -7103,7 +7203,9 @@ def generate_swing_trading_html(data=None, return_signal=False):
     
     # SKEW Interpretation (Tail Risk / Black Swan)
     skew_current = data.get('SKEW_Current', 120)
-    if skew_current > 145:
+    if skew_current <= 0:
+        skew_zone, skew_color, skew_hint = "N/A", "#9e9e9e", "Date SKEW indisponibile"
+    elif skew_current > 145:
         skew_zone = "EXTREM"
         skew_color = "#f44336"
         skew_hint = "🚨 Tail risk foarte ridicat!"
@@ -7122,13 +7224,13 @@ def generate_swing_trading_html(data=None, return_signal=False):
     
     # Combined VIX + SKEW Risk Assessment
     vol_risk_warning = ""
-    if vix_current < 15 and skew_current > 130:
+    if 0 < vix_current < 15 and skew_current > 130:
         vol_risk_warning = "🚨 ATENȚIE: VIX scăzut + SKEW ridicat = setup pre-crash clasic!"
     elif vix_current > 30:
         vol_risk_warning = "⛔ VIX > 30: Panică în piață, prudență maximă!"
     elif skew_current > 145:
         vol_risk_warning = "🚨 SKEW extrem: Marii investitori anticipează crash!"
-    elif vix_current < 15:
+    elif 0 < vix_current < 15:
         vol_risk_warning = "⚠️ VIX scăzut: Complazență ridicată."
     elif skew_current > 130:
         vol_risk_warning = "⚠️ SKEW ridicat: Smart money cumpără protecție."
@@ -7201,7 +7303,7 @@ def generate_swing_trading_html(data=None, return_signal=False):
 
     # --- Analysis Logic SPX ---
     # SPX SMA Trend Logic
-    trend_bullish = spx_price > sma_200
+    trend_bullish = sma_200 > 0 and spx_price > sma_200
     trend_text = "BULLISH" if trend_bullish else "BEARISH"
     trend_color = "#4caf50" if trend_bullish else "#f44336"
 
@@ -7211,21 +7313,21 @@ def generate_swing_trading_html(data=None, return_signal=False):
     breadth_text = "PUTERNIC" if breadth_ok else "SLAB"
 
     # SPX SMA10 Short-term Timing
-    spx_timing_ok = spx_price > sma_10 if sma_10 else True
+    spx_timing_ok = sma_10 > 0 and spx_price > sma_10
     spx_timing_color = "#4caf50" if spx_timing_ok else "#f44336"
     spx_timing_text = "UP" if spx_timing_ok else "DOWN"
 
     # --- Analysis Logic NDX (Nasdaq - "Motorul" Tech) ---
-    ndx_trend_bullish = ndx_price > ndx_sma_200 if ndx_sma_200 else True
+    ndx_trend_bullish = ndx_sma_200 > 0 and ndx_price > ndx_sma_200
     ndx_trend_text = "BULLISH" if ndx_trend_bullish else "BEARISH"
     ndx_trend_color = "#4caf50" if ndx_trend_bullish else "#f44336"
 
-    ndx_momentum_ok = ndx_price > ndx_sma_50 if ndx_sma_50 else True
+    ndx_momentum_ok = ndx_sma_50 > 0 and ndx_price > ndx_sma_50
     ndx_momentum_color = "#4caf50" if ndx_momentum_ok else "#ff9800"
     ndx_momentum_text = "PUTERNIC" if ndx_momentum_ok else "SLAB"
 
     # NDX SMA10 Short-term Timing
-    ndx_timing_ok = ndx_price > ndx_sma_10 if ndx_sma_10 else True
+    ndx_timing_ok = ndx_sma_10 > 0 and ndx_price > ndx_sma_10
     ndx_timing_color = "#4caf50" if ndx_timing_ok else "#f44336"
     ndx_timing_text = "UP" if ndx_timing_ok else "DOWN"
 
@@ -7316,10 +7418,10 @@ def generate_swing_trading_html(data=None, return_signal=False):
         else:
             verdict = "WAIT"
             verdict_color = "#ff9800"
-            verdict_reason = "Trend UP + Euforie"
+            verdict_reason = "Trend UP · fără setup de revenire după corecție"
             verdict_expl = (
-                f"Trendul este pozitiv (Bull Market pe SPX și NDX), dar sentimentul actual ({fg_rating}, scor {fg_score:.0f}) nu oferă un punct de intrare sigur. "
-                "Așteaptă o corecție sau creștere a fricii (PCR > 1.0)."
+                f"Trendul este pozitiv (SPX și NDX), dar sentimentul actual ({fg_rating}, scor {fg_score:.0f}) nu corespunde regulii de revenire după corecție. "
+                "Aceasta nu exclude continuarea trendului; evaluarea separată a continuării este încă nevalidată."
             )
     elif trend_bullish and not ndx_trend_bullish:
         verdict = "AVOID TECH"
@@ -7360,7 +7462,7 @@ def generate_swing_trading_html(data=None, return_signal=False):
                  # Divergence: Price down (Fear) but Breadth Up?
                  verdict_expl += f" ⚠️ Notă: Deși sentimentul e rău, Breadth-ul e pozitiv ({adv} > {dec}). Ar putea fi o sperietură falsă (dip buyable)."
 
-    if panic_signal and both_bullish and both_timing:
+    if panic_signal and both_bullish and both_timing and verdict.startswith("BUY"):
         verdict += " (STRONG)"
         verdict_expl += " Panica semnalată de Put/Call confirmă un potențial minim local iminent."
     
@@ -7411,7 +7513,7 @@ def generate_swing_trading_html(data=None, return_signal=False):
         else:
             spx_verdict = "WAIT"
             spx_verdict_color = "#ff9800"
-            spx_verdict_text = "Bull Market, dar euforie excesivă. Așteaptă corecție."
+            spx_verdict_text = "Trend ascendent; sentimentul nu confirmă setupul de revenire după corecție."
     else:
         spx_verdict = "CASH"
         spx_verdict_color = "#f44336"
@@ -7471,7 +7573,7 @@ def generate_swing_trading_html(data=None, return_signal=False):
         else:
             ndx_verdict = "HOLD TECH"
             ndx_verdict_color = "#ff9800"
-            ndx_verdict_text = "Tech în trend ascendent, dar greed = riscant pentru intrări noi."
+            ndx_verdict_text = "Tech în trend ascendent; fără setup de revenire după corecție confirmat."
     else:
         ndx_verdict = "AVOID TECH"
         ndx_verdict_color = "#f44336"
@@ -7504,8 +7606,23 @@ def generate_swing_trading_html(data=None, return_signal=False):
         ndx_verdict_text += " | " + " | ".join(ndx_confirmations)
 
     # --- Market Bias Calculation ---
-    bias = calculate_market_bias(data)
-    international_swing = calculate_international_swing_score(data)
+    bias = calculate_market_bias(original_data)
+    international_swing = calculate_international_swing_score(original_data)
+    if swing_state['data_quality']['status'] == 'UNKNOWN':
+        international_swing.update({
+            'confidence': 'Scăzută', 'confidence_explanation': 'Datele-cheie lipsesc sau sunt vechi.',
+            'band': 'Date insuficiente sau neactualizate', 'band_color': '#757575',
+            'interpretation': 'Scorul nu este prezentat ca evaluare curentă până la actualizarea datelor.',
+        })
+    elif swing_state['data_quality']['status'] == 'PARTIAL':
+        international_swing.update({
+            'confidence': 'Medie',
+            'confidence_explanation': 'Există limite de prospețime/completitudine; vezi detaliile surselor.',
+        })
+    score_display = ('N/D' if swing_state['data_quality']['status'] == 'UNKNOWN'
+                     else f"{international_swing['score']}/100")
+    if swing_state['data_quality']['status'] == 'UNKNOWN':
+        bias['verdict'], bias['color'] = 'NECUNOSCUT', '#9e9e9e'
     
     bias_html = f"""
     <div style="grid-column: 1 / -1; background: {bias['color']}22; border-left: 5px solid {bias['color']}; padding: 15px; border-radius: 5px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
@@ -7528,6 +7645,47 @@ def generate_swing_trading_html(data=None, return_signal=False):
             ndx_verdict = "WAIT (INTERNAL ROT)"
             ndx_verdict_color = "#ff9800"
             ndx_verdict_text = f"⛔ SAFETY LOCK: New Lows ({t_nl}) > Highs ({t_nh}). Risk de corecție Tech. Așteaptă stabilizare."
+
+    # One authoritative decision for all cards: no BUY hidden beneath a common
+    # VIX/breadth/freshness block. The old timing never defines research access.
+    verdict = swing_state['legacy_verdict']
+    verdict_reason = swing_state['pullback']['reason']
+    verdict_expl = f"{swing_state['reason']} {verdict_reason}"
+    verdict_color = (
+        '#4caf50' if swing_state['entry_status'] == 'READY' else
+        '#9e9e9e' if swing_state['entry_status'] == 'UNKNOWN' else
+        '#f44336' if swing_state['regime'] == 'DEFENSIVE' else '#ff9800'
+    )
+    spx_verdict = verdict
+    ndx_verdict = 'BUY TECH' if swing_state['entry_status'] == 'READY' else verdict
+    spx_verdict_color = ndx_verdict_color = verdict_color
+    spx_verdict_text = ndx_verdict_text = verdict_reason
+    if spx_price <= 0 or sma_200 <= 0:
+        trend_text, trend_color = 'N/A', '#9e9e9e'
+    if ndx_price <= 0 or ndx_sma_200 <= 0:
+        ndx_trend_text, ndx_trend_color = 'N/A', '#9e9e9e'
+    if spx_price <= 0 or sma_10 <= 0:
+        spx_timing_text, spx_timing_color = 'N/A', '#9e9e9e'
+    if ndx_price <= 0 or ndx_sma_10 <= 0:
+        ndx_timing_text, ndx_timing_color = 'N/A', '#9e9e9e'
+    if ndx_price <= 0 or ndx_sma_50 <= 0:
+        ndx_momentum_text, ndx_momentum_color = 'N/A', '#9e9e9e'
+    if _swing_number(original_data.get('FG_Score'), default=None) is None:
+        fg_zone, fg_color = 'Indisponibil', '#9e9e9e'
+    if _swing_number(original_data.get('SPX_RSI'), default=None) is None:
+        spx_rsi_text, spx_rsi_color, spx_rsi_hint = 'N/A', '#9e9e9e', 'Date RSI indisponibile'
+    if _swing_number(original_data.get('NDX_RSI'), default=None) is None:
+        ndx_rsi_text, ndx_rsi_color, ndx_rsi_hint = 'N/A', '#9e9e9e', 'Date RSI indisponibile'
+    regime_color = {
+        'FAVORABLE': '#2e7d32', 'SELECTIVE': '#b26a00',
+        'DEFENSIVE': '#c62828', 'UNKNOWN': '#757575',
+    }[swing_state['regime']]
+    from html import escape as escape_text
+    data_quality_text = escape_text('; '.join(swing_state['data_quality']['issues']) or 'Datele-cheie sunt actuale.')
+    continuation_label = {
+        'READY': 'CANDIDAT PENTRU ANALIZĂ', 'WAIT': 'AȘTEAPTĂ',
+        'UNKNOWN': 'DATE INSUFICIENTE',
+    }[swing_state['continuation']['status']]
     
     uid = str(int(datetime.datetime.now().timestamp()))
 
@@ -7604,8 +7762,8 @@ def generate_swing_trading_html(data=None, return_signal=False):
         if tide and '_cached_at' in tide:
             try:
                 cached_time = datetime.datetime.fromisoformat(tide['_cached_at'])
-                now = datetime.datetime.now()
-                tide_timestamp_str = f" • Actualizat: {cached_time.strftime('%Y-%m-%d %H:%M')}"
+                cache_label = 'cache' if tide.get('is_cached') else 'preluare'
+                tide_timestamp_str = f" • {cache_label}: {cached_time.strftime('%Y-%m-%d %H:%M %Z')} · ora observației de piață necunoscută"
             except:
                 pass
 
@@ -7692,22 +7850,38 @@ def generate_swing_trading_html(data=None, return_signal=False):
     html = f"""
     <div style="margin: 32px 0; background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
         
-        <div style="background: {verdict_color}; padding: 16px 24px; color: white; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
+        <div style="background: {regime_color}; padding: 16px 24px; color: white; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
             <div>
                 <h3 style="margin: 0; font-size: 18px; font-weight: 700;">🏦 Swing Trading Signal (Long-only)</h3>
-                <div style="font-size: 13px; opacity: 0.9; margin-top: 4px;">Analiză Context SPX + NDX • Strategie Trend Following</div>
+                <div style="font-size: 13px; opacity: 0.9; margin-top: 4px;">Context SPX + NDX • Regim, setup și intrare separate</div>
             </div>
             <div style="text-align: right;">
-                 <div style="background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 16px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 2px 4px rgba(0,0,0,0.1);">{verdict}</div>
+                 <div style="background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 16px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 2px 4px rgba(0,0,0,0.1);">REGIM {swing_state['regime_label']}</div>
             </div>
         </div>
 
         <div style="padding: 24px;">
 
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:16px;">
+                <div style="padding:14px;border:1px solid #e0e0e0;border-radius:8px;">
+                    <b>Revenire după corecție — regula existentă</b>
+                    <div style="color:{verdict_color};font-weight:800;margin-top:6px;">{verdict}</div>
+                    <div style="font-size:12px;margin-top:6px;">{escape_text(verdict_reason)}</div>
+                </div>
+                <div style="padding:14px;border:1px solid #e0e0e0;border-radius:8px;">
+                    <b>Continuarea trendului — NEVALIDAT</b>
+                    <div style="font-weight:800;margin-top:6px;">{continuation_label}</div>
+                    <div style="font-size:12px;margin-top:6px;">{escape_text(swing_state['continuation']['reason'])}</div>
+                    <div style="font-size:12px;margin-top:6px;">Evaluare pentru cercetare, nu semnal automat de cumpărare.</div>
+                </div>
+            </div>
+            <div style="font-size:13px;line-height:1.5;margin-bottom:12px;"><b>Intrarea pe acțiune:</b> trigger propriu, stop, risc/recompensă, lichiditate și cash verificate separat. WAIT pe indice nu interzice cercetarea într-un regim favorabil sau selectiv.</div>
+            <div style="font-size:12px;color:#616161;line-height:1.5;margin-bottom:20px;"><b>Calitatea/prospețimea datelor:</b> {data_quality_text} Toleranța de transport de 96h include weekendul; nu validează profitabilitatea modelului.</div>
+
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;">
                 <div style="padding:14px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;">
                     <div style="font-size:12px;color:#666;text-transform:uppercase;">Scor swing internațional</div>
-                    <div style="font-size:24px;font-weight:800;color:#111827;">{international_swing['score']}/100</div>
+                    <div style="font-size:24px;font-weight:800;color:#111827;">{score_display}</div>
                     <div style="font-size:12px;font-weight:700;color:{international_swing['band_color']};margin-top:3px;">{international_swing['band']}</div>
                 </div>
                 <div style="padding:14px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;">
@@ -8166,6 +8340,7 @@ def generate_swing_trading_html(data=None, return_signal=False):
     """
     
     signal = {
+        **swing_state,
         'key': 'international',
         'label': 'Piața internațională',
         'verdict': verdict,

@@ -568,6 +568,8 @@ class TestMarketAnalysis(unittest.TestCase):
         self.assertEqual(context['buy_candidates'][0]['currency'], 'USD')
         self.assertNotIn('chart_ohlc_native', context['buy_candidates'][0])
         self.assertEqual(context['economic_cycle']['current'], 'Expansion')
+        self.assertEqual(context['swing_assessments']['international']['regime'], 'UNKNOWN')
+        self.assertFalse(context['swing_assessments']['international']['execution_permission'])
 
     def test_chat_cash_availability_is_separate_from_freshness(self):
         accounts = [
@@ -812,13 +814,12 @@ class TestMarketAnalysis(unittest.TestCase):
             portfolio, pd.DataFrame()
         )
         self.assertIn('România / BVB', html)
-        self.assertIn('CUMPĂRĂ', html)
+        self.assertIn('REGIM: DATE INSUFICIENTE', html)
         self.assertIn('61.48 RON', html)
         self.assertIn('Datele BVB nu modifică Market Bias SUA', html)
         self.assertIn('Interpretarea scorului BVB', html)
         self.assertIn('Cum se calculează și ce înseamnă intervalele BVB', html)
-        self.assertIn('scorul maxim posibil este 85/100', html)
-        self.assertIn('Context puternic', html)
+        self.assertIn('N/D', html)
         self.assertIn('Calitatea istoricului, nu probabilitatea de câștig', html)
         self.assertIn('există minimum 200 de ședințe', html)
 
@@ -826,13 +827,15 @@ class TestMarketAnalysis(unittest.TestCase):
             portfolio, pd.DataFrame(), return_signal=True
         )
         self.assertEqual(signal['key'], 'romania_bvb')
-        self.assertEqual(signal['verdict'], 'CUMPĂRĂ')
+        self.assertEqual(signal['verdict'], 'DATE INSUFICIENTE')
+        self.assertFalse(signal['research_allowed'])
 
         long_history = pd.DataFrame([{
             'Symbol': 'TVBETETF.RO',
             'Price_Native': 61.48,
             'RSI': 60,
             'Chart_History': list(np.linspace(45, 61.48, 220)),
+            'Market_Data_Observed_At': datetime.now(timezone.utc).isoformat(),
         }])
         full_score_html = market_scanner._generate_bvb_market_overview_html(
             long_history, pd.DataFrame()
@@ -920,6 +923,7 @@ class TestMarketAnalysis(unittest.TestCase):
             'Symbol': 'TVBETETF.RO',
             'Price_Native': 59.2,
             'RSI': 36.82,
+            'Market_Data_Observed_At': datetime.now(timezone.utc).isoformat(),
             # Istoricul bullish ar produce separat un RSI sănătos; valoarea
             # proaspătă din analiza portofoliului trebuie să rămână autoritară.
             'Chart_History': list(np.linspace(45, 59.2, 263)),

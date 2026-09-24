@@ -1,6 +1,7 @@
 
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, mock_open
+import datetime
 import pandas as pd
 import numpy as np
 import json
@@ -12,8 +13,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from market_scanner_analysis import (
     calculate_international_swing_score,
+    calculate_market_bias,
     generate_swing_trading_html,
     get_swing_trading_data,
+    get_finviz_market_tide,
+    _usable_tide_cache,
 )
 
 class TestSwingAnalysis(unittest.TestCase):
@@ -92,14 +96,20 @@ class TestSwingAnalysis(unittest.TestCase):
         self.assertIn('SPX_Price', data)
         self.assertIn('SPX_SMA200', data)
         self.assertIn('SPX_RSI', data) # Check RSI
+        self.assertEqual(data['SPX_Observed_At'], dates[-1].isoformat())
         
         self.assertIn('NDX_Price', data)
         self.assertIn('NDX_RSI', data)
+        self.assertEqual(data['NDX_Observed_At'], dates[-1].isoformat())
         
         self.assertIn('VIX_Current', data)
+        self.assertEqual(data['VIX_Observed_At'], dates[99].isoformat())
         self.assertIn('SKEW_Current', data)
         
         self.assertEqual(data['FG_Score'], 65)
+        self.assertIn('FG_Observed_At', data)
+        self.assertIn('Breadth_Fetched_At', data)
+        self.assertIsNone(data['Breadth_Observed_At'])
         self.assertIn('PCR_Value', data)
         
         # Check Breadth keys (might be None if finviz parsing fails, but keys should generally be attempted)
@@ -110,9 +120,10 @@ class TestSwingAnalysis(unittest.TestCase):
         self.assertIsInstance(data.get('Chart_SPX', {}).get('price'), list)
         self.assertEqual(len(data.get('Chart_SPX', {}).get('sma200', [])), 60) 
 
+    @patch('market_scanner_analysis.get_fallback_breadth', return_value=None)
     @patch('market_scanner_analysis.yf.Ticker')
     @patch('market_scanner_analysis.requests.get')
-    def test_get_swing_data_failures(self, mock_get, mock_ticker):
+    def test_get_swing_data_failures(self, mock_get, mock_ticker, _mock_breadth):
         """ Test robust handling when APIs fail """
         
         # Mock exceptions
@@ -122,8 +133,8 @@ class TestSwingAnalysis(unittest.TestCase):
         data = get_swing_trading_data()
         
         # Should return safe defaults, not crash
-        self.assertEqual(data.get('FG_Score'), 50)
-        self.assertEqual(data.get('FG_Rating'), 'neutral')
+        self.assertIsNone(data.get('FG_Score'))
+        self.assertEqual(data.get('FG_Rating'), 'indisponibil')
         self.assertEqual(data.get('Chart_FG'), [])
         
         # Ensure VIX/SKEW access doesn't crash HTML gen later
@@ -215,6 +226,9 @@ class TestSwingAnalysis(unittest.TestCase):
         self.assertEqual(incomplete['confidence'], 'Scăzută')
         self.assertEqual(incomplete['band'], 'Context nefavorabil')
         self.assertLess(incomplete['score'], result['score'])
+        self.assertEqual(incomplete['breakdown']['trend'], 0)
+        self.assertEqual(incomplete['breakdown']['timing'], 0)
+        self.assertEqual(calculate_market_bias({'SPX_Price': 5100})['score'], 0)
 
     @patch('market_scanner_analysis.get_swing_trading_data')
     def test_generate_html_missing_data(self, mock_get_data):
@@ -227,8 +241,8 @@ class TestSwingAnalysis(unittest.TestCase):
             # Should not crash.
             # Verify basic structure exists
             self.assertIn("Swing Trading Signal", html)
-            # Default logic with 0 values leads to NDX=True (sma=0) and SPX=False (0>0 False) -> "TECH ONLY"
-            self.assertIn("TECH ONLY", html) 
+            self.assertIn("DATE INSUFICIENTE", html)
+            self.assertNotIn("TECH ONLY", html)
             
             # Verify graceful fallbacks for new indicators
             self.assertIn("OFFLINE", html) # Breadth offline
@@ -236,6 +250,113 @@ class TestSwingAnalysis(unittest.TestCase):
             
         except Exception as e:
             self.fail(f"HTML Generation crashed on missing data: {e}")
+
+    def _fresh_data(self):
+        stamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        return {
+            'SPX_Price': 5100, 'SPX_SMA200': 4700, 'SPX_SMA50': 5000,
+            'SPX_SMA10': 5050, 'SPX_RSI': 58, 'SPX_Observed_At': stamp,
+            'NDX_Price': 18100, 'NDX_SMA200': 16000, 'NDX_SMA50': 17500,
+            'NDX_SMA10': 17900, 'NDX_RSI': 61, 'NDX_Observed_At': stamp,
+            'Breadth_Pct': 72, 'Breadth_Observed_At': stamp,
+            'VIX_Current': 18, 'VIX_Observed_At': stamp,
+            'FG_Score': 48, 'FG_SMA5': 46, 'FG_Observed_At': stamp,
+            'Market_Tide': {'Advancing': 3000, 'Declining': 1800,
+                            'NewHighs': 200, 'NewLows': 50, 'observed_at': stamp},
+        }
+
+    def test_regime_and_two_entry_setups_are_separate(self):
+        data = self._fresh_data()
+        data['FG_Score'] = 55
+        html, signal = generate_swing_trading_html(data, return_signal=True)
+        self.assertEqual(signal['regime'], 'FAVORABLE')
+        self.assertTrue(signal['research_allowed'])
+        self.assertEqual(signal['verdict'], 'WAIT')
+        self.assertEqual(signal['continuation']['status'], 'READY')
+        self.assertEqual(signal['validation_status'], 'UNVALIDATED')
+        self.assertIn('REGIM FAVORABIL', html)
+        self.assertIn('Continuarea trendului — NEVALIDAT', html)
+        self.assertIn('Intrarea pe acțiune:', html)
+        self.assertNotIn('euforie excesivă', html)
+
+    def test_common_safety_guards_apply_to_both_subcards(self):
+        stale = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=5)).isoformat()
+        for override in ({'VIX_Current': 31}, {'Breadth_Pct': 29},
+                         {'SPX_Observed_At': stale}, {'NDX_SMA200': None}):
+            with self.subTest(override=override):
+                data = {**self._fresh_data(), **override}
+                _, signal = generate_swing_trading_html(data, return_signal=True)
+                self.assertFalse(signal['verdict'].startswith('BUY'))
+                self.assertFalse(signal['spx_verdict'].startswith('BUY'))
+                self.assertFalse(signal['ndx_verdict'].startswith('BUY'))
+                self.assertEqual(signal['spx_verdict'], signal['verdict'])
+                self.assertEqual(signal['ndx_verdict'], signal['verdict'])
+
+    def test_renderer_handles_none_nan_infinite_observations(self):
+        for value in (None, float('nan'), float('inf')):
+            with self.subTest(value=value):
+                data = {key: value if isinstance(item, (float, int)) else item
+                        for key, item in self._fresh_data().items()}
+                data.update({'SPX_RSI_Weekly': value, 'SKEW_Current': value,
+                             'Breadth_Above': value, 'Breadth_Total': value})
+                html, signal = generate_swing_trading_html(data, return_signal=True)
+                self.assertEqual(signal['regime'], 'UNKNOWN')
+                self.assertIn('REGIM DATE INSUFICIENTE', html)
+                self.assertEqual(signal['spx_verdict'], 'DATE INSUFICIENTE')
+
+    def test_renderer_handles_malformed_tide_and_rejects_boolean_indicators(self):
+        data = self._fresh_data()
+        data['Market_Tide'] = 'unavailable'
+        html, signal = generate_swing_trading_html(data, return_signal=True)
+        self.assertIn('Market Tide', html)
+        self.assertFalse(signal['verdict'].startswith('BUY'))
+        boolean_data = {key: True for key in ('SPX_Price', 'SPX_SMA200', 'SPX_SMA50',
+                                             'SPX_SMA10', 'VIX_Current', 'FG_Score')}
+        score = calculate_international_swing_score(boolean_data)
+        self.assertEqual(score['score'], 0)
+        self.assertEqual(score['completeness_pct'], 0)
+        self.assertEqual(calculate_market_bias(boolean_data)['score'], 0)
+
+    def test_put_call_does_not_promote_wait_to_strong(self):
+        data = self._fresh_data()
+        data['FG_Score'] = 55
+        data['PCR_Value'] = 1.3
+        html, signal = generate_swing_trading_html(data, return_signal=True)
+        self.assertEqual(signal['verdict'], 'WAIT')
+        self.assertNotIn('WAIT (STRONG)', html)
+
+    def test_tide_retrieval_is_not_market_observation(self):
+        data = self._fresh_data()
+        tide = data['Market_Tide']
+        tide['fetched_at'] = tide.pop('observed_at')
+        _, signal = generate_swing_trading_html(data, return_signal=True)
+        self.assertEqual(signal['regime'], 'SELECTIVE')
+        self.assertEqual(signal['data_quality']['status'], 'PARTIAL')
+        self.assertTrue(signal['research_allowed'])
+
+    def test_tide_cache_age_is_bounded_and_timezone_aware(self):
+        now = datetime.datetime(2026, 9, 24, 12, tzinfo=datetime.timezone.utc)
+        data = {'Advancing': 3000, 'Declining': 1800}
+        for age, usable in ((95, True), (96, True), (97, False), (-2, False)):
+            with self.subTest(age=age):
+                stamp = (now - datetime.timedelta(hours=age)).astimezone(
+                    datetime.timezone(datetime.timedelta(hours=3))).isoformat()
+                result = _usable_tide_cache(data, stamp, now=now)
+                self.assertEqual(result is not None, usable)
+                if usable:
+                    self.assertTrue(result['is_cached'])
+                    self.assertIsNone(result['observed_at'])
+                    self.assertEqual(result['cache_age_hours'], age)
+        self.assertIsNone(_usable_tide_cache(data, 'invalid', now=now))
+
+    @patch('market_scanner_analysis.os.path.exists', return_value=True)
+    @patch('market_scanner_analysis.requests.get')
+    def test_expired_tide_not_returned_on_fetch_failure(self, mock_get, _mock_exists):
+        stale = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=5)).isoformat()
+        payload = json.dumps({'timestamp': stale, 'data': {'Advancing': 1, 'Declining': 2}})
+        mock_get.return_value.status_code = 503
+        with patch('builtins.open', mock_open(read_data=payload)):
+            self.assertIsNone(get_finviz_market_tide())
 
 if __name__ == '__main__':
     unittest.main()

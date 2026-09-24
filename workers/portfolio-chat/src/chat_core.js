@@ -68,6 +68,7 @@ export function selectContextForMessage(context, message, useWebSearch = false, 
     "earnings_calendar", "data_quality", "tvbetetf_lookthrough",
     "tvbetetf_market", "lqq_market", "market_context", "active_buy_orders",
     "active_sell_orders", "order_summary", "data_rules",
+    "swing_assessments",
   ]);
   if (wantsBuy) {
     // Older dashboards retain their legacy candidates until regenerated.
