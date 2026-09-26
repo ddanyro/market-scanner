@@ -848,12 +848,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Farm & Heavy Cons...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 6393,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -862,7 +862,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -876,6 +876,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 36,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -931,10 +934,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 9.97,
@@ -1785,12 +1785,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductors",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 4157,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -1799,7 +1799,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -1813,6 +1813,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 13,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -1868,10 +1871,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 4.58,
@@ -2722,12 +2722,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Industr...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 4392,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -2735,7 +2735,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -2749,6 +2749,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 87,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -2804,10 +2807,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 11.11,
@@ -3658,12 +3658,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductors",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 483492393,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -3672,7 +3672,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -3686,6 +3686,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 57,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -3741,10 +3744,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 65.84,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 65.84
   },
   {
     "ATR_14": 9.01,
@@ -4595,12 +4595,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductors",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 6223250,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -4609,7 +4609,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -4623,6 +4623,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 9,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -4678,10 +4681,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 3.73,
@@ -5532,12 +5532,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Rental & Leasing ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 7690,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -5545,7 +5545,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -5559,6 +5559,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 17,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -5614,10 +5617,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 6.93,
@@ -6468,12 +6468,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Diagnostics & Res...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 335906876,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -6482,7 +6482,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -6496,6 +6496,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 45,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -6551,10 +6554,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 67.73,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 67.73
   },
   {
     "ATR_14": 13.1,
@@ -7405,12 +7405,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Industr...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 118017869,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -7419,7 +7419,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -7433,6 +7433,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 42,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -7488,10 +7491,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 73.04,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 73.04
   },
   {
     "ATR_14": 5.62,
@@ -8315,6 +8315,758 @@
     ],
     "Check_Details": "\u2713 Trend (P 144.3 > SMA50 137.6) \u2713 RS (Trend: Up, Val: 4.72) \u2713 RSI (57.9) \u2713 ATR (Risk 7.8%)",
     "Checks_Passed": 4,
+    "Company_Context": {
+      "available": true,
+      "connections": [
+        {
+          "links": [
+            {
+              "key": "456cc9f1-37ca-4a91-b19b-ccbe43a0bd4c",
+              "link_type": "company_theme",
+              "name": "Electronic Components",
+              "rank": 1,
+              "type": "theme"
+            },
+            {
+              "key": "6d952a1a-e964-44d3-b05b-e4b2e0b1c8bf",
+              "link_type": "company_theme",
+              "name": "Data Centers",
+              "rank": 2,
+              "type": "theme"
+            },
+            {
+              "key": "5f0861dc-ac6b-44c7-83b6-d1d70d893373",
+              "link_type": "company_theme",
+              "name": "Infrastructure Development",
+              "rank": 3,
+              "type": "theme"
+            },
+            {
+              "key": "9d8e5b8d-04cb-4cbb-aadd-84ba79a388e3",
+              "link_type": "company_theme",
+              "name": "Data Center Power",
+              "rank": 4,
+              "type": "theme"
+            },
+            {
+              "key": "b6421ea1-a961-48f0-ad93-eff4ec7ed5c5",
+              "link_type": "company_theme",
+              "name": "Energy Infrastructure",
+              "rank": 5,
+              "type": "theme"
+            },
+            {
+              "key": "03ca27e5-2d78-4b39-bec5-c1cbb30d97ca",
+              "link_type": "company_theme",
+              "name": "Electric Utility",
+              "rank": 6,
+              "type": "theme"
+            },
+            {
+              "key": "00d0d758-0aa9-4aa6-9891-ddf03f7dbaac",
+              "link_type": "company_theme",
+              "name": "AI Infrastructure",
+              "rank": 7,
+              "type": "theme"
+            },
+            {
+              "key": "0ecbf7dc-3c50-4222-a3cc-32dacdbb5717",
+              "link_type": "company_theme",
+              "name": "Digital Solutions",
+              "rank": 8,
+              "type": "theme"
+            },
+            {
+              "key": "2f19456c-e88b-4ba2-8dee-2fac073e9ec0",
+              "link_type": "company_theme",
+              "name": "Energy Efficiency",
+              "rank": 9,
+              "type": "theme"
+            },
+            {
+              "key": "cc0bb4ab-ed23-4098-8feb-6e28e770db45",
+              "link_type": "company_theme",
+              "name": "Artificial Intelligence",
+              "rank": 10,
+              "type": "theme"
+            },
+            {
+              "key": "9dc02465-5747-4e16-9399-569cb1681972",
+              "link_type": "company_theme",
+              "name": "Cloud Infrastructure",
+              "rank": 11,
+              "type": "theme"
+            },
+            {
+              "key": "3b56ab21-0cec-41ad-8b6e-f836c6f38733",
+              "link_type": "company_theme",
+              "name": "Residential Real Estate",
+              "rank": 12,
+              "type": "theme"
+            },
+            {
+              "key": "45e8a248-c80e-445b-b806-110ebfb5e14d",
+              "link_type": "company_theme",
+              "name": "Energy Transition",
+              "rank": 13,
+              "type": "theme"
+            },
+            {
+              "key": "610e942c-0dd2-4701-b6f1-41520ed19bd3",
+              "link_type": "company_theme",
+              "name": "Industrial Technologies",
+              "rank": 14,
+              "type": "theme"
+            },
+            {
+              "key": "6e2abfdd-ac76-4aba-8cc8-239623d28db3",
+              "link_type": "company_theme",
+              "name": "Industrial Automation",
+              "rank": 15,
+              "type": "theme"
+            },
+            {
+              "key": "fbad8040-1a24-4f15-ac89-aff34cf32828",
+              "link_type": "company_theme",
+              "name": "Commercial Real Estate",
+              "rank": 16,
+              "type": "theme"
+            }
+          ],
+          "title": "Investment Theme Exposure",
+          "type": "company_theme"
+        },
+        {
+          "links": [
+            {
+              "key": "Enclosures",
+              "link_type": "company_product",
+              "name": "Enclosures",
+              "rank": 1,
+              "type": "product"
+            },
+            {
+              "key": "Electrical & Fastening Solutions",
+              "link_type": "company_product",
+              "name": "Electrical & Fastening Solutions",
+              "rank": 2,
+              "type": "product"
+            },
+            {
+              "key": "Trachte",
+              "link_type": "company_product",
+              "name": "Trachte",
+              "rank": 3,
+              "type": "product"
+            },
+            {
+              "key": "Thermal Management",
+              "link_type": "company_product",
+              "name": "Thermal Management",
+              "rank": 4,
+              "type": "product"
+            },
+            {
+              "key": "Power Distribution Solutions",
+              "link_type": "company_product",
+              "name": "Power Distribution Solutions",
+              "rank": 5,
+              "type": "product"
+            }
+          ],
+          "title": "Brand & Product",
+          "type": "company_product"
+        },
+        {
+          "links": [
+            {
+              "contract_id": 216386790,
+              "exchange": "SMART",
+              "key": "US4435106079",
+              "link_type": "company_competitor",
+              "name": "HUBBELL INC",
+              "symbol": "HUBB",
+              "type": "company"
+            },
+            {
+              "contract_id": 118017864,
+              "exchange": "SMART",
+              "key": "IE00B8KQN827",
+              "link_type": "company_competitor",
+              "name": "EATON CORP PLC",
+              "symbol": "3EC",
+              "type": "company"
+            },
+            {
+              "contract_id": 236205569,
+              "exchange": "SMART",
+              "key": "US0476491081",
+              "link_type": "company_competitor",
+              "name": "ATKORE INC",
+              "symbol": "ATKR",
+              "type": "company"
+            },
+            {
+              "contract_id": 402783527,
+              "exchange": "SMART",
+              "key": "US92537N1081",
+              "link_type": "company_competitor",
+              "name": "VERTIV HOLDINGS CO-A",
+              "symbol": "VRT",
+              "type": "company"
+            },
+            {
+              "contract_id": 14487608,
+              "exchange": "SMART",
+              "key": "US7404441047",
+              "link_type": "company_competitor",
+              "name": "PREFORMED LINE PRODUCTS CO",
+              "symbol": "PLPC",
+              "type": "company"
+            },
+            {
+              "contract_id": 731466402,
+              "exchange": "MEXI",
+              "key": "IE000IVNQZ81",
+              "link_type": "company_competitor",
+              "name": "TE CONNECTIVITY PLC",
+              "symbol": "TEL1 N",
+              "type": "company"
+            },
+            {
+              "contract_id": 29863855,
+              "exchange": "SMART",
+              "key": "US0774541066",
+              "link_type": "company_competitor",
+              "name": "BELDEN INC",
+              "symbol": "BDC",
+              "type": "company"
+            },
+            {
+              "contract_id": 6842,
+              "exchange": "SMART",
+              "key": "US2910111044",
+              "link_type": "company_competitor",
+              "name": "EMERSON ELECTRIC CO",
+              "symbol": "EMR",
+              "type": "company"
+            },
+            {
+              "contract_id": 6607563,
+              "exchange": "SMART",
+              "key": "US0024741045",
+              "link_type": "company_competitor",
+              "name": "AZZ INC",
+              "symbol": "AZZ",
+              "type": "company"
+            },
+            {
+              "contract_id": 467911567,
+              "exchange": "SMART",
+              "key": "US82489W1071",
+              "link_type": "company_competitor",
+              "name": "SHOALS TECHNOLOGIES GROUP -A",
+              "symbol": "SHLS",
+              "type": "company"
+            },
+            {
+              "contract_id": 273290,
+              "exchange": "SMART",
+              "key": "US7391281067",
+              "link_type": "company_competitor",
+              "name": "POWELL INDUSTRIES INC",
+              "symbol": "POWL",
+              "type": "company"
+            },
+            {
+              "contract_id": 271184,
+              "exchange": "SMART",
+              "key": "US5370081045",
+              "link_type": "company_competitor",
+              "name": "LITTELFUSE INC",
+              "symbol": "LFUS",
+              "type": "company"
+            },
+            {
+              "contract_id": 29612196,
+              "exchange": "SMART",
+              "key": "FR0000121972",
+              "link_type": "company_competitor",
+              "name": "SCHNEIDER ELECTRIC SE",
+              "symbol": "SU",
+              "type": "company"
+            },
+            {
+              "contract_id": 271732,
+              "exchange": "SMART",
+              "key": "US5915202007",
+              "link_type": "company_competitor",
+              "name": "METHODE ELECTRONICS INC",
+              "symbol": "MEI",
+              "type": "company"
+            },
+            {
+              "contract_id": 38715873,
+              "exchange": "SMART",
+              "key": "FR0010307819",
+              "link_type": "company_competitor",
+              "name": "LEGRAND SA",
+              "symbol": "LR",
+              "type": "company"
+            },
+            {
+              "contract_id": 2682965,
+              "exchange": "SMART",
+              "key": "CH0012221716",
+              "link_type": "company_competitor",
+              "name": "ABB LTD-REG",
+              "symbol": "ABBN",
+              "type": "company"
+            },
+            {
+              "contract_id": 4493,
+              "exchange": "SMART",
+              "key": "US0320951017",
+              "link_type": "company_competitor",
+              "name": "AMPHENOL CORP-CL A",
+              "symbol": "APH",
+              "type": "company"
+            },
+            {
+              "contract_id": 11697,
+              "exchange": "SMART",
+              "key": "US7739031091",
+              "link_type": "company_competitor",
+              "name": "ROCKWELL AUTOMATION INC",
+              "symbol": "ROK",
+              "type": "company"
+            },
+            {
+              "contract_id": 233010383,
+              "exchange": "SMART",
+              "key": "US45073V1089",
+              "link_type": "company_competitor",
+              "name": "ITT INC",
+              "symbol": "ITT",
+              "type": "company"
+            }
+          ],
+          "title": "Competitors",
+          "type": "company_competitor"
+        },
+        {
+          "links": [
+            {
+              "key": "US",
+              "link_type": "company_country",
+              "name": "US",
+              "rank": 1,
+              "symbol": "US",
+              "type": "country"
+            },
+            {
+              "key": "DE",
+              "link_type": "company_country",
+              "name": "DE",
+              "rank": 2,
+              "symbol": "DE",
+              "type": "country"
+            },
+            {
+              "key": "CN",
+              "link_type": "company_country",
+              "name": "CN",
+              "rank": 3,
+              "symbol": "CN",
+              "type": "country"
+            },
+            {
+              "key": "MX",
+              "link_type": "company_country",
+              "name": "MX",
+              "rank": 4,
+              "symbol": "MX",
+              "type": "country"
+            },
+            {
+              "key": "GB",
+              "link_type": "company_country",
+              "name": "GB",
+              "rank": 5,
+              "symbol": "GB",
+              "type": "country"
+            },
+            {
+              "key": "IN",
+              "link_type": "company_country",
+              "name": "IN",
+              "rank": 6,
+              "symbol": "IN",
+              "type": "country"
+            },
+            {
+              "key": "FR",
+              "link_type": "company_country",
+              "name": "FR",
+              "rank": 7,
+              "symbol": "FR",
+              "type": "country"
+            }
+          ],
+          "title": "Country Exposure",
+          "type": "company_country"
+        },
+        {
+          "links": [
+            {
+              "key": "North_America",
+              "link_type": "company_region",
+              "name": "North America",
+              "rank": 1,
+              "type": "region"
+            },
+            {
+              "key": "Europe",
+              "link_type": "company_region",
+              "name": "Europe",
+              "rank": 2,
+              "type": "region"
+            },
+            {
+              "key": "Asia",
+              "link_type": "company_region",
+              "name": "Asia",
+              "rank": 3,
+              "type": "region"
+            }
+          ],
+          "title": "Region Exposure",
+          "type": "company_region"
+        }
+      ],
+      "fetched_at": "2026-09-26T07:00:57.132036+00:00",
+      "peer_count": 25,
+      "peer_rank": 1,
+      "source": "IBKR MCP company research",
+      "theme_count": 5,
+      "themes": [
+        {
+          "description": "Sections of electronic circuits such as resistors and capacitors that are used to build electronic devices.",
+          "key": "456cc9f1-37ca-4a91-b19b-ccbe43a0bd4c",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 13591,
+              "description": "Produces a broad portfolio of discrete semiconductors and passive electronic components, supplying essential building blocks for automotive, industrial, computing, and telecommunications applications.",
+              "evidence": "Vishay Intertechnology operates as a pure-play manufacturer of electronic components, generating 100% of its $839 million in Q2 2026 net revenues directly from its discrete semiconductor and passive component divisions. The company structures its core reporting segments around product lines such as resistors, inductors, and capacitors, deploying dedicated Field Application Engineers to integrate its offerings into customer reference designs that secure up to 80% of a power circuit board's bill of materials. To support sustained demand in industrial electrification and new EV platforms\u2014where it serves as the primary resistor supplier for multiple OEMs\u2014Vishay is executing ongoing capital facility investments and subcontractor qualifications to fulfill long-term power infrastructure contracts extending through 2032.",
+              "exchange": "SMART",
+              "key": "US9282981086",
+              "name": "VISHAY INTERTECHNOLOGY INC",
+              "rank": 1,
+              "symbol": "VSH"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 4493,
+              "description": "Designs, manufactures, and markets a broad range of electrical, electronic, and fiber optic connectors, interconnect systems, and sensors that enable power and data transmission across diverse industries.",
+              "evidence": "Amphenol functions as a pure-play electronic component manufacturer, deriving the entirety of its $7.6 billion Q2 2026 revenue from the design and production of interconnects, sensors, and printed circuits. The company explicitly structures its global operations around three dedicated divisions: Communications Solutions, Harsh Environment Solutions, and Interconnect and Sensor Systems. Amphenol directs virtually all its capital deployment toward expanding these core capabilities, highlighted by recent investments including a $10.6 billion debt-funded acquisition of CommScope, over $3.8 billion spent on additional component acquisitions, and hundreds of millions allocated to internal production automation. Operationally, the company leverages its engineering footprint to manufacture specialized discrete connectors, liquid-cooled bus bars, and complex power cable assemblies that are critical for managing escalating electrical voltages in modern AI data centers and industrial networks.",
+              "exchange": "SMART",
+              "key": "US0320951017",
+              "name": "AMPHENOL CORP-CL A",
+              "rank": 2,
+              "symbol": "APH"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 143926983,
+              "description": "Develops and manufactures a broad range of precision electronic components, including advanced micro-acoustics and audio processing solutions, essential for consumer, medical, and industrial applications.",
+              "evidence": "Knowles' operational identity is defined by the design and manufacturing of custom electronic components, yielding 100% of its quarterly revenue through products such as ceramic capacitors, specialty film capacitors, RF filters, and MEMS microphones. The company manages these core offerings through its Precision Devices segment, which recently delivered $85 million in quarterly revenue and achieved 17% organic growth via extensive capacitor and filter shipments. To support future production ramps and new product initiatives within this space, Knowles directs approximately 4% to 5% of its total revenues toward capital expenditures for capacity expansions, alongside $10 million in dedicated quarterly research and development spending and active additions to its direct manufacturing headcount.",
+              "exchange": "SMART",
+              "key": "US49926D1090",
+              "name": "KNOWLES CORP",
+              "rank": 3,
+              "symbol": "KN"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 216386790,
+              "description": "Designs and manufactures a broad portfolio of electrical and electronic products tailored for utility, industrial, and construction applications to support critical infrastructure.",
+              "evidence": "Hubbell operates as a pure-play manufacturer of electrical products and grid infrastructure, generating $1.517 billion in total quarterly net sales tied entirely to this core activity. The company's dedicated Electrical Solutions segment recently delivered $568 million in net sales and double-digit organic growth, fueled by strong demand for electrical components, modular power distribution skids, and proprietary cross-brand integration in nonresidential and light industrial verticals. Strategic market positioning is anchored by leading sub-brands like Burndy connectors and enhanced by manufacturing innovations, such as the deployment of specialized automated work cells for copper lug production that reduce processing times from days to minutes. Hubbell supports this structural foundation through continuous capital outlays, prioritizing direct investments in capacity expansion and manufacturing footprint optimization alongside major scale commitments like the $600 million acquisition of DMC Power.",
+              "exchange": "SMART",
+              "key": "US4435106079",
+              "name": "HUBBELL INC",
+              "rank": 4,
+              "symbol": "HUBB"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 4691,
+              "description": "Distributes a comprehensive portfolio of electronic components, including semiconductors, interconnects, and passive devices, while providing integrated supply chain and design solutions to technology manufacturers worldwide.",
+              "evidence": "Avnet's corporate identity is strictly defined by its position as a global value-added distributor of electronic components, operating a dedicated Electronic Components business group that accounts for the vast majority of its revenue. Led by the company's CEO, who concurrently serves as the President of Electronic Components, this primary operating segment recently delivered a record quarter of $7.1 billion in total sales and $235 million in segment operating income. To capitalize on the rapid proliferation of electronic components, Avnet is executing structural investments across its digital platforms, distribution center infrastructure, and dedicated field application engineers. The company's market position is further anchored by its Farnell high-service distribution arm and a comprehensive portfolio of Interconnect, Passive, and Electromechanical (IP&E) products tailored for data center and hyperscaler supply chains.",
+              "exchange": "SMART",
+              "key": "US0538071038",
+              "name": "AVNET INC",
+              "rank": 5,
+              "symbol": "AVT"
+            }
+          ],
+          "name": "Electronic Components",
+          "total_count": 75
+        },
+        {
+          "description": "Centralized facilities housing computing resources, networking equipment, and storage systems for large-scale data processing.",
+          "key": "6d952a1a-e964-44d3-b05b-e4b2e0b1c8bf",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 4815747,
+              "description": "Designs and supplies high-performance processors, networking solutions, and computing infrastructure that accelerate artificial intelligence and complex workloads across cloud and enterprise data centers.",
+              "evidence": "NVIDIA's engagement with the Data Center theme is driven by its official designation of the segment as a primary market platform, which generated $75.2 billion\u2014over 91% of total revenue\u2014in Q2 2026. The company operates as a full-scale AI infrastructure provider, supplying $60 billion in accelerated computing architectures, such as Blackwell, and $15 billion in advanced networking to hyperscalers, enterprise environments, and specialized AI factories. To sustain this global infrastructure build-out, NVIDIA utilizes a $145 billion supply commitment while continuously deploying complementary hardware, such as STX and CX-9 processors, engineered specifically for large-scale data orchestration and storage management.",
+              "exchange": "SMART",
+              "key": "US67066G1040",
+              "name": "NVIDIA CORP",
+              "rank": 1,
+              "symbol": "NVDA"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 31832526,
+              "description": "Operates a global portfolio of carrier-neutral data centers, providing essential colocation, interconnection, and cloud infrastructure solutions to support enterprise technology and communications networks.",
+              "evidence": "Digital Realty's fundamental business model relies on developing, leasing, and operating centralized data center facilities that serve as critical infrastructure for global digitalization and AI-oriented workloads. Driven by executive leadership and a dedicated workforce of engineers and operational staff, the company manages 3 gigawatts of active capacity alongside a $16.5 billion gross development pipeline. To address expanding hyperscale and multi-cloud demands through its PlatformDIGITAL framework, the company recently allocated $910 million in quarterly development capital expenditures to initiate 464 megawatts of new capacity and acquire large-scale land parcels in Atlanta and Hillsboro. This structural focus dictates the company's commercial identity, evidenced by a recent quarter yielding $707 million in annualized new data center lease bookings.",
+              "exchange": "SMART",
+              "key": "US2538681030",
+              "name": "DIGITAL REALTY TRUST INC.",
+              "rank": 2,
+              "symbol": "DLR"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 181764593,
+              "description": "Owns and operates a global network of colocation and interconnection data centers, delivering the critical digital infrastructure necessary to support enterprise IT workloads, cloud deployments, and seamless network connectivity.",
+              "evidence": "Equinix operates as the world's largest digital infrastructure company, managing a core footprint of 192 stabilized data center assets that recently generated $2.3 billion in recurring quarterly revenue. To support this platform, the company is allocating approximately $4.1 billion in capital expenditures for 2026 to fund 46 major capacity expansion projects across 32 markets, alongside an 800-megawatt development pipeline in the Nordics. The entire organizational structure, from C-level executives down to a specialized global workforce, is explicitly focused on managing and expanding these facilities, successfully adding 4,100 net billing cabinets in the latest quarter. Because colocation, interconnection, and managed infrastructure offerings drive over 95% of the company's total revenue, the physical provision and expansion of data centers constitute the unequivocal foundation of Equinix's business model.",
+              "exchange": "SMART",
+              "key": "US29444U7000",
+              "name": "EQUINIX INC",
+              "rank": 3,
+              "symbol": "EQIX"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 402783527,
+              "description": "Designs and manufactures critical digital infrastructure, including advanced power, cooling, and IT management solutions, to support the continuous operation, efficiency, and scalability of global data centers.",
+              "evidence": "Vertiv operates as a pure-play digital infrastructure provider inherently tied to the accelerating global demand for data centers. The company centers its entire strategic vision and product portfolio around data center ecosystems, deploying proprietary, converged white-space solutions like OneCore and SmartRun to deliver end-to-end power, thermal, and IT management. Driven by robust demand and a massive order backlog, Vertiv is aggressively allocating its capital expenditure budget toward global manufacturing capacity and finalizing strategic data center capabilities through acquisitions such as PurgeRite, ThermoKey, and BMarko Structures. Furthermore, the company supports these infrastructure deployments by vigorously scaling its dedicated service workforce, deploying nearly 5,000 specialized field personnel strictly to execute data center commissioning and lifecycle operations.",
+              "exchange": "SMART",
+              "key": "US92537N1081",
+              "name": "VERTIV HOLDINGS CO-A",
+              "rank": 4,
+              "symbol": "VRT"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 731466419,
+              "description": "Delivers high-performance server and storage systems, utilizing a modular building block architecture and advanced liquid cooling technologies to optimize infrastructure for enterprise, cloud, and artificial intelligence data centers.",
+              "evidence": "Super Micro is strategically evolving from a traditional server manufacturer into a total data center solution provider, with its OEM appliance and large data center segment recently generating $7.4 billion and accounting for 72% of quarterly revenue. This transition is driven by the company's Data Center Building Block Solutions (DCBBS), a framework that bundles computing, cooling, networking, and power systems to deliver complete infrastructure for large-scale deployments. To support this architectural shift and reach a production scale of over 6,000 racks per month, the company is actively expanding its physical footprint, highlighted by a new 4 million square-foot DCBBS campus in Silicon Valley and international manufacturing facilities in Taiwan, Malaysia, and the Netherlands. Furthermore, Super Micro continues to grow its specialized consulting and service teams for data center planning, designing, and build-out, firmly establishing its structural role in global enterprise compute frameworks.",
+              "exchange": "SMART",
+              "key": "US86800U3023",
+              "name": "SUPER MICRO COMPUTER INC",
+              "rank": 5,
+              "symbol": "SMCI"
+            }
+          ],
+          "name": "Data Centers",
+          "total_count": 75
+        },
+        {
+          "description": "Planning, design, and construction of foundational structures and facilities enhancing societal functionality, aiming at strengthening economic growth and support services.",
+          "key": "5f0861dc-ac6b-44c7-83b6-d1d70d893373",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 2743636,
+              "description": "Executes heavy civil construction projects and produces essential construction materials to support large-scale transportation, water, and public works infrastructure development.",
+              "evidence": "Granite Construction's engagement with infrastructure development stems directly from its primary Construction segment, which generates 84% of total revenue through public and private civil projects. The company's recent acquisition of Kenny Seng Construction explicitly expands its capacity across civil and educational end-markets, adding $150 million in annual revenue to its operations. Bolstered by extensive public funding initiatives like the Infrastructure Investment and Jobs Act, Granite maintains a $7.2 billion backlog of committed and awarded projects. This pipeline strictly consists of foundational developments ranging from state highways and federal tactical facilities to civil site preparation for commercial data centers.",
+              "exchange": "SMART",
+              "key": "US3873281071",
+              "name": "GRANITE CONSTRUCTION INC",
+              "rank": 1,
+              "symbol": "GVA"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 316805141,
+              "description": "Drives infrastructure development through the construction, repair, and maintenance of highways, roads, and civil infrastructure projects, supported by an integrated network of hot-mix asphalt plants.",
+              "evidence": "The company's overarching business model is anchored in public infrastructure development, with recurring maintenance projects for state DOTs, cities, and counties explicitly representing the majority of its revenue. A dedicated workforce of approximately 7,000 employees executes major public civil works, evidenced by recent Q2 2026 awards that include a $150 million multi-road widening initiative, a $60 million Interstate 85 expansion, a $27 million taxiway reconstruction at Eglin Air Force Base, and municipal structural preparations for the FIFA World Cup. To capitalize on sustained surface transportation funding driven by demographic shifts into the Sunbelt, management has structured its 'ROAD 2030' plan around capturing these expanding infrastructure investments to double the enterprise's size. This strategic priority is further reinforced by recent large-scale capital deployments, including over $1 billion allocated toward acquisitions like Lone Star Paving and GMJ Paving to expand the firm's civil construction footprint across more than 110 regional markets.",
+              "exchange": "SMART",
+              "key": "US21044C1071",
+              "name": "CONSTRUCTION PARTNERS INC-A",
+              "rank": 2,
+              "symbol": "ROAD"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 13515,
+              "description": "Supplies fundamental construction materials, including crushed stone, sand, gravel, and asphalt, which are essential for building and maintaining highways, bridges, and large-scale public works projects.",
+              "evidence": "Vulcan Materials is fundamentally tied to infrastructure development by directly supplying the raw aggregates and asphalt required to construct major public works, highways, and bridges. The company's demand pipeline is heavily catalyzed by the Infrastructure Investment and Jobs Act (IIJA) and anticipated federal highway bill reauthorizations, which recently drove public infrastructure awards up 17% in Vulcan's primary markets. Providing materials for these foundational civil engineering efforts\u2014ranging from road and bridge construction to port renovations and water systems\u2014historically accounts for 40% to 55% of the company's total aggregate shipments. Furthermore, Vulcan supports this demand through an advantaged geographic footprint, with 60% of all large projects located within 50 miles of a company facility, securing long-term volume visibility into structural public mega-projects.",
+              "exchange": "SMART",
+              "key": "US9291601097",
+              "name": "VULCAN MATERIALS CO",
+              "rank": 3,
+              "symbol": "VMC"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 60037751,
+              "description": "Provides comprehensive civil, building, and specialty construction services for large-scale public and private projects, driving the development of critical transportation networks, mass transit systems, and municipal facilities.",
+              "evidence": "Tutor Perini's core operations center on the planning and construction of essential public facilities, executed primarily through its dedicated Civil segment. This reporting division manages massive structural builds, including the $1.4 billion I-535 Blatnik Bridge and California high-speed rail segments, generating a record $698 million in first-quarter revenue that accounts for roughly half of the company's aggregate top line. To execute these long-duration contracts, the firm integrates specialized workforce deployments and joint venture partnerships to construct multi-billion-dollar surface-transportation networks and mass-transit systems. By aggressively capturing public funding opportunities\u2014such as securing $16 billion across nine recent mega-project awards fueled by the Bipartisan Infrastructure Law\u2014foundational infrastructure development functions as the company's primary organizational focus and earnings driver.",
+              "exchange": "SMART",
+              "key": "US9011091082",
+              "name": "TUTOR PERINI CORP",
+              "rank": 4,
+              "symbol": "TPC"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 43980401,
+              "description": "Delivers comprehensive engineering, design, and project management services for large-scale public and private infrastructure projects, playing a central role in advancing global transportation, water, and energy systems.",
+              "evidence": "AECOM operates as a leading global provider of professional infrastructure consulting and advisory services, dedicating its core business model to the planning, design, and management of foundational structures. The firm's focus on civil infrastructure is driven by large-scale public funding frameworks, such as the Infrastructure Investment and Jobs Act, which catalyze modernization efforts across transportation, water, and environmental end markets. Recognized as the top-ranked firm by ENR in both transportation facilities and water markets, AECOM executes marquee initiatives like the multi-phase Brent Spence Bridge in Ohio alongside major transport developments in the UK, UAE, and Australia. Consulting across these essential transportation and water sectors generated approximately 45% of the company's total revenue in the first half of 2026, anchoring infrastructure development as the fundamental driver of AECOM's operational strategy.",
+              "exchange": "SMART",
+              "key": "US00766T1007",
+              "name": "AECOM",
+              "rank": 5,
+              "symbol": "ACM"
+            }
+          ],
+          "name": "Infrastructure Development",
+          "total_count": 75
+        },
+        {
+          "description": "Generation, transmission, and power management solutions built around the rising electricity needs of AI/cloud data centers.",
+          "key": "9d8e5b8d-04cb-4cbb-aadd-84ba79a388e3",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 402783527,
+              "description": "Provides critical power management infrastructure, including uninterruptible power supplies and power distribution systems, to ensure continuous and efficient energy delivery for data center operations.",
+              "evidence": "Vertiv's operations inherently center on advanced power management systems, evidenced by ongoing broad-based manufacturing capacity expansions to meet the intensive electrical demands of AI infrastructure. The company is actively advancing next-generation data center power architectures, explicitly targeting high-density compute environments with the upcoming launch of its 800-volt DC programs. Beyond internal hardware development, Vertiv addresses power grid limitations by enabling \"bring your own power\" solutions through partnerships like CPower Energy, allowing U.S. data centers to utilize on-site power assets as grid resources. These latest initiatives build upon the company's established ability to directly integrate electrical and IT stacks at extreme scales, utilizing platforms like OneCore to modularly deploy power capacity from hundreds of kilowatts per rack up to the gigawatt level.",
+              "exchange": "SMART",
+              "key": "US92537N1081",
+              "name": "VERTIV HOLDINGS CO-A",
+              "rank": 1,
+              "symbol": "VRT"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 118017864,
+              "description": "Delivers comprehensive power management solutions, uninterruptible power supply systems, and electrical infrastructure that ensure continuous operation and energy efficiency for data center facilities.",
+              "evidence": "Eaton's integration into the data center power ecosystem is anchored by its proprietary 'grid-to-chip' architectures and end-to-end power management infrastructure. Driven by a 240% acceleration in orders, the company utilized its capital allocation strategy to acquire Boyd Thermal for liquid cooling, Resilient Power for 800-volt direct current technology, and Fibrebond for modular power enclosures. These targeted investments established a specialized business unit of over 500 engineers, yielding innovations such as immersion-cooled, medium-voltage solid-state transformers designed to improve facility energy efficiency. Additionally, an R&D partnership with NVIDIA to develop the Eaton Beam Rubin DSX platform embeds the company's 800-volt direct current distribution and thermal systems directly into next-generation AI server architectures.",
+              "exchange": "SMART",
+              "key": "IE00B8KQN827",
+              "name": "EATON CORP PLC",
+              "rank": 2,
+              "symbol": "3EC"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 254457731,
+              "description": "Provides large-scale electricity generation and reliable energy solutions essential for meeting the intensive, continuous power demands of data center infrastructure.",
+              "evidence": "Vistra addresses the escalating electricity demand from hyperscale data centers by executing large-scale, long-term power purchase agreements, recently underscored by a 2,600-megawatt contract with Meta utilizing Vistra's PJM nuclear sites. To capture an anticipated 10 to 15 gigawatts of data center load growth in ERCOT by 2030, the company engineers specialized power provisioning solutions, including nuclear colocation arrangements, front-of-the-meter retail structures, and distributed bridge power generation. This commercial strategy is cemented by multi-gigawatt capacity commitments, such as a 20-year, 1,200-megawatt colocation agreement with Amazon Web Services at the Comanche Peak facility, which directly drives long-term capital investments in generation upgrades to support AI and cloud infrastructure.",
+              "exchange": "SMART",
+              "key": "US92840M1027",
+              "name": "VISTRA CORP",
+              "rank": 3,
+              "symbol": "VST"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 631538926,
+              "description": "Supplies direct, behind-the-meter carbon-free electricity from its nuclear generation assets to support the massive energy requirements of hyperscale data center campuses.",
+              "evidence": "Talen Energy's strategic focus on data center power demands is driven by its 'Talen Flywheel Strategy,' which targets long-term gigawatt-scale contracts to support rapid AI and cloud hyperscaler expansion. The company is advancing a physical footprint of 3,000 acres capable of hosting three to four gigawatts of compute capacity, supported by $4 billion in acquisition financing for the Cornerstone transaction to facilitate large-load contracting options. This operational shift relies on a hybrid generation approach linking power directly to hyperscalers, anchored by an ongoing two-gigawatt power purchase agreement ramp with Amazon Web Services that currently secures 35 percent of Talen's gross margin. To execute this expansion and manage interconnection queues, the company restructured its executive team, dedicating leadership and development personnel to engineer infrastructure and generation solutions tailored specifically for data center offtakers.",
+              "exchange": "SMART",
+              "key": "US87422Q1094",
+              "name": "TALEN ENERGY CORP",
+              "rank": 4,
+              "symbol": "TLN"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 275759,
+              "description": "Develops high-density power modules and advanced power delivery architectures that enable efficient power conversion and management for high-performance computing and artificial intelligence workloads within data center infrastructure.",
+              "evidence": "Vicor's integration into the data center power ecosystem is driven by its proprietary 800-volt bus conversion architectures and Vertical Power Delivery (VPD) solutions, which are engineered to resolve extreme current-density bottlenecks in AI processors. The company actively enforces its market position in this domain through a robust intellectual property strategy, securing ITC exclusion orders against infringing competitors while licensing its power delivery frameworks directly to hyperscalers. Operationally, this technological focus is validated by Vicor's Advanced Products segment, which generates 57.5% of total revenue primarily from high-performance computing applications, and is supported by extensive capital allocations including Federal Street capacity expansions and a planned $250 million to $300 million chip fabrication facility.",
+              "exchange": "SMART",
+              "key": "US9258151029",
+              "name": "VICOR CORP",
+              "rank": 5,
+              "symbol": "VICR"
+            }
+          ],
+          "name": "Data Center Power",
+          "total_count": 75
+        },
+        {
+          "description": "The integral facilities and systems involved in the production, distribution, and consumption of energy, including power plants, transmission lines, and storage systems.",
+          "key": "b6421ea1-a961-48f0-ad93-eff4ec7ed5c5",
+          "linked_companies": [
+            {
+              "asset_type": "STK",
+              "contract_id": 6607910,
+              "description": "Operates an extensive network of midstream energy infrastructure, including pipelines, storage facilities, and processing plants, essential for the gathering, processing, and transportation of natural gas, natural gas liquids, crude oil, and refined products.",
+              "evidence": "Enterprise Products Partners centers its core corporate identity on operating one of the largest energy infrastructure networks in North America, transporting 14.2 million barrels of oil equivalent per day. The company's engagement with this theme is driven by its integrated physical asset base, including a 50,000-mile pipeline network, marine docks, and major storage hubs, which generates the bulk of its $2.7 billion in quarterly EBITDA. Enterprise continues to fund network expansion by allocating up to $2.6 billion in 2026 growth capital expenditures toward projects like the Bahia NGL pipeline, Fractionator 14, and the Neches River Terminal. To manage this infrastructure, the corporate structure features dedicated executive leadership, including Senior Vice Presidents specifically overseeing natural gas assets and crude oil pipelines and terminals.",
+              "exchange": "SMART",
+              "key": "US2937921078",
+              "name": "ENTERPRISE PRODUCTS PARTNERS",
+              "rank": 1,
+              "symbol": "EPD"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 37830920,
+              "description": "Operates a comprehensive network of natural gas, crude oil, and natural gas liquid pipelines, alongside integrated storage and terminal facilities that facilitate the gathering, processing, and transportation of energy resources.",
+              "evidence": "Energy Transfer operates primarily as an integrated midstream company, defined entirely by its nationwide network of pipelines, storage facilities, processing plants, and export terminals that transport crude oil, natural gas, and NGLs. To expand these operations, management allocated its entire 2026 organic growth capital guidance of $5.5 billion to $5.9 billion specifically toward energy infrastructure build-outs. This extensive physical footprint connects major supply basins to domestic power plants, data centers, and global markets, directly generating $4.9 billion in adjusted EBITDA during the first quarter of 2026. The organization reinforces this core infrastructure focus through specialized engineering, operations, and optimization teams directed by executive leadership to capture market dynamics across its asset base.",
+              "exchange": "SMART",
+              "key": "US29273V1008",
+              "name": "ENERGY TRANSFER LP",
+              "rank": 2,
+              "symbol": "ET"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 10794,
+              "description": "Provides essential midstream energy infrastructure through an extensive network of natural gas and natural gas liquids gathering, processing, storage, and transportation systems.",
+              "evidence": "ONEOK functions entirely as an integrated midstream energy infrastructure platform, operating a regionally diversified network of pipelines, fractionators, and terminals to connect natural gas, crude oil, and refined products supply with demand. The company is actively executing a $2.7 billion to $3.2 billion capital growth program in 2026 to expand system capacity, highlighted by continuous developments like the Denver area pipeline expansion and the Medford NGL fractionator rebuild. This physical asset base secures distinct logistical advantages, including the operation of the only refined products pipeline with bidirectional access between the Mid-Continent and the Gulf Coast, while generating 100% of the firm's adjusted EBITDA. Consequently, ONEOK's organizational structure and operational workforce remain completely aligned across four specialized midstream segments to safely and efficiently manage massive daily energy flows.",
+              "exchange": "VALUE",
+              "key": "US6826801036",
+              "name": "ONEOK INC",
+              "rank": 3,
+              "symbol": "OKE.OLD"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 83975037,
+              "description": "Operates an extensive network of pipelines and terminal assets that transport, store, and handle natural gas, crude oil, and refined petroleum products, serving as a foundational component of broad energy distribution systems.",
+              "evidence": "Kinder Morgan functions as a pure-play energy midstream company, anchoring its entire business model on operating critical North American infrastructure encompassing 78,000 miles of pipelines and 136 terminals. The corporate structure revolves strictly around energy transmission, storage, and processing, with executive leadership directing distinct divisions like Natural Gas Pipelines and Products Pipelines that combined generate 100% of the firm's total revenue. To expand this footprint, the company continually deploys capital, highlighted by recent initiatives including an $800 million quarterly expenditure, the $500 million acquisition of the Monument Pipeline, and the execution of a $10.1 billion project backlog. This physical asset network captures entrenched demand within the broader energy ecosystem, reflected by a 99% tank utilization rate across terminal liquids operations and the advancement of strategic ventures like the Western Gateway pipeline.",
+              "exchange": "SMART",
+              "key": "US49456B1017",
+              "name": "KINDER MORGAN INC",
+              "rank": 4,
+              "symbol": "KMI"
+            },
+            {
+              "asset_type": "STK",
+              "contract_id": 6608417,
+              "description": "Owns and operates an extensive midstream network of pipelines, storage facilities, and gathering systems for crude oil and natural gas liquids, providing critical logistical connections between major North American production basins and key market hubs.",
+              "evidence": "Plains All American operates as a \"pure-play crude midstream company,\" directly anchoring its corporate identity and business model to energy infrastructure. The company relies on a vast physical network of long-haul pipelines, storage tanks, and dock systems\u2014highlighted by the Cactus III pipeline integration\u2014which collectively underpin its projected $2.88 billion in adjusted EBITDA for 2026. To sustain and expand this premier North American footprint, executive leadership directs 100% of the company's capital expenditures toward these midstream assets, recently dedicating $350 million for growth and an increased $185 million for infrastructure maintenance.",
+              "exchange": "SMART",
+              "key": "US7265031051",
+              "name": "PLAINS ALL AMER PIPELINE LP",
+              "rank": 5,
+              "symbol": "PAA"
+            }
+          ],
+          "name": "Energy Infrastructure",
+          "total_count": 75
+        }
+      ]
+    },
     "Company_Name": "nVent Electric plc",
     "Consensus": "Strong Buy",
     "Contract_ID": 314064093,
@@ -8342,12 +9094,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Electrical Equipm...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 314064093,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -8356,7 +9108,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -8370,6 +9122,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 7,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -8425,762 +9180,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 70.53,
-    "Company_Context": {
-      "available": true,
-      "fetched_at": "2026-09-26T07:00:57.132036+00:00",
-      "theme_count": 5,
-      "peer_count": 25,
-      "peer_rank": 1,
-      "themes": [
-        {
-          "name": "Electronic Components",
-          "key": "456cc9f1-37ca-4a91-b19b-ccbe43a0bd4c",
-          "description": "Sections of electronic circuits such as resistors and capacitors that are used to build electronic devices.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "VISHAY INTERTECHNOLOGY INC",
-              "key": "US9282981086",
-              "contract_id": 13591,
-              "symbol": "VSH",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Produces a broad portfolio of discrete semiconductors and passive electronic components, supplying essential building blocks for automotive, industrial, computing, and telecommunications applications.",
-              "evidence": "Vishay Intertechnology operates as a pure-play manufacturer of electronic components, generating 100% of its $839 million in Q2 2026 net revenues directly from its discrete semiconductor and passive component divisions. The company structures its core reporting segments around product lines such as resistors, inductors, and capacitors, deploying dedicated Field Application Engineers to integrate its offerings into customer reference designs that secure up to 80% of a power circuit board's bill of materials. To support sustained demand in industrial electrification and new EV platforms\u2014where it serves as the primary resistor supplier for multiple OEMs\u2014Vishay is executing ongoing capital facility investments and subcontractor qualifications to fulfill long-term power infrastructure contracts extending through 2032."
-            },
-            {
-              "rank": 2,
-              "name": "AMPHENOL CORP-CL A",
-              "key": "US0320951017",
-              "contract_id": 4493,
-              "symbol": "APH",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Designs, manufactures, and markets a broad range of electrical, electronic, and fiber optic connectors, interconnect systems, and sensors that enable power and data transmission across diverse industries.",
-              "evidence": "Amphenol functions as a pure-play electronic component manufacturer, deriving the entirety of its $7.6 billion Q2 2026 revenue from the design and production of interconnects, sensors, and printed circuits. The company explicitly structures its global operations around three dedicated divisions: Communications Solutions, Harsh Environment Solutions, and Interconnect and Sensor Systems. Amphenol directs virtually all its capital deployment toward expanding these core capabilities, highlighted by recent investments including a $10.6 billion debt-funded acquisition of CommScope, over $3.8 billion spent on additional component acquisitions, and hundreds of millions allocated to internal production automation. Operationally, the company leverages its engineering footprint to manufacture specialized discrete connectors, liquid-cooled bus bars, and complex power cable assemblies that are critical for managing escalating electrical voltages in modern AI data centers and industrial networks."
-            },
-            {
-              "rank": 3,
-              "name": "KNOWLES CORP",
-              "key": "US49926D1090",
-              "contract_id": 143926983,
-              "symbol": "KN",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Develops and manufactures a broad range of precision electronic components, including advanced micro-acoustics and audio processing solutions, essential for consumer, medical, and industrial applications.",
-              "evidence": "Knowles' operational identity is defined by the design and manufacturing of custom electronic components, yielding 100% of its quarterly revenue through products such as ceramic capacitors, specialty film capacitors, RF filters, and MEMS microphones. The company manages these core offerings through its Precision Devices segment, which recently delivered $85 million in quarterly revenue and achieved 17% organic growth via extensive capacitor and filter shipments. To support future production ramps and new product initiatives within this space, Knowles directs approximately 4% to 5% of its total revenues toward capital expenditures for capacity expansions, alongside $10 million in dedicated quarterly research and development spending and active additions to its direct manufacturing headcount."
-            },
-            {
-              "rank": 4,
-              "name": "HUBBELL INC",
-              "key": "US4435106079",
-              "contract_id": 216386790,
-              "symbol": "HUBB",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Designs and manufactures a broad portfolio of electrical and electronic products tailored for utility, industrial, and construction applications to support critical infrastructure.",
-              "evidence": "Hubbell operates as a pure-play manufacturer of electrical products and grid infrastructure, generating $1.517 billion in total quarterly net sales tied entirely to this core activity. The company's dedicated Electrical Solutions segment recently delivered $568 million in net sales and double-digit organic growth, fueled by strong demand for electrical components, modular power distribution skids, and proprietary cross-brand integration in nonresidential and light industrial verticals. Strategic market positioning is anchored by leading sub-brands like Burndy connectors and enhanced by manufacturing innovations, such as the deployment of specialized automated work cells for copper lug production that reduce processing times from days to minutes. Hubbell supports this structural foundation through continuous capital outlays, prioritizing direct investments in capacity expansion and manufacturing footprint optimization alongside major scale commitments like the $600 million acquisition of DMC Power."
-            },
-            {
-              "rank": 5,
-              "name": "AVNET INC",
-              "key": "US0538071038",
-              "contract_id": 4691,
-              "symbol": "AVT",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Distributes a comprehensive portfolio of electronic components, including semiconductors, interconnects, and passive devices, while providing integrated supply chain and design solutions to technology manufacturers worldwide.",
-              "evidence": "Avnet's corporate identity is strictly defined by its position as a global value-added distributor of electronic components, operating a dedicated Electronic Components business group that accounts for the vast majority of its revenue. Led by the company's CEO, who concurrently serves as the President of Electronic Components, this primary operating segment recently delivered a record quarter of $7.1 billion in total sales and $235 million in segment operating income. To capitalize on the rapid proliferation of electronic components, Avnet is executing structural investments across its digital platforms, distribution center infrastructure, and dedicated field application engineers. The company's market position is further anchored by its Farnell high-service distribution arm and a comprehensive portfolio of Interconnect, Passive, and Electromechanical (IP&E) products tailored for data center and hyperscaler supply chains."
-            }
-          ],
-          "total_count": 75
-        },
-        {
-          "name": "Data Centers",
-          "key": "6d952a1a-e964-44d3-b05b-e4b2e0b1c8bf",
-          "description": "Centralized facilities housing computing resources, networking equipment, and storage systems for large-scale data processing.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "NVIDIA CORP",
-              "key": "US67066G1040",
-              "contract_id": 4815747,
-              "symbol": "NVDA",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Designs and supplies high-performance processors, networking solutions, and computing infrastructure that accelerate artificial intelligence and complex workloads across cloud and enterprise data centers.",
-              "evidence": "NVIDIA's engagement with the Data Center theme is driven by its official designation of the segment as a primary market platform, which generated $75.2 billion\u2014over 91% of total revenue\u2014in Q2 2026. The company operates as a full-scale AI infrastructure provider, supplying $60 billion in accelerated computing architectures, such as Blackwell, and $15 billion in advanced networking to hyperscalers, enterprise environments, and specialized AI factories. To sustain this global infrastructure build-out, NVIDIA utilizes a $145 billion supply commitment while continuously deploying complementary hardware, such as STX and CX-9 processors, engineered specifically for large-scale data orchestration and storage management."
-            },
-            {
-              "rank": 2,
-              "name": "DIGITAL REALTY TRUST INC.",
-              "key": "US2538681030",
-              "contract_id": 31832526,
-              "symbol": "DLR",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates a global portfolio of carrier-neutral data centers, providing essential colocation, interconnection, and cloud infrastructure solutions to support enterprise technology and communications networks.",
-              "evidence": "Digital Realty's fundamental business model relies on developing, leasing, and operating centralized data center facilities that serve as critical infrastructure for global digitalization and AI-oriented workloads. Driven by executive leadership and a dedicated workforce of engineers and operational staff, the company manages 3 gigawatts of active capacity alongside a $16.5 billion gross development pipeline. To address expanding hyperscale and multi-cloud demands through its PlatformDIGITAL framework, the company recently allocated $910 million in quarterly development capital expenditures to initiate 464 megawatts of new capacity and acquire large-scale land parcels in Atlanta and Hillsboro. This structural focus dictates the company's commercial identity, evidenced by a recent quarter yielding $707 million in annualized new data center lease bookings."
-            },
-            {
-              "rank": 3,
-              "name": "EQUINIX INC",
-              "key": "US29444U7000",
-              "contract_id": 181764593,
-              "symbol": "EQIX",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Owns and operates a global network of colocation and interconnection data centers, delivering the critical digital infrastructure necessary to support enterprise IT workloads, cloud deployments, and seamless network connectivity.",
-              "evidence": "Equinix operates as the world's largest digital infrastructure company, managing a core footprint of 192 stabilized data center assets that recently generated $2.3 billion in recurring quarterly revenue. To support this platform, the company is allocating approximately $4.1 billion in capital expenditures for 2026 to fund 46 major capacity expansion projects across 32 markets, alongside an 800-megawatt development pipeline in the Nordics. The entire organizational structure, from C-level executives down to a specialized global workforce, is explicitly focused on managing and expanding these facilities, successfully adding 4,100 net billing cabinets in the latest quarter. Because colocation, interconnection, and managed infrastructure offerings drive over 95% of the company's total revenue, the physical provision and expansion of data centers constitute the unequivocal foundation of Equinix's business model."
-            },
-            {
-              "rank": 4,
-              "name": "VERTIV HOLDINGS CO-A",
-              "key": "US92537N1081",
-              "contract_id": 402783527,
-              "symbol": "VRT",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Designs and manufactures critical digital infrastructure, including advanced power, cooling, and IT management solutions, to support the continuous operation, efficiency, and scalability of global data centers.",
-              "evidence": "Vertiv operates as a pure-play digital infrastructure provider inherently tied to the accelerating global demand for data centers. The company centers its entire strategic vision and product portfolio around data center ecosystems, deploying proprietary, converged white-space solutions like OneCore and SmartRun to deliver end-to-end power, thermal, and IT management. Driven by robust demand and a massive order backlog, Vertiv is aggressively allocating its capital expenditure budget toward global manufacturing capacity and finalizing strategic data center capabilities through acquisitions such as PurgeRite, ThermoKey, and BMarko Structures. Furthermore, the company supports these infrastructure deployments by vigorously scaling its dedicated service workforce, deploying nearly 5,000 specialized field personnel strictly to execute data center commissioning and lifecycle operations."
-            },
-            {
-              "rank": 5,
-              "name": "SUPER MICRO COMPUTER INC",
-              "key": "US86800U3023",
-              "contract_id": 731466419,
-              "symbol": "SMCI",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers high-performance server and storage systems, utilizing a modular building block architecture and advanced liquid cooling technologies to optimize infrastructure for enterprise, cloud, and artificial intelligence data centers.",
-              "evidence": "Super Micro is strategically evolving from a traditional server manufacturer into a total data center solution provider, with its OEM appliance and large data center segment recently generating $7.4 billion and accounting for 72% of quarterly revenue. This transition is driven by the company's Data Center Building Block Solutions (DCBBS), a framework that bundles computing, cooling, networking, and power systems to deliver complete infrastructure for large-scale deployments. To support this architectural shift and reach a production scale of over 6,000 racks per month, the company is actively expanding its physical footprint, highlighted by a new 4 million square-foot DCBBS campus in Silicon Valley and international manufacturing facilities in Taiwan, Malaysia, and the Netherlands. Furthermore, Super Micro continues to grow its specialized consulting and service teams for data center planning, designing, and build-out, firmly establishing its structural role in global enterprise compute frameworks."
-            }
-          ],
-          "total_count": 75
-        },
-        {
-          "name": "Infrastructure Development",
-          "key": "5f0861dc-ac6b-44c7-83b6-d1d70d893373",
-          "description": "Planning, design, and construction of foundational structures and facilities enhancing societal functionality, aiming at strengthening economic growth and support services.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "GRANITE CONSTRUCTION INC",
-              "key": "US3873281071",
-              "contract_id": 2743636,
-              "symbol": "GVA",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Executes heavy civil construction projects and produces essential construction materials to support large-scale transportation, water, and public works infrastructure development.",
-              "evidence": "Granite Construction's engagement with infrastructure development stems directly from its primary Construction segment, which generates 84% of total revenue through public and private civil projects. The company's recent acquisition of Kenny Seng Construction explicitly expands its capacity across civil and educational end-markets, adding $150 million in annual revenue to its operations. Bolstered by extensive public funding initiatives like the Infrastructure Investment and Jobs Act, Granite maintains a $7.2 billion backlog of committed and awarded projects. This pipeline strictly consists of foundational developments ranging from state highways and federal tactical facilities to civil site preparation for commercial data centers."
-            },
-            {
-              "rank": 2,
-              "name": "CONSTRUCTION PARTNERS INC-A",
-              "key": "US21044C1071",
-              "contract_id": 316805141,
-              "symbol": "ROAD",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Drives infrastructure development through the construction, repair, and maintenance of highways, roads, and civil infrastructure projects, supported by an integrated network of hot-mix asphalt plants.",
-              "evidence": "The company's overarching business model is anchored in public infrastructure development, with recurring maintenance projects for state DOTs, cities, and counties explicitly representing the majority of its revenue. A dedicated workforce of approximately 7,000 employees executes major public civil works, evidenced by recent Q2 2026 awards that include a $150 million multi-road widening initiative, a $60 million Interstate 85 expansion, a $27 million taxiway reconstruction at Eglin Air Force Base, and municipal structural preparations for the FIFA World Cup. To capitalize on sustained surface transportation funding driven by demographic shifts into the Sunbelt, management has structured its 'ROAD 2030' plan around capturing these expanding infrastructure investments to double the enterprise's size. This strategic priority is further reinforced by recent large-scale capital deployments, including over $1 billion allocated toward acquisitions like Lone Star Paving and GMJ Paving to expand the firm's civil construction footprint across more than 110 regional markets."
-            },
-            {
-              "rank": 3,
-              "name": "VULCAN MATERIALS CO",
-              "key": "US9291601097",
-              "contract_id": 13515,
-              "symbol": "VMC",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Supplies fundamental construction materials, including crushed stone, sand, gravel, and asphalt, which are essential for building and maintaining highways, bridges, and large-scale public works projects.",
-              "evidence": "Vulcan Materials is fundamentally tied to infrastructure development by directly supplying the raw aggregates and asphalt required to construct major public works, highways, and bridges. The company's demand pipeline is heavily catalyzed by the Infrastructure Investment and Jobs Act (IIJA) and anticipated federal highway bill reauthorizations, which recently drove public infrastructure awards up 17% in Vulcan's primary markets. Providing materials for these foundational civil engineering efforts\u2014ranging from road and bridge construction to port renovations and water systems\u2014historically accounts for 40% to 55% of the company's total aggregate shipments. Furthermore, Vulcan supports this demand through an advantaged geographic footprint, with 60% of all large projects located within 50 miles of a company facility, securing long-term volume visibility into structural public mega-projects."
-            },
-            {
-              "rank": 4,
-              "name": "TUTOR PERINI CORP",
-              "key": "US9011091082",
-              "contract_id": 60037751,
-              "symbol": "TPC",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides comprehensive civil, building, and specialty construction services for large-scale public and private projects, driving the development of critical transportation networks, mass transit systems, and municipal facilities.",
-              "evidence": "Tutor Perini's core operations center on the planning and construction of essential public facilities, executed primarily through its dedicated Civil segment. This reporting division manages massive structural builds, including the $1.4 billion I-535 Blatnik Bridge and California high-speed rail segments, generating a record $698 million in first-quarter revenue that accounts for roughly half of the company's aggregate top line. To execute these long-duration contracts, the firm integrates specialized workforce deployments and joint venture partnerships to construct multi-billion-dollar surface-transportation networks and mass-transit systems. By aggressively capturing public funding opportunities\u2014such as securing $16 billion across nine recent mega-project awards fueled by the Bipartisan Infrastructure Law\u2014foundational infrastructure development functions as the company's primary organizational focus and earnings driver."
-            },
-            {
-              "rank": 5,
-              "name": "AECOM",
-              "key": "US00766T1007",
-              "contract_id": 43980401,
-              "symbol": "ACM",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers comprehensive engineering, design, and project management services for large-scale public and private infrastructure projects, playing a central role in advancing global transportation, water, and energy systems.",
-              "evidence": "AECOM operates as a leading global provider of professional infrastructure consulting and advisory services, dedicating its core business model to the planning, design, and management of foundational structures. The firm's focus on civil infrastructure is driven by large-scale public funding frameworks, such as the Infrastructure Investment and Jobs Act, which catalyze modernization efforts across transportation, water, and environmental end markets. Recognized as the top-ranked firm by ENR in both transportation facilities and water markets, AECOM executes marquee initiatives like the multi-phase Brent Spence Bridge in Ohio alongside major transport developments in the UK, UAE, and Australia. Consulting across these essential transportation and water sectors generated approximately 45% of the company's total revenue in the first half of 2026, anchoring infrastructure development as the fundamental driver of AECOM's operational strategy."
-            }
-          ],
-          "total_count": 75
-        },
-        {
-          "name": "Data Center Power",
-          "key": "9d8e5b8d-04cb-4cbb-aadd-84ba79a388e3",
-          "description": "Generation, transmission, and power management solutions built around the rising electricity needs of AI/cloud data centers.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "VERTIV HOLDINGS CO-A",
-              "key": "US92537N1081",
-              "contract_id": 402783527,
-              "symbol": "VRT",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides critical power management infrastructure, including uninterruptible power supplies and power distribution systems, to ensure continuous and efficient energy delivery for data center operations.",
-              "evidence": "Vertiv's operations inherently center on advanced power management systems, evidenced by ongoing broad-based manufacturing capacity expansions to meet the intensive electrical demands of AI infrastructure. The company is actively advancing next-generation data center power architectures, explicitly targeting high-density compute environments with the upcoming launch of its 800-volt DC programs. Beyond internal hardware development, Vertiv addresses power grid limitations by enabling \"bring your own power\" solutions through partnerships like CPower Energy, allowing U.S. data centers to utilize on-site power assets as grid resources. These latest initiatives build upon the company's established ability to directly integrate electrical and IT stacks at extreme scales, utilizing platforms like OneCore to modularly deploy power capacity from hundreds of kilowatts per rack up to the gigawatt level."
-            },
-            {
-              "rank": 2,
-              "name": "EATON CORP PLC",
-              "key": "IE00B8KQN827",
-              "contract_id": 118017864,
-              "symbol": "3EC",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Delivers comprehensive power management solutions, uninterruptible power supply systems, and electrical infrastructure that ensure continuous operation and energy efficiency for data center facilities.",
-              "evidence": "Eaton's integration into the data center power ecosystem is anchored by its proprietary 'grid-to-chip' architectures and end-to-end power management infrastructure. Driven by a 240% acceleration in orders, the company utilized its capital allocation strategy to acquire Boyd Thermal for liquid cooling, Resilient Power for 800-volt direct current technology, and Fibrebond for modular power enclosures. These targeted investments established a specialized business unit of over 500 engineers, yielding innovations such as immersion-cooled, medium-voltage solid-state transformers designed to improve facility energy efficiency. Additionally, an R&D partnership with NVIDIA to develop the Eaton Beam Rubin DSX platform embeds the company's 800-volt direct current distribution and thermal systems directly into next-generation AI server architectures."
-            },
-            {
-              "rank": 3,
-              "name": "VISTRA CORP",
-              "key": "US92840M1027",
-              "contract_id": 254457731,
-              "symbol": "VST",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Provides large-scale electricity generation and reliable energy solutions essential for meeting the intensive, continuous power demands of data center infrastructure.",
-              "evidence": "Vistra addresses the escalating electricity demand from hyperscale data centers by executing large-scale, long-term power purchase agreements, recently underscored by a 2,600-megawatt contract with Meta utilizing Vistra's PJM nuclear sites. To capture an anticipated 10 to 15 gigawatts of data center load growth in ERCOT by 2030, the company engineers specialized power provisioning solutions, including nuclear colocation arrangements, front-of-the-meter retail structures, and distributed bridge power generation. This commercial strategy is cemented by multi-gigawatt capacity commitments, such as a 20-year, 1,200-megawatt colocation agreement with Amazon Web Services at the Comanche Peak facility, which directly drives long-term capital investments in generation upgrades to support AI and cloud infrastructure."
-            },
-            {
-              "rank": 4,
-              "name": "TALEN ENERGY CORP",
-              "key": "US87422Q1094",
-              "contract_id": 631538926,
-              "symbol": "TLN",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Supplies direct, behind-the-meter carbon-free electricity from its nuclear generation assets to support the massive energy requirements of hyperscale data center campuses.",
-              "evidence": "Talen Energy's strategic focus on data center power demands is driven by its 'Talen Flywheel Strategy,' which targets long-term gigawatt-scale contracts to support rapid AI and cloud hyperscaler expansion. The company is advancing a physical footprint of 3,000 acres capable of hosting three to four gigawatts of compute capacity, supported by $4 billion in acquisition financing for the Cornerstone transaction to facilitate large-load contracting options. This operational shift relies on a hybrid generation approach linking power directly to hyperscalers, anchored by an ongoing two-gigawatt power purchase agreement ramp with Amazon Web Services that currently secures 35 percent of Talen's gross margin. To execute this expansion and manage interconnection queues, the company restructured its executive team, dedicating leadership and development personnel to engineer infrastructure and generation solutions tailored specifically for data center offtakers."
-            },
-            {
-              "rank": 5,
-              "name": "VICOR CORP",
-              "key": "US9258151029",
-              "contract_id": 275759,
-              "symbol": "VICR",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Develops high-density power modules and advanced power delivery architectures that enable efficient power conversion and management for high-performance computing and artificial intelligence workloads within data center infrastructure.",
-              "evidence": "Vicor's integration into the data center power ecosystem is driven by its proprietary 800-volt bus conversion architectures and Vertical Power Delivery (VPD) solutions, which are engineered to resolve extreme current-density bottlenecks in AI processors. The company actively enforces its market position in this domain through a robust intellectual property strategy, securing ITC exclusion orders against infringing competitors while licensing its power delivery frameworks directly to hyperscalers. Operationally, this technological focus is validated by Vicor's Advanced Products segment, which generates 57.5% of total revenue primarily from high-performance computing applications, and is supported by extensive capital allocations including Federal Street capacity expansions and a planned $250 million to $300 million chip fabrication facility."
-            }
-          ],
-          "total_count": 75
-        },
-        {
-          "name": "Energy Infrastructure",
-          "key": "b6421ea1-a961-48f0-ad93-eff4ec7ed5c5",
-          "description": "The integral facilities and systems involved in the production, distribution, and consumption of energy, including power plants, transmission lines, and storage systems.",
-          "linked_companies": [
-            {
-              "rank": 1,
-              "name": "ENTERPRISE PRODUCTS PARTNERS",
-              "key": "US2937921078",
-              "contract_id": 6607910,
-              "symbol": "EPD",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates an extensive network of midstream energy infrastructure, including pipelines, storage facilities, and processing plants, essential for the gathering, processing, and transportation of natural gas, natural gas liquids, crude oil, and refined products.",
-              "evidence": "Enterprise Products Partners centers its core corporate identity on operating one of the largest energy infrastructure networks in North America, transporting 14.2 million barrels of oil equivalent per day. The company's engagement with this theme is driven by its integrated physical asset base, including a 50,000-mile pipeline network, marine docks, and major storage hubs, which generates the bulk of its $2.7 billion in quarterly EBITDA. Enterprise continues to fund network expansion by allocating up to $2.6 billion in 2026 growth capital expenditures toward projects like the Bahia NGL pipeline, Fractionator 14, and the Neches River Terminal. To manage this infrastructure, the corporate structure features dedicated executive leadership, including Senior Vice Presidents specifically overseeing natural gas assets and crude oil pipelines and terminals."
-            },
-            {
-              "rank": 2,
-              "name": "ENERGY TRANSFER LP",
-              "key": "US29273V1008",
-              "contract_id": 37830920,
-              "symbol": "ET",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates a comprehensive network of natural gas, crude oil, and natural gas liquid pipelines, alongside integrated storage and terminal facilities that facilitate the gathering, processing, and transportation of energy resources.",
-              "evidence": "Energy Transfer operates primarily as an integrated midstream company, defined entirely by its nationwide network of pipelines, storage facilities, processing plants, and export terminals that transport crude oil, natural gas, and NGLs. To expand these operations, management allocated its entire 2026 organic growth capital guidance of $5.5 billion to $5.9 billion specifically toward energy infrastructure build-outs. This extensive physical footprint connects major supply basins to domestic power plants, data centers, and global markets, directly generating $4.9 billion in adjusted EBITDA during the first quarter of 2026. The organization reinforces this core infrastructure focus through specialized engineering, operations, and optimization teams directed by executive leadership to capture market dynamics across its asset base."
-            },
-            {
-              "rank": 3,
-              "name": "ONEOK INC",
-              "key": "US6826801036",
-              "contract_id": 10794,
-              "symbol": "OKE.OLD",
-              "exchange": "VALUE",
-              "asset_type": "STK",
-              "description": "Provides essential midstream energy infrastructure through an extensive network of natural gas and natural gas liquids gathering, processing, storage, and transportation systems.",
-              "evidence": "ONEOK functions entirely as an integrated midstream energy infrastructure platform, operating a regionally diversified network of pipelines, fractionators, and terminals to connect natural gas, crude oil, and refined products supply with demand. The company is actively executing a $2.7 billion to $3.2 billion capital growth program in 2026 to expand system capacity, highlighted by continuous developments like the Denver area pipeline expansion and the Medford NGL fractionator rebuild. This physical asset base secures distinct logistical advantages, including the operation of the only refined products pipeline with bidirectional access between the Mid-Continent and the Gulf Coast, while generating 100% of the firm's adjusted EBITDA. Consequently, ONEOK's organizational structure and operational workforce remain completely aligned across four specialized midstream segments to safely and efficiently manage massive daily energy flows."
-            },
-            {
-              "rank": 4,
-              "name": "KINDER MORGAN INC",
-              "key": "US49456B1017",
-              "contract_id": 83975037,
-              "symbol": "KMI",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Operates an extensive network of pipelines and terminal assets that transport, store, and handle natural gas, crude oil, and refined petroleum products, serving as a foundational component of broad energy distribution systems.",
-              "evidence": "Kinder Morgan functions as a pure-play energy midstream company, anchoring its entire business model on operating critical North American infrastructure encompassing 78,000 miles of pipelines and 136 terminals. The corporate structure revolves strictly around energy transmission, storage, and processing, with executive leadership directing distinct divisions like Natural Gas Pipelines and Products Pipelines that combined generate 100% of the firm's total revenue. To expand this footprint, the company continually deploys capital, highlighted by recent initiatives including an $800 million quarterly expenditure, the $500 million acquisition of the Monument Pipeline, and the execution of a $10.1 billion project backlog. This physical asset network captures entrenched demand within the broader energy ecosystem, reflected by a 99% tank utilization rate across terminal liquids operations and the advancement of strategic ventures like the Western Gateway pipeline."
-            },
-            {
-              "rank": 5,
-              "name": "PLAINS ALL AMER PIPELINE LP",
-              "key": "US7265031051",
-              "contract_id": 6608417,
-              "symbol": "PAA",
-              "exchange": "SMART",
-              "asset_type": "STK",
-              "description": "Owns and operates an extensive midstream network of pipelines, storage facilities, and gathering systems for crude oil and natural gas liquids, providing critical logistical connections between major North American production basins and key market hubs.",
-              "evidence": "Plains All American operates as a \"pure-play crude midstream company,\" directly anchoring its corporate identity and business model to energy infrastructure. The company relies on a vast physical network of long-haul pipelines, storage tanks, and dock systems\u2014highlighted by the Cactus III pipeline integration\u2014which collectively underpin its projected $2.88 billion in adjusted EBITDA for 2026. To sustain and expand this premier North American footprint, executive leadership directs 100% of the company's capital expenditures toward these midstream assets, recently dedicating $350 million for growth and an increased $185 million for infrastructure maintenance."
-            }
-          ],
-          "total_count": 75
-        }
-      ],
-      "connections": [
-        {
-          "title": "Investment Theme Exposure",
-          "type": "company_theme",
-          "links": [
-            {
-              "key": "456cc9f1-37ca-4a91-b19b-ccbe43a0bd4c",
-              "type": "theme",
-              "name": "Electronic Components",
-              "link_type": "company_theme",
-              "rank": 1
-            },
-            {
-              "key": "6d952a1a-e964-44d3-b05b-e4b2e0b1c8bf",
-              "type": "theme",
-              "name": "Data Centers",
-              "link_type": "company_theme",
-              "rank": 2
-            },
-            {
-              "key": "5f0861dc-ac6b-44c7-83b6-d1d70d893373",
-              "type": "theme",
-              "name": "Infrastructure Development",
-              "link_type": "company_theme",
-              "rank": 3
-            },
-            {
-              "key": "9d8e5b8d-04cb-4cbb-aadd-84ba79a388e3",
-              "type": "theme",
-              "name": "Data Center Power",
-              "link_type": "company_theme",
-              "rank": 4
-            },
-            {
-              "key": "b6421ea1-a961-48f0-ad93-eff4ec7ed5c5",
-              "type": "theme",
-              "name": "Energy Infrastructure",
-              "link_type": "company_theme",
-              "rank": 5
-            },
-            {
-              "key": "03ca27e5-2d78-4b39-bec5-c1cbb30d97ca",
-              "type": "theme",
-              "name": "Electric Utility",
-              "link_type": "company_theme",
-              "rank": 6
-            },
-            {
-              "key": "00d0d758-0aa9-4aa6-9891-ddf03f7dbaac",
-              "type": "theme",
-              "name": "AI Infrastructure",
-              "link_type": "company_theme",
-              "rank": 7
-            },
-            {
-              "key": "0ecbf7dc-3c50-4222-a3cc-32dacdbb5717",
-              "type": "theme",
-              "name": "Digital Solutions",
-              "link_type": "company_theme",
-              "rank": 8
-            },
-            {
-              "key": "2f19456c-e88b-4ba2-8dee-2fac073e9ec0",
-              "type": "theme",
-              "name": "Energy Efficiency",
-              "link_type": "company_theme",
-              "rank": 9
-            },
-            {
-              "key": "cc0bb4ab-ed23-4098-8feb-6e28e770db45",
-              "type": "theme",
-              "name": "Artificial Intelligence",
-              "link_type": "company_theme",
-              "rank": 10
-            },
-            {
-              "key": "9dc02465-5747-4e16-9399-569cb1681972",
-              "type": "theme",
-              "name": "Cloud Infrastructure",
-              "link_type": "company_theme",
-              "rank": 11
-            },
-            {
-              "key": "3b56ab21-0cec-41ad-8b6e-f836c6f38733",
-              "type": "theme",
-              "name": "Residential Real Estate",
-              "link_type": "company_theme",
-              "rank": 12
-            },
-            {
-              "key": "45e8a248-c80e-445b-b806-110ebfb5e14d",
-              "type": "theme",
-              "name": "Energy Transition",
-              "link_type": "company_theme",
-              "rank": 13
-            },
-            {
-              "key": "610e942c-0dd2-4701-b6f1-41520ed19bd3",
-              "type": "theme",
-              "name": "Industrial Technologies",
-              "link_type": "company_theme",
-              "rank": 14
-            },
-            {
-              "key": "6e2abfdd-ac76-4aba-8cc8-239623d28db3",
-              "type": "theme",
-              "name": "Industrial Automation",
-              "link_type": "company_theme",
-              "rank": 15
-            },
-            {
-              "key": "fbad8040-1a24-4f15-ac89-aff34cf32828",
-              "type": "theme",
-              "name": "Commercial Real Estate",
-              "link_type": "company_theme",
-              "rank": 16
-            }
-          ]
-        },
-        {
-          "title": "Brand & Product",
-          "type": "company_product",
-          "links": [
-            {
-              "key": "Enclosures",
-              "type": "product",
-              "name": "Enclosures",
-              "link_type": "company_product",
-              "rank": 1
-            },
-            {
-              "key": "Electrical & Fastening Solutions",
-              "type": "product",
-              "name": "Electrical & Fastening Solutions",
-              "link_type": "company_product",
-              "rank": 2
-            },
-            {
-              "key": "Trachte",
-              "type": "product",
-              "name": "Trachte",
-              "link_type": "company_product",
-              "rank": 3
-            },
-            {
-              "key": "Thermal Management",
-              "type": "product",
-              "name": "Thermal Management",
-              "link_type": "company_product",
-              "rank": 4
-            },
-            {
-              "key": "Power Distribution Solutions",
-              "type": "product",
-              "name": "Power Distribution Solutions",
-              "link_type": "company_product",
-              "rank": 5
-            }
-          ]
-        },
-        {
-          "title": "Competitors",
-          "type": "company_competitor",
-          "links": [
-            {
-              "key": "US4435106079",
-              "type": "company",
-              "name": "HUBBELL INC",
-              "link_type": "company_competitor",
-              "contract_id": 216386790,
-              "symbol": "HUBB",
-              "exchange": "SMART"
-            },
-            {
-              "key": "IE00B8KQN827",
-              "type": "company",
-              "name": "EATON CORP PLC",
-              "link_type": "company_competitor",
-              "contract_id": 118017864,
-              "symbol": "3EC",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US0476491081",
-              "type": "company",
-              "name": "ATKORE INC",
-              "link_type": "company_competitor",
-              "contract_id": 236205569,
-              "symbol": "ATKR",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US92537N1081",
-              "type": "company",
-              "name": "VERTIV HOLDINGS CO-A",
-              "link_type": "company_competitor",
-              "contract_id": 402783527,
-              "symbol": "VRT",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US7404441047",
-              "type": "company",
-              "name": "PREFORMED LINE PRODUCTS CO",
-              "link_type": "company_competitor",
-              "contract_id": 14487608,
-              "symbol": "PLPC",
-              "exchange": "SMART"
-            },
-            {
-              "key": "IE000IVNQZ81",
-              "type": "company",
-              "name": "TE CONNECTIVITY PLC",
-              "link_type": "company_competitor",
-              "contract_id": 731466402,
-              "symbol": "TEL1 N",
-              "exchange": "MEXI"
-            },
-            {
-              "key": "US0774541066",
-              "type": "company",
-              "name": "BELDEN INC",
-              "link_type": "company_competitor",
-              "contract_id": 29863855,
-              "symbol": "BDC",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US2910111044",
-              "type": "company",
-              "name": "EMERSON ELECTRIC CO",
-              "link_type": "company_competitor",
-              "contract_id": 6842,
-              "symbol": "EMR",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US0024741045",
-              "type": "company",
-              "name": "AZZ INC",
-              "link_type": "company_competitor",
-              "contract_id": 6607563,
-              "symbol": "AZZ",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US82489W1071",
-              "type": "company",
-              "name": "SHOALS TECHNOLOGIES GROUP -A",
-              "link_type": "company_competitor",
-              "contract_id": 467911567,
-              "symbol": "SHLS",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US7391281067",
-              "type": "company",
-              "name": "POWELL INDUSTRIES INC",
-              "link_type": "company_competitor",
-              "contract_id": 273290,
-              "symbol": "POWL",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US5370081045",
-              "type": "company",
-              "name": "LITTELFUSE INC",
-              "link_type": "company_competitor",
-              "contract_id": 271184,
-              "symbol": "LFUS",
-              "exchange": "SMART"
-            },
-            {
-              "key": "FR0000121972",
-              "type": "company",
-              "name": "SCHNEIDER ELECTRIC SE",
-              "link_type": "company_competitor",
-              "contract_id": 29612196,
-              "symbol": "SU",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US5915202007",
-              "type": "company",
-              "name": "METHODE ELECTRONICS INC",
-              "link_type": "company_competitor",
-              "contract_id": 271732,
-              "symbol": "MEI",
-              "exchange": "SMART"
-            },
-            {
-              "key": "FR0010307819",
-              "type": "company",
-              "name": "LEGRAND SA",
-              "link_type": "company_competitor",
-              "contract_id": 38715873,
-              "symbol": "LR",
-              "exchange": "SMART"
-            },
-            {
-              "key": "CH0012221716",
-              "type": "company",
-              "name": "ABB LTD-REG",
-              "link_type": "company_competitor",
-              "contract_id": 2682965,
-              "symbol": "ABBN",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US0320951017",
-              "type": "company",
-              "name": "AMPHENOL CORP-CL A",
-              "link_type": "company_competitor",
-              "contract_id": 4493,
-              "symbol": "APH",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US7739031091",
-              "type": "company",
-              "name": "ROCKWELL AUTOMATION INC",
-              "link_type": "company_competitor",
-              "contract_id": 11697,
-              "symbol": "ROK",
-              "exchange": "SMART"
-            },
-            {
-              "key": "US45073V1089",
-              "type": "company",
-              "name": "ITT INC",
-              "link_type": "company_competitor",
-              "contract_id": 233010383,
-              "symbol": "ITT",
-              "exchange": "SMART"
-            }
-          ]
-        },
-        {
-          "title": "Country Exposure",
-          "type": "company_country",
-          "links": [
-            {
-              "key": "US",
-              "type": "country",
-              "name": "US",
-              "link_type": "company_country",
-              "rank": 1,
-              "symbol": "US"
-            },
-            {
-              "key": "DE",
-              "type": "country",
-              "name": "DE",
-              "link_type": "company_country",
-              "rank": 2,
-              "symbol": "DE"
-            },
-            {
-              "key": "CN",
-              "type": "country",
-              "name": "CN",
-              "link_type": "company_country",
-              "rank": 3,
-              "symbol": "CN"
-            },
-            {
-              "key": "MX",
-              "type": "country",
-              "name": "MX",
-              "link_type": "company_country",
-              "rank": 4,
-              "symbol": "MX"
-            },
-            {
-              "key": "GB",
-              "type": "country",
-              "name": "GB",
-              "link_type": "company_country",
-              "rank": 5,
-              "symbol": "GB"
-            },
-            {
-              "key": "IN",
-              "type": "country",
-              "name": "IN",
-              "link_type": "company_country",
-              "rank": 6,
-              "symbol": "IN"
-            },
-            {
-              "key": "FR",
-              "type": "country",
-              "name": "FR",
-              "link_type": "company_country",
-              "rank": 7,
-              "symbol": "FR"
-            }
-          ]
-        },
-        {
-          "title": "Region Exposure",
-          "type": "company_region",
-          "links": [
-            {
-              "key": "North_America",
-              "type": "region",
-              "name": "North America",
-              "link_type": "company_region",
-              "rank": 1
-            },
-            {
-              "key": "Europe",
-              "type": "region",
-              "name": "Europe",
-              "link_type": "company_region",
-              "rank": 2
-            },
-            {
-              "key": "Asia",
-              "type": "region",
-              "name": "Asia",
-              "link_type": "company_region",
-              "rank": 3
-            }
-          ]
-        }
-      ],
-      "source": "IBKR MCP company research"
-    },
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 70.53
   },
   {
     "ATR_14": 3.13,
@@ -10031,12 +10031,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Building Products...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 244164913,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -10044,7 +10044,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -10058,6 +10058,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 51,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -10113,10 +10116,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 17.21,
@@ -10967,12 +10967,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductor Equ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 12729,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -10981,7 +10981,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -10995,6 +10995,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 75,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -11050,10 +11053,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 65.39,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 65.39
   },
   {
     "ATR_14": 2.11,
@@ -11904,12 +11904,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Discount Stores",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 323612220,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -11918,7 +11918,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -11932,6 +11932,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 30,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -11987,10 +11990,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 12.62,
@@ -12841,12 +12841,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Medical Care Faci...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 85076790,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -12855,7 +12855,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -12869,6 +12869,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 170,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -12924,10 +12927,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 73.5,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 73.5
   },
   {
     "ATR_14": 39.12,
@@ -13778,12 +13778,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Semiconductors",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 9939,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -13792,7 +13792,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -13806,6 +13806,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 93,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -13861,10 +13864,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 69.41,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 69.41
   },
   {
     "ATR_14": 2.91,
@@ -14715,12 +14715,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Discount Stores",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 199975711,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -14729,7 +14729,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -14743,6 +14743,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 94,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -14798,10 +14801,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 70.32,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 70.32
   },
   {
     "ATR_14": 5.12,
@@ -15652,12 +15652,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Drug Manufacturer...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 26734397,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -15666,7 +15666,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -15680,6 +15680,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 29,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -15735,10 +15738,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 4.46,
@@ -16589,12 +16589,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Drug Manufacturer...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8719,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -16603,7 +16603,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -16617,6 +16617,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 52,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -16672,9 +16675,6 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   }
 ]

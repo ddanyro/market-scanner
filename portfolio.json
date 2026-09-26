@@ -1006,16 +1006,16 @@
       }
     ],
     "Daily_Change": -7.1228,
-    "Date": "2026-09-26 10:07",
+    "Date": "2026-09-26 11:18",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-10-26",
     "Days_To_Earnings": 30,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-26T06:56:39+00:00",
+    "Earnings_Fetched_At": "2026-09-26T08:17:52+00:00",
     "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-26T07:07:12.370283+00:00",
+    "Market_Data_Fetched_At": "2026-09-26T08:17:57.378753+00:00",
     "Market_Data_Observed_At": "2026-09-25T23:01:02+00:00",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Data_Broker": "IBKR",
@@ -1043,9 +1043,6 @@
       "open_52w": 245.5399932861328
     },
     "IBKR_Snapshot_Groups": {
-      "display": [
-        "dividend_yield"
-      ],
       "quote": [
         "last",
         "bid_ask",
@@ -1070,6 +1067,9 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -2100,16 +2100,16 @@
       }
     ],
     "Daily_Change": -6.6141,
-    "Date": "2026-09-26 10:07",
+    "Date": "2026-09-26 11:18",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-12-01",
     "Days_To_Earnings": 66,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-26T06:56:42+00:00",
+    "Earnings_Fetched_At": "2026-09-26T08:17:54+00:00",
     "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-09-26T07:07:12.370513+00:00",
+    "Market_Data_Fetched_At": "2026-09-26T08:17:57.378924+00:00",
     "Market_Data_Observed_At": "2026-09-25T23:59:49+00:00",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Data_Broker": "IBKR",
@@ -2137,9 +2137,6 @@
       "open_52w": 118.0250015258789
     },
     "IBKR_Snapshot_Groups": {
-      "display": [
-        "dividend_yield"
-      ],
       "quote": [
         "last",
         "bid_ask",
@@ -2164,6 +2161,9 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
       ]
     },
     "Market": "SUA",
