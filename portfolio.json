@@ -1015,14 +1015,14 @@
       }
     ],
     "Daily_Change": -7.1367,
-    "Date": "2026-09-28 21:47",
+    "Date": "2026-09-28 21:53",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-10-26",
     "Days_To_Earnings": 28,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-28T18:47:12+00:00",
+    "Earnings_Fetched_At": "2026-09-28T18:53:06+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-09-28T18:47:18.327539+00:00",
     "Market_Data_Observed_At": "2026-09-28T18:46:47+00:00",
@@ -1052,6 +1052,9 @@
       "open_52w": 245.5399932861328
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -1076,9 +1079,6 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -2118,14 +2118,14 @@
       }
     ],
     "Daily_Change": -6.627,
-    "Date": "2026-09-28 21:47",
+    "Date": "2026-09-28 21:53",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-12-01",
     "Days_To_Earnings": 64,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-28T18:47:15+00:00",
+    "Earnings_Fetched_At": "2026-09-28T18:53:07+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-09-28T18:47:18.327593+00:00",
     "Market_Data_Observed_At": "2026-09-28T18:46:58+00:00",
@@ -2155,6 +2155,9 @@
       "open_52w": 118.0250015258789
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -2179,9 +2182,6 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "SUA",
