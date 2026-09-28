@@ -16,7 +16,7 @@
     "Target": 406.04,
     "Trail_Stop": 306.2,
     "Suggested_Stop": 291.76,
-    "Finviz_ATR": 18.57,
+    "Finviz_ATR": 18.7,
     "Vol_W": 5.06,
     "Vol_M": 5.13,
     "Trail_Pct": 8.4,
@@ -1006,14 +1006,14 @@
       }
     ],
     "Daily_Change": -7.1278,
-    "Date": "2026-09-28 16:41",
+    "Date": "2026-09-28 16:47",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-10-26",
     "Days_To_Earnings": 28,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-28T13:41:21+00:00",
+    "Earnings_Fetched_At": "2026-09-28T13:47:24+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-09-28T13:41:25.803564+00:00",
     "Market_Data_Observed_At": "2026-09-28T13:41:10+00:00",
@@ -1043,6 +1043,9 @@
       "open_52w": 245.5399932861328
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -1067,9 +1070,6 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -1097,8 +1097,8 @@
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "volatility_score": 39.61,
-    "liquidity_score": 94.3,
-    "risk_score": 59.13,
+    "liquidity_score": 92.12,
+    "risk_score": 58.48,
     "volatility_regime": "extreme",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
@@ -1118,7 +1118,7 @@
     "Buy_Price": 184.56,
     "Target": 210.2,
     "Trail_Stop": 213.55,
-    "Suggested_Stop": 201.23,
+    "Suggested_Stop": 201.02,
     "Finviz_ATR": 11.93,
     "Vol_W": 4.44,
     "Vol_M": 5.74,
@@ -2100,14 +2100,14 @@
       }
     ],
     "Daily_Change": -6.6186,
-    "Date": "2026-09-28 16:41",
+    "Date": "2026-09-28 16:47",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-12-01",
     "Days_To_Earnings": 64,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-09-28T13:41:23+00:00",
+    "Earnings_Fetched_At": "2026-09-28T13:47:25+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-09-28T13:41:25.803692+00:00",
     "Market_Data_Observed_At": "2026-09-28T13:41:22+00:00",
@@ -2137,6 +2137,9 @@
       "open_52w": 118.0250015258789
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -2161,9 +2164,6 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -2190,9 +2190,9 @@
       "options_supported": true,
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "volatility_score": 44.63,
-    "liquidity_score": 100.0,
-    "risk_score": 62.85,
+    "volatility_score": 44.61,
+    "liquidity_score": 99.64,
+    "risk_score": 62.74,
     "volatility_regime": "extreme",
     "score_version": "ibkr-enhanced-v1-shadow"
   }
