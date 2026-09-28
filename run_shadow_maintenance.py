@@ -251,6 +251,9 @@ def run_maintenance(*, selected=None, force=False, offline=False, now=None, time
             }
             save_state(state)
             print(f"[Shadow maintenance] {spec['label']}: finalizată.")
+            completion_file = os.environ.get("SHADOW_RESEARCH_COMPLETION_FILE")
+            if completion_file:
+                Path(completion_file).write_text("ready\n", encoding="utf-8")
         fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
     return 1 if failures else 0
 

@@ -282,6 +282,16 @@ def test_force_technical_refreshes_prices_without_disabling_checkpoints(tmp_path
     assert '--refresh-prices' in commands[0]
 
 
+@pytest.mark.parametrize('offline,returncode,ready', [(False, 0, True), (True, 0, False), (False, 124, False)])
+def test_sync_receipt_only_for_completed_online_work(tmp_path, monkeypatch, offline, returncode, ready):
+    _configure(tmp_path, monkeypatch, '2026-09-01', '2026-09-01')
+    receipt = tmp_path / 'receipt'
+    monkeypatch.setenv('SHADOW_RESEARCH_COMPLETION_FILE', str(receipt))
+    monkeypatch.setattr(maintenance, 'run_with_heartbeat', lambda *a, **kw: returncode)
+    maintenance.run_maintenance(selected=['technical'], force=True, offline=offline)
+    assert receipt.exists() is ready
+
+
 def test_technical_success_migrates_only_obsolete_uncompressed_export(tmp_path, monkeypatch):
     _configure(tmp_path, monkeypatch, '2026-09-01', '2026-09-01')
     legacy = tmp_path / 'event_observations.csv'

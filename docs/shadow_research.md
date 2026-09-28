@@ -29,9 +29,16 @@ Limita implicită este 1800 secunde **per evaluare** (ambele pot însuma 60 minu
 La expirare, noul proces și descendenții săi sunt opriți; există maximum 5 secunde
 de grație înainte de oprirea forțată. Timeout-ul nu este marcat drept succes.
 O pornire în timpul unei alte mentenanțe iese imediat fără s-o întrerupă.
-Wrapperul nu face pull/push Git, nu publică dashboardul și nu suprascrie starea
-portofoliului printr-un pull runtime. Utilizează ledgerul local și citirea R2
-existentă, cu credentialele încărcate prin mecanismul proiectului.
+După o rulare online reușită, wrapperul face commit/push doar pentru rapoartele
+cercetării și pornește `update_dashboard.yml` în modul `portfolio`. Necesită
+ramura `main` și `gh` autentificat. Nu include modificările locale ale
+portofoliului, dataseturile private sau cache-ul și nu face pull/push runtime R2.
+Modificările deja staged blochează sincronizarea pentru a evita includerea lor.
+La timeout, eroare, lock ocupat, cadență neîmplinită sau rulare `--offline`, nu
+sincronizează. Dacă rapoartele nu s-au schimbat, nu pornește nici workflow-ul.
+Erorile Git/workflow sunt raportate; rezultatele rămân local.
+Utilizează ledgerul local și citirea R2 existentă, cu credentialele încărcate
+prin mecanismul proiectului.
 
 ## Checkpointuri și corectitudine
 

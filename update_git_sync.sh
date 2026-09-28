@@ -335,6 +335,44 @@ git_sync_integrate_remote() {
     fi
 }
 
+git_sync_research_finish() {
+    git_sync_assert_ready run_shadow_research.sh || return 1
+    if ! git diff --cached --quiet; then
+        echo "Eroare: există modificări staged; rapoartele rămân local, fără sincronizare." >&2
+        return 1
+    fi
+    local path attempt
+    for path in "${SYNC_GENERATED_FILES[@]}"; do
+        case "$path" in
+            */labelled_predictions*|*/event_observations*) continue ;;
+            analysis/shadow_forward_validation/*|analysis/technical_events_validation/*)
+                if git ls-files --error-unmatch -- "$path" >/dev/null 2>&1; then
+                    git add -A -- "$path" || return 1
+                elif [ -f "$path" ] && ! git check-ignore -q -- "$path"; then
+                    git add -- "$path" || return 1
+                fi
+                ;;
+        esac
+    done
+    if git diff --cached --quiet; then
+        echo "Rapoartele nu au modificări noi pentru sincronizare."
+        return 0
+    fi
+    git commit -m "Update shadow research reports $(date '+%Y-%m-%d %H:%M:%S')" || return 1
+    for attempt in 1 2 3; do
+        git fetch "$SYNC_REMOTE_NAME" "$SYNC_BRANCH_NAME" || return 1
+        git rebase --autostash "$SYNC_REMOTE_NAME/$SYNC_BRANCH_NAME" || return 1
+        if git push "$SYNC_REMOTE_NAME" "HEAD:$SYNC_BRANCH_NAME"; then
+            echo "Rapoartele shadow au fost sincronizate; pornire actualizare dashboard."
+            gh workflow run update_dashboard.yml -f update_mode=portfolio || return 1
+            return 0
+        fi
+        echo "Push nereușit; reîncerc ($attempt/3)." >&2
+    done
+    echo "Eroare: sincronizarea rapoartelor a eșuat; rezultatele sunt păstrate local." >&2
+    return 1
+}
+
 git_sync_finish() {
     local commit_prefix="$1"
     sync_log_step "Pregătire și sincronizare finală"
