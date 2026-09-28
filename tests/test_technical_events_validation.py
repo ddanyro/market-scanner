@@ -1,5 +1,6 @@
 import copy
 import datetime as dt
+import pytest
 
 import pandas as pd
 
@@ -226,3 +227,136 @@ def test_main_writes_labelled_dataset_as_gzip(monkeypatch, tmp_path):
     assert events_output.exists()
     assert events_output.read_bytes()[:2] == b"\x1f\x8b"
     assert not (tmp_path / "event_observations.csv").exists()
+
+
+def test_incremental_matches_cold_and_reuses_outcomes(tmp_path, monkeypatch):
+    flat = validation.flatten_ledger([snapshot()])
+    now = dt.datetime(2027, 1, 1, tzinfo=dt.timezone.utc)
+    cold = validation.label_forward_outcomes(flat, now=now, ticker_factory=FakeTicker)
+    path = tmp_path / 'outcomes.sqlite'
+    first = validation.label_forward_outcomes(flat, now=now, ticker_factory=FakeTicker, cache_path=path)
+    pd.testing.assert_frame_equal(cold, first)
+    def unexpected(*args, **kwargs):
+        raise AssertionError('unchanged outcome must not be recalculated')
+    monkeypatch.setattr(validation, '_calculate_outcomes', unexpected)
+    # Network must not be touched on same-day resume either.
+    second = validation.label_forward_outcomes(flat, now=now, ticker_factory=unexpected, cache_path=path)
+    pd.testing.assert_frame_equal(first, second)
+
+
+def test_incremental_pending_matures_and_changed_entry_invalidates(tmp_path):
+    flat = validation.flatten_ledger([snapshot()])
+    path = tmp_path / 'outcomes.sqlite'
+    early = validation.label_forward_outcomes(flat, now='2026-09-10', ticker_factory=FakeTicker, cache_path=path)
+    assert early.iloc[0].outcome_status_5d == 'pending'
+    late = validation.label_forward_outcomes(flat, now='2026-09-16', ticker_factory=FakeTicker, cache_path=path)
+    assert late.iloc[0].return_pct_5d == pytest.approx(5)
+    flat['entry_price'] = 50
+    changed = validation.label_forward_outcomes(flat, now='2026-09-16', ticker_factory=FakeTicker, cache_path=path)
+    assert changed.iloc[0].return_pct_5d == pytest.approx(110)
+
+
+def test_completed_symbols_survive_interruption(tmp_path):
+    flat = validation.flatten_ledger([snapshot()])
+    second = flat.copy()
+    second['history_ticker'] = 'BBB'
+    flat = pd.concat([flat, second], ignore_index=True)
+    path = tmp_path / 'outcomes.sqlite'
+    class Interrupted(FakeTicker):
+        def __init__(self, ticker):
+            if ticker == 'BBB':
+                raise KeyboardInterrupt()
+    with pytest.raises(KeyboardInterrupt):
+        validation.label_forward_outcomes(flat, now='2027-01-01', ticker_factory=Interrupted, cache_path=path)
+    reads = []
+    def resumed(ticker):
+        reads.append(ticker)
+        return FakeTicker(ticker)
+    result = validation.label_forward_outcomes(flat, now='2027-01-01', ticker_factory=resumed, cache_path=path)
+    assert reads == ['BBB']
+    assert list(result.return_pct_5d.round(5)) == [5, 5]
+
+
+def test_missing_history_is_retried_on_resume(tmp_path):
+    flat = validation.flatten_ledger([snapshot()])
+    path = tmp_path / 'outcomes.sqlite'
+    class Missing(FakeTicker):
+        def history(self, **kwargs):
+            return pd.DataFrame()
+    first = validation.label_forward_outcomes(flat, now='2027-01-01', ticker_factory=Missing, cache_path=path)
+    assert first.iloc[0].outcome_status_1d == 'missing_history'
+    second = validation.label_forward_outcomes(flat, now='2027-01-01', ticker_factory=FakeTicker, cache_path=path)
+    assert second.iloc[0].return_pct_1d == pytest.approx(1)
+
+
+def test_history_revision_invalidates_cached_mature_outcome(tmp_path):
+    flat = validation.flatten_ledger([snapshot()])
+    path = tmp_path / 'outcomes.sqlite'
+    validation.label_forward_outcomes(flat, now='2027-01-01', ticker_factory=FakeTicker, cache_path=path)
+    class Revised(FakeTicker):
+        def history(self, **kwargs):
+            history = super().history(**kwargs)
+            history.iloc[1, history.columns.get_loc('Adj Close')] = 110
+            return history
+    result = validation.label_forward_outcomes(flat, now='2027-01-02', ticker_factory=Revised, cache_path=path)
+    assert result.iloc[0].return_pct_1d == pytest.approx(10)
+
+
+def test_completed_horizons_reused_when_history_only_extends(tmp_path, monkeypatch):
+    flat = validation.flatten_ledger([snapshot()])
+    path = tmp_path / 'outcomes.sqlite'
+    validation.label_forward_outcomes(flat, now='2027-01-01', ticker_factory=FakeTicker, cache_path=path)
+    def unexpected(*args):
+        raise AssertionError('mature horizon unchanged')
+    monkeypatch.setattr(validation, '_calculate_outcomes', unexpected)
+    result = validation.label_forward_outcomes(flat, now='2027-01-02', ticker_factory=FakeTicker, cache_path=path)
+    assert result.iloc[0].return_pct_60d == pytest.approx(60)
+
+
+def test_same_day_new_session_refreshes_pending_results(tmp_path):
+    flat = validation.flatten_ledger([snapshot()])
+    class Morning(FakeTicker):
+        def history(self, **kwargs):
+            return super().history(**kwargs).iloc[:1]
+    path = tmp_path / 'outcomes.sqlite'
+    early = validation.label_forward_outcomes(flat, now='2026-09-09T08:00:00Z', ticker_factory=Morning, cache_path=path)
+    assert early.iloc[0].outcome_status_1d == 'pending'
+    late = validation.label_forward_outcomes(flat, now='2026-09-09T21:00:00Z', ticker_factory=FakeTicker, cache_path=path)
+    assert late.iloc[0].return_pct_1d == pytest.approx(1)
+
+
+def test_explicit_price_refresh_bypasses_cache_in_same_hour(tmp_path):
+    flat = validation.flatten_ledger([snapshot()])
+    class Morning(FakeTicker):
+        def history(self, **kwargs):
+            return super().history(**kwargs).iloc[:1]
+    path = tmp_path / 'outcomes.sqlite'
+    validation.label_forward_outcomes(flat, now='2026-09-09T21:00:00Z', ticker_factory=Morning, cache_path=path)
+    fresh = validation.label_forward_outcomes(flat, now='2026-09-09T21:01:00Z', ticker_factory=FakeTicker,
+                                             cache_path=path, refresh_prices=True)
+    assert fresh.iloc[0].return_pct_1d == pytest.approx(1)
+
+
+def test_interrupted_export_preserves_previous_completed_report(tmp_path, monkeypatch):
+    monkeypatch.setattr(validation.technical_events_shadow, 'load_ledger', lambda *a, **kw: [])
+    monkeypatch.setattr('sys.argv', ['evaluate_technical_events_forward.py', '--offline', '--output', str(tmp_path)])
+    labelled = tmp_path / 'labelled_predictions.csv.gz'
+    report = tmp_path / 'technical_events_validation_report.md'
+    marker = tmp_path / 'integrity_report.json'
+    for path in (labelled, report, marker):
+        path.write_bytes(b'previous completed output')
+    original = pd.DataFrame.to_csv
+    calls = []
+    def interrupted(frame, path, *args, **kwargs):
+        calls.append(path)
+        if len(calls) == 2:
+            raise RuntimeError('interrupted')
+        return original(frame, path, *args, **kwargs)
+    monkeypatch.setattr(pd.DataFrame, 'to_csv', interrupted)
+    with pytest.raises(RuntimeError, match='interrupted'):
+        validation.main()
+    # Nest private exports under the requested output so the supervisor's
+    # cleanup also removes incomplete exports after a hard child termination.
+    assert all(path.is_relative_to(tmp_path) for path in calls)
+    for path in (labelled, report, marker):
+        assert path.read_bytes() == b'previous completed output'

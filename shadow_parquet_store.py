@@ -481,7 +481,26 @@ def load_snapshots(dataset, *, config=None, client=None):
         return []
     client = client or R2Client(config)
     prefix = f"{config.prefix.strip('/')}/{dataset}/"
-    rows = [_download_snapshot(client, key) for key in client.list_keys(prefix)]
+    keys = client.list_keys(prefix)
+    cache_dir = os.environ.get('SHADOW_RESEARCH_CACHE_DIR')
+    if not cache_dir:
+        rows = [_download_snapshot(client, key) for key in keys]
+    else:
+        # Opt-in for standalone research only. Keys identify immutable objects;
+        # list is always refreshed, so new/deleted objects are never hidden.
+        from shadow_research_cache import ResearchCache, fingerprint
+        namespace = fingerprint([config.endpoint, config.bucket, prefix])
+        rows = []
+        with ResearchCache(Path(cache_dir) / 'snapshots.sqlite') as cache:
+            for index, key in enumerate(keys, 1):
+                row = cache.get(namespace, key)
+                if row is None:
+                    row = _download_snapshot(client, key)
+                    cache.put(namespace, key, row)
+                    cache.flush()
+                rows.append(row)
+                if index == 1 or index % 25 == 0 or index == len(keys):
+                    print(f'[Shadow research] {dataset}: snapshots {index}/{len(keys)} (cache/rețea).', flush=True)
     unique = {row.get("snapshot_id"): row for row in rows}
     return sorted(
         unique.values(), key=lambda row: (row.get("recorded_at", ""), row.get("snapshot_id", ""))

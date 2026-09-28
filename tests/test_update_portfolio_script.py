@@ -51,31 +51,6 @@ class TestUpdatePortfolioScript(unittest.TestCase):
             sync,
         )
 
-    def test_all_updates_use_cadenced_shadow_maintenance_before_commit(self):
-        for filename in (
-            'update_portfolio.sh', 'update_international.sh', 'update_all.sh',
-        ):
-            script = (self.root / filename).read_text(encoding='utf-8')
-            self.assertIn('run_shadow_maintenance.py', script)
-            self.assertNotIn('evaluate_shadow_forward.py', script)
-            self.assertNotIn('evaluate_technical_events_forward.py', script)
-        runner = (self.root / 'run_shadow_maintenance.py').read_text(
-            encoding='utf-8'
-        )
-        self.assertIn('evaluate_shadow_forward.py', runner)
-        self.assertIn('evaluate_technical_events_forward.py', runner)
-
-    def test_dashboard_action_keeps_heavy_technical_validation_off_hosted_runner(self):
-        workflow = (self.root / '.github/workflows/update_dashboard.yml').read_text(
-            encoding='utf-8'
-        )
-        self.assertIn(
-            'python run_shadow_maintenance.py --only enhanced', workflow
-        )
-        self.assertNotIn(
-            'python run_shadow_maintenance.py ||', workflow
-        )
-
     def test_portfolio_update_runs_tradeville_bridge_before_scanner(self):
         script = (self.root / 'update_portfolio.sh').read_text(encoding='utf-8')
         bridge = script.index('tradeville_bridge.py sync')

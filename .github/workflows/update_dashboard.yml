@@ -129,10 +129,8 @@ jobs:
         echo "Running market scanner in mode: $MODE"
         python update_sp500_json.py
         python market_scanner.py --mode $MODE
-        # Technical Events recitește sute de MB de ledger și depășește
-        # resursele runnerului găzduit. Rămâne în update_all local; Actions
-        # execută doar evaluarea Enhanced, suficient de mică pentru acest job.
-        python run_shadow_maintenance.py --only enhanced || echo "Periodic Enhanced maintenance unavailable; immutable collection remains valid."
+        # Colectarea shadow rămâne în scanner. Cercetarea forward se rulează
+        # separat, manual, fără să blocheze publicarea dashboardului.
         python runtime_r2_store.py push --publish-loader
 
     - name: Commit and Push changes

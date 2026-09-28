@@ -18,9 +18,6 @@ load_order_cache_password
 sync_log_step "Actualizare internațională"
 "$PYTHON_BIN" -u market_scanner.py --mode international
 
-sync_log_step "Mentenanță periodică shadow"
-if ! "$PYTHON_BIN" -u run_shadow_maintenance.py; then
-    echo "Avertisment: mentenanța shadow nu a reușit; snapshoturile rămân valide." >&2
-fi
+# Cercetarea rulează separat: bash run_shadow_research.sh
 
 git_sync_finish "Update international snapshot"

@@ -47,6 +47,26 @@ class FakeClient:
         return sorted(key for key in self.objects if key.startswith(prefix))
 
 
+def test_research_cache_resumes_immutable_downloads_and_keeps_new_snapshots(tmp_path, monkeypatch):
+    monkeypatch.setenv('SHADOW_RESEARCH_CACHE_DIR', str(tmp_path / 'cache'))
+    monkeypatch.setattr(store, 'SPOOL_DIR', tmp_path / 'spool')
+    client = FakeClient()
+    store.persist_snapshot(snapshot(), store.ENHANCED_DATASET, config=config(), client=client)
+    first = store.load_snapshots(store.ENHANCED_DATASET, config=config(), client=client)
+    original_get = client.get
+    reads = []
+    def get(key):
+        reads.append(key)
+        return original_get(key)
+    client.get = get
+    assert store.load_snapshots(store.ENHANCED_DATASET, config=config(), client=client) == first
+    assert reads == []
+    store.persist_snapshot(snapshot('new', '2026-09-13T05:30:00+00:00'), store.ENHANCED_DATASET, config=config(), client=client)
+    rows = store.load_snapshots(store.ENHANCED_DATASET, config=config(), client=client)
+    assert [row['snapshot_id'] for row in rows] == ['abc123', 'new']
+    assert len(reads) == 1 and 'new.parquet' in reads[0]
+
+
 class FakeResponse:
     status_code = 200
     text = ""

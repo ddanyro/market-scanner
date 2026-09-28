@@ -9,12 +9,14 @@ weights, thresholds, or decisions.
 from __future__ import annotations
 
 import argparse
+from contextlib import nullcontext
 import datetime as dt
 import hashlib
 import json
 import math
 import os
 from pathlib import Path
+import tempfile
 import time
 
 import numpy as np
@@ -22,6 +24,7 @@ import pandas as pd
 import yfinance as yf
 
 import technical_events_shadow
+from shadow_research_cache import ResearchCache, fingerprint
 
 
 HORIZONS = (1, 5, 10, 20, 60)
@@ -312,8 +315,31 @@ def _adjusted_entry(stored_entry, signal_day, history):
     return stored_entry * prior.iloc[-1].adjusted / prior.iloc[-1].close
 
 
+def _calculate_outcomes(history, signal_day, stored_entry):
+    values = {}
+    entry = _adjusted_entry(stored_entry, signal_day, history) if not history.empty else None
+    future = history[history.index > signal_day]
+    for horizon in HORIZONS:
+        for metric in ('return_pct', 'mae_pct', 'mfe_pct'):
+            values[f'{metric}_{horizon}d'] = np.nan
+        status = 'pending'
+        if history.empty:
+            status = 'missing_history'
+        elif entry is None:
+            status = 'missing_entry'
+        elif len(future) >= horizon:
+            window = future.iloc[:horizon]
+            values[f'return_pct_{horizon}d'] = (window.iloc[-1].adjusted / entry - 1) * 100
+            values[f'mae_pct_{horizon}d'] = (window.low.min() / entry - 1) * 100
+            values[f'mfe_pct_{horizon}d'] = (window.high.max() / entry - 1) * 100
+            status = 'matured'
+        values[f'outcome_status_{horizon}d'] = status
+    return values
+
+
 def label_forward_outcomes(
-    frame, now=None, ticker_factory=yf.Ticker, progress=None,
+    frame, now=None, ticker_factory=yf.Ticker, progress=None, cache_path=None,
+    refresh_prices=False,
 ):
     """Attach only sessions strictly after T; never mutate the signal ledger."""
     if frame.empty:
@@ -324,69 +350,76 @@ def label_forward_outcomes(
         now = now.tz_convert(None)
     start = (result.signal_day.min() - pd.Timedelta(days=10)).date().isoformat()
     end = (now + pd.Timedelta(days=2)).date().isoformat()
-    histories = {}
     history_column = (
         result.history_ticker
         if "history_ticker" in result else result.ticker
     )
     tickers = sorted(history_column.dropna().astype(str).unique())
-    history_ok = 0
-    for ticker_index, ticker in enumerate(tickers, start=1):
-        try:
-            histories[ticker] = _download_history(ticker, start, end, ticker_factory)
-        except Exception:
-            histories[ticker] = pd.DataFrame()
-        if not histories[ticker].empty:
-            history_ok += 1
-        if progress:
-            progress.emit(
-                f"Istoric prețuri {ticker_index}/{len(tickers)} simboluri "
-                f"({history_ok} disponibile, {ticker_index - history_ok} lipsă)"
-            )
-    for horizon in HORIZONS:
-        for column in ("return_pct", "mae_pct", "mfe_pct"):
-            result[f"{column}_{horizon}d"] = np.nan
-        result[f"outcome_status_{horizon}d"] = "pending"
-    total_rows = len(result)
-    for processed, (index, row) in enumerate(result.iterrows(), start=1):
-        history_ticker = str(
-            row.history_ticker
-            if "history_ticker" in result else row.ticker
-        )
-        history = histories.get(history_ticker, pd.DataFrame())
-        if not history.empty:
-            # Defensive clipping: never trust a provider/test double to honor
-            # the requested end date.
+    history_symbols = history_column.astype(str).to_numpy()
+    outcomes = [None] * len(result)
+    processed = reused = 0
+    with ResearchCache(cache_path) if cache_path else nullcontext(None) as cache:
+        for ticker_index, ticker in enumerate(tickers, 1):
+            # Refresh prices at least hourly. Missing/failed history is not
+            # cached; a retry can repair a transient provider failure.
+            history_key = fingerprint([ticker, start, end, str(now.floor('h'))])
+            stored = cache.get('prices-v1', history_key) if cache and not refresh_prices else None
+            if stored is not None:
+                history = pd.DataFrame(stored['data'], columns=stored['columns'],
+                                       index=pd.to_datetime(stored['index']))
+            else:
+                try:
+                    history = _download_history(ticker, start, end, ticker_factory)
+                except Exception:
+                    history = pd.DataFrame(columns=['close', 'adjusted', 'high', 'low'], index=pd.DatetimeIndex([]))
+                if not history.empty and cache:
+                    cache.put('prices-v1', history_key, {
+                        'columns': list(history.columns),
+                        'index': [stamp.isoformat() for stamp in history.index],
+                        'data': history.to_numpy().tolist(),
+                    })
+                    cache.flush()
+            if history.empty:
+                history = pd.DataFrame(columns=['close', 'adjusted', 'high', 'low'], index=pd.DatetimeIndex([]))
             history = history[history.index <= now.normalize()]
-        if history.empty:
-            for horizon in HORIZONS:
-                result.at[index, f"outcome_status_{horizon}d"] = "missing_history"
-            continue
-        entry = _adjusted_entry(_number(row.entry_price), row.signal_day, history)
-        # Strict inequality is the core anti-look-ahead invariant.
-        future = history[history.index > row.signal_day]
-        for horizon in HORIZONS:
-            if entry is None:
-                result.at[index, f"outcome_status_{horizon}d"] = "missing_entry"
-                continue
-            if len(future) < horizon:
-                continue
-            window = future.iloc[:horizon]
-            result.at[index, f"return_pct_{horizon}d"] = (
-                window.iloc[-1].adjusted / entry - 1
-            ) * 100
-            result.at[index, f"mae_pct_{horizon}d"] = (
-                window.low.min() / entry - 1
-            ) * 100
-            result.at[index, f"mfe_pct_{horizon}d"] = (
-                window.high.max() / entry - 1
-            ) * 100
-            result.at[index, f"outcome_status_{horizon}d"] = "matured"
-        if progress:
-            progress.emit(
-                f"Etichetare rezultate {processed}/{total_rows} "
-                f"({processed / total_rows:.1%})"
-            )
+            if progress:
+                progress.emit(f'Istoric prețuri {ticker_index}/{len(tickers)} simboluri')
+            # Same signal-day/entry is often present in many snapshots. Compute
+            # it once, while retaining every observation in the output tables.
+            windows, values_by_key = {}, {}
+            positions = np.flatnonzero(history_symbols == ticker)
+            inputs = result.iloc[positions][['signal_day', 'entry_price']].itertuples(index=False, name=None)
+            for position, (day, raw_entry) in zip(positions, inputs):
+                entry = _number(raw_entry)
+                input_key = (day, entry)
+                if day not in windows:
+                    window = pd.concat([history[history.index <= day].tail(1),
+                                        history[history.index > day].head(max(HORIZONS))])
+                    windows[day] = (window, fingerprint(window.to_json(date_format='iso', double_precision=15)))
+                window, history_hash = windows[day]
+                # Only prices used by the formula enter the fingerprint.
+                # Extending an already mature 60D history does not invalidate it;
+                # corrections/splits, changed entry or pending horizons do.
+                values = values_by_key.get(input_key)
+                if values is None:
+                    key = fingerprint([ticker, str(day), entry, history_hash, HORIZONS])
+                    values = cache.get('technical-outcomes-v1', key) if cache and not history.empty else None
+                    if values is not None:
+                        reused += 1
+                    else:
+                        values = _calculate_outcomes(window, day, entry)
+                        if cache and not history.empty:
+                            cache.put('technical-outcomes-v1', key, values)
+                    values_by_key[input_key] = values
+                outcomes[position] = values
+                processed += 1
+                if progress:
+                    progress.emit(f'Etichetare rezultate {processed}/{len(result)} ({processed / len(result):.1%}); {reused} rezultate din checkpoint')
+            if cache:
+                cache.flush()
+    labelled = pd.DataFrame(outcomes, index=result.index)
+    for column in labelled:
+        result[column] = labelled[column]
     return result
 
 
@@ -850,11 +883,57 @@ def _add_pending_columns(frame):
     return result
 
 
+def _export_results(labelled, tables, errors, output, snapshot_count, progress):
+    """Prepare all artifacts privately before replacing any completed output."""
+    output.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='.research-export-', dir=output) as directory:
+        stage = Path(directory)
+        serializable = labelled.copy()
+        for column in ('raw_events', 'source_provenance'):
+            if column in serializable:
+                serializable[column] = serializable[column].map(
+                    lambda value: json.dumps(value, ensure_ascii=False, separators=(',', ':'))
+                )
+        progress.emit('Scriu setul complet de rezultate comprimat', force=True)
+        serializable.to_csv(stage / 'labelled_predictions.csv.gz', index=False, compression='gzip')
+        del serializable
+        filenames = {
+            'score_buckets': 'score_buckets.csv',
+            'directions': 'direction_analysis.csv',
+            'event_types': 'event_types.csv',
+            'recency': 'recency_analysis.csv',
+            'agreement': 'timeframe_agreement.csv',
+            'support_resistance': 'support_resistance_events.csv',
+            'predictive_power': 'predictive_power.csv',
+            'score_comparison': 'score_comparison.csv',
+            'regimes': 'market_regimes.csv',
+            'events': 'event_observations.csv.gz',
+        }
+        for key, filename in filenames.items():
+            tables[key].to_csv(stage / filename, index=False,
+                              compression='gzip' if filename.endswith('.gz') else None)
+        write_report(labelled, tables, errors, stage)
+        (stage / 'integrity_report.json').write_text(json.dumps({
+            'generated_at': dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds'),
+            'snapshots': snapshot_count, 'observations': len(labelled),
+            'errors': errors, 'status': 'PASS' if not errors else 'FAIL',
+        }, indent=2, ensure_ascii=False), encoding='utf-8')
+        # Individual files are replaced atomically; completion marker goes last.
+        final_names = ['technical_events_validation_report.md', 'integrity_report.json']
+        for path in sorted(stage.iterdir()):
+            if path.name not in final_names:
+                os.replace(path, output / path.name)
+        for name in final_names:
+            os.replace(stage / name, output / name)
+        (output / 'event_observations.csv').unlink(missing_ok=True)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--ledger", default=str(technical_events_shadow.LEDGER_PATH))
     parser.add_argument("--output", default=str(OUTPUT_DIR))
     parser.add_argument("--offline", action="store_true")
+    parser.add_argument('--refresh-prices', action='store_true', help='Ignoră cache-ul orar de prețuri; păstrează checkpointurile valide.')
     args = parser.parse_args()
     progress = ProgressReporter()
 
@@ -883,65 +962,22 @@ def main():
     labelled = (
         _add_pending_columns(flat)
         if args.offline or flat.empty
-        else label_forward_outcomes(flat, progress=progress)
+        else label_forward_outcomes(flat, progress=progress, cache_path=(
+            Path(os.environ.get('SHADOW_RESEARCH_CACHE_DIR', '.shadow_research_cache')) / 'technical-outcomes.sqlite'
+        ), refresh_prices=args.refresh_prices)
     )
     progress.emit("Validarea forward este gata; verific integritatea", force=True)
     if _ledger_fingerprint(snapshots) != immutable_fingerprint:
         raise RuntimeError("immutable Technical Events ledger was mutated")
     errors = integrity_errors(snapshots, labelled)
+    snapshot_count = len(snapshots)
+    # Release the rich ledger before expanding its per-event statistical rows.
+    del snapshots, flat
     progress.emit("Generez tabelele statistice", force=True)
     tables = generate_analysis(labelled)
-    output = Path(args.output)
-    output.mkdir(parents=True, exist_ok=True)
-    serializable = labelled.copy()
-    if "raw_events" in serializable:
-        serializable["raw_events"] = serializable.raw_events.map(
-            lambda value: json.dumps(value, ensure_ascii=False, separators=(",", ":"))
-        )
-    if "source_provenance" in serializable:
-        serializable["source_provenance"] = serializable.source_provenance.map(
-            lambda value: json.dumps(value, ensure_ascii=False, separators=(",", ":"))
-        )
-    # The point-in-time event payload is intentionally rich and grows with
-    # every shadow run. Keep the complete dataset, but store it as gzip so it
-    # remains practical to persist in Git without Git LFS.
-    progress.emit("Scriu setul complet de rezultate comprimat", force=True)
-    serializable.to_csv(
-        output / "labelled_predictions.csv.gz",
-        index=False,
-        compression="gzip",
-    )
-    filenames = {
-        "score_buckets": "score_buckets.csv",
-        "directions": "direction_analysis.csv",
-        "event_types": "event_types.csv",
-        "recency": "recency_analysis.csv",
-        "agreement": "timeframe_agreement.csv",
-        "support_resistance": "support_resistance_events.csv",
-        "predictive_power": "predictive_power.csv",
-        "score_comparison": "score_comparison.csv",
-        "regimes": "market_regimes.csv",
-        "events": "event_observations.csv.gz",
-    }
-    for key, filename in filenames.items():
-        tables[key].to_csv(
-            output / filename,
-            index=False,
-            compression="gzip" if filename.endswith(".gz") else None,
-        )
-    # One-time migration for worktrees that still contain the former large
-    # uncompressed artifact. Git sync stages its deletion via `git add -u`.
-    (output / "event_observations.csv").unlink(missing_ok=True)
-    write_report(labelled, tables, errors, output)
-    (output / "integrity_report.json").write_text(json.dumps({
-        "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-        "snapshots": len(snapshots),
-        "observations": len(labelled),
-        "errors": errors,
-        "status": "PASS" if not errors else "FAIL",
-    }, indent=2, ensure_ascii=False), encoding="utf-8")
+    _export_results(labelled, tables, errors, Path(args.output), snapshot_count, progress)
     progress.emit(
-        f"Finalizat: {len(snapshots)} snapshots, {len(labelled)} observații, "
+        f"Finalizat: {snapshot_count} snapshots, {len(labelled)} observații, "
         f"{len(errors)} erori de integritate",
         force=True,
     )

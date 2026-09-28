@@ -2,7 +2,8 @@
 
 Snapshot collection stays in the scanner and therefore runs every time. This
 runner only performs the expensive, derived forward analyses when their
-independent cadence is due. The small state file is persisted through R2.
+independent cadence is due. Standalone cadence state is local, so an R2 pull
+for dashboard updates cannot overwrite a newer successful research timestamp.
 """
 
 from __future__ import annotations
@@ -11,16 +12,18 @@ import argparse
 import datetime as dt
 import fcntl
 import json
+import math
 import os
 from pathlib import Path
 import subprocess
+import signal
 import sys
 import tempfile
 import time
 
 
 STATE_PATH = Path(
-    os.environ.get("SHADOW_MAINTENANCE_STATE_FILE", ".shadow_maintenance_state.json")
+    os.environ.get("SHADOW_MAINTENANCE_STATE_FILE", ".shadow_research_cache/maintenance-state.json")
 )
 LOCK_PATH = Path(
     os.environ.get("SHADOW_MAINTENANCE_LOCK_FILE", ".shadow_maintenance.lock")
@@ -29,6 +32,7 @@ SCHEMA = "market-scanner.shadow-maintenance.v1"
 HEARTBEAT_SECONDS = float(
     os.environ.get("SHADOW_MAINTENANCE_HEARTBEAT_SECONDS", "60")
 )
+TIMEOUT_SECONDS = float(os.environ.get('SHADOW_MAINTENANCE_TIMEOUT_SECONDS', '1800'))
 
 TASKS = {
     "enhanced": {
@@ -70,6 +74,8 @@ def _report_timestamp(path):
 
 def load_state(path=None):
     path = Path(path or STATE_PATH)
+    if not path.exists() and path == Path('.shadow_research_cache/maintenance-state.json'):
+        path = Path('.shadow_maintenance_state.json')  # one-time legacy migration
     try:
         payload = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, TypeError, ValueError):
@@ -80,10 +86,9 @@ def load_state(path=None):
     # Seamless first-run migration: existing reports are evidence of the last
     # successful run, so deployment does not immediately repeat both jobs.
     for name, spec in TASKS.items():
-        if payload["tasks"].get(name, {}).get("last_success_at"):
-            continue
+        last = _parse_timestamp(payload['tasks'].get(name, {}).get('last_success_at'))
         generated_at = _report_timestamp(spec["report"])
-        if generated_at:
+        if generated_at and (last is None or generated_at > last):
             payload["tasks"][name] = {
                 "last_success_at": generated_at.isoformat(),
                 "source": "existing_integrity_report",
@@ -93,7 +98,7 @@ def load_state(path=None):
 
 def save_state(payload, path=None):
     target = Path(path or STATE_PATH)
-    target.parent.mkdir(parents=True, exist_ok=True)
+    target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     descriptor, temporary = tempfile.mkstemp(
         prefix=f".{target.name}.", dir=target.parent
     )
@@ -121,17 +126,47 @@ def task_due(state, name, now, force=False):
     return elapsed >= TASKS[name]["interval_hours"]
 
 
-def run_with_heartbeat(command, label, heartbeat_seconds=None):
+def _terminate_process_group(process):
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        pass
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        pass
+    finally:
+        # A descendant may ignore TERM even if the direct child exits first.
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        process.wait()
+
+
+def run_with_heartbeat(command, label, heartbeat_seconds=None, timeout_seconds=None):
     """Run a maintenance child while periodically proving it is still alive."""
     interval = (
         HEARTBEAT_SECONDS if heartbeat_seconds is None else heartbeat_seconds
     )
     interval = max(float(interval), 0.1)
+    budget = TIMEOUT_SECONDS if timeout_seconds is None else float(timeout_seconds)
+    if not math.isfinite(budget) or budget <= 0:
+        raise ValueError('Limita de durată trebuie să fie pozitivă și finită.')
     started = time.monotonic()
-    process = subprocess.Popen(command)
+    # Only this newly spawned session is ever terminated; never other runs.
+    env = dict(os.environ)
+    env.setdefault('SHADOW_RESEARCH_CACHE_DIR', '.shadow_research_cache')
+    process = subprocess.Popen(command, start_new_session=True, env=env)
     while True:
+        remaining = budget - (time.monotonic() - started)
+        if remaining <= 0:
+            print(f'[Shadow maintenance] {label}: limită de {budget:g}s atinsă; '
+                  'progresul salvat va fi reutilizat la reluare.', flush=True)
+            _terminate_process_group(process)
+            return 124
         try:
-            return process.wait(timeout=interval)
+            return process.wait(timeout=min(interval, remaining))
         except subprocess.TimeoutExpired:
             elapsed = int(time.monotonic() - started)
             minutes, seconds = divmod(elapsed, 60)
@@ -140,15 +175,22 @@ def run_with_heartbeat(command, label, heartbeat_seconds=None):
                 f"timp scurs {minutes}m {seconds:02d}s (PID {process.pid}).",
                 flush=True,
             )
+        except KeyboardInterrupt:
+            _terminate_process_group(process)
+            raise
 
 
-def run_maintenance(*, selected=None, force=False, offline=False, now=None):
+def run_maintenance(*, selected=None, force=False, offline=False, now=None, timeout_seconds=None):
     now = now or dt.datetime.now(dt.timezone.utc)
     selected = list(selected or TASKS)
     LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
     failures = []
     with LOCK_PATH.open("a+", encoding="utf-8") as lock:
-        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+        try:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print('[Shadow maintenance] Există deja o rulare activă; ies fără a o modifica.', flush=True)
+            return 0
         state = load_state()
         # Persist bootstrapped timestamps even when every task is skipped.
         save_state(state)
@@ -168,7 +210,25 @@ def run_maintenance(*, selected=None, force=False, offline=False, now=None):
             command = [sys.executable, "-u", spec["command"]]
             if offline:
                 command.append("--offline")
-            returncode = run_with_heartbeat(command, spec["label"])
+            if force and name == 'technical':
+                command.append('--refresh-prices')
+            options = {} if timeout_seconds is None else {'timeout_seconds': timeout_seconds}
+            # Both evaluators write only to a private staging directory. A
+            # timeout/error never replaces the previous completed reports.
+            destination = spec['report'].parent / 'offline' if offline else spec['report'].parent
+            destination.mkdir(parents=True, exist_ok=True)
+            with tempfile.TemporaryDirectory(prefix='.research-stage-', dir=destination) as directory:
+                stage = Path(directory)
+                returncode = run_with_heartbeat(
+                    [*command, '--output', str(stage)], spec['label'], **options,
+                )
+                if returncode == 0:
+                    # The completion marker is installed after all other files.
+                    for artifact in sorted(stage.iterdir(), key=lambda item: item.name == 'integrity_report.json'):
+                        if artifact.is_file():
+                            os.replace(artifact, destination / artifact.name)
+                    if name == 'technical' and (destination / 'event_observations.csv.gz').exists():
+                        (destination / 'event_observations.csv').unlink(missing_ok=True)
             if returncode:
                 failures.append(name)
                 state["tasks"].setdefault(name, {})["last_failure_at"] = (
@@ -180,6 +240,9 @@ def run_maintenance(*, selected=None, force=False, offline=False, now=None):
                     f"[Shadow maintenance] {spec['label']}: EȘEC "
                     f"(cod {returncode}); va fi reîncercată."
                 )
+                continue
+            if offline:
+                print(f"[Shadow maintenance] {spec['label']}: diagnostic offline; cadența online nu este avansată.")
                 continue
             state["tasks"][name] = {
                 "last_success_at": now.isoformat(),
@@ -196,14 +259,28 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--offline", action="store_true")
+    parser.add_argument('--timeout-seconds', type=float, default=TIMEOUT_SECONDS,
+                        help='Limită per evaluare (implicit 1800s); checkpointurile se păstrează.')
     parser.add_argument(
         "--only", choices=tuple(TASKS), action="append",
         help="Rulează/verifică doar jobul selectat (poate fi repetat).",
     )
     args = parser.parse_args()
-    raise SystemExit(run_maintenance(
-        selected=args.only, force=args.force, offline=args.offline
-    ))
+    def interrupted(signum, frame):
+        raise KeyboardInterrupt()
+    previous = {sig: signal.signal(sig, interrupted) for sig in (signal.SIGTERM, signal.SIGHUP)}
+    try:
+        code = run_maintenance(
+            selected=args.only, force=args.force, offline=args.offline,
+            timeout_seconds=args.timeout_seconds,
+        )
+    except KeyboardInterrupt:
+        print('[Shadow maintenance] Întreruptă; checkpointurile finalizate sunt păstrate.', flush=True)
+        code = 130
+    finally:
+        for sig, handler in previous.items():
+            signal.signal(sig, handler)
+    raise SystemExit(code)
 
 
 if __name__ == "__main__":

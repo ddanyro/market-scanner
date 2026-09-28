@@ -304,8 +304,8 @@ git_sync_refresh_shadow_reports() {
     python_bin="$(sync_python_bin)"
     "$python_bin" -c \
         'import shadow_validation; shadow_validation.generate_readiness_report()'
-    "$python_bin" evaluate_shadow_forward.py --offline
-    "$python_bin" evaluate_technical_events_forward.py --offline
+    # Forward research is independent from Git publication, including offline
+    # mode: that mode still scans the full ledger and replaces outcome reports.
 }
 
 git_sync_integrate_remote() {

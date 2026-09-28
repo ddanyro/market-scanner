@@ -33,6 +33,11 @@ firebase-debug.*.log
 .bvb_yahoo_history_cache.json.gz
 .shadow_maintenance_state.json
 .shadow_maintenance.lock
+.shadow_research_cache/
+analysis/.research-export-*/
+analysis/**/.research-stage-*/
+analysis/**/.research-export-*/
+analysis/**/offline/
 dashboard_state.json
 watchlist_compact.json
 watchlist_details.json

@@ -42,10 +42,10 @@ fi
 log_step "Actualizare portofoliu"
 "$PYTHON_BIN" -u market_scanner.py --mode portfolio --tws
 
-log_step "Mentenanță periodică shadow"
-if ! "$PYTHON_BIN" -u run_shadow_maintenance.py; then
-    echo "Avertisment: mentenanța shadow nu a reușit; snapshoturile rămân valide." >&2
-fi
+# Cercetare separata:   bash run_shadow_research.sh
+# Colectarea snapshoturilor ramane in scanner la fiecare actualizare.
+# Nu asteptam validarea forward inainte de sincronizare/publicare.
+
 
 git_sync_finish "Update portfolio snapshot"
 
