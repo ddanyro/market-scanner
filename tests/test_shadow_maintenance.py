@@ -13,6 +13,19 @@ import pytest
 import run_shadow_maintenance as maintenance
 
 
+def test_cli_defaults_to_sixty_minutes_per_evaluation():
+    env = dict(os.environ)
+    env.pop('SHADOW_MAINTENANCE_TIMEOUT_SECONDS', None)
+    result = subprocess.run(
+        [sys.executable, '-c',
+         'import run_shadow_maintenance as m; '
+         'm.run_maintenance = lambda **kw: print(kw["timeout_seconds"]) or 0; '
+         'm.main()'],
+        env=env, capture_output=True, text=True, check=True,
+    )
+    assert float(result.stdout.strip()) == 3600
+
+
 def _configure(tmp_path, monkeypatch, enhanced_at, technical_at):
     state_path = tmp_path / "state.json"
     lock_path = tmp_path / "state.lock"

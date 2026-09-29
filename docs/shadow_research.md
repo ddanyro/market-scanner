@@ -21,11 +21,11 @@ este un filtru la pornirea manuală, **nu un programator instalat în fundal**.
 # Ignoră cadența; Technical Events reîmprospătează și prețurile.
 bash run_shadow_research.sh --only technical --force
 
-# Buget de 10 minute în locul valorii implicite de 30 minute per evaluare.
+# Buget de 10 minute în locul valorii implicite de 60 minute per evaluare.
 bash run_shadow_research.sh --only technical --timeout-seconds 600
 ```
 
-Limita implicită este 1800 secunde **per evaluare** (ambele pot însuma 60 minute).
+Limita implicită este 3600 secunde **per evaluare** (ambele pot însuma 120 minute).
 La expirare, noul proces și descendenții săi sunt opriți; există maximum 5 secunde
 de grație înainte de oprirea forțată. Timeout-ul nu este marcat drept succes.
 O pornire în timpul unei alte mentenanțe iese imediat fără s-o întrerupă.
@@ -62,7 +62,7 @@ prin mecanismul proiectului.
 
 La reluare se repetă încă citirea/validarea ledgerului, construirea observațiilor
 și agregarea/exportul rapoartelor. Nu este reluare de la instrucțiunea exactă și
-nu garantează finalizarea întregului istoric în prima fereastră de 30 minute.
+nu garantează finalizarea întregului istoric în prima fereastră de 60 minute.
 Enhanced reutilizează snapshoturile R2, dar calculul său de rezultate forward
 nu este încă incremental. Formulele și deciziile de tranzacționare nu se schimbă.
 

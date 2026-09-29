@@ -32,7 +32,7 @@ SCHEMA = "market-scanner.shadow-maintenance.v1"
 HEARTBEAT_SECONDS = float(
     os.environ.get("SHADOW_MAINTENANCE_HEARTBEAT_SECONDS", "60")
 )
-TIMEOUT_SECONDS = float(os.environ.get('SHADOW_MAINTENANCE_TIMEOUT_SECONDS', '1800'))
+TIMEOUT_SECONDS = float(os.environ.get('SHADOW_MAINTENANCE_TIMEOUT_SECONDS', '3600'))
 
 TASKS = {
     "enhanced": {
@@ -263,7 +263,7 @@ def main():
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--offline", action="store_true")
     parser.add_argument('--timeout-seconds', type=float, default=TIMEOUT_SECONDS,
-                        help='Limită per evaluare (implicit 1800s); checkpointurile se păstrează.')
+                        help='Limită per evaluare (implicit 3600s / 60 minute); checkpointurile se păstrează.')
     parser.add_argument(
         "--only", choices=tuple(TASKS), action="append",
         help="Rulează/verifică doar jobul selectat (poate fi repetat).",
