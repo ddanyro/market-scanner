@@ -23,7 +23,7 @@
     "Investment": 250.79,
     "Entry_Date": "2026-09-11",
     "Current_Value": 324.21,
-    "Profit": 73.42,
+    "Profit": 73.41,
     "Profit_Pct": 29.27,
     "Max_Profit": 169.29,
     "Consensus": "Strong Buy",
@@ -1033,14 +1033,14 @@
       }
     ],
     "Daily_Change": -4.4664,
-    "Date": "2026-10-01 14:15",
+    "Date": "2026-10-01 14:21",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-10-26",
     "Days_To_Earnings": 25,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-10-01T11:15:28+00:00",
+    "Earnings_Fetched_At": "2026-10-01T11:21:02+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-10-01T11:15:31.709634+00:00",
     "Market_Data_Observed_At": "2026-10-01T11:05:13+00:00",
@@ -1070,6 +1070,9 @@
       "open_52w": 241.4600067138672
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -1094,9 +1097,6 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -2154,14 +2154,14 @@
       }
     ],
     "Daily_Change": 1.7813,
-    "Date": "2026-10-01 14:15",
+    "Date": "2026-10-01 14:21",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-12-01",
     "Days_To_Earnings": 61,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-10-01T11:15:29+00:00",
+    "Earnings_Fetched_At": "2026-10-01T11:21:03+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-10-01T11:15:31.709807+00:00",
     "Market_Data_Observed_At": "2026-10-01T11:01:05+00:00",
@@ -2191,6 +2191,9 @@
       "open_52w": 121.93800354003906
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -2215,9 +2218,6 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "SUA",
