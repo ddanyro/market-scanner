@@ -23,7 +23,7 @@
     "Investment": 251.42,
     "Entry_Date": "2026-09-11",
     "Current_Value": 334.48,
-    "Profit": 83.06,
+    "Profit": 83.07,
     "Profit_Pct": 33.04,
     "Max_Profit": 169.71,
     "Consensus": "Strong Buy",
@@ -1042,14 +1042,14 @@
       }
     ],
     "Daily_Change": 10.3588,
-    "Date": "2026-10-02 10:12",
+    "Date": "2026-10-02 10:18",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-10-26",
     "Days_To_Earnings": 24,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-10-02T07:12:31+00:00",
+    "Earnings_Fetched_At": "2026-10-02T07:18:36+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-10-02T07:12:34.804225+00:00",
     "Market_Data_Observed_At": "2026-10-02T07:01:56+00:00",
@@ -1079,6 +1079,9 @@
       "open_52w": 256.8500061035156
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -1103,9 +1106,6 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -1162,7 +1162,7 @@
     "Investment": 747.14,
     "Entry_Date": "2026-09-11",
     "Current_Value": 945.58,
-    "Profit": 198.44,
+    "Profit": 198.43,
     "Profit_Pct": 26.56,
     "Max_Profit": 336.4,
     "Consensus": "Buy",
@@ -2172,17 +2172,17 @@
       }
     ],
     "Daily_Change": 1.1905,
-    "Date": "2026-10-02 10:12",
+    "Date": "2026-10-02 10:18",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-12-01",
     "Days_To_Earnings": 60,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-10-02T07:12:32+00:00",
+    "Earnings_Fetched_At": "2026-10-02T07:18:37+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-10-02T07:12:34.804286+00:00",
-    "Market_Data_Observed_At": null,
+    "Market_Data_Observed_At": "2026-10-01T13:30:00+00:00",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Data_Broker": "IBKR",
     "Execution_Brokers": [
@@ -2209,6 +2209,9 @@
       "open_52w": 125.30599975585938
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -2233,9 +2236,6 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "SUA",
