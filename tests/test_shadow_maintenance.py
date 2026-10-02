@@ -13,17 +13,38 @@ import pytest
 import run_shadow_maintenance as maintenance
 
 
-def test_cli_defaults_to_sixty_minutes_per_evaluation():
+@pytest.mark.parametrize('arguments,expected', [
+    ([], 3600),
+    (['--timeout-hours', '3'], 10800),
+    (['--timeout-hours', '1.5'], 5400),
+    (['--timeout-seconds', '600'], 600),
+])
+def test_cli_evaluation_time_budget(arguments, expected):
     env = dict(os.environ)
     env.pop('SHADOW_MAINTENANCE_TIMEOUT_SECONDS', None)
     result = subprocess.run(
         [sys.executable, '-c',
          'import run_shadow_maintenance as m; '
          'm.run_maintenance = lambda **kw: print(kw["timeout_seconds"]) or 0; '
-         'm.main()'],
+         'm.main()', *arguments],
         env=env, capture_output=True, text=True, check=True,
     )
-    assert float(result.stdout.strip()) == 3600
+    assert float(result.stdout.strip()) == expected
+
+
+@pytest.mark.parametrize('arguments', [
+    ['--timeout-hours', value] for value in ('0', '-1', 'nan', 'inf', '1e308', 'abc')
+] + [['--timeout-hours', '2', '--timeout-seconds', '600']])
+def test_cli_rejects_invalid_hours_before_running_research(arguments):
+    result = subprocess.run(
+        [sys.executable, '-c',
+         'import run_shadow_maintenance as m; '
+         'm.run_maintenance = lambda **kw: print("RESEARCH_STARTED") or 0; '
+         'm.main()', *arguments],
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 2
+    assert 'RESEARCH_STARTED' not in result.stdout
 
 
 def _configure(tmp_path, monkeypatch, enhanced_at, technical_at):

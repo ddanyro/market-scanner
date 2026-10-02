@@ -262,13 +262,20 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--offline", action="store_true")
-    parser.add_argument('--timeout-seconds', type=float, default=TIMEOUT_SECONDS,
+    duration = parser.add_mutually_exclusive_group()
+    duration.add_argument('--timeout-seconds', type=float, default=TIMEOUT_SECONDS,
                         help='Limită per evaluare (implicit 3600s / 60 minute); checkpointurile se păstrează.')
+    duration.add_argument('--timeout-hours', type=float,
+                          help='Limită maximă în ore per evaluare; acceptă fracții, de exemplu 1.5.')
     parser.add_argument(
         "--only", choices=tuple(TASKS), action="append",
         help="Rulează/verifică doar jobul selectat (poate fi repetat).",
     )
     args = parser.parse_args()
+    if args.timeout_hours is not None:
+        args.timeout_seconds = args.timeout_hours * 3600
+    if not math.isfinite(args.timeout_seconds) or args.timeout_seconds <= 0:
+        parser.error('Limita de durată trebuie să fie pozitivă și finită.')
     def interrupted(signum, frame):
         raise KeyboardInterrupt()
     previous = {sig: signal.signal(sig, interrupted) for sig in (signal.SIGTERM, signal.SIGHUP)}

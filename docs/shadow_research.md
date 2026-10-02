@@ -23,9 +23,16 @@ bash run_shadow_research.sh --only technical --force
 
 # Buget de 10 minute în locul valorii implicite de 60 minute per evaluare.
 bash run_shadow_research.sh --only technical --timeout-seconds 600
+
+# Maximum 3 ore per evaluare (sau --timeout-hours 1.5 pentru 90 minute).
+bash run_shadow_research.sh --timeout-hours 3
 ```
 
 Limita implicită este 3600 secunde **per evaluare** (ambele pot însuma 120 minute).
+`--timeout-hours` și `--timeout-seconds` sunt alternative și nu se pot combina.
+Durata trebuie să fie pozitivă și finită. Cu `--timeout-hours 3`, ambele evaluări
+pot însuma până la 6 ore. Dacă termină mai devreme, scriptul continuă imediat
+cu sincronizarea; parametrul nu impune o durată minimă.
 La expirare, noul proces și descendenții săi sunt opriți; există maximum 5 secunde
 de grație înainte de oprirea forțată. Timeout-ul nu este marcat drept succes.
 O pornire în timpul unei alte mentenanțe iese imediat fără s-o întrerupă.
