@@ -46,6 +46,7 @@ import market_scanner_analysis as analysis
 import market_utils
 import market_security
 import market_data
+from volatility_metrics import volatility_payload
 import bvb_public_market_data
 import buy_now_push
 import enhanced_scoring
@@ -4961,6 +4962,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             'Target': target_display,  # None dacă nu există
             'Trail_Stop': round(trail_stop_price, 2),
             'Suggested_Stop': round(suggested_stop_atr, 2),
+            'ATR_Native': round(last_atr_native, 6),
             'Finviz_ATR': finviz_atr,
             'Vol_W': vol_w,
             'Vol_M': vol_m,
@@ -5366,6 +5368,7 @@ def process_watchlist_ticker(ticker, vix_value, rates):
             'RSI': round(last_rsi, 2),
             'RSI_Status': rsi_status,
             'ATR_14': round(last_atr, 2),
+            'ATR_Native': round(market_data.get_scalar(last_row['ATR']), 6),
             'Finviz_ATR': finviz_atr,
             'Vol_W': vol_w,
             'Vol_M': vol_m,
@@ -9217,11 +9220,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         analysts = row.get('Analysts', 0)
         
         # Calculate Trail LARG (Propus)
-        atr_pct = (row.get('Finviz_ATR', 0) / row.get('Price_Native', 1) * 100) if row.get('Price_Native', 0) > 0 and row.get('Finviz_ATR', 0) else 0
-        vol_w = row.get('Vol_W', 0) or 0
-        vol_m = row.get('Vol_M', 0) or 0
-        vols_valid = [v for v in [atr_pct, vol_w, vol_m] if v > 0]
-        trail_larg = max(vols_valid) * 3 if vols_valid else 0
+        trail_larg = volatility_payload(row)['Trail_Larg']
         
         # Color green if Trail LARG >= Trail %, red otherwise
         if trail_larg >= trail_pct_val:
@@ -11229,12 +11228,6 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     # --- VOLATILITY DATA & TAB GENERATION ---
     vol_map = {}
     
-    # Helper to clean/convert
-    def get_val(d, k, default=0):
-        v = d.get(k)
-        try: return float(v) if v is not None else default
-        except: return default
-
     # Merge Data
     all_items = []
     if not watchlist_df.empty: all_items.extend(watchlist_df.to_dict('records'))
@@ -11244,29 +11237,10 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         sym = item.get('Ticker', item.get('Symbol'))
         if not sym: continue
         
-        price = get_val(item, 'Current_Price') or get_val(item, 'Price')
-        price_native = get_val(item, 'Price_Native')
-        atr = get_val(item, 'Finviz_ATR') or get_val(item, 'ATR_14')
-        
-        # ATR percentage must be calculated using base currency price
-        atr_pct = (atr / price_native * 100) if price_native and atr else 0
-        
-        # Calculate Trail LARG (MAX × 3)
-        vols = [atr_pct, get_val(item, 'Vol_W'), get_val(item, 'Vol_M')]
-        vols_valid = [v for v in vols if v > 0]
-        trail_larg = max(vols_valid) * 3 if vols_valid else 0
-        
-        vol_map[sym] = {
-            'Price_Native': round(price_native, 2) if price_native else 0,
-            'ATR_Val': round(atr, 2),
-            'ATR_Pct': round(atr_pct, 2),
-            'Vol_W': get_val(item, 'Vol_W'),
-            'Vol_M': get_val(item, 'Vol_M'),
-            'Trail_Larg': round(trail_larg, 2)
-        }
+        vol_map[sym] = volatility_payload(item)
         
         
-    vol_json = json.dumps(vol_map)
+    vol_json = json.dumps(vol_map, allow_nan=False)
     
     # Generate adjustment data for portfolio stocks with Trail Propus < Trail %
     adjust_data = []
@@ -11277,10 +11251,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 continue
             
             # Get volatility data
-            atr_pct = (row.get('Finviz_ATR', 0) / row.get('Price_Native', 1) * 100) if row.get('Price_Native', 0) > 0 and row.get('Finviz_ATR', 0) else 0
-            vol_w = row.get('Vol_W', 0) or 0
-            vol_m = row.get('Vol_M', 0) or 0
-            vols_valid = [v for v in [atr_pct, vol_w, vol_m] if v > 0]
+            metrics = volatility_payload(row)
+            vols_valid = [v for v in [metrics['ATR_Pct'], metrics['Vol_W'], metrics['Vol_M']] if v is not None and v > 0]
             trail_larg = max(vols_valid) * 3 if vols_valid else 0
             trail_med = max(vols_valid) * 2 if vols_valid else 0
             trail_strans = max(vols_valid) * 1.5 if vols_valid else 0
@@ -11402,6 +11374,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                       </div>
                       
                       <!-- Trailing Stop Calculations -->
+                      <p id="vol-data-note" style="color: var(--text-secondary); margin-top: 20px;"></p>
                       <h4 style="color: var(--primary-purple); margin-top: 30px; margin-bottom: 15px; text-align: center;">Trailing Stop Levels</h4>
                       <table style="width: 100%; border-collapse: collapse; color: var(--text-primary); margin-top: 10px;">
                           <tr style="border-bottom: 1px solid var(--border-light);">
@@ -11525,8 +11498,15 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
              <script>
                 const volData = """ + vol_json + """;
                 function calcVolatility() {
-                    const val = document.getElementById('vol-input').value.toUpperCase();
+                    const val = document.getElementById('vol-input').value.trim().toUpperCase();
                     const resDiv = document.getElementById('vol-results');
+                    const valid = v => typeof v === 'number' && Number.isFinite(v) && v > 0;
+                    const show = (v, suffix = '') => valid(v) ? v.toFixed(2) + suffix : 'Indisponibil';
+                    for (const strategy of ['larg', 'mediu', 'strans']) {
+                        for (const id of ['vol-' + strategy, 'stop-' + strategy + '-sell', 'stop-' + strategy + '-buy']) {
+                            document.getElementById(id).innerText = 'Indisponibil';
+                        }
+                    }
                     if (volData[val]) {
                          const d = volData[val];
                          const price = d.Price_Native;
@@ -11535,23 +11515,26 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                          const volM = d.Vol_M;
                          
                          // Display basic metrics
-                         document.getElementById('res-price-native').innerText = price;
-                         document.getElementById('res-atr-val').innerText = d.ATR_Val;
-                         document.getElementById('res-atr-pct').innerText = atrPct + '%';
-                         document.getElementById('res-day').innerText = '-'; // Data not available yet
-                         document.getElementById('res-week').innerText = volW + '%';
-                         document.getElementById('res-month').innerText = volM + '%';
+                         document.getElementById('res-price-native').innerText = show(price);
+                         document.getElementById('res-atr-val').innerText = show(d.ATR_Val);
+                         document.getElementById('res-atr-pct').innerText = show(atrPct, '%');
+                         document.getElementById('res-day').innerText = 'Indisponibil';
+                         document.getElementById('res-week').innerText = show(volW, '%');
+                         document.getElementById('res-month').innerText = show(volM, '%');
+                         document.getElementById('vol-data-note').innerText =
+                             'Sursă ATR: ' + (d.ATR_Source || 'indisponibil') + '. ' +
+                             ((!valid(volW) || !valid(volM)) ? 'Volatilitatea săptămânală/lunară Finviz este incompletă; nivelurile folosesc doar indicatorii disponibili.' : '') +
+                             ' Prețurile și stopurile sunt în moneda instrumentului.';
                          
                          // Calculate and display Suggested Stop & Buy (Price ± 2×ATR)
-                         const suggestedStop = price - (2 * d.ATR_Val);
-                         const suggestedBuy = price + (2 * d.ATR_Val);
-                         document.getElementById('suggested-stop').innerText = suggestedStop.toFixed(2);
-                         document.getElementById('suggested-buy').innerText = suggestedBuy.toFixed(2);
+                         const hasAtr = valid(price) && valid(d.ATR_Val);
+                         document.getElementById('suggested-stop').innerText = hasAtr ? show(price - 2 * d.ATR_Val) : 'Indisponibil';
+                         document.getElementById('suggested-buy').innerText = hasAtr ? show(price + 2 * d.ATR_Val) : 'Indisponibil';
                          
                          // Calculate trailing stop levels
-                         const vols = [atrPct, volW, volM].filter(v => v > 0);
+                         const vols = [atrPct, volW, volM].filter(valid);
                          
-                         if (vols.length > 0 && price > 0) {
+                         if (vols.length > 0 && valid(price)) {
                              // LARG: MAX × 3
                              const volLarg = Math.max(...vols) * 3;
                              const stopLargSell = price * (1 - volLarg / 100);

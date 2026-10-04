@@ -26,6 +26,8 @@ def get_finviz_data(ticker):
         
         response = requests.get(url, headers=headers, timeout=10)
         if response.status_code != 200:
+            data['Status'] = f'http_{response.status_code}'
+            print(f"  ⚠ Finviz {ticker}: HTTP {response.status_code}; date indisponibile, nu valori zero.")
             _finviz_cache[ticker] = data # Cache empty data on failure
             return data
             
@@ -84,9 +86,13 @@ def get_finviz_data(ticker):
             # print(f"  [Debug] Helper Title parse error: {e}")
             pass
         
+        data['Status'] = 'ok' if any(data.get(key) is not None for key in ('Target', 'ATR', 'VolW', 'VolM')) else 'missing_metrics'
+        if data['Status'] == 'missing_metrics':
+            print(f"  ⚠ Finviz {ticker}: pagina nu conține indicatori recunoscuți; verifică structura sau accesul.")
         _finviz_cache[ticker] = data
         return data
     except Exception as e:
+        data['Status'] = 'request_error'
         print(f"  ⚠ Eroare Finviz pentru {ticker}: {str(e)[:50]}")
         return data
 
