@@ -10,6 +10,7 @@ import pandas as pd
 import os
 import time
 from datetime import datetime
+from portfolio_identity import position_key, ownership, same_owner
 
 PORTFOLIO_FILE = 'portfolio.csv'
 CONFIG_FILE = 'ibkr_config.txt'
@@ -105,7 +106,7 @@ def sync_ibkr(allow_flex=True):
     
     if use_tws_primary:
         try:
-             tdf = pd.read_csv(TWS_FILE_POS)
+             tdf = pd.read_csv(TWS_FILE_POS, dtype={'Account_ID': str, 'Account': str})
              for _, r in tdf.iterrows():
                   sym = str(r['Symbol'])
                   tws_symbols.add(sym)  # Track TWS symbols
@@ -117,6 +118,7 @@ def sync_ibkr(allow_flex=True):
                   invest = shares * buy_price
                   current_value = shares * current_price
                   positions.append({
+                      **ownership(dict(r, Broker='IBKR')),
                       'Symbol': sym,
                       'Shares': shares,
                       'Buy_Price': buy_price, 
@@ -335,6 +337,8 @@ def sync_ibkr(allow_flex=True):
                                         entry_date = datetime.now().strftime("%Y-%m-%d")
                                     
                                     item = {
+                                        'Broker': 'IBKR',
+                                        'Account_ID': str(pos.get('accountId', '')),
                                         'Symbol': sym,
                                         'Shares': qty,
                                         'Buy_Price': avg_cost, 
@@ -434,7 +438,7 @@ def sync_ibkr(allow_flex=True):
     if os.path.exists(MANUAL_FILE):
          print(f"Adăugare poziții Tradeville WebSocket din {MANUAL_FILE}...")
          try:
-             man_df = pd.read_csv(MANUAL_FILE)
+             man_df = pd.read_csv(MANUAL_FILE, dtype={'Account_ID': str, 'Account': str})
              for _, row in man_df.iterrows():
                  sym = str(row.get('Symbol', '')).strip()
                  if not sym or sym.lower() == 'nan': continue
@@ -442,12 +446,6 @@ def sync_ibkr(allow_flex=True):
                  try:
                      qty = float(row.get('Shares', 0))
                      bp = float(row.get('Buy_Price', 0))
-                     
-                     # Verificăm dacă simbolul există deja (din IBKR) pt a nu duplica
-                     exists = any(p['Symbol'] == sym for p in positions)
-                     if exists:
-                         print(f"  Info: Simbolul {sym} există deja în IBKR, se ignoră cel manual.")
-                         continue
                      
                      item = {
                          'Symbol': sym,
@@ -495,6 +493,7 @@ def sync_ibkr(allow_flex=True):
             
             # 2. Create DF
             df_proxy = pd.DataFrame(positions)
+            df_proxy['Position_ID'] = df_proxy.apply(position_key, axis=1)
             
             # === DEDUPLICATION logic (Remove Summary Rows if Lots exist) ===
             # Problem: Flex report includes a "Summary" row (Date='') AND "Lot" rows (Date='YYYY-MM-DD').
@@ -504,7 +503,10 @@ def sync_ibkr(allow_flex=True):
             clean_rows = []
             
             # Group by Symbol to inspect
-            for sym, group in df_proxy.groupby('Symbol'):
+            for sym, group in df_proxy.groupby('Position_ID'):
+                if ownership(group.iloc[0])['Broker'].upper() == 'TRADEVILLE':
+                    clean_rows.append(group)
+                    continue
                 # Check if we have valid dates (only if Entry_Date column exists - TWS data might not have it)
                 has_dates = False
                 if 'Entry_Date' in group.columns:
@@ -547,6 +549,7 @@ def sync_ibkr(allow_flex=True):
                 return ', '.join(values)
 
             agg_rules = {
+                'Symbol': 'first',
                 'Shares': 'sum',
                 'Investment': 'sum',
                 'Current_Value': 'sum',
@@ -580,7 +583,7 @@ def sync_ibkr(allow_flex=True):
                     df_proxy[col] = '' if col in text_columns else 0.0
 
             # Group
-            grouped = df_proxy.groupby('Symbol', as_index=False).agg(agg_rules)
+            grouped = df_proxy.groupby('Position_ID', as_index=False).agg(agg_rules)
             
             # Recalculate Weighted Stats
             # Buy Price = Total Investment / Total Shares
@@ -625,6 +628,7 @@ def sync_ibkr(allow_flex=True):
                 
                 # Căutăm în new_df și updatăm
                 mask = new_df['Symbol'] == t_sym
+                mask &= new_df.apply(lambda item: same_owner(item, dict(row, Broker='IBKR')), axis=1)
                 if mask.any():
                     if t_stop > 0 and t_stop < 1e100:
                         new_df.loc[mask, 'Trail_Stop_IBKR'] = t_stop
@@ -641,20 +645,21 @@ def sync_ibkr(allow_flex=True):
     if os.path.exists(PORTFOLIO_FILE):
         try:
             print("Îmbinare cu preferințele locale...")
-            old_df = pd.read_csv(PORTFOLIO_FILE)
-            manual_cols = ['Symbol', 'Target', 'Max_Profit', 'Entry_Date']
+            old_df = pd.read_csv(PORTFOLIO_FILE, dtype={'Account_ID': str, 'Account': str})
+            old_df['Position_ID'] = old_df.apply(position_key, axis=1)
+            manual_cols = ['Position_ID', 'Target', 'Max_Profit', 'Entry_Date']
             existing_cols = [
                 column for column in manual_cols if column in old_df.columns
             ]
 
             if existing_cols and 'Symbol' in new_df.columns:
                 old_subset = old_df[existing_cols].drop_duplicates(
-                    subset=['Symbol']
+                    subset=['Position_ID']
                 )
                 merged_df = pd.merge(
                     new_df,
                     old_subset,
-                    on='Symbol',
+                    on='Position_ID',
                     how='left',
                     suffixes=('', '_old'),
                 )

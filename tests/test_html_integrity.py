@@ -310,19 +310,20 @@ class TestHtmlIntegrity(unittest.TestCase):
         self.assertIn("Recomandări de cumpărare marcate punctual", content)
         self.assertIn("_build_history_chart_candidates(", content)
 
-    def test_active_order_mini_charts_prefer_buy_recommendation_details(self):
-        """Mini-graficele ordinelor deschid graficul cu marcajele istorice BUY."""
+    def test_active_order_mini_charts_prefer_their_own_account_details(self):
+        """Detaliile contului au prioritate; fallback-ul nu împrumută alt portofoliu."""
         file_path = os.path.join(os.path.dirname(__file__), '..', 'market_scanner.py')
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
 
         self.assertIn("onclick=\"openOrderDetail(", content)
-        self.assertIn("async function openOrderDetail(symbol)", content)
+        self.assertIn("async function openOrderDetail(symbol, positionKey)", content)
         self.assertIn(
-            "let baseDetail = buyRecommendationDetailData[normalizedSymbol]",
+            "let baseDetail = portfolioDetailData[positionKey]",
             content,
         )
-        self.assertIn("|| portfolioDetailData[normalizedSymbol]", content)
+        self.assertIn("|| buyRecommendationDetailData[normalizedSymbol]", content)
+        self.assertIn("|| (!positionKey && portfolioDetailData[normalizedSymbol])", content)
         self.assertIn("baseDetail = details[normalizedSymbol]", content)
         self.assertIn("activeBuyOrderLevels[levelKey]", content)
         self.assertIn("(baseDetail.levels || []).concat(orderLevels)", content)
@@ -331,7 +332,7 @@ class TestHtmlIntegrity(unittest.TestCase):
             content,
         )
         self.assertIn("detail_symbol = str(m_symbol or symbol).upper()", content)
-        self.assertIn("openOrderDetail(\\'{detail_symbol}\\')", content)
+        self.assertIn("openOrderDetail(\\'{detail_symbol}\\', \\'{detail_key}\\')", content)
 
     def test_generated_chat_markdown_regexes_keep_newline_escapes(self):
         """Generatorul nu trebuie să transforme \\n în newline în regexurile JS."""

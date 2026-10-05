@@ -33,3 +33,18 @@ disponibilă în IBKR și păstrează separat NAV, cash, NAV ajustat cu transfer
 Dacă endpointul istoric `graf_pers_brut` nu răspunde, pozițiile și ordinele
 curente sunt sincronizate în continuare, iar bridge-ul reutilizează numai
 ultimul istoric grafic valid din snapshotul local criptat.
+
+## Poziții pe conturi
+
+Portofoliul păstrează câte un rând pentru fiecare combinație broker–cont–simbol.
+Dacă două conturi dețin TVBETETF, apar două rânduri cu eticheta contului,
+cantitatea, costul și profitul proprii. Totalurile includ ambele poziții.
+Graficele, ordinele, stopurile și preferințele locale sunt asociate contului,
+nu doar simbolului; o preferință fără cont identificabil nu este copiată
+automat la toate conturile.
+
+După actualizarea codului, rulează local `./update_portfolio.sh` pentru a
+reconstrui portofoliul și dashboardul. Simpla publicare a codului nu repară
+un `portfolio.csv` vechi care conține numai una dintre poziții. Dacă bridge-ul
+nu răspunde, reconstrucția folosește ultimul snapshot valid disponibil, nu
+date live confirmate.

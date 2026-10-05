@@ -47,6 +47,7 @@ import market_utils
 import market_security
 import market_data
 from volatility_metrics import volatility_payload
+from portfolio_identity import position_key, ownership, account_label, same_owner
 import bvb_public_market_data
 import buy_now_push
 import enhanced_scoring
@@ -2366,7 +2367,7 @@ def _build_active_buy_order_chart_levels(orders_df):
             'value': round(order_price, 4),
             'color': '#7c3aed',
         }
-        symbol_levels = levels_by_symbol.setdefault(symbol, [])
+        symbol_levels = levels_by_symbol.setdefault(position_key(order), [])
         if not any(
             abs(item['value'] - level['value']) < 0.0001
             and item['label'] == level['label']
@@ -3342,7 +3343,7 @@ def load_portfolio(filename='portfolio.csv'):
         print(f"Fișierul {filename} nu a fost găsit.")
         return pd.DataFrame()
     
-    df = pd.read_csv(filename)
+    df = pd.read_csv(filename, dtype={'Account_ID': str, 'Account': str})
     # Normalizează coloanele (lowercase) pentru a evita KeyErrors
     df.columns = [c.strip().lower() for c in df.columns]
     return df
@@ -4356,6 +4357,8 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             
             result = {
                 'Symbol': ticker,
+                **ownership(row),
+                'Position_ID': position_key(row),
                 'Shares': int(shares),
                 'Current_Price': round(current_price, 2),
                 'Buy_Price': round(buy_price, 2),
@@ -4947,6 +4950,8 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         )
         result = {
             'Symbol': ticker,
+            **ownership(row),
+            'Position_ID': position_key(row),
             'History_Ticker': history_ticker,
             'Company_Name': company_name,
             'Shares': int(shares),
@@ -6048,7 +6053,7 @@ def _preserve_portfolio_chart_history(previous_items, updated_items):
     metadatele curente (preț, cantitate, stop etc.) rămân cele proaspete.
     """
     previous_by_symbol = {
-        str(item.get('Symbol') or '').upper(): item
+        position_key(item): item
         for item in previous_items or []
         if isinstance(item, dict) and item.get('Symbol')
     }
@@ -6056,7 +6061,7 @@ def _preserve_portfolio_chart_history(previous_items, updated_items):
     for raw_item in updated_items or []:
         item = dict(raw_item)
         symbol = str(item.get('Symbol') or '').upper()
-        previous = previous_by_symbol.get(symbol)
+        previous = previous_by_symbol.get(position_key(item))
         if not previous:
             merged_items.append(item)
             continue
@@ -6657,7 +6662,7 @@ def _concat_order_frames(frames):
 def _read_order_snapshot(path):
     """Citește un snapshot de ordine, inclusiv cazul valid fără rânduri."""
     try:
-        return pd.read_csv(path)
+        return pd.read_csv(path, dtype={'Account_ID': str, 'Account': str})
     except pd.errors.EmptyDataError:
         return pd.DataFrame(columns=TWS_ACTIVE_ORDER_COLUMNS)
 
@@ -6667,14 +6672,14 @@ def _tradeville_stop_orders_from_portfolio(
 ):
     """Expune stopurile fixe/manuale Tradeville ca ordine SELL în dashboard."""
     try:
-        portfolio = pd.read_csv(path)
+        portfolio = pd.read_csv(path, dtype={'Account_ID': str, 'Account': str})
     except (OSError, pd.errors.EmptyDataError, pd.errors.ParserError):
         return pd.DataFrame(columns=TWS_ACTIVE_ORDER_COLUMNS)
     required = {'Symbol', 'Shares', 'Trail_Stop'}
     if portfolio.empty or not required.issubset(portfolio.columns):
         return pd.DataFrame(columns=TWS_ACTIVE_ORDER_COLUMNS)
 
-    explicit_sell_symbols = set()
+    explicit_sell_positions = set()
     if isinstance(explicit_orders, pd.DataFrame) and not explicit_orders.empty:
         actions = explicit_orders.get(
             'Action', pd.Series('', index=explicit_orders.index)
@@ -6682,7 +6687,10 @@ def _tradeville_stop_orders_from_portfolio(
         symbols = explicit_orders.get(
             'Symbol', pd.Series('', index=explicit_orders.index)
         ).astype(str).str.strip().str.upper()
-        explicit_sell_symbols = set(symbols[actions.eq('SELL')])
+        explicit_sell_positions = {
+            position_key(dict(order, Broker='Tradeville'))
+            for _, order in explicit_orders[actions.eq('SELL')].iterrows()
+        }
 
     records = []
     for _, row in portfolio.iterrows():
@@ -6691,11 +6699,12 @@ def _tradeville_stop_orders_from_portfolio(
         stop = _safe_float_text(row.get('Trail_Stop')) or 0
         if (
             not symbol or symbol == 'NAN' or shares <= 0 or stop <= 0
-            or symbol in explicit_sell_symbols
+            or position_key(dict(row, Broker='Tradeville')) in explicit_sell_positions
         ):
             continue
         trail_pct = _safe_float_text(row.get('Trail_Pct')) or 0
         records.append({
+            **ownership(dict(row, Broker='Tradeville')),
             'Symbol': symbol,
             'OrderType': 'TRAIL' if trail_pct > 0 else 'STP',
             'Action': 'SELL',
@@ -6708,7 +6717,7 @@ def _tradeville_stop_orders_from_portfolio(
             'Order_Source': 'Tradeville strategy overlay',
         })
     return pd.DataFrame(records).reindex(
-        columns=TWS_ACTIVE_ORDER_COLUMNS + ['Order_Source']
+        columns=list(dict.fromkeys(TWS_ACTIVE_ORDER_COLUMNS + ['Order_Source', 'Broker', 'Account', 'Account_ID']))
     )
 
 
@@ -6895,16 +6904,13 @@ def _filter_orders_against_current_positions(orders_df, portfolio_df):
             result.add(symbol.split('.', 1)[0])
         return result
 
-    held_aliases = set()
-    for symbol in portfolio_df['Symbol']:
-        held_aliases.update(aliases(symbol))
-
     keep_rows = []
     for _, row in orders_df.iterrows():
         action = str(row.get('Action', '')).strip().upper()
         keep_rows.append(
             action != 'SELL'
-            or bool(aliases(row.get('Symbol')) & held_aliases)
+            or any(same_owner(position, row) and bool(aliases(row.get('Symbol')) & aliases(position.get('Symbol')))
+                   for _, position in portfolio_df.iterrows())
         )
     return orders_df.loc[keep_rows].copy()
 
@@ -9158,6 +9164,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     chart_id = 0
     for _, row in portfolio_df.iterrows():
         trend_cls = row['Trend'].replace(' ', '-')
+        row_key = position_key(row)
+        owner_html = html.escape(account_label(row))
         rsi_cls = row['RSI_Status']
         status_cls = row['Status']
         profit_cls = 'positive' if row['Profit'] >= 0 else 'negative'
@@ -9257,8 +9265,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             symbol_display += f' <span style="cursor:help; font-size:1.2em;" onmousemove="showTooltip(event, \'<strong>💣 Earnings Danger Zone</strong><br>{msg}<br>⚠️ Volatilitate extremă posibilă.\')" onmouseout="hideTooltip()">💣</span>'
 
         portfolio_rows_html += f"""
-                    <tr id="row-{row['Symbol']}" data-price="{row['Current_Price']}" data-buy="{row['Buy_Price']}" data-shares="{row['Shares']}">
-                        <td><strong style="cursor: help; color: #4dabf7; text-decoration: underline;" onmousemove="showTooltip(event, '{row.get('Company_Name', '')}')" onmouseout="hideTooltip()" onclick="goToVolatility('{row['Symbol']}')">{symbol_display}</strong></td>
+                    <tr id="row-{row_key}" data-price="{row['Current_Price']}" data-buy="{row['Buy_Price']}" data-shares="{row['Shares']}">
+                        <td><strong style="cursor: help; color: #4dabf7; text-decoration: underline;" onmousemove="showTooltip(event, '{row.get('Company_Name', '')}')" onmouseout="hideTooltip()" onclick="goToVolatility('{row_key}')">{symbol_display}</strong><small style="display:block;color:var(--text-secondary);">{owner_html}</small></td>
                         <td style="{sell_style}" onmousemove="showTooltip(event, '{sell_reason}')" onmouseout="hideTooltip()">
                             {sell_display}
                         </td>
@@ -9266,7 +9274,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         <td>{row['Shares']}</td>
                         <td>€{row['Buy_Price']:.2f}</td>
                         <td>€{row['Current_Price']:.2f}</td>
-                        <td><canvas id="{sparkline_id}" class="sparkline-container" role="button" tabindex="0" title="Deschide graficul și detaliile pentru {row['Symbol']}" style="cursor:pointer;" onclick="openPortfolioDetail('{row['Symbol']}')" onkeydown="if(event.key==='Enter'||event.key===' '){{event.preventDefault();openPortfolioDetail('{row['Symbol']}');}}"></canvas></td>
+                        <td><canvas id="{sparkline_id}" class="sparkline-container" role="button" tabindex="0" title="Deschide graficul și detaliile pentru {row['Symbol']}" style="cursor:pointer;" onclick="openPortfolioDetail('{row_key}')" onkeydown="if(event.key==='Enter'||event.key===' '){{event.preventDefault();openPortfolioDetail('{row_key}');}}"></canvas></td>
                         
                         <!-- TARGET -->
                         <td>{target_display}</td>
@@ -9295,7 +9303,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         <td class="{pl_at_stop_class}">{pl_at_stop_display}</td>
                         
                         <!-- Max Profit -->
-                        <td id="cell-{row['Symbol']}-maxprofit">{max_profit_display}</td>
+                        <td id="cell-{row_key}-maxprofit">{max_profit_display}</td>
                         
 
                         <td class="rsi-{status_cls}" style="cursor: help;" onmousemove="showTooltip(event, 'RSI Status: {row['RSI_Status']}')" onmouseout="hideTooltip()">{row['Status']}</td>
@@ -9317,16 +9325,19 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             
     if not portfolio_df.empty and 'Symbol' in portfolio_df.columns:
         for _, r in portfolio_df.iterrows():
-            ticker_lookup[str(r['Symbol']).upper()] = r
+            ticker_lookup[position_key(r)] = r
 
-    def find_ticker_data(symbol):
+    def find_ticker_data(symbol, order):
         symbol = str(symbol).upper()
-        if symbol in ticker_lookup:
+        key = position_key(dict(order, Symbol=symbol))
+        if key in ticker_lookup:
+            return ticker_lookup[key]
+        if symbol in ticker_lookup and (not isinstance(ticker_lookup[symbol].get('Symbol'), str) or same_owner(ticker_lookup[symbol], order)):
             return ticker_lookup[symbol]
         for k, v in ticker_lookup.items():
             k_base = k.split('.')[0]
             sym_base = symbol.split('.')[0]
-            if k_base == sym_base:
+            if k_base == sym_base and (not isinstance(v.get('Symbol'), str) or same_owner(v, order)):
                 return v
         return None
 
@@ -9363,7 +9374,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             if trail_pct_order > 1e10:
                 trail_pct_order = 0.0
             
-            t_data = find_ticker_data(symbol)
+            t_data = find_ticker_data(symbol, r_order)
             
             if t_data is not None:
                 m_symbol = t_data.get('Symbol', t_data.get('Ticker', symbol))
@@ -9462,20 +9473,21 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 rsi_tooltip = "<strong>RSI: Oversold (<30)</strong><br>Supra-vândut. Prețul a scăzut extrem.<br>🔄 <strong>Acțiune:</strong> Posibilă revenire (Bounce) iminentă."
 
             detail_symbol = str(m_symbol or symbol).upper()
+            detail_key = position_key(r_order)
             spark_cell = (
                 f'<canvas id="{spark_id}" class="sparkline-container" '
                 f'role="button" tabindex="0" '
                 f'title="Deschide graficul mare cu recomandările pentru {detail_symbol}" '
                 f'style="cursor:pointer;" '
-                f'onclick="openOrderDetail(\'{detail_symbol}\')" '
+                f'onclick="openOrderDetail(\'{detail_symbol}\', \'{detail_key}\')" '
                 f'onkeydown="if(event.key===\'Enter\'||event.key===\' \')'
-                f'{{event.preventDefault();openOrderDetail(\'{detail_symbol}\');}}"></canvas>'
+                f'{{event.preventDefault();openOrderDetail(\'{detail_symbol}\', \'{detail_key}\');}}"></canvas>'
                 if spark_id else "-"
             )
             
             rows_html += f"""
-            <tr id="{prefix_id}-row-{symbol}">
-                <td><strong style="cursor: help; color: #4dabf7; text-decoration: underline;" onmousemove="showTooltip(event, \'{company_name}\')" onmouseout="hideTooltip()">{m_symbol}</strong></td>
+            <tr id="{prefix_id}-row-{detail_key}-{chart_id}">
+                <td><strong style="cursor: help; color: #4dabf7; text-decoration: underline;" onmousemove="showTooltip(event, \'{company_name}\')" onmouseout="hideTooltip()">{m_symbol}</strong><small style="display:block;">{html.escape(account_label(r_order))}</small></td>
                 <td>{order_type}</td>
                 <td>{qty:.0f}</td>
                 <td>{order_price_display}</td>
@@ -10256,6 +10268,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             symbol_orders = orders_df[
                 orders_df['Symbol'].astype(str).str.upper() == symbol.upper()
             ]
+            if not symbol_orders.empty:
+                symbol_orders = symbol_orders[symbol_orders.apply(lambda order: same_owner(row, order), axis=1)]
             if 'Action' in symbol_orders.columns:
                 symbol_orders = symbol_orders[
                     symbol_orders['Action'].astype(str).str.upper() == 'SELL'
@@ -10315,7 +10329,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     "value": suggested_value,
                     "color": "#f59e0b"
                 })
-        portfolio_detail_data[symbol] = {
+        portfolio_detail_data[position_key(row)] = {
             "kind": "portfolio",
             "name": row.get('Company_Name', symbol),
             "ticker": symbol,
@@ -10325,6 +10339,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
             "status": row.get('Sell_Decision', 'HOLD'),
             "rangeDescription": row.get('Trend', '—'),
             "explanation": (
+                f"{account_label(row)}. "
                 f"Poziție în portofoliu: {int(row.get('Shares', 0))} acțiuni. "
                 f"Preț mediu de cumpărare "
                 f"{_format_native_price_text(to_native(row.get('Buy_Price', 0)), native_detail['currency'])}; "
@@ -11238,9 +11253,11 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
         if not sym: continue
         
         vol_map[sym] = volatility_payload(item)
+        if item.get('Symbol'):
+            vol_map[position_key(item)] = dict(vol_map[sym], Label=f"{sym} · {account_label(item)}")
         
         
-    vol_json = json.dumps(vol_map, allow_nan=False)
+    vol_json = json.dumps(vol_map, allow_nan=False).replace('<', '\\u003c')
     
     # Generate adjustment data for portfolio stocks with Trail Propus < Trail %
     adjust_data = []
@@ -11283,6 +11300,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 
                 adjust_data.append({
                     'Symbol': sym,
+                    'Position_ID': position_key(row),
+                    'Account_Label': html.escape(account_label(row)),
                     'Trail_Current': round(trail_pct, 1),
                     'Stop_Current_EUR': round(old_stop, 2),
                     'Stop_Current_Native': round(old_stop_native, 2),
@@ -11323,7 +11342,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                  <input list="vol-tickers" id="vol-input" oninput="calcVolatility()" placeholder="Type symbol (e.g. NVDA)..." 
                         style="width: 100%; padding: 14px 16px; margin-bottom: 24px; background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 16px; transition: all 0.2s;" onfocus="this.style.borderColor='var(--primary-purple)'; this.style.boxShadow='0 0 0 3px rgba(119,96,249,0.1)'" onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none'">
                  <datalist id="vol-tickers">
-    """ + "".join([f'<option value="{k}">' for k in sorted(vol_map.keys())]) + """
+    """ + "".join([f'<option value="{html.escape(vol_map[k].get("Label", k), quote=True)}">' for k in sorted(vol_map.keys())]) + """
                  </datalist>
                  
                  <div id="vol-results" style="display: none;">
@@ -11421,7 +11440,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     // Filter data by symbol if provided
                     let dataToShow = adjustData;
                     if (filterSymbol) {
-                        dataToShow = adjustData.filter(item => item.Symbol === filterSymbol);
+                        dataToShow = adjustData.filter(item => item.Position_ID === filterSymbol || item.Symbol === filterSymbol);
                     }
                     
                     if (!dataToShow || dataToShow.length === 0) {
@@ -11449,7 +11468,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                         // Header row per symbol
                         html += `
                             <tr style="background-color: #f8f9fa; border-top: 2px solid #ddd;">
-                                <td style="padding: 10px; font-weight: bold; color: #4dabf7;" rowspan="4">${item.Symbol}<br><span style="font-size:0.8em; color: #666;">Curent: ${item.Trail_Current}%</span></td>
+                                <td style="padding: 10px; font-weight: bold; color: #4dabf7;" rowspan="4">${item.Symbol}<br><small>${item.Account_Label || ''}</small><br><span style="font-size:0.8em; color: #666;">Curent: ${item.Trail_Current}%</span></td>
                                 <td colspan="4" style="padding: 5px;"></td>
                             </tr>
                         `;
@@ -11498,7 +11517,8 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
              <script>
                 const volData = """ + vol_json + """;
                 function calcVolatility() {
-                    const val = document.getElementById('vol-input').value.trim().toUpperCase();
+                    const input = document.getElementById('vol-input').value.trim().toUpperCase();
+                    const val = Object.keys(volData).find(key => (volData[key].Label || '').toUpperCase() === input) || input;
                     const resDiv = document.getElementById('vol-results');
                     const valid = v => typeof v === 'number' && Number.isFinite(v) && v > 0;
                     const show = (v, suffix = '') => valid(v) ? v.toFixed(2) + suffix : 'Indisponibil';
@@ -11586,7 +11606,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     }
                     
                     switchTab('volatility');
-                    document.getElementById('vol-input').value = symbol;
+                    document.getElementById('vol-input').value = (volData[symbol] && volData[symbol].Label) || symbol;
                     calcVolatility();
                 }
                 
@@ -11938,19 +11958,20 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 openMarketDetailWindow(detail, symbol);
             }
 
-            async function detailForActiveBuyOrder(symbol) {
+            async function detailForActiveBuyOrder(symbol, positionKey) {
                 const normalizedSymbol = String(symbol || '').toUpperCase();
-                let baseDetail = buyRecommendationDetailData[normalizedSymbol]
-                    || portfolioDetailData[normalizedSymbol];
+                let baseDetail = portfolioDetailData[positionKey]
+                    || buyRecommendationDetailData[normalizedSymbol]
+                    || (!positionKey && portfolioDetailData[normalizedSymbol]);
                 if (!baseDetail) {
                     const details = await ensureWatchlistDetailsLoaded();
                     baseDetail = details[normalizedSymbol];
                 }
                 const symbolBase = normalizedSymbol.split('.')[0];
-                const levelKey = Object.keys(activeBuyOrderLevels).find(function(key) {
+                const levelKey = positionKey || Object.keys(activeBuyOrderLevels).find(function(key) {
                     return key === normalizedSymbol || key.split('.')[0] === symbolBase;
                 });
-                const orderLevels = levelKey ? activeBuyOrderLevels[levelKey] : [];
+                const orderLevels = (levelKey && activeBuyOrderLevels[levelKey]) || [];
                 const detail = baseDetail && orderLevels.length
                     ? Object.assign({}, baseDetail, {
                         levels: (baseDetail.levels || []).concat(orderLevels)
@@ -11959,11 +11980,11 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 return detail;
             }
 
-            async function openOrderDetail(symbol) {
+            async function openOrderDetail(symbol, positionKey) {
                 const normalizedSymbol = String(symbol || '').toUpperCase();
                 try {
                     openMarketDetailWindow(
-                        await detailForActiveBuyOrder(normalizedSymbol),
+                        await detailForActiveBuyOrder(normalizedSymbol, positionKey),
                         normalizedSymbol
                     );
                 } catch (error) {
@@ -13111,6 +13132,7 @@ def main():
                         pct = float(row.get('Trail_Pct', 0))
                         
                         mask = p_df['Symbol'] == sym
+                        mask &= p_df.apply(lambda item: same_owner(item, dict(row, Broker='IBKR')), axis=1)
                         if mask.any():
                             if stop > 0:
                                 # TWS este sursa live pentru triggerul unui

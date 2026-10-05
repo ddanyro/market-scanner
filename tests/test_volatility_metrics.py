@@ -86,6 +86,7 @@ def test_finviz_missing_table_is_not_silent(monkeypatch, capsys):
 def test_dashboard_serializes_finite_fallback_for_both_lists():
     """Execute the generator's real volatility section without its AI/network work."""
     from volatility_metrics import volatility_payload
+    from portfolio_identity import position_key, account_label
     source = Path(__file__).resolve().parents[1] / 'market_scanner.py'
     tree = ast.parse(source.read_text())
     function = next(n for n in tree.body if isinstance(n, ast.FunctionDef)
@@ -98,6 +99,7 @@ def test_dashboard_serializes_finite_fallback_for_both_lists():
     start = next(i for i, n in enumerate(function.body) if assigns(n, 'vol_map'))
     end = next(i for i, n in enumerate(function.body) if assigns(n, 'vol_json'))
     scope = {'json': json, 'volatility_payload': volatility_payload,
+             'position_key': position_key, 'account_label': account_label,
              'watchlist_df': pd.DataFrame([{'Ticker': 'WATCH', 'Price_Native': 100,
                  'Price': 80, 'ATR_14': 4, 'Finviz_ATR': float('nan')}]),
              'portfolio_df': pd.DataFrame([{'Symbol': 'HELD', 'Price_Native': 50,
