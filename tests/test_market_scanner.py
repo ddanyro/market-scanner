@@ -3458,7 +3458,8 @@ class TestPortfolioAIAnalysis(unittest.TestCase):
 
         self.assertEqual(len(frame), 90)
         self.assertEqual(yahoo_download.call_args_list[0].args[0], '3USL.MI')
-        self.assertIs(instrument, load_metadata.return_value)
+        self.assertEqual(instrument['aliases'], ['3USL.MI', '3USL.BVME', '3USL'])
+        self.assertIsNone(market_scanner._tws_instrument_market_price(instrument))
         self.assertEqual(attribution['Market_Data_Source'], 'Yahoo Finance')
         self.assertIsNone(attribution['Data_Broker'])
 

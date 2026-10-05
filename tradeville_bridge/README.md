@@ -48,3 +48,9 @@ reconstrui portofoliul și dashboardul. Simpla publicare a codului nu repară
 un `portfolio.csv` vechi care conține numai una dintre poziții. Dacă bridge-ul
 nu răspunde, reconstrucția folosește ultimul snapshot valid disponibil, nu
 date live confirmate.
+
+Evaluarea pozițiilor Tradeville folosește prețul din snapshotul contului,
+în moneda lui, convertit o singură dată în EUR. Un preț IBKR din metadate
+expirate sau o actualizare ulterioară a cotațiilor de cercetare nu îl
+suprascrie. Istoricul pentru indicatori rămâne separat de prețul de evaluare;
+`Valuation_Source` și `Valuation_As_Of` păstrează sursa și data snapshotului.

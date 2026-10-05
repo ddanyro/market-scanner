@@ -883,6 +883,10 @@ def _refresh_portfolio_quotes_before_save(
     refreshed = 0
     now_text = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
     for item in positions:
+        if item.get('Valuation_Source') == 'Tradeville snapshot':
+            # The owning broker's position snapshot is the valuation authority.
+            # IBKR research quotes must not overwrite it after analysis.
+            continue
         symbol = str(item.get('Symbol') or '').strip().upper()
         if symbol not in updated_symbols:
             continue
@@ -1366,10 +1370,15 @@ def _load_analysis_history(ticker, download_ticker, period='1y'):
     yahoo_fetched_at = datetime.datetime.now(
         datetime.timezone.utc
     ).isoformat(timespec='seconds')
+    metadata_only = _load_tws_instrument_metadata(ticker)
+    if metadata_only:
+        # Expired contract metadata still resolves names/listings, but its
+        # quote and bars failed the freshness gate above. Never reuse them.
+        metadata_only = dict(metadata_only, market_data={}, bars=[])
     return (
         yahoo_history,
         None,
-        tws_instrument or _load_tws_instrument_metadata(ticker),
+        tws_instrument or metadata_only,
         _instrument_data_attribution(
             ticker, None,
             fetched_at=yahoo_fetched_at,
@@ -4173,6 +4182,16 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         actual_download_ticker = download_ticker
         shares = float(row.get('shares', 0))
         buy_price_native = float(row.get('buy_price', 0))
+        tradeville_price = None
+        valuation_fields = {}
+        if ownership(row)['Broker'].upper() == 'TRADEVILLE':
+            candidate = _safe_float_text(row.get('current_price'))
+            if candidate is not None and candidate > 0:
+                tradeville_price = candidate
+                valuation_fields = {
+                    'Valuation_Source': 'Tradeville snapshot',
+                    'Valuation_As_Of': row.get('snapshot_timestamp'),
+                }
         # Default trail_pct to 15 if missing
         trail_pct = float(row.get('trail_pct', 15))
         
@@ -4252,7 +4271,9 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
         elif download_ticker in ticker_cache and ticker_cache[download_ticker] is not None:
              df = ticker_cache[download_ticker]
              # print(f"  [Cache] Used cached data for {download_ticker}")
-        elif not ticker.endswith('.RO'):
+        elif not ticker.endswith('.RO') and tradeville_price is None:
+            # A broker-valued position must not be paired with a guessed
+            # foreign listing whose currency can differ from its snapshot.
             time.sleep(2)
             df = _download_yahoo_history(download_ticker, period='1y')
             
@@ -4334,11 +4355,14 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                     except:
                         pass
                         
-            if tws_price_avail:
-                current_price = tws_price_native * rate
+            if tradeville_price is not None:
+                current_price_native = tradeville_price
+            elif tws_price_avail:
+                current_price_native = tws_price_native
                 print(f"    [TWS API] Fallback to live TWS price for {ticker}: {tws_price_native}")
             else:
-                current_price = buy_price  # Fallback standard
+                current_price_native = buy_price_native  # Fallback standard
+            current_price = current_price_native * rate
                 
             investment = buy_price * shares
             current_value = current_price * shares
@@ -4361,6 +4385,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 'Position_ID': position_key(row),
                 'Shares': int(shares),
                 'Current_Price': round(current_price, 2),
+                'Price_Native': round(current_price_native, 2),
                 'Buy_Price': round(buy_price, 2),
                 'Currency': currency,
                 'Target': target_display,
@@ -4385,6 +4410,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 'Date': datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
                 **_earnings_result_fields(earnings_snapshot),
                 **data_attribution,
+                **valuation_fields,
             }
             return result
         
@@ -4437,7 +4463,10 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
                 except:
                     pass
 
-        if tws_price_avail:
+        if tradeville_price is not None:
+            current_price_native = tradeville_price
+            print(f"  [Tradeville snapshot] Preț evaluare {ticker}: {current_price_native}")
+        elif tws_price_avail:
             current_price_native = tws_price_native
             print(f"  [TWS API] Using live TWS price for {ticker}: {current_price_native}")
         else:
@@ -4998,6 +5027,7 @@ def process_portfolio_ticker(row, vix_value, rates, spx_df=None, market_in_downt
             **_earnings_result_fields(earnings_snapshot),
             **data_attribution,
             **enhanced_market_fields,
+            **valuation_fields,
         }
         result = instrument_metadata.apply_metadata(result)
         portfolio_score_input = dict(result, Decision='HOLD', ATR_14=last_atr)
