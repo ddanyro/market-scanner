@@ -11394,7 +11394,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                                 <td id="res-atr-pct" style="text-align: right; font-weight: 700; color: var(--primary-purple);">-</td>
                           </tr>
                           <tr>
-                                <td style="padding: 10px; color: var(--text-secondary);">Daily Volatility</td>
+                                <td style="padding: 10px; color: var(--text-secondary);">Daily Volatility · amplitudine OHLC</td>
                                 <td id="res-day" style="text-align: right; font-weight: 700; color: var(--text-primary);">-</td>
                           </tr>
                           <tr>
@@ -11552,6 +11552,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                     const resDiv = document.getElementById('vol-results');
                     const valid = v => typeof v === 'number' && Number.isFinite(v) && v > 0;
                     const show = (v, suffix = '') => valid(v) ? v.toFixed(2) + suffix : 'Indisponibil';
+                    const showRange = v => typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v.toFixed(2) + '%' : 'Indisponibil';
                     for (const strategy of ['larg', 'mediu', 'strans']) {
                         for (const id of ['vol-' + strategy, 'stop-' + strategy + '-sell', 'stop-' + strategy + '-buy']) {
                             document.getElementById(id).innerText = 'Indisponibil';
@@ -11568,12 +11569,16 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                          document.getElementById('res-price-native').innerText = show(price);
                          document.getElementById('res-atr-val').innerText = show(d.ATR_Val);
                          document.getElementById('res-atr-pct').innerText = show(atrPct, '%');
-                         document.getElementById('res-day').innerText = 'Indisponibil';
-                         document.getElementById('res-week').innerText = show(volW, '%');
-                         document.getElementById('res-month').innerText = show(volM, '%');
+                         document.getElementById('res-day').innerText = showRange(d.Vol_D);
+                         document.getElementById('res-week').innerText = showRange(volW);
+                         document.getElementById('res-month').innerText = showRange(volM);
                          document.getElementById('vol-data-note').innerText =
                              'Sursă ATR: ' + (d.ATR_Source || 'indisponibil') + '. ' +
-                             ((!valid(volW) || !valid(volM)) ? 'Volatilitatea săptămânală/lunară Finviz este incompletă; nivelurile folosesc doar indicatorii disponibili.' : '') +
+                             'Zi: ' + (d.Vol_D_Source || 'indisponibil') + '; săptămână: ' + (d.Vol_W_Source || 'indisponibil') +
+                             '; lună: ' + (d.Vol_M_Source || 'indisponibil') + '. ' +
+                             (d.Vol_As_Of ? 'Ultima bară OHLC: ' + d.Vol_As_Of + '. ' : '') +
+                             'Calcul OHLC: (High − Low) / Low × 100; zi = ultima bară, săptămână/lună = media pe 5/21 ședințe. ' +
+                             'Bara curentă poate fi incompletă. Valorile calculate nu sunt cotații Finviz sau volatilitate anualizată. ' +
                              ' Prețurile și stopurile sunt în moneda instrumentului.';
                          
                          // Calculate and display Suggested Stop & Buy (Price ± 2×ATR)
