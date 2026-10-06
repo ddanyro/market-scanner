@@ -1065,16 +1065,16 @@
       }
     ],
     "Daily_Change": -4.1267,
-    "Date": "2026-10-06 12:35",
+    "Date": "2026-10-06 13:08",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-10-26",
     "Days_To_Earnings": 20,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-10-06T09:35:08+00:00",
+    "Earnings_Fetched_At": "2026-10-06T10:08:32+00:00",
     "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-10-06T09:35:11.897054+00:00",
+    "Market_Data_Fetched_At": "2026-10-06T10:08:37.395582+00:00",
     "Market_Data_Observed_At": "2026-10-06T07:03:56+00:00",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Data_Broker": "IBKR",
@@ -1102,9 +1102,6 @@
       "open_52w": 240.6699981689453
     },
     "IBKR_Snapshot_Groups": {
-      "display": [
-        "dividend_yield"
-      ],
       "quote": [
         "last",
         "bid_ask",
@@ -1129,6 +1126,9 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -1170,8 +1170,8 @@
     "History_Ticker": "CRWD",
     "Company_Name": "CROWDSTRIKE HOLDINGS INC - A",
     "Shares": 4,
-    "Current_Price": 246.01,
-    "Price_Native": 276.01,
+    "Current_Price": 247.32,
+    "Price_Native": 277.48,
     "Currency": "USD",
     "Contract_ID": 370757467,
     "Asset_Class": null,
@@ -1179,9 +1179,9 @@
     "Daily_PnL_IBKR": null,
     "Unrealized_PnL_IBKR": null,
     "Buy_Price": 187.4,
-    "Target": 274.66,
+    "Target": 275.97,
     "Trail_Stop": 225.36,
-    "Suggested_Stop": 226.9,
+    "Suggested_Stop": 228.21,
     "ATR_Native": 10.716429,
     "Finviz_ATR": null,
     "Vol_W": null,
@@ -1189,10 +1189,10 @@
     "Trail_Pct": 7.8,
     "Investment": 749.58,
     "Entry_Date": "2026-09-11",
-    "Current_Value": 984.03,
-    "Profit": 234.45,
-    "Profit_Pct": 31.28,
-    "Max_Profit": 349.07,
+    "Current_Value": 989.27,
+    "Profit": 239.69,
+    "Profit_Pct": 31.98,
+    "Max_Profit": 354.31,
     "Consensus": "Buy",
     "Analysts": 50,
     "Status": "Neutral",
@@ -2218,32 +2218,32 @@
       }
     ],
     "Daily_Change": 2.3442,
-    "Date": "2026-10-06 12:35",
+    "Date": "2026-10-06 13:08",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-12-01",
     "Days_To_Earnings": 56,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-10-06T09:35:09+00:00",
+    "Earnings_Fetched_At": "2026-10-06T10:08:34+00:00",
     "Market_Data_Source": "IBKR MCP",
-    "Market_Data_Fetched_At": "2026-10-06T09:35:11.897263+00:00",
-    "Market_Data_Observed_At": "2026-10-06T09:08:50+00:00",
+    "Market_Data_Fetched_At": "2026-10-06T10:08:37.395687+00:00",
+    "Market_Data_Observed_At": "2026-10-06T10:07:16+00:00",
     "Market_Data_Timing": "realtime_or_snapshot",
     "Data_Broker": "IBKR",
     "Execution_Brokers": [
       "IBKR"
     ],
     "IBKR_Data_Only": false,
-    "Bid": 275.66,
-    "Ask": 276.48,
-    "Spread_Pct": 0.29702611656463684,
+    "Bid": 277.45,
+    "Ask": 277.95,
+    "Spread_Pct": 0.18005041411595246,
     "Quote_Status": "REALTIME",
-    "Avg_90D_USD_Volume": 2645193319.0,
+    "Avg_90D_USD_Volume": 2660604780.0,
     "Historical_Vol": 0.6315942821276014,
     "Implied_Volatility": 0.49515019063028004,
     "IV_Percentile": 0.49800798296928406,
-    "YTD_Change_IBKR": 158.81999755859374,
+    "YTD_Change_IBKR": 160.28999755859377,
     "Dividend_Yield_IBKR": 0.0,
     "IBKR_Misc_Statistics": {
       "high_13w": 274.2300109863281,
@@ -2255,9 +2255,6 @@
       "open_52w": 123.87799835205078
     },
     "IBKR_Snapshot_Groups": {
-      "display": [
-        "dividend_yield"
-      ],
       "quote": [
         "last",
         "bid_ask",
@@ -2282,6 +2279,9 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -2308,10 +2308,965 @@
       "options_supported": true,
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "volatility_score": 50.17,
+    "volatility_score": 50.26,
     "liquidity_score": 100.0,
-    "risk_score": 65.07,
+    "risk_score": 65.1,
     "volatility_regime": "elevated",
+    "score_version": "ibkr-enhanced-v1-shadow"
+  },
+  {
+    "Symbol": "NVDA",
+    "Broker": "IBKR",
+    "Account": "",
+    "Account_ID": "",
+    "Position_ID": "NVDA",
+    "History_Ticker": "NVDA",
+    "Company_Name": "NVIDIA CORP",
+    "Shares": 9,
+    "Current_Price": 214.38,
+    "Price_Native": 240.53,
+    "Currency": "USD",
+    "Contract_ID": 4815747,
+    "Asset_Class": null,
+    "Market_Value_IBKR": null,
+    "Daily_PnL_IBKR": null,
+    "Unrealized_PnL_IBKR": null,
+    "Buy_Price": 214.47,
+    "Target": 228.76,
+    "Trail_Stop": 0,
+    "Suggested_Stop": 204.8,
+    "ATR_Native": 5.377143,
+    "Finviz_ATR": null,
+    "Vol_W": null,
+    "Vol_M": null,
+    "Trail_Pct": 0.0,
+    "Investment": 1930.27,
+    "Entry_Date": "-",
+    "Current_Value": 1929.46,
+    "Profit": -0.81,
+    "Profit_Pct": -0.04,
+    "Max_Profit": 128.59,
+    "Consensus": "Strong Buy",
+    "Analysts": 59,
+    "Status": "Neutral",
+    "RSI": 66.9,
+    "RSI_Status": "Neutral",
+    "Trend": "Strong Bullish",
+    "VIX_Tag": "Normal",
+    "Sell_Decision": "TRAIL STRANS",
+    "Sell_Reason": "Breadth<45%: Strong Stock (Hold)",
+    "RS_vs_SPX": 13.94,
+    "Chart_History": [
+      190.961,
+      188.1891,
+      199.9721,
+      198.5995,
+      191.4067,
+      194.8917,
+      182.8056,
+      185.9608,
+      185.5597,
+      178.6343,
+      182.6006,
+      182.8858,
+      189.3567,
+      184.8645,
+      182.4045,
+      187.788,
+      185.9697,
+      178.2956,
+      177.3687,
+      174.4631,
+      171.602,
+      173.7768,
+      178.3402,
+      176.1031,
+      173.652,
+      174.2937,
+      175.5237,
+      181.9322,
+      180.7378,
+      188.0286,
+      181.4063,
+      188.7773,
+      189.4012,
+      184.8556,
+      180.7646,
+      181.1835,
+      184.7576,
+      189.0091,
+      186.0678,
+      184.3565,
+      175.1494,
+      175.595,
+      169.3559,
+      173.8391,
+      178.9285,
+      184.1782,
+      188.9021,
+      195.3908,
+      195.1858,
+      199.6155,
+      193.9023,
+      193.8577,
+      199.7314,
+      200.8099,
+      200.6851,
+      200.5514,
+      195.8543,
+      193.9112,
+      193.2784,
+      191.3799,
+      185.8182,
+      189.8915,
+      186.87,
+      203.1986,
+      193.9023,
+      196.7812,
+      193.8043,
+      200.0166,
+      203.6175,
+      205.3199,
+      201.1931,
+      199.3571,
+      194.6243,
+      194.5619,
+      188.0286,
+      189.1071,
+      190.6491,
+      195.4977,
+      198.1092,
+      202.6638,
+      203.9918,
+      200.9971,
+      200.1682,
+      200.6049,
+      203.9829,
+      202.5123,
+      203.5551,
+      205.7655,
+      208.5196,
+      212.9316
+    ],
+    "Chart_Dates": [
+      "2026-05-28",
+      "2026-05-29",
+      "2026-06-01",
+      "2026-06-02",
+      "2026-06-03",
+      "2026-06-04",
+      "2026-06-05",
+      "2026-06-08",
+      "2026-06-09",
+      "2026-06-10",
+      "2026-06-11",
+      "2026-06-12",
+      "2026-06-15",
+      "2026-06-16",
+      "2026-06-17",
+      "2026-06-18",
+      "2026-06-22",
+      "2026-06-23",
+      "2026-06-24",
+      "2026-06-25",
+      "2026-06-26",
+      "2026-06-29",
+      "2026-06-30",
+      "2026-07-01",
+      "2026-07-02",
+      "2026-07-06",
+      "2026-07-07",
+      "2026-07-08",
+      "2026-07-09",
+      "2026-07-10",
+      "2026-07-13",
+      "2026-07-14",
+      "2026-07-15",
+      "2026-07-16",
+      "2026-07-17",
+      "2026-07-20",
+      "2026-07-21",
+      "2026-07-22",
+      "2026-07-23",
+      "2026-07-24",
+      "2026-07-27",
+      "2026-07-28",
+      "2026-07-29",
+      "2026-07-30",
+      "2026-07-31",
+      "2026-08-03",
+      "2026-08-04",
+      "2026-08-05",
+      "2026-08-06",
+      "2026-08-07",
+      "2026-08-10",
+      "2026-08-11",
+      "2026-08-12",
+      "2026-08-13",
+      "2026-08-14",
+      "2026-08-17",
+      "2026-08-18",
+      "2026-08-19",
+      "2026-08-20",
+      "2026-08-21",
+      "2026-08-24",
+      "2026-08-25",
+      "2026-08-26",
+      "2026-08-27",
+      "2026-08-28",
+      "2026-08-31",
+      "2026-09-01",
+      "2026-09-02",
+      "2026-09-03",
+      "2026-09-04",
+      "2026-09-08",
+      "2026-09-09",
+      "2026-09-10",
+      "2026-09-11",
+      "2026-09-14",
+      "2026-09-15",
+      "2026-09-16",
+      "2026-09-17",
+      "2026-09-18",
+      "2026-09-21",
+      "2026-09-22",
+      "2026-09-23",
+      "2026-09-24",
+      "2026-09-25",
+      "2026-09-28",
+      "2026-09-29",
+      "2026-09-30",
+      "2026-10-01",
+      "2026-10-02",
+      "2026-10-05"
+    ],
+    "Chart_OHLC": [
+      {
+        "date": "2026-05-28",
+        "open": 188.3139,
+        "high": 192.093,
+        "low": 188.2604,
+        "close": 190.961
+      },
+      {
+        "date": "2026-05-29",
+        "open": 191.2462,
+        "high": 194.1786,
+        "low": 188.198,
+        "close": 188.1891
+      },
+      {
+        "date": "2026-06-01",
+        "open": 192.2801,
+        "high": 200.4266,
+        "low": 192.2534,
+        "close": 199.9721
+      },
+      {
+        "date": "2026-06-02",
+        "open": 202.4855,
+        "high": 207.0312,
+        "low": 197.2893,
+        "close": 198.5995
+      },
+      {
+        "date": "2026-06-03",
+        "open": 197.6458,
+        "high": 198.5816,
+        "low": 191.1928,
+        "close": 191.4067
+      },
+      {
+        "date": "2026-06-04",
+        "open": 190.658,
+        "high": 197.5121,
+        "low": 188.0376,
+        "close": 194.8917
+      },
+      {
+        "date": "2026-06-05",
+        "open": 191.1838,
+        "high": 191.5136,
+        "low": 182.1193,
+        "close": 182.8056
+      },
+      {
+        "date": "2026-06-08",
+        "open": 187.3156,
+        "high": 187.5206,
+        "low": 183.6078,
+        "close": 185.9608
+      },
+      {
+        "date": "2026-06-09",
+        "open": 187.7791,
+        "high": 188.4208,
+        "low": 177.6985,
+        "close": 185.5597
+      },
+      {
+        "date": "2026-06-10",
+        "open": 182.2085,
+        "high": 184.6952,
+        "low": 178.2065,
+        "close": 178.6343
+      },
+      {
+        "date": "2026-06-11",
+        "open": 179.5791,
+        "high": 183.3048,
+        "low": 177.85,
+        "close": 182.6006
+      },
+      {
+        "date": "2026-06-12",
+        "open": 182.5917,
+        "high": 184.5615,
+        "low": 181.3172,
+        "close": 182.8858
+      },
+      {
+        "date": "2026-06-15",
+        "open": 186.2104,
+        "high": 189.5973,
+        "low": 185.6934,
+        "close": 189.3567
+      },
+      {
+        "date": "2026-06-16",
+        "open": 188.2158,
+        "high": 188.5099,
+        "low": 184.7576,
+        "close": 184.8645
+      },
+      {
+        "date": "2026-06-17",
+        "open": 185.9163,
+        "high": 186.4689,
+        "low": 181.335,
+        "close": 182.4045
+      },
+      {
+        "date": "2026-06-18",
+        "open": 184.6952,
+        "high": 188.4119,
+        "low": 184.0534,
+        "close": 187.788
+      },
+      {
+        "date": "2026-06-22",
+        "open": 188.4565,
+        "high": 190.7293,
+        "low": 185.1408,
+        "close": 185.9697
+      },
+      {
+        "date": "2026-06-23",
+        "open": 180.1852,
+        "high": 181.6202,
+        "low": 178.26,
+        "close": 178.2956
+      },
+      {
+        "date": "2026-06-24",
+        "open": 178.5096,
+        "high": 179.7485,
+        "low": 175.2118,
+        "close": 177.3687
+      },
+      {
+        "date": "2026-06-25",
+        "open": 178.4026,
+        "high": 178.9196,
+        "low": 171.2455,
+        "close": 174.4631
+      },
+      {
+        "date": "2026-06-26",
+        "open": 172.1279,
+        "high": 174.2937,
+        "low": 170.4344,
+        "close": 171.602
+      },
+      {
+        "date": "2026-06-29",
+        "open": 172.7696,
+        "high": 174.8552,
+        "low": 169.2222,
+        "close": 173.7768
+      },
+      {
+        "date": "2026-06-30",
+        "open": 175.7554,
+        "high": 178.8215,
+        "low": 173.9015,
+        "close": 178.3402
+      },
+      {
+        "date": "2026-07-01",
+        "open": 174.882,
+        "high": 178.1263,
+        "low": 172.422,
+        "close": 176.1031
+      },
+      {
+        "date": "2026-07-02",
+        "open": 175.7287,
+        "high": 178.3135,
+        "low": 171.4416,
+        "close": 173.652
+      },
+      {
+        "date": "2026-07-06",
+        "open": 173.2865,
+        "high": 176.0763,
+        "low": 172.9033,
+        "close": 174.2937
+      },
+      {
+        "date": "2026-07-07",
+        "open": 171.4772,
+        "high": 176.8428,
+        "low": 170.3631,
+        "close": 175.5237
+      },
+      {
+        "date": "2026-07-08",
+        "open": 173.9639,
+        "high": 182.8591,
+        "low": 173.857,
+        "close": 181.9322
+      },
+      {
+        "date": "2026-07-09",
+        "open": 182.2085,
+        "high": 182.3511,
+        "low": 177.333,
+        "close": 180.7378
+      },
+      {
+        "date": "2026-07-10",
+        "open": 180.0426,
+        "high": 188.0643,
+        "low": 179.9713,
+        "close": 188.0286
+      },
+      {
+        "date": "2026-07-13",
+        "open": 185.9252,
+        "high": 187.681,
+        "low": 180.9339,
+        "close": 181.4063
+      },
+      {
+        "date": "2026-07-14",
+        "open": 185.7024,
+        "high": 189.4458,
+        "low": 181.6469,
+        "close": 188.7773
+      },
+      {
+        "date": "2026-07-15",
+        "open": 188.9199,
+        "high": 190.5689,
+        "low": 183.6434,
+        "close": 189.4012
+      },
+      {
+        "date": "2026-07-16",
+        "open": 187.3602,
+        "high": 188.1356,
+        "low": 183.4652,
+        "close": 184.8556
+      },
+      {
+        "date": "2026-07-17",
+        "open": 180.613,
+        "high": 184.1871,
+        "low": 176.4507,
+        "close": 180.7646
+      },
+      {
+        "date": "2026-07-20",
+        "open": 183.4919,
+        "high": 185.1587,
+        "low": 180.2922,
+        "close": 181.1835
+      },
+      {
+        "date": "2026-07-21",
+        "open": 184.9804,
+        "high": 185.9697,
+        "low": 181.8341,
+        "close": 184.7576
+      },
+      {
+        "date": "2026-07-22",
+        "open": 183.4563,
+        "high": 191.0858,
+        "low": 182.6719,
+        "close": 189.0091
+      },
+      {
+        "date": "2026-07-23",
+        "open": 186.6917,
+        "high": 187.9484,
+        "low": 183.5721,
+        "close": 186.0678
+      },
+      {
+        "date": "2026-07-24",
+        "open": 184.9715,
+        "high": 188.8754,
+        "low": 182.5472,
+        "close": 184.3565
+      },
+      {
+        "date": "2026-07-27",
+        "open": 185.5597,
+        "high": 186.0143,
+        "low": 174.1957,
+        "close": 175.1494
+      },
+      {
+        "date": "2026-07-28",
+        "open": 173.7322,
+        "high": 177.1013,
+        "low": 171.7892,
+        "close": 175.595
+      },
+      {
+        "date": "2026-07-29",
+        "open": 174.5255,
+        "high": 175.6574,
+        "low": 169.3559,
+        "close": 169.3559
+      },
+      {
+        "date": "2026-07-30",
+        "open": 172.2972,
+        "high": 175.8089,
+        "low": 170.7018,
+        "close": 173.8391
+      },
+      {
+        "date": "2026-07-31",
+        "open": 176.9141,
+        "high": 180.0426,
+        "low": 173.7678,
+        "close": 178.9285
+      },
+      {
+        "date": "2026-08-03",
+        "open": 176.2011,
+        "high": 186.05,
+        "low": 175.497,
+        "close": 184.1782
+      },
+      {
+        "date": "2026-08-04",
+        "open": 188.3317,
+        "high": 189.9004,
+        "low": 186.3263,
+        "close": 188.9021
+      },
+      {
+        "date": "2026-08-05",
+        "open": 193.2784,
+        "high": 198.0647,
+        "low": 192.9041,
+        "close": 195.3908
+      },
+      {
+        "date": "2026-08-06",
+        "open": 197.4497,
+        "high": 199.3214,
+        "low": 193.4121,
+        "close": 195.1858
+      },
+      {
+        "date": "2026-08-07",
+        "open": 197.5121,
+        "high": 200.3286,
+        "low": 196.6743,
+        "close": 199.6155
+      },
+      {
+        "date": "2026-08-10",
+        "open": 199.1521,
+        "high": 199.776,
+        "low": 193.2071,
+        "close": 193.9023
+      },
+      {
+        "date": "2026-08-11",
+        "open": 197.9132,
+        "high": 198.0469,
+        "low": 192.6991,
+        "close": 193.8577
+      },
+      {
+        "date": "2026-08-12",
+        "open": 197.0486,
+        "high": 200.6316,
+        "low": 196.2643,
+        "close": 199.7314
+      },
+      {
+        "date": "2026-08-13",
+        "open": 200.6495,
+        "high": 202.5301,
+        "low": 199.3927,
+        "close": 200.8099
+      },
+      {
+        "date": "2026-08-14",
+        "open": 202.1558,
+        "high": 202.7618,
+        "low": 200.0968,
+        "close": 200.6851
+      },
+      {
+        "date": "2026-08-17",
+        "open": 201.4427,
+        "high": 203.1451,
+        "low": 200.4177,
+        "close": 200.5514
+      },
+      {
+        "date": "2026-08-18",
+        "open": 196.3623,
+        "high": 197.5477,
+        "low": 194.9184,
+        "close": 195.8543
+      },
+      {
+        "date": "2026-08-19",
+        "open": 197.6725,
+        "high": 198.644,
+        "low": 193.1982,
+        "close": 193.9112
+      },
+      {
+        "date": "2026-08-20",
+        "open": 194.651,
+        "high": 195.9612,
+        "low": 192.2178,
+        "close": 193.2784
+      },
+      {
+        "date": "2026-08-21",
+        "open": 194.7045,
+        "high": 194.963,
+        "low": 191.1838,
+        "close": 191.3799
+      },
+      {
+        "date": "2026-08-24",
+        "open": 192.0841,
+        "high": 192.1554,
+        "low": 184.918,
+        "close": 185.8182
+      },
+      {
+        "date": "2026-08-25",
+        "open": 188.0732,
+        "high": 191.3888,
+        "low": 187.271,
+        "close": 189.8915
+      },
+      {
+        "date": "2026-08-26",
+        "open": 189.526,
+        "high": 190.3817,
+        "low": 186.4867,
+        "close": 186.87
+      },
+      {
+        "date": "2026-08-27",
+        "open": 198.6351,
+        "high": 205.4179,
+        "low": 196.8882,
+        "close": 203.1986
+      },
+      {
+        "date": "2026-08-28",
+        "open": 202.646,
+        "high": 204.3394,
+        "low": 193.2428,
+        "close": 193.9023
+      },
+      {
+        "date": "2026-08-31",
+        "open": 195.1858,
+        "high": 197.2447,
+        "low": 192.708,
+        "close": 196.7812
+      },
+      {
+        "date": "2026-09-01",
+        "open": 193.2249,
+        "high": 196.4514,
+        "low": 191.7186,
+        "close": 193.8043
+      },
+      {
+        "date": "2026-09-02",
+        "open": 195.0075,
+        "high": 203.1718,
+        "low": 194.7312,
+        "close": 200.0166
+      },
+      {
+        "date": "2026-09-03",
+        "open": 201.4516,
+        "high": 205.3555,
+        "low": 200.3197,
+        "close": 203.6175
+      },
+      {
+        "date": "2026-09-04",
+        "open": 206.0151,
+        "high": 209.2416,
+        "low": 204.6692,
+        "close": 205.3199
+      },
+      {
+        "date": "2026-09-08",
+        "open": 207.7709,
+        "high": 208.3057,
+        "low": 200.4088,
+        "close": 201.1931
+      },
+      {
+        "date": "2026-09-09",
+        "open": 200.7921,
+        "high": 201.5942,
+        "low": 199.1699,
+        "close": 199.3571
+      },
+      {
+        "date": "2026-09-10",
+        "open": 196.5584,
+        "high": 196.9684,
+        "low": 193.5904,
+        "close": 194.6243
+      },
+      {
+        "date": "2026-09-11",
+        "open": 197.1912,
+        "high": 197.8686,
+        "low": 194.4371,
+        "close": 194.5619
+      },
+      {
+        "date": "2026-09-14",
+        "open": 188.2604,
+        "high": 189.6419,
+        "low": 186.2193,
+        "close": 188.0286
+      },
+      {
+        "date": "2026-09-15",
+        "open": 190.1856,
+        "high": 190.6847,
+        "low": 188.2069,
+        "close": 189.1071
+      },
+      {
+        "date": "2026-09-16",
+        "open": 190.863,
+        "high": 193.1982,
+        "low": 189.4012,
+        "close": 190.6491
+      },
+      {
+        "date": "2026-09-17",
+        "open": 194.6421,
+        "high": 196.0058,
+        "low": 193.5369,
+        "close": 195.4977
+      },
+      {
+        "date": "2026-09-18",
+        "open": 195.4175,
+        "high": 198.5192,
+        "low": 194.3301,
+        "close": 198.1092
+      },
+      {
+        "date": "2026-09-21",
+        "open": 198.7242,
+        "high": 203.662,
+        "low": 197.4764,
+        "close": 202.6638
+      },
+      {
+        "date": "2026-09-22",
+        "open": 202.2271,
+        "high": 204.9812,
+        "low": 201.8794,
+        "close": 203.9918
+      },
+      {
+        "date": "2026-09-23",
+        "open": 203.2699,
+        "high": 204.0631,
+        "low": 199.669,
+        "close": 200.9971
+      },
+      {
+        "date": "2026-09-24",
+        "open": 197.9399,
+        "high": 200.489,
+        "low": 197.0575,
+        "close": 200.1682
+      },
+      {
+        "date": "2026-09-25",
+        "open": 200.7118,
+        "high": 202.2716,
+        "low": 198.8758,
+        "close": 200.6049
+      },
+      {
+        "date": "2026-09-28",
+        "open": 204.8118,
+        "high": 207.8601,
+        "low": 203.252,
+        "close": 203.9829
+      },
+      {
+        "date": "2026-09-29",
+        "open": 205.9081,
+        "high": 207.5125,
+        "low": 202.3429,
+        "close": 202.5123
+      },
+      {
+        "date": "2026-09-30",
+        "open": 204.3483,
+        "high": 207.1114,
+        "low": 203.4214,
+        "close": 203.5551
+      },
+      {
+        "date": "2026-10-01",
+        "open": 204.9812,
+        "high": 207.0401,
+        "low": 203.359,
+        "close": 205.7655
+      },
+      {
+        "date": "2026-10-02",
+        "open": 210.3914,
+        "high": 212.0224,
+        "low": 208.2077,
+        "close": 208.5196
+      },
+      {
+        "date": "2026-10-05",
+        "open": 210.3646,
+        "high": 214.0011,
+        "low": 209.5892,
+        "close": 212.9316
+      }
+    ],
+    "Daily_Change": 4.412,
+    "Date": "2026-10-06 13:08",
+    "Earnings_Danger": false,
+    "Earnings_Status": "CLEAR",
+    "Earnings_Available": true,
+    "Next_Earnings_Date": "2026-11-17",
+    "Days_To_Earnings": 42,
+    "Earnings_Source": "Yahoo Finance calendar",
+    "Earnings_Fetched_At": "2026-10-06T10:08:35+00:00",
+    "Market_Data_Source": "IBKR MCP",
+    "Market_Data_Fetched_At": "2026-10-06T10:08:38.388388+00:00",
+    "Market_Data_Observed_At": "2026-10-06T10:05:05+00:00",
+    "Market_Data_Timing": "realtime_or_snapshot",
+    "Data_Broker": "IBKR",
+    "Execution_Brokers": [
+      "IBKR"
+    ],
+    "IBKR_Data_Only": false,
+    "Bid": 240.6,
+    "Ask": 240.64000000000001,
+    "Spread_Pct": 0.016623722051375807,
+    "Quote_Status": "REALTIME",
+    "Avg_90D_USD_Volume": 29572798395.0,
+    "Historical_Vol": 0.35832097901088633,
+    "Implied_Volatility": 0.28690623082072597,
+    "IV_Percentile": 0.0,
+    "YTD_Change_IBKR": 54.25300720214844,
+    "Dividend_Yield_IBKR": 0.22,
+    "IBKR_Misc_Statistics": {
+      "high_13w": 240.09800720214844,
+      "high_26w": 240.09800720214844,
+      "high_52w": 240.09800720214844,
+      "low_13w": 190.00999450683594,
+      "low_26w": 173.45399475097656,
+      "low_52w": 164.0760040283203,
+      "open_52w": 185.26300048828125
+    },
+    "IBKR_Snapshot_Groups": {
+      "quote": [
+        "last",
+        "bid_ask",
+        "top_status",
+        "prior_close",
+        "volume",
+        "open",
+        "low",
+        "high"
+      ],
+      "ranking": [
+        "avg_90d_usd_volume",
+        "year_to_date_change",
+        "cumulative_perf_1d",
+        "cumulative_perf_1w",
+        "cumulative_perf_1m",
+        "cumulative_perf_ytd",
+        "cumulative_perf_1y"
+      ],
+      "risk": [
+        "implied_volatility_percentile",
+        "implied_vol_underlying",
+        "historical_vol",
+        "misc_statistics"
+      ],
+      "display": [
+        "dividend_yield"
+      ]
+    },
+    "Market": "SUA",
+    "Country": "US",
+    "Exchange": "NASDAQ",
+    "Security_Type": "STK",
+    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
+    "Options_Supported": true,
+    "Instrument_Metadata": {
+      "market": "SUA",
+      "country": "US",
+      "exchange": "NASDAQ",
+      "security_type": "STK",
+      "currency": "USD",
+      "contract_id": 4815747,
+      "sections": [
+        "BAG",
+        "CFD",
+        "IOPT",
+        "OPT",
+        "STK",
+        "WAR"
+      ],
+      "options_supported": true,
+      "source": "IBKR_MCP_SEARCH_CONTRACTS"
+    },
+    "volatility_score": 74.33,
+    "liquidity_score": 100.0,
+    "risk_score": 74.73,
+    "volatility_regime": "calm",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
   {
@@ -2323,8 +3278,8 @@
     "History_Ticker": "TVBETETF.RO",
     "Company_Name": "FDI ETF BET PATRIA TRADEVILE",
     "Shares": 555,
-    "Current_Price": 10.69,
-    "Price_Native": 57.1,
+    "Current_Price": 10.74,
+    "Price_Native": 57.36,
     "Currency": "RON",
     "Contract_ID": 813325574,
     "Asset_Class": null,
@@ -2332,30 +3287,30 @@
     "Daily_PnL_IBKR": null,
     "Unrealized_PnL_IBKR": null,
     "Buy_Price": 10.76,
-    "Target": 11.8,
+    "Target": 11.87,
     "Trail_Stop": 0,
-    "Suggested_Stop": 9.95,
-    "ATR_Native": 1.970715,
+    "Suggested_Stop": 9.98,
+    "ATR_Native": 2.017857,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
     "Trail_Pct": 0.0,
     "Investment": 5969.55,
     "Entry_Date": "-",
-    "Current_Value": 5932.33,
-    "Profit": -37.22,
-    "Profit_Pct": -0.62,
-    "Max_Profit": 577.01,
+    "Current_Value": 5959.34,
+    "Profit": -10.21,
+    "Profit_Pct": -0.17,
+    "Max_Profit": 618.72,
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 58.18,
+    "RSI": 55.25,
     "RSI_Status": "Neutral",
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
     "Sell_Decision": "REDUCE 50%",
-    "Sell_Reason": "Breadth<45% Warn: Testing SMA50 (57.10 vs 58.17)",
-    "RS_vs_SPX": -4.95,
+    "Sell_Reason": "Breadth<45% Warn: Testing SMA50 (57.36 vs 58.16)",
+    "RS_vs_SPX": -6.18,
     "Chart_History": [
       6.6838,
       6.6623,
@@ -2605,7 +3560,7 @@
       10.0599,
       10.2808,
       10.7001,
-      10.7675
+      10.6327
     ],
     "Chart_Dates": [
       "2025-10-06",
@@ -4599,21 +5554,21 @@
         "date": "2026-10-06",
         "open": 10.7638,
         "high": 11.0221,
-        "low": 10.7638,
-        "close": 10.7675
+        "low": 10.5766,
+        "close": 10.6327
       }
     ],
-    "Daily_Change": 0.0674,
-    "Date": "2026-10-06 12:35",
+    "Daily_Change": -0.0674,
+    "Date": "2026-10-06 13:08",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-10-06T09:35:10+00:00",
+    "Earnings_Fetched_At": "2026-10-06T10:08:35+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-06T09:35:10+00:00",
+    "Market_Data_Fetched_At": "2026-10-06T10:08:35+00:00",
     "Market_Data_Observed_At": "2026-10-06T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
@@ -4623,7 +5578,7 @@
     "IBKR_Data_Only": false,
     "IBKR_Snapshot_Groups": {},
     "Valuation_Source": "Tradeville snapshot",
-    "Valuation_As_Of": "2026-10-06T09:34:38.897Z",
+    "Valuation_As_Of": "2026-10-06T10:08:04.340Z",
     "Market": "Rom\u00e2nia / BVB",
     "Country": "EU",
     "Exchange": "BVB",
@@ -4658,8 +5613,8 @@
     "History_Ticker": "TVBETETF.RO",
     "Company_Name": "FDI ETF BET PATRIA TRADEVILE",
     "Shares": 1254,
-    "Current_Price": 10.69,
-    "Price_Native": 57.1,
+    "Current_Price": 10.74,
+    "Price_Native": 57.36,
     "Currency": "RON",
     "Contract_ID": 813325574,
     "Asset_Class": null,
@@ -4667,30 +5622,30 @@
     "Daily_PnL_IBKR": null,
     "Unrealized_PnL_IBKR": null,
     "Buy_Price": 10.64,
-    "Target": 11.8,
+    "Target": 11.87,
     "Trail_Stop": 0,
-    "Suggested_Stop": 9.95,
-    "ATR_Native": 1.970715,
+    "Suggested_Stop": 9.98,
+    "ATR_Native": 2.017857,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
     "Trail_Pct": 0.0,
     "Investment": 13341.8,
     "Entry_Date": "-",
-    "Current_Value": 13403.86,
-    "Profit": 62.06,
-    "Profit_Pct": 0.47,
-    "Max_Profit": 1449.89,
+    "Current_Value": 13464.89,
+    "Profit": 123.09,
+    "Profit_Pct": 0.92,
+    "Max_Profit": 1544.13,
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 58.18,
+    "RSI": 55.25,
     "RSI_Status": "Neutral",
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
     "Sell_Decision": "REDUCE 50%",
-    "Sell_Reason": "Breadth<45% Warn: Testing SMA50 (57.10 vs 58.17)",
-    "RS_vs_SPX": -4.95,
+    "Sell_Reason": "Breadth<45% Warn: Testing SMA50 (57.36 vs 58.16)",
+    "RS_vs_SPX": -6.18,
     "Chart_History": [
       6.6838,
       6.6623,
@@ -4940,7 +5895,7 @@
       10.0599,
       10.2808,
       10.7001,
-      10.7675
+      10.6327
     ],
     "Chart_Dates": [
       "2025-10-06",
@@ -6934,21 +7889,21 @@
         "date": "2026-10-06",
         "open": 10.7638,
         "high": 11.0221,
-        "low": 10.7638,
-        "close": 10.7675
+        "low": 10.5766,
+        "close": 10.6327
       }
     ],
-    "Daily_Change": 0.0674,
-    "Date": "2026-10-06 12:35",
+    "Daily_Change": -0.0674,
+    "Date": "2026-10-06 13:08",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-10-06T09:35:10+00:00",
+    "Earnings_Fetched_At": "2026-10-06T10:08:35+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-06T09:35:10+00:00",
+    "Market_Data_Fetched_At": "2026-10-06T10:08:35+00:00",
     "Market_Data_Observed_At": "2026-10-06T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
@@ -6958,7 +7913,7 @@
     "IBKR_Data_Only": false,
     "IBKR_Snapshot_Groups": {},
     "Valuation_Source": "Tradeville snapshot",
-    "Valuation_As_Of": "2026-10-06T09:34:38.897Z",
+    "Valuation_As_Of": "2026-10-06T10:08:04.340Z",
     "Market": "Rom\u00e2nia / BVB",
     "Country": "EU",
     "Exchange": "BVB",
