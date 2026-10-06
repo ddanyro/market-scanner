@@ -1,0 +1,40 @@
+name: Finviz public access probe
+
+on:
+  push:
+    branches: [codex/finviz-github-probe-20261006]
+    paths:
+      - .github/workflows/finviz_access_probe.yml
+      - scripts/finviz_github_probe.cjs
+
+permissions:
+  contents: read
+
+jobs:
+  public-access:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Install standard Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/finviz-probe" --no-audit --no-fund playwright@1.63.0
+          "$RUNNER_TEMP/finviz-probe/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Check public Finviz metrics without authentication
+        env:
+          NODE_PATH: ${{ runner.temp }}/finviz-probe/node_modules
+          PROBE_OUTPUT: ${{ runner.temp }}/finviz-probe-output
+        run: node scripts/finviz_github_probe.cjs
+      - name: Upload diagnostic report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: finviz-probe
+          path: ${{ runner.temp }}/finviz-probe-output
+          if-no-files-found: warn
+          retention-days: 7
