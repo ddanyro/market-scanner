@@ -28012,11 +28012,7 @@
       "currency": "USD",
       "exchange": "NYSE",
       "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
-      "contract_id": 13535,
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -28961,7 +28957,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -39257,11 +39253,7 @@
       "currency": "USD",
       "exchange": "NASDAQ",
       "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
-      "contract_id": 495763832,
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -39270,7 +39262,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -47728,18 +47720,18 @@
     },
     "Industry": "-",
     "Instrument_Metadata": {
-      "market": "Europa / Nasdaq-100",
-      "country": "DK",
-      "exchange": "CPH",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 290085857,
+      "country": "DK",
+      "currency": "USD",
+      "exchange": "CPH",
+      "market": "Europa / Nasdaq-100",
+      "options_supported": false,
       "sections": [
         "CFD",
         "IOPT",
         "STK"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "Europa / Nasdaq-100",
@@ -47753,6 +47745,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;market_not_usa;option_chain_not_advertised",
@@ -53336,37 +53331,32 @@
     "Earnings_Fetched_At": "2026-10-05T22:03:45+00:00",
     "Earnings_Msg": "Report in 23 days (2026-10-29)",
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-10-05T22:13:50+00:00",
-    "Check_Details": "\u2713 Trend (P 4.2 > SMA50 4.2) \u2717 RS (Downtrend, Val: 13.10) \u2713 RSI (43.9) \u2717 ATR (Risk 15.2%)",
-    "Date": "2026-10-06 01:13",
-    "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-05T22:13:49+00:00",
-    "Market_Data_Observed_At": "2026-10-05T00:00:00+00:00",
-    "Market_Data_Timing": "delayed_or_end_of_day",
-    "Data_Broker": null,
+    "Earnings_Status": "CLEAR",
+    "Exchange": "NASDAQ",
     "Execution_Brokers": [
       "IBKR"
     ],
+    "Finviz_ATR": null,
+    "History_Ticker": "XEL",
     "IBKR_Data_Only": false,
     "IBKR_Snapshot_Groups": {},
-    "Market": "SUA",
-    "Country": "US",
-    "Exchange": "AMEX",
-    "Security_Type": "STK",
-    "Contract_ID": 20299409,
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Options_Supported": false,
+    "Industry": "Utilities - Regul...",
     "Instrument_Metadata": {
-      "market": "SUA",
+      "contract_id": 10517,
       "country": "US",
-      "exchange": "AMEX",
-      "security_type": "STK",
       "currency": "USD",
-      "contract_id": 20299409,
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
-        "STK"
+        "BAG",
+        "CFD",
+        "IOPT",
+        "OPT",
+        "STK",
+        "WAR"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -100197,18 +100187,7 @@
     "Earnings_Msg": "Report in 22 days (2026-10-28)",
     "Earnings_Source": "Yahoo Finance calendar",
     "Earnings_Status": "CLEAR",
-    "Earnings_Available": true,
-    "Next_Earnings_Date": "2026-10-26",
-    "Days_To_Earnings": 20,
-    "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-10-05T22:13:55+00:00",
-    "Check_Details": "\u2713 Trend (P 12.7 > SMA50 12.5) \u2717 RS (Weak, Val: -18.31) \u2713 RSI (56.7) \u2713 ATR (Risk 6.9%)",
-    "Date": "2026-10-06 01:13",
-    "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-05T22:13:55+00:00",
-    "Market_Data_Observed_At": "2026-10-05T00:00:00+00:00",
-    "Market_Data_Timing": "delayed_or_end_of_day",
-    "Data_Broker": null,
+    "Exchange": "NASDAQ",
     "Execution_Brokers": [
       "IBKR"
     ],
@@ -109586,11 +109565,7 @@
       "currency": "USD",
       "exchange": "NASDAQ",
       "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
-      "contract_id": 13440,
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -109599,7 +109574,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -110550,9 +110525,6 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
-    "Options_Data_Available": false,
-    "Options_Data_Partial": false,
-    "Options_Cohort": "OPTIONS_UNAVAILABLE",
     "Options_Context": {
       "score_available": false
     },
@@ -110576,6 +110548,7 @@
     "Security_Type": "STK",
     "Smart_Entry": null,
     "Smart_Entry_EUR": null,
+    "Smart_Reason": null,
     "Smart_Type": null,
     "Stop_Loss": 33.21,
     "Strategy": "Normal",
@@ -121046,6 +121019,8 @@
     "research_score": 90,
     "risk_reward_score": 91.0,
     "risk_score": 60.0,
+    "score_version": "ibkr-enhanced-v1-shadow",
+    "technical_score": 50.0,
     "volatility_regime": "calm",
     "volatility_score": 75.0
   },
