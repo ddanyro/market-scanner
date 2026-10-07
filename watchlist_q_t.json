@@ -233349,16 +233349,16 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "ETF",
     "Instrument_Metadata": {
-      "contract_id": 813325574,
-      "country": "RO",
-      "currency": "RON",
-      "exchange": "BVB",
       "market": "Rom\u00e2nia / BVB",
-      "options_supported": false,
+      "country": "RO",
+      "exchange": "BVB",
+      "security_type": "STK",
+      "currency": "RON",
+      "contract_id": 813325574,
       "sections": [
         "STK"
       ],
-      "security_type": "STK",
+      "options_supported": false,
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Last_Turnover_RON": 3523638.93,
@@ -233376,9 +233376,6 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
-    "Options_Context": {
-      "score_available": false
-    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "market_not_usa;option_chain_not_advertised",
@@ -233436,6 +233433,9 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 73.74
+    "volatility_score": 73.74,
+    "Options_Context": {
+      "score_available": false
+    }
   }
 ]
