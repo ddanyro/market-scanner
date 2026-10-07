@@ -6,19 +6,23 @@ on:
     - cron: '17 6-17 * * 1-5'
   workflow_dispatch:
 
-concurrency:
-  group: market-dashboard-writes
-  cancel-in-progress: false
-
 jobs:
   update-ro:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
+    concurrency:
+      group: market-dashboard-writes
+      cancel-in-progress: false
+      queue: max
     permissions:
       contents: write
+      actions: write  # Dispatch explicit pentru publicare, fără token personal.
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v6
+      with:
+        ref: main
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -68,7 +72,12 @@ jobs:
         git config --global user.email 'action@github.com'
         git add -u
         if [ -f bvb_daily_cache.csv ]; then git add bvb_daily_cache.csv; fi
-        # Fără [skip ci]: commitul declanșează fluxul rapid de deploy Pages,
-        # care nu mai rulează scannerul încă o dată.
+        # GITHUB_TOKEN nu declanșează on:push. Publicarea este cerută explicit
+        # în pasul următor, fără o a doua scanare a portofoliului.
         git commit -m "Auto-update Romanian market" || echo "No changes to commit"
         git push origin HEAD:main || (git fetch origin main && git rebase -X theirs origin/main && git push origin HEAD:main)
+
+    - name: Schedule Pages publication
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh workflow run update_dashboard.yml --ref main -f publish_only=true
