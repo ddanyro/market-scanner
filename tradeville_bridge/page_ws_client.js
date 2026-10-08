@@ -1,7 +1,7 @@
 "use strict";
 
 (() => {
-  const PAGE_CLIENT_VERSION = 3;
+  const PAGE_CLIENT_VERSION = 4;
   const BRIDGE_VERSION = 2;
   if (window.__marketScannerTradevilleBridgeVersion === PAGE_CLIENT_VERSION) return;
   window.__marketScannerTradevilleBridgeInstalled = true;
@@ -13,7 +13,8 @@
   const WS_PROTOCOL = "pf4";
   const COMMANDS = new Set([
     "login", "persoana", "portof", "ordineActive", "infocont",
-    "get_Sume_inDecontare", "activecurente", "cursbnr", "graf_pers_brut"
+    "get_Sume_inDecontare", "activecurente", "cursbnr", "graf_pers_brut",
+    "ordine", "activit"
   ]);
 
   function parseJsonStorage(key) {
@@ -151,6 +152,45 @@
     const settlement = usableResponse(await sendAndWait(
       connection, { cmd: "get_Sume_inDecontare" }
     ), "get_Sume_inDecontare");
+    // Read-only commands used by the portal's Orders / Transactions screens.
+    // ordineActive omits the activation condition; never infer it from pret=0.
+    const activeOrders = decodeRows(orders.data);
+    const orderDetails = [];
+    const enrichmentErrors = [];
+    const detailsDeadline = Date.now() + 4000;
+    for (const order of activeOrders) {
+      if (!String(order.idord || "").startsWith("C")) continue;
+      const remaining = detailsDeadline - Date.now();
+      if (remaining <= 0) {
+        enrichmentErrors.push("order_details_budget_exceeded");
+        break;
+      }
+      try {
+        const response = usableResponse(await sendAndWait(connection,
+          { cmd: "ordine", prm: { idord: order.idord } },
+          item => item.err || String(item.prm?.idord || "") === String(order.idord),
+          Math.min(2000, remaining)), "ordine");
+        orderDetails.push(...decodeRows(response.data).filter(
+          item => String(item.idord) === String(order.idord)
+        ));
+      } catch (error) {
+        enrichmentErrors.push(safeError(error));
+      }
+    }
+    let transactions = [];
+    let transactionsComplete = false;
+    const activityStart = historyStart || "2025-09-16";
+    const activityEnd = tradevilleWallClockIso().slice(0, 10);
+    try {
+      const activity = usableResponse(await sendAndWait(connection,
+        { cmd: "activit", prm: { vlr: "", d1: activityStart, d2: activityEnd, opt: "toate" } },
+        item => item.err || (item.prm?.d1 === activityStart && item.prm?.d2 === activityEnd),
+        4000), "activit");
+      transactions = decodeRows(activity.data);
+      transactionsComplete = true;
+    } catch (error) {
+      enrichmentErrors.push(safeError(error));
+    }
     const portfolioGraphRequest = {
       cmd: "graf_pers_brut",
       iday: false,
@@ -201,7 +241,11 @@
         readonly: Number(person.readonly || 0) === 1
       },
       portfolio: decodeRows(portfolio.data),
-      orders: decodeRows(orders.data),
+      orders: activeOrders,
+      order_details: orderDetails,
+      transactions,
+      transactions_request: { starts_at: activityStart, ends_at: activityEnd, complete: transactionsComplete },
+      enrichment_errors: enrichmentErrors,
       account_info: decodeRows(accountInfo.data),
       settlement: decodeRows(settlement.data),
       // Keep this payload lossless: it can be an already computed point
@@ -263,6 +307,7 @@
       return {
         schema: "market-scanner.tradeville.websocket.v2",
         bridge_version: BRIDGE_VERSION,
+        enrichment_version: 1,
         fetched_at: new Date().toISOString(),
         source: "Tradeville WebSocket pf4",
         accounts,
@@ -274,6 +319,7 @@
   }
 
   window.addEventListener("message", async event => {
+    if (window.__marketScannerTradevilleBridgeVersion !== PAGE_CLIENT_VERSION) return;
     if (event.source !== window || event.origin !== window.location.origin) return;
     const request = event.data;
     if (!request || request.source !== REQUEST_SOURCE || request.type !== "SYNC") return;

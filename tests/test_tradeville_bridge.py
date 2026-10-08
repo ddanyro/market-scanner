@@ -77,11 +77,11 @@ class TestTradevilleBridge(unittest.TestCase):
             content,
         )
         self.assertIn("return;", content)
-        self.assertEqual(manifest["version"], "1.3.4")
+        self.assertEqual(manifest["version"], "1.4.0")
         page_client = (
             root / "tradeville_bridge" / "page_ws_client.js"
         ).read_text(encoding="utf-8")
-        self.assertIn("const PAGE_CLIENT_VERSION = 3", page_client)
+        self.assertIn("const PAGE_CLIENT_VERSION = 4", page_client)
         self.assertIn(
             "__marketScannerTradevilleBridgeVersion === PAGE_CLIENT_VERSION",
             page_client,

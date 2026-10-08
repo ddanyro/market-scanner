@@ -666,9 +666,15 @@ def sync_ibkr(allow_flex=True):
                 for column in existing_cols:
                     old_column = column + '_old'
                     if column in merged_df.columns and old_column in merged_df.columns:
-                        merged_df[column] = merged_df[old_column].combine_first(
-                            merged_df[column]
-                        )
+                        preferred = merged_df[old_column].combine_first(merged_df[column])
+                        if column == 'Entry_Date':
+                            # Tradeville's reconciled transaction date is data,
+                            # not a manual preference. Unknown must remain unknown.
+                            tradeville = merged_df.apply(
+                                lambda item: ownership(item)['Broker'].upper() == 'TRADEVILLE', axis=1
+                            )
+                            preferred = preferred.where(~tradeville, merged_df[column])
+                        merged_df[column] = preferred
                         merged_df.drop(columns=[old_column], inplace=True)
                 if 'Trail_Pct' in merged_df.columns:
                     merged_df['Trail_Pct'] = merged_df['Trail_Pct'].fillna(15)

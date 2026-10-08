@@ -15,6 +15,7 @@ import hmac
 import json
 import math
 import os
+import re
 import secrets
 import tempfile
 import threading
@@ -540,6 +541,7 @@ def _account_history(
 
 def _position_records(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     overlays = _existing_overlays()
+    orders = _order_records(snapshot)
     records: list[dict[str, Any]] = []
     fetched_at = snapshot["fetched_at"]
     for account in snapshot["accounts"]:
@@ -591,11 +593,79 @@ def _position_records(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
                 "Snapshot_Timestamp": fetched_at,
                 "Source": "Tradeville WebSocket pf4",
             }
-            overlay = overlays.get((account_name, symbol)) or overlays.get(("", symbol), {})
+            # Never fall back to a different owner's symbol-only overlay.
+            overlay = overlays.get((account_name, symbol), {})
             for key, value in overlay.items():
                 record[key] = value
+            if snapshot.get("enrichment_version") == 1:
+                record["Entry_Date"] = _position_entry_date(account, raw_symbol, shares, fetched_at)
+                # Only a confirmed order covering the whole holding can drive
+                # the position-level stop/P&L. Partial orders stay in the list.
+                stops = [order["Stop_Price"] for order in orders
+                         if order["Account_ID"] == account_id
+                         and order["Symbol"] == symbol and order["Action"] == "SELL"
+                         and order["Currency"] == record["Currency"]
+                         and order["Total_Qty"] >= shares
+                         and order["Stop_Price"] > 0]
+                record["Trail_Stop"] = min(stops) if stops else 0.0
+                record["Trail_Pct"] = 0.0  # Fixed conditional stop, not trailing.
             records.append(record)
     return records
+
+
+def _position_entry_date(account, symbol, shares, fetched_at):
+    """Find the start of the current continuous holding, not an order's date.
+
+    Walk executed activity backwards from the broker's actual share balance.
+    No date is guessed if the requested history cannot reconcile that balance.
+    """
+    if account.get("transactions_request", {}).get("complete") is not True:
+        return ""
+    events = []
+    for row in account.get("transactions", []):
+        if not isinstance(row, dict) or _first_text(row, "simbol").upper() != symbol.upper():
+            continue
+        quantity = _first_number(row, "cant")
+        if quantity is None or quantity == 0:
+            continue
+        operation = _first_text(row, "op").lower()
+        if operation not in {"cump", "vanz"}:
+            return ""  # Transfers/corporate actions need explicit reconciliation.
+        try:
+            timestamp = datetime.fromisoformat(_first_text(row, "data").replace("Z", "+00:00"))
+            if timestamp.date() > date.fromisoformat(fetched_at[:10]):
+                return ""
+        except (ValueError, TypeError):
+            return ""
+        events.append((timestamp.isoformat(), timestamp.date().isoformat(),
+                       abs(quantity) if operation == "cump" else -abs(quantity)))
+    balance = shares
+    for _, day, change in sorted(events, reverse=True):
+        balance -= change
+        if math.isclose(balance, 0.0, abs_tol=1e-6):
+            return day
+        if balance < 0:
+            return ""
+    return ""
+
+
+def _conditional_stop(raw, detail):
+    """Interpret only simple downward price/bid/ask triggers as protection.
+
+    Portal Orders reads the first semicolon-separated part of obs as the
+    condition (P/B/A, comparison, price). Dates, linked orders, upward triggers,
+    missing details and compound expressions are deliberately not stop losses.
+    """
+    if _first_text(raw, "csauv").upper() != "V" or not detail:
+        return 0.0
+    status = _first_text(detail, "stare") or _first_text(raw, "stare")
+    if status.upper() not in {"I", "C"}:
+        return 0.0
+    if "laex" in detail and _number(detail["laex"]) != 1:
+        return 0.0
+    condition = _first_text(detail, "obs").split(";", 1)[0].strip()
+    match = re.fullmatch(r"(?:P|B|A|bid|ask)\s*<=?\s*(\d+(?:[.,]\d+)?)", condition, re.I)
+    return (_number(match.group(1)) or 0.0) if match else 0.0
 
 
 def _order_records(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
@@ -605,6 +675,11 @@ def _order_records(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
         person = account["person"]
         account_name = _text(person.get("name"))
         account_id = _text(person.get("id"))
+        details = {}
+        for detail in account.get("order_details", []):
+            if isinstance(detail, dict):
+                key = (_first_text(detail, "idord"), _first_text(detail, "simbol").upper())
+                details.setdefault(key, []).append(detail)
         for raw in account["orders"]:
             if not isinstance(raw, dict):
                 continue
@@ -617,14 +692,24 @@ def _order_records(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
             order_type = _first_text(raw, "tipord", "ordact", "ordertype", "type").upper()
             price = _first_number(raw, "pret", "price") or 0.0
             stop = _first_number(raw, "pretn", "stop", "stop_price", "declansat") or 0.0
+            matches = details.get((_first_text(raw, "idord"), raw_symbol.upper()), [])
+            detail = matches[0] if len(matches) == 1 else None
+            if order_type in {"P", "B", "D", "E"}:
+                stop = _conditional_stop(raw, detail) if order_type in {"P", "B"} else 0.0
+                order_type = ("STP LMT" if price > 0 else "STP") if stop else f"COND ({order_type})"
+            quantity = abs(_first_number(raw, "cantr", "cant", "quantity", "total_qty") or 0.0)
+            if detail is not None and _first_number(detail, "cantr") is not None:
+                quantity = min(quantity, abs(_first_number(detail, "cantr")))
+            if quantity <= 0:
+                continue
             limit_price = _first_number(raw, "pretev", "limit_price")
-            if limit_price is None and order_type in {"LMT", "LIMIT", "LIMITA"}:
+            if limit_price is None and order_type in {"LMT", "LIMIT", "LIMITA", "L", "STP LMT"}:
                 limit_price = price
             records.append({
                 "Symbol": symbol,
                 "OrderType": order_type or "UNKNOWN",
                 "Action": action,
-                "Total_Qty": _first_number(raw, "cant", "quantity", "total_qty") or 0.0,
+                "Total_Qty": quantity,
                 "Aux_Price": price if not limit_price else 0.0,
                 "Limit_Price": limit_price or 0.0,
                 "Stop_Price": stop,
@@ -745,6 +830,11 @@ def persist_snapshot(
         _atomic_json(ACCOUNT_ENCRYPTED_PATH, encrypted_account)
         _atomic_json(RAW_ENCRYPTED_PATH, encrypted_raw)
 
+    enrichment_warnings = [str(error)[:200]
+                           for item in validated['accounts']
+                           for error in item.get('enrichment_errors', [])]
+    if validated.get('enrichment_version') != 1:
+        enrichment_warnings.append('Reîncarcă extensia Tradeville 1.4.0 și toate filele Tradeville: lipsesc condițiile și tranzacțiile.')
     status = _status_payload(
         True,
         fetched_at=validated["fetched_at"],
@@ -752,6 +842,10 @@ def persist_snapshot(
         account_count=len(validated["accounts"]),
         position_count=len(positions),
         active_order_count=len(orders),
+        entry_date_count=sum(bool(_text(row.get('Entry_Date'))) for row in positions.to_dict('records')),
+        protected_position_count=sum((_number(row.get('Trail_Stop'), 0) or 0) > 0 for row in positions.to_dict('records')),
+        enrichment_warning_count=len(enrichment_warnings),
+        enrichment_warnings=enrichment_warnings,
         history_start=account.get("tradeville_history_start"),
         history_point_count=sum(
             len(item.get("nav_history", [])) for item in account["accounts"]
@@ -974,6 +1068,10 @@ def main() -> int:
         f"istoric {status['history_point_count']} puncte pentru "
         f"{status['history_account_count']} conturi, din {status['history_start']}."
     )
+    print(f"Tradeville: date cumpărare {status['entry_date_count']}/{status['position_count']}; "
+          f"stopuri pentru întreaga poziție {status['protected_position_count']}/{status['position_count']}.")
+    for warning in status['enrichment_warnings']:
+        print(f"Avertisment Tradeville (date suplimentare): {warning}")
     return 0
 
 
