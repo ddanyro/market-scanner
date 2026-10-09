@@ -1,14 +1,18 @@
 {
   "schema": "market-scanner.tradeville.sync-status.v1",
-  "checked_at": "2026-10-08T07:58:54.613211+00:00",
+  "checked_at": "2026-10-09T11:43:45.318336+00:00",
   "ok": true,
-  "fetched_at": "2026-10-08T07:58:54.532Z",
+  "fetched_at": "2026-10-09T11:43:45.200Z",
   "source": "Tradeville WebSocket pf4",
   "account_count": 2,
   "position_count": 2,
   "active_order_count": 2,
+  "entry_date_count": 2,
+  "protected_position_count": 2,
+  "enrichment_warning_count": 0,
+  "enrichment_warnings": [],
   "history_start": "2025-10-08",
-  "history_point_count": 404,
+  "history_point_count": 405,
   "history_account_count": 2,
   "stale_history_account_count": 1
 }
