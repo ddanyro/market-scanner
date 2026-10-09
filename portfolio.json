@@ -1092,16 +1092,16 @@
       }
     ],
     "Daily_Change": -13.3871,
-    "Date": "2026-10-09 08:15",
+    "Date": "2026-10-09 11:11",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-10-26",
     "Days_To_Earnings": 17,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-10-09T05:15:24+00:00",
+    "Earnings_Fetched_At": "2026-10-09T08:11:37+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-09T05:15:24+00:00",
+    "Market_Data_Fetched_At": "2026-10-09T08:11:37+00:00",
     "Market_Data_Observed_At": "2026-10-08T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
@@ -2026,16 +2026,16 @@
       }
     ],
     "Daily_Change": -6.2218,
-    "Date": "2026-10-09 08:15",
+    "Date": "2026-10-09 11:11",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-11-17",
     "Days_To_Earnings": 39,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-10-09T05:15:25+00:00",
+    "Earnings_Fetched_At": "2026-10-09T08:11:38+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-09T05:15:25+00:00",
+    "Market_Data_Fetched_At": "2026-10-09T08:11:38+00:00",
     "Market_Data_Observed_At": "2026-10-08T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
@@ -2094,8 +2094,8 @@
     "Buy_Price": 10.75,
     "Target": 11.74,
     "Trail_Stop": 9.65,
-    "Suggested_Stop": 10.07,
-    "ATR_Native": 1.760715,
+    "Suggested_Stop": 10.13,
+    "ATR_Native": 1.617858,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
@@ -2114,8 +2114,8 @@
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
     "Sell_Decision": "REDUCE 50%",
-    "Sell_Reason": "Breadth<45% Warn: Testing SMA50 (57.35 vs 58.01)",
-    "RS_vs_SPX": -6.73,
+    "Sell_Reason": "Breadth<45% Warn: Testing SMA50 (57.35 vs 57.92)",
+    "RS_vs_SPX": -7.02,
     "Chart_History": [
       6.6838,
       6.6487,
@@ -2367,6 +2367,7 @@
       10.6983,
       10.7994,
       10.6946,
+      10.7058,
       10.7058
     ],
     "Chart_Dates": [
@@ -2620,7 +2621,8 @@
       "2026-10-05",
       "2026-10-06",
       "2026-10-07",
-      "2026-10-08"
+      "2026-10-08",
+      "2026-10-09"
     ],
     "Chart_OHLC": [
       {
@@ -2638,11 +2640,11 @@
         "open": 6.7132
       },
       {
+        "close": 6.6977,
         "date": "2025-10-08",
-        "open": 6.7108,
         "high": 6.7136,
         "low": 6.6827,
-        "close": 6.6977
+        "open": 6.7108
       },
       {
         "date": "2025-10-09",
@@ -4379,20 +4381,27 @@
         "high": 10.8125,
         "low": 10.6964,
         "close": 10.7058
+      },
+      {
+        "date": "2026-10-09",
+        "open": 10.7264,
+        "high": 10.7357,
+        "low": 10.7058,
+        "close": 10.7058
       }
     ],
-    "Daily_Change": 0.0112,
-    "Date": "2026-10-09 08:15",
+    "Daily_Change": 0.0,
+    "Date": "2026-10-09 11:11",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-10-09T05:15:26+00:00",
+    "Earnings_Fetched_At": "2026-10-09T08:11:39+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-09T05:15:26+00:00",
-    "Market_Data_Observed_At": "2026-10-08T00:00:00+00:00",
+    "Market_Data_Fetched_At": "2026-10-09T08:11:39+00:00",
+    "Market_Data_Observed_At": "2026-10-09T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
     "Execution_Brokers": [
@@ -4447,8 +4456,8 @@
     "Buy_Price": 10.64,
     "Target": 11.74,
     "Trail_Stop": 9.65,
-    "Suggested_Stop": 10.07,
-    "ATR_Native": 1.760715,
+    "Suggested_Stop": 10.13,
+    "ATR_Native": 1.617858,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
@@ -4467,8 +4476,8 @@
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
     "Sell_Decision": "REDUCE 50%",
-    "Sell_Reason": "Breadth<45% Warn: Testing SMA50 (57.35 vs 58.01)",
-    "RS_vs_SPX": -6.73,
+    "Sell_Reason": "Breadth<45% Warn: Testing SMA50 (57.35 vs 57.92)",
+    "RS_vs_SPX": -7.02,
     "Chart_History": [
       6.6838,
       6.6487,
@@ -4720,6 +4729,7 @@
       10.6983,
       10.7994,
       10.6946,
+      10.7058,
       10.7058
     ],
     "Chart_Dates": [
@@ -4973,7 +4983,8 @@
       "2026-10-05",
       "2026-10-06",
       "2026-10-07",
-      "2026-10-08"
+      "2026-10-08",
+      "2026-10-09"
     ],
     "Chart_OHLC": [
       {
@@ -4991,11 +5002,11 @@
         "open": 6.7132
       },
       {
+        "close": 6.6977,
         "date": "2025-10-08",
-        "open": 6.7108,
         "high": 6.7136,
         "low": 6.6827,
-        "close": 6.6977
+        "open": 6.7108
       },
       {
         "date": "2025-10-09",
@@ -6732,20 +6743,27 @@
         "high": 10.8125,
         "low": 10.6964,
         "close": 10.7058
+      },
+      {
+        "date": "2026-10-09",
+        "open": 10.7264,
+        "high": 10.7357,
+        "low": 10.7058,
+        "close": 10.7058
       }
     ],
-    "Daily_Change": 0.0112,
-    "Date": "2026-10-09 08:15",
+    "Daily_Change": 0.0,
+    "Date": "2026-10-09 11:11",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-10-09T05:15:26+00:00",
+    "Earnings_Fetched_At": "2026-10-09T08:11:39+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-09T05:15:26+00:00",
-    "Market_Data_Observed_At": "2026-10-08T00:00:00+00:00",
+    "Market_Data_Fetched_At": "2026-10-09T08:11:39+00:00",
+    "Market_Data_Observed_At": "2026-10-09T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
     "Execution_Brokers": [
