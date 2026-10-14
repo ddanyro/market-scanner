@@ -1,8 +1,8 @@
 partition,model,days,max_drawdown_pct,annualized_volatility_pct,approx_sharpe,approx_sortino
-calibration,baseline,0,,,,
-calibration,enhanced_shadow,0,,,,
-calibration,enhanced_raw,0,,,,
-calibration,enhanced_adjusted,0,,,,
+calibration,baseline,5,-14.052121585743006,116.9647476650838,-6.893913515206256,-9.023918575868928
+calibration,enhanced_shadow,4,-16.113817922874883,147.46976390374206,-5.057899153147421,-5.032832212376102
+calibration,enhanced_raw,4,-4.428021422768847,35.98387221268917,-8.04307363139822,-7.311634381407979
+calibration,enhanced_adjusted,5,-10.986541777006508,66.91397379157851,-9.36141457499264,-11.7037973241725
 holdout_locked,baseline,0,,,,
 holdout_locked,enhanced_shadow,0,,,,
 holdout_locked,enhanced_raw,0,,,,
