@@ -156795,7 +156795,10 @@
     "ATR_14": 5.12,
     "ATR_Native": 5.761428,
     "Analysts": 59,
+    "Ask": 213.75,
+    "Avg_90D_USD_Volume": 25331839886.0,
     "Avg_Volume": 118505879,
+    "Bid": 213.67000000000002,
     "Chart_Dates": [
       "2026-06-10",
       "2026-06-11",
@@ -157625,6 +157628,7 @@
     "Days_To_Earnings": 30,
     "Decision": "AVOID",
     "Decision_Color": "#f44336",
+    "Dividend_Yield_IBKR": 0.24,
     "Earnings_Available": true,
     "Earnings_Danger": false,
     "Earnings_Fetched_At": "2026-10-18T18:11:04+00:00",
@@ -157636,9 +157640,22 @@
       "IBKR"
     ],
     "Finviz_ATR": null,
+    "Historical_Vol": 0.297561300152288,
     "History_Ticker": "NVDA",
     "IBKR_Data_Only": false,
+    "IBKR_Misc_Statistics": {
+      "high_13w": 243.3699951171875,
+      "high_26w": 243.3699951171875,
+      "high_52w": 243.3699951171875,
+      "low_13w": 190.00999450683594,
+      "low_26w": 189.8000030517578,
+      "low_52w": 164.0760040283203,
+      "open_52w": 179.9499969482422
+    },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -157663,11 +157680,10 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
+    "IV_Percentile": 0.2868525981903076,
+    "Implied_Volatility": 0.35888082647827646,
     "Industry": "Semiconductors",
     "Instrument_Metadata": {
       "contract_id": 4815747,
@@ -157709,6 +157725,7 @@
     "Pct_To_Target": 53.78,
     "Price": 190.13,
     "Price_Native": 213.75,
+    "Quote_Status": "FROZEN",
     "RR_Ratio": 9.94,
     "RSI": 37.56,
     "RSI_Status": "Neutral",
@@ -157723,6 +157740,7 @@
     "Smart_Entry_EUR": null,
     "Smart_Reason": null,
     "Smart_Type": null,
+    "Spread_Pct": 0.0374339057601348,
     "Stop_Loss": 180.22,
     "Strategy": "Deep Pullback",
     "Target": 292.39,
@@ -157733,6 +157751,7 @@
     "Vol_M": null,
     "Vol_W": null,
     "Volume": 120855100,
+    "YTD_Change_IBKR": 27.473007202148438,
     "_cached_at": 1792347064.5199156,
     "current_decision": "AVOID",
     "enhanced_decision": "AVOID",
@@ -157756,26 +157775,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 25.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Bid": 213.67000000000002,
-    "Ask": 213.75,
-    "Spread_Pct": 0.0374339057601348,
-    "Quote_Status": "FROZEN",
-    "Avg_90D_USD_Volume": 25331839886.0,
-    "Historical_Vol": 0.297561300152288,
-    "Implied_Volatility": 0.35888082647827646,
-    "IV_Percentile": 0.2868525981903076,
-    "YTD_Change_IBKR": 27.473007202148438,
-    "Dividend_Yield_IBKR": 0.24,
-    "IBKR_Misc_Statistics": {
-      "high_13w": 243.3699951171875,
-      "high_26w": 243.3699951171875,
-      "high_52w": 243.3699951171875,
-      "low_13w": 190.00999450683594,
-      "low_26w": 189.8000030517578,
-      "low_52w": 164.0760040283203,
-      "open_52w": 179.9499969482422
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.94,
