@@ -849,12 +849,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Applic...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 100825898,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -863,7 +863,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -1787,12 +1787,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Applic...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 361181057,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -1801,7 +1801,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -1815,6 +1815,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 80,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -1870,10 +1873,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 72.45,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 72.45
   },
   {
     "ATR_14": 0.16,
@@ -2725,19 +2725,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Steel",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 6607990,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -2751,6 +2751,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 41,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -2806,10 +2809,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 72.87,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 72.87
   },
   {
     "ATR_14": 2.24,
@@ -3661,12 +3661,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Medical Devices",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 181387075,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -3675,7 +3675,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -3689,6 +3689,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 47,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -3744,10 +3747,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.59,
@@ -4599,12 +4599,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Scientific & Tech...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 275294,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -4612,7 +4612,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -4626,6 +4626,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 11,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -4681,10 +4684,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.9,
@@ -5536,12 +5536,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Chemicals",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 822454680,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -5549,7 +5549,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -5563,6 +5563,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 139,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -5618,10 +5621,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 72.96,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 72.96
   },
   {
     "ATR_14": 1.16,
@@ -6473,12 +6473,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas E&P",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 57698865,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -6487,7 +6487,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -6501,6 +6501,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 121,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -6556,10 +6559,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 4.28,
@@ -7411,12 +7411,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Applic...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 495763831,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -7425,7 +7425,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -8349,12 +8349,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Drug Manufacturer...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 6746357,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -8362,7 +8362,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -8376,6 +8376,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 71,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -8431,10 +8434,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 70.8,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 70.8
   },
   {
     "ATR_14": 2.81,
@@ -9286,12 +9286,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Financial Data & ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 136370275,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -9300,7 +9300,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -9314,6 +9314,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 15,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -9369,10 +9372,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 3.66,
@@ -10224,12 +10224,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Industr...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 6842,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -10238,7 +10238,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -10252,6 +10252,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 37,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -10307,10 +10310,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.43,
@@ -11162,12 +11162,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Building Products...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 6608603,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -11175,7 +11175,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -11189,6 +11189,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 203,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -11244,10 +11247,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 73.6,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 73.6
   },
   {
     "ATR_14": 1.47,
@@ -12099,19 +12099,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Chemicals",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 247915706,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -12125,6 +12125,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 22,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -12180,10 +12183,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 4.27,
@@ -13035,12 +13035,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "REIT - Specialty",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 99831145,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -13049,7 +13049,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -13063,6 +13063,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 16,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -13118,10 +13121,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.56,
@@ -13973,19 +13973,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Beverages - Winer...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 7788,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -13999,6 +13999,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 79,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -14054,10 +14057,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.96,
@@ -14909,12 +14909,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Real Estate Services",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 6726677,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -14923,7 +14923,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -14937,6 +14937,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 340,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -14992,10 +14995,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 73.66,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 73.66
   },
   {
     "ATR_14": 2.52,
@@ -15847,12 +15847,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "REIT - Specialty",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 176571182,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -15860,7 +15860,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -15874,6 +15874,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 241,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -15929,128 +15932,13 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 72.55,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 72.55
   },
   {
-    "Ticker": "NWSA",
-    "History_Ticker": "NWSA",
-    "Currency": "USD",
-    "Price": 27.29,
-    "Price_Native": 30.65,
-    "Target": 32.08,
-    "Pct_To_Target": 17.56,
-    "Consensus": "Buy",
-    "Analysts": 9,
-    "Company_Name": "News Corporation",
-    "Industry": "Entertainment",
-    "Sector": "Communication Services",
-    "Trend": "Strong Bullish",
-    "RSI": 65.39,
-    "RSI_Status": "Neutral",
     "ATR_14": 0.56,
     "ATR_Native": 0.627142,
-    "Finviz_ATR": null,
-    "Vol_W": null,
-    "Vol_M": null,
-    "Stop_Loss": 26.17,
-    "SMA_50": 26.35,
-    "SMA_200": 23.74,
-    "VIX_Tag": "Normal",
-    "Chart_History": [
-      22.7888,
-      22.8065,
-      23.0106,
-      23.055,
-      22.4338,
-      21.8393,
-      22.1676,
-      22.3895,
-      22.212,
-      22.5492,
-      22.4161,
-      22.0345,
-      22.8775,
-      23.6407,
-      23.6407,
-      23.8892,
-      23.7117,
-      24.395,
-      24.2885,
-      24.608,
-      24.4926,
-      24.8298,
-      25.4599,
-      25.2292,
-      25.1049,
-      24.4305,
-      24.2619,
-      23.3656,
-      23.7472,
-      24.2175,
-      25.0073,
-      25.5753,
-      24.9275,
-      24.4571,
-      24.7943,
-      25.3712,
-      25.7883,
-      26.3296,
-      25.309,
-      25.2824,
-      25.4067,
-      25.4422,
-      25.6818,
-      25.877,
-      25.4688,
-      26.0811,
-      26.1343,
-      26.3118,
-      26.9596,
-      27.2969,
-      27.4388,
-      27.4743,
-      27.6784,
-      27.4832,
-      27.2525,
-      27.1815,
-      27.1992,
-      27.4655,
-      26.9685,
-      26.4627,
-      26.3647,
-      26.16,
-      26.2134,
-      27.2106,
-      27.1038,
-      26.8812,
-      26.8723,
-      26.5161,
-      26.4449,
-      26.0442,
-      25.038,
-      25.323,
-      25.3675,
-      25.9106,
-      25.3942,
-      25.51,
-      25.5011,
-      25.5456,
-      25.7771,
-      25.4209,
-      25.4743,
-      25.7949,
-      25.9284,
-      26.16,
-      26.3826,
-      26.3202,
-      26.9079,
-      26.7387,
-      26.7654,
-      27.2908
-    ],
+    "Analysts": 9,
+    "Avg_Volume": 3935139,
     "Chart_Dates": [
       "2026-06-12",
       "2026-06-15",
@@ -16143,687 +16031,765 @@
       "2026-10-19",
       "2026-10-20"
     ],
+    "Chart_History": [
+      22.7888,
+      22.8065,
+      23.0106,
+      23.055,
+      22.4338,
+      21.8393,
+      22.1676,
+      22.3895,
+      22.212,
+      22.5492,
+      22.4161,
+      22.0345,
+      22.8775,
+      23.6407,
+      23.6407,
+      23.8892,
+      23.7117,
+      24.395,
+      24.2885,
+      24.608,
+      24.4926,
+      24.8298,
+      25.4599,
+      25.2292,
+      25.1049,
+      24.4305,
+      24.2619,
+      23.3656,
+      23.7472,
+      24.2175,
+      25.0073,
+      25.5753,
+      24.9275,
+      24.4571,
+      24.7943,
+      25.3712,
+      25.7883,
+      26.3296,
+      25.309,
+      25.2824,
+      25.4067,
+      25.4422,
+      25.6818,
+      25.877,
+      25.4688,
+      26.0811,
+      26.1343,
+      26.3118,
+      26.9596,
+      27.2969,
+      27.4388,
+      27.4743,
+      27.6784,
+      27.4832,
+      27.2525,
+      27.1815,
+      27.1992,
+      27.4655,
+      26.9685,
+      26.4627,
+      26.3647,
+      26.16,
+      26.2134,
+      27.2106,
+      27.1038,
+      26.8812,
+      26.8723,
+      26.5161,
+      26.4449,
+      26.0442,
+      25.038,
+      25.323,
+      25.3675,
+      25.9106,
+      25.3942,
+      25.51,
+      25.5011,
+      25.5456,
+      25.7771,
+      25.4209,
+      25.4743,
+      25.7949,
+      25.9284,
+      26.16,
+      26.3826,
+      26.3202,
+      26.9079,
+      26.7387,
+      26.7654,
+      27.2908
+    ],
     "Chart_OHLC": [
       {
+        "close": 22.7888,
         "date": "2026-06-12",
-        "open": 23.7117,
         "high": 23.7383,
         "low": 22.6468,
-        "close": 22.7888
+        "open": 23.7117
       },
       {
+        "close": 22.8065,
         "date": "2026-06-15",
-        "open": 22.7888,
         "high": 22.9219,
         "low": 22.4338,
-        "close": 22.8065
+        "open": 22.7888
       },
       {
+        "close": 23.0106,
         "date": "2026-06-16",
-        "open": 22.8243,
         "high": 23.0639,
         "low": 22.3185,
-        "close": 23.0106
+        "open": 22.8243
       },
       {
+        "close": 23.055,
         "date": "2026-06-17",
-        "open": 22.6113,
         "high": 23.5963,
         "low": 22.6113,
-        "close": 23.055
+        "open": 22.6113
       },
       {
+        "close": 22.4338,
         "date": "2026-06-18",
-        "open": 23.055,
         "high": 23.0639,
         "low": 22.1144,
-        "close": 22.4338
+        "open": 23.055
       },
       {
+        "close": 21.8393,
         "date": "2026-06-22",
-        "open": 23.0905,
         "high": 23.0905,
         "low": 21.6085,
-        "close": 21.8393
+        "open": 23.0905
       },
       {
+        "close": 22.1676,
         "date": "2026-06-23",
-        "open": 21.8659,
         "high": 22.2208,
         "low": 21.6618,
-        "close": 22.1676
+        "open": 21.8659
       },
       {
+        "close": 22.3895,
         "date": "2026-06-24",
-        "open": 22.3983,
         "high": 22.8065,
         "low": 22.1854,
-        "close": 22.3895
+        "open": 22.3983
       },
       {
+        "close": 22.212,
         "date": "2026-06-25",
-        "open": 22.4693,
         "high": 22.5403,
         "low": 22.1765,
-        "close": 22.212
+        "open": 22.4693
       },
       {
+        "close": 22.5492,
         "date": "2026-06-26",
-        "open": 22.3983,
         "high": 22.7444,
         "low": 22.3983,
-        "close": 22.5492
+        "open": 22.3983
       },
       {
+        "close": 22.4161,
         "date": "2026-06-29",
-        "open": 22.771,
         "high": 22.9929,
         "low": 22.3096,
-        "close": 22.4161
+        "open": 22.771
       },
       {
+        "close": 22.0345,
         "date": "2026-06-30",
-        "open": 22.3273,
         "high": 22.5403,
         "low": 21.8304,
-        "close": 22.0345
+        "open": 22.3273
       },
       {
+        "close": 22.8775,
         "date": "2026-07-01",
-        "open": 22.1055,
         "high": 23.3922,
         "low": 21.999,
-        "close": 22.8775
+        "open": 22.1055
       },
       {
+        "close": 23.6407,
         "date": "2026-07-02",
-        "open": 22.8509,
         "high": 23.6673,
         "low": 22.6113,
-        "close": 23.6407
+        "open": 22.8509
       },
       {
+        "close": 23.6407,
         "date": "2026-07-06",
-        "open": 23.5076,
         "high": 23.7117,
         "low": 23.2414,
-        "close": 23.6407
+        "open": 23.5076
       },
       {
+        "close": 23.8892,
         "date": "2026-07-07",
-        "open": 23.9868,
         "high": 24.1377,
         "low": 23.7738,
-        "close": 23.8892
+        "open": 23.9868
       },
       {
+        "close": 23.7117,
         "date": "2026-07-08",
-        "open": 23.9779,
         "high": 24.0578,
         "low": 23.6052,
-        "close": 23.7117
+        "open": 23.9779
       },
       {
+        "close": 24.395,
         "date": "2026-07-09",
-        "open": 23.694,
         "high": 24.4305,
         "low": 23.694,
-        "close": 24.395
+        "open": 23.694
       },
       {
+        "close": 24.2885,
         "date": "2026-07-10",
-        "open": 24.679,
         "high": 24.7677,
         "low": 24.1288,
-        "close": 24.2885
+        "open": 24.679
       },
       {
+        "close": 24.608,
         "date": "2026-07-13",
-        "open": 24.5459,
         "high": 24.8387,
         "low": 24.3684,
-        "close": 24.608
+        "open": 24.5459
       },
       {
+        "close": 24.4926,
         "date": "2026-07-14",
-        "open": 24.466,
         "high": 24.608,
         "low": 24.1998,
-        "close": 24.4926
+        "open": 24.466
       },
       {
+        "close": 24.8298,
         "date": "2026-07-15",
-        "open": 24.4926,
         "high": 25.1848,
         "low": 24.3773,
-        "close": 24.8298
+        "open": 24.4926
       },
       {
+        "close": 25.4599,
         "date": "2026-07-16",
-        "open": 25.0783,
         "high": 25.4688,
         "low": 25.0073,
-        "close": 25.4599
+        "open": 25.0783
       },
       {
+        "close": 25.2292,
         "date": "2026-07-17",
-        "open": 25.5132,
         "high": 25.7173,
         "low": 25.1316,
-        "close": 25.2292
+        "open": 25.5132
       },
       {
+        "close": 25.1049,
         "date": "2026-07-20",
-        "open": 25.2026,
         "high": 25.4333,
         "low": 25.0872,
-        "close": 25.1049
+        "open": 25.2026
       },
       {
+        "close": 24.4305,
         "date": "2026-07-21",
-        "open": 24.892,
         "high": 24.9718,
         "low": 24.4039,
-        "close": 24.4305
+        "open": 24.892
       },
       {
+        "close": 24.2619,
         "date": "2026-07-22",
-        "open": 24.5725,
         "high": 24.6612,
         "low": 24.182,
-        "close": 24.2619
+        "open": 24.5725
       },
       {
+        "close": 23.3656,
         "date": "2026-07-23",
-        "open": 24.1377,
         "high": 24.182,
         "low": 23.3301,
-        "close": 23.3656
+        "open": 24.1377
       },
       {
+        "close": 23.7472,
         "date": "2026-07-24",
-        "open": 23.3834,
         "high": 23.8626,
         "low": 23.3834,
-        "close": 23.7472
+        "open": 23.3834
       },
       {
+        "close": 24.2175,
         "date": "2026-07-27",
-        "open": 24.1199,
         "high": 24.5015,
         "low": 23.7295,
-        "close": 24.2175
+        "open": 24.1199
       },
       {
+        "close": 25.0073,
         "date": "2026-07-28",
-        "open": 24.395,
         "high": 25.0872,
         "low": 24.1554,
-        "close": 25.0073
+        "open": 24.395
       },
       {
+        "close": 25.5753,
         "date": "2026-07-29",
-        "open": 25.0428,
         "high": 25.7883,
         "low": 24.9541,
-        "close": 25.5753
+        "open": 25.0428
       },
       {
+        "close": 24.9275,
         "date": "2026-07-30",
-        "open": 25.0428,
         "high": 25.1848,
         "low": 24.5104,
-        "close": 24.9275
+        "open": 25.0428
       },
       {
+        "close": 24.4571,
         "date": "2026-07-31",
-        "open": 24.6257,
         "high": 24.7943,
         "low": 24.3329,
-        "close": 24.4571
+        "open": 24.6257
       },
       {
+        "close": 24.7943,
         "date": "2026-08-03",
-        "open": 24.7145,
         "high": 25.1848,
         "low": 24.5814,
-        "close": 24.7943
+        "open": 24.7145
       },
       {
+        "close": 25.3712,
         "date": "2026-08-04",
-        "open": 24.75,
         "high": 25.451,
         "low": 24.4305,
-        "close": 25.3712
+        "open": 24.75
       },
       {
+        "close": 25.7883,
         "date": "2026-08-05",
-        "open": 25.2381,
         "high": 25.8859,
         "low": 24.9275,
-        "close": 25.7883
+        "open": 25.2381
       },
       {
+        "close": 26.3296,
         "date": "2026-08-06",
-        "open": 26.5603,
         "high": 27.4033,
         "low": 25.8592,
-        "close": 26.3296
+        "open": 26.5603
       },
       {
+        "close": 25.309,
         "date": "2026-08-07",
-        "open": 26.1077,
         "high": 26.2142,
         "low": 25.1937,
-        "close": 25.309
+        "open": 26.1077
       },
       {
+        "close": 25.2824,
         "date": "2026-08-10",
-        "open": 25.1404,
         "high": 25.4067,
         "low": 25.0339,
-        "close": 25.2824
+        "open": 25.1404
       },
       {
+        "close": 25.4067,
         "date": "2026-08-11",
-        "open": 25.1493,
         "high": 25.4865,
         "low": 25.0783,
-        "close": 25.4067
+        "open": 25.1493
       },
       {
+        "close": 25.4422,
         "date": "2026-08-12",
-        "open": 25.2469,
         "high": 25.5575,
         "low": 25.0428,
-        "close": 25.4422
+        "open": 25.2469
       },
       {
+        "close": 25.6818,
         "date": "2026-08-13",
-        "open": 25.5132,
         "high": 25.8149,
         "low": 25.4244,
-        "close": 25.6818
+        "open": 25.5132
       },
       {
+        "close": 25.877,
         "date": "2026-08-14",
-        "open": 25.7616,
         "high": 25.9569,
         "low": 25.6196,
-        "close": 25.877
+        "open": 25.7616
       },
       {
+        "close": 25.4688,
         "date": "2026-08-17",
-        "open": 25.522,
         "high": 25.877,
         "low": 25.3534,
-        "close": 25.4688
+        "open": 25.522
       },
       {
+        "close": 26.0811,
         "date": "2026-08-18",
-        "open": 25.8237,
         "high": 26.3118,
         "low": 25.6551,
-        "close": 26.0811
+        "open": 25.8237
       },
       {
+        "close": 26.1343,
         "date": "2026-08-19",
-        "open": 26.0811,
         "high": 26.3384,
         "low": 25.735,
-        "close": 26.1343
+        "open": 26.0811
       },
       {
+        "close": 26.3118,
         "date": "2026-08-20",
-        "open": 25.9569,
         "high": 26.3828,
         "low": 25.8415,
-        "close": 26.3118
+        "open": 25.9569
       },
       {
+        "close": 26.9596,
         "date": "2026-08-21",
-        "open": 26.5159,
         "high": 26.9951,
         "low": 26.4361,
-        "close": 26.9596
+        "open": 26.5159
       },
       {
+        "close": 27.2969,
         "date": "2026-08-24",
-        "open": 27.3412,
         "high": 27.4122,
         "low": 26.9064,
-        "close": 27.2969
+        "open": 27.3412
       },
       {
+        "close": 27.4388,
         "date": "2026-08-25",
-        "open": 27.0661,
         "high": 27.5276,
         "low": 26.8177,
-        "close": 27.4388
+        "open": 27.0661
       },
       {
+        "close": 27.4743,
         "date": "2026-08-26",
-        "open": 27.5187,
         "high": 27.5986,
         "low": 27.288,
-        "close": 27.4743
+        "open": 27.5187
       },
       {
+        "close": 27.6784,
         "date": "2026-08-27",
-        "open": 27.4033,
         "high": 28.0955,
         "low": 27.1992,
-        "close": 27.6784
+        "open": 27.4033
       },
       {
+        "close": 27.4832,
         "date": "2026-08-28",
-        "open": 27.8293,
         "high": 27.9535,
         "low": 27.4211,
-        "close": 27.4832
+        "open": 27.8293
       },
       {
+        "close": 27.2525,
         "date": "2026-08-31",
-        "open": 27.3501,
         "high": 27.501,
         "low": 27.2347,
-        "close": 27.2525
+        "open": 27.3501
       },
       {
+        "close": 27.1815,
         "date": "2026-09-01",
-        "open": 27.1282,
         "high": 27.4743,
         "low": 27.1016,
-        "close": 27.1815
+        "open": 27.1282
       },
       {
+        "close": 27.1992,
         "date": "2026-09-02",
-        "open": 27.2436,
         "high": 27.7938,
         "low": 27.1016,
-        "close": 27.1992
+        "open": 27.2436
       },
       {
+        "close": 27.4655,
         "date": "2026-09-03",
-        "open": 27.4655,
         "high": 27.5631,
         "low": 27.2259,
-        "close": 27.4655
+        "open": 27.4655
       },
       {
+        "close": 26.9685,
         "date": "2026-09-04",
-        "open": 27.3235,
         "high": 27.4122,
         "low": 26.933,
-        "close": 26.9685
+        "open": 27.3235
       },
       {
+        "close": 26.4627,
         "date": "2026-09-08",
-        "open": 26.7112,
         "high": 26.791,
         "low": 26.0988,
-        "close": 26.4627
+        "open": 26.7112
       },
       {
+        "close": 26.3647,
         "date": "2026-09-09",
-        "open": 26.3202,
         "high": 26.5428,
         "low": 26.0175,
-        "close": 26.3647
+        "open": 26.3202
       },
       {
+        "close": 26.16,
         "date": "2026-09-10",
-        "open": 26.3915,
         "high": 26.4182,
         "low": 25.8839,
-        "close": 26.16
+        "open": 26.3915
       },
       {
+        "close": 26.2134,
         "date": "2026-09-11",
-        "open": 26.2401,
         "high": 26.4271,
         "low": 26.0264,
-        "close": 26.2134
+        "open": 26.2401
       },
       {
+        "close": 27.2106,
         "date": "2026-09-14",
-        "open": 26.4004,
         "high": 27.3353,
         "low": 26.3826,
-        "close": 27.2106
+        "open": 26.4004
       },
       {
+        "close": 27.1038,
         "date": "2026-09-15",
-        "open": 26.8812,
         "high": 27.2551,
         "low": 26.712,
-        "close": 27.1038
+        "open": 26.8812
       },
       {
+        "close": 26.8812,
         "date": "2026-09-16",
-        "open": 27.0236,
         "high": 27.2819,
         "low": 26.6764,
-        "close": 26.8812
+        "open": 27.0236
       },
       {
+        "close": 26.8723,
         "date": "2026-09-17",
-        "open": 26.8367,
         "high": 27.0949,
         "low": 26.7031,
-        "close": 26.8723
+        "open": 26.8367
       },
       {
+        "close": 26.5161,
         "date": "2026-09-18",
-        "open": 26.8812,
         "high": 26.9079,
         "low": 26.2935,
-        "close": 26.5161
+        "open": 26.8812
       },
       {
+        "close": 26.4449,
         "date": "2026-09-21",
-        "open": 26.5695,
         "high": 26.6764,
         "low": 26.3558,
-        "close": 26.4449
+        "open": 26.5695
       },
       {
+        "close": 26.0442,
         "date": "2026-09-22",
-        "open": 26.7298,
         "high": 26.8812,
         "low": 25.9106,
-        "close": 26.0442
+        "open": 26.7298
       },
       {
+        "close": 25.038,
         "date": "2026-09-23",
-        "open": 25.8305,
         "high": 25.9195,
         "low": 24.9846,
-        "close": 25.038
+        "open": 25.8305
       },
       {
+        "close": 25.323,
         "date": "2026-09-24",
-        "open": 25.1271,
         "high": 25.599,
         "low": 25.1004,
-        "close": 25.323
+        "open": 25.1271
       },
       {
+        "close": 25.3675,
         "date": "2026-09-25",
-        "open": 25.1894,
         "high": 25.4654,
         "low": 25.1449,
-        "close": 25.3675
+        "open": 25.1894
       },
       {
+        "close": 25.9106,
         "date": "2026-09-28",
-        "open": 25.2339,
         "high": 25.9374,
         "low": 24.9134,
-        "close": 25.9106
+        "open": 25.2339
       },
       {
+        "close": 25.3942,
         "date": "2026-09-29",
-        "open": 25.8661,
         "high": 25.8661,
         "low": 25.0915,
-        "close": 25.3942
+        "open": 25.8661
       },
       {
+        "close": 25.51,
         "date": "2026-09-30",
-        "open": 25.412,
         "high": 25.786,
         "low": 25.2874,
-        "close": 25.51
+        "open": 25.412
       },
       {
+        "close": 25.5011,
         "date": "2026-10-01",
-        "open": 25.5545,
         "high": 25.5723,
         "low": 25.1004,
-        "close": 25.5011
+        "open": 25.5545
       },
       {
+        "close": 25.5456,
         "date": "2026-10-02",
-        "open": 25.8216,
         "high": 25.8216,
         "low": 25.1093,
-        "close": 25.5456
+        "open": 25.8216
       },
       {
+        "close": 25.7771,
         "date": "2026-10-05",
-        "open": 25.51,
         "high": 25.8038,
         "low": 25.2963,
-        "close": 25.7771
+        "open": 25.51
       },
       {
+        "close": 25.4209,
         "date": "2026-10-06",
-        "open": 25.7415,
         "high": 25.8127,
         "low": 25.1894,
-        "close": 25.4209
+        "open": 25.7415
       },
       {
+        "close": 25.4743,
         "date": "2026-10-07",
-        "open": 25.3853,
         "high": 25.688,
         "low": 25.1805,
-        "close": 25.4743
+        "open": 25.3853
       },
       {
+        "close": 25.7949,
         "date": "2026-10-08",
-        "open": 25.5545,
         "high": 25.9641,
         "low": 25.3586,
-        "close": 25.7949
+        "open": 25.5545
       },
       {
+        "close": 25.9284,
         "date": "2026-10-09",
-        "open": 25.8572,
         "high": 26.1421,
         "low": 25.6969,
-        "close": 25.9284
+        "open": 25.8572
       },
       {
+        "close": 26.16,
         "date": "2026-10-12",
-        "open": 26.0086,
         "high": 26.5873,
         "low": 25.9106,
-        "close": 26.16
+        "open": 26.0086
       },
       {
+        "close": 26.3826,
         "date": "2026-10-13",
-        "open": 26.4271,
         "high": 26.436,
         "low": 26.151,
-        "close": 26.3826
+        "open": 26.4271
       },
       {
+        "close": 26.3202,
         "date": "2026-10-14",
-        "open": 26.3113,
         "high": 26.3915,
         "low": 25.8928,
-        "close": 26.3202
+        "open": 26.3113
       },
       {
+        "close": 26.9079,
         "date": "2026-10-15",
-        "open": 26.6052,
         "high": 26.9168,
         "low": 26.5428,
-        "close": 26.9079
+        "open": 26.6052
       },
       {
+        "close": 26.7387,
         "date": "2026-10-16",
-        "open": 27.1305,
         "high": 27.2997,
         "low": 26.5606,
-        "close": 26.7387
+        "open": 27.1305
       },
       {
+        "close": 26.7654,
         "date": "2026-10-19",
-        "open": 26.6675,
         "high": 26.899,
         "low": 26.4805,
-        "close": 26.7654
+        "open": 26.6675
       },
       {
+        "close": 27.2908,
         "date": "2026-10-20",
-        "open": 26.9435,
         "high": 27.4956,
         "low": 26.9168,
-        "close": 27.2908
+        "open": 26.9435
       }
     ],
+    "Check_Details": "\u2713 Trend (P 27.3 > SMA50 26.4) \u2713 RS (Trend: Up, Val: 5.31) \u2713 RSI (65.4) \u2713 ATR (Risk 4.1%)",
+    "Checks_Passed": 4,
+    "Company_Name": "News Corporation",
+    "Consensus": "Buy",
+    "Contract_ID": 129348126,
+    "Country": "US",
+    "Currency": "USD",
     "Daily_Change": 0.5254,
-    "RS_vs_SPX": 5.31,
-    "RS_Benchmark": "^GSPC",
-    "RS_Status": "Strong",
+    "Data_Broker": null,
+    "Date": "2026-10-21 02:02",
+    "Days_To_Earnings": 15,
     "Decision": "BUY",
     "Decision_Color": "#4caf50",
-    "Checks_Passed": 4,
-    "Smart_Entry": 27.98,
-    "Smart_Entry_EUR": 24.91,
-    "Smart_Type": "LIMIT",
-    "Smart_Reason": "Local Support Test",
-    "Strategy": "Breakout",
-    "RR_Ratio": 4.29,
-    "Volume": 2980986,
-    "Avg_Volume": 3935139,
-    "Earnings_Msg": "Report in 15 days (2026-11-05)",
-    "Earnings_Danger": false,
-    "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
-    "Next_Earnings_Date": "2026-11-05",
-    "Days_To_Earnings": 15,
-    "Earnings_Source": "Yahoo Finance calendar",
+    "Earnings_Danger": false,
     "Earnings_Fetched_At": "2026-10-20T23:02:17+00:00",
-    "Check_Details": "\u2713 Trend (P 27.3 > SMA50 26.4) \u2713 RS (Trend: Up, Val: 5.31) \u2713 RSI (65.4) \u2713 ATR (Risk 4.1%)",
-    "Date": "2026-10-21 02:02",
-    "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-20T23:02:17+00:00",
-    "Market_Data_Observed_At": "2026-10-20T00:00:00+00:00",
-    "Market_Data_Timing": "delayed_or_end_of_day",
-    "Data_Broker": null,
+    "Earnings_Msg": "Report in 15 days (2026-11-05)",
+    "Earnings_Source": "Yahoo Finance calendar",
+    "Earnings_Status": "CLEAR",
+    "Exchange": "NASDAQ",
     "Execution_Brokers": [
       "IBKR"
     ],
+    "Finviz_ATR": null,
+    "History_Ticker": "NWSA",
     "IBKR_Data_Only": false,
     "IBKR_Snapshot_Groups": {},
-    "Market": "SUA",
-    "Country": "US",
-    "Exchange": "NASDAQ",
-    "Security_Type": "STK",
-    "Contract_ID": 129348126,
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Options_Supported": true,
+    "Industry": "Entertainment",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 129348126,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -16831,44 +16797,79 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "technical_score": 100.0,
-    "momentum_score": 62.15,
-    "research_score": 85,
-    "volatility_score": 75.0,
-    "liquidity_score": 50,
-    "options_score": 50.0,
-    "relative_opportunity_score": 50.0,
-    "risk_reward_score": 100.0,
-    "portfolio_fit_available": false,
-    "portfolio_fit_score": null,
-    "portfolio_adjustment_applied": false,
-    "raw_stock_score": 75.32,
-    "raw_stock_score_availability_adjusted": 78.14,
-    "options_score_observed": null,
-    "portfolio_adjusted_score": 75.32,
-    "risk_score": 60.0,
-    "volatility_regime": "calm",
+    "Market": "SUA",
+    "Market_Data_Fetched_At": "2026-10-20T23:02:17+00:00",
+    "Market_Data_Observed_At": "2026-10-20T00:00:00+00:00",
+    "Market_Data_Source": "Yahoo Finance",
+    "Market_Data_Timing": "delayed_or_end_of_day",
+    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
+    "Next_Earnings_Date": "2026-11-05",
+    "Options_Cohort": "OPTIONS_UNAVAILABLE",
+    "Options_Collection_Eligible": true,
+    "Options_Collection_Rank": 8,
+    "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
+    "Options_Data_Available": false,
+    "Options_Data_Partial": false,
+    "Options_Eligibility_Reason": "eligible",
+    "Options_Score": null,
+    "Options_Supported": true,
+    "Pct_To_Target": 17.56,
+    "Price": 27.29,
+    "Price_Native": 30.65,
+    "RR_Ratio": 4.29,
+    "RSI": 65.39,
+    "RSI_Status": "Neutral",
+    "RS_Benchmark": "^GSPC",
+    "RS_Status": "Strong",
+    "RS_vs_SPX": 5.31,
+    "SMA_200": 23.74,
+    "SMA_50": 26.35,
+    "Sector": "Communication Services",
+    "Security_Type": "STK",
+    "Smart_Entry": 27.98,
+    "Smart_Entry_EUR": 24.91,
+    "Smart_Reason": "Local Support Test",
+    "Smart_Type": "LIMIT",
+    "Stop_Loss": 26.17,
+    "Strategy": "Breakout",
+    "Target": 32.08,
+    "Technical_Events_Ref": "watchlist:NWSA",
+    "Ticker": "NWSA",
+    "Trend": "Strong Bullish",
+    "VIX_Tag": "Normal",
+    "Vol_M": null,
+    "Vol_W": null,
+    "Volume": 2980986,
+    "_cached_at": 1792537337.8329105,
     "current_decision": "BUY",
     "enhanced_decision": "BUY",
     "enhanced_decision_reason": "",
     "enhanced_stop": 26.17,
     "enhanced_stop_distance_pct": 4.1,
+    "liquidity_score": 50,
+    "momentum_score": 62.15,
+    "options_score": 50.0,
+    "options_score_observed": null,
+    "portfolio_adjusted_score": 75.32,
+    "portfolio_adjustment_applied": false,
+    "portfolio_fit_available": false,
+    "portfolio_fit_score": null,
+    "raw_stock_score": 75.32,
+    "raw_stock_score_availability_adjusted": 78.14,
+    "relative_opportunity_score": 50.0,
+    "research_score": 85,
+    "risk_reward_score": 100.0,
+    "risk_score": 60.0,
     "score_version": "ibkr-enhanced-v1-shadow",
-    "_cached_at": 1792537337.8329105,
-    "Options_Collection_Eligible": true,
-    "Options_Eligibility_Reason": "eligible",
-    "Options_Collection_Rank": 8,
-    "Options_Collection_Selected": false,
-    "Options_Data_Available": false,
-    "Options_Data_Partial": false,
-    "Options_Cohort": "OPTIONS_UNAVAILABLE",
-    "Options_Context": {
-      "score_available": false
-    },
-    "Options_Score": null
+    "technical_score": 100.0,
+    "volatility_regime": "calm",
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 3.0,
@@ -17720,19 +17721,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Busines...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 879574622,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -17746,6 +17747,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 204,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -17801,10 +17805,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 74.99,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 74.99
   },
   {
     "ATR_14": 10.49,
@@ -18656,12 +18657,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Applic...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 169544810,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -18670,7 +18671,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -18684,6 +18685,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 43,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -18739,10 +18743,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 66.53,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 66.53
   },
   {
     "ATR_14": 1.36,
@@ -19594,19 +19595,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas Equipme...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 16675601,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -19620,6 +19621,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 68,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -19675,10 +19679,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 2.49,
@@ -20530,12 +20531,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Discount Stores",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 323612220,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -20544,7 +20545,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -20558,6 +20559,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 24,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -20613,10 +20617,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.71,
@@ -21468,12 +21469,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Beverages - Non-A...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 324057162,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -21482,7 +21483,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -21496,6 +21497,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 180,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -21551,10 +21555,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.49,
@@ -22406,12 +22407,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Grocery Stores",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8908,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -22420,7 +22421,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -22434,6 +22435,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 46,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -22489,10 +22493,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.33,
@@ -23344,12 +23345,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Beverages - Non-A...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8894,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -23358,7 +23359,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -23372,6 +23373,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 181,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -23427,128 +23431,13 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
-    "Ticker": "SHAK",
-    "History_Ticker": "SHAK",
-    "Currency": "USD",
-    "Price": 62.1,
-    "Price_Native": 69.74,
-    "Target": 71.68,
-    "Pct_To_Target": 15.43,
-    "Consensus": "Buy",
-    "Analysts": 24,
-    "Company_Name": "Shake Shack Inc.",
-    "Industry": "Restaurants",
-    "Sector": "Consumer Cyclical",
-    "Trend": "Bearish Rally",
-    "RSI": 59.88,
-    "RSI_Status": "Neutral",
     "ATR_14": 2.39,
     "ATR_Native": 2.683358,
-    "Finviz_ATR": null,
-    "Vol_W": null,
-    "Vol_M": null,
-    "Stop_Loss": 57.32,
-    "SMA_50": 58.96,
-    "SMA_200": 67.73,
-    "VIX_Tag": "Normal",
-    "Chart_History": [
-      51.8391,
-      51.9994,
-      53.798,
-      52.3466,
-      52.6048,
-      49.6042,
-      48.2152,
-      48.7494,
-      49.1679,
-      50.637,
-      48.785,
-      49.8802,
-      50.5658,
-      50.2809,
-      48.2419,
-      48.9008,
-      48.3131,
-      50.1473,
-      52.1774,
-      55.3651,
-      53.5041,
-      53.424,
-      52.7384,
-      51.6432,
-      50.7261,
-      50.2542,
-      49.809,
-      49.8535,
-      50.8418,
-      54.8219,
-      56.2733,
-      56.1397,
-      56.1575,
-      55.8726,
-      57.6801,
-      58.9623,
-      66.1834,
-      62.5417,
-      63.3341,
-      63.6191,
-      63.904,
-      64.8745,
-      65.5691,
-      66.6375,
-      66.0588,
-      63.2095,
-      65.2396,
-      65.756,
-      67.5101,
-      67.1718,
-      65.9519,
-      64.9458,
-      62.8177,
-      62.2301,
-      61.3397,
-      60.2089,
-      60.4582,
-      61.7047,
-      61.7938,
-      60.013,
-      56.1041,
-      54.9377,
-      56.674,
-      56.5493,
-      51.8836,
-      50.4412,
-      49.7466,
-      48.8652,
-      50.7172,
-      51.7233,
-      52.0617,
-      51.1535,
-      49.4617,
-      51.2158,
-      51.5364,
-      52.2487,
-      53.5932,
-      54.2966,
-      55.561,
-      57.5287,
-      57.137,
-      59.9328,
-      59.5678,
-      61.7403,
-      63.2718,
-      61.2328,
-      62.8711,
-      62.3191,
-      63.9931,
-      62.0965
-    ],
+    "Analysts": 24,
+    "Avg_Volume": 1528118,
     "Chart_Dates": [
       "2026-06-12",
       "2026-06-15",
@@ -23641,687 +23530,765 @@
       "2026-10-19",
       "2026-10-20"
     ],
+    "Chart_History": [
+      51.8391,
+      51.9994,
+      53.798,
+      52.3466,
+      52.6048,
+      49.6042,
+      48.2152,
+      48.7494,
+      49.1679,
+      50.637,
+      48.785,
+      49.8802,
+      50.5658,
+      50.2809,
+      48.2419,
+      48.9008,
+      48.3131,
+      50.1473,
+      52.1774,
+      55.3651,
+      53.5041,
+      53.424,
+      52.7384,
+      51.6432,
+      50.7261,
+      50.2542,
+      49.809,
+      49.8535,
+      50.8418,
+      54.8219,
+      56.2733,
+      56.1397,
+      56.1575,
+      55.8726,
+      57.6801,
+      58.9623,
+      66.1834,
+      62.5417,
+      63.3341,
+      63.6191,
+      63.904,
+      64.8745,
+      65.5691,
+      66.6375,
+      66.0588,
+      63.2095,
+      65.2396,
+      65.756,
+      67.5101,
+      67.1718,
+      65.9519,
+      64.9458,
+      62.8177,
+      62.2301,
+      61.3397,
+      60.2089,
+      60.4582,
+      61.7047,
+      61.7938,
+      60.013,
+      56.1041,
+      54.9377,
+      56.674,
+      56.5493,
+      51.8836,
+      50.4412,
+      49.7466,
+      48.8652,
+      50.7172,
+      51.7233,
+      52.0617,
+      51.1535,
+      49.4617,
+      51.2158,
+      51.5364,
+      52.2487,
+      53.5932,
+      54.2966,
+      55.561,
+      57.5287,
+      57.137,
+      59.9328,
+      59.5678,
+      61.7403,
+      63.2718,
+      61.2328,
+      62.8711,
+      62.3191,
+      63.9931,
+      62.0965
+    ],
     "Chart_OHLC": [
       {
+        "close": 51.8391,
         "date": "2026-06-12",
-        "open": 51.6521,
         "high": 52.5781,
         "low": 50.3076,
-        "close": 51.8391
+        "open": 51.6521
       },
       {
+        "close": 51.9994,
         "date": "2026-06-15",
-        "open": 51.9726,
         "high": 52.9085,
         "low": 51.109,
-        "close": 51.9994
+        "open": 51.9726
       },
       {
+        "close": 53.798,
         "date": "2026-06-16",
-        "open": 52.222,
         "high": 54.9733,
         "low": 52.222,
-        "close": 53.798
+        "open": 52.222
       },
       {
+        "close": 52.3466,
         "date": "2026-06-17",
-        "open": 53.2548,
         "high": 54.9377,
         "low": 51.8569,
-        "close": 52.3466
+        "open": 53.2548
       },
       {
+        "close": 52.6048,
         "date": "2026-06-18",
-        "open": 52.9165,
         "high": 53.5932,
         "low": 51.8213,
-        "close": 52.6048
+        "open": 52.9165
       },
       {
+        "close": 49.6042,
         "date": "2026-06-22",
-        "open": 51.9548,
         "high": 51.9548,
         "low": 49.4439,
-        "close": 49.6042
+        "open": 51.9548
       },
       {
+        "close": 48.2152,
         "date": "2026-06-23",
-        "open": 49.2035,
         "high": 49.996,
         "low": 47.7165,
-        "close": 48.2152
+        "open": 49.2035
       },
       {
+        "close": 48.7494,
         "date": "2026-06-24",
-        "open": 48.3932,
         "high": 50.2186,
         "low": 48.3932,
-        "close": 48.7494
+        "open": 48.3932
       },
       {
+        "close": 49.1679,
         "date": "2026-06-25",
-        "open": 49.2747,
         "high": 49.809,
         "low": 48.3576,
-        "close": 49.1679
+        "open": 49.2747
       },
       {
+        "close": 50.637,
         "date": "2026-06-26",
-        "open": 48.4378,
         "high": 50.7172,
         "low": 48.4378,
-        "close": 50.637
+        "open": 48.4378
       },
       {
+        "close": 48.785,
         "date": "2026-06-29",
-        "open": 50.0583,
         "high": 50.4189,
         "low": 48.4912,
-        "close": 48.785
+        "open": 50.0583
       },
       {
+        "close": 49.8802,
         "date": "2026-06-30",
-        "open": 48.8562,
         "high": 49.9871,
         "low": 48.6247,
-        "close": 49.8802
+        "open": 48.8562
       },
       {
+        "close": 50.5658,
         "date": "2026-07-01",
-        "open": 50.3788,
         "high": 51.5096,
         "low": 49.6131,
-        "close": 50.5658
+        "open": 50.3788
       },
       {
+        "close": 50.2809,
         "date": "2026-07-02",
-        "open": 51.0199,
         "high": 51.3672,
         "low": 49.2925,
-        "close": 50.2809
+        "open": 51.0199
       },
       {
+        "close": 48.2419,
         "date": "2026-07-06",
-        "open": 49.5062,
         "high": 50.4412,
         "low": 47.5296,
-        "close": 48.2419
+        "open": 49.5062
       },
       {
+        "close": 48.9008,
         "date": "2026-07-07",
-        "open": 48.2864,
         "high": 49.2658,
         "low": 47.0309,
-        "close": 48.9008
+        "open": 48.2864
       },
       {
+        "close": 48.3131,
         "date": "2026-07-08",
-        "open": 47.5652,
         "high": 48.3665,
         "low": 46.4076,
-        "close": 48.3131
+        "open": 47.5652
       },
       {
+        "close": 50.1473,
         "date": "2026-07-09",
-        "open": 48.0549,
         "high": 51.1891,
         "low": 48.0549,
-        "close": 50.1473
+        "open": 48.0549
       },
       {
+        "close": 52.1774,
         "date": "2026-07-10",
-        "open": 50.7172,
         "high": 52.9521,
         "low": 50.1473,
-        "close": 52.1774
+        "open": 50.7172
       },
       {
+        "close": 55.3651,
         "date": "2026-07-13",
-        "open": 52.9076,
         "high": 55.4274,
         "low": 52.6583,
-        "close": 55.3651
+        "open": 52.9076
       },
       {
+        "close": 53.5041,
         "date": "2026-07-14",
-        "open": 55.837,
         "high": 55.8637,
         "low": 53.0331,
-        "close": 53.5041
+        "open": 55.837
       },
       {
+        "close": 53.424,
         "date": "2026-07-15",
-        "open": 53.4151,
         "high": 54.6171,
         "low": 52.7918,
-        "close": 53.424
+        "open": 53.4151
       },
       {
+        "close": 52.7384,
         "date": "2026-07-16",
-        "open": 54.0562,
         "high": 54.448,
         "low": 52.4178,
-        "close": 52.7384
+        "open": 54.0562
       },
       {
+        "close": 51.6432,
         "date": "2026-07-17",
-        "open": 51.7679,
         "high": 53.2237,
         "low": 51.5809,
-        "close": 51.6432
+        "open": 51.7679
       },
       {
+        "close": 50.7261,
         "date": "2026-07-20",
-        "open": 52.0083,
         "high": 52.0083,
         "low": 49.898,
-        "close": 50.7261
+        "open": 52.0083
       },
       {
+        "close": 50.2542,
         "date": "2026-07-21",
-        "open": 50.3788,
         "high": 51.3494,
         "low": 49.5953,
-        "close": 50.2542
+        "open": 50.3788
       },
       {
+        "close": 49.809,
         "date": "2026-07-22",
-        "open": 50.1206,
         "high": 50.3966,
         "low": 49.0878,
-        "close": 49.809
+        "open": 50.1206
       },
       {
+        "close": 49.8535,
         "date": "2026-07-23",
-        "open": 49.061,
         "high": 50.1295,
         "low": 48.3407,
-        "close": 49.8535
+        "open": 49.061
       },
       {
+        "close": 50.8418,
         "date": "2026-07-24",
-        "open": 50.1295,
         "high": 51.4206,
         "low": 49.8695,
-        "close": 50.8418
+        "open": 50.1295
       },
       {
+        "close": 54.8219,
         "date": "2026-07-27",
-        "open": 52.1329,
         "high": 55.2226,
         "low": 51.9192,
-        "close": 54.8219
+        "open": 52.1329
       },
       {
+        "close": 56.2733,
         "date": "2026-07-28",
-        "open": 55.2938,
         "high": 56.389,
         "low": 54.5014,
-        "close": 56.2733
+        "open": 55.2938
       },
       {
+        "close": 56.1397,
         "date": "2026-07-29",
-        "open": 55.4808,
         "high": 57.088,
         "low": 55.0801,
-        "close": 56.1397
+        "open": 55.4808
       },
       {
+        "close": 56.1575,
         "date": "2026-07-30",
-        "open": 56.7007,
         "high": 57.3061,
         "low": 54.7863,
-        "close": 56.1575
+        "open": 56.7007
       },
       {
+        "close": 55.8726,
         "date": "2026-07-31",
-        "open": 56.1842,
         "high": 57.1192,
         "low": 55.2493,
-        "close": 55.8726
+        "open": 56.1842
       },
       {
+        "close": 57.6801,
         "date": "2026-08-03",
-        "open": 56.8253,
         "high": 58.6774,
         "low": 56.7274,
-        "close": 57.6801
+        "open": 56.8253
       },
       {
+        "close": 58.9623,
         "date": "2026-08-04",
-        "open": 57.7335,
         "high": 59.452,
         "low": 57.1058,
-        "close": 58.9623
+        "open": 57.7335
       },
       {
+        "close": 66.1834,
         "date": "2026-08-05",
-        "open": 59.6568,
         "high": 66.3348,
         "low": 56.9945,
-        "close": 66.1834
+        "open": 59.6568
       },
       {
+        "close": 62.5417,
         "date": "2026-08-06",
-        "open": 64.0732,
         "high": 64.4293,
         "low": 62.0386,
-        "close": 62.5417
+        "open": 64.0732
       },
       {
+        "close": 63.3341,
         "date": "2026-08-07",
-        "open": 62.8266,
         "high": 63.5256,
         "low": 61.678,
-        "close": 63.3341
+        "open": 62.8266
       },
       {
+        "close": 63.6191,
         "date": "2026-08-10",
-        "open": 62.9068,
         "high": 63.6636,
         "low": 62.1054,
-        "close": 63.6191
+        "open": 62.9068
       },
       {
+        "close": 63.904,
         "date": "2026-08-11",
-        "open": 63.6636,
         "high": 64.8122,
         "low": 62.6753,
-        "close": 63.904
+        "open": 63.6636
       },
       {
+        "close": 64.8745,
         "date": "2026-08-12",
-        "open": 64.5629,
         "high": 65.1506,
         "low": 63.067,
-        "close": 64.8745
+        "open": 64.5629
       },
       {
+        "close": 65.5691,
         "date": "2026-08-13",
-        "open": 65.4533,
         "high": 66.3348,
         "low": 64.3492,
-        "close": 65.5691
+        "open": 65.4533
       },
       {
+        "close": 66.6375,
         "date": "2026-08-14",
-        "open": 66.3348,
         "high": 67.1718,
         "low": 65.7382,
-        "close": 66.6375
+        "open": 66.3348
       },
       {
+        "close": 66.0588,
         "date": "2026-08-17",
-        "open": 66.2636,
         "high": 66.504,
         "low": 65.3999,
-        "close": 66.0588
+        "open": 66.2636
       },
       {
+        "close": 63.2095,
         "date": "2026-08-18",
-        "open": 65.9519,
         "high": 65.9608,
         "low": 63.0937,
-        "close": 63.2095
+        "open": 65.9519
       },
       {
+        "close": 65.2396,
         "date": "2026-08-19",
-        "open": 64.554,
         "high": 66.2413,
         "low": 63.7215,
-        "close": 65.2396
+        "open": 64.554
       },
       {
+        "close": 65.756,
         "date": "2026-08-20",
-        "open": 65.1595,
         "high": 65.9386,
         "low": 64.2869,
-        "close": 65.756
+        "open": 65.1595
       },
       {
+        "close": 67.5101,
         "date": "2026-08-21",
-        "open": 66.2279,
         "high": 67.5725,
         "low": 66.1834,
-        "close": 67.5101
+        "open": 66.2279
       },
       {
+        "close": 67.1718,
         "date": "2026-08-24",
-        "open": 67.7594,
         "high": 68.0355,
         "low": 66.6999,
-        "close": 67.1718
+        "open": 67.7594
       },
       {
+        "close": 65.9519,
         "date": "2026-08-25",
-        "open": 66.9759,
         "high": 67.4745,
         "low": 65.8184,
-        "close": 65.9519
+        "open": 66.9759
       },
       {
+        "close": 64.9458,
         "date": "2026-08-26",
-        "open": 65.6848,
         "high": 66.2458,
         "low": 64.4204,
-        "close": 64.9458
+        "open": 65.6848
       },
       {
+        "close": 62.8177,
         "date": "2026-08-27",
-        "open": 64.5184,
         "high": 64.8193,
         "low": 62.2746,
-        "close": 62.8177
+        "open": 64.5184
       },
       {
+        "close": 62.2301,
         "date": "2026-08-28",
-        "open": 62.8801,
         "high": 63.8639,
         "low": 61.5088,
-        "close": 62.2301
+        "open": 62.8801
       },
       {
+        "close": 61.3397,
         "date": "2026-08-31",
-        "open": 61.4376,
         "high": 62.9949,
         "low": 61.2061,
-        "close": 61.3397
+        "open": 61.4376
       },
       {
+        "close": 60.2089,
         "date": "2026-09-01",
-        "open": 59.915,
         "high": 61.6068,
         "low": 59.4342,
-        "close": 60.2089
+        "open": 59.915
       },
       {
+        "close": 60.4582,
         "date": "2026-09-02",
-        "open": 59.8349,
         "high": 63.1294,
         "low": 59.8082,
-        "close": 60.4582
+        "open": 59.8349
       },
       {
+        "close": 61.7047,
         "date": "2026-09-03",
-        "open": 61.2417,
         "high": 62.2211,
         "low": 59.2116,
-        "close": 61.7047
+        "open": 61.2417
       },
       {
+        "close": 61.7938,
         "date": "2026-09-04",
-        "open": 61.6869,
         "high": 63.1027,
         "low": 61.4554,
-        "close": 61.7938
+        "open": 61.6869
       },
       {
+        "close": 60.013,
         "date": "2026-09-08",
-        "open": 63.2184,
         "high": 63.9129,
         "low": 59.6657,
-        "close": 60.013
+        "open": 63.2184
       },
       {
+        "close": 56.1041,
         "date": "2026-09-09",
-        "open": 59.5411,
         "high": 59.5945,
         "low": 56.0418,
-        "close": 56.1041
+        "open": 59.5411
       },
       {
+        "close": 54.9377,
         "date": "2026-09-10",
-        "open": 55.5253,
         "high": 56.674,
         "low": 54.5993,
-        "close": 54.9377
+        "open": 55.5253
       },
       {
+        "close": 56.674,
         "date": "2026-09-11",
-        "open": 55.3027,
         "high": 57.2705,
         "low": 54.8219,
-        "close": 56.674
+        "open": 55.3027
       },
       {
+        "close": 56.5493,
         "date": "2026-09-14",
-        "open": 56.3801,
         "high": 57.5555,
         "low": 56.0462,
-        "close": 56.5493
+        "open": 56.3801
       },
       {
+        "close": 51.8836,
         "date": "2026-09-15",
-        "open": 55.9794,
         "high": 55.9973,
         "low": 51.4028,
-        "close": 51.8836
+        "open": 55.9794
       },
       {
+        "close": 50.4412,
         "date": "2026-09-16",
-        "open": 52.0884,
         "high": 52.7384,
         "low": 50.4144,
-        "close": 50.4412
+        "open": 52.0884
       },
       {
+        "close": 49.7466,
         "date": "2026-09-17",
-        "open": 51.109,
         "high": 51.4473,
         "low": 49.7021,
-        "close": 49.7466
+        "open": 51.109
       },
       {
+        "close": 48.8652,
         "date": "2026-09-18",
-        "open": 49.6398,
         "high": 50.3076,
         "low": 48.7316,
-        "close": 48.8652
+        "open": 49.6398
       },
       {
+        "close": 50.7172,
         "date": "2026-09-21",
-        "open": 49.4261,
         "high": 51.109,
         "low": 49.1145,
-        "close": 50.7172
+        "open": 49.4261
       },
       {
+        "close": 51.7233,
         "date": "2026-09-22",
-        "open": 51.4206,
         "high": 53.1035,
         "low": 51.4206,
-        "close": 51.7233
+        "open": 51.4206
       },
       {
+        "close": 52.0617,
         "date": "2026-09-23",
-        "open": 51.2781,
         "high": 52.3733,
         "low": 50.0805,
-        "close": 52.0617
+        "open": 51.2781
       },
       {
+        "close": 51.1535,
         "date": "2026-09-24",
-        "open": 52.0884,
         "high": 52.8987,
         "low": 50.174,
-        "close": 51.1535
+        "open": 52.0884
       },
       {
+        "close": 49.4617,
         "date": "2026-09-25",
-        "open": 51.1891,
         "high": 51.71,
         "low": 49.3994,
-        "close": 49.4617
+        "open": 51.1891
       },
       {
+        "close": 51.2158,
         "date": "2026-09-28",
-        "open": 49.5597,
         "high": 51.8435,
         "low": 49.4528,
-        "close": 51.2158
+        "open": 49.5597
       },
       {
+        "close": 51.5364,
         "date": "2026-09-29",
-        "open": 51.8391,
         "high": 51.9637,
         "low": 50.5391,
-        "close": 51.5364
+        "open": 51.8391
       },
       {
+        "close": 52.2487,
         "date": "2026-09-30",
-        "open": 52.1863,
         "high": 54.0829,
         "low": 51.0199,
-        "close": 52.2487
+        "open": 52.1863
       },
       {
+        "close": 53.5932,
         "date": "2026-10-01",
-        "open": 52.3644,
         "high": 54.3856,
         "low": 52.3644,
-        "close": 53.5932
+        "open": 52.3644
       },
       {
+        "close": 54.2966,
         "date": "2026-10-02",
-        "open": 54.0562,
         "high": 54.6706,
         "low": 53.0856,
-        "close": 54.2966
+        "open": 54.0562
       },
       {
+        "close": 55.561,
         "date": "2026-10-05",
-        "open": 54.537,
         "high": 56.0596,
         "low": 53.6199,
-        "close": 55.561
+        "open": 54.537
       },
       {
+        "close": 57.5287,
         "date": "2026-10-06",
-        "open": 55.7925,
         "high": 58.8643,
         "low": 55.7747,
-        "close": 57.5287
+        "open": 55.7925
       },
       {
+        "close": 57.137,
         "date": "2026-10-07",
-        "open": 57.2794,
         "high": 57.6445,
         "low": 56.5938,
-        "close": 57.137
+        "open": 57.2794
       },
       {
+        "close": 59.9328,
         "date": "2026-10-08",
-        "open": 56.9233,
         "high": 60.6184,
         "low": 56.5315,
-        "close": 59.9328
+        "open": 56.9233
       },
       {
+        "close": 59.5678,
         "date": "2026-10-09",
-        "open": 59.4075,
         "high": 60.2311,
         "low": 59.1315,
-        "close": 59.5678
+        "open": 59.4075
       },
       {
+        "close": 61.7403,
         "date": "2026-10-12",
-        "open": 59.4787,
         "high": 61.8472,
         "low": 59.3897,
-        "close": 61.7403
+        "open": 59.4787
       },
       {
+        "close": 63.2718,
         "date": "2026-10-13",
-        "open": 61.9006,
         "high": 64.0465,
         "low": 61.9006,
-        "close": 63.2718
+        "open": 61.9006
       },
       {
+        "close": 61.2328,
         "date": "2026-10-14",
-        "open": 62.9958,
         "high": 62.9958,
         "low": 59.8705,
-        "close": 61.2328
+        "open": 62.9958
       },
       {
+        "close": 62.8711,
         "date": "2026-10-15",
-        "open": 61.5266,
         "high": 63.0715,
         "low": 61.3352,
-        "close": 62.8711
+        "open": 61.5266
       },
       {
+        "close": 62.3191,
         "date": "2026-10-16",
-        "open": 63.2985,
         "high": 64.0287,
         "low": 61.7893,
-        "close": 62.3191
+        "open": 63.2985
       },
       {
+        "close": 63.9931,
         "date": "2026-10-19",
-        "open": 62.6218,
         "high": 64.6163,
         "low": 61.9077,
-        "close": 63.9931
+        "open": 62.6218
       },
       {
+        "close": 62.0965,
         "date": "2026-10-20",
-        "open": 64.5184,
         "high": 64.8923,
         "low": 62.0965,
-        "close": 62.0965
+        "open": 64.5184
       }
     ],
+    "Check_Details": "\u2713 Trend (P 62.1 > SMA50 59.0) \u2713 RS (Trend: Up, Val: 6.53) \u2713 RSI (59.9) \u2713 ATR (Risk 7.7%)",
+    "Checks_Passed": 4,
+    "Company_Name": "Shake Shack Inc.",
+    "Consensus": "Buy",
+    "Contract_ID": 182056846,
+    "Country": "US",
+    "Currency": "USD",
     "Daily_Change": -1.8966,
-    "RS_vs_SPX": 6.53,
-    "RS_Benchmark": "^GSPC",
-    "RS_Status": "Strong",
+    "Data_Broker": null,
+    "Date": "2026-10-21 02:02",
+    "Days_To_Earnings": 15,
     "Decision": "BUY",
     "Decision_Color": "#4caf50",
-    "Checks_Passed": 4,
-    "Smart_Entry": 55.48,
-    "Smart_Entry_EUR": 49.4,
-    "Smart_Type": "LIMIT",
-    "Smart_Reason": "Local Support Test",
-    "Strategy": "Range / Consolidation",
-    "RR_Ratio": 2.0,
-    "Volume": 1140000,
-    "Avg_Volume": 1528118,
-    "Earnings_Msg": "Report in 15 days (2026-11-05)",
-    "Earnings_Danger": false,
-    "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
-    "Next_Earnings_Date": "2026-11-05",
-    "Days_To_Earnings": 15,
-    "Earnings_Source": "Yahoo Finance calendar",
+    "Earnings_Danger": false,
     "Earnings_Fetched_At": "2026-10-20T23:02:28+00:00",
-    "Check_Details": "\u2713 Trend (P 62.1 > SMA50 59.0) \u2713 RS (Trend: Up, Val: 6.53) \u2713 RSI (59.9) \u2713 ATR (Risk 7.7%)",
-    "Date": "2026-10-21 02:02",
-    "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-20T23:02:28+00:00",
-    "Market_Data_Observed_At": "2026-10-20T00:00:00+00:00",
-    "Market_Data_Timing": "delayed_or_end_of_day",
-    "Data_Broker": null,
+    "Earnings_Msg": "Report in 15 days (2026-11-05)",
+    "Earnings_Source": "Yahoo Finance calendar",
+    "Earnings_Status": "CLEAR",
+    "Exchange": "NYSE",
     "Execution_Brokers": [
       "IBKR"
     ],
+    "Finviz_ATR": null,
+    "History_Ticker": "SHAK",
     "IBKR_Data_Only": false,
     "IBKR_Snapshot_Groups": {},
-    "Market": "SUA",
-    "Country": "US",
-    "Exchange": "NYSE",
-    "Security_Type": "STK",
-    "Contract_ID": 182056846,
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Options_Supported": true,
+    "Industry": "Restaurants",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 182056846,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -24330,44 +24297,79 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "technical_score": 100.0,
-    "momentum_score": 72.49,
-    "research_score": 90,
-    "volatility_score": 70.76,
-    "liquidity_score": 50,
-    "options_score": 50.0,
-    "relative_opportunity_score": 50.0,
-    "risk_reward_score": 50.0,
-    "portfolio_fit_available": false,
-    "portfolio_fit_score": null,
-    "portfolio_adjustment_applied": false,
-    "raw_stock_score": 71.95,
-    "raw_stock_score_availability_adjusted": 74.39,
-    "options_score_observed": null,
-    "portfolio_adjusted_score": 71.95,
-    "risk_score": 58.3,
-    "volatility_regime": "calm",
+    "Market": "SUA",
+    "Market_Data_Fetched_At": "2026-10-20T23:02:28+00:00",
+    "Market_Data_Observed_At": "2026-10-20T00:00:00+00:00",
+    "Market_Data_Source": "Yahoo Finance",
+    "Market_Data_Timing": "delayed_or_end_of_day",
+    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
+    "Next_Earnings_Date": "2026-11-05",
+    "Options_Cohort": "OPTIONS_UNAVAILABLE",
+    "Options_Collection_Eligible": true,
+    "Options_Collection_Rank": 138,
+    "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
+    "Options_Data_Available": false,
+    "Options_Data_Partial": false,
+    "Options_Eligibility_Reason": "eligible",
+    "Options_Score": null,
+    "Options_Supported": true,
+    "Pct_To_Target": 15.43,
+    "Price": 62.1,
+    "Price_Native": 69.74,
+    "RR_Ratio": 2.0,
+    "RSI": 59.88,
+    "RSI_Status": "Neutral",
+    "RS_Benchmark": "^GSPC",
+    "RS_Status": "Strong",
+    "RS_vs_SPX": 6.53,
+    "SMA_200": 67.73,
+    "SMA_50": 58.96,
+    "Sector": "Consumer Cyclical",
+    "Security_Type": "STK",
+    "Smart_Entry": 55.48,
+    "Smart_Entry_EUR": 49.4,
+    "Smart_Reason": "Local Support Test",
+    "Smart_Type": "LIMIT",
+    "Stop_Loss": 57.32,
+    "Strategy": "Range / Consolidation",
+    "Target": 71.68,
+    "Technical_Events_Ref": "watchlist:SHAK",
+    "Ticker": "SHAK",
+    "Trend": "Bearish Rally",
+    "VIX_Tag": "Normal",
+    "Vol_M": null,
+    "Vol_W": null,
+    "Volume": 1140000,
+    "_cached_at": 1792537348.6807184,
     "current_decision": "BUY",
     "enhanced_decision": "BUY",
     "enhanced_decision_reason": "",
     "enhanced_stop": 57.32,
     "enhanced_stop_distance_pct": 7.7,
+    "liquidity_score": 50,
+    "momentum_score": 72.49,
+    "options_score": 50.0,
+    "options_score_observed": null,
+    "portfolio_adjusted_score": 71.95,
+    "portfolio_adjustment_applied": false,
+    "portfolio_fit_available": false,
+    "portfolio_fit_score": null,
+    "raw_stock_score": 71.95,
+    "raw_stock_score_availability_adjusted": 74.39,
+    "relative_opportunity_score": 50.0,
+    "research_score": 90,
+    "risk_reward_score": 50.0,
+    "risk_score": 58.3,
     "score_version": "ibkr-enhanced-v1-shadow",
-    "_cached_at": 1792537348.6807184,
-    "Options_Collection_Eligible": true,
-    "Options_Eligibility_Reason": "eligible",
-    "Options_Collection_Rank": 138,
-    "Options_Collection_Selected": false,
-    "Options_Data_Available": false,
-    "Options_Data_Partial": false,
-    "Options_Cohort": "OPTIONS_UNAVAILABLE",
-    "Options_Context": {
-      "score_available": false
-    },
-    "Options_Score": null
+    "technical_score": 100.0,
+    "volatility_regime": "calm",
+    "volatility_score": 70.76
   },
   {
     "ATR_14": 5.42,
@@ -25219,12 +25221,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "REIT - Specialty",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 262397910,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -25233,7 +25235,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -25247,6 +25249,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 137,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -25302,10 +25307,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 73.18,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 73.18
   },
   {
     "ATR_14": 4.06,
@@ -26157,12 +26159,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Restaurants",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 661440,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -26171,7 +26173,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -26185,6 +26187,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 33,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -26240,10 +26245,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 6.06,
@@ -27095,12 +27097,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Retail",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 5019164,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -27109,7 +27111,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -27123,6 +27125,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 215,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -27178,10 +27183,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.39,
@@ -28033,19 +28035,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas Midstream",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 6608417,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -28059,6 +28061,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 56,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -28114,10 +28119,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.57,
@@ -28969,12 +28971,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Medical Devices",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 601776309,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -28982,7 +28984,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -28996,6 +28998,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 125,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -29051,10 +29056,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 2.19,
@@ -29906,19 +29908,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Personal Services",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 333130752,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -29932,6 +29934,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 81,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -29987,10 +29992,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 74.76,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 74.76
   },
   {
     "ATR_14": 5.62,
@@ -30842,12 +30844,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Information Techn...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8314,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -30856,7 +30858,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -30870,6 +30872,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 247,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -30925,10 +30930,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.98,
@@ -31780,12 +31782,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas Midstream",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 808305869,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -31793,7 +31795,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -31807,6 +31809,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 12,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -31862,10 +31867,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 3.88,
@@ -32717,12 +32719,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Travel Services",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 459530964,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -32731,7 +32733,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -33655,12 +33657,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Electronic Gaming...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 476026060,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -33669,7 +33671,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -33683,6 +33685,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 134,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -33738,10 +33743,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "elevated",
-    "volatility_score": 67.45,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 67.45
   },
   {
     "ATR_14": 4.37,
@@ -34593,12 +34595,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas E&P",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 115441080,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -34607,7 +34609,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -34621,6 +34623,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 17,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -34676,10 +34681,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 2.78,
@@ -35531,12 +35533,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Infras...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 188986978,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -35544,7 +35546,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -35558,6 +35560,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 40,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -35613,10 +35618,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.3,
@@ -36468,12 +36470,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Real Estate Services",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 439236278,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -36481,7 +36483,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -36495,6 +36497,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 5,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -36550,10 +36555,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.8,
@@ -37405,19 +37407,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Infras...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 516382772,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -37431,6 +37433,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 9,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -37486,10 +37491,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 71.88,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 71.88
   },
   {
     "ATR_14": 1.99,
@@ -38341,12 +38343,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Healthcare Plans",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 13878278,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -38355,7 +38357,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -38369,6 +38371,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 28,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -38424,10 +38429,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 74.21,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 74.21
   },
   {
     "ATR_14": 1.5,
@@ -39279,12 +39281,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Applic...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 395196161,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -39293,7 +39295,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -39307,6 +39309,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 20,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -39362,10 +39367,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 72.67,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 72.67
   },
   {
     "ATR_14": 1.38,
@@ -40217,12 +40219,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Internet Retail",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 655310909,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -40230,7 +40232,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -40244,6 +40246,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 26,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -40299,10 +40304,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 74.72,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 74.72
   },
   {
     "ATR_14": 0.72,
@@ -41154,12 +41156,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas Midstream",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 83975037,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -41168,7 +41170,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -41182,6 +41184,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 97,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -41237,10 +41242,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.87,
@@ -42092,12 +42094,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas E&P",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 470458975,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -42106,7 +42108,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -42120,6 +42122,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 122,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -42175,10 +42180,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 8.43,
@@ -43030,12 +43032,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Infras...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 691994611,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -43043,7 +43045,7 @@
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -43057,6 +43059,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 19,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -43112,10 +43117,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 1.93,
@@ -43967,19 +43969,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Tools & Accessories",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 13024,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -43993,6 +43995,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 207,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -44048,10 +44053,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.4,
@@ -44903,19 +44905,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas Midstream",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 253915099,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -44929,6 +44931,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 58,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -44984,10 +44989,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 10.74,
@@ -45839,12 +45841,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Applic...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 270662,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -45853,7 +45855,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -45867,6 +45869,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 128,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -45922,10 +45927,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 71.98,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 71.98
   },
   {
     "ATR_14": 3.34,
@@ -46777,12 +46779,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Discount Stores",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 70212228,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -46791,7 +46793,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -46805,6 +46807,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 31,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -46860,128 +46865,13 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
-    "Ticker": "FLYW",
-    "History_Ticker": "FLYW",
-    "Currency": "USD",
-    "Price": 16.6,
-    "Price_Native": 18.64,
-    "Target": 18.76,
-    "Pct_To_Target": 13.04,
-    "Consensus": "Buy",
-    "Analysts": 14,
-    "Company_Name": "Flywire Corporation",
-    "Industry": "Software - Infras...",
-    "Sector": "Technology",
-    "Trend": "Strong Bullish",
-    "RSI": 55.57,
-    "RSI_Status": "Neutral",
     "ATR_14": 0.55,
     "ATR_Native": 0.617429,
-    "Finviz_ATR": null,
-    "Vol_W": null,
-    "Vol_M": null,
-    "Stop_Loss": 15.5,
-    "SMA_50": 16.17,
-    "SMA_200": 13.66,
-    "VIX_Tag": "Normal",
-    "Chart_History": [
-      13.0978,
-      13.632,
-      14.1217,
-      13.73,
-      14.1128,
-      13.7389,
-      13.8991,
-      14.7272,
-      15.03,
-      15.6176,
-      15.671,
-      15.6443,
-      16.5258,
-      16.695,
-      16.321,
-      16.5169,
-      15.6978,
-      16.045,
-      15.6888,
-      15.8313,
-      15.6621,
-      16.7217,
-      16.6416,
-      16.143,
-      16.0539,
-      15.5553,
-      14.7272,
-      14.3577,
-      14.1485,
-      14.3711,
-      14.745,
-      14.745,
-      14.4868,
-      14.2553,
-      14.8074,
-      15.3683,
-      16.606,
-      16.2053,
-      15.8313,
-      15.4752,
-      15.5553,
-      15.5464,
-      16.2409,
-      16.7484,
-      16.2943,
-      16.2498,
-      16.7662,
-      16.695,
-      17.3984,
-      17.2916,
-      17.1046,
-      16.7751,
-      16.6505,
-      16.7306,
-      16.8197,
-      16.1919,
-      16.7662,
-      16.6505,
-      16.5169,
-      16.0005,
-      15.8135,
-      15.8046,
-      15.9114,
-      16.1162,
-      15.8046,
-      15.8491,
-      15.7868,
-      15.4395,
-      15.2481,
-      15.3505,
-      15.0121,
-      15.2169,
-      15.493,
-      15.4039,
-      15.4306,
-      15.582,
-      15.6354,
-      15.6532,
-      16.1786,
-      16.2186,
-      16.1608,
-      16.4101,
-      16.7039,
-      16.4012,
-      16.2587,
-      16.0806,
-      17.2292,
-      16.4457,
-      16.1786,
-      16.5971
-    ],
+    "Analysts": 14,
+    "Avg_Volume": 1646776,
     "Chart_Dates": [
       "2026-06-12",
       "2026-06-15",
@@ -47074,731 +46964,844 @@
       "2026-10-19",
       "2026-10-20"
     ],
+    "Chart_History": [
+      13.0978,
+      13.632,
+      14.1217,
+      13.73,
+      14.1128,
+      13.7389,
+      13.8991,
+      14.7272,
+      15.03,
+      15.6176,
+      15.671,
+      15.6443,
+      16.5258,
+      16.695,
+      16.321,
+      16.5169,
+      15.6978,
+      16.045,
+      15.6888,
+      15.8313,
+      15.6621,
+      16.7217,
+      16.6416,
+      16.143,
+      16.0539,
+      15.5553,
+      14.7272,
+      14.3577,
+      14.1485,
+      14.3711,
+      14.745,
+      14.745,
+      14.4868,
+      14.2553,
+      14.8074,
+      15.3683,
+      16.606,
+      16.2053,
+      15.8313,
+      15.4752,
+      15.5553,
+      15.5464,
+      16.2409,
+      16.7484,
+      16.2943,
+      16.2498,
+      16.7662,
+      16.695,
+      17.3984,
+      17.2916,
+      17.1046,
+      16.7751,
+      16.6505,
+      16.7306,
+      16.8197,
+      16.1919,
+      16.7662,
+      16.6505,
+      16.5169,
+      16.0005,
+      15.8135,
+      15.8046,
+      15.9114,
+      16.1162,
+      15.8046,
+      15.8491,
+      15.7868,
+      15.4395,
+      15.2481,
+      15.3505,
+      15.0121,
+      15.2169,
+      15.493,
+      15.4039,
+      15.4306,
+      15.582,
+      15.6354,
+      15.6532,
+      16.1786,
+      16.2186,
+      16.1608,
+      16.4101,
+      16.7039,
+      16.4012,
+      16.2587,
+      16.0806,
+      17.2292,
+      16.4457,
+      16.1786,
+      16.5971
+    ],
     "Chart_OHLC": [
       {
+        "close": 13.0978,
         "date": "2026-06-12",
-        "open": 13.2135,
         "high": 13.3382,
         "low": 12.9909,
-        "close": 13.0978
+        "open": 13.2135
       },
       {
+        "close": 13.632,
         "date": "2026-06-15",
-        "open": 13.1779,
         "high": 13.8101,
         "low": 13.169,
-        "close": 13.632
+        "open": 13.1779
       },
       {
+        "close": 14.1217,
         "date": "2026-06-16",
-        "open": 13.7656,
         "high": 14.4779,
         "low": 13.7656,
-        "close": 14.1217
+        "open": 13.7656
       },
       {
+        "close": 13.73,
         "date": "2026-06-17",
-        "open": 14.0416,
         "high": 14.3176,
         "low": 13.632,
-        "close": 13.73
+        "open": 14.0416
       },
       {
+        "close": 14.1128,
         "date": "2026-06-18",
-        "open": 13.8902,
         "high": 14.1306,
         "low": 13.6231,
-        "close": 14.1128
+        "open": 13.8902
       },
       {
+        "close": 13.7389,
         "date": "2026-06-22",
-        "open": 13.8991,
         "high": 14.1217,
         "low": 13.6944,
-        "close": 13.7389
+        "open": 13.8991
       },
       {
+        "close": 13.8991,
         "date": "2026-06-23",
-        "open": 13.8012,
         "high": 13.9659,
         "low": 13.5519,
-        "close": 13.8991
+        "open": 13.8012
       },
       {
+        "close": 14.7272,
         "date": "2026-06-24",
-        "open": 13.8724,
         "high": 14.8519,
         "low": 13.868,
-        "close": 14.7272
+        "open": 13.8724
       },
       {
+        "close": 15.03,
         "date": "2026-06-25",
-        "open": 14.843,
         "high": 15.4707,
         "low": 14.5402,
-        "close": 15.03
+        "open": 14.843
       },
       {
+        "close": 15.6176,
         "date": "2026-06-26",
-        "open": 14.9276,
         "high": 15.7601,
         "low": 14.8697,
-        "close": 15.6176
+        "open": 14.9276
       },
       {
+        "close": 15.671,
         "date": "2026-06-29",
-        "open": 15.5642,
         "high": 15.9471,
         "low": 15.2793,
-        "close": 15.671
+        "open": 15.5642
       },
       {
+        "close": 15.6443,
         "date": "2026-06-30",
-        "open": 15.6265,
         "high": 15.907,
         "low": 15.4039,
-        "close": 15.6443
+        "open": 15.6265
       },
       {
+        "close": 16.5258,
         "date": "2026-07-01",
-        "open": 15.5865,
         "high": 16.7751,
         "low": 15.5865,
-        "close": 16.5258
+        "open": 15.5865
       },
       {
+        "close": 16.695,
         "date": "2026-07-02",
-        "open": 16.4813,
         "high": 16.8464,
         "low": 16.4546,
-        "close": 16.695
+        "open": 16.4813
       },
       {
+        "close": 16.321,
         "date": "2026-07-06",
-        "open": 16.6816,
         "high": 16.784,
         "low": 16.1786,
-        "close": 16.321
+        "open": 16.6816
       },
       {
+        "close": 16.5169,
         "date": "2026-07-07",
-        "open": 16.419,
         "high": 16.5971,
         "low": 16.0628,
-        "close": 16.5169
+        "open": 16.419
       },
       {
+        "close": 15.6978,
         "date": "2026-07-08",
-        "open": 16.1697,
         "high": 16.2632,
         "low": 15.6799,
-        "close": 15.6978
+        "open": 16.1697
       },
       {
+        "close": 16.045,
         "date": "2026-07-09",
-        "open": 15.7423,
         "high": 16.0628,
         "low": 15.3906,
-        "close": 16.045
+        "open": 15.7423
       },
       {
+        "close": 15.6888,
         "date": "2026-07-10",
-        "open": 15.9649,
         "high": 16.3887,
         "low": 15.6666,
-        "close": 15.6888
+        "open": 15.9649
       },
       {
+        "close": 15.8313,
         "date": "2026-07-13",
-        "open": 15.7245,
         "high": 16.0584,
         "low": 15.7067,
-        "close": 15.8313
+        "open": 15.7245
       },
       {
+        "close": 15.6621,
         "date": "2026-07-14",
-        "open": 15.9382,
         "high": 15.9382,
         "low": 15.6087,
-        "close": 15.6621
+        "open": 15.9382
       },
       {
+        "close": 16.7217,
         "date": "2026-07-15",
-        "open": 15.7601,
         "high": 16.7351,
         "low": 15.7583,
-        "close": 16.7217
+        "open": 15.7601
       },
       {
+        "close": 16.6416,
         "date": "2026-07-16",
-        "open": 16.8197,
         "high": 16.8998,
         "low": 16.419,
-        "close": 16.6416
+        "open": 16.8197
       },
       {
+        "close": 16.143,
         "date": "2026-07-17",
-        "open": 16.2765,
         "high": 16.6327,
         "low": 16.0049,
-        "close": 16.143
+        "open": 16.2765
       },
       {
+        "close": 16.0539,
         "date": "2026-07-20",
-        "open": 16.1786,
         "high": 16.5436,
         "low": 16.045,
-        "close": 16.0539
+        "open": 16.1786
       },
       {
+        "close": 15.5553,
         "date": "2026-07-21",
-        "open": 15.7957,
         "high": 16.045,
         "low": 15.3594,
-        "close": 15.5553
+        "open": 15.7957
       },
       {
+        "close": 14.7272,
         "date": "2026-07-22",
-        "open": 15.4484,
         "high": 15.5597,
         "low": 14.5536,
-        "close": 14.7272
+        "open": 15.4484
       },
       {
+        "close": 14.3577,
         "date": "2026-07-23",
-        "open": 14.5224,
         "high": 14.5669,
         "low": 14.0772,
-        "close": 14.3577
+        "open": 14.5224
       },
       {
+        "close": 14.1485,
         "date": "2026-07-24",
-        "open": 14.095,
         "high": 14.38,
         "low": 13.908,
-        "close": 14.1485
+        "open": 14.095
       },
       {
+        "close": 14.3711,
         "date": "2026-07-27",
-        "open": 14.4423,
         "high": 14.5803,
         "low": 14.3354,
-        "close": 14.3711
+        "open": 14.4423
       },
       {
+        "close": 14.745,
         "date": "2026-07-28",
-        "open": 14.3711,
         "high": 14.7895,
         "low": 14.2464,
-        "close": 14.745
+        "open": 14.3711
       },
       {
+        "close": 14.745,
         "date": "2026-07-29",
-        "open": 14.7361,
         "high": 15.1012,
         "low": 14.5046,
-        "close": 14.745
+        "open": 14.7361
       },
       {
+        "close": 14.4868,
         "date": "2026-07-30",
-        "open": 14.7005,
         "high": 14.7192,
         "low": 14.2241,
-        "close": 14.4868
+        "open": 14.7005
       },
       {
+        "close": 14.2553,
         "date": "2026-07-31",
-        "open": 14.3176,
         "high": 14.469,
         "low": 13.8902,
-        "close": 14.2553
+        "open": 14.3176
       },
       {
+        "close": 14.8074,
         "date": "2026-08-03",
-        "open": 14.469,
         "high": 14.843,
         "low": 14.469,
-        "close": 14.8074
+        "open": 14.469
       },
       {
+        "close": 15.3683,
         "date": "2026-08-04",
-        "open": 14.7984,
         "high": 15.4395,
         "low": 14.7895,
-        "close": 15.3683
+        "open": 14.7984
       },
       {
+        "close": 16.606,
         "date": "2026-08-05",
-        "open": 15.8669,
         "high": 16.8464,
         "low": 15.6532,
-        "close": 16.606
+        "open": 15.8669
       },
       {
+        "close": 16.2053,
         "date": "2026-08-06",
-        "open": 16.4279,
         "high": 16.7662,
         "low": 16.2053,
-        "close": 16.2053
+        "open": 16.4279
       },
       {
+        "close": 15.8313,
         "date": "2026-08-07",
-        "open": 16.3745,
         "high": 16.5125,
         "low": 15.7779,
-        "close": 15.8313
+        "open": 16.3745
       },
       {
+        "close": 15.4752,
         "date": "2026-08-10",
-        "open": 15.5909,
         "high": 15.7512,
         "low": 15.1991,
-        "close": 15.4752
+        "open": 15.5909
       },
       {
+        "close": 15.5553,
         "date": "2026-08-11",
-        "open": 15.3772,
         "high": 15.8001,
         "low": 15.2882,
-        "close": 15.5553
+        "open": 15.3772
       },
       {
+        "close": 15.5464,
         "date": "2026-08-12",
-        "open": 15.493,
         "high": 15.8936,
         "low": 15.2882,
-        "close": 15.5464
+        "open": 15.493
       },
       {
+        "close": 16.2409,
         "date": "2026-08-13",
-        "open": 15.582,
         "high": 16.3032,
         "low": 15.582,
-        "close": 16.2409
+        "open": 15.582
       },
       {
+        "close": 16.7484,
         "date": "2026-08-14",
-        "open": 16.232,
         "high": 16.7662,
         "low": 16.1519,
-        "close": 16.7484
+        "open": 16.232
       },
       {
+        "close": 16.2943,
         "date": "2026-08-17",
-        "open": 16.7484,
         "high": 16.7484,
         "low": 16.1875,
-        "close": 16.2943
+        "open": 16.7484
       },
       {
+        "close": 16.2498,
         "date": "2026-08-18",
-        "open": 16.2142,
         "high": 16.6638,
         "low": 16.1964,
-        "close": 16.2498
+        "open": 16.2142
       },
       {
+        "close": 16.7662,
         "date": "2026-08-19",
-        "open": 16.4724,
         "high": 17.0289,
         "low": 16.419,
-        "close": 16.7662
+        "open": 16.4724
       },
       {
+        "close": 16.695,
         "date": "2026-08-20",
-        "open": 16.606,
         "high": 16.9977,
         "low": 16.5614,
-        "close": 16.695
+        "open": 16.606
       },
       {
+        "close": 17.3984,
         "date": "2026-08-21",
-        "open": 16.8063,
         "high": 17.4429,
         "low": 16.508,
-        "close": 17.3984
+        "open": 16.8063
       },
       {
+        "close": 17.2916,
         "date": "2026-08-24",
-        "open": 17.3984,
         "high": 17.5676,
         "low": 17.2114,
-        "close": 17.2916
+        "open": 17.3984
       },
       {
+        "close": 17.1046,
         "date": "2026-08-25",
-        "open": 17.2916,
         "high": 17.2916,
         "low": 16.9888,
-        "close": 17.1046
+        "open": 17.2916
       },
       {
+        "close": 16.7751,
         "date": "2026-08-26",
-        "open": 17.0868,
         "high": 17.0868,
         "low": 16.6371,
-        "close": 16.7751
+        "open": 17.0868
       },
       {
+        "close": 16.6505,
         "date": "2026-08-27",
-        "open": 16.7217,
         "high": 17.0743,
         "low": 16.5525,
-        "close": 16.6505
+        "open": 16.7217
       },
       {
+        "close": 16.7306,
         "date": "2026-08-28",
-        "open": 16.5792,
         "high": 16.8464,
         "low": 16.5748,
-        "close": 16.7306
+        "open": 16.5792
       },
       {
+        "close": 16.8197,
         "date": "2026-08-31",
-        "open": 16.8731,
         "high": 16.9577,
         "low": 16.4368,
-        "close": 16.8197
+        "open": 16.8731
       },
       {
+        "close": 16.1919,
         "date": "2026-09-01",
-        "open": 16.5169,
         "high": 16.7306,
         "low": 16.1251,
-        "close": 16.1919
+        "open": 16.5169
       },
       {
+        "close": 16.7662,
         "date": "2026-09-02",
-        "open": 15.9248,
         "high": 16.9621,
         "low": 15.0478,
-        "close": 16.7662
+        "open": 15.9248
       },
       {
+        "close": 16.6505,
         "date": "2026-09-03",
-        "open": 16.8909,
         "high": 17.158,
         "low": 16.5258,
-        "close": 16.6505
+        "open": 16.8909
       },
       {
+        "close": 16.5169,
         "date": "2026-09-04",
-        "open": 16.3923,
         "high": 16.7173,
         "low": 16.232,
-        "close": 16.5169
+        "open": 16.3923
       },
       {
+        "close": 16.0005,
         "date": "2026-09-08",
-        "open": 16.3566,
         "high": 16.3566,
         "low": 15.9159,
-        "close": 16.0005
+        "open": 16.3566
       },
       {
+        "close": 15.8135,
         "date": "2026-09-09",
-        "open": 15.9204,
         "high": 15.9916,
         "low": 15.5731,
-        "close": 15.8135
+        "open": 15.9204
       },
       {
+        "close": 15.8046,
         "date": "2026-09-10",
-        "open": 15.6888,
         "high": 15.8936,
         "low": 15.6221,
-        "close": 15.8046
+        "open": 15.6888
       },
       {
+        "close": 15.9114,
         "date": "2026-09-11",
-        "open": 15.8046,
         "high": 16.1073,
         "low": 15.7868,
-        "close": 15.9114
+        "open": 15.8046
       },
       {
+        "close": 16.1162,
         "date": "2026-09-14",
-        "open": 16.045,
         "high": 16.4012,
         "low": 15.9382,
-        "close": 16.1162
+        "open": 16.045
       },
       {
+        "close": 15.8046,
         "date": "2026-09-15",
-        "open": 16.0272,
         "high": 16.1207,
         "low": 15.7156,
-        "close": 15.8046
+        "open": 16.0272
       },
       {
+        "close": 15.8491,
         "date": "2026-09-16",
-        "open": 15.7245,
         "high": 15.9426,
         "low": 15.4484,
-        "close": 15.8491
+        "open": 15.7245
       },
       {
+        "close": 15.7868,
         "date": "2026-09-17",
-        "open": 16.0272,
         "high": 16.0851,
         "low": 15.6176,
-        "close": 15.7868
+        "open": 16.0272
       },
       {
+        "close": 15.4395,
         "date": "2026-09-18",
-        "open": 15.7868,
         "high": 15.8224,
         "low": 15.3817,
-        "close": 15.4395
+        "open": 15.7868
       },
       {
+        "close": 15.2481,
         "date": "2026-09-21",
-        "open": 15.582,
         "high": 15.6532,
         "low": 15.2125,
-        "close": 15.2481
+        "open": 15.582
       },
       {
+        "close": 15.3505,
         "date": "2026-09-22",
-        "open": 15.5464,
         "high": 15.5909,
         "low": 15.0878,
-        "close": 15.3505
+        "open": 15.5464
       },
       {
+        "close": 15.0121,
         "date": "2026-09-23",
-        "open": 15.306,
         "high": 15.4484,
         "low": 14.8875,
-        "close": 15.0121
+        "open": 15.306
       },
       {
+        "close": 15.2169,
         "date": "2026-09-24",
-        "open": 14.9676,
         "high": 15.2526,
         "low": 14.843,
-        "close": 15.2169
+        "open": 14.9676
       },
       {
+        "close": 15.493,
         "date": "2026-09-25",
-        "open": 15.208,
         "high": 15.6577,
         "low": 15.03,
-        "close": 15.493
+        "open": 15.208
       },
       {
+        "close": 15.4039,
         "date": "2026-09-28",
-        "open": 15.2615,
         "high": 15.6265,
         "low": 15.0567,
-        "close": 15.4039
+        "open": 15.2615
       },
       {
+        "close": 15.4306,
         "date": "2026-09-29",
-        "open": 15.4039,
         "high": 15.5375,
         "low": 15.2748,
-        "close": 15.4306
+        "open": 15.4039
       },
       {
+        "close": 15.582,
         "date": "2026-09-30",
-        "open": 15.5553,
         "high": 15.7512,
         "low": 15.3594,
-        "close": 15.582
+        "open": 15.5553
       },
       {
+        "close": 15.6354,
         "date": "2026-10-01",
-        "open": 15.582,
         "high": 15.8928,
         "low": 15.3416,
-        "close": 15.6354
+        "open": 15.582
       },
       {
+        "close": 15.6532,
         "date": "2026-10-02",
-        "open": 15.8224,
         "high": 15.9293,
         "low": 15.5909,
-        "close": 15.6532
+        "open": 15.8224
       },
       {
+        "close": 16.1786,
         "date": "2026-10-05",
-        "open": 15.6354,
         "high": 16.2053,
         "low": 15.6354,
-        "close": 16.1786
+        "open": 15.6354
       },
       {
+        "close": 16.2186,
         "date": "2026-10-06",
-        "open": 16.2498,
         "high": 16.3032,
         "low": 15.9916,
-        "close": 16.2186
+        "open": 16.2498
       },
       {
+        "close": 16.1608,
         "date": "2026-10-07",
-        "open": 15.7779,
         "high": 16.3566,
         "low": 15.7779,
-        "close": 16.1608
+        "open": 15.7779
       },
       {
+        "close": 16.4101,
         "date": "2026-10-08",
-        "open": 16.0005,
         "high": 16.4368,
         "low": 15.9693,
-        "close": 16.4101
+        "open": 16.0005
       },
       {
+        "close": 16.7039,
         "date": "2026-10-09",
-        "open": 16.4635,
         "high": 16.7395,
         "low": 16.3566,
-        "close": 16.7039
+        "open": 16.4635
       },
       {
+        "close": 16.4012,
         "date": "2026-10-12",
-        "open": 16.6149,
         "high": 16.7217,
         "low": 16.3878,
-        "close": 16.4012
+        "open": 16.6149
       },
       {
+        "close": 16.2587,
         "date": "2026-10-13",
-        "open": 16.3834,
         "high": 16.5614,
         "low": 16.1118,
-        "close": 16.2587
+        "open": 16.3834
       },
       {
+        "close": 16.0806,
         "date": "2026-10-14",
-        "open": 16.0183,
         "high": 16.143,
         "low": 15.7912,
-        "close": 16.0806
+        "open": 16.0183
       },
       {
+        "close": 17.2292,
         "date": "2026-10-15",
-        "open": 16.1073,
         "high": 17.296,
         "low": 16.1073,
-        "close": 17.2292
+        "open": 16.1073
       },
       {
+        "close": 16.4457,
         "date": "2026-10-16",
-        "open": 17.2114,
         "high": 17.3984,
         "low": 16.3032,
-        "close": 16.4457
+        "open": 17.2114
       },
       {
+        "close": 16.1786,
         "date": "2026-10-19",
-        "open": 16.4101,
         "high": 16.4546,
         "low": 16.134,
-        "close": 16.1786
+        "open": 16.4101
       },
       {
+        "close": 16.5971,
         "date": "2026-10-20",
-        "open": 16.2765,
         "high": 16.7929,
         "low": 16.2632,
-        "close": 16.5971
+        "open": 16.2765
       }
     ],
+    "Check_Details": "\u2713 Trend (P 16.6 > SMA50 16.2) \u2713 RS (Trend: Up, Val: 8.74) \u2713 RSI (55.6) \u2713 ATR (Risk 6.6%)",
+    "Checks_Passed": 4,
+    "Company_Name": "Flywire Corporation",
+    "Consensus": "Buy",
+    "Contract_ID": 493119079,
+    "Country": "US",
+    "Currency": "USD",
     "Daily_Change": 0.4185,
-    "RS_vs_SPX": 8.74,
-    "RS_Benchmark": "^GSPC",
-    "RS_Status": "Strong",
+    "Data_Broker": null,
+    "Date": "2026-10-21 02:03",
+    "Days_To_Earnings": 13,
     "Decision": "BUY",
     "Decision_Color": "#4caf50",
-    "Checks_Passed": 4,
-    "Smart_Entry": 16.67,
-    "Smart_Entry_EUR": 14.84,
-    "Smart_Type": "LIMIT",
-    "Smart_Reason": "Local Support Test",
-    "Strategy": "Normal",
-    "RR_Ratio": 1.97,
-    "Volume": 1615987,
-    "Avg_Volume": 1646776,
-    "Earnings_Msg": "Report in 13 days (2026-11-03)",
-    "Earnings_Danger": false,
-    "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
-    "Next_Earnings_Date": "2026-11-03",
-    "Days_To_Earnings": 13,
-    "Earnings_Source": "Yahoo Finance calendar",
+    "Earnings_Danger": false,
     "Earnings_Fetched_At": "2026-10-20T23:03:13+00:00",
-    "Check_Details": "\u2713 Trend (P 16.6 > SMA50 16.2) \u2713 RS (Trend: Up, Val: 8.74) \u2713 RSI (55.6) \u2713 ATR (Risk 6.6%)",
-    "Date": "2026-10-21 02:03",
-    "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-20T23:03:13+00:00",
-    "Market_Data_Observed_At": "2026-10-20T00:00:00+00:00",
-    "Market_Data_Timing": "delayed_or_end_of_day",
-    "Data_Broker": null,
+    "Earnings_Msg": "Report in 13 days (2026-11-03)",
+    "Earnings_Source": "Yahoo Finance calendar",
+    "Earnings_Status": "CLEAR",
+    "Exchange": "NASDAQ",
     "Execution_Brokers": [
       "IBKR"
     ],
+    "Finviz_ATR": null,
+    "History_Ticker": "FLYW",
     "IBKR_Data_Only": false,
     "IBKR_Snapshot_Groups": {},
-    "Market": "SUA",
-    "Country": "US",
-    "Exchange": "NASDAQ",
-    "Security_Type": "STK",
-    "Contract_ID": 493119079,
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Options_Supported": true,
+    "Industry": "Software - Infras...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 493119079,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "technical_score": 100.0,
-    "momentum_score": 75.36,
-    "research_score": 90,
-    "volatility_score": 73.43,
-    "liquidity_score": 50,
-    "options_score": 50.0,
-    "relative_opportunity_score": 50.0,
-    "risk_reward_score": 49.25,
-    "portfolio_fit_available": false,
-    "portfolio_fit_score": null,
-    "portfolio_adjustment_applied": false,
-    "raw_stock_score": 72.57,
-    "raw_stock_score_availability_adjusted": 75.08,
-    "options_score_observed": null,
-    "portfolio_adjusted_score": 72.57,
-    "risk_score": 59.37,
-    "volatility_regime": "calm",
+    "Market": "SUA",
+    "Market_Data_Fetched_At": "2026-10-20T23:03:13+00:00",
+    "Market_Data_Observed_At": "2026-10-20T00:00:00+00:00",
+    "Market_Data_Source": "Yahoo Finance",
+    "Market_Data_Timing": "delayed_or_end_of_day",
+    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
+    "Next_Earnings_Date": "2026-11-03",
+    "Options_Cohort": "OPTIONS_UNAVAILABLE",
+    "Options_Collection_Eligible": true,
+    "Options_Collection_Rank": 39,
+    "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
+    "Options_Data_Available": false,
+    "Options_Data_Partial": false,
+    "Options_Eligibility_Reason": "eligible",
+    "Options_Score": null,
+    "Options_Supported": true,
+    "Pct_To_Target": 13.04,
+    "Price": 16.6,
+    "Price_Native": 18.64,
+    "RR_Ratio": 1.97,
+    "RSI": 55.57,
+    "RSI_Status": "Neutral",
+    "RS_Benchmark": "^GSPC",
+    "RS_Status": "Strong",
+    "RS_vs_SPX": 8.74,
+    "SMA_200": 13.66,
+    "SMA_50": 16.17,
+    "Sector": "Technology",
+    "Security_Type": "STK",
+    "Smart_Entry": 16.67,
+    "Smart_Entry_EUR": 14.84,
+    "Smart_Reason": "Local Support Test",
+    "Smart_Type": "LIMIT",
+    "Stop_Loss": 15.5,
+    "Strategy": "Normal",
+    "Target": 18.76,
+    "Technical_Events_Ref": "watchlist:FLYW",
+    "Ticker": "FLYW",
+    "Trend": "Strong Bullish",
+    "VIX_Tag": "Normal",
+    "Vol_M": null,
+    "Vol_W": null,
+    "Volume": 1615987,
+    "_cached_at": 1792537393.526616,
     "current_decision": "BUY",
     "enhanced_decision": "BUY",
     "enhanced_decision_reason": "",
     "enhanced_stop": 15.5,
     "enhanced_stop_distance_pct": 6.63,
+    "liquidity_score": 50,
+    "momentum_score": 75.36,
+    "options_score": 50.0,
+    "options_score_observed": null,
+    "portfolio_adjusted_score": 72.57,
+    "portfolio_adjustment_applied": false,
+    "portfolio_fit_available": false,
+    "portfolio_fit_score": null,
+    "raw_stock_score": 72.57,
+    "raw_stock_score_availability_adjusted": 75.08,
+    "relative_opportunity_score": 50.0,
+    "research_score": 90,
+    "risk_reward_score": 49.25,
+    "risk_score": 59.37,
     "score_version": "ibkr-enhanced-v1-shadow",
-    "_cached_at": 1792537393.526616,
-    "Options_Collection_Eligible": true,
-    "Options_Eligibility_Reason": "eligible",
-    "Options_Collection_Rank": 39,
-    "Options_Collection_Selected": false,
-    "Options_Data_Available": false,
-    "Options_Data_Partial": false,
-    "Options_Cohort": "OPTIONS_UNAVAILABLE",
-    "Options_Context": {
-      "score_available": false
-    },
-    "Options_Score": null
+    "technical_score": 100.0,
+    "volatility_regime": "calm",
+    "volatility_score": 73.43
   },
   {
     "ATR_14": 1.82,
@@ -48650,12 +48653,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Insurance - Life",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 8093509,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -48664,7 +48667,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -48678,6 +48681,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 49,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -48733,10 +48739,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 2.04,
@@ -49588,12 +49591,12 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Oil & Gas Midstream",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NYSE",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 10794,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
@@ -49602,7 +49605,7 @@
         "STK",
         "WAR"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -49616,6 +49619,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 54,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -49671,10 +49677,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.37,
@@ -50526,19 +50529,19 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Internet Content ...",
     "Instrument_Metadata": {
-      "market": "SUA",
-      "country": "US",
-      "exchange": "NASDAQ",
-      "security_type": "STK",
-      "currency": "USD",
       "contract_id": 496085622,
+      "country": "US",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "market": "SUA",
+      "options_supported": true,
       "sections": [
         "BAG",
         "CFD",
         "OPT",
         "STK"
       ],
-      "options_supported": true,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Market": "SUA",
@@ -50552,6 +50555,9 @@
     "Options_Collection_Eligible": true,
     "Options_Collection_Rank": 6,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "eligible",
@@ -50607,9 +50613,6 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   }
 ]
