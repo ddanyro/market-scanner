@@ -8,8 +8,8 @@
     "History_Ticker": "LQQ.PA",
     "Company_Name": "LQQ \u2014 Nasdaq-100 Daily (2x) Leveraged UCITS ETF",
     "Shares": 250,
-    "Current_Price": 9.9,
-    "Price_Native": 9.9,
+    "Current_Price": 9.81,
+    "Price_Native": 9.81,
     "Currency": "EUR",
     "Contract_ID": 41975920,
     "Asset_Class": null,
@@ -19,28 +19,28 @@
     "Buy_Price": 9.93,
     "Target": 11.01,
     "Trail_Stop": 0,
-    "Suggested_Stop": 9.31,
-    "ATR_Native": 0.295572,
+    "Suggested_Stop": 9.21,
+    "ATR_Native": 0.300143,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
     "Trail_Pct": 0.0,
     "Investment": 2483.4,
     "Entry_Date": "2026-10-22",
-    "Current_Value": 2475.75,
-    "Profit": -7.65,
-    "Profit_Pct": -0.31,
+    "Current_Value": 2451.75,
+    "Profit": -31.65,
+    "Profit_Pct": -1.27,
     "Max_Profit": 269.1,
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 47.97,
+    "RSI": 45.94,
     "RSI_Status": "Neutral",
-    "Trend": "Strong Bullish",
+    "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
-    "Sell_Decision": "EXIT",
-    "Sell_Reason": "RS Fail (Falling); ",
-    "RS_vs_SPX": 1.58,
+    "Sell_Decision": "HOLD",
+    "Sell_Reason": "Trend UP (P 9.8 > SMA200 8.8), RSI 46",
+    "RS_vs_SPX": 0.56,
     "Chart_History": [
       10.3075,
       10.3875,
@@ -136,7 +136,8 @@
       9.498,
       9.628,
       9.903,
-      9.919
+      9.919,
+      9.807
     ],
     "Chart_Dates": [
       "2026-06-18",
@@ -233,7 +234,8 @@
       "2026-10-23",
       "2026-10-26",
       "2026-10-27",
-      "2026-10-28"
+      "2026-10-28",
+      "2026-10-29"
     ],
     "Chart_OHLC": [
       {
@@ -265,18 +267,18 @@
         "open": 9.938
       },
       {
+        "close": 9.863,
         "date": "2026-06-24",
-        "open": 9.878,
         "high": 9.959,
         "low": 9.721,
-        "close": 9.863
+        "open": 9.878
       },
       {
+        "close": 9.755,
         "date": "2026-06-25",
-        "open": 10.0925,
         "high": 10.175,
         "low": 9.543,
-        "close": 9.755
+        "open": 10.0925
       },
       {
         "date": "2026-06-26",
@@ -895,24 +897,31 @@
         "close": 9.903
       },
       {
-        "close": 9.919,
         "date": "2026-10-28",
+        "open": 10.014,
         "high": 10.026,
         "low": 9.864,
-        "open": 10.014
+        "close": 9.919
+      },
+      {
+        "date": "2026-10-29",
+        "open": 9.729,
+        "high": 9.838,
+        "low": 9.721,
+        "close": 9.807
       }
     ],
-    "Daily_Change": 0.275,
-    "Date": "2026-10-29 06:57",
+    "Daily_Change": -0.112,
+    "Date": "2026-10-29 12:35",
     "Earnings_Danger": false,
     "Earnings_Status": "UNKNOWN",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-10-29T04:56:55+00:00",
+    "Earnings_Fetched_At": "2026-10-29T10:34:57+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-29T04:56:55+00:00",
+    "Market_Data_Fetched_At": "2026-10-29T10:34:57+00:00",
     "Market_Data_Observed_At": null,
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
@@ -940,9 +949,9 @@
       "options_supported": false,
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "volatility_score": 75.0,
+    "volatility_score": 74.7,
     "liquidity_score": 50,
-    "risk_score": 60.0,
+    "risk_score": 59.88,
     "volatility_regime": "calm",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
@@ -986,7 +995,7 @@
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
     "Sell_Decision": "EXIT",
-    "Sell_Reason": "Structure Fail (Sub SMA50: 215.38 < 222.00); RS Fail (Falling); ",
+    "Sell_Reason": "Structure Fail (Sub SMA50: 215.38 < 222.00); ",
     "RS_vs_SPX": -1.91,
     "Chart_History": [
       182.2124,
@@ -1868,16 +1877,16 @@
       }
     ],
     "Daily_Change": -2.2969,
-    "Date": "2026-10-29 06:57",
+    "Date": "2026-10-29 12:35",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-11-17",
     "Days_To_Earnings": 19,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-10-29T04:57:00+00:00",
+    "Earnings_Fetched_At": "2026-10-29T10:35:02+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-29T04:57:00+00:00",
+    "Market_Data_Fetched_At": "2026-10-29T10:35:02+00:00",
     "Market_Data_Observed_At": "2026-10-28T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
@@ -1937,7 +1946,7 @@
     "Target": 11.73,
     "Trail_Stop": 9.64,
     "Suggested_Stop": 10.49,
-    "ATR_Native": 1.105,
+    "ATR_Native": 1.098572,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
@@ -1951,13 +1960,13 @@
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 59.58,
+    "RSI": 61.5,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 58.3 > SMA200 52.7), RSI 60, Risk 11.6%",
-    "RS_vs_SPX": -2.9,
+    "Sell_Reason": "Trend UP (P 58.3 > SMA200 52.7), RSI 62, Risk 11.6%",
+    "RS_vs_SPX": -2.53,
     "Chart_History": [
       6.6838,
       6.6487,
@@ -2223,7 +2232,8 @@
       10.9555,
       10.905,
       10.9125,
-      11.049
+      11.049,
+      11.1182
     ],
     "Chart_Dates": [
       "2025-10-06",
@@ -2490,7 +2500,8 @@
       "2026-10-23",
       "2026-10-26",
       "2026-10-27",
-      "2026-10-28"
+      "2026-10-28",
+      "2026-10-29"
     ],
     "Chart_OHLC": [
       {
@@ -2606,11 +2617,11 @@
         "open": 6.9918
       },
       {
+        "close": 7.0715,
         "date": "2025-10-28",
-        "open": 7.0257,
         "high": 7.0949,
         "low": 7.0257,
-        "close": 7.0715
+        "open": 7.0257
       },
       {
         "date": "2025-10-29",
@@ -4347,20 +4358,27 @@
         "high": 11.2023,
         "low": 10.9181,
         "close": 11.049
+      },
+      {
+        "date": "2026-10-29",
+        "open": 11.049,
+        "high": 11.1705,
+        "low": 11.0303,
+        "close": 11.1182
       }
     ],
-    "Daily_Change": 0.1365,
-    "Date": "2026-10-29 06:57",
+    "Daily_Change": 0.0692,
+    "Date": "2026-10-29 12:35",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-10-29T04:57:01+00:00",
+    "Earnings_Fetched_At": "2026-10-29T10:35:03+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-29T04:57:01+00:00",
-    "Market_Data_Observed_At": "2026-10-28T00:00:00+00:00",
+    "Market_Data_Fetched_At": "2026-10-29T10:35:03+00:00",
+    "Market_Data_Observed_At": "2026-10-29T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
     "Execution_Brokers": [
@@ -4416,7 +4434,7 @@
     "Target": 11.73,
     "Trail_Stop": 9.64,
     "Suggested_Stop": 10.49,
-    "ATR_Native": 1.105,
+    "ATR_Native": 1.098572,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
@@ -4430,13 +4448,13 @@
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 59.58,
+    "RSI": 61.5,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 58.3 > SMA200 52.7), RSI 60, Risk 11.6%",
-    "RS_vs_SPX": -2.9,
+    "Sell_Reason": "Trend UP (P 58.3 > SMA200 52.7), RSI 62, Risk 11.6%",
+    "RS_vs_SPX": -2.53,
     "Chart_History": [
       6.6838,
       6.6487,
@@ -4702,7 +4720,8 @@
       10.9555,
       10.905,
       10.9125,
-      11.049
+      11.049,
+      11.1182
     ],
     "Chart_Dates": [
       "2025-10-06",
@@ -4969,7 +4988,8 @@
       "2026-10-23",
       "2026-10-26",
       "2026-10-27",
-      "2026-10-28"
+      "2026-10-28",
+      "2026-10-29"
     ],
     "Chart_OHLC": [
       {
@@ -5085,11 +5105,11 @@
         "open": 6.9918
       },
       {
+        "close": 7.0715,
         "date": "2025-10-28",
-        "open": 7.0257,
         "high": 7.0949,
         "low": 7.0257,
-        "close": 7.0715
+        "open": 7.0257
       },
       {
         "date": "2025-10-29",
@@ -6826,20 +6846,27 @@
         "high": 11.2023,
         "low": 10.9181,
         "close": 11.049
+      },
+      {
+        "date": "2026-10-29",
+        "open": 11.049,
+        "high": 11.1705,
+        "low": 11.0303,
+        "close": 11.1182
       }
     ],
-    "Daily_Change": 0.1365,
-    "Date": "2026-10-29 06:57",
+    "Daily_Change": 0.0692,
+    "Date": "2026-10-29 12:35",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-10-29T04:57:01+00:00",
+    "Earnings_Fetched_At": "2026-10-29T10:35:03+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-29T04:57:01+00:00",
-    "Market_Data_Observed_At": "2026-10-28T00:00:00+00:00",
+    "Market_Data_Fetched_At": "2026-10-29T10:35:03+00:00",
+    "Market_Data_Observed_At": "2026-10-29T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
     "Execution_Brokers": [
