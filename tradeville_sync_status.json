@@ -1,9 +1,9 @@
 {
   "schema": "market-scanner.tradeville.sync-status.v1",
-  "checked_at": "2026-10-30T13:47:16.606238+00:00",
+  "checked_at": "2026-10-30T14:09:52.238102+00:00",
   "ok": false,
   "stale": true,
   "error": "TimeoutError",
-  "message": "extensia nu s-a conectat la bridge; apasă Reload în chrome://extensions și reîncarcă fila portal.tradeville.ro; autentificarea nu a putut fi verificată",
+  "message": "extensia a preluat jobul, dar pagina Tradeville nu a livrat rezultatul la timp; reîncarcă fila portal.tradeville.ro și reîncearcă",
   "last_good_snapshot_preserved": true
 }
