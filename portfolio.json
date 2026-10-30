@@ -19,7 +19,7 @@
     "Buy_Price": 9.93,
     "Target": 11.01,
     "Trail_Stop": 0,
-    "Suggested_Stop": 8.56,
+    "Suggested_Stop": 8.53,
     "ATR_Native": 0.333643,
     "Finviz_ATR": null,
     "Vol_W": null,
@@ -39,7 +39,7 @@
     "Trend": "Bullish Pullback",
     "VIX_Tag": "Normal",
     "Sell_Decision": "EXIT",
-    "Sell_Reason": "Structure Fail (Sub SMA50: 9.23 < 9.86); Momentum Fail (RSI 35.7 < 45); ",
+    "Sell_Reason": "Structure Fail (Sub SMA50: 9.20 < 9.86); Momentum Fail (RSI 35.7 < 45); ",
     "RS_vs_SPX": -5.3,
     "Chart_History": [
       9.813,
@@ -858,14 +858,14 @@
       }
     ],
     "Daily_Change": -0.508,
-    "Date": "2026-10-30 16:22",
+    "Date": "2026-10-30 16:25",
     "Earnings_Danger": false,
     "Earnings_Status": "UNKNOWN",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-10-30T14:22:34+00:00",
+    "Earnings_Fetched_At": "2026-10-30T14:25:48+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-10-30T14:22:40.026009+00:00",
     "Market_Data_Observed_At": "2026-10-30T14:07:26+00:00",
@@ -893,6 +893,9 @@
       "open_52w": 7.999000072479248
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -915,9 +918,6 @@
       "risk": [
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "Europa / Nasdaq-100",
@@ -939,9 +939,9 @@
       "options_supported": false,
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "volatility_score": 71.93,
-    "liquidity_score": 66.84,
-    "risk_score": 63.82,
+    "volatility_score": 71.87,
+    "liquidity_score": 66.88,
+    "risk_score": 63.81,
     "volatility_regime": "calm",
     "score_version": "ibkr-enhanced-v1-shadow"
   },
@@ -1804,14 +1804,14 @@
       }
     ],
     "Daily_Change": -5.4538,
-    "Date": "2026-10-30 16:22",
+    "Date": "2026-10-30 16:25",
     "Earnings_Danger": false,
     "Earnings_Status": "CLEAR",
     "Earnings_Available": true,
     "Next_Earnings_Date": "2026-11-17",
     "Days_To_Earnings": 18,
     "Earnings_Source": "Yahoo Finance calendar",
-    "Earnings_Fetched_At": "2026-10-30T14:22:36+00:00",
+    "Earnings_Fetched_At": "2026-10-30T14:25:49+00:00",
     "Market_Data_Source": "IBKR MCP",
     "Market_Data_Fetched_At": "2026-10-30T14:22:40.026186+00:00",
     "Market_Data_Observed_At": "2026-10-30T14:22:39+00:00",
@@ -1841,6 +1841,9 @@
       "open_52w": 204.88800048828125
     },
     "IBKR_Snapshot_Groups": {
+      "display": [
+        "dividend_yield"
+      ],
       "quote": [
         "last",
         "bid_ask",
@@ -1865,9 +1868,6 @@
         "implied_vol_underlying",
         "historical_vol",
         "misc_statistics"
-      ],
-      "display": [
-        "dividend_yield"
       ]
     },
     "Market": "SUA",
@@ -1935,13 +1935,13 @@
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 62.78,
+    "RSI": 62.73,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 59.7 > SMA200 52.8), RSI 63, Risk 13.6%",
-    "RS_vs_SPX": -2.89,
+    "Sell_Reason": "Trend UP (P 58.3 > SMA200 52.8), RSI 63, Risk 11.6%",
+    "RS_vs_SPX": -2.9,
     "Chart_History": [
       6.6838,
       6.6487,
@@ -2209,7 +2209,7 @@
       10.9323,
       11.0691,
       11.0897,
-      11.1815
+      11.1796
     ],
     "Chart_Dates": [
       "2025-10-06",
@@ -4348,20 +4348,20 @@
         "open": 11.1421,
         "high": 11.1983,
         "low": 11.0223,
-        "close": 11.1815
+        "close": 11.1796
       }
     ],
-    "Daily_Change": 0.0918,
-    "Date": "2026-10-30 16:22",
+    "Daily_Change": 0.0899,
+    "Date": "2026-10-30 16:25",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-10-30T14:22:38+00:00",
+    "Earnings_Fetched_At": "2026-10-30T14:25:50+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-30T14:22:38+00:00",
+    "Market_Data_Fetched_At": "2026-10-30T14:25:50+00:00",
     "Market_Data_Observed_At": "2026-10-30T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
@@ -4432,13 +4432,13 @@
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 62.78,
+    "RSI": 62.73,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 59.7 > SMA200 52.8), RSI 63, Risk 13.6%",
-    "RS_vs_SPX": -2.89,
+    "Sell_Reason": "Trend UP (P 58.3 > SMA200 52.8), RSI 63, Risk 11.6%",
+    "RS_vs_SPX": -2.9,
     "Chart_History": [
       6.6838,
       6.6487,
@@ -4706,7 +4706,7 @@
       10.9323,
       11.0691,
       11.0897,
-      11.1815
+      11.1796
     ],
     "Chart_Dates": [
       "2025-10-06",
@@ -6845,20 +6845,20 @@
         "open": 11.1421,
         "high": 11.1983,
         "low": 11.0223,
-        "close": 11.1815
+        "close": 11.1796
       }
     ],
-    "Daily_Change": 0.0918,
-    "Date": "2026-10-30 16:22",
+    "Daily_Change": 0.0899,
+    "Date": "2026-10-30 16:25",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-10-30T14:22:38+00:00",
+    "Earnings_Fetched_At": "2026-10-30T14:25:50+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-10-30T14:22:38+00:00",
+    "Market_Data_Fetched_At": "2026-10-30T14:25:50+00:00",
     "Market_Data_Observed_At": "2026-10-30T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
