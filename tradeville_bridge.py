@@ -740,29 +740,70 @@ def _eur_value(row: dict[str, Any]) -> float | None:
     )
 
 
+def _current_row_eur_value(
+    row: dict[str, Any], rates: dict[str, float], eur_rate: float | None,
+) -> float | None:
+    """Value a current Tradeville portfolio row without depending on its graph."""
+    explicit = _eur_value(row)
+    if explicit is not None:
+        return explicit
+    cash = _is_cash_row(row)
+    currency = _first_text(row, "valuta", "currency").upper()
+    if not currency and cash:
+        currency = _first_text(row, "simbol", "symbol").upper()
+    native_value = _first_number(row, "eval", "evaluare", "current_value")
+    if native_value is None:
+        quantity = _first_number(row, "sold", "cant", "amount", "quantity")
+        if quantity is None:
+            return None
+        price = 1.0 if cash else _first_number(row, "ppiata", "pret", "current_price")
+        if price is None:
+            return None
+        native_value = quantity * price
+    if currency == "EUR":
+        return native_value
+    rate = rates.get(currency)
+    if not rate or not eur_rate:
+        return None
+    return native_value * rate / eur_rate
+
+
 def _account_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
     accounts = []
     history_start = _history_start()
+    rates = {
+        _first_text(row, "valuta", "currency").upper(): rate
+        for row in snapshot.get("exchange_rates", [])
+        if isinstance(row, dict)
+        if (rate := _first_number(row, "curs", "rate")) is not None and rate > 0
+    }
+    rates.setdefault("RON", 1.0)
+    eur_rate = rates.get("EUR")
     for account in snapshot["accounts"]:
         person = account["person"]
         history = _account_history(account, snapshot, start=history_start)
         cash_by_currency: dict[str, float] = {}
         cash_value_eur: dict[str, float] = {}
-        for row in _cash_rows(account):
+        cash_rows = _cash_rows(account)
+        cash_complete = True
+        for row in cash_rows:
             currency = _first_text(row, "valuta", "currency", "simbol", "symbol").upper()
             amount = _first_number(row, "sold", "cant", "amount", "quantity")
             if currency and amount is not None:
                 cash_by_currency[currency] = cash_by_currency.get(currency, 0.0) + amount
-            eur = _eur_value(row)
+            eur = _current_row_eur_value(row, rates, eur_rate)
             if currency and eur is not None:
                 cash_value_eur[currency] = cash_value_eur.get(currency, 0.0) + eur
+            else:
+                cash_complete = False
 
         all_eur = [
-            _eur_value(row) for row in account["portfolio"] if isinstance(row, dict)
+            _current_row_eur_value(row, rates, eur_rate)
+            for row in account["portfolio"] if isinstance(row, dict)
         ]
-        known_all_eur = [value for value in all_eur if value is not None]
-        total_cash = sum(cash_value_eur.values()) if cash_value_eur else None
-        nav = sum(known_all_eur) if known_all_eur else total_cash
+        total_cash = sum(cash_value_eur.values()) if cash_rows and cash_complete else None
+        nav = sum(all_eur) if all_eur and all(value is not None for value in all_eur) else None
+        current_valuation = nav is not None
         if nav is None and history["nav_history"]:
             nav = history["nav_history"][-1]["nav"]
         if total_cash is None and history["cash_history"]:
@@ -779,6 +820,11 @@ def _account_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
             "source": "Tradeville WebSocket pf4",
             "fetched_at": snapshot["fetched_at"],
             "base_currency": "EUR",
+            "summary_source": "current_portfolio" if current_valuation else "portfolio_graph",
+            "summary_as_of": (
+                snapshot["fetched_at"] if current_valuation
+                else history["history_metadata"].get("last_date")
+            ),
             "summary": summary,
             "cash_by_currency": cash_by_currency,
             "cash_value_eur_by_currency": cash_value_eur,

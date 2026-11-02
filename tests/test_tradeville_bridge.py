@@ -199,6 +199,58 @@ class TestTradevilleBridge(unittest.TestCase):
         self.assertEqual(summary["NetLiquidation"], 200)
         self.assertEqual(summary["TotalCashValue"], 200)
 
+    def test_account_summary_includes_new_deposit_even_when_graph_is_stale(self):
+        snapshot = sample_snapshot()
+        snapshot["exchange_rates"] = [
+            {"valuta": "RON", "curs": 1},
+            {"valuta": "EUR", "curs": 5.3403},
+        ]
+        account = snapshot["accounts"][1]
+        account["portfolio_graph"] = [{"data": "2026-10-27", "eval": 73147.0,
+                                      "cash": 39.91716}]
+        account["portfolio_graph_request"]["fallback_last_good"] = True
+        account["settlement"] = [
+            {"Cont": "Z/1", "Valoare": -28967.7403, "Valuta": "RON"},
+            {"Cont": "Z/1", "Valoare": -33048.73228, "Valuta": "RON"},
+        ]
+
+        for shares, cash in ((1254, 62039.91716), (2286, 23.44458)):
+            with self.subTest(shares=shares):
+                account["portfolio"] = [
+                    {"simbol": "TVBETETF", "sold": shares,
+                     "ppiata": 59.72, "valuta": "RON", "ba": "A"},
+                    {"simbol": "RON", "sold": cash,
+                     "ppiata": 1, "valuta": "RON", "ba": "B"},
+                ]
+                summary = tradeville_bridge._account_snapshot(snapshot)[
+                    "accounts"][1]["summary"]
+                self.assertAlmostEqual(
+                    summary["NetLiquidation"],
+                    (shares * 59.72 + cash) / 5.3403,
+                    places=2,
+                )
+                self.assertAlmostEqual(
+                    summary["TotalCashValue"], cash / 5.3403, places=2
+                )
+
+    def test_account_summary_converts_multicurrency_cash_without_evaleuro(self):
+        snapshot = sample_snapshot()
+        snapshot["exchange_rates"] = [
+            {"valuta": "RON", "curs": 1},
+            {"valuta": "EUR", "curs": 5.0},
+            {"valuta": "USD", "curs": 4.5},
+        ]
+        snapshot["accounts"][0]["portfolio"] = [
+            {"simbol": "RON", "sold": 100, "ppiata": 1, "valuta": "RON"},
+            {"simbol": "EUR", "sold": 200, "ppiata": 1, "valuta": "EUR"},
+            {"simbol": "USD", "sold": 300, "ppiata": 1, "valuta": "USD"},
+        ]
+
+        summary = tradeville_bridge._account_snapshot(snapshot)[
+            "accounts"][0]["summary"]
+        self.assertAlmostEqual(summary["NetLiquidation"], 490.0)
+        self.assertAlmostEqual(summary["TotalCashValue"], 490.0)
+
     def test_persist_is_atomic_and_encrypts_portable_snapshots(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
