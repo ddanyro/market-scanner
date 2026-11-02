@@ -1,19 +1,19 @@
 # Enhanced shadow forward-validation readiness
 
-Generated: 2026-11-02T20:39:56+00:00
+Generated: 2026-11-02T20:46:26+00:00
 
 - Official activation: **2026-09-09T10:45:48+00:00**
 - Frozen model hash: **91f171a9459497f42ddd59cf597b3d23ac0f856095110a7ba6ea18f8b3b02d0b**
 
 ## Coverage
 
-- Official snapshots: **814**
+- Official snapshots: **815**
 - Pre-official/legacy snapshots excluded: **27**
-- Predictions: **6127**
-- Execution-eligible predictions: **5661** (92.4%)
+- Predictions: **6142**
+- Execution-eligible predictions: **5676** (92.4%)
 - Options observed: **0** (0.0%)
-- Options quality: **{"contracts_only": 7, "partial": 84, "quote_only": 107, "unavailable": 5929}**
-- Portfolio Fit observed: **4682** (76.4%)
+- Options quality: **{"contracts_only": 7, "partial": 84, "quote_only": 107, "unavailable": 5944}**
+- Portfolio Fit observed: **4697** (76.5%)
 - Locked-holdout snapshots: **0**
 - Integrity errors: **0**
 - Matured 1D/5D/10D/20D/60D outcomes: **not evaluated in the collection job**
