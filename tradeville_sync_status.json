@@ -1,9 +1,9 @@
 {
   "schema": "market-scanner.tradeville.sync-status.v1",
-  "checked_at": "2026-11-02T15:25:58.105534+00:00",
+  "checked_at": "2026-11-03T10:17:51.930488+00:00",
   "ok": false,
   "stale": true,
-  "error": "SnapshotError",
-  "message": "login_failed",
+  "error": "TimeoutError",
+  "message": "extensia a preluat jobul, dar pagina Tradeville nu a livrat rezultatul la timp; reîncarcă fila portal.tradeville.ro și reîncearcă",
   "last_good_snapshot_preserved": true
 }
