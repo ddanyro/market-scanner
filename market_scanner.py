@@ -10013,7 +10013,7 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
     if (
         run_mode in {'all', 'watchlist', 'portfolio', 'international', 'ro'}
         and not os.environ.get('PYTEST_CURRENT_TEST')
-        and os.environ.get('TECHNICAL_EVENTS_SHADOW_ENABLED', '1').lower()
+        and os.environ.get('TECHNICAL_EVENTS_SHADOW_ENABLED', '0').lower()
         not in {'0', 'false', 'no', 'off'}
     ):
         try:
@@ -10051,19 +10051,22 @@ window.addEventListener('keydown',event=>{if(event.key==='Escape'){event.prevent
                 full_state,
                 run_mode=run_mode,
             )
-            shadow_validation.generate_readiness_report()
-            full_state['shadow_validation_latest'] = {
-                key: shadow_snapshot.get(key) for key in (
-                    'snapshot_id', 'recorded_at', 'sample_partition',
-                    'candidate_count', 'policy_id', 'policy_hash',
+            if shadow_snapshot['collection_skipped']:
+                print('  -> Shadow validation: snapshotul zilnic există deja; omis.')
+            else:
+                shadow_validation.generate_readiness_report()
+                full_state['shadow_validation_latest'] = {
+                    key: shadow_snapshot.get(key) for key in (
+                        'snapshot_id', 'recorded_at', 'sample_partition',
+                        'candidate_count', 'policy_id', 'policy_hash',
+                    )
+                }
+                market_utils.save_state(full_state)
+                print(
+                    '  -> Shadow validation: '
+                    f"{shadow_snapshot['candidate_count']} predicții "
+                    'point-in-time salvate.'
                 )
-            }
-            market_utils.save_state(full_state)
-            print(
-                '  -> Shadow validation: '
-                f"{shadow_snapshot['candidate_count']} predicții "
-                'point-in-time salvate.'
-            )
         except Exception as exc:
             print(f'  ⚠ Shadow validation indisponibilă: {exc}')
     ai_buy_candidate_payload, blocked_ai_buy_candidates, ai_market_gates = (

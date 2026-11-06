@@ -110,13 +110,53 @@ def test_append_only_ledger_round_trip(tmp_path):
         [candidate()], {}, "2026-09-08T10:00:00Z", "portfolio", path
     )
     shadow_validation.append_snapshot(
-        [candidate(symbol="BBB")], {}, "2026-09-08T10:30:00Z", "portfolio", path
+        [candidate(symbol="BBB")], {}, "2026-09-09T10:30:00Z", "portfolio", path
     )
     loaded = shadow_validation.load_ledger(path)
     assert len(loaded) == 2
     assert [item["predictions"][0]["symbol"] for item in loaded] == ["AAA", "BBB"]
     assert len(path.read_text().splitlines()) == 2
     assert loaded[1]["previous_snapshot_hash"] == loaded[0]["content_hash"]
+
+
+def test_enhanced_collection_skips_second_snapshot_on_same_utc_day(tmp_path):
+    path = tmp_path / "ledger.jsonl"
+    first = shadow_validation.append_snapshot(
+        [candidate()], {}, "2026-09-08T23:30:00Z", "all", path
+    )
+    skipped = shadow_validation.append_snapshot(
+        [candidate(symbol="BBB")], {}, "2026-09-09T01:00:00+02:00", "portfolio", path
+    )
+    assert skipped["collection_skipped"] is True
+    assert skipped["snapshot_id"] == first["snapshot_id"]
+    assert len(path.read_text().splitlines()) == 1
+    next_day = shadow_validation.append_snapshot(
+        [candidate(symbol="BBB")], {}, "2026-09-09T00:30:00Z", "all", path
+    )
+    assert next_day["collection_skipped"] is False
+    assert len(path.read_text().splitlines()) == 2
+
+
+def test_enhanced_collection_respects_cloud_snapshot_on_same_day(tmp_path, monkeypatch):
+    import shadow_parquet_store
+
+    path = tmp_path / "ledger.jsonl"
+    monkeypatch.setattr(shadow_validation, "LEDGER_PATH", path)
+    remote = shadow_validation.append_snapshot(
+        [candidate()], {}, "2026-09-08T09:00:00Z", "all", tmp_path / "remote.jsonl"
+    )
+    monkeypatch.setattr(shadow_parquet_store, "is_configured", lambda: True)
+    monkeypatch.setattr(shadow_parquet_store, "latest_snapshot", lambda _dataset: remote)
+    monkeypatch.setattr(
+        shadow_parquet_store, "persist_optional",
+        lambda *_args: (_ for _ in ()).throw(AssertionError("duplicate upload")),
+    )
+    skipped = shadow_validation.append_snapshot(
+        [candidate(symbol="BBB")], {}, "2026-09-08T12:00:00Z", "all", path
+    )
+    assert skipped["collection_skipped"] is True
+    assert skipped["snapshot_id"] == remote["snapshot_id"]
+    assert path.read_text() == ""
 
 
 def test_hash_chain_detects_snapshot_tampering(tmp_path):
@@ -299,7 +339,7 @@ def test_official_report_excludes_pre_activation_observations(tmp_path):
     ledger = tmp_path / "ledger.jsonl"
     report_path = tmp_path / "readiness.md"
     shadow_validation.append_snapshot(
-        [candidate(symbol="OLD")], {}, "2026-09-09T10:45:00Z", "all", ledger
+        [candidate(symbol="OLD")], {}, "2026-09-08T10:45:00Z", "all", ledger
     )
     shadow_validation.append_snapshot(
         [candidate(symbol="NEW")], {}, "2026-09-09T10:46:00Z", "all", ledger

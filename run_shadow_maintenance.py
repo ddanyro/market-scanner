@@ -1,8 +1,9 @@
-"""Cadenced maintenance for Enhanced and Technical Events shadow outcomes.
+"""Cadenced maintenance for Enhanced and opt-in Technical Events outcomes.
 
-Snapshot collection stays in the scanner and therefore runs every time. This
-runner only performs the expensive, derived forward analyses when their
-independent cadence is due. Standalone cadence state is local, so an R2 pull
+Enhanced snapshot collection stays in the scanner, capped at one UTC day.
+Technical Events shadow collection and forward research are paused by default.
+This runner performs derived forward analyses when their independent cadence
+is due. Standalone cadence state is local, so an R2 pull
 for dashboard updates cannot overwrite a newer successful research timestamp.
 """
 
@@ -52,6 +53,7 @@ TASKS = {
         "label": "Validare forward Technical Events",
     },
 }
+DEFAULT_TASKS = ("enhanced",)
 
 
 def _parse_timestamp(value):
@@ -182,7 +184,7 @@ def run_with_heartbeat(command, label, heartbeat_seconds=None, timeout_seconds=N
 
 def run_maintenance(*, selected=None, force=False, offline=False, now=None, timeout_seconds=None):
     now = now or dt.datetime.now(dt.timezone.utc)
-    selected = list(selected or TASKS)
+    selected = list(DEFAULT_TASKS if selected is None else selected)
     LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
     failures = []
     with LOCK_PATH.open("a+", encoding="utf-8") as lock:

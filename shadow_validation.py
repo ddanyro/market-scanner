@@ -474,7 +474,6 @@ def append_snapshot(candidates, state, recorded_at=None, run_mode=None, path=LED
     snapshot = build_snapshot(candidates, state, recorded_at, run_mode)
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    payload = json.dumps(snapshot, separators=(",", ":"), ensure_ascii=False)
     cloud_previous = None
     if target == LEDGER_PATH:
         try:
@@ -504,6 +503,11 @@ def append_snapshot(candidates, state, recorded_at=None, run_mode=None, path=LED
                 previous_candidates,
                 key=lambda item: (item.get("recorded_at", ""), item.get("snapshot_id", "")),
             )
+            if _utc_timestamp(previous["recorded_at"])[:10] == _utc_timestamp(
+                snapshot["recorded_at"]
+            )[:10]:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+                return {**previous, "collection_skipped": True}
             snapshot["previous_snapshot_hash"] = (
                 previous.get("content_hash") or _content_hash(previous)
             )
@@ -521,7 +525,7 @@ def append_snapshot(candidates, state, recorded_at=None, run_mode=None, path=LED
         shadow_parquet_store.persist_optional(
             snapshot, shadow_parquet_store.ENHANCED_DATASET
         )
-    return snapshot
+    return {**snapshot, "collection_skipped": False}
 
 
 def load_local_ledger(

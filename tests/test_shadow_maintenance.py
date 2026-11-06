@@ -123,6 +123,23 @@ def test_only_due_task_runs_and_success_timestamp_is_persisted(
     )
 
 
+def test_default_maintenance_does_not_run_technical_research(tmp_path, monkeypatch):
+    now = dt.datetime(2026, 9, 12, 12, tzinfo=dt.timezone.utc)
+    _configure(tmp_path, monkeypatch, "2026-09-10T08:00:00+00:00", "2026-09-10T08:00:00+00:00")
+    calls = []
+
+    def fake_run(command, _label):
+        calls.append(command)
+        destination = Path(command[command.index('--output') + 1])
+        (destination / 'integrity_report.json').write_text(json.dumps({'generated_at': now.isoformat()}))
+        return 0
+
+    monkeypatch.setattr(maintenance, 'run_with_heartbeat', fake_run)
+    assert maintenance.run_maintenance(now=now, force=True) == 0
+    assert len(calls) == 1
+    assert calls[0][2] == 'evaluate_shadow_forward.py'
+
+
 def test_failed_task_is_retried_because_success_time_is_not_advanced(
     tmp_path, monkeypatch
 ):

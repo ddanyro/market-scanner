@@ -1,21 +1,29 @@
 # Cercetare shadow separată de actualizarea dashboardului
 
 Actualizările `portfolio`, `all`, `international` și workflow-ul dashboardului
-colectează în continuare snapshoturi. Nu pornesc evaluările forward și nu așteaptă
+colectează cel mult un snapshot Enhanced pe zi UTC, verificând și ultimul
+snapshot din R2 când este configurat. Nu pornesc evaluările forward și nu așteaptă
 cercetarea înainte de sincronizare/publicare, inclusiv la reunirea ledgerelor Git.
+Colectarea shadow Technical Events este oprită implicit; indicatorii Technical
+Events din dashboard rămân activi. Istoricul și rapoartele existente se păstrează.
 
 ## Pornire manuală
 
 Din directorul proiectului:
 
 ```bash
-bash run_shadow_research.sh --only technical
+bash run_shadow_research.sh
 bash run_shadow_research.sh --only enhanced
 ```
 
-Fără `--only`, sunt verificate ambele evaluări. Cadența existentă rămâne: Technical
-Events la 168 de ore, Enhanced la 24 de ore, raportat la ultima reușită. Acesta
-este un filtru la pornirea manuală, **nu un programator instalat în fundal**.
+Fără `--only`, este verificată doar evaluarea Enhanced. Cadența ei este de 24
+de ore, raportat la ultima reușită. Acesta este un filtru la pornirea manuală,
+**nu un programator instalat în fundal**.
+
+Pentru cercetare Technical Events pornită explicit, colectarea poate fi activată
+cu `TECHNICAL_EVENTS_SHADOW_ENABLED=1` la actualizările viitoare, iar evaluarea
+forward se rulează cu `bash run_shadow_research.sh --only technical`. Cadența
+acesteia rămâne 168 de ore. Datele istorice se pot evalua fără colectare nouă.
 
 ```bash
 # Ignoră cadența; Technical Events reîmprospătează și prețurile.
@@ -28,10 +36,10 @@ bash run_shadow_research.sh --only technical --timeout-seconds 600
 bash run_shadow_research.sh --timeout-hours 3
 ```
 
-Limita implicită este 3600 secunde **per evaluare** (ambele pot însuma 120 minute).
+Limita implicită este 3600 secunde **per evaluare**.
 `--timeout-hours` și `--timeout-seconds` sunt alternative și nu se pot combina.
-Durata trebuie să fie pozitivă și finită. Cu `--timeout-hours 3`, ambele evaluări
-pot însuma până la 6 ore. Dacă termină mai devreme, scriptul continuă imediat
+Durata trebuie să fie pozitivă și finită. Dacă sunt selectate explicit ambele
+evaluări, timpul maxim este suma limitelor lor. Dacă termină mai devreme, scriptul continuă imediat
 cu sincronizarea; parametrul nu impune o durată minimă.
 La expirare, noul proces și descendenții săi sunt opriți; există maximum 5 secunde
 de grație înainte de oprirea forțată. Timeout-ul nu este marcat drept succes.
