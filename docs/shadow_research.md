@@ -5,7 +5,9 @@ colectează cel mult un snapshot Enhanced pe zi UTC, verificând și ultimul
 snapshot din R2 când este configurat. Nu pornesc evaluările forward și nu așteaptă
 cercetarea înainte de sincronizare/publicare, inclusiv la reunirea ledgerelor Git.
 Colectarea shadow Technical Events este oprită implicit; indicatorii Technical
-Events din dashboard rămân activi. Istoricul și rapoartele existente se păstrează.
+Events din dashboard rămân activi. Istoricul shadow Technical Events din R2 și
+copiile locale (ledger, cache și rapoarte) au fost eliminate la 2026-11-06.
+Cache-ul Enhanced și starea indicatorilor live au fost păstrate.
 
 ## Pornire manuală
 
@@ -23,7 +25,8 @@ de ore, raportat la ultima reușită. Acesta este un filtru la pornirea manuală
 Pentru cercetare Technical Events pornită explicit, colectarea poate fi activată
 cu `TECHNICAL_EVENTS_SHADOW_ENABLED=1` la actualizările viitoare, iar evaluarea
 forward se rulează cu `bash run_shadow_research.sh --only technical`. Cadența
-acesteia rămâne 168 de ore. Datele istorice se pot evalua fără colectare nouă.
+acesteia rămâne 168 de ore. După ștergerea istoricului, este nevoie de
+snapshoturi noi pentru o analiză forward utilă.
 
 ```bash
 # Ignoră cadența; Technical Events reîmprospătează și prețurile.

@@ -347,7 +347,13 @@ git_sync_research_finish() {
             */labelled_predictions*|*/event_observations*) continue ;;
             analysis/shadow_forward_validation/*|analysis/technical_events_validation/*)
                 if git ls-files --error-unmatch -- "$path" >/dev/null 2>&1; then
-                    git add -A -- "$path" || return 1
+                    if [ -e "$path" ]; then
+                        git add -- "$path" || return 1
+                    else
+                        # git add -A warns once per file when its parent folder
+                        # was removed with the retired Technical Events reports.
+                        git update-index --force-remove -- "$path" || return 1
+                    fi
                 elif [ -f "$path" ] && ! git check-ignore -q -- "$path"; then
                     git add -- "$path" || return 1
                 fi

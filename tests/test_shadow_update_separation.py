@@ -143,6 +143,50 @@ def test_research_git_sync_preserves_portfolio_and_excludes_private_cache(tmp_pa
     assert len(trace.read_text().splitlines()) == 1
 
 
+def test_research_sync_stages_removed_technical_report_without_missing_directory_warning(tmp_path):
+    root = Path(__file__).resolve().parents[1]
+
+    def git(*args):
+        return subprocess.check_output(['git', *args], cwd=tmp_path, text=True).strip()
+
+    git('init', '-b', 'main')
+    git('config', 'user.name', 'Research Test')
+    git('config', 'user.email', 'research@example.invalid')
+    technical = tmp_path / 'analysis/technical_events_validation/technical_events_validation_report.md'
+    enhanced = tmp_path / 'analysis/shadow_forward_validation/forward_validation_report.md'
+    technical.parent.mkdir(parents=True)
+    enhanced.parent.mkdir(parents=True)
+    technical.write_text('old technical report')
+    enhanced.write_text('old enhanced report')
+    git('add', '.')
+    git('commit', '-m', 'initial')
+    remote = tmp_path / 'remote.git'
+    subprocess.run(['git', 'init', '--bare', str(remote)], check=True, capture_output=True)
+    git('remote', 'add', 'origin', str(remote))
+    git('push', '-u', 'origin', 'main')
+
+    technical.unlink()
+    technical.parent.rmdir()
+    enhanced.write_text('new enhanced report')
+    bindir = tmp_path / 'bin'
+    bindir.mkdir()
+    gh = bindir / 'gh'
+    gh.write_text('#!/bin/bash\nexit 0\n')
+    gh.chmod(0o755)
+    result = subprocess.run(
+        ['bash', '-e', '-c', 'source "$1"; git_sync_research_finish', 'test', str(root / 'update_git_sync.sh')],
+        cwd=tmp_path, env=dict(os.environ, PATH=f'{bindir}:{os.environ["PATH"]}'),
+        capture_output=True, text=True, timeout=15,
+    )
+    assert result.returncode == 0, result.stderr
+    assert 'could not open directory' not in result.stderr
+    assert git('show', 'origin/main:analysis/shadow_forward_validation/forward_validation_report.md') == 'new enhanced report'
+    assert subprocess.run(
+        ['git', 'cat-file', '-e', 'origin/main:analysis/technical_events_validation/technical_events_validation_report.md'],
+        cwd=tmp_path, capture_output=True,
+    ).returncode != 0
+
+
 def test_git_merge_refresh_only_updates_collection_report(tmp_path):
     root = Path(__file__).resolve().parents[1]
     python = tmp_path / 'python'
