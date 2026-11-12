@@ -367974,16 +367974,16 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Trucking",
     "Instrument_Metadata": {
-      "market": "Rom\u00e2nia / BVB",
-      "country": "RO",
-      "exchange": "BVB",
-      "security_type": "STK",
-      "currency": "RON",
       "contract_id": 813325621,
+      "country": "RO",
+      "currency": "RON",
+      "exchange": "BVB",
+      "market": "Rom\u00e2nia / BVB",
+      "options_supported": false,
       "sections": [
         "STK"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Last_Turnover_RON": 64474.2,
@@ -368001,6 +368001,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;market_not_usa;option_chain_not_advertised",
@@ -368058,10 +368061,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 72.76,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 72.76
   },
   {
     "ATR_14": 0.13,
@@ -368816,16 +368816,16 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Aerospace & Defense",
     "Instrument_Metadata": {
-      "market": "Rom\u00e2nia / BVB",
-      "country": "RO",
-      "exchange": "BVB",
-      "security_type": "STK",
-      "currency": "RON",
       "contract_id": 813325760,
+      "country": "RO",
+      "currency": "RON",
+      "exchange": "BVB",
+      "market": "Rom\u00e2nia / BVB",
+      "options_supported": false,
       "sections": [
         "STK"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Last_Turnover_RON": 28443.95,
@@ -368843,6 +368843,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "market_not_usa;option_chain_not_advertised",
@@ -368900,10 +368903,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 71.69,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 71.69
   },
   {
     "ATR_14": 0.29,
@@ -369658,16 +369658,16 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Financial Data & ...",
     "Instrument_Metadata": {
-      "market": "Rom\u00e2nia / BVB",
-      "country": "RO",
-      "exchange": "BVB",
-      "security_type": "STK",
-      "currency": "RON",
       "contract_id": 813325727,
+      "country": "RO",
+      "currency": "RON",
+      "exchange": "BVB",
+      "market": "Rom\u00e2nia / BVB",
+      "options_supported": false,
       "sections": [
         "STK"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Last_Turnover_RON": 156597.6,
@@ -369685,6 +369685,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "market_not_usa;option_chain_not_advertised",
@@ -369742,10 +369745,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 100.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.04,
@@ -370482,14 +370482,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Information Techn...",
     "Instrument_Metadata": {
-      "market": "Rom\u00e2nia / BVB",
-      "country": "RO",
-      "exchange": "BVB",
-      "security_type": "STK",
-      "currency": "RON",
       "contract_id": null,
-      "sections": [],
+      "country": "RO",
+      "currency": "RON",
+      "exchange": "BVB",
+      "market": "Rom\u00e2nia / BVB",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Last_Turnover_RON": 197857.5,
@@ -370507,6 +370507,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;market_not_usa;option_chain_not_advertised",
@@ -370564,10 +370567,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.01,
@@ -371304,14 +371304,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Specialty Busines...",
     "Instrument_Metadata": {
-      "market": "Rom\u00e2nia / BVB",
-      "country": "RO",
-      "exchange": "BVB",
-      "security_type": "STK",
-      "currency": "RON",
       "contract_id": null,
-      "sections": [],
+      "country": "RO",
+      "currency": "RON",
+      "exchange": "BVB",
+      "market": "Rom\u00e2nia / BVB",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Last_Turnover_RON": 20078.87,
@@ -371329,6 +371329,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "market_not_usa;option_chain_not_advertised",
@@ -371386,10 +371389,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.0,
@@ -372144,16 +372144,16 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Software - Applic...",
     "Instrument_Metadata": {
-      "market": "Rom\u00e2nia / BVB",
-      "country": "RO",
-      "exchange": "BVB",
-      "security_type": "STK",
-      "currency": "RON",
       "contract_id": 813325518,
+      "country": "RO",
+      "currency": "RON",
+      "exchange": "BVB",
+      "market": "Rom\u00e2nia / BVB",
+      "options_supported": false,
       "sections": [
         "STK"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
     "Last_Turnover_RON": 217755.21,
@@ -372171,6 +372171,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "market_not_usa;option_chain_not_advertised",
@@ -372228,10 +372231,7 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 75.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   },
   {
     "ATR_14": 0.12,
@@ -372968,14 +372968,14 @@
     "IBKR_Snapshot_Groups": {},
     "Industry": "Consumer Electronics",
     "Instrument_Metadata": {
-      "market": "Rom\u00e2nia / BVB",
-      "country": "RO",
-      "exchange": "BVB",
-      "security_type": "STK",
-      "currency": "RON",
       "contract_id": null,
-      "sections": [],
+      "country": "RO",
+      "currency": "RON",
+      "exchange": "BVB",
+      "market": "Rom\u00e2nia / BVB",
       "options_supported": null,
+      "sections": [],
+      "security_type": "STK",
       "source": "LOCAL_CANONICAL_SYMBOL"
     },
     "Last_Turnover_RON": 3961.0,
@@ -372993,6 +372993,9 @@
     "Options_Collection_Eligible": false,
     "Options_Collection_Rank": null,
     "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
     "Options_Data_Available": false,
     "Options_Data_Partial": false,
     "Options_Eligibility_Reason": "decision_not_buy_or_wait;market_not_usa;option_chain_not_advertised",
@@ -373050,9 +373053,6 @@
     "score_version": "ibkr-enhanced-v1-shadow",
     "technical_score": 50.0,
     "volatility_regime": "calm",
-    "volatility_score": 75.0,
-    "Options_Context": {
-      "score_available": false
-    }
+    "volatility_score": 75.0
   }
 ]
