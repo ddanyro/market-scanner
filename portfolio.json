@@ -8,8 +8,8 @@
     "History_Ticker": "TVBETETF.RO",
     "Company_Name": "FDI ETF BET PATRIA TRADEVILE",
     "Shares": 703,
-    "Current_Price": 10.97,
-    "Price_Native": 58.65,
+    "Current_Price": 10.96,
+    "Price_Native": 58.6,
     "Currency": "RON",
     "Contract_ID": 813325574,
     "Asset_Class": null,
@@ -20,27 +20,27 @@
     "Target": 11.74,
     "Trail_Stop": 10.58,
     "Suggested_Stop": 10.6,
-    "ATR_Native": 0.998572,
+    "ATR_Native": 0.967857,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
     "Trail_Pct": 0.0,
     "Investment": 7628.34,
     "Entry_Date": "2026-10-05",
-    "Current_Value": 7713.21,
-    "Profit": 84.86,
-    "Profit_Pct": 1.11,
+    "Current_Value": 7706.63,
+    "Profit": 78.29,
+    "Profit_Pct": 1.03,
     "Max_Profit": 622.75,
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 52.21,
+    "RSI": 53.25,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 58.6 > SMA200 53.4), RSI 52, Risk 3.6%",
-    "RS_vs_SPX": -4.98,
+    "Sell_Reason": "Trend UP (P 58.6 > SMA200 53.5), RSI 53, Risk 3.5%",
+    "RS_vs_SPX": -4.49,
     "Chart_History": [
       6.6838,
       6.6487,
@@ -317,7 +317,8 @@
       10.8409,
       10.8989,
       10.9195,
-      10.9382
+      10.9382,
+      10.9625
     ],
     "Chart_Dates": [
       "2025-10-06",
@@ -595,7 +596,8 @@
       "2026-11-09",
       "2026-11-10",
       "2026-11-11",
-      "2026-11-12"
+      "2026-11-12",
+      "2026-11-13"
     ],
     "Chart_OHLC": [
       {
@@ -788,11 +790,11 @@
         "open": 7.1477
       },
       {
+        "close": 7.2379,
         "date": "2025-11-12",
-        "open": 7.2453,
         "high": 7.2959,
         "low": 7.2061,
-        "close": 7.2379
+        "open": 7.2453
       },
       {
         "date": "2025-11-13",
@@ -2529,20 +2531,27 @@
         "high": 11.0111,
         "low": 10.9438,
         "close": 10.9382
+      },
+      {
+        "date": "2026-11-13",
+        "open": 10.9943,
+        "high": 11.0036,
+        "low": 10.8877,
+        "close": 10.9625
       }
     ],
-    "Daily_Change": 0.0187,
-    "Date": "2026-11-13 05:03",
+    "Daily_Change": 0.0243,
+    "Date": "2026-11-13 12:56",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-11-13T03:03:02+00:00",
+    "Earnings_Fetched_At": "2026-11-13T10:56:49+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-11-13T03:03:02+00:00",
-    "Market_Data_Observed_At": "2026-11-12T00:00:00+00:00",
+    "Market_Data_Fetched_At": "2026-11-13T10:56:49+00:00",
+    "Market_Data_Observed_At": "2026-11-13T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
     "Execution_Brokers": [
@@ -2551,7 +2560,7 @@
     "IBKR_Data_Only": false,
     "IBKR_Snapshot_Groups": {},
     "Valuation_Source": "Tradeville snapshot",
-    "Valuation_As_Of": "2026-11-12T09:08:59.101Z",
+    "Valuation_As_Of": "2026-11-13T10:56:16.089Z",
     "Market": "Rom\u00e2nia / BVB",
     "Country": "EU",
     "Exchange": "BVB",
@@ -2586,8 +2595,8 @@
     "History_Ticker": "TVBETETF.RO",
     "Company_Name": "FDI ETF BET PATRIA TRADEVILE",
     "Shares": 2286,
-    "Current_Price": 10.97,
-    "Price_Native": 58.65,
+    "Current_Price": 10.96,
+    "Price_Native": 58.6,
     "Currency": "RON",
     "Contract_ID": 813325574,
     "Asset_Class": null,
@@ -2598,27 +2607,27 @@
     "Target": 11.74,
     "Trail_Stop": 10.58,
     "Suggested_Stop": 10.6,
-    "ATR_Native": 0.998572,
+    "ATR_Native": 0.967857,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
     "Trail_Pct": 0.0,
     "Investment": 24898.24,
     "Entry_Date": "2026-10-02",
-    "Current_Value": 25081.64,
-    "Profit": 183.4,
-    "Profit_Pct": 0.74,
+    "Current_Value": 25060.26,
+    "Profit": 162.02,
+    "Profit_Pct": 0.65,
     "Max_Profit": 1932.49,
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 52.21,
+    "RSI": 53.25,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Normal",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 58.6 > SMA200 53.4), RSI 52, Risk 3.6%",
-    "RS_vs_SPX": -4.98,
+    "Sell_Reason": "Trend UP (P 58.6 > SMA200 53.5), RSI 53, Risk 3.5%",
+    "RS_vs_SPX": -4.49,
     "Chart_History": [
       6.6838,
       6.6487,
@@ -2895,7 +2904,8 @@
       10.8409,
       10.8989,
       10.9195,
-      10.9382
+      10.9382,
+      10.9625
     ],
     "Chart_Dates": [
       "2025-10-06",
@@ -3173,7 +3183,8 @@
       "2026-11-09",
       "2026-11-10",
       "2026-11-11",
-      "2026-11-12"
+      "2026-11-12",
+      "2026-11-13"
     ],
     "Chart_OHLC": [
       {
@@ -3366,11 +3377,11 @@
         "open": 7.1477
       },
       {
+        "close": 7.2379,
         "date": "2025-11-12",
-        "open": 7.2453,
         "high": 7.2959,
         "low": 7.2061,
-        "close": 7.2379
+        "open": 7.2453
       },
       {
         "date": "2025-11-13",
@@ -5107,20 +5118,27 @@
         "high": 11.0111,
         "low": 10.9438,
         "close": 10.9382
+      },
+      {
+        "date": "2026-11-13",
+        "open": 10.9943,
+        "high": 11.0036,
+        "low": 10.8877,
+        "close": 10.9625
       }
     ],
-    "Daily_Change": 0.0187,
-    "Date": "2026-11-13 05:03",
+    "Daily_Change": 0.0243,
+    "Date": "2026-11-13 12:56",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-11-13T03:03:02+00:00",
+    "Earnings_Fetched_At": "2026-11-13T10:56:49+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-11-13T03:03:02+00:00",
-    "Market_Data_Observed_At": "2026-11-12T00:00:00+00:00",
+    "Market_Data_Fetched_At": "2026-11-13T10:56:49+00:00",
+    "Market_Data_Observed_At": "2026-11-13T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
     "Execution_Brokers": [
@@ -5129,7 +5147,7 @@
     "IBKR_Data_Only": false,
     "IBKR_Snapshot_Groups": {},
     "Valuation_Source": "Tradeville snapshot",
-    "Valuation_As_Of": "2026-11-12T09:08:59.101Z",
+    "Valuation_As_Of": "2026-11-13T10:56:16.089Z",
     "Market": "Rom\u00e2nia / BVB",
     "Country": "EU",
     "Exchange": "BVB",
