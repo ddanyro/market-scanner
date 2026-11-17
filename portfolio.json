@@ -19,8 +19,8 @@
     "Buy_Price": 10.85,
     "Target": 11.74,
     "Trail_Stop": 10.58,
-    "Suggested_Stop": 10.66,
-    "ATR_Native": 0.905715,
+    "Suggested_Stop": 10.7,
+    "ATR_Native": 0.819286,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
@@ -34,13 +34,13 @@
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 55.23,
+    "RSI": 52.77,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Ridicat",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 58.8 > SMA200 53.5), RSI 55, Risk 3.9%",
-    "RS_vs_SPX": -0.64,
+    "Sell_Reason": "Trend UP (P 58.8 > SMA200 53.6), RSI 53, Risk 3.9%",
+    "RS_vs_SPX": -0.48,
     "Chart_History": [
       6.6838,
       6.6487,
@@ -319,7 +319,8 @@
       10.9199,
       10.9386,
       10.9517,
-      11.0078
+      11.0078,
+      10.961
     ],
     "Chart_Dates": [
       "2025-10-06",
@@ -599,7 +600,8 @@
       "2026-11-11",
       "2026-11-12",
       "2026-11-13",
-      "2026-11-16"
+      "2026-11-16",
+      "2026-11-17"
     ],
     "Chart_OHLC": [
       {
@@ -2547,20 +2549,27 @@
         "high": 11.0022,
         "low": 10.9068,
         "close": 11.0078
+      },
+      {
+        "date": "2026-11-17",
+        "open": 10.9966,
+        "high": 11.0022,
+        "low": 10.9442,
+        "close": 10.961
       }
     ],
-    "Daily_Change": 0.0561,
-    "Date": "2026-11-17 09:08",
+    "Daily_Change": -0.0468,
+    "Date": "2026-11-17 12:54",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-11-17T07:08:17+00:00",
+    "Earnings_Fetched_At": "2026-11-17T10:54:56+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-11-17T07:08:17+00:00",
-    "Market_Data_Observed_At": "2026-11-16T00:00:00+00:00",
+    "Market_Data_Fetched_At": "2026-11-17T10:54:56+00:00",
+    "Market_Data_Observed_At": "2026-11-17T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
     "Execution_Brokers": [
@@ -2615,8 +2624,8 @@
     "Buy_Price": 10.89,
     "Target": 11.74,
     "Trail_Stop": 10.58,
-    "Suggested_Stop": 10.66,
-    "ATR_Native": 0.905715,
+    "Suggested_Stop": 10.7,
+    "ATR_Native": 0.819286,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
@@ -2630,13 +2639,13 @@
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 55.23,
+    "RSI": 52.77,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Ridicat",
     "Sell_Decision": "HOLD",
-    "Sell_Reason": "Trend UP (P 58.8 > SMA200 53.5), RSI 55, Risk 3.9%",
-    "RS_vs_SPX": -0.64,
+    "Sell_Reason": "Trend UP (P 58.8 > SMA200 53.6), RSI 53, Risk 3.9%",
+    "RS_vs_SPX": -0.48,
     "Chart_History": [
       6.6838,
       6.6487,
@@ -2915,7 +2924,8 @@
       10.9199,
       10.9386,
       10.9517,
-      11.0078
+      11.0078,
+      10.961
     ],
     "Chart_Dates": [
       "2025-10-06",
@@ -3195,7 +3205,8 @@
       "2026-11-11",
       "2026-11-12",
       "2026-11-13",
-      "2026-11-16"
+      "2026-11-16",
+      "2026-11-17"
     ],
     "Chart_OHLC": [
       {
@@ -5143,20 +5154,27 @@
         "high": 11.0022,
         "low": 10.9068,
         "close": 11.0078
+      },
+      {
+        "date": "2026-11-17",
+        "open": 10.9966,
+        "high": 11.0022,
+        "low": 10.9442,
+        "close": 10.961
       }
     ],
-    "Daily_Change": 0.0561,
-    "Date": "2026-11-17 09:08",
+    "Daily_Change": -0.0468,
+    "Date": "2026-11-17 12:54",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-11-17T07:08:17+00:00",
+    "Earnings_Fetched_At": "2026-11-17T10:54:56+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-11-17T07:08:17+00:00",
-    "Market_Data_Observed_At": "2026-11-16T00:00:00+00:00",
+    "Market_Data_Fetched_At": "2026-11-17T10:54:56+00:00",
+    "Market_Data_Observed_At": "2026-11-17T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
     "Execution_Brokers": [
