@@ -19,8 +19,8 @@
     "Buy_Price": 10.85,
     "Target": 11.73,
     "Trail_Stop": 10.57,
-    "Suggested_Stop": 10.69,
-    "ATR_Native": 0.819286,
+    "Suggested_Stop": 10.72,
+    "ATR_Native": 0.750715,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
@@ -34,13 +34,13 @@
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 52.77,
+    "RSI": 51.87,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Ridicat",
     "Sell_Decision": "EXIT",
     "Sell_Reason": "CRITICAL: 2 Rules Active (Market Failure)",
-    "RS_vs_SPX": 0.8,
+    "RS_vs_SPX": 1.87,
     "Chart_History": [
       6.6838,
       6.6487,
@@ -320,7 +320,8 @@
       10.9343,
       10.9474,
       11.0035,
-      10.9567
+      10.9567,
+      10.9399
     ],
     "Chart_Dates": [
       "2025-10-06",
@@ -601,7 +602,8 @@
       "2026-11-12",
       "2026-11-13",
       "2026-11-16",
-      "2026-11-17"
+      "2026-11-17",
+      "2026-11-18"
     ],
     "Chart_OHLC": [
       {
@@ -815,11 +817,11 @@
         "open": 7.2962
       },
       {
+        "close": 7.3157,
         "date": "2025-11-17",
-        "open": 7.3297,
         "high": 7.4784,
         "low": 7.2746,
-        "close": 7.3157
+        "open": 7.3297
       },
       {
         "date": "2025-11-18",
@@ -2556,20 +2558,27 @@
         "high": 10.9979,
         "low": 10.9399,
         "close": 10.9567
+      },
+      {
+        "date": "2026-11-18",
+        "open": 10.9492,
+        "high": 10.9586,
+        "low": 10.9418,
+        "close": 10.9399
       }
     ],
-    "Daily_Change": -0.0468,
-    "Date": "2026-11-18 04:13",
+    "Daily_Change": -0.0168,
+    "Date": "2026-11-18 11:29",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-11-18T02:13:28+00:00",
+    "Earnings_Fetched_At": "2026-11-18T09:29:36+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-11-18T02:13:28+00:00",
-    "Market_Data_Observed_At": "2026-11-17T00:00:00+00:00",
+    "Market_Data_Fetched_At": "2026-11-18T09:29:36+00:00",
+    "Market_Data_Observed_At": "2026-11-18T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
     "Execution_Brokers": [
@@ -2624,8 +2633,8 @@
     "Buy_Price": 10.89,
     "Target": 11.73,
     "Trail_Stop": 10.57,
-    "Suggested_Stop": 10.69,
-    "ATR_Native": 0.819286,
+    "Suggested_Stop": 10.72,
+    "ATR_Native": 0.750715,
     "Finviz_ATR": null,
     "Vol_W": null,
     "Vol_M": null,
@@ -2639,13 +2648,13 @@
     "Consensus": "-",
     "Analysts": 0,
     "Status": "Neutral",
-    "RSI": 52.77,
+    "RSI": 51.87,
     "RSI_Status": "Neutral",
     "Trend": "Strong Bullish",
     "VIX_Tag": "Ridicat",
     "Sell_Decision": "EXIT",
     "Sell_Reason": "CRITICAL: 2 Rules Active (Market Failure)",
-    "RS_vs_SPX": 0.8,
+    "RS_vs_SPX": 1.87,
     "Chart_History": [
       6.6838,
       6.6487,
@@ -2925,7 +2934,8 @@
       10.9343,
       10.9474,
       11.0035,
-      10.9567
+      10.9567,
+      10.9399
     ],
     "Chart_Dates": [
       "2025-10-06",
@@ -3206,7 +3216,8 @@
       "2026-11-12",
       "2026-11-13",
       "2026-11-16",
-      "2026-11-17"
+      "2026-11-17",
+      "2026-11-18"
     ],
     "Chart_OHLC": [
       {
@@ -3420,11 +3431,11 @@
         "open": 7.2962
       },
       {
+        "close": 7.3157,
         "date": "2025-11-17",
-        "open": 7.3297,
         "high": 7.4784,
         "low": 7.2746,
-        "close": 7.3157
+        "open": 7.3297
       },
       {
         "date": "2025-11-18",
@@ -5161,20 +5172,27 @@
         "high": 10.9979,
         "low": 10.9399,
         "close": 10.9567
+      },
+      {
+        "date": "2026-11-18",
+        "open": 10.9492,
+        "high": 10.9586,
+        "low": 10.9418,
+        "close": 10.9399
       }
     ],
-    "Daily_Change": -0.0468,
-    "Date": "2026-11-18 04:13",
+    "Daily_Change": -0.0168,
+    "Date": "2026-11-18 11:29",
     "Earnings_Danger": false,
     "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
     "Next_Earnings_Date": null,
     "Days_To_Earnings": null,
     "Earnings_Source": "IBKR/instrument metadata",
-    "Earnings_Fetched_At": "2026-11-18T02:13:29+00:00",
+    "Earnings_Fetched_At": "2026-11-18T09:29:36+00:00",
     "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-11-18T02:13:29+00:00",
-    "Market_Data_Observed_At": "2026-11-17T00:00:00+00:00",
+    "Market_Data_Fetched_At": "2026-11-18T09:29:36+00:00",
+    "Market_Data_Observed_At": "2026-11-18T00:00:00+00:00",
     "Market_Data_Timing": "delayed_or_end_of_day",
     "Data_Broker": null,
     "Execution_Brokers": [
