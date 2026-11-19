@@ -230266,122 +230266,12 @@
     "volatility_score": 75.0
   },
   {
-    "Ticker": "TVBETETF.RO",
-    "History_Ticker": "TVBETETF.RO",
-    "Currency": "RON",
-    "Price": 10.9,
-    "Price_Native": 58.3,
-    "Target": null,
-    "Pct_To_Target": null,
-    "Consensus": "-",
-    "Analysts": 0,
-    "Company_Name": "ETF BET Patria-Tradeville",
-    "Industry": "ETF",
-    "Sector": "Pia\u021ba rom\u00e2neasc\u0103 / BET",
-    "Trend": "Strong Bullish",
-    "RSI": 50.03,
-    "RSI_Status": "Neutral",
     "ATR_14": 0.13,
     "ATR_Native": 0.72,
-    "Finviz_ATR": null,
-    "Vol_W": null,
-    "Vol_M": null,
-    "Stop_Loss": 10.63,
-    "SMA_50": 10.66,
-    "SMA_200": 10.04,
-    "VIX_Tag": "Ridicat",
-    "Chart_History": [
-      11.1032,
-      11.1369,
-      11.3875,
-      11.5895,
-      11.5895,
-      11.4847,
-      11.4829,
-      11.6082,
-      11.5427,
-      11.4342,
-      11.4997,
-      11.625,
-      11.524,
-      11.5203,
-      11.3519,
-      11.38,
-      11.481,
-      11.5016,
-      11.5016,
-      11.5427,
-      11.5408,
-      11.4567,
-      11.4941,
-      11.5614,
-      11.5857,
-      11.5857,
-      11.5521,
-      11.4305,
-      11.365,
-      11.2229,
-      11.0714,
-      10.6506,
-      10.847,
-      10.9012,
-      11.0396,
-      10.9087,
-      10.9349,
-      10.9068,
-      10.7049,
-      10.5309,
-      10.5104,
-      10.4711,
-      10.2953,
-      9.9886,
-      10.0933,
-      10.4038,
-      10.1139,
-      10.1158,
-      9.9418,
-      9.738,
-      9.9493,
-      9.7922,
-      9.6987,
-      9.8857,
-      10.0503,
-      10.271,
-      10.6899,
-      10.7909,
-      10.6862,
-      10.6974,
-      10.602,
-      10.6357,
-      10.7011,
-      10.7685,
-      10.9461,
-      11.0359,
-      11.1911,
-      11.2173,
-      11.1818,
-      11.0733,
-      10.9592,
-      10.9087,
-      10.9162,
-      11.0527,
-      11.0733,
-      11.1593,
-      11.0976,
-      11.0434,
-      11.12,
-      10.9592,
-      10.8021,
-      10.8377,
-      10.8956,
-      10.9162,
-      10.9349,
-      10.948,
-      11.0041,
-      10.9573,
-      10.8938,
-      10.9031
-    ],
+    "Active_Days_20D": 20,
+    "Analysts": 0,
+    "Average_Turnover_20D_RON": 2039408.69,
+    "Avg_Volume": 68892,
     "Chart_Dates": [
       "2026-07-17",
       "2026-07-20",
@@ -230474,735 +230364,846 @@
       "2026-11-18",
       "2026-11-19"
     ],
+    "Chart_History": [
+      11.1032,
+      11.1369,
+      11.3875,
+      11.5895,
+      11.5895,
+      11.4847,
+      11.4829,
+      11.6082,
+      11.5427,
+      11.4342,
+      11.4997,
+      11.625,
+      11.524,
+      11.5203,
+      11.3519,
+      11.38,
+      11.481,
+      11.5016,
+      11.5016,
+      11.5427,
+      11.5408,
+      11.4567,
+      11.4941,
+      11.5614,
+      11.5857,
+      11.5857,
+      11.5521,
+      11.4305,
+      11.365,
+      11.2229,
+      11.0714,
+      10.6506,
+      10.847,
+      10.9012,
+      11.0396,
+      10.9087,
+      10.9349,
+      10.9068,
+      10.7049,
+      10.5309,
+      10.5104,
+      10.4711,
+      10.2953,
+      9.9886,
+      10.0933,
+      10.4038,
+      10.1139,
+      10.1158,
+      9.9418,
+      9.738,
+      9.9493,
+      9.7922,
+      9.6987,
+      9.8857,
+      10.0503,
+      10.271,
+      10.6899,
+      10.7909,
+      10.6862,
+      10.6974,
+      10.602,
+      10.6357,
+      10.7011,
+      10.7685,
+      10.9461,
+      11.0359,
+      11.1911,
+      11.2173,
+      11.1818,
+      11.0733,
+      10.9592,
+      10.9087,
+      10.9162,
+      11.0527,
+      11.0733,
+      11.1593,
+      11.0976,
+      11.0434,
+      11.12,
+      10.9592,
+      10.8021,
+      10.8377,
+      10.8956,
+      10.9162,
+      10.9349,
+      10.948,
+      11.0041,
+      10.9573,
+      10.8938,
+      10.9031
+    ],
     "Chart_OHLC": [
       {
+        "close": 11.1032,
         "date": "2026-07-17",
-        "open": 11.1537,
         "high": 11.1537,
         "low": 11.0995,
-        "close": 11.1032
+        "open": 11.1537
       },
       {
+        "close": 11.1369,
         "date": "2026-07-20",
-        "open": 11.15,
         "high": 11.193,
         "low": 11.0752,
-        "close": 11.1369
+        "open": 11.15
       },
       {
+        "close": 11.3875,
         "date": "2026-07-21",
-        "open": 11.193,
         "high": 11.5016,
         "low": 11.1874,
-        "close": 11.3875
+        "open": 11.193
       },
       {
+        "close": 11.5895,
         "date": "2026-07-22",
-        "open": 11.4455,
         "high": 11.6306,
         "low": 11.4455,
-        "close": 11.5895
+        "open": 11.4455
       },
       {
+        "close": 11.5895,
         "date": "2026-07-23",
-        "open": 11.6231,
         "high": 11.7185,
         "low": 11.5801,
-        "close": 11.5895
+        "open": 11.6231
       },
       {
+        "close": 11.4847,
         "date": "2026-07-24",
-        "open": 11.6549,
         "high": 11.7335,
         "low": 11.539,
-        "close": 11.4847
+        "open": 11.6549
       },
       {
+        "close": 11.4829,
         "date": "2026-07-27",
-        "open": 11.5203,
         "high": 11.5857,
         "low": 11.4754,
-        "close": 11.4829
+        "open": 11.5203
       },
       {
+        "close": 11.6082,
         "date": "2026-07-28",
-        "open": 11.567,
         "high": 11.6736,
         "low": 11.567,
-        "close": 11.6082
+        "open": 11.567
       },
       {
+        "close": 11.5427,
         "date": "2026-07-29",
-        "open": 11.6512,
         "high": 11.6811,
         "low": 11.5483,
-        "close": 11.5427
+        "open": 11.6512
       },
       {
+        "close": 11.4342,
         "date": "2026-07-30",
-        "open": 11.5951,
         "high": 11.6156,
         "low": 11.2023,
-        "close": 11.4342
+        "open": 11.5951
       },
       {
+        "close": 11.4997,
         "date": "2026-07-31",
-        "open": 11.4623,
         "high": 11.5334,
         "low": 11.3894,
-        "close": 11.4997
+        "open": 11.4623
       },
       {
+        "close": 11.625,
         "date": "2026-08-03",
-        "open": 11.5614,
         "high": 11.6643,
         "low": 11.5614,
-        "close": 11.625
+        "open": 11.5614
       },
       {
+        "close": 11.524,
         "date": "2026-08-04",
-        "open": 11.625,
         "high": 11.7017,
         "low": 11.5932,
-        "close": 11.524
+        "open": 11.625
       },
       {
+        "close": 11.5203,
         "date": "2026-08-05",
-        "open": 11.5932,
         "high": 11.653,
         "low": 11.5203,
-        "close": 11.5203
+        "open": 11.5932
       },
       {
+        "close": 11.3519,
         "date": "2026-08-06",
-        "open": 11.5315,
         "high": 11.5558,
         "low": 11.3127,
-        "close": 11.3519
+        "open": 11.5315
       },
       {
+        "close": 11.38,
         "date": "2026-08-07",
-        "open": 11.3894,
         "high": 11.6848,
         "low": 11.3351,
-        "close": 11.38
+        "open": 11.3894
       },
       {
+        "close": 11.481,
         "date": "2026-08-10",
-        "open": 11.3968,
         "high": 11.6474,
         "low": 11.3968,
-        "close": 11.481
+        "open": 11.3968
       },
       {
+        "close": 11.5016,
         "date": "2026-08-11",
-        "open": 11.5539,
         "high": 11.5951,
         "low": 11.5016,
-        "close": 11.5016
+        "open": 11.5539
       },
       {
+        "close": 11.5016,
         "date": "2026-08-12",
-        "open": 11.5334,
         "high": 11.5876,
         "low": 11.5053,
-        "close": 11.5016
+        "open": 11.5334
       },
       {
+        "close": 11.5427,
         "date": "2026-08-13",
-        "open": 11.5764,
         "high": 11.6456,
         "low": 11.5614,
-        "close": 11.5427
+        "open": 11.5764
       },
       {
+        "close": 11.5408,
         "date": "2026-08-14",
-        "open": 11.5988,
         "high": 11.6287,
         "low": 11.5408,
-        "close": 11.5408
+        "open": 11.5988
       },
       {
+        "close": 11.4567,
         "date": "2026-08-17",
-        "open": 11.5408,
         "high": 11.5969,
         "low": 11.4978,
-        "close": 11.4567
+        "open": 11.5408
       },
       {
+        "close": 11.4941,
         "date": "2026-08-18",
-        "open": 11.5165,
         "high": 11.5857,
         "low": 11.3856,
-        "close": 11.4941
+        "open": 11.5165
       },
       {
+        "close": 11.5614,
         "date": "2026-08-19",
-        "open": 11.5764,
         "high": 11.6325,
         "low": 11.5184,
-        "close": 11.5614
+        "open": 11.5764
       },
       {
+        "close": 11.5857,
         "date": "2026-08-20",
-        "open": 11.5913,
         "high": 11.64,
         "low": 11.5857,
-        "close": 11.5857
+        "open": 11.5913
       },
       {
+        "close": 11.5857,
         "date": "2026-08-21",
-        "open": 11.6044,
         "high": 11.6418,
         "low": 11.5857,
-        "close": 11.5857
+        "open": 11.6044
       },
       {
+        "close": 11.5521,
         "date": "2026-08-24",
-        "open": 11.6213,
         "high": 11.6474,
         "low": 11.5913,
-        "close": 11.5521
+        "open": 11.6213
       },
       {
+        "close": 11.4305,
         "date": "2026-08-25",
-        "open": 11.6456,
         "high": 11.6512,
         "low": 11.481,
-        "close": 11.4305
+        "open": 11.6456
       },
       {
+        "close": 11.365,
         "date": "2026-08-26",
-        "open": 11.4922,
         "high": 11.5016,
         "low": 11.4081,
-        "close": 11.365
+        "open": 11.4922
       },
       {
+        "close": 11.2229,
         "date": "2026-08-27",
-        "open": 11.3987,
         "high": 11.4268,
         "low": 11.2547,
-        "close": 11.2229
+        "open": 11.3987
       },
       {
+        "close": 11.0714,
         "date": "2026-08-28",
-        "open": 11.2248,
         "high": 11.2921,
         "low": 11.0583,
-        "close": 11.0714
+        "open": 11.2248
       },
       {
+        "close": 10.6506,
         "date": "2026-08-31",
-        "open": 11.1387,
         "high": 11.1649,
         "low": 10.2878,
-        "close": 10.6506
+        "open": 11.1387
       },
       {
+        "close": 10.847,
         "date": "2026-09-01",
-        "open": 10.6712,
         "high": 11.0041,
         "low": 10.5852,
-        "close": 10.847
+        "open": 10.6712
       },
       {
+        "close": 10.9012,
         "date": "2026-09-02",
-        "open": 10.9386,
         "high": 11.1818,
         "low": 10.9125,
-        "close": 10.9012
+        "open": 10.9386
       },
       {
+        "close": 11.0396,
         "date": "2026-09-03",
-        "open": 11.0265,
         "high": 11.1126,
         "low": 10.9966,
-        "close": 11.0396
+        "open": 11.0265
       },
       {
+        "close": 10.9087,
         "date": "2026-09-04",
-        "open": 11.1425,
         "high": 11.1836,
         "low": 10.948,
-        "close": 10.9087
+        "open": 11.1425
       },
       {
+        "close": 10.9349,
         "date": "2026-09-07",
-        "open": 11.0303,
         "high": 11.0733,
         "low": 10.933,
-        "close": 10.9349
+        "open": 11.0303
       },
       {
+        "close": 10.9068,
         "date": "2026-09-08",
-        "open": 11.0097,
         "high": 11.0733,
         "low": 10.9031,
-        "close": 10.9068
+        "open": 11.0097
       },
       {
+        "close": 10.7049,
         "date": "2026-09-09",
-        "open": 10.9218,
         "high": 10.9947,
         "low": 10.7535,
-        "close": 10.7049
+        "open": 10.9218
       },
       {
+        "close": 10.5309,
         "date": "2026-09-10",
-        "open": 10.7628,
         "high": 10.847,
         "low": 10.5665,
-        "close": 10.5309
+        "open": 10.7628
       },
       {
+        "close": 10.5104,
         "date": "2026-09-11",
-        "open": 10.5796,
         "high": 10.6095,
         "low": 10.1363,
-        "close": 10.5104
+        "open": 10.5796
       },
       {
+        "close": 10.4711,
         "date": "2026-09-14",
-        "open": 10.5104,
         "high": 10.6095,
         "low": 10.473,
-        "close": 10.4711
+        "open": 10.5104
       },
       {
+        "close": 10.2953,
         "date": "2026-09-15",
-        "open": 10.5646,
         "high": 10.6188,
         "low": 10.2691,
-        "close": 10.2953
+        "open": 10.5646
       },
       {
+        "close": 9.9886,
         "date": "2026-09-16",
-        "open": 10.2972,
         "high": 10.3944,
         "low": 9.7997,
-        "close": 9.9886
+        "open": 10.2972
       },
       {
+        "close": 10.0933,
         "date": "2026-09-17",
-        "open": 10.0054,
         "high": 10.1176,
         "low": 9.6314,
-        "close": 10.0933
+        "open": 10.0054
       },
       {
+        "close": 10.4038,
         "date": "2026-09-18",
-        "open": 10.1981,
         "high": 10.5515,
         "low": 10.1981,
-        "close": 10.4038
+        "open": 10.1981
       },
       {
+        "close": 10.1139,
         "date": "2026-09-21",
-        "open": 10.4917,
         "high": 10.5459,
         "low": 10.1419,
-        "close": 10.1139
+        "open": 10.4917
       },
       {
+        "close": 10.1158,
         "date": "2026-09-22",
-        "open": 10.1438,
         "high": 10.1438,
         "low": 9.9493,
-        "close": 10.1158
+        "open": 10.1438
       },
       {
+        "close": 9.9418,
         "date": "2026-09-23",
-        "open": 10.0896,
         "high": 10.1158,
         "low": 9.867,
-        "close": 9.9418
+        "open": 10.0896
       },
       {
+        "close": 9.738,
         "date": "2026-09-24",
-        "open": 9.9119,
         "high": 10.0241,
         "low": 9.6314,
-        "close": 9.738
+        "open": 9.9119
       },
       {
+        "close": 9.9493,
         "date": "2026-09-25",
-        "open": 9.6333,
         "high": 9.9662,
         "low": 9.6314,
-        "close": 9.9493
+        "open": 9.6333
       },
       {
+        "close": 9.7922,
         "date": "2026-09-28",
-        "open": 9.9456,
         "high": 10.1083,
         "low": 9.7436,
-        "close": 9.7922
+        "open": 9.9456
       },
       {
+        "close": 9.6987,
         "date": "2026-09-29",
-        "open": 9.7997,
         "high": 9.8091,
         "low": 9.5341,
-        "close": 9.6987
+        "open": 9.7997
       },
       {
+        "close": 9.8857,
         "date": "2026-09-30",
-        "open": 9.594,
         "high": 10.0054,
         "low": 9.5379,
-        "close": 9.8857
+        "open": 9.594
       },
       {
+        "close": 10.0503,
         "date": "2026-10-01",
-        "open": 9.8839,
         "high": 10.1794,
         "low": 9.8839,
-        "close": 10.0503
+        "open": 9.8839
       },
       {
+        "close": 10.271,
         "date": "2026-10-02",
-        "open": 10.0896,
         "high": 10.4711,
         "low": 10.0896,
-        "close": 10.271
+        "open": 10.0896
       },
       {
+        "close": 10.6899,
         "date": "2026-10-05",
-        "open": 10.5571,
         "high": 10.7666,
         "low": 10.5571,
-        "close": 10.6899
+        "open": 10.5571
       },
       {
+        "close": 10.7909,
         "date": "2026-10-06",
-        "open": 10.7535,
         "high": 11.0116,
         "low": 10.5665,
-        "close": 10.7909
+        "open": 10.7535
       },
       {
+        "close": 10.6862,
         "date": "2026-10-07",
-        "open": 10.8433,
         "high": 10.8638,
         "low": 10.7105,
-        "close": 10.6862
+        "open": 10.8433
       },
       {
+        "close": 10.6974,
         "date": "2026-10-08",
-        "open": 10.7404,
         "high": 10.804,
         "low": 10.688,
-        "close": 10.6974
+        "open": 10.7404
       },
       {
+        "close": 10.602,
         "date": "2026-10-09",
-        "open": 10.718,
         "high": 10.7273,
         "low": 10.5702,
-        "close": 10.602
+        "open": 10.718
       },
       {
+        "close": 10.6357,
         "date": "2026-10-12",
-        "open": 10.6974,
         "high": 10.7535,
         "low": 10.6357,
-        "close": 10.6357
+        "open": 10.6974
       },
       {
+        "close": 10.7011,
         "date": "2026-10-13",
-        "open": 10.6581,
         "high": 10.7423,
         "low": 10.6357,
-        "close": 10.7011
+        "open": 10.6581
       },
       {
+        "close": 10.7685,
         "date": "2026-10-14",
-        "open": 10.7142,
         "high": 10.8433,
         "low": 10.7011,
-        "close": 10.7685
+        "open": 10.7142
       },
       {
+        "close": 10.9461,
         "date": "2026-10-15",
-        "open": 10.8433,
         "high": 11.034,
         "low": 10.8358,
-        "close": 10.9461
+        "open": 10.8433
       },
       {
+        "close": 11.0359,
         "date": "2026-10-16",
-        "open": 11.034,
         "high": 11.1668,
         "low": 11.0153,
-        "close": 11.0359
+        "open": 11.034
       },
       {
+        "close": 11.1911,
         "date": "2026-10-19",
-        "open": 11.1219,
         "high": 11.2192,
         "low": 11.1219,
-        "close": 11.1911
+        "open": 11.1219
       },
       {
+        "close": 11.2173,
         "date": "2026-10-20",
-        "open": 11.2659,
         "high": 11.3594,
         "low": 11.2023,
-        "close": 11.2173
+        "open": 11.2659
       },
       {
+        "close": 11.1818,
         "date": "2026-10-21",
-        "open": 11.279,
         "high": 11.322,
         "low": 10.9368,
-        "close": 11.1818
+        "open": 11.279
       },
       {
+        "close": 11.0733,
         "date": "2026-10-22",
-        "open": 11.221,
         "high": 11.2397,
         "low": 11.034,
-        "close": 11.0733
+        "open": 11.221
       },
       {
+        "close": 10.9592,
         "date": "2026-10-23",
-        "open": 11.12,
         "high": 11.12,
         "low": 10.9573,
-        "close": 10.9592
+        "open": 11.12
       },
       {
+        "close": 10.9087,
         "date": "2026-10-26",
-        "open": 11.0191,
         "high": 11.1369,
         "low": 10.9405,
-        "close": 10.9087
+        "open": 11.0191
       },
       {
+        "close": 10.9162,
         "date": "2026-10-27",
-        "open": 10.9779,
         "high": 11.0116,
         "low": 10.7535,
-        "close": 10.9162
+        "open": 10.9779
       },
       {
+        "close": 11.0527,
         "date": "2026-10-28",
-        "open": 10.9405,
         "high": 11.2061,
         "low": 10.9218,
-        "close": 11.0527
+        "open": 10.9405
       },
       {
+        "close": 11.0733,
         "date": "2026-10-29",
-        "open": 11.0527,
         "high": 11.1743,
         "low": 10.9779,
-        "close": 11.0733
+        "open": 11.0527
       },
       {
+        "close": 11.1593,
         "date": "2026-10-30",
-        "open": 11.1257,
         "high": 11.1818,
         "low": 11.006,
-        "close": 11.1593
+        "open": 11.1257
       },
       {
+        "close": 11.0976,
         "date": "2026-11-02",
-        "open": 11.1369,
         "high": 11.2042,
         "low": 11.1275,
-        "close": 11.0976
+        "open": 11.1369
       },
       {
+        "close": 11.0434,
         "date": "2026-11-03",
-        "open": 11.1668,
         "high": 11.1855,
         "low": 11.034,
-        "close": 11.0434
+        "open": 11.1668
       },
       {
+        "close": 11.12,
         "date": "2026-11-04",
-        "open": 11.0396,
         "high": 11.2005,
         "low": 10.9966,
-        "close": 11.12
+        "open": 11.0396
       },
       {
+        "close": 10.9592,
         "date": "2026-11-05",
-        "open": 11.1649,
         "high": 11.2117,
         "low": 10.9779,
-        "close": 10.9592
+        "open": 11.1649
       },
       {
+        "close": 10.8021,
         "date": "2026-11-06",
-        "open": 10.9891,
         "high": 10.9891,
         "low": 10.7666,
-        "close": 10.8021
+        "open": 10.9891
       },
       {
+        "close": 10.8377,
         "date": "2026-11-09",
-        "open": 10.9106,
         "high": 10.9873,
         "low": 10.8694,
-        "close": 10.8377
+        "open": 10.9106
       },
       {
+        "close": 10.8956,
         "date": "2026-11-10",
-        "open": 10.9031,
         "high": 11.0303,
         "low": 10.9031,
-        "close": 10.8956
+        "open": 10.9031
       },
       {
+        "close": 10.9162,
         "date": "2026-11-11",
-        "open": 10.9966,
         "high": 11.0359,
         "low": 10.9405,
-        "close": 10.9162
+        "open": 10.9966
       },
       {
+        "close": 10.9349,
         "date": "2026-11-12",
-        "open": 10.976,
         "high": 11.0078,
         "low": 10.9405,
-        "close": 10.9349
+        "open": 10.976
       },
       {
+        "close": 10.948,
         "date": "2026-11-13",
-        "open": 10.991,
         "high": 11.0004,
         "low": 10.8844,
-        "close": 10.948
+        "open": 10.991
       },
       {
+        "close": 11.0041,
         "date": "2026-11-16",
-        "open": 10.9985,
         "high": 10.9985,
         "low": 10.9031,
-        "close": 11.0041
+        "open": 10.9985
       },
       {
+        "close": 10.9573,
         "date": "2026-11-17",
-        "open": 10.9929,
         "high": 10.9985,
         "low": 10.9405,
-        "close": 10.9573
+        "open": 10.9929
       },
       {
+        "close": 10.8938,
         "date": "2026-11-18",
-        "open": 10.9499,
         "high": 10.9592,
         "low": 10.8938,
-        "close": 10.8938
+        "open": 10.9499
       },
       {
+        "close": 10.9031,
         "date": "2026-11-19",
-        "open": 10.9293,
         "high": 10.9312,
         "low": 10.8844,
-        "close": 10.9031
+        "open": 10.9293
       }
     ],
+    "Check_Details": "\u2713 Trend (P 10.9 > SMA50 10.7) \u2713 RS (Trend: Up, Val: 0.07) \u2713 RSI (50.0) \u2713 ATR (Risk 2.5%)",
+    "Checks_Passed": 4,
+    "Company_Name": "ETF BET Patria-Tradeville",
+    "Consensus": "-",
+    "Contract_ID": 813325574,
+    "Country": "RO",
+    "Currency": "RON",
     "Daily_Change": 0.0093,
-    "RS_vs_SPX": 0.07,
-    "RS_Benchmark": "TVBETETF.RO",
-    "RS_Status": "Positive",
+    "Data_Broker": null,
+    "Date": "2026-11-20 01:04",
+    "Days_To_Earnings": null,
     "Decision": "BUY",
     "Decision_Color": "#4caf50",
-    "Checks_Passed": 4,
-    "Smart_Entry": 57.5,
-    "Smart_Entry_EUR": 10.75,
-    "Smart_Type": "LIMIT",
-    "Smart_Reason": "Local Support Test",
-    "Strategy": "Pullback",
-    "RR_Ratio": 0,
-    "Volume": 12598,
-    "Avg_Volume": 68892,
-    "Earnings_Msg": "",
-    "Earnings_Danger": false,
-    "Earnings_Status": "NOT_APPLICABLE",
     "Earnings_Available": false,
-    "Next_Earnings_Date": null,
-    "Days_To_Earnings": null,
-    "Earnings_Source": "IBKR/instrument metadata",
+    "Earnings_Danger": false,
     "Earnings_Fetched_At": "2026-11-19T23:04:27+00:00",
-    "Check_Details": "\u2713 Trend (P 10.9 > SMA50 10.7) \u2713 RS (Trend: Up, Val: 0.07) \u2713 RSI (50.0) \u2713 ATR (Risk 2.5%)",
-    "Date": "2026-11-20 01:04",
-    "Market_Data_Source": "Yahoo Finance",
-    "Market_Data_Fetched_At": "2026-11-19T23:04:27+00:00",
-    "Market_Data_Observed_At": "2026-11-19T00:00:00+00:00",
-    "Market_Data_Timing": "delayed_or_end_of_day",
-    "Data_Broker": null,
+    "Earnings_Msg": "",
+    "Earnings_Source": "IBKR/instrument metadata",
+    "Earnings_Status": "NOT_APPLICABLE",
+    "Exchange": "BVB",
     "Execution_Brokers": [
       "Tradeville"
     ],
+    "Finviz_ATR": null,
+    "History_Ticker": "TVBETETF.RO",
     "IBKR_Data_Only": false,
     "IBKR_Snapshot_Groups": {},
-    "Market": "Rom\u00e2nia / BVB",
-    "Country": "RO",
-    "Exchange": "BVB",
-    "Security_Type": "STK",
-    "Contract_ID": 813325574,
-    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
-    "Options_Supported": false,
+    "Industry": "ETF",
     "Instrument_Metadata": {
-      "market": "Rom\u00e2nia / BVB",
-      "country": "RO",
-      "exchange": "BVB",
-      "security_type": "STK",
-      "currency": "RON",
       "contract_id": 813325574,
+      "country": "RO",
+      "currency": "RON",
+      "exchange": "BVB",
+      "market": "Rom\u00e2nia / BVB",
+      "options_supported": false,
       "sections": [
         "STK"
       ],
-      "options_supported": false,
+      "security_type": "STK",
       "source": "IBKR_MCP_SEARCH_CONTRACTS"
     },
-    "Liquidity_Observations_20D": 20,
-    "Active_Days_20D": 20,
-    "Zero_Volume_Days_20D": 0,
-    "Median_Volume_20D": 33068.5,
-    "Median_Turnover_20D_RON": 1933212.9,
-    "Average_Turnover_20D_RON": 2039408.69,
     "Last_Turnover_RON": 734463.39,
+    "Liquidity_Observations_20D": 20,
+    "Market": "Rom\u00e2nia / BVB",
+    "Market_Data_Fetched_At": "2026-11-19T23:04:27+00:00",
+    "Market_Data_Observed_At": "2026-11-19T00:00:00+00:00",
+    "Market_Data_Source": "Yahoo Finance",
+    "Market_Data_Timing": "delayed_or_end_of_day",
+    "Market_Metadata_Source": "IBKR_MCP_SEARCH_CONTRACTS",
+    "Median_Turnover_20D_RON": 1933212.9,
+    "Median_Volume_20D": 33068.5,
+    "Next_Earnings_Date": null,
+    "Options_Cohort": "OPTIONS_NOT_ELIGIBLE",
+    "Options_Collection_Eligible": false,
+    "Options_Collection_Rank": null,
+    "Options_Collection_Selected": false,
+    "Options_Context": {
+      "score_available": false
+    },
+    "Options_Data_Available": false,
+    "Options_Data_Partial": false,
+    "Options_Eligibility_Reason": "market_not_usa;option_chain_not_advertised",
+    "Options_Score": null,
+    "Options_Supported": false,
+    "Pct_To_Target": null,
+    "Price": 10.9,
+    "Price_Native": 58.3,
+    "RR_Ratio": 0,
+    "RSI": 50.03,
+    "RSI_Status": "Neutral",
+    "RS_Benchmark": "TVBETETF.RO",
+    "RS_Status": "Positive",
+    "RS_vs_SPX": 0.07,
     "Relative_Volume_20D": 0.381,
-    "technical_score": 100.0,
-    "momentum_score": 64.09,
-    "research_score": 50,
-    "volatility_score": 75.0,
-    "liquidity_score": 37.62,
-    "options_score": 50.0,
-    "relative_opportunity_score": 50.0,
-    "risk_reward_score": 0.0,
-    "portfolio_fit_available": false,
-    "portfolio_fit_score": null,
-    "portfolio_adjustment_applied": false,
-    "raw_stock_score": 60.88,
-    "raw_stock_score_availability_adjusted": 62.08,
-    "options_score_observed": null,
-    "portfolio_adjusted_score": 60.88,
-    "risk_score": 56.29,
-    "volatility_regime": "calm",
+    "SMA_200": 10.04,
+    "SMA_50": 10.66,
+    "Sector": "Pia\u021ba rom\u00e2neasc\u0103 / BET",
+    "Security_Type": "STK",
+    "Smart_Entry": 57.5,
+    "Smart_Entry_EUR": 10.75,
+    "Smart_Reason": "Local Support Test",
+    "Smart_Type": "LIMIT",
+    "Stop_Loss": 10.63,
+    "Strategy": "Pullback",
+    "Target": null,
+    "Technical_Events_Ref": "watchlist:TVBETETF.RO",
+    "Ticker": "TVBETETF.RO",
+    "Trend": "Strong Bullish",
+    "VIX_Tag": "Ridicat",
+    "Vol_M": null,
+    "Vol_W": null,
+    "Volume": 12598,
+    "Zero_Volume_Days_20D": 0,
+    "_cached_at": 1795129467.9576201,
     "current_decision": "BUY",
     "enhanced_decision": "BUY",
     "enhanced_decision_reason": "",
     "enhanced_stop": 10.64,
     "enhanced_stop_distance_pct": 2.39,
+    "liquidity_score": 37.62,
+    "momentum_score": 64.09,
+    "options_score": 50.0,
+    "options_score_observed": null,
+    "portfolio_adjusted_score": 60.88,
+    "portfolio_adjustment_applied": false,
+    "portfolio_fit_available": false,
+    "portfolio_fit_score": null,
+    "raw_stock_score": 60.88,
+    "raw_stock_score_availability_adjusted": 62.08,
+    "relative_opportunity_score": 50.0,
+    "research_score": 50,
+    "risk_reward_score": 0.0,
+    "risk_score": 56.29,
     "score_version": "ibkr-enhanced-v1-shadow",
-    "_cached_at": 1795129467.9576201,
-    "Options_Collection_Eligible": false,
-    "Options_Eligibility_Reason": "market_not_usa;option_chain_not_advertised",
-    "Options_Collection_Rank": null,
-    "Options_Collection_Selected": false,
-    "Options_Data_Available": false,
-    "Options_Data_Partial": false,
-    "Options_Cohort": "OPTIONS_NOT_ELIGIBLE",
-    "Options_Context": {
-      "score_available": false
-    },
-    "Options_Score": null
+    "technical_score": 100.0,
+    "volatility_regime": "calm",
+    "volatility_score": 75.0
   }
 ]
