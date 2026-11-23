@@ -24,6 +24,27 @@ import market_scanner
 import market_security
 
 
+def test_load_portfolio_accepts_legacy_blank_csv(tmp_path):
+    path = tmp_path / 'portfolio.csv'
+    path.write_text('\n', encoding='utf-8')
+    loaded = market_scanner.load_portfolio(str(path))
+    assert loaded.empty
+    assert 'symbol' in loaded.columns
+
+
+def test_portfolio_only_clears_previous_holdings_when_csv_is_empty(tmp_path, monkeypatch):
+    path = tmp_path / 'portfolio.csv'
+    path.write_text('Symbol,Shares\n', encoding='utf-8')
+    monkeypatch.chdir(tmp_path)
+    state = {'portfolio': [{'Symbol': 'TVBETETF', 'Shares': 703}]}
+    with patch('market_scanner._prefetch_ibkr_mcp_market_data'), \
+         patch('market_scanner._refresh_bvb_proxy_from_market_data'):
+        updated = market_scanner.update_portfolio_positions_only(
+            state, {'RON': 0.2}, 17,
+        )
+    assert updated['portfolio'] == []
+
+
 class TestHistoricalMonthlyReturns(unittest.TestCase):
     @patch('market_scanner.yf.Ticker')
     def test_uses_supported_calendar_month_end_frequency(self, ticker):

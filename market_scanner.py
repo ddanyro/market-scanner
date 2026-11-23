@@ -3352,7 +3352,12 @@ def load_portfolio(filename='portfolio.csv'):
         print(f"Fișierul {filename} nu a fost găsit.")
         return pd.DataFrame()
     
-    df = pd.read_csv(filename, dtype={'Account_ID': str, 'Account': str})
+    try:
+        df = pd.read_csv(filename, dtype={'Account_ID': str, 'Account': str})
+    except pd.errors.EmptyDataError:
+        # Compatibilitate cu un CSV gol produs de versiunile anterioare.
+        print(f"Portofoliul din {filename} nu conține poziții.")
+        return pd.DataFrame(columns=['symbol'])
     # Normalizează coloanele (lowercase) pentru a evita KeyErrors
     df.columns = [c.strip().lower() for c in df.columns]
     return df

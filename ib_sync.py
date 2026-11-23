@@ -14,6 +14,13 @@ from portfolio_identity import position_key, ownership, same_owner
 
 PORTFOLIO_FILE = 'portfolio.csv'
 CONFIG_FILE = 'ibkr_config.txt'
+EMPTY_PORTFOLIO_COLUMNS = [
+    'Position_ID', 'Symbol', 'Shares', 'Investment', 'Current_Value',
+    'Profit', 'Current_Price', 'Currency', 'Trail_Pct', 'Trail_Stop_IBKR',
+    'Trail_Stop', 'Entry_Date', 'Target', 'Description', 'Broker',
+    'Account', 'Account_ID', 'Raw_Symbol', 'Market', 'Exchange',
+    'Snapshot_Timestamp', 'Source', 'Buy_Price', 'Profit_Pct',
+]
 
 
 def _remote_position_writes_are_allowed():
@@ -45,6 +52,10 @@ def _persist_portfolio_positions(frame, path=PORTFOLIO_FILE):
             "actualizează soldurile, dar nu poate șterge poziții."
         )
         return False
+    # DataFrame([]).to_csv() writes only a newline. An empty but valid
+    # portfolio must remain a parseable CSV after all positions are sold.
+    if frame.empty and len(frame.columns) == 0:
+        frame = pd.DataFrame(columns=EMPTY_PORTFOLIO_COLUMNS)
     frame.to_csv(path, index=False)
     return True
 
@@ -642,7 +653,7 @@ def sync_ibkr(allow_flex=True):
             print(f"Eroare procesare TWS Orders: {e}")
 
     # Merge cu preferințele locale indiferent dacă există ordine active.
-    if os.path.exists(PORTFOLIO_FILE):
+    if not new_df.empty and os.path.exists(PORTFOLIO_FILE):
         try:
             print("Îmbinare cu preferințele locale...")
             old_df = pd.read_csv(PORTFOLIO_FILE, dtype={'Account_ID': str, 'Account': str})

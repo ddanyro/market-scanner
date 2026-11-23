@@ -54,7 +54,32 @@ def test_same_symbol_at_ibkr_does_not_hide_tradeville(tmp_path, monkeypatch):
     assert set(saved['Broker']) == {'IBKR', 'Tradeville'}
 
 
+def test_sync_with_no_positions_writes_parseable_portfolio(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv('GITHUB_ACTIONS', 'false')
+    assert ib_sync.sync_ibkr(allow_flex=False)
+    saved = pd.read_csv('portfolio.csv')
+    assert saved.empty
+    assert {'Symbol', 'Shares', 'Broker', 'Account_ID'} <= set(saved.columns)
+
+
 class TestIBSyncPortfolioPersistence(unittest.TestCase):
+    def test_confirmed_empty_snapshot_clears_existing_positions_with_header(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, 'portfolio.csv')
+            pd.DataFrame([{'Symbol': 'TVBETETF', 'Shares': 703}]).to_csv(path, index=False)
+            self.assertTrue(ib_sync._persist_portfolio_positions(pd.DataFrame(), path))
+            saved = pd.read_csv(path)
+            self.assertTrue(saved.empty)
+            self.assertIn('Symbol', saved.columns)
+
+    def test_empty_portfolio_without_previous_file_has_a_readable_header(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, 'portfolio.csv')
+            self.assertTrue(ib_sync._persist_portfolio_positions(pd.DataFrame(), path))
+            self.assertTrue(pd.read_csv(path).empty)
+            self.assertIn('Symbol', pd.read_csv(path).columns)
+
     def test_github_flex_snapshot_cannot_remove_tracked_position(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             path = os.path.join(temp_dir, 'portfolio.csv')
