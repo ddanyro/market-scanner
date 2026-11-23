@@ -235,6 +235,27 @@ git_sync_start() {
     git pull --rebase --autostash "$SYNC_REMOTE_NAME" "$SYNC_BRANCH_NAME"
 }
 
+sync_can_publish_tws_account() {
+    # The local Keychain password can differ from the GitHub Actions secret.
+    # The tracked snapshot is known to work remotely; only replace it when
+    # the local password can also decrypt that published baseline.
+    if ! git cat-file -e HEAD:tws_account.enc.json 2>/dev/null; then
+        return 0
+    fi
+    git show HEAD:tws_account.enc.json | "$(sync_python_bin)" -c '
+import json, os, sys
+import market_security
+password = (os.environ.get("PORTFOLIO_ORDER_CACHE_PASSWORD")
+            or os.environ.get("TWS_ACCOUNT_PASSWORD")
+            or os.environ.get("PORTFOLIO_PASSWORD"))
+try:
+    payload = json.loads(market_security.decrypt_from_js(json.load(sys.stdin), password))
+except (TypeError, ValueError, KeyError):
+    sys.exit(1)
+sys.exit(0 if isinstance(payload, dict) else 1)
+'
+}
+
 git_sync_stage_generated() {
     # Keep the append-only Technical Events history, but rotate it into
     # immutable shards before Git sees a blob near GitHub's 50 MB warning.
@@ -249,6 +270,11 @@ git_sync_stage_generated() {
                     continue
                     ;;
             esac
+        fi
+        if [ "$generated_file" = "tws_account.enc.json" ] && \
+           ! sync_can_publish_tws_account; then
+            echo "Avertisment: snapshotul IBKR local are altă cheie; păstrăm copia compatibilă din GitHub." >&2
+            continue
         fi
         if [ -e "$generated_file" ]; then
             files_to_add+=("$generated_file")

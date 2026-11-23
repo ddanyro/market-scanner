@@ -1,5 +1,33 @@
 import pathlib
+import os
+import subprocess
+import sys
 import unittest
+
+import market_security
+
+
+def test_local_sync_skips_account_snapshot_with_different_key(tmp_path):
+    root = pathlib.Path(__file__).resolve().parents[1]
+    subprocess.run(['git', 'init', '-q'], cwd=tmp_path, check=True)
+    subprocess.run(['git', 'config', 'user.email', 'test@example.com'], cwd=tmp_path, check=True)
+    subprocess.run(['git', 'config', 'user.name', 'Test'], cwd=tmp_path, check=True)
+    (tmp_path / 'tws_account.enc.json').write_text(
+        market_security.encrypt_for_js('{"accounts": []}', 'published-key'),
+        encoding='utf-8',
+    )
+    subprocess.run(['git', 'add', 'tws_account.enc.json'], cwd=tmp_path, check=True)
+    subprocess.run(['git', 'commit', '-qm', 'baseline'], cwd=tmp_path, check=True)
+    command = f'source "{root / "update_git_sync.sh"}"; sync_can_publish_tws_account'
+    for password, expected in [('published-key', 0), ('different-key', 1)]:
+        result = subprocess.run(
+            ['bash', '-c', command], cwd=tmp_path,
+            env={**os.environ, 'PYTHON_BIN': sys.executable,
+                 'PYTHONPATH': str(root),
+                 'PORTFOLIO_ORDER_CACHE_PASSWORD': password},
+            capture_output=True, text=True,
+        )
+        assert result.returncode == expected
 
 
 class TestUpdatePortfolioScript(unittest.TestCase):
